@@ -3,7 +3,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
-import {assertObject, determineEndpoint} from "../lib/utils";
+import {assertObject, determineEndpoint, sleep} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -56,17 +56,6 @@ const shellyModernExtend = {
         const featurePowerstripUI = features.includes("PowerstripUI");
 
         // Generic helper functions
-        const sleepMsec = async (s: number) => {
-            return await new Promise((resolve) => setTimeout(resolve, s));
-        };
-
-        const debugLog = (message: string) => {
-            if (!featureDev) {
-                return;
-            }
-            logger.warning(message, NS);
-        };
-
         const validateTime = (value: string) => {
             const hhmmRegex = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
             if (value === undefined || !value.match(hhmmRegex)) {
@@ -82,22 +71,22 @@ const shellyModernExtend = {
             // we're not interleaving them accidentally. This is good enough for now, at least
             // until the RPC receive firmware bug is fixed by Shelly.
             while (rpcSending) {
-                await sleepMsec(200);
+                await sleep(200);
             }
             try {
                 rpcSending = true;
                 const splitBytes = 40;
 
-                debugLog(">>> shellyRPC write TxCtl");
+                logger.debug(">>> shellyRPC write TxCtl", NS);
                 const txCtl = {
                     txCtl: message.length,
                 };
                 await endpoint.write("shellyRPCCluster", txCtl, SHELLY_OPTIONS);
                 // FIXME Why does this below cause TS2353 while the above line is fine?
                 //await endpoint.write("shellyRPCCluster", {txCtl: message.length}, SHELLY_OPTIONS);
-                debugLog(`>>> TxCtl: ${txCtl.txCtl}`);
+                logger.debug(`>>> TxCtl: ${txCtl.txCtl}`, NS);
 
-                debugLog(">>> shellyRPC write Data");
+                logger.debug(">>> shellyRPC write Data", NS);
                 let dataToSend = message;
                 while (dataToSend.length > 0) {
                     const data = {
@@ -105,7 +94,7 @@ const shellyModernExtend = {
                     };
                     dataToSend = dataToSend.substring(splitBytes);
                     await endpoint.write("shellyRPCCluster", data, SHELLY_OPTIONS);
-                    debugLog(`>>> Data: ${data.data}`);
+                    logger.debug(`>>> Data: ${data.data}`, NS);
                 }
             } finally {
                 rpcSending = false;
@@ -123,16 +112,16 @@ const shellyModernExtend = {
 
         // biome-ignore lint/suspicious/noExplicitAny: generic
         const rpcReceive = async (endpoint: any, key: string) => {
-            debugLog(`||| shellyRPC rpcReceive(${key})`);
-            if (key === "rpcRxCtl") {
-                debugLog(">>> shellyRPC read RxCtl");
+            logger.debug(`||| shellyRPC rpcReceive(${key})`, NS);
+            if (key === "rpc_rxctl") {
+                logger.debug(">>> shellyRPC read RxCtl", NS);
                 // FIXME Below line causes TS2322 string not assignable to type number when endpoint is not type any. Why/how to fix?
                 const result = await endpoint.read("shellyRPCCluster", ["rxCtl"], SHELLY_OPTIONS);
-                debugLog(`<<< RxCtl: ${JSON.stringify(result)}`);
-            } else if (key === "rpcData") {
-                debugLog(">>> shellyRPC read Data");
+                logger.debug(`<<< RxCtl: ${JSON.stringify(result)}`, NS);
+            } else if (key === "rpc_data") {
+                logger.debug(">>> shellyRPC read Data", NS);
                 const result = await endpoint.read("shellyRPCCluster", ["data"], {...SHELLY_OPTIONS, timeout: 1000, disableDefaultResponse: false});
-                debugLog(`<<< Data: ${JSON.stringify(result)}`);
+                logger.debug(`<<< Data: ${JSON.stringify(result)}`, NS);
             }
         };
 
@@ -142,39 +131,39 @@ const shellyModernExtend = {
         };
 
         const featureButtonEnabled = (id: number) => {
-            return e.binary(`switch${id}`, ea.STATE_SET, "momentary", "detached").withLabel(`Endpoint: ${id + 1}`);
+            return e.binary(`switch_${id}`, ea.STATE_SET, "momentary", "detached").withLabel(`Endpoint: ${id + 1}`);
         };
 
         const exposes: Expose[] = [];
         const exposesDev: Expose[] = [
             e
-                .text("rpcTx", ea.STATE_SET)
+                .text("rpc_tx", ea.STATE_SET)
                 .withLabel("TX Data")
                 .withDescription("See https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen4/ShellyPowerStripG4"),
-            e.text("rpcRxCtl", ea.STATE_GET).withLabel("RxCtl").withDescription("RX bytes available").withCategory("diagnostic"),
-            e.text("rpcData", ea.STATE_GET).withLabel("Data").withDescription("RX Data").withCategory("diagnostic"),
+            e.text("rpc_rxctl", ea.STATE_GET).withLabel("RxCtl").withDescription("RX bytes available").withCategory("diagnostic"),
+            e.text("rpc_data", ea.STATE_GET).withLabel("Data").withDescription("RX Data").withCategory("diagnostic"),
         ];
         const exposesPowerstripUI: Expose[] = [
             e
-                .enum("ledMode", ea.STATE_SET, ["off", "switch", "power"])
+                .enum("led_mode", ea.STATE_SET, ["off", "switch", "power"])
                 .withLabel("LED Mode")
                 .withDescription("Controls the behaviour of the LED rings around the sockets")
                 .withCategory("config"),
             e
-                .composite("ledColors", "ledColors", ea.ALL)
-                .withFeature(featurePercentage("onR", "Red (on)"))
-                .withFeature(featurePercentage("onG", "Green (on)"))
-                .withFeature(featurePercentage("onB", "Blue (on)"))
-                .withFeature(featurePercentage("onBrightness", "Brightness (on)"))
-                .withFeature(featurePercentage("offR", "Red (off)"))
-                .withFeature(featurePercentage("offG", "Green (off)"))
-                .withFeature(featurePercentage("offB", "Blue (off)"))
-                .withFeature(featurePercentage("offBrightness", "Brightness (off)"))
+                .composite("led_colors", "led_colors", ea.ALL)
+                .withFeature(featurePercentage("on_r", "Red (on)"))
+                .withFeature(featurePercentage("on_g", "Green (on)"))
+                .withFeature(featurePercentage("on_b", "Blue (on)"))
+                .withFeature(featurePercentage("on_brightness", "Brightness (on)"))
+                .withFeature(featurePercentage("off_r", "Red (off)"))
+                .withFeature(featurePercentage("off_g", "Green (off)"))
+                .withFeature(featurePercentage("off_b", "Blue (off)"))
+                .withFeature(featurePercentage("off_brightness", "Brightness (off)"))
                 .withLabel("LED colors in 'switch' mode")
                 .withCategory("config"),
-            featurePercentage("ledPowerBrightness", "LED brightness in 'power' mode").withCategory("config"),
+            featurePercentage("led_power_brightness", "LED brightness in 'power' mode").withCategory("config"),
             e
-                .composite("ledNightMode", "ledNightMode", ea.ALL)
+                .composite("led_night_mode", "led_night_mode", ea.ALL)
                 .withFeature(e.binary("enable", ea.STATE_SET, true, false))
                 .withFeature(featurePercentage("brightness", "Brightness"))
                 .withFeature(e.text("from", ea.STATE_SET).withLabel("Active from").withDescription("hh:mm"))
@@ -183,7 +172,7 @@ const shellyModernExtend = {
                 .withDescription("Adjust LED brightness during night time")
                 .withCategory("config"),
             e
-                .composite("buttonsEnabled", "buttonsEnabled", ea.ALL)
+                .composite("buttons_enabled", "buttons_enabled", ea.ALL)
                 .withFeature(featureButtonEnabled(0))
                 .withFeature(featureButtonEnabled(1))
                 .withFeature(featureButtonEnabled(2))
@@ -202,10 +191,10 @@ const shellyModernExtend = {
 
                     // Diagnostic data
                     if (msg.data.rxCtl !== undefined) {
-                        state.rpcRxCtl = msg.data.rxCtl;
-                        state.rpcData = "";
+                        state.rpc_rxctl = msg.data.rxCtl;
+                        state.rpc_data = "";
                     }
-                    if (msg.data.data !== undefined) state.rpcData = meta.state.rpcData + msg.data.data;
+                    if (msg.data.data !== undefined) state.rpc_data = meta.state.rpc_data + msg.data.data;
 
                     return state;
                 },
@@ -215,30 +204,30 @@ const shellyModernExtend = {
         const toZigbee: Tz.Converter[] = [];
         const toZigbeeDev: Tz.Converter[] = [
             {
-                key: ["rpcRxCtl", "rpcData"],
+                key: ["rpc_rxctl", "rpc_data"],
                 convertGet: async (entity, key, meta) => {
                     const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
                     await rpcReceive(ep, key);
                 },
             },
             {
-                key: ["rpcTx"],
+                key: ["rpc_tx"],
                 convertSet: async (entity, key, value, meta) => {
-                    debugLog(`>>> toZigbee.convertSet(${key}): ${value}`);
+                    logger.debug(`>>> toZigbee.convertSet(${key}): ${value}`, NS);
                     const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
                     await rpcSendRaw(ep, value as string);
-                    await rpcReceive(ep, "RPCrx");
+                    await rpcReceive(ep, "rpc_rxctl");
                     if (shellyRPCBugFixed) {
-                        await rpcReceive(ep, "rpcData");
+                        await rpcReceive(ep, "rpc_data");
                     } else {
-                        return {state: {rpcData: "[Refresh for response]"}};
+                        return {state: {rpc_data: "[Refresh for response]"}};
                     }
                 },
             },
         ];
         const toZigbeePowerstripUI: Tz.Converter[] = [
             {
-                key: ["ledMode"],
+                key: ["led_mode"],
                 convertSet: async (entity, key, value, meta) => {
                     const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
                     await rpcSend(ep, "POWERSTRIP_UI.SetConfig", {
@@ -251,7 +240,7 @@ const shellyModernExtend = {
                 },
             },
             {
-                key: ["ledColors"],
+                key: ["led_colors"],
                 convertSet: async (entity, key, value, meta) => {
                     assertObject<KeyValue>(value);
                     const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
@@ -261,12 +250,12 @@ const shellyModernExtend = {
                                 colors: {
                                     "switch:0": {
                                         on: {
-                                            rgb: [value.onR ?? 0, value.onG ?? 0, value.onB ?? 0],
-                                            brightness: value.onBrightness ?? 0,
+                                            rgb: [value.on_r ?? 0, value.on_g ?? 0, value.on_b ?? 0],
+                                            brightness: value.on_brightness ?? 0,
                                         },
                                         off: {
-                                            rgb: [value.offR ?? 0, value.offG ?? 0, value.offB ?? 0],
-                                            brightness: value.offBrightness ?? 0,
+                                            rgb: [value.off_r ?? 0, value.off_g ?? 0, value.off_b ?? 0],
+                                            brightness: value.off_brightness ?? 0,
                                         },
                                     },
                                 },
@@ -276,7 +265,7 @@ const shellyModernExtend = {
                 },
             },
             {
-                key: ["ledPowerBrightness"],
+                key: ["led_power_brightness"],
                 convertSet: async (entity, key, value, meta) => {
                     const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
                     await rpcSend(ep, "POWERSTRIP_UI.SetConfig", {
@@ -293,7 +282,7 @@ const shellyModernExtend = {
                 },
             },
             {
-                key: ["ledNightMode"],
+                key: ["led_night_mode"],
                 convertSet: async (entity, key, value, meta) => {
                     assertObject<KeyValue>(value);
                     validateTime(value.from as string);
@@ -313,7 +302,7 @@ const shellyModernExtend = {
                 },
             },
             {
-                key: ["buttonsEnabled"],
+                key: ["buttons_enabled"],
                 convertSet: async (entity, key, value, meta) => {
                     assertObject<KeyValue>(value);
                     const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
@@ -321,16 +310,16 @@ const shellyModernExtend = {
                         config: {
                             controls: {
                                 "switch:0": {
-                                    in_mode: value.switch0,
+                                    in_mode: value.switch_0,
                                 },
                                 "switch:1": {
-                                    in_mode: value.switch1,
+                                    in_mode: value.switch_1,
                                 },
                                 "switch:2": {
-                                    in_mode: value.switch2,
+                                    in_mode: value.switch_2,
                                 },
                                 "switch:3": {
-                                    in_mode: value.switch3,
+                                    in_mode: value.switch_3,
                                 },
                             },
                         },
