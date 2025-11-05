@@ -291,13 +291,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["5112.80"],
-        model: "5112.80",
-        vendor: "Iluminize",
-        description: "Zigbee 3.0 LED-controller 1x 8A",
-        extend: [m.light()],
-    },
-    {
         zigbeeModel: ["ZGRC-TEUR-001"],
         model: "511.544",
         vendor: "Iluminize",
