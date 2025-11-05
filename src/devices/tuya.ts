@@ -14710,7 +14710,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("move_threshold", ea.STATE_SET).withValueMin(0).withValueMax(99).withDescription("Configure motion detection threshold"),
             e.numeric("presence_threshold", ea.STATE_SET).withValueMin(0).withValueMax(99).withDescription("Configure presence detection threshold"),
             e.numeric("nearest_target_gate", ea.STATE).withValueMin(0).withValueMax(11).withDescription("Nearest active gate"),
-            e.numeric("target_countdown", ea.STATE).withValueMin(0).withValueMax(3600).withUnit("s").withDescription("Target timeout countdown"),
+            e.numeric("target_countdown", ea.STATE).withValueMin(0).withValueMax(3600).withUnit("s").withDescription("Target timeout countdown (debug only)"),
             e
                 .numeric("target_velocity", ea.STATE)
                 .withValueMin(-9.99)
