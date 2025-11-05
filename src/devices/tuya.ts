@@ -14683,8 +14683,8 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.presence(), // create custom "presence" binary sensor based on (presence) "state"
             e
-                .enum("state", ea.STATE, ["none", "presence", "move"])
-                .withDescription("Presence state"), // change to "state", change to "move"
+                .enum("state", ea.STATE, ["none", "presence", "move"]) // change to "state" and
+                .withDescription("Presence state"), // change all "motion" to "move" match the other similar devices
             e.illuminance().withDescription("Measured illuminance"),
             e
                 .numeric("min_distance", ea.STATE_SET)
@@ -14719,8 +14719,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Target velocity with direction"),
             e.enum("debug_switch", ea.STATE_SET, ["off", "on"]).withDescription("Debug mode toggle"),
             e
-                .enum("led_mode", ea.STATE_SET, ["silence", "status"])
-                .withDescription("LED indicator mode"), // same as in the app
+                .enum("led_mode", ea.STATE_SET, ["silence", "status"]) // same as in the app
+                .withDescription("LED indicator mode"),
             e.numeric("delay_time", ea.STATE_SET).withValueMin(5).withValueMax(3600).withUnit("s").withDescription("Departure delay time"),
             e
                 .numeric("block_time", ea.STATE_SET)
@@ -14730,8 +14730,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("s")
                 .withDescription("Block time after unoccupancy"), // same as in the app
             e
-                .enum("judge_logic", ea.STATE_SET, ["large_move", "small_move", "custom_move"])
-                .withDescription("Presence detection algorithm"), // same as in the app
+                .enum("judge_logic", ea.STATE_SET, ["large_move", "small_move", "custom_move"]) // same as in the app
+                .withDescription("Presence detection algorithm"),
             e
                 .enum("environmental_noise_collect", ea.STATE_SET, ["start", "ongoing", "complete"])
                 .withDescription("Environmental background noise collection status"),
