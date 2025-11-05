@@ -93,7 +93,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_a1ovdobn"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_a1ovdobn", "_TZE200_a1ovdobn"]),
         model: "ZS-D1",
         vendor: "Moes",
         description: "Intelligent dimming switch - 1 gang",
