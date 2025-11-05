@@ -14716,7 +14716,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(-9.99)
                 .withValueMax(9.99)
                 .withUnit("m/s")
-                .withDescription("Target velocity with direction"),
+                .withDescription("Target speed with direction"),
             e.enum("debug_switch", ea.STATE_SET, ["off", "on"]).withDescription("Debug mode toggle"),
             e
                 .enum("led_mode", ea.STATE_SET, ["silence", "status"]) // same as in the app
