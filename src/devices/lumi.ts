@@ -4747,7 +4747,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "sec",
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x016a, type: Zcl.DataType.UINT32},
-                description: "Temperature reporting period",
+                description: "Humidity reporting period",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
