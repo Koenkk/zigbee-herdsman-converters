@@ -14680,9 +14680,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
-            e
-                .enum("state", ea.STATE, ["none", "presence", "move"])
-                .withDescription("Presence state"),
+            e.enum("state", ea.STATE, ["none", "presence", "move"]).withDescription("Presence state"),
             e.illuminance().withDescription("Measured illuminance"),
             e
                 .numeric("min_distance", ea.STATE_SET)
