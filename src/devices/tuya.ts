@@ -1188,7 +1188,8 @@ export const definitions: DefinitionWithExtend[] = [
             const exps: Expose[] = [e.contact(), e.battery(), e.battery_voltage()];
             const noTamperModels = [
                 // manufacturerName for models without a tamper sensor
-                "_TZ3000_rcuyhwe3", "_TZ3000_996rpfy6", // Tuya ZD06
+                "_TZ3000_rcuyhwe3",
+                "_TZ3000_996rpfy6", // Tuya ZD06
                 "_TZ3000_2mbfxlzr", // Tuya MC500A
                 "_TZ3000_n2egfsli", // Tuya 19DZT
                 "_TZ3000_yfekcy3n", // Tuya DS04
