@@ -420,7 +420,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "5633031P9",
         vendor: "Philips",
         description: "Hue Pillar Single Spotlight (White)",
-        whiteLabel: [{model: "5633030P9", vendor: "Philips", description: "Hue Pillar Single Spotlight (Black)", fingerprint: [{modelID: "5633030P9"}]}],
+        whiteLabel: [
+            {model: "5633030P9", vendor: "Philips", description: "Hue Pillar Single Spotlight (Black)", fingerprint: [{modelID: "5633030P9"}]},
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
