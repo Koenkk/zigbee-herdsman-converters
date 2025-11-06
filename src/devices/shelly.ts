@@ -13,6 +13,16 @@ const SHELLY_OPTIONS = {profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID};
 
 const NS = "zhc:shelly";
 
+interface ShellyRPC {
+    attributes: {
+        data: string;
+        txCtl: number;
+        rxCtl: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const shellyModernExtend = {
     shellyCustomClusters(): ModernExtend[] {
         return [
@@ -78,23 +88,17 @@ const shellyModernExtend = {
                 const splitBytes = 40;
 
                 logger.debug(">>> shellyRPC write TxCtl", NS);
-                const txCtl = {
-                    txCtl: message.length,
-                };
-                await endpoint.write("shellyRPCCluster", txCtl, SHELLY_OPTIONS);
-                // FIXME Why does this below cause TS2353 while the above line is fine?
-                //await endpoint.write("shellyRPCCluster", {txCtl: message.length}, SHELLY_OPTIONS);
-                logger.debug(`>>> TxCtl: ${txCtl.txCtl}`, NS);
+                const txCtl = message.length;
+                await endpoint.write<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", {txCtl: txCtl}, SHELLY_OPTIONS);
+                logger.debug(`>>> TxCtl: ${txCtl}`, NS);
 
                 logger.debug(">>> shellyRPC write Data", NS);
                 let dataToSend = message;
                 while (dataToSend.length > 0) {
-                    const data = {
-                        data: dataToSend.substring(0, splitBytes),
-                    };
+                    const data = dataToSend.substring(0, splitBytes);
                     dataToSend = dataToSend.substring(splitBytes);
-                    await endpoint.write("shellyRPCCluster", data, SHELLY_OPTIONS);
-                    logger.debug(`>>> Data: ${data.data}`, NS);
+                    await endpoint.write<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", {data: data}, SHELLY_OPTIONS);
+                    logger.debug(`>>> Data: ${data}`, NS);
                 }
             } finally {
                 rpcSending = false;
@@ -110,17 +114,15 @@ const shellyModernExtend = {
             return await rpcSendRaw(endpoint, JSON.stringify(command));
         };
 
-        // biome-ignore lint/suspicious/noExplicitAny: generic
-        const rpcReceive = async (endpoint: any, key: string) => {
+        const rpcReceive = async (endpoint: Zh.Endpoint | Zh.Group, key: string) => {
             logger.debug(`||| shellyRPC rpcReceive(${key})`, NS);
             if (key === "rpc_rxctl") {
                 logger.debug(">>> shellyRPC read RxCtl", NS);
-                // FIXME Below line causes TS2322 string not assignable to type number when endpoint is not type any. Why/how to fix?
-                const result = await endpoint.read("shellyRPCCluster", ["rxCtl"], SHELLY_OPTIONS);
+                const result = await endpoint.read<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", ["rxCtl"], SHELLY_OPTIONS);
                 logger.debug(`<<< RxCtl: ${JSON.stringify(result)}`, NS);
             } else if (key === "rpc_data") {
                 logger.debug(">>> shellyRPC read Data", NS);
-                const result = await endpoint.read("shellyRPCCluster", ["data"], {...SHELLY_OPTIONS, timeout: 1000, disableDefaultResponse: false});
+                const result = await endpoint.read<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", ["data"], {...SHELLY_OPTIONS, timeout: 1000});
                 logger.debug(`<<< Data: ${JSON.stringify(result)}`, NS);
             }
         };
@@ -181,8 +183,7 @@ const shellyModernExtend = {
                 .withCategory("config"),
         ];
 
-        // biome-ignore lint/suspicious/noExplicitAny: generic
-        const fromZigbee: Fz.Converter<any, any, any>[] = [
+        const fromZigbee: Fz.Converter<"shellyRPCCluster", ShellyRPC, ["attributeReport", "readResponse"]>[] = [
             {
                 cluster: "shellyRPCCluster",
                 type: ["attributeReport", "readResponse"],
