@@ -1170,7 +1170,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Cleverio", model: "SS100"},
             {vendor: "HOBEIAN", model: "ZG-102ZA", fingerprint: [{modelID: "ZG-102Z"}]},
             tuya.whitelabel("Niceboy", "ORBIS Windows & Door Sensor", "Door sensor", ["_TZ3000_qrldbmfn"]),
-            tuya.whitelabel("Tuya", "ZD06", "Door window sensor", ["_TZ3000_rcuyhwe3"]),
+            tuya.whitelabel("Tuya", "ZD06", "Door window sensor", ["_TZ3000_rcuyhwe3", "_TZ3000_996rpfy6"]),
             tuya.whitelabel("Tuya", "ZD08", "Door sensor", ["_TZ3000_7d8yme6f"]),
             tuya.whitelabel("Tuya", "MC500A", "Door sensor", ["_TZ3000_2mbfxlzr"]),
             tuya.whitelabel("Tuya", "19DZT", "Door sensor", ["_TZ3000_n2egfsli"]),
@@ -1188,7 +1188,7 @@ export const definitions: DefinitionWithExtend[] = [
             const exps: Expose[] = [e.contact(), e.battery(), e.battery_voltage()];
             const noTamperModels = [
                 // manufacturerName for models without a tamper sensor
-                "_TZ3000_rcuyhwe3", // Tuya ZD06
+                "_TZ3000_rcuyhwe3", "_TZ3000_996rpfy6", // Tuya ZD06
                 "_TZ3000_2mbfxlzr", // Tuya MC500A
                 "_TZ3000_n2egfsli", // Tuya 19DZT
                 "_TZ3000_yfekcy3n", // Tuya DS04
