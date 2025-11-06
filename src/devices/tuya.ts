@@ -16641,7 +16641,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Temperature threshold setting"),
             e.binary("clear_fault", ea.STATE_SET, "ON", "OFF").withDescription("Recover from an incident"),
             e.binary("factory_reset", ea.STATE_SET, "ON", "OFF").withDescription("Back to factory settings, USE WITH CAUTION"),
-            e.binary('auto_reclosing', ea.STATE_SET, 'ON', 'OFF').withLabel('Auto-Reclosing').withDescription('When the circuit breaker trips due to voltage protection, it will automatically close when the circuit voItage returns to normal.(Note: For safety reasons, this function only applies to trips caused by voltage)'),
+            e
+                .binary("auto_reclosing", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Auto-Reclosing")
+                .withDescription(
+                    "When the circuit breaker trips due to voltage protection, it will automatically close when the circuit voItage returns to normal.(Note: For safety reasons, this function only applies to trips caused by voltage)",
+                ),
         ],
         meta: {
             tuyaDatapoints: [
