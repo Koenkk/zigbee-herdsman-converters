@@ -8,8 +8,10 @@ import * as m from "../lib/modernExtend";
 import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz, Meta, Publish, Message} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+import * as store from '../lib/store';
+import {Fz, KeyValue} from '../lib/types';
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -80,7 +82,7 @@ const HOLD_KEY_SIMPLIFY = 'namron_simplify_lastHold';
 const simplify_col = (n: number) => Math.floor((n - 1) / 2) + 1;
 const simplify_sub = (n: number) => (n % 2 === 1 ? 'up' : 'down');
 
-function simplify_bytesFromMsg(msg: Message<'zosungIRControl', any, any>): number[] {
+function simplify_bytesFromMsg(msg: Fz.Message | any): number[] {
     const d: any = (msg as any).data;
     if (msg.type === 'raw' && Array.isArray(d?.data)) return d.data as number[];
     if (Array.isArray((msg as any).data)) return (msg as any).data as number[];
@@ -94,7 +96,7 @@ function simplify_bytesFromMsg(msg: Message<'zosungIRControl', any, any>): numbe
 const fzNamronSimplifyRemote = {
     cluster: 'zosungIRControl',
     type: ['raw'] as const,
-    convert(model: Definition, msg: Message<'zosungIRControl', any, ['raw']>, publish: Publish, options: KeyValue, meta: Meta) {
+    convert(model: any, msg: Fz.Message, publish: (data: KeyValue) => void, options: KeyValue, meta: Fz.Meta) {
         if (utils.hasAlreadyProcessedMessage(msg, model)) return;
 
         const b = simplify_bytesFromMsg(msg);
