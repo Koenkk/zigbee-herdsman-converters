@@ -81,7 +81,7 @@ const HOLD_KEY_SIMPLIFY = 'namron_simplify_lastHold';
 const simplify_col = (n: number) => Math.floor((n - 1) / 2) + 1;
 const simplify_sub = (n: number) => (n % 2 === 1 ? 'up' : 'down');
 
-function simplifyBytesFromMsg(msg: Fz.Message): number[] {
+function simplifyBytesFromMsg(msg: Fz.Message<'zosungIRControl', unknown, ['raw']>): number[] {
     const data = (msg as unknown as {data?: unknown}).data;
 
     if (
@@ -112,10 +112,16 @@ function simplifyBytesFromMsg(msg: Fz.Message): number[] {
 const fzNamronSimplifyRemote = {
     cluster: 'zosungIRControl',
     type: ['raw'] as const,
-    convert(model: any, msg: Fz.Message, publish: (data: KeyValue) => void, options: KeyValue, meta: Fz.Meta) {
+    convert(
+      model: any,
+      msg: Fz.Message<'zosungIRControl', unknown, ['raw']>,
+      publish: (data: KeyValue) => void,
+      options: KeyValue,
+      meta: Fz.Meta
+    ) {
         if (utils.hasAlreadyProcessedMessage(msg, model)) return;
 
-        const b = simplify_bytesFromMsg(msg);
+        const b = simplifyBytesFromMsg(msg);
         if (!b.length) return;
 
         const btn = b.at(-2);
