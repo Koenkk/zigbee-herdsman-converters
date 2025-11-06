@@ -8,7 +8,7 @@ import * as m from "../lib/modernExtend";
 import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, Tz, Meta, Publish, Message} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const ea = exposes.access;
@@ -85,7 +85,7 @@ function simplify_bytesFromMsg(msg: Message<'zosungIRControl', any, any>): numbe
     if (msg.type === 'raw' && Array.isArray(d?.data)) return d.data as number[];
     if (Array.isArray((msg as any).data)) return (msg as any).data as number[];
     if (d && typeof d === 'object') {
-        const keys = Object.keys(d).filter((k) => !isNaN(Number(k))).sort((a,b)=>Number(a)-Number(b));
+        const keys = Object.keys(d).filter((k) => !Number.isNaN(Number(k))).sort((a,b) => Number(a) - Number(b));
         return keys.map((k) => d[k]);
     }
     return [];
