@@ -69,6 +69,68 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
+// Namron Simplify 3-button remote (4512793 / 4512794)
+// -----------------------------------------------------------
+const NAMRON_SIMPLIFY_ACTIONS: Record<number, 'press'|'release'|'hold'> = {
+    0x00: 'press',
+    0x01: 'release',
+    0x02: 'hold',
+};
+const HOLD_KEY_SIMPLIFY = 'namron_simplify_lastHold';
+const simplify_col = (n: number) => Math.floor((n - 1) / 2) + 1;
+const simplify_sub = (n: number) => (n % 2 === 1 ? 'up' : 'down');
+
+function simplify_bytesFromMsg(msg: Message<'zosungIRControl', any, any>): number[] {
+    const d: any = (msg as any).data;
+    if (msg.type === 'raw' && Array.isArray(d?.data)) return d.data as number[];
+    if (Array.isArray((msg as any).data)) return (msg as any).data as number[];
+    if (d && typeof d === 'object') {
+        const keys = Object.keys(d).filter((k) => !isNaN(Number(k))).sort((a,b)=>Number(a)-Number(b));
+        return keys.map((k) => d[k]);
+    }
+    return [];
+}
+
+const fzNamronSimplifyRemote = {
+    cluster: 'zosungIRControl',
+    type: ['raw'] as const,
+    convert(model: Definition, msg: Message<'zosungIRControl', any, ['raw']>, publish: Publish, options: KeyValue, meta: Meta) {
+        if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+
+        const b = simplify_bytesFromMsg(msg);
+        if (!b.length) return;
+
+        const btn = b.at(-2);
+        const raw = b.at(-1);
+        if (btn == null || raw == null) return;
+
+        const kind = NAMRON_SIMPLIFY_ACTIONS[raw];
+        const base = `button_${simplify_col(btn)}_${simplify_sub(btn)}_`;
+
+        if (!kind) {
+            const lastHold = store.getValue(meta.device, HOLD_KEY_SIMPLIFY) as string | undefined;
+            if (lastHold?.endsWith('_hold')) {
+                publish({action: lastHold.replace('_hold', '_release')});
+                store.putValue(meta.device, HOLD_KEY_SIMPLIFY, null);
+            }
+            return;
+        }
+
+        if (kind === 'hold') {
+            store.putValue(meta.device, HOLD_KEY_SIMPLIFY, `${base}hold`);
+            publish({action: `${base}hold`});
+            return;
+        }
+
+        if (kind === 'release') {
+            publish({action: `${base}press`});
+            publish({action: `${base}release`});
+            return;
+        }
+
+        publish({action: `${base}press`});
+    },
+};
 
 const tzLocal = {
     namron_panelheater: {
@@ -1638,32 +1700,22 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["4512793", "4512794"],
-        model: "4512793",
-        vendor: "Namron AS",
-        description: "Namron Simplify on wall 6 buttons (action) + battery White/Black",
+        zigbeeModel: ['4512793', '4512794'],
+        model: '4512793',
+        vendor: 'Namron AS',
+        description: 'Namron Simplify 4512793 / 4512794 — 6-button remote with battery',
         extend: [m.battery()],
+        fromZigbee: [fzNamronSimplifyRemote],
+        toZigbee: [],
         exposes: [
             e.action([
-                "button_1_up_press",
-                "button_1_up_hold",
-                "button_1_up_release",
-                "button_1_down_press",
-                "button_1_down_hold",
-                "button_1_down_release",
-                "button_2_up_press",
-                "button_2_up_hold",
-                "button_2_up_release",
-                "button_2_down_press",
-                "button_2_down_hold",
-                "button_2_down_release",
-                "button_3_up_press",
-                "button_3_up_hold",
-                "button_3_up_release",
-                "button_3_down_press",
-                "button_3_down_hold",
-                "button_3_down_release",
-            ]),
+            'button_1_up_press','button_1_up_hold','button_1_up_release',
+            'button_1_down_press','button_1_down_hold','button_1_down_release',
+            'button_2_up_press','button_2_up_hold','button_2_up_release',
+            'button_2_down_press','button_2_down_hold','button_2_down_release',
+            'button_3_up_press','button_3_up_hold','button_3_up_release',
+            'button_3_down_press','button_3_down_hold','button_3_down_release',
+         ]),
         ],
     },
 ];
