@@ -11,7 +11,6 @@ import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 import * as store from '../lib/store';
-import {Fz, KeyValue} from '../lib/types';
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -82,16 +81,33 @@ const HOLD_KEY_SIMPLIFY = 'namron_simplify_lastHold';
 const simplify_col = (n: number) => Math.floor((n - 1) / 2) + 1;
 const simplify_sub = (n: number) => (n % 2 === 1 ? 'up' : 'down');
 
-function simplify_bytesFromMsg(msg: Fz.Message | any): number[] {
-    const d: any = (msg as any).data;
-    if (msg.type === 'raw' && Array.isArray(d?.data)) return d.data as number[];
-    if (Array.isArray((msg as any).data)) return (msg as any).data as number[];
-    if (d && typeof d === 'object') {
-        const keys = Object.keys(d).filter((k) => !Number.isNaN(Number(k))).sort((a,b) => Number(a) - Number(b));
-        return keys.map((k) => d[k]);
+function simplifyBytesFromMsg(msg: Fz.Message): number[] {
+    const data = (msg as unknown as {data?: unknown}).data;
+
+    if (
+        msg.type === 'raw' &&
+        typeof data === 'object' &&
+        data !== null &&
+        Array.isArray((data as {data?: unknown}).data)
+    ) {
+        return (data as {data: number[]}).data;
     }
+
+    if (Array.isArray(data)) {
+        return data as number[];
+    }
+
+    if (data && typeof data === 'object') {
+        const obj = data as Record<string, number>;
+        const keys = Object.keys(obj)
+            .filter((k) => !Number.isNaN(Number(k)))
+            .sort((a, b) => Number(a) - Number(b));
+        return keys.map((k) => obj[k]);
+    }
+
     return [];
 }
+
 
 const fzNamronSimplifyRemote = {
     cluster: 'zosungIRControl',
