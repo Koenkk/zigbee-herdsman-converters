@@ -251,7 +251,7 @@ export const develcoModernExtend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (_model, msg, _publish, _options, _meta) => {
-                    if (msg.data.hasOwnProperty("develcoLedControl")) {
+                    if (Object.hasOwn(msg.data, "develcoLedControl")) {
                         const ledControl = msg.data.develcoLedControl as number;
                         return {
                             led_control: {
@@ -268,10 +268,12 @@ export const develcoModernExtend = {
             {
                 key: ["led_control"],
                 convertSet: async (entity, _key, value, meta) => {
+                    // biome-ignore lint/style/useNamingConvention: zigbee2mqtt uses snake_case for exposed attributes
                     const currentState = (meta.state.led_control as {indicate_faults: boolean; indicate_mains_power: boolean}) || {
                         indicate_faults: false,
                         indicate_mains_power: false,
                     };
+                    // biome-ignore lint/style/useNamingConvention: zigbee2mqtt uses snake_case for exposed attributes
                     const newState = {...currentState, ...(value as {indicate_faults?: boolean; indicate_mains_power?: boolean})};
                     let bitmap = 0;
                     if (newState.indicate_faults) bitmap |= 1;
@@ -312,7 +314,7 @@ export const develcoModernExtend = {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (_model, msg, _publish, _options, _meta) => {
-                    if (msg.data.hasOwnProperty("develcoTxPower")) {
+                    if (Object.hasOwn(msg.data, "develcoTxPower")) {
                         return {tx_power: (msg.data.develcoTxPower as number) === 0 ? "CE" : "FCC"};
                     }
                 },
@@ -363,7 +365,7 @@ export const develcoModernExtend = {
                 cluster: "ssIasZone",
                 type: ["attributeReport", "readResponse"],
                 convert: (_model, msg, _publish, _options, _meta) => {
-                    if (msg.data.hasOwnProperty("develcoZoneStatusInterval")) {
+                    if (Object.hasOwn(msg.data, "develcoZoneStatusInterval")) {
                         return {zone_status_interval: msg.data.develcoZoneStatusInterval as number};
                     }
                 },
