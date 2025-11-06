@@ -329,12 +329,6 @@ const shellyModernExtend = {
             },
         ];
 
-        const configure: Configure[] = [
-            async (device, coordinatorEndpoint, definition) => {
-                // Nothing to do here
-            },
-        ];
-
         if (featureDev) {
             exposes.push(...exposesDev);
             toZigbee.push(...toZigbeeDev);
@@ -343,7 +337,7 @@ const shellyModernExtend = {
             exposes.push(...exposesPowerstripUI);
             toZigbee.push(...toZigbeePowerstripUI);
         }
-        return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
     },
     shellyWiFiSetup(): ModernExtend {
         // biome-ignore lint/suspicious/noExplicitAny: generic
