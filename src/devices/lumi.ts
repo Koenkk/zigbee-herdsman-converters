@@ -3872,7 +3872,10 @@ export const definitions: DefinitionWithExtend[] = [
                 lockRelay: true,
                 endpointNames: ["top", "bottom"],
             }),
-            lumiAction({endpointNames: ["top", "bottom"]}),
+            lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
+                endpointNames: ["top", "bottom"],
+            }),
             lumiElectricityMeter(),
             lumiPower(),
             lumiLedDisabledNight(),
@@ -3895,7 +3898,10 @@ export const definitions: DefinitionWithExtend[] = [
                 lockRelay: true,
                 endpointNames: ["top", "center", "bottom"],
             }),
-            lumiAction({endpointNames: ["top", "center", "bottom"]}),
+            lumiAction({
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
+                endpointNames: ["top", "center", "bottom"],
+            }),
             lumiElectricityMeter(),
             lumiPower(),
             lumiLedDisabledNight(),
