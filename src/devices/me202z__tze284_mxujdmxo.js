@@ -1,14 +1,14 @@
 // Tuya ME202Z / TS0601 — _TZE284_mxujdmxo
 // Submersible Liquid Level Sensor (range: 10–400 cm)
 
-const tuya = require('zigbee-herdsman-converters/lib/tuya');
-const exposes = require('zigbee-herdsman-converters/lib/exposes');
+const tuya = require("zigbee-herdsman-converters/lib/tuya");
+const exposes = require("zigbee-herdsman-converters/lib/exposes");
 const ea = exposes.access;
 
 const dp = {
-    distance: 2,          // liquid height (cm)
-    cfg_threshold: 21,    // tank depth (mm)
-    power_level_v: 5,     // power voltage (raw)
+    distance: 2, // liquid height (cm)
+    cfg_threshold: 21, // tank depth (mm)
+    power_level_v: 5, // power voltage (raw)
 };
 
 function round1(v) {
@@ -19,11 +19,11 @@ function getDataValue(datatype, data) {
     try {
         if (Buffer.isBuffer(data)) {
             return data.readUIntBE(0, data.length);
-        } else if (Array.isArray(data)) {
-            return data.reduce((acc, b) => (acc << 8) + b, 0);
-        } else {
-            return Number(data);
         }
+        if (Array.isArray(data)) {
+            return data.reduce((acc, b) => (acc << 8) + b, 0);
+        }
+        return Number(data);
     } catch {
         return Number(data);
     }
@@ -34,8 +34,8 @@ const lastKnown = {};
 
 const fzLocal = {
     reportAll: {
-        cluster: 'manuSpecificTuya',
-        type: ['commandDataReport', 'commandDataResponse'],
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
         convert: (model, msg, publish, options, meta) => {
             const out = {};
             const items = msg.data?.dpValues || [];
@@ -69,7 +69,7 @@ const fzLocal = {
 
 const tzLocal = {
     cfg_threshold_mm: {
-        key: ['cfg_threshold_mm'],
+        key: ["cfg_threshold_mm"],
         convertSet: async (entity, key, value, meta) => {
             const val = Number(value);
             await tuya.sendDataPointValue(entity, dp.cfg_threshold, val);
@@ -80,34 +80,35 @@ const tzLocal = {
     },
 };
 
-module.exports = [{
-    fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE284_mxujdmxo'}],
-    model: 'ME202Z-TS0601',
-    vendor: 'Tuya',
-    description: 'ME202Z submersible liquid level sensor (range 10–400 cm)',
-    fromZigbee: [fzLocal.reportAll],
-    toZigbee: [tzLocal.cfg_threshold_mm],
-    exposes: [
-        exposes.numeric('liquid_height', ea.STATE)
-            .withUnit('cm')
-            .withDescription('Measured liquid height in centimeters'),
-        exposes.numeric('level_percent', ea.STATE)
-            .withUnit('%')
-            .withDescription('Liquid level as percentage of tank depth (1 decimal)'),
-        exposes.numeric('cfg_threshold_mm', ea.ALL)
-            .withUnit('mm')
-            .withValueMin(100)
-            .withValueMax(4000)
-            .withDescription('Configured tank depth (in millimeters)'),
-        exposes.numeric('power_level_v', ea.STATE)
-            .withUnit('V')
-            .withDescription('Power supply voltage'),
-    ],
-    onEvent: async (type, data, device) => {
-        if (['deviceAnnounce', 'deviceInterview'].includes(type)) {
-            const ep = device.getEndpoint(1);
-            try { await tuya.sendDataPointQuery(ep, dp.distance); } catch {}
-            try { await tuya.sendDataPointQuery(ep, dp.cfg_threshold); } catch {}
-        }
+module.exports = [
+    {
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_mxujdmxo"}],
+        model: "ME202Z-TS0601",
+        vendor: "Tuya",
+        description: "ME202Z submersible liquid level sensor (range 10–400 cm)",
+        fromZigbee: [fzLocal.reportAll],
+        toZigbee: [tzLocal.cfg_threshold_mm],
+        exposes: [
+            exposes.numeric("liquid_height", ea.STATE).withUnit("cm").withDescription("Measured liquid height in centimeters"),
+            exposes.numeric("level_percent", ea.STATE).withUnit("%").withDescription("Liquid level as percentage of tank depth (1 decimal)"),
+            exposes
+                .numeric("cfg_threshold_mm", ea.ALL)
+                .withUnit("mm")
+                .withValueMin(100)
+                .withValueMax(4000)
+                .withDescription("Configured tank depth (in millimeters)"),
+            exposes.numeric("power_level_v", ea.STATE).withUnit("V").withDescription("Power supply voltage"),
+        ],
+        onEvent: async (type, data, device) => {
+            if (["deviceAnnounce", "deviceInterview"].includes(type)) {
+                const ep = device.getEndpoint(1);
+                try {
+                    await tuya.sendDataPointQuery(ep, dp.distance);
+                } catch {}
+                try {
+                    await tuya.sendDataPointQuery(ep, dp.cfg_threshold);
+                } catch {}
+            }
+        },
     },
-}];
+];
