@@ -355,6 +355,8 @@ import {definitions as zemismart} from "./zemismart";
 import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
 import {definitions as zipato} from "./zipato";
+import me202z__tze284_mxujdmxo from "./me202z__tze284_mxujdmxo";
+
 
 const definitions: DefinitionWithExtend[] = [
     ...acova,
