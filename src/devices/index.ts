@@ -356,7 +356,7 @@ import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
 import {definitions as zipato} from "./zipato";
 // @ts-expect-error
-import me202z__tze284_mxujdmxo from "./me202z__tze284_mxujdmxo";
+import me202zTze284Mxujdmxo from "./me202z__tze284_mxujdmxo";
 
 
 const definitions: DefinitionWithExtend[] = [
@@ -553,6 +553,7 @@ const definitions: DefinitionWithExtend[] = [
     ...makegood,
     ...matcallBv,
     ...mazda,
+    ...me202zTze284Mxujdmxo,
     ...meazon,
     ...mercator,
     ...miboxer,
