@@ -194,6 +194,8 @@ import {definitions as mElec} from "./m_elec";
 import {definitions as makegood} from "./makegood";
 import {definitions as matcallBv} from "./matcall_bv";
 import {definitions as mazda} from "./mazda";
+// @ts-expect-error
+import me202zTze284Mxujdmxo from "./me202z_tze284_mxujdmxo";
 import {definitions as meazon} from "./meazon";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
@@ -550,6 +552,7 @@ const definitions: DefinitionWithExtend[] = [
     ...makegood,
     ...matcallBv,
     ...mazda,
+    ...me202zTze284Mxujdmxo,
     ...meazon,
     ...mercator,
     ...miboxer,
