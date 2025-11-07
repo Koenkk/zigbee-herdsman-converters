@@ -28,7 +28,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "85000",
         vendor: "Bega",
         description: "Wired Garden LED Spotlight color temperature (Tunable White - RGBW)",
-        extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ['xy', 'hs'], enhancedHue: true})],
+        extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ['xy', 'hs'], enhancedHue: true}})],
     },
         
 ];
