@@ -194,6 +194,7 @@ import {definitions as mElec} from "./m_elec";
 import {definitions as makegood} from "./makegood";
 import {definitions as matcallBv} from "./matcall_bv";
 import {definitions as mazda} from "./mazda";
+import me202z = require("./me202z");
 import {definitions as meazon} from "./meazon";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
@@ -550,6 +551,7 @@ const definitions: DefinitionWithExtend[] = [
     ...makegood,
     ...matcallBv,
     ...mazda,
+    ...me202z,
     ...meazon,
     ...mercator,
     ...miboxer,
