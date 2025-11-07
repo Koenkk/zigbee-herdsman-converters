@@ -762,6 +762,16 @@ const tzLocal = {
             });
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0004_backlight_mode: {
+        key: ["backlight_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {red_when_on: 0, pink_when_on: 1, red_on_blue_off: 2, pink_on_blue_off: 3};
+            const modeValue = utils.getFromLookup(value, lookup);
+            await entity.write("genOnOff", {tuyaBacklightMode: modeValue});
+            return {state: {backlight_mode: utils.getFromLookup(modeValue, lookup)}};
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -1005,6 +1015,17 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"manuSpecificTuyaE001", undefined, "raw">,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0004_backlight_mode: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.tuyaBacklightMode !== undefined) {
+                const backlightLookup: KeyValue = {0: "red_when_on", 1: "pink_when_on", 2: "red_on_blue_off", 3: "pink_on_blue_off"};
+                return {backlight_mode: backlightLookup[msg.data.tuyaBacklightMode]};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -1149,7 +1170,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Cleverio", model: "SS100"},
             {vendor: "HOBEIAN", model: "ZG-102ZA", fingerprint: [{modelID: "ZG-102Z"}]},
             tuya.whitelabel("Niceboy", "ORBIS Windows & Door Sensor", "Door sensor", ["_TZ3000_qrldbmfn"]),
-            tuya.whitelabel("Tuya", "ZD06", "Door window sensor", ["_TZ3000_rcuyhwe3"]),
+            tuya.whitelabel("Tuya", "ZD06", "Door window sensor", ["_TZ3000_rcuyhwe3", "_TZ3000_996rpfy6"]),
             tuya.whitelabel("Tuya", "ZD08", "Door sensor", ["_TZ3000_7d8yme6f"]),
             tuya.whitelabel("Tuya", "MC500A", "Door sensor", ["_TZ3000_2mbfxlzr"]),
             tuya.whitelabel("Tuya", "19DZT", "Door sensor", ["_TZ3000_n2egfsli"]),
@@ -1167,7 +1188,8 @@ export const definitions: DefinitionWithExtend[] = [
             const exps: Expose[] = [e.contact(), e.battery(), e.battery_voltage()];
             const noTamperModels = [
                 // manufacturerName for models without a tamper sensor
-                "_TZ3000_rcuyhwe3", // Tuya ZD06
+                "_TZ3000_rcuyhwe3",
+                "_TZ3000_996rpfy6", // Tuya ZD06
                 "_TZ3000_2mbfxlzr", // Tuya MC500A
                 "_TZ3000_n2egfsli", // Tuya 19DZT
                 "_TZ3000_yfekcy3n", // Tuya DS04
@@ -2304,6 +2326,9 @@ export const definitions: DefinitionWithExtend[] = [
                 color: true,
             }),
         ],
+        meta: {
+            moveToLevelWithOnOffDisable: true,
+        },
     },
     {
         zigbeeModel: ["SM0001"],
@@ -8928,6 +8953,33 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_ncb6mkx8"]),
+        model: "TS0004_fan_light_switch",
+        vendor: "Tuya",
+        description: "Fan and light controller with 3 speeds",
+        fromZigbee: [fz.on_off, fzLocal.TS0004_backlight_mode],
+        toZigbee: [tz.on_off, tzLocal.TS0004_backlight_mode],
+        exposes: [
+            e.switch().withEndpoint("lights").withDescription("Light control"),
+            e.switch().withEndpoint("low").withDescription("Fan speed: low"),
+            e.switch().withEndpoint("medium").withDescription("Fan speed: medium"),
+            e.switch().withEndpoint("high").withDescription("Fan speed: high"),
+            e
+                .enum("backlight_mode", ea.ALL, ["red_when_on", "pink_when_on", "red_on_blue_off", "pink_on_blue_off"])
+                .withDescription("Backlight color mode"),
+        ],
+        endpoint: (device) => {
+            return {lights: 1, high: 2, low: 3, medium: 4};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ID of [1, 2, 3, 4]) {
+                await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ["genOnOff"]);
+            }
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_1s0vfmtv", "_TZ3002_gdwja9a7"]),
         model: "TS0726_2_gang",
         vendor: "Tuya",
@@ -14673,6 +14725,167 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aai5grix", "_TZE204_aai5grix"]),
+        model: "MTD285-ZB",
+        vendor: "Wenzhi",
+        description: "24GHz mmWave human presence sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence(),
+            e.enum("state", ea.STATE, ["none", "presence", "move"]).withDescription("Presence state"),
+            e.illuminance().withDescription("Measured illuminance"),
+            e
+                .numeric("min_distance", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(8.4)
+                .withValueStep(0.1)
+                .withUnit("m")
+                .withDescription("Minimum detection distance"),
+            e
+                .numeric("max_distance", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(8.4)
+                .withValueStep(0.1)
+                .withUnit("m")
+                .withDescription("Maximum detection distance"),
+            e.numeric("target_distance", ea.STATE).withValueMin(0).withValueMax(9.9).withUnit("m").withDescription("Target distance"),
+            ...Array.from({length: 11}, (_, i) =>
+                e
+                    .enum(`gate_enable_${String(i + 1).padStart(2, "0")}`, ea.STATE_SET, ["disable", "enable"])
+                    .withDescription(`Distance gate ${i + 1} enable`),
+            ),
+            e.numeric("configuration_gate", ea.STATE_SET).withValueMin(1).withValueMax(11).withDescription("Select gate for threshold config"),
+            e.numeric("move_threshold", ea.STATE_SET).withValueMin(0).withValueMax(99).withDescription("Configure motion detection threshold"),
+            e.numeric("presence_threshold", ea.STATE_SET).withValueMin(0).withValueMax(99).withDescription("Configure presence detection threshold"),
+            e.numeric("nearest_target_gate", ea.STATE).withValueMin(0).withValueMax(11).withDescription("Nearest active gate"),
+            e
+                .numeric("target_countdown", ea.STATE)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withUnit("s")
+                .withDescription("Target timeout countdown (debug only)"),
+            e
+                .numeric("target_velocity", ea.STATE)
+                .withValueMin(-9.99)
+                .withValueMax(9.99)
+                .withUnit("m/s")
+                .withDescription("Target speed with direction"),
+            e.enum("debug_switch", ea.STATE_SET, ["off", "on"]).withDescription("Debug mode toggle"),
+            e
+                .enum("led_mode", ea.STATE_SET, ["silence", "status"]) // same as in the app
+                .withDescription("LED indicator mode"),
+            e.numeric("delay_time", ea.STATE_SET).withValueMin(5).withValueMax(3600).withUnit("s").withDescription("Departure delay time"),
+            e
+                .numeric("block_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(0.5)
+                .withUnit("s")
+                .withDescription("Block time after unoccupancy"), // same as in the app
+            e
+                .enum("judge_logic", ea.STATE_SET, ["large_move", "small_move", "custom_move"]) // same as in the app
+                .withDescription("Presence detection algorithm"),
+            e
+                .enum("environmental_noise_collect", ea.STATE_SET, ["start", "ongoing", "complete"])
+                .withDescription("Environmental background noise collection status"),
+            e.enum("device_control", ea.STATE_SET, ["no_action", "restart", "reset_param"]).withDescription("Device control commands"),
+            e.enum("presence_sensitivity", ea.STATE_SET, ["high", "medium", "low", "custom"]).withDescription("Presence sensitivity"),
+            e.enum("move_sensitivity", ea.STATE_SET, ["high", "medium", "low", "custom"]).withDescription("Motion sensitivity"),
+            e
+                .enum("scene_mode", ea.STATE_SET, [
+                    "custom", // more fitting and same as in the app
+                    "toilet",
+                    "kitchen",
+                    "corridor",
+                    "bedroom",
+                    "living_room",
+                    "meeting_room", // same as in the app
+                ])
+                .withDescription("Scene mode preset"),
+            e.binary("illuminance_report", ea.STATE_SET, "on", "off").withDescription("Illuminance reporting toggle"),
+            e.binary("move_detect", ea.STATE_SET, "on", "off").withDescription("Motion detection toggle"),
+            e.binary("distance_report", ea.STATE_SET, "on", "off").withDescription("Distance reporting toggle"),
+            e.binary("speed_report", ea.STATE_SET, "on", "off").withDescription("Speed reporting toggle"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    null,
+                    {
+                        from: (v: number) => ({
+                            presence: v !== 0,
+                            state: v === 0 ? "none" : v === 1 ? "presence" : "move",
+                        }),
+                    },
+                ],
+                [3, "min_distance", tuya.valueConverter.divideBy10],
+                [4, "max_distance", tuya.valueConverter.divideBy10],
+                [9, "target_distance", tuya.valueConverter.divideBy10],
+                [101, "gate_enable_01", tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)})],
+                [102, "gate_enable_02", tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)})],
+                [103, "gate_enable_03", tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)})],
+                [104, "gate_enable_04", tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)})],
+                [105, "gate_enable_05", tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)})],
+                [106, "gate_enable_06", tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)})],
+                [107, "gate_enable_07", tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)})],
+                [108, "gate_enable_08", tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)})],
+                [109, "gate_enable_09", tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)})],
+                [110, "gate_enable_10", tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)})],
+                [111, "gate_enable_11", tuya.valueConverterBasic.lookup({disable: tuya.enum(0), enable: tuya.enum(1)})],
+                [112, "configuration_gate", tuya.valueConverter.raw],
+                [113, "move_threshold", tuya.valueConverter.raw],
+                [114, "presence_threshold", tuya.valueConverter.raw],
+                [115, "nearest_target_gate", tuya.valueConverter.raw],
+                [116, "target_countdown", tuya.valueConverter.raw],
+                [117, "target_velocity", tuya.valueConverter.divideBy100],
+                [118, "debug_switch", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1)})],
+                [119, "led_mode", tuya.valueConverterBasic.lookup({silence: tuya.enum(0), status: tuya.enum(1)})],
+                [120, "delay_time", tuya.valueConverter.raw],
+                [121, "block_time", tuya.valueConverter.divideBy10],
+                [
+                    122,
+                    "judge_logic",
+                    tuya.valueConverterBasic.lookup({large_move: tuya.enum(0), small_move: tuya.enum(1), custom_move: tuya.enum(2)}),
+                ],
+                [
+                    123,
+                    "environmental_noise_collect",
+                    tuya.valueConverterBasic.lookup({start: tuya.enum(0), ongoing: tuya.enum(1), complete: tuya.enum(2)}),
+                ],
+                [124, "device_control", tuya.valueConverterBasic.lookup({no_action: tuya.enum(0), restart: tuya.enum(1), reset_param: tuya.enum(2)})],
+                [125, "illuminance", tuya.valueConverter.raw],
+                [
+                    126,
+                    "presence_sensitivity",
+                    tuya.valueConverterBasic.lookup({high: tuya.enum(0), medium: tuya.enum(1), low: tuya.enum(2), custom: tuya.enum(3)}),
+                ],
+                [
+                    127,
+                    "move_sensitivity",
+                    tuya.valueConverterBasic.lookup({high: tuya.enum(0), medium: tuya.enum(1), low: tuya.enum(2), custom: tuya.enum(3)}),
+                ],
+                [
+                    128,
+                    "scene_mode",
+                    tuya.valueConverterBasic.lookup({
+                        custom: tuya.enum(0), // more fitting and same as in the app
+                        toilet: tuya.enum(1),
+                        kitchen: tuya.enum(2),
+                        corridor: tuya.enum(3),
+                        bedroom: tuya.enum(4),
+                        living_room: tuya.enum(5),
+                        meeting_room: tuya.enum(6), // same as in the app
+                    }),
+                ],
+                [129, "illuminance_report", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1)})],
+                [130, "move_detect", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1)})],
+                [131, "distance_report", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1)})],
+                [132, "speed_report", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1)})],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_81yrt3lo", "_TZE284_81yrt3lo"]),
         model: "PJ-1203A",
         vendor: "Tuya",
@@ -16429,6 +16642,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Temperature threshold setting"),
             e.binary("clear_fault", ea.STATE_SET, "ON", "OFF").withDescription("Recover from an incident"),
             e.binary("factory_reset", ea.STATE_SET, "ON", "OFF").withDescription("Back to factory settings, USE WITH CAUTION"),
+            e
+                .binary("auto_reclosing", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Auto-Reclosing")
+                .withDescription(
+                    "When the circuit breaker trips due to voltage protection, it will automatically close when the circuit voItage returns to normal.(Note: For safety reasons, this function only applies to trips caused by voltage)",
+                ),
         ],
         meta: {
             tuyaDatapoints: [

@@ -416,10 +416,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["5633031P9"],
+        zigbeeModel: ["5633030P9", "5633031P9"],
         model: "5633031P9",
         vendor: "Philips",
-        description: "Hue White ambiance Pillar spotlight",
+        description: "Hue Pillar Single Spotlight (White)",
+        whiteLabel: [
+            {model: "5633030P9", vendor: "Philips", description: "Hue Pillar Single Spotlight (Black)", fingerprint: [{modelID: "5633030P9"}]},
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {

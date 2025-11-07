@@ -4709,7 +4709,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "temp_period",
                 valueMin: 1,
-                valueMax: 10,
+                valueMax: 600,
                 valueStep: 1,
                 scale: 1000,
                 unit: "sec",
@@ -4741,13 +4741,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "humi_period",
                 valueMin: 1,
-                valueMax: 10,
+                valueMax: 600,
                 valueStep: 1,
                 scale: 1000,
                 unit: "sec",
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x016a, type: Zcl.DataType.UINT32},
-                description: "Temperature reporting period",
+                description: "Humidity reporting period",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
