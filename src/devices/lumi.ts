@@ -3874,7 +3874,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             lumiAction({
                 actionLookup: {hold: 0, single: 1, double: 2, release: 255},
-                endpointNames: ["top", "bottom"]
+                endpointNames: ["top", "bottom"],
             }),
             lumiElectricityMeter(),
             lumiPower(),
@@ -3900,7 +3900,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             lumiAction({
                 actionLookup: {hold: 0, single: 1, double: 2, release: 255},
-                endpointNames: ["top", "center", "bottom"]
+                endpointNames: ["top", "center", "bottom"],
             }),
             lumiElectricityMeter(),
             lumiPower(),
