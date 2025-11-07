@@ -14770,7 +14770,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(9.99)
                 .withUnit("m/s")
                 .withDescription("Target speed with direction"),
-            e.binary("debug_switch", ea.STATE_SET, "on", "off").withDescription("Debug mode toggle"), // change to toggle
+            e
+                .binary("debug_switch", ea.STATE_SET, "on", "off")
+                .withDescription("Debug mode toggle"), // change to toggle
             e
                 .enum("led_mode", ea.STATE_SET, ["silence", "status"]) // same as in the app
                 .withDescription("LED indicator mode"),
@@ -14785,8 +14787,12 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("judge_logic", ea.STATE_SET, ["large_move", "small_move", "custom_move"]) // same as in the app
                 .withDescription("Presence detection algorithm"),
-            e.enum("start_noise_collect", ea.SET, ["start"]).withDescription("Start environmental background noise collection and auto adjust thresholds"), // only button to start noise collection
-            e.enum("noise_collect_status", ea.STATE, ["start", "ongoing", "complete"]).withDescription("Environmental background noise collection status"), // status of noise collection
+            e
+                .enum("start_noise_collect", ea.SET, ["start"])
+                .withDescription("Start environmental background noise collection and auto adjust thresholds"), // only button to start noise collection
+            e
+                .enum("noise_collect_status", ea.STATE, ["start", "ongoing", "complete"])
+                .withDescription("Environmental background noise collection status"), // status of noise collection
             e.enum("device_control", ea.STATE_SET, ["no_action", "restart", "reset_param"]).withDescription("Device control commands"),
             e.enum("presence_sensitivity", ea.STATE_SET, ["high", "medium", "low", "custom"]).withDescription("Presence sensitivity"),
             e.enum("move_sensitivity", ea.STATE_SET, ["high", "medium", "low", "custom"]).withDescription("Motion sensitivity"),
@@ -14847,10 +14853,14 @@ export const definitions: DefinitionWithExtend[] = [
                     "judge_logic",
                     tuya.valueConverterBasic.lookup({large_move: tuya.enum(0), small_move: tuya.enum(1), custom_move: tuya.enum(2)}),
                 ],
-                [123, "noise_collect_status", tuya.valueConverterBasic.lookup({"start": tuya.enum(0), "ongoing": tuya.enum(1), "complete": tuya.enum(2)})], // status reporting, this line MUST above button to work properly
-                [123, "start_noise_collect", {
-                    to: () => tuya.enum(0) // send 0 to start collection
-                }],
+                [123, "noise_collect_status", tuya.valueConverterBasic.lookup({start: tuya.enum(0), ongoing: tuya.enum(1), complete: tuya.enum(2)})], // status reporting, this line MUST above button to work properly
+                [
+                    123,
+                    "start_noise_collect",
+                    {
+                        to: () => tuya.enum(0), // send 0 to start collection
+                    },
+                ],
                 [124, "device_control", tuya.valueConverterBasic.lookup({no_action: tuya.enum(0), restart: tuya.enum(1), reset_param: tuya.enum(2)})],
                 [125, "illuminance", tuya.valueConverter.raw],
                 [
