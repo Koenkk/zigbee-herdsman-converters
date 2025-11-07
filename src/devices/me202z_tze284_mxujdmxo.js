@@ -3,6 +3,7 @@
 
 const tuya = require("zigbee-herdsman-converters/lib/tuya");
 const exposes = require("zigbee-herdsman-converters/lib/exposes");
+const e = exposes.presets;
 const ea = exposes.access;
 
 const dp = {
@@ -29,7 +30,7 @@ function getDataValue(datatype, data) {
     }
 }
 
-// cache object to remember the last threshold
+// Cache object to remember the last threshold
 const lastKnown = {};
 
 const fzLocal = {
@@ -73,7 +74,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const val = Number(value);
             await tuya.sendDataPointValue(entity, dp.cfg_threshold, val);
-            // update cache
+            // Update cache
             lastKnown[meta.device.ieeeAddr] = {depthMm: val};
             return {state: {cfg_threshold_mm: val}};
         },
@@ -89,15 +90,20 @@ module.exports = [
         fromZigbee: [fzLocal.reportAll],
         toZigbee: [tzLocal.cfg_threshold_mm],
         exposes: [
-            exposes.numeric("liquid_height", ea.STATE).withUnit("cm").withDescription("Measured liquid height in centimeters"),
-            exposes.numeric("level_percent", ea.STATE).withUnit("%").withDescription("Liquid level as percentage of tank depth (1 decimal)"),
-            exposes
-                .numeric("cfg_threshold_mm", ea.ALL)
+            e.numeric("liquid_height", ea.STATE)
+                .withUnit("cm")
+                .withDescription("Measured liquid height in centimeters"),
+            e.numeric("level_percent", ea.STATE)
+                .withUnit("%")
+                .withDescription("Liquid level as percentage of tank depth (1 decimal)"),
+            e.numeric("cfg_threshold_mm", ea.ALL)
                 .withUnit("mm")
                 .withValueMin(100)
                 .withValueMax(4000)
                 .withDescription("Configured tank depth (in millimeters)"),
-            exposes.numeric("power_level_v", ea.STATE).withUnit("V").withDescription("Power supply voltage"),
+            e.numeric("power_level_v", ea.STATE)
+                .withUnit("V")
+                .withDescription("Power supply voltage"),
         ],
         onEvent: async (type, data, device) => {
             if (["deviceAnnounce", "deviceInterview"].includes(type)) {
