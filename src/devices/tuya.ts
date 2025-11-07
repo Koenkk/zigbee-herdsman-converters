@@ -17109,6 +17109,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("switch2", ea.STATE_SET, "ON", "OFF").withDescription("Switch2"),
             e.binary("switch3", ea.STATE_SET, "ON", "OFF").withDescription("Switch3"),
             e
+                .numeric("distance", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(6)
+                .withValueStep(0.1)
+                .withUnit("m")
+                .withDescription("detection distance"),
+            e
                 .numeric("sensitivity", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(19)
@@ -17135,10 +17142,11 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse1],
+                [2, "sensitivity", tuya.valueConverter.raw],
+                [4, "distance", tuya.valueConverter.divideBy100],
                 [101, "switch1", tuya.valueConverter.onOff],
                 [102, "switch2", tuya.valueConverter.onOff],
                 [103, "switch3", tuya.valueConverter.onOff],
-                [110, "sensitivity", tuya.valueConverter.raw],
                 [111, "backlight", tuya.valueConverter.onOff],
                 [114, "trigger_hold", tuya.valueConverter.raw],
                 [
