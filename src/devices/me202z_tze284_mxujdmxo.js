@@ -90,20 +90,15 @@ module.exports = [
         fromZigbee: [fzLocal.reportAll],
         toZigbee: [tzLocal.cfg_threshold_mm],
         exposes: [
-            e.numeric("liquid_height", ea.STATE)
-                .withUnit("cm")
-                .withDescription("Measured liquid height in centimeters"),
-            e.numeric("level_percent", ea.STATE)
-                .withUnit("%")
-                .withDescription("Liquid level as percentage of tank depth (1 decimal)"),
-            e.numeric("cfg_threshold_mm", ea.ALL)
+            e.numeric("liquid_height", ea.STATE).withUnit("cm").withDescription("Measured liquid height in centimeters"),
+            e.numeric("level_percent", ea.STATE).withUnit("%").withDescription("Liquid level as percentage of tank depth (1 decimal)"),
+            e
+                .numeric("cfg_threshold_mm", ea.ALL)
                 .withUnit("mm")
                 .withValueMin(100)
                 .withValueMax(4000)
                 .withDescription("Configured tank depth (in millimeters)"),
-            e.numeric("power_level_v", ea.STATE)
-                .withUnit("V")
-                .withDescription("Power supply voltage"),
+            e.numeric("power_level_v", ea.STATE).withUnit("V").withDescription("Power supply voltage"),
         ],
         onEvent: async (type, data, device) => {
             if (["deviceAnnounce", "deviceInterview"].includes(type)) {
