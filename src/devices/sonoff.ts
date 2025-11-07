@@ -1174,7 +1174,7 @@ const sonoffExtend = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["NSPanelP-Router"],
+        zigbeeModel: ["NSPanelP-Router", "Cuber ZLI Router"],
         model: "NSPanelP-Router",
         vendor: "SONOFF",
         description: "Router",
