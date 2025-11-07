@@ -345,6 +345,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [103, "min_brightness_l4", tuya.valueConverter.scale0_254to0_1000],
                 [106, "switch_type", tuya.valueConverter.switchType],
             ],
-        }
-    }
+        },
+    },
 ];
