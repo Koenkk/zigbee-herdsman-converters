@@ -194,6 +194,8 @@ import {definitions as mElec} from "./m_elec";
 import {definitions as makegood} from "./makegood";
 import {definitions as matcallBv} from "./matcall_bv";
 import {definitions as mazda} from "./mazda";
+// @ts-expect-error
+import me202zTze284Mxujdmxo from "./me202z__tze284_mxujdmxo";
 import {definitions as meazon} from "./meazon";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
@@ -355,9 +357,6 @@ import {definitions as zemismart} from "./zemismart";
 import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
 import {definitions as zipato} from "./zipato";
-// @ts-expect-error
-import me202zTze284Mxujdmxo from "./me202z__tze284_mxujdmxo";
-
 
 const definitions: DefinitionWithExtend[] = [
     ...acova,
