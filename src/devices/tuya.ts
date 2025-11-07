@@ -16721,7 +16721,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [114, "switch_mode_l3_l4", tuya.valueConverter.switchMode2],
                 [115, "switch_mode_l5_l6", tuya.valueConverter.switchMode2],
             ],
-        }
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zqq3cipq", "_TZE284_zqq3cipq"]),
