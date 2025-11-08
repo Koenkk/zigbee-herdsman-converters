@@ -182,8 +182,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZB-IR01",
         vendor: "easyiot",
         description:
-            "This is an infrared remote control equipped with a local code library," +
-            "supporting devices such as air conditioners, televisions, projectors, and more.",
+            "Infrared remote control equipped with local code library,",
         fromZigbee: [fzLocal.easyiot_ir_recv_command],
         toZigbee: [tzLocal.easyiot_ir_send_command],
         exposes: [
@@ -195,7 +194,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "ZB-TTS01", manufacturerName: "easyiot"}],
         model: "ZB-TTS01",
         vendor: "easyiot",
-        description: "This is a Simplified Chinese (GB2312) TTS converter that can convert GB2312 encoded text to speech",
+        description: "Simplified Chinese (GB2312) TTS Converter that convert GB2312 encoded text to speech",
         fromZigbee: [fzLocal.easyiot_tts_recv_status],
         toZigbee: [tzLocal.easyiot_tts_send_command],
         exposes: [
