@@ -1401,9 +1401,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZHT-SR",
         vendor: "Moes",
         description: "Smart ring thermostat",
-        extend: [tuya.modernExtend.tuyaBase({ dp: true, timeStart: '1970' })],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
 
-          onEvent: tuya.onEventSetLocalTime,
+        onEvent: tuya.onEventSetLocalTime,
         exposes: [
             e
                 .climate()
