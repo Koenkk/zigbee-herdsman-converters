@@ -193,7 +193,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "ZB-TTS01", manufacturerName: "easyiot"}],
         model: "ZB-TTS01",
         vendor: "easyiot",
-        description: "TTS Converter for Simplified Chinese GB2312 encoded text to speech",
+        description: "TTS Converter for Simplified Chinese GB2312 encoded text",
         fromZigbee: [fzLocal.easyiot_tts_recv_status],
         toZigbee: [tzLocal.easyiot_tts_send_command],
         exposes: [
