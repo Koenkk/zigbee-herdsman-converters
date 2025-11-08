@@ -1403,7 +1403,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart ring thermostat",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
 
-        onEvent: tuya.onEventSetLocalTime,
+        onEvent: (tuya as any).onEventSetLocalTime,
         exposes: [
             e
                 .climate()
