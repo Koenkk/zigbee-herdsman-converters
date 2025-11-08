@@ -352,6 +352,31 @@ const convLocal = {
             return new TextDecoder("utf-8").decode(hexToBytes);
         },
     },
+    nameTrunc: {
+        to: (v: string, meta: Tz.Meta, len = 8) => {
+            const truncated = v.slice(0, len);
+            const utf8bytes = new TextEncoder().encode(truncated);
+            return Array.from(utf8bytes, (utf8bytes) => utf8bytes.toString(16).padStart(4, "0")).join("");
+        },
+        from: (v: string, meta: Fz.Meta) => {
+            const bytes = [];
+            for (let i = 0; i < v.length; i += 4) {
+                bytes.push(Number.parseInt(v.slice(i, i + 4), 16));
+            }
+            const hexToBytes = Uint8Array.from(bytes);
+            return new TextDecoder("utf-8").decode(hexToBytes);
+        },
+    },
+    // // testing - will this work?
+    // nameTrunc: {
+    //     to: (v: string, meta: Tz.Meta, len = 8) => {
+    //         // Truncate before passing to original function
+    //         return convLocal.name.to(v.slice(0, len), meta);
+    //     },
+    //     from: (v: string, meta: Fz.Meta) => {
+    //         return convLocal.name.from; // Use original as-is
+    //     }
+    // },
 };
 
 const tzLocal = {
@@ -20879,9 +20904,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_iwyqtclw"]),
         model: "M9Pro",
         vendor: "Tuya",
-        description:
-            "Smart 4 gang switch with neutral wire and motion sensing.  " +
-            "All switches user selectable as switch, curtain, smart light or scene. 1x thermosat control.",
+        description: "Smart 4 gang switch, curtain, smart light or scene. 1x thermosat control.",
 
         exposes: [
             // Main switch on/off controls. 1 = top left, 2 = top right, 3 = bottom left, 4 = bottom right
@@ -21049,172 +21072,28 @@ export const definitions: DefinitionWithExtend[] = [
                 // The M9 Pro only displays first 8 chars of names, but state will hold the whole string.
                 // I prefer that the state always equals what is displayed, so trim name to 8 chars.
                 // Switch names
-                [
-                    103,
-                    "name_l1",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
-                [
-                    104,
-                    "name_l2",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
-                [
-                    105,
-                    "name_l3",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
-                [
-                    106,
-                    "name_l4",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
+                [103, "name_l1", convLocal.nameTrunc],
+                [104, "name_l2", convLocal.nameTrunc],
+                [105, "name_l3", convLocal.nameTrunc],
+                [106, "name_l4", convLocal.nameTrunc],
 
                 // Scene names
-                [
-                    107,
-                    "scene_name_l1",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
-                [
-                    108,
-                    "scene_name_l2",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
-                [
-                    109,
-                    "scene_name_l3",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
-                [
-                    110,
-                    "scene_name_l4",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
+                [107, "scene_name_l1", convLocal.nameTrunc],
+                [108, "scene_name_l2", convLocal.nameTrunc],
+                [109, "scene_name_l3", convLocal.nameTrunc],
+                [110, "scene_name_l4", convLocal.nameTrunc],
 
                 // Dimmer names
-                [
-                    111,
-                    "dimmer_name_l1",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
-                [
-                    112,
-                    "dimmer_name_l2",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
-                [
-                    113,
-                    "dimmer_name_l3",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
-                [
-                    114,
-                    "dimmer_name_l4",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
+                [111, "dimmer_name_l1", convLocal.nameTrunc],
+                [112, "dimmer_name_l2", convLocal.nameTrunc],
+                [113, "dimmer_name_l3", convLocal.nameTrunc],
+                [114, "dimmer_name_l4", convLocal.nameTrunc],
 
                 // Curtain names
-                [
-                    115,
-                    "curtain_name_l1",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
-                [
-                    116,
-                    "curtain_name_l2",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
-                [
-                    117,
-                    "curtain_name_l3",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
-                [
-                    118,
-                    "curtain_name_l4",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
+                [115, "curtain_name_l1", convLocal.nameTrunc],
+                [116, "curtain_name_l2", convLocal.nameTrunc],
+                [117, "curtain_name_l3", convLocal.nameTrunc],
+                [118, "curtain_name_l4", convLocal.nameTrunc],
 
                 [119, "curtain_switch_l1", tuya.valueConverter.onOff],
                 [120, "curtain_switch_l2", tuya.valueConverter.onOff],
@@ -21225,16 +21104,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [125, "dimmer_switch_l3", tuya.valueConverter.onOff],
                 [126, "dimmer_switch_l4", tuya.valueConverter.onOff],
                 [127, "thermostat", tuya.valueConverter.onOff],
-                [
-                    128,
-                    "thermostat_name",
-                    {
-                        from: convLocal.name.from,
-                        to: (v, meta) => {
-                            return convLocal.name.to(v.slice(0, 8), meta);
-                        },
-                    },
-                ],
+                [128, "thermostat_name", convLocal.nameTrunc],
             ],
         },
 
