@@ -181,8 +181,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "ZB-IR01", manufacturerName: "easyiot"}],
         model: "ZB-IR01",
         vendor: "easyiot",
-        description:
-            "Infrared remote control equipped with local code library,",
+        description: "Infrared remote control equipped with local code library,",
         fromZigbee: [fzLocal.easyiot_ir_recv_command],
         toZigbee: [tzLocal.easyiot_ir_send_command],
         exposes: [
