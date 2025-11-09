@@ -58,6 +58,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "LEDVANCE",
         description: "SMART+ Compact outdoor plug EU with energy meter",
         extend: [m.onOff(), m.electricityMeter()],
+        ota: true,
     },
     {
         zigbeeModel: ["PL HCL300x1200 01"],
