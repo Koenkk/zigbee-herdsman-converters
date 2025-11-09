@@ -2334,7 +2334,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["CK-BL702-AL-01(7009_Z102LG03-1)", "CK-BL702-AL-01(7009_Z102LG04-1)", "CK-BL702-AL-01(7009_Z102LG04-2)"],
         model: "CK-BL702-AL-01",
         vendor: "Tuya",
-        description: "Zigbee LED bulb",
+        description: "GU-10 5W 350lm Zigbee RGBCCW LED bulb",
         extend: [
             tuya.modernExtend.tuyaLight({
                 colorTemp: {range: [142, 500]},
