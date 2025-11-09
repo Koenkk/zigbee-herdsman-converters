@@ -367,16 +367,6 @@ const convLocal = {
             return new TextDecoder("utf-8").decode(hexToBytes);
         },
     },
-    // // testing - will this work?
-    // nameTrunc: {
-    //     to: (v: string, meta: Tz.Meta, len = 8) => {
-    //         // Truncate before passing to original function
-    //         return convLocal.name.to(v.slice(0, len), meta);
-    //     },
-    //     from: (v: string, meta: Fz.Meta) => {
-    //         return convLocal.name.from; // Use original as-is
-    //     }
-    // },
 };
 
 const tzLocal = {
@@ -20904,12 +20894,9 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_iwyqtclw"]),
         model: "M9Pro",
         vendor: "Tuya",
-        description: "Smart 4 gang switch, curtain, smart light or scene. 1x thermosat control.",
-
+        description: "Smart 4 gang switch, curtain, smart light or scene. 1x thermosat control",
         exposes: [
-            // Main switch on/off controls. 1 = top left, 2 = top right, 3 = bottom left, 4 = bottom right
             ...[1, 2, 3, 4].map((i) => e.switch().withEndpoint(`l${i}`).setAccess("state", ea.STATE_SET)),
-
             ...[1, 2, 3].map((i) =>
                 e.enum("mode", ea.STATE_SET, ["switch", "scene", "smart_light", "curtain"]).withEndpoint(`l${i}`).withDescription(`Switch ${i} mode`),
             ),
@@ -20917,7 +20904,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("mode", ea.STATE_SET, ["switch", "scene", "smart_light", "curtain", "thermostat"])
                 .withEndpoint("l4")
                 .withDescription("Switch 4 mode"),
-
             ...[1, 2, 3, 4].map((i) =>
                 e.text("name", ea.STATE_SET).withEndpoint(`l${i}`).withDescription(`Name for Switch ${i} (max 8 chars displayed)`),
             ),
@@ -20941,7 +20927,6 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.binary("show_weather", ea.STATE_SET, "ON", "OFF").withDescription("Show time and weather (on) or just switch names (off)"),
             exposes.binary("backlight", ea.STATE_SET, "ON", "OFF").withDescription("Button LED backlights"),
             e.enum("show_screen", ea.STATE_SET, ["motion", "on_press", "on"]).withDescription("Screen display mode"),
-
             // Thermostat - Switch 4 only
             exposes
                 .binary("thermostat", ea.STATE_SET, "ON", "OFF")
@@ -20962,7 +20947,6 @@ export const definitions: DefinitionWithExtend[] = [
                 ])
                 .withDescription("Scene Switch"),
             e.action(["scene_0", "scene_1", "scene_2", "scene_3", "scene_4", "scene_5", "scene_6", "scene_7", "scene_8"]),
-
             // Set weather
             // Temperature will accept decimal values e.g. 0.1 but display will round off to nearest whole number.
             // Best to handle rounding in HA before passing to z2m.
@@ -20978,7 +20962,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("condition_1", ea.STATE_SET, Object.keys(tuya.M8ProTuyaWeatherCondition))
                 .withDescription("Weather condition"),
         ],
-
         meta: {
             multiEndpoint: true,
             disableDefaultResponse: true,
@@ -21034,7 +21017,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [26, "state_l3", tuya.valueConverter.onOff],
                 [27, "state_l4", tuya.valueConverter.onOff],
                 [36, "show_weather", tuya.valueConverter.onOff],
-
                 // Screen display modes.
                 // From Tuya Dev Platform: enum "range": ["relay", "pos", "none"].  These names don't match what's happening on the device
                 [
