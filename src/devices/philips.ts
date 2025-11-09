@@ -4368,10 +4368,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-    zigbeeModel: ['RDM005'],
-    model: 'RDM005',
-    vendor: 'Signify Netherlands B.V.',
-    description: 'Automatically generated definition',
-    extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl()],
-};
+        zigbeeModel: ["RDM005"],
+        model: "RDM005",
+        vendor: "Philips",
+        description: "Hue smart button",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl()],
+    },
 ];
