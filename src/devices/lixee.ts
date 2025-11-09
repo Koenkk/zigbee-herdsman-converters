@@ -1,4 +1,5 @@
 import {Buffer} from "node:buffer";
+import {Zcl} from "zigbee-herdsman";
 import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import {repInterval} from "../lib/constants";
@@ -13,6 +14,61 @@ const ea = exposes.access;
 const e = exposes.presets;
 
 const NS = "zhc:lixee";
+
+const local = {
+    modernExtend: {
+        addCustomClusterManuSpecificLixee: () =>
+            m.deviceAddCustomCluster("liXeePrivate", {
+                ID: 0xff66,
+                manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS,
+                attributes: {
+                    currentTarif: {ID: 0x0000, type: Zcl.DataType.CHAR_STR},
+                    tomorrowColor: {ID: 0x0001, type: Zcl.DataType.CHAR_STR},
+                    scheduleHPHC: {ID: 0x0002, type: Zcl.DataType.UINT8},
+                    presencePotential: {ID: 0x0003, type: Zcl.DataType.UINT8},
+                    startNoticeEJP: {ID: 0x0004, type: Zcl.DataType.UINT8},
+                    warnDPS: {ID: 0x0005, type: Zcl.DataType.UINT16},
+                    warnDIR1: {ID: 0x0006, type: Zcl.DataType.UINT16},
+                    warnDIR2: {ID: 0x0007, type: Zcl.DataType.UINT16},
+                    warnDIR3: {ID: 0x0008, type: Zcl.DataType.UINT16},
+                    motDEtat: {ID: 0x0009, type: Zcl.DataType.CHAR_STR},
+                    currentPrice: {ID: 0x0200, type: Zcl.DataType.CHAR_STR},
+                    currentIndexTarif: {ID: 0x0201, type: Zcl.DataType.UINT8},
+                    currentDate: {ID: 0x0202, type: Zcl.DataType.CHAR_STR},
+                    activeEnergyOutD01: {ID: 0x0203, type: Zcl.DataType.UINT32},
+                    activeEnergyOutD02: {ID: 0x0204, type: Zcl.DataType.UINT32},
+                    activeEnergyOutD03: {ID: 0x0205, type: Zcl.DataType.UINT32},
+                    activeEnergyOutD04: {ID: 0x0206, type: Zcl.DataType.UINT32},
+                    injectedVA: {ID: 0x0207, type: Zcl.DataType.UINT16},
+                    injectedVAMaxN: {ID: 0x0208, type: Zcl.DataType.INT16},
+                    injectedVAMaxN1: {ID: 0x0209, type: Zcl.DataType.INT16},
+                    injectedActiveLoadN: {ID: 0x0210, type: Zcl.DataType.INT16},
+                    injectedActiveLoadN1: {ID: 0x0211, type: Zcl.DataType.INT16},
+                    drawnVAMaxN1: {ID: 0x0212, type: Zcl.DataType.INT16},
+                    drawnVAMaxN1P2: {ID: 0x0213, type: Zcl.DataType.INT16},
+                    drawnVAMaxN1P3: {ID: 0x0214, type: Zcl.DataType.INT16},
+                    message1: {ID: 0x0215, type: Zcl.DataType.CHAR_STR},
+                    message2: {ID: 0x0216, type: Zcl.DataType.CHAR_STR},
+                    statusRegister: {ID: 0x0217, type: Zcl.DataType.OCTET_STR},
+                    startMobilePoint1: {ID: 0x0218, type: Zcl.DataType.UINT8},
+                    stopMobilePoint1: {ID: 0x0219, type: Zcl.DataType.UINT8},
+                    startMobilePoint2: {ID: 0x0220, type: Zcl.DataType.UINT8},
+                    stopMobilePoint2: {ID: 0x0221, type: Zcl.DataType.UINT8},
+                    startMobilePoint3: {ID: 0x0222, type: Zcl.DataType.UINT8},
+                    stopMobilePoint3: {ID: 0x0223, type: Zcl.DataType.UINT8},
+                    relais: {ID: 0x0224, type: Zcl.DataType.UINT16},
+                    daysNumberCurrentCalendar: {ID: 0x0225, type: Zcl.DataType.UINT8},
+                    daysNumberNextCalendar: {ID: 0x0226, type: Zcl.DataType.UINT8},
+                    daysProfileCurrentCalendar: {ID: 0x0227, type: Zcl.DataType.LONG_OCTET_STR},
+                    daysProfileNextCalendar: {ID: 0x0228, type: Zcl.DataType.LONG_OCTET_STR},
+                    linkyMode: {ID: 0x0300, type: Zcl.DataType.UINT8},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+    },
+};
+
 /* Start ZiPulses */
 
 const unitsZiPulses = [
@@ -1663,8 +1719,8 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
             lMode.raiseError; // raise if undefined
             // @ts-expect-error ignore
             return ((lMode >> bitLinkyMode) & 1) === 1 ? valueTrue : valueFalse;
-        } catch {
-            logger.warning(`Was not able to detect the Linky ${targetOption}. Default to ${valueDefault}`, NS);
+        } catch (error) {
+            logger.warning(`Was not able to detect the Linky's ${targetOption}. Defaulting to ${valueDefault}. Error: ${error}`, NS);
             return valueDefault; // default value in the worst case
         }
     }
@@ -1701,7 +1757,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
         }
     }
 
-    logger.debug(`zlinky config: ${linkyMode}, ${linkyPhase}, ${linkyProduction.toString()}, ${currentTarf}`, NS);
+    logger.debug(`zlinky config: mode=${linkyMode}, phases=${linkyPhase}, production=${linkyProduction}, tariff=${currentTarf}`, NS);
 
     switch (currentTarf) {
         case linkyMode === linkyModeDef.legacy && tarifsDef.histo_BASE.currentTarf:
@@ -1825,7 +1881,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             await endpoint.read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null}).catch((e) => {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
+                logger.warning(`Failed to read Zigbee attributes during configure: ${e}`, NS);
             });
 
             const configReportings = [];
@@ -1894,6 +1950,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         ota: {manufacturerName: "LiXee"}, // TODO: not sure if it's set properly in device
         extend: [
+            local.modernExtend.addCustomClusterManuSpecificLixee(),
             m.poll({
                 key: "measurement",
                 defaultIntervalSeconds: 600,
@@ -1918,13 +1975,17 @@ export const definitions: DefinitionWithExtend[] = [
                             const cluster = clustersDef[key];
                             const targ = currentExposes.filter((e) => e.cluster === cluster).map((e) => e.att);
                             if (targ.length) {
+                                logger.debug(`Poll: trying to read from ${cluster}: ${targ}`, NS);
                                 let i: number;
                                 let j: number;
                                 // Split array by chunks
                                 for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
                                     await endpoint.read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null}).catch((e) => {
                                         // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                                        logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
+                                        logger.warning(
+                                            `Failed to read Zigbee attributes during poll. If you see many of these messages, try reducing 'Measurement poll chunk'. ${e}`,
+                                            NS,
+                                        );
                                     });
                                 }
                             }
@@ -1941,7 +2002,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null})
                     .catch((e) => {
                         // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                        logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
+                        logger.warning(`Failed to read Zigbee attributes during startup: ${e}`, NS);
                     });
             }
         },
