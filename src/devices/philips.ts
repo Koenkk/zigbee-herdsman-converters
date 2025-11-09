@@ -1866,6 +1866,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
+        zigbeeModel: ["929003597802"],
+        model: "929003597802",
+        vendor: "Philips",
+        description: "Hue black ambiance Aurelle square panel light",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
         zigbeeModel: ["3216231P6"],
         model: "3216231P6",
         vendor: "Philips",
@@ -3260,6 +3267,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Play gradient lightstrip for PC 3x 24/27",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
+        zigbeeModel: ["929004608004"],
+        model: "929004608004",
+        vendor: "Philips",
+        description: "Hue Omniglow lightstrip",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
     },
     {
         zigbeeModel: ["929003099301"],

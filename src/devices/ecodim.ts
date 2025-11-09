@@ -8,7 +8,7 @@ const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["Eco-Dim.05 Zigbee"],
+        zigbeeModel: ["Eco-Dim.05 Zigbee", "eco-dim05-zigbee"],
         fingerprint: [
             {
                 type: "Router",
