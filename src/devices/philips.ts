@@ -1866,6 +1866,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
+        zigbeeModel: ['929003597802'],
+        model: '929003597802',
+        vendor: 'Philips',
+        description: 'Hue black ambiance Aurelle square panel light',
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
         zigbeeModel: ["3216231P6"],
         model: "3216231P6",
         vendor: "Philips",
