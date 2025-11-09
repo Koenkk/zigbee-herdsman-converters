@@ -7737,6 +7737,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaOnOff({
                 electricalMeasurements: true,
                 powerOutageMemory: true,
+                onOffCountdown: true,
                 indicatorMode: true,
                 childLock: true,
             }),
