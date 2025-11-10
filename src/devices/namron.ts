@@ -142,7 +142,10 @@ const fzNamronSimplifyRemote = {
 
         publish({action: `${base}press`});
     },
-} as Fz.Converter<any, any, any>;
+    } as unknown as Fz.Converter<any, any, any>;
+
+};
+
 
 // END SimplifyBryter
 const tzLocal = {
