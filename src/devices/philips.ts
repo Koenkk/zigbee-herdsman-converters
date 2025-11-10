@@ -549,7 +549,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["LTD021"],
+        zigbeeModel: ["LTD021", "LTD022"],
         model: "9290035842",
         vendor: "Philips",
         description: "Garnea downlight",
