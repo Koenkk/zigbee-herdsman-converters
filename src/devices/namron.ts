@@ -80,7 +80,7 @@ const HOLD_KEY_SIMPLIFY = "namron_simplify_lastHold";
 const simplify_col = (n: number) => Math.floor((n - 1) / 2) + 1;
 const simplify_sub = (n: number) => (n % 2 === 1 ? "up" : "down");
 
-const fzNamronSimplifyRemote: Fz.Converter = {
+const fzNamronSimplifyRemote = {
     cluster: "zosungIRControl",
     type: ["raw"],
     convert(
