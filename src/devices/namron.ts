@@ -142,6 +142,7 @@ const fzNamronSimplifyRemote = {
 
         publish({action: `${base}press`});
     },
+// biome-ignore lint/suspicious/noExplicitAny: required generic cast for Converter
 } as unknown as Fz.Converter<any, any, any>;
 
 // END SimplifyBryter
