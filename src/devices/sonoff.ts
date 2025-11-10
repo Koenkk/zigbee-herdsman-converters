@@ -2085,8 +2085,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customSonoffTrvzb",
                 attribute: "temporaryModeTemp",
                 entityCategory: "config",
-                description:
-                    "In timer mode, the temperature can be set to 4-35 ℃.",
+                description: "In timer mode, the temperature can be set to 4-35 ℃.",
                 valueMin: 4.0,
                 valueMax: 35.0,
                 valueStep: 0.5,
@@ -2116,7 +2115,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description:
                     "Boost mode: Activates maximum TRV temperature for a user-defined duration, enabling rapid heating. " +
                     "Timer Mode: Allows customization of temperature and duration for precise heating control." +
-                    "After the set duration, the system will return to its previous normal mode and temperature." 
+                    "After the set duration, the system will return to its previous normal mode and temperature.",
             }),
             m.binary<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "child_lock",
