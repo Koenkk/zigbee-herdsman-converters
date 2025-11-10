@@ -81,14 +81,14 @@ const simplify_col = (n: number) => Math.floor((n - 1) / 2) + 1;
 const simplify_sub = (n: number) => (n % 2 === 1 ? "up" : "down");
 
 const fzNamronSimplifyRemote = {
-    cluster: "zosungIRControl",
-    type: ["raw"],
+    cluster: 'zosungIRControl',
+    type: ['raw'] as const,
     convert(
         model: unknown,
         msg: unknown,
         publish: (data: Record<string, unknown>) => void,
         options: Record<string, unknown>,
-        meta: Record<string, unknown>,
+        meta: Record<string, unknown>
     ) {
         // ---- Byte parsing uten any ----
         type RawContainer = {data?: number[]};
@@ -142,6 +142,7 @@ const fzNamronSimplifyRemote = {
 
         publish({action: `${base}press`});
     },
+    } as Fz.Converter<any, any, any>;
 };
 
 // END SimplifyBryter
