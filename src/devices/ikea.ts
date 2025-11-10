@@ -460,7 +460,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
     },
     {
-        zigbeeModel: ["JETSTROM 3030 wall"],
+        zigbeeModel: ["JETSTROM 3030 wall", "JETSTROM 3030 NA wall"],
         model: "L2205",
         vendor: "IKEA",
         description: "JETSTROM wall light panel, color/white spectrum, 30x30 cm",
