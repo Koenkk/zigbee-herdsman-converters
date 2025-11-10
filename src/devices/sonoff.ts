@@ -103,7 +103,25 @@ interface SonoffTrvzb {
     commandResponses: never;
 }
 
+interface SonoffSnzb01m {
+    attributes: {
+        keyActionEvent: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
+    key_action_event: {
+        cluster: "customSonoffSnzb01m",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if ("keyActionEvent" in msg.data) {
+                const event = utils.getFromLookup(msg.data.keyActionEvent, {1: "single", 2: "double", 3: "long", 4: "triple"});
+                return {action: `${event}_button_${msg.endpoint.ID}`};
+            }
+        },
+    } satisfies Fz.Converter<"customSonoffSnzb01m", SonoffSnzb01m, ["attributeReport", "readResponse"]>,
     router_config: {
         cluster: "genLevelCtrl",
         type: ["attributeReport", "readResponse"],
@@ -1159,7 +1177,7 @@ const sonoffExtend = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["NSPanelP-Router"],
+        zigbeeModel: ["NSPanelP-Router", "Cuber ZLI Router"],
         model: "NSPanelP-Router",
         vendor: "SONOFF",
         description: "Router",
@@ -1379,9 +1397,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Dongle-PMG24_ZBRouter"],
-        model: "PMG24_router",
+        model: "Dongle-PMG24",
         vendor: "SONOFF",
-        description: "Router",
+        description: "Zigbee Dongle Plus MG24 (EFR32MG24) with router firmware",
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         exposes: [],
@@ -1776,9 +1794,18 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Dongle-M_ZBRouter"],
-        model: "ZBDongle-M",
+        model: "Dongle-M",
         vendor: "SONOFF",
         description: "Dongle Max MG24 (EFR32MG24) with router firmware",
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
+    },
+    {
+        zigbeeModel: ["Dongle-LMG21_ZBRouter"],
+        model: "Dongle-LMG21",
+        vendor: "SONOFF",
+        description: "Dongle Lite Zigbee MG21 (EFR32MG21) with router firmware",
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
@@ -1820,6 +1847,45 @@ export const definitions: DefinitionWithExtend[] = [
                 voltage: true,
                 voltageReporting: true,
                 voltageReportingConfig: {min: 3600, max: 7200, change: 0},
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["SNZB-01M"],
+        model: "SNZB-01M",
+        vendor: "SONOFF",
+        description: "Four-way wireless button",
+        fromZigbee: [fzLocal.key_action_event],
+        exposes: [
+            e.action([
+                "single_button_1",
+                "double_button_1",
+                "long_button_1",
+                "triple_button_1",
+                "single_button_2",
+                "double_button_2",
+                "long_button_2",
+                "triple_button_2",
+                "single_button_3",
+                "double_button_3",
+                "long_button_3",
+                "triple_button_3",
+                "single_button_4",
+                "double_button_4",
+                "long_button_4",
+                "triple_button_4",
+            ]),
+        ],
+        extend: [
+            m.battery({percentage: true, percentageReporting: true}),
+            m.deviceAddCustomCluster("customSonoffSnzb01m", {
+                ID: 0xfc12,
+                attributes: {
+                    keyActionEvent: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                },
+                commands: {},
+                commandsResponse: {},
             }),
         ],
         ota: true,

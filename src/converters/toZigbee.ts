@@ -1291,6 +1291,14 @@ export const light_onoff_brightness: Tz.Converter = {
             // use "moveToLevel" with explicit On and Off when the state changes.
 
             if (typeof meta.state.state === "string" && meta.state.state.toLowerCase() !== targetState) {
+                if (targetState === "on") {
+                    await entity.command(
+                        "genLevelCtrl",
+                        "moveToLevel",
+                        {level: Number(brightness), transtime: transition.time},
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                }
                 await on_off.convertSet(entity, "state", state, meta);
             } else {
                 await entity.command(
