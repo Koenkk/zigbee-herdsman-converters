@@ -20891,7 +20891,7 @@ export const definitions: DefinitionWithExtend[] = [
                     7,
                     "work_state",
                     tuya.valueConverterBasic.lookup((options) =>
-                        options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
+                        options.invert_cover ? {opening: tuya.enum(0), closing: tuya.enum(1)} : {opening: tuya.enum(1), closing: tuya.enum(0)},
                     ),
                 ],
                 [12, "motor_fault", tuya.valueConverter.trueFalse1],
