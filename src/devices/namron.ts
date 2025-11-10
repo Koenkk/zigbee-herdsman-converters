@@ -71,44 +71,38 @@ const fzLocal = {
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 // Namron Simplify 3-button remote (4512793 / 4512794)
-const NAMRON_SIMPLIFY_ACTIONS: Record<number, 'press' | 'release' | 'hold'> = {
-    0x00: 'press',
-    0x01: 'release',
-    0x02: 'hold',
+const NAMRON_SIMPLIFY_ACTIONS: Record<number, "press" | "release" | "hold"> = {
+    0: "press",
+    1: "release",
+    2: "hold",
 };
-const HOLD_KEY_SIMPLIFY = 'namron_simplify_lastHold';
+const HOLD_KEY_SIMPLIFY = "namron_simplify_lastHold";
 const simplify_col = (n: number) => Math.floor((n - 1) / 2) + 1;
-const simplify_sub = (n: number) => (n % 2 === 1 ? 'up' : 'down');
+const simplify_sub = (n: number) => (n % 2 === 1 ? "up" : "down");
 
 const fzNamronSimplifyRemote: Fz.Converter = {
-    cluster: 'zosungIRControl',
-    type: ['raw'],
+    cluster: "zosungIRControl",
+    type: ["raw"],
     convert(
         model: unknown,
         msg: unknown,
         publish: (data: Record<string, unknown>) => void,
         options: Record<string, unknown>,
-        meta: Record<string, unknown>
+        meta: Record<string, unknown>,
     ) {
         // ---- Byte parsing uten any ----
-        type RawContainer = { data?: number[] };
-        type MaybeData = { data?: RawContainer | number[] | Record<string, number>; type?: string };
+        type RawContainer = {data?: number[]};
+        type MaybeData = {data?: RawContainer | number[] | Record<string, number>; type?: string};
 
         const container = msg as MaybeData;
         const d = container.data;
         let bytes: number[] = [];
 
-        if (
-            container.type === 'raw' &&
-            d &&
-            typeof d === 'object' &&
-            'data' in (d as RawContainer) &&
-            Array.isArray((d as RawContainer).data)
-        ) {
+        if (container.type === "raw" && d && typeof d === "object" && "data" in (d as RawContainer) && Array.isArray((d as RawContainer).data)) {
             bytes = (d as RawContainer).data as number[];
         } else if (Array.isArray(d)) {
             bytes = d as number[];
-        } else if (d && typeof d === 'object') {
+        } else if (d && typeof d === "object") {
             const obj = d as Record<string, number>;
             const keys = Object.keys(obj)
                 .filter((k) => !Number.isNaN(Number(k)))
@@ -127,26 +121,26 @@ const fzNamronSimplifyRemote: Fz.Converter = {
 
         if (!kind) {
             const lastHold = store.getValue(meta.device as never, HOLD_KEY_SIMPLIFY) as string | undefined;
-            if (lastHold?.endsWith('_hold')) {
-                publish({ action: lastHold.replace('_hold', '_release') });
+            if (lastHold?.endsWith("_hold")) {
+                publish({action: lastHold.replace("_hold", "_release")});
                 store.putValue(meta.device as never, HOLD_KEY_SIMPLIFY, null);
             }
             return;
         }
 
-        if (kind === 'hold') {
+        if (kind === "hold") {
             store.putValue(meta.device as never, HOLD_KEY_SIMPLIFY, `${base}hold`);
-            publish({ action: `${base}hold` });
+            publish({action: `${base}hold`});
             return;
         }
 
-        if (kind === 'release') {
-            publish({ action: `${base}press` });
-            publish({ action: `${base}release` });
+        if (kind === "release") {
+            publish({action: `${base}press`});
+            publish({action: `${base}release`});
             return;
         }
 
-        publish({ action: `${base}press` });
+        publish({action: `${base}press`});
     },
 };
 
@@ -1719,24 +1713,36 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-    zigbeeModel: ['4512793', '4512794'],
-    model: '4512793',
-    vendor: 'Namron AS',
-    description: 'Namron Simplify 4512793 / 4512794 — 6-button remote with battery',
-    extend: [m.battery()],
-    fromZigbee: [fzNamronSimplifyRemote],
-    toZigbee: [],
-    exposes: [
-        e.action([
-            'button_1_up_press','button_1_up_hold','button_1_up_release',
-            'button_1_down_press','button_1_down_hold','button_1_down_release',
-            'button_2_up_press','button_2_up_hold','button_2_up_release',
-            'button_2_down_press','button_2_down_hold','button_2_down_release',
-            'button_3_up_press','button_3_up_hold','button_3_up_release',
-            'button_3_down_press','button_3_down_hold','button_3_down_release',
-        ]),
-    ],
-},
+        zigbeeModel: ["4512793", "4512794"],
+        model: "4512793",
+        vendor: "Namron AS",
+        description: "Namron Simplify 4512793 / 4512794 — 6-button remote with battery",
+        extend: [m.battery()],
+        fromZigbee: [fzNamronSimplifyRemote],
+        toZigbee: [],
+        exposes: [
+            e.action([
+                "button_1_up_press",
+                "button_1_up_hold",
+                "button_1_up_release",
+                "button_1_down_press",
+                "button_1_down_hold",
+                "button_1_down_release",
+                "button_2_up_press",
+                "button_2_up_hold",
+                "button_2_up_release",
+                "button_2_down_press",
+                "button_2_down_hold",
+                "button_2_down_release",
+                "button_3_up_press",
+                "button_3_up_hold",
+                "button_3_up_release",
+                "button_3_down_press",
+                "button_3_down_hold",
+                "button_3_down_release",
+            ]),
+        ],
+    },
     {
         zigbeeModel: ["4512791"],
         model: "4512791",
