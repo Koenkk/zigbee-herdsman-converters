@@ -20860,7 +20860,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fodv6bkr"]),
         model: "RM28-LE",
         vendor: "Ronco",
-        description: "Ronco RM28-LE Zigbee Roller Shade Motor",
+        description: "Zigbee roller shade motor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
