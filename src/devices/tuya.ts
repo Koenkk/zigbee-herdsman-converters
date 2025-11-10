@@ -20860,7 +20860,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fodv6bkr"]),
         model: "RM28-LE",
         vendor: "Ronco",
-        description: "Zigbee roller shade motor",
+        description: "Ronco RM28-LE Zigbee Roller Shade Motor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
@@ -20875,8 +20875,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             // All datapoints go in here
             tuyaDatapoints: [
-                [
-                    1,
+                [1,
                     "state",
                     tuya.valueConverterBasic.lookup({
                         OPEN: tuya.enum(0),
@@ -20887,17 +20886,14 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.coverPosition],
                 [5, "reverse_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
-                [
-                    7,
-                    "work_state",
-                    tuya.valueConverterBasic.lookup((options) =>
-                        options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
-                    ),
-                ],
+                [7, 'work_state', tuya.valueConverterBasic.lookup((options) =>
+                options.invert_cover
+                    ? { opening: tuya.enum(0), closing: tuya.enum(1) }
+                    : { opening: tuya.enum(1), closing: tuya.enum(0) }
+                )],
                 [12, "motor_fault", tuya.valueConverter.trueFalse1],
                 [13, "battery", tuya.valueConverter.raw],
-                [
-                    16,
+                [16,
                     "border",
                     tuya.valueConverterBasic.lookup({
                         up: tuya.enum(0),
