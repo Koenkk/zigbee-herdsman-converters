@@ -95,6 +95,9 @@ interface SonoffTrvzb {
         tempAccuracy: number;
         externalTemperatureInput: number;
         temperatureSensorSelect: number;
+        temporaryMode: number;
+        temporaryModeTime: number;
+        temporaryModeTemp: number;
     };
     commands: never;
     commandResponses: never;
@@ -1996,6 +1999,9 @@ export const definitions: DefinitionWithExtend[] = [
                     valveOpeningDegree: {ID: 0x600b, type: Zcl.DataType.UINT8},
                     valveClosingDegree: {ID: 0x600c, type: Zcl.DataType.UINT8},
                     tempAccuracy: {ID: 0x6011, type: Zcl.DataType.INT16},
+                    temporaryMode: {ID: 0x6014, type: Zcl.DataType.UINT8},
+                    temporaryModeTime: {ID: 0x6015, type: Zcl.DataType.UINT32},
+                    temporaryModeTemp: {ID: 0x6016, type: Zcl.DataType.INT16},
                     externalTemperatureInput: {
                         ID: 0x600d,
                         type: Zcl.DataType.INT16,
@@ -2007,6 +2013,44 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "timer_mode_target_temp",
+                cluster: "customSonoffTrvzb",
+                attribute: "temporaryModeTemp",
+                entityCategory: "config",
+                description:
+                    "In timer mode, the temperature can be set to 4-35 ℃.",
+                valueMin: 4.0,
+                valueMax: 35.0,
+                valueStep: 0.5,
+                unit: "°C",
+                scale: 100,
+            }),
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "temporary_mode_duration",
+                cluster: "customSonoffTrvzb",
+                attribute: "temporaryModeTime",
+                entityCategory: "config",
+                description:
+                    "Boost Mode: Sets maximum TRV temperature for up to 180 minutes." +
+                    "Timer Mode: Customizes temperature and duration, up to 24 hours.",
+                valueMin: 0,
+                valueMax: 1440,
+                valueStep: 1,
+                unit: "minutes",
+                scale: 60,
+            }),
+            m.enumLookup<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "temporary_mode_select",
+                label: "Temporary mode ",
+                lookup: {boost: 0, timer: 1},
+                cluster: "customSonoffTrvzb",
+                attribute: "temporaryMode",
+                description:
+                    "Boost mode: Activates maximum TRV temperature for a user-defined duration, enabling rapid heating. " +
+                    "Timer Mode: Allows customization of temperature and duration for precise heating control." +
+                    "After the set duration, the system will return to its previous normal mode and temperature." 
             }),
             m.binary<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "child_lock",
