@@ -1433,6 +1433,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_temperature_min",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortTemperatureMin",
+                entityCategory: "config",
                 description:
                     "Minimum temperature that is considered comfortable. The device will display ❄️ when the temperature is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: -10,
@@ -1445,6 +1446,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_temperature_max",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortTemperatureMax",
+                entityCategory: "config",
                 description:
                     "Maximum temperature that is considered comfortable. The device will display 🔥 when the temperature is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: -10,
@@ -1457,6 +1459,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_humidity_min",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortHumidityMin",
+                entityCategory: "config",
                 description:
                     "Minimum relative humidity that is considered comfortable. The device will display ☀️ when the humidity is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
@@ -1469,6 +1472,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_humidity_max",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortHumidityMax",
+                entityCategory: "config",
                 description:
                     "Maximum relative humidity that is considered comfortable. The device will display 💧 when the humidity is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
@@ -1482,6 +1486,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02d",
                 attribute: "temperatureUnits",
+                entityCategory: "config",
                 description:
                     "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
             }),
@@ -1489,6 +1494,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02d",
                 attribute: "temperatureCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported temperature",
                 valueMin: -50,
                 valueMax: 50,
@@ -1500,6 +1506,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "humidity_calibration",
                 cluster: "customSonoffSnzb02d",
                 attribute: "humidityCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported relative humidity",
                 valueMin: -50,
                 valueMax: 50,
