@@ -717,4 +717,31 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.onOff(endpoint);
         },
     },
+{
+    zigbeeModel: ['NLIS - Triple light switch'],
+    model: 'NLIS - Triple light switch',
+    vendor: 'Legrand',
+    description: 'Triple light switch',
+    fromZigbee: [fz.on_off],
+    toZigbee: [tz.on_off],
+    exposes: [
+        e.switch().withEndpoint('right'),
+        e.switch().withEndpoint('center'),
+        e.switch().withEndpoint('left'),
+    ],
+    endpoint: (device) => {
+        return {
+            'right': 1,
+            'center': 2,
+            'left': 3,
+        };
+    },
+    meta: {multiEndpoint: true},
+    configure: async (device, coordinatorEndpoint, logger) => {
+        for (const ep of [1, 2, 3]) {
+            const endpoint = device.getEndpoint(ep);
+            await endpoint.bind('genOnOff', coordinatorEndpoint);
+        }
+    },
+};
 ];
