@@ -238,10 +238,15 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
             m.electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
-            m.onOff({powerOnBehavior: false}),
+            m.onOff({powerOnBehavior: false, configureReporting: false}),
         ],
         endpoint: (device) => {
             return {default: 2};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            // Has onOff cluster on both endpoint 1 and 2 but only endpoint 2 seems to work (ep 1 fails)
+            // https://github.com/Koenkk/zigbee2mqtt/issues/29548
+            await reporting.onOff(device.getEndpoint(2));
         },
     },
     {
