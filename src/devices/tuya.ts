@@ -6602,10 +6602,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_9xfjixap",
                 "_TZE200_jkfbph7l",
             ]),
-            tuya.whitelabel("MYUET", "ME167", "Thermostatic radiator valve", [
-                "_TZE200_4utwoz2",
-                "_TZE200_4utwozi2",
-            ]),
+            tuya.whitelabel("MYUET", "ME167", "Thermostatic radiator valve", ["_TZE200_4utwoz2", "_TZE200_4utwozi2"]),
             tuya.whitelabel("AVATTO", "ME168_1", "Thermostatic radiator valve", ["_TZE200_rxntag7i"]),
             tuya.whitelabel("AVATTO", "TRV06_1", "Thermostatic radiator valve", ["_TZE200_hvaxb2tc", "_TZE284_o3x45p96"]),
             tuya.whitelabel("EARU", "TRV06", "Smart thermostat module", ["_TZE200_yqgbrdyo", "_TZE200_rxq4iti9"]),
