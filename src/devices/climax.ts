@@ -69,6 +69,13 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch(), e.power(), e.energy()],
     },
     {
+        zigbeeModel: ["PSMP5_00.00.03.12TC"],
+        model: "PSM-29ZBS",
+        vendor: "Climax",
+        description: "Power plug",
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({current: false, voltage: false})],
+    },
+    {
         zigbeeModel: ["RS_00.00.02.06TC"],
         model: "RS-23ZBS",
         vendor: "Climax",
@@ -85,7 +92,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.humidity()],
     },
     {
-        zigbeeModel: ["SRACBP5_00.00.03.06TC", "SRAC_00.00.00.16TC", "SRACBP5_00.00.05.10TC"],
+        zigbeeModel: ["SRACBP5_00.00.03.06TC", "SRAC_00.00.00.16TC", "SRACBP5_00.00.05.10TC", "SRACB_00.00.03.07TC"],
         model: "SRAC-23B-ZBSR",
         vendor: "Climax",
         description: "Smart siren",

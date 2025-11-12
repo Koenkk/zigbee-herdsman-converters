@@ -237,8 +237,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VM-Zigbee-S02-0-10V",
         vendor: "Lonsonho",
         description: "2 channel Zigbee 0-10V dimmer module",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l1"),
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l2"),

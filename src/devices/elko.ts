@@ -15,7 +15,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ElkoDimmerZHA"],
         model: "316GLEDRF",
         vendor: "ELKO",
-        description: "ZigBee in-wall smart dimmer",
+        description: "Zigbee in-wall smart dimmer",
         extend: [m.light({configureReporting: true})],
         meta: {disableDefaultResponse: true},
     },

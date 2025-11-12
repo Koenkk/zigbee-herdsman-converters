@@ -42,15 +42,9 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["EMIZB-151"],
         model: "EMIZB-151",
         vendor: "Frient",
-        description: "HAN P1 power-meter sensor",
-        extend: [m.electricityMeter({threePhase: true})],
+        description: "Electricity Meter Interface 2 P1",
+        extend: [m.electricityMeter({threePhase: true, producedEnergy: true, tariffs: true})],
         ota: true,
-    },
-    {
-        zigbeeModel: ["REXZB-111"],
-        model: "REXZB-111",
-        vendor: "Frient",
-        description: "Zigbee repeater with backup battery",
-        extend: [m.battery(), m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}), m.identify()],
+        endpoint: (device) => ({default: 2}),
     },
 ];

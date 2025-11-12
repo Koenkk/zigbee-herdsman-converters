@@ -2159,7 +2159,7 @@ const tuyaModernExtend = {
             respondToMcuVersionResponse?: true;
             mcuVersionRequestOnConfigure?: true;
             forceTimeUpdates?: true;
-            timeStart?: "2000" | "off";
+            timeStart?: "2000" | "1970";
         } = {},
     ): ModernExtend {
         const {
@@ -2172,7 +2172,7 @@ const tuyaModernExtend = {
             // Allow force updating for device with a very bad clock
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
-            timeStart = "1970",
+            timeStart = "off",
             // Disable by default as with many Tuya devices it doesn't work well.
             // https://github.com/Koenkk/zigbee2mqtt/issues/28367#issuecomment-3363460429
             respondToMcuVersionResponse = false,
@@ -2275,7 +2275,9 @@ const tuyaModernExtend = {
                                     event.data.device.endpoints[0]
                                         .command("manuSpecificTuya", "dataQuery", {})
                                         .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on interval (${error})`, NS));
-                                    setTimer();
+                                    if (globalStore.getValue(event.data.device.ieeeAddr, "query_interval") === timer) {
+                                        setTimer();
+                                    }
                                 }, queryIntervalSeconds * 1000);
                                 globalStore.putValue(event.data.device.ieeeAddr, "query_interval", timer);
                             };
@@ -2526,9 +2528,16 @@ const tuyaModernExtend = {
             ...args,
         });
     },
-    tuyaLight(args?: modernExtend.LightArgs & {minBrightness?: "none" | "attribute" | "command"; switchType?: boolean}) {
+    tuyaLight(
+        args?: modernExtend.LightArgs & {
+            minBrightness?: "none" | "attribute" | "command";
+            switchType?: boolean;
+            doNotDisturb?: boolean;
+            colorPowerOnBehavior?: boolean;
+        },
+    ): ModernExtend {
         // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-        args = {minBrightness: "none", powerOnBehavior: false, switchType: false, ...args};
+        args = {minBrightness: "none", powerOnBehavior: false, switchType: false, doNotDisturb: true, colorPowerOnBehavior: true, ...args};
         if (args.colorTemp) {
             args.colorTemp = {startup: false, ...args.colorTemp};
         }
@@ -2539,8 +2548,11 @@ const tuyaModernExtend = {
         const result = modernExtend.light({...args, powerOnBehavior: false});
 
         result.fromZigbee.push(tuyaFz.brightness);
-        result.toZigbee.push(tuyaTz.do_not_disturb);
-        result.exposes.push(tuyaExposes.doNotDisturb());
+
+        if (args.doNotDisturb) {
+            result.toZigbee.push(tuyaTz.do_not_disturb);
+            result.exposes.push(tuyaExposes.doNotDisturb());
+        }
 
         if (args.powerOnBehavior) {
             result.fromZigbee.push(tuyaFz.power_on_behavior_2);
@@ -2569,7 +2581,7 @@ const tuyaModernExtend = {
             );
         }
 
-        if (args.color) {
+        if (args.color && args.colorPowerOnBehavior) {
             result.toZigbee.push(tuyaTz.color_power_on_behavior);
             result.exposes.push(tuyaExposes.colorPowerOnBehavior());
         }
@@ -2581,34 +2593,37 @@ const tuyaModernExtend = {
     tuyaOnOff: (
         args: {
             endpoints?: string[];
-            powerOutageMemory?: boolean;
+            powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior2?: boolean;
             switchType?: boolean;
             switchTypeCurtain?: boolean;
             backlightModeLowMediumHigh?: boolean;
-            indicatorMode?: boolean;
+            indicatorMode?: boolean | ((manufacturerName: string) => boolean);
             indicatorModeNoneRelayPos?: boolean;
             backlightModeOffNormalInverted?: boolean;
             backlightModeOffOn?: boolean;
             electricalMeasurements?: boolean;
             // biome-ignore lint/suspicious/noExplicitAny: generic
             electricalMeasurementsFzConverter?: Fz.Converter<"haElectricalMeasurement", undefined, any>;
-            childLock?: boolean;
+            childLock?: boolean | ((manufacturerName: string) => boolean);
             switchMode?: boolean;
-            onOffCountdown?: boolean;
+            onOffCountdown?: boolean | ((manufacturerName: string) => boolean);
             inchingSwitch?: boolean;
         } = {},
     ): ModernExtend => {
+        const {onOffCountdown = false, indicatorMode = false, powerOutageMemory = false, childLock = false} = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
             : [e.switch()];
         // biome-ignore lint/suspicious/noExplicitAny: generic
         const fromZigbee: Fz.Converter<any, any, any>[] = [fz.on_off];
         const toZigbee: Tz.Converter[] = [];
-        if (args.onOffCountdown) {
+        if (onOffCountdown) {
             fromZigbee.push(tuyaFz.on_off_countdown);
             toZigbee.push(tuyaTz.on_off_countdown);
-            if (args.endpoints) {
+            if (typeof onOffCountdown === "function") {
+                exposes.push((d) => (onOffCountdown(d.manufacturerName) ? [tuyaExposes.countdown()] : []));
+            } else if (args.endpoints) {
                 exposes.push(...args.endpoints.map((ee) => tuyaExposes.countdown().withAccess(ea.ALL).withEndpoint(ee)));
             } else {
                 exposes.push(tuyaExposes.countdown().withAccess(ea.ALL));
@@ -2616,11 +2631,15 @@ const tuyaModernExtend = {
         } else {
             toZigbee.push(tz.on_off);
         }
-        if (args.powerOutageMemory) {
+        if (powerOutageMemory) {
             // Legacy, powerOnBehavior is preferred
             fromZigbee.push(tuyaFz.power_outage_memory);
             toZigbee.push(tuyaTz.power_on_behavior_1);
-            exposes.push(tuyaExposes.powerOutageMemory());
+            if (typeof powerOutageMemory === "function") {
+                exposes.push((d) => (powerOutageMemory(d.manufacturerName) ? [tuyaExposes.powerOutageMemory()] : []));
+            } else {
+                exposes.push(tuyaExposes.powerOutageMemory());
+            }
         } else if (args.powerOnBehavior2) {
             fromZigbee.push(tuyaFz.power_on_behavior_2);
             toZigbee.push(tuyaTz.power_on_behavior_2);
@@ -2660,10 +2679,14 @@ const tuyaModernExtend = {
             exposes.push(tuyaExposes.backlightModeOffNormalInverted());
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
         }
-        if (args.indicatorMode) {
+        if (indicatorMode) {
             fromZigbee.push(tuyaFz.indicator_mode);
-            exposes.push(tuyaExposes.indicatorMode());
             toZigbee.push(tuyaTz.backlight_indicator_mode_1);
+            if (typeof indicatorMode === "function") {
+                exposes.push((d) => (indicatorMode(d.manufacturerName) ? [tuyaExposes.indicatorMode()] : []));
+            } else {
+                exposes.push(tuyaExposes.indicatorMode());
+            }
         }
         if (args.indicatorModeNoneRelayPos) {
             fromZigbee.push(tuyaFz.indicator_mode_none_relay_pos);
@@ -2674,10 +2697,14 @@ const tuyaModernExtend = {
             fromZigbee.push(args.electricalMeasurementsFzConverter || fz.electrical_measurement, fz.metering);
             exposes.push(e.power(), e.current(), e.voltage(), e.energy());
         }
-        if (args.childLock) {
+        if (childLock) {
             fromZigbee.push(tuyaFz.child_lock);
             toZigbee.push(tuyaTz.child_lock);
-            exposes.push(e.child_lock());
+            if (typeof childLock === "function") {
+                exposes.push((d) => (childLock(d.manufacturerName) ? [e.child_lock()] : []));
+            } else {
+                exposes.push(e.child_lock());
+            }
         }
 
         if (args.switchMode) {

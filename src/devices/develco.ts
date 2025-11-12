@@ -642,8 +642,8 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             // Prevent excessive reports
             // https://github.com/Koenkk/zigbee-herdsman-converters/pull/10081
-            develcoModernExtend.temperature({reporting: {min: 10, max: 3600, change: 100}}),
-            m.illuminance({reporting: {min: 10, max: 3600, change: 100}}),
+            develcoModernExtend.temperature({reporting: {min: 60, max: 3600, change: 100}}),
+            m.illuminance({reporting: {min: 300, max: 3600, change: 100}}),
             m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
@@ -1056,6 +1056,56 @@ export const definitions: DefinitionWithExtend[] = [
         },
         endpoint: (device) => {
             return {default: 32};
+        },
+    },
+    {
+        zigbeeModel: ["REXZB-111"],
+        model: "REXZB-111",
+        vendor: "Develco",
+        description: "Range extender with backup battery",
+        whiteLabel: [{vendor: "Frient", model: "REXZB-111"}],
+        ota: true,
+        endpoint: (device) => {
+            return {default: 37};
+        },
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoIasZone(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            m.battery({
+                voltage: true,
+                voltageReporting: true,
+                voltageReportingConfig: {min: "1_HOUR", max: "MAX", change: 10},
+                voltageToPercentage: {min: 3450, max: 4100},
+                percentage: true,
+                percentageReporting: false,
+                lowStatus: false,
+            }),
+            m.iasZoneAlarm({
+                zoneType: "generic",
+                zoneAttributes: ["battery_low", "battery_defect"],
+            }),
+            develcoModernExtend.acConnected(),
+            develcoModernExtend.ledControl(),
+            develcoModernExtend.txPower(),
+            develcoModernExtend.zoneStatusInterval(),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(37);
+
+            // Bind clusters
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "ssIasZone", "genBasic", "genIdentify"]);
+
+            // Configure battery reporting
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: constants.repInterval.MAX, change: 10});
+
+            // Read initial zone status to populate ac_connected state
+            try {
+                await endpoint.read("ssIasZone", ["zoneStatus"]);
+            } catch {
+                // Device may be sleeping, will be read on next wake
+            }
         },
     },
 ];

@@ -5,6 +5,7 @@ on: [pull_request, push]
 permissions:
   contents: write
   pull-requests: write
+  id-token: write 
 
 jobs:
   ci:
@@ -14,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/

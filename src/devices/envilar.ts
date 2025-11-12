@@ -34,7 +34,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ZG102-BOX-UNIDIM"],
         model: "ZG102-BOX-UNIDIM",
         vendor: "Envilar",
-        description: "ZigBee AC phase-cut dimmer",
+        description: "Zigbee AC phase-cut dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {

@@ -3,6 +3,11 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import {
+    addCustomClusterHeimanSpecificAirQuality,
+    addCustomClusterHeimanSpecificInfraRedRemote,
+    addCustomClusterHeimanSpecificScenes,
+} from "../lib/heiman";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
@@ -413,6 +418,15 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
+        zigbeeModel: ["HY0022"],
+        model: "HS1CG_H",
+        vendor: "Heiman",
+        description: "Smart combustible gas sensor",
+        fromZigbee: [fz.ias_gas_alarm_1],
+        toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
+    },
+    {
         zigbeeModel: ["RH3070"],
         model: "HS1CG",
         vendor: "Heiman",
@@ -672,6 +686,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2SS",
         vendor: "Heiman",
         description: "Smart scene switch",
+        extend: [addCustomClusterHeimanSpecificScenes()],
         fromZigbee: [fz.battery, fz.heiman_scenes],
         exposes: [e.battery(), e.action(["cinema", "at_home", "sleep", "go_out", "repast"])],
         toZigbee: [],
@@ -793,6 +808,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2AQ-EM",
         vendor: "Heiman",
         description: "Air quality monitor",
+        extend: [addCustomClusterHeimanSpecificAirQuality()],
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pm25, fz.heiman_hcho, fz.heiman_air_quality],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -891,6 +907,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2IRC",
         vendor: "Heiman",
         description: "Smart IR Control",
+        extend: [addCustomClusterHeimanSpecificInfraRedRemote()],
         fromZigbee: [fz.battery, fz.heiman_ir_remote],
         toZigbee: [tz.heiman_ir_remote],
         exposes: [e.battery()],

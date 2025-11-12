@@ -65,6 +65,7 @@ import {definitions as directSigns} from "./direct_signs";
 import {definitions as diyruz} from "./diyruz";
 import {definitions as dlink} from "./dlink";
 import {definitions as dnake} from "./dnake";
+import {definitions as domraem} from "./domraem";
 import {definitions as dowsingReynolds} from "./dowsing_reynolds";
 import {definitions as dqsmart} from "./dqsmart";
 import {definitions as dresdenElektronik} from "./dresden_elektronik";
@@ -322,6 +323,7 @@ import {definitions as tuya} from "./tuya";
 import {definitions as ubisys} from "./ubisys";
 import {definitions as uhome} from "./uhome";
 import {definitions as universalElectronicsInc} from "./universal_electronics_inc";
+import {definitions as vav} from "./vav";
 import {definitions as vbled} from "./vbled";
 import {definitions as vesternet} from "./vesternet";
 import {definitions as viessmann} from "./viessmann";
@@ -421,6 +423,7 @@ const definitions: DefinitionWithExtend[] = [
     ...diyruz,
     ...dlink,
     ...dnake,
+    ...domraem,
     ...dowsingReynolds,
     ...dresdenElektronik,
     ...dqsmart,
@@ -676,6 +679,7 @@ const definitions: DefinitionWithExtend[] = [
     ...ubisys,
     ...uhome,
     ...universalElectronicsInc,
+    ...vav,
     ...vbled,
     ...vesternet,
     ...viessmann,

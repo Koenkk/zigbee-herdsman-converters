@@ -46,11 +46,19 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff(), m.electricityMeter()],
     },
     {
+        zigbeeModel: ["PLUG EU EM T, black"],
+        model: "4099854295256",
+        vendor: "LEDVANCE",
+        description: "SMART+ indoor plug EU with energy meter - black",
+        extend: [m.onOff(), m.electricityMeter()],
+    },
+    {
         zigbeeModel: ["PLUG COMPACT OUTDOOR EU EM T", "PLUG COMPACT EU EM T"],
         model: "4099854293276",
         vendor: "LEDVANCE",
         description: "SMART+ Compact outdoor plug EU with energy meter",
         extend: [m.onOff(), m.electricityMeter()],
+        ota: true,
     },
     {
         zigbeeModel: ["PL HCL300x1200 01"],
@@ -351,6 +359,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4058075729308",
         vendor: "LEDVANCE",
         description: "SMART+ Outdoor Plug EU",
+        extend: [ledvanceOnOff({powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ["TUBE_T8_CON_1200_16W_840ZBV"],
+        model: "4058075823976",
+        vendor: "LEDVANCE",
+        description: "LED Tube T8 EM Connected 1200 mm 16W 840",
         extend: [ledvanceOnOff({powerOnBehavior: false})],
     },
 ];

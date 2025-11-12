@@ -1291,6 +1291,14 @@ export const light_onoff_brightness: Tz.Converter = {
             // use "moveToLevel" with explicit On and Off when the state changes.
 
             if (typeof meta.state.state === "string" && meta.state.state.toLowerCase() !== targetState) {
+                if (targetState === "on") {
+                    await entity.command(
+                        "genLevelCtrl",
+                        "moveToLevel",
+                        {level: Number(brightness), transtime: transition.time},
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                }
                 await on_off.convertSet(entity, "state", state, meta);
             } else {
                 await entity.command(
@@ -3350,14 +3358,27 @@ export const ptvo_switch_trigger: Tz.Converter = {
         if (key === "trigger") {
             await entity.command("genOnOff", "onWithTimedOff", {ctrlbits: 0, ontime: Math.round(value / 100), offwaittime: 0});
         } else if (key === "interval") {
-            await entity.configureReporting("genOnOff", [
-                {
-                    attribute: "onOff",
-                    minimumReportInterval: value,
-                    maximumReportInterval: value,
-                    reportableChange: 0,
-                },
-            ]);
+            const cluster = "genOnOff";
+            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                await entity.configureReporting(cluster, [
+                    {
+                        attribute: "onOff",
+                        minimumReportInterval: value,
+                        maximumReportInterval: value,
+                        reportableChange: 0,
+                    },
+                ]);
+            } else if (utils.hasEndpoints(meta.device, [1])) {
+                const endpoint = meta.device.getEndpoint(1);
+                await endpoint.configureReporting("genBasic", [
+                    {
+                        attribute: "zclVersion",
+                        minimumReportInterval: value,
+                        maximumReportInterval: value,
+                        reportableChange: 0,
+                    },
+                ]);
+            }
         }
     },
 };
