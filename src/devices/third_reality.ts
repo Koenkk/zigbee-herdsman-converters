@@ -368,6 +368,23 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["3RSB01085Z"],
+        model: "3RSB01085Z",
+        vendor: "Third Reality",
+        description: "Smart Scene Button S3",
+        ota: true,
+        extend: [
+            m.deviceEndpoints({endpoints: {2: 3, 1: 2, 3: 1}}),
+            m.actionEnumLookup({
+                endpointNames: ["1", "2", "3"],
+                cluster: "genMultistateInput",
+                attribute: "presentValue",
+                actionLookup: {single: 0, double: 1, send: 2},
+            }),
+            m.battery(),
+        ],
+    },
+    {
         zigbeeModel: ["3RTHS24BZ"],
         model: "3RTHS24BZ",
         vendor: "Third Reality",
