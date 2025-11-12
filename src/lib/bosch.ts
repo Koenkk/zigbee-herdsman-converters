@@ -3255,7 +3255,7 @@ export const boschThermostatExtend = {
         }),
     windowOpenMode: (args?: {enableReporting: boolean}) =>
         m.binary<"hvacThermostat", BoschThermostatCluster>({
-            name: "window_open_mode",
+            name: "window_detection",
             cluster: "hvacThermostat",
             attribute: "windowOpenMode",
             description:
