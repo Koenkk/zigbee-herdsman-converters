@@ -20407,4 +20407,98 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ty5neqqo"]),
+        model: "TRV60_thermostat",
+        vendor: "AVATTO",
+        description: "Screen thermostatic radiator valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        exposes: [
+            e.enum("mode", ea.STATE_SET, ["auto", "manual"]).withDescription("Mode"),
+            e.enum("work_state", ea.STATE_SET, ["opened", "closed"]).withDescription("Work state"),
+            e.child_lock(),
+            e.battery(),
+            e.window_detection(),
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-3, 3, 1, ea.STATE_SET),
+            e.numeric("fault", ea.STATE).withDescription("Raw fault code"),
+            e
+                .binary("frost_protection", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.",
+                ),
+            e.binary("scale_protection", ea.STATE_SET, "ON", "OFF"),
+            e.numeric("valve_volume", ea.STATE).withDescription("The current percentage of valve flow rate."),
+            e
+                .numeric("humidity", ea.STATE)
+                .withDescription("The percentage of humidity collected after adding an external temperature and humidity sensor."),
+            e
+                .binary("out_door_sensor1", ea.STATE, "ON", "OFF")
+                .withDescription("The on-off status of the door magnet after adding the first external door magnet sensor."),
+            e
+                .binary("out_door_sensor2", ea.STATE, "ON", "OFF")
+                .withDescription("The on-off status of the door magnet after adding the second external door magnet sensor."),
+            e
+                .binary("out_door_sensor3", ea.STATE, "ON", "OFF")
+                .withDescription("The on-off status of the door magnet after adding the third external door magnet sensor."),
+            e
+                .numeric("out_temperature", ea.STATE)
+                .withDescription("The percentage of temperature collected after adding an external temperature and humidity sensor."),
+            e.enum("screen_orientation", ea.STATE_SET, ["normal", "inverted"]).withDescription("Screen orientation"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    "mode",
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        manual: tuya.enum(1),
+                    }),
+                ],
+                [
+                    3,
+                    "work_state",
+                    tuya.valueConverterBasic.lookup({
+                        opened: tuya.enum(0),
+                        closed: tuya.enum(1),
+                    }),
+                ],
+                [5, "local_temperature", tuya.valueConverter.divideBy10],
+                [6, "battery", tuya.valueConverter.raw],
+                [7, "child_lock", tuya.valueConverter.lockUnlock],
+                [14, "window_detection", tuya.valueConverter.onOff],
+                [28, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [29, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [30, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
+                [31, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [32, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
+                [33, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
+                [34, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [35, "fault", tuya.valueConverter.errorOrBatteryLow],
+                [36, "frost_protection", tuya.valueConverter.onOff],
+                [36, "scale_protection", tuya.valueConverter.onOff],
+                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [101, "valve_volume", tuya.valueConverter.raw],
+                [102, "humidity", tuya.valueConverter.raw],
+                [103, "out_door_sensor1", tuya.valueConverter.onOff],
+                [106, "out_door_sensor2", tuya.valueConverter.onOff],
+                [107, "out_door_sensor3", tuya.valueConverter.onOff],
+                [109, "out_temperature", tuya.valueConverter.divideBy10],
+                [
+                    117,
+                    "screen_orientation",
+                    tuya.valueConverterBasic.lookup({
+                        normal: tuya.enum(0),
+                        inverted: tuya.enum(1),
+                    }),
+                ],
+                [123, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
 ];
