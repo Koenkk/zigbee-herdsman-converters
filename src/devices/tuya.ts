@@ -1487,26 +1487,26 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withDescription("All switches"),
             tuya.exposes.switch().withEndpoint("l1"),
             tuya.exposes.switch().withEndpoint("l2"),
-    
+
             // --- Mejoras añadidas ---
-            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Backlight master switch"),
-            e.numeric("backlight", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%")
-                .withDescription("Backlight brightness percentage"),
-    
-            e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"])
-                .withDescription("LED indicator mode"),
-    
+            e
+                .binary("backlight_switch", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Backlight master switch"),
+            e.numeric("backlight", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Backlight brightness percentage"),
+
+            e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("LED indicator mode"),
+
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
-    
-            e.enum("on_color", ea.STATE_SET,
-                ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"]
-            ).withDescription("ON color"),
-    
-            e.enum("off_color", ea.STATE_SET,
-                ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"]
-            ).withDescription("OFF color"),
-    
+
+            e
+                .enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("ON color"),
+
+            e
+                .enum("off_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("OFF color"),
+
             e.numeric("countdown_l1", ea.STATE_SET).withUnit("s").withDescription("Countdown for l1").withValueMin(0).withValueMax(86400),
             e.numeric("countdown_l2", ea.STATE_SET).withUnit("s").withDescription("Countdown for l2").withValueMin(0).withValueMax(86400),
         ],
@@ -1519,30 +1519,54 @@ export const definitions: DefinitionWithExtend[] = [
                 [7, "countdown_l1", tuya.valueConverter.countdown],
                 [8, "countdown_l2", tuya.valueConverter.countdown],
                 [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
-    
+
                 // ✅ Corregido: ENUM
-                [15, "indicator_mode", tuya.valueConverterBasic.lookup({
-                    off: tuya.enum(0),
-                    on_off_status: tuya.enum(1),
-                    switch_position: tuya.enum(2),
-                })],
-    
+                [
+                    15,
+                    "indicator_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on_off_status: tuya.enum(1),
+                        switch_position: tuya.enum(2),
+                    }),
+                ],
+
                 [16, "backlight_switch", tuya.valueConverter.onOff],
                 [101, "child_lock", tuya.valueConverter.onOff],
-    
+
                 // ✅ Nuevo: backlight %
                 [102, "backlight", tuya.valueConverter.raw],
-    
-                [103, "on_color", tuya.valueConverterBasic.lookup({
-                    red: tuya.enum(0), blue: tuya.enum(1), green: tuya.enum(2), white: tuya.enum(3),
-                    yellow: tuya.enum(4), magenta: tuya.enum(5), cyan: tuya.enum(6),
-                    warm_white: tuya.enum(7), warm_yellow: tuya.enum(8),
-                })],
-                [104, "off_color", tuya.valueConverterBasic.lookup({
-                    red: tuya.enum(0), blue: tuya.enum(1), green: tuya.enum(2), white: tuya.enum(3),
-                    yellow: tuya.enum(4), magenta: tuya.enum(5), cyan: tuya.enum(6),
-                    warm_white: tuya.enum(7), warm_yellow: tuya.enum(8),
-                })],
+
+                [
+                    103,
+                    "on_color",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warm_white: tuya.enum(7),
+                        warm_yellow: tuya.enum(8),
+                    }),
+                ],
+                [
+                    104,
+                    "off_color",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warm_white: tuya.enum(7),
+                        warm_yellow: tuya.enum(8),
+                    }),
+                ],
             ],
         },
     },
@@ -1557,24 +1581,22 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l1"),
             tuya.exposes.switch().withEndpoint("l2"),
             tuya.exposes.switch().withEndpoint("l3"),
-    
+
             e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Backlight master switch"),
-            e.numeric("backlight", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%")
-                .withDescription("Backlight brightness percentage"),
-            e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"])
-                .withDescription("LED indicator mode"),
-    
+            e.numeric("backlight", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Backlight brightness percentage"),
+            e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("LED indicator mode"),
+
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
-    
-            e.enum("on_color", ea.STATE_SET,
-                ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"]
-            ).withDescription("ON color"),
-    
-            e.enum("off_color", ea.STATE_SET,
-                ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"]
-            ).withDescription("OFF color"),
-    
+
+            e
+                .enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("ON color"),
+
+            e
+                .enum("off_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("OFF color"),
+
             e.numeric("countdown_l1", ea.STATE_SET).withUnit("s").withDescription("Countdown for l1").withValueMin(0).withValueMax(86400),
             e.numeric("countdown_l2", ea.STATE_SET).withUnit("s").withDescription("Countdown for l2").withValueMin(0).withValueMax(86400),
             e.numeric("countdown_l3", ea.STATE_SET).withUnit("s").withDescription("Countdown for l3").withValueMin(0).withValueMax(86400),
@@ -1590,24 +1612,48 @@ export const definitions: DefinitionWithExtend[] = [
                 [8, "countdown_l2", tuya.valueConverter.countdown],
                 [9, "countdown_l3", tuya.valueConverter.countdown],
                 [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
-                [15, "indicator_mode", tuya.valueConverterBasic.lookup({
-                    off: tuya.enum(0),
-                    on_off_status: tuya.enum(1),
-                    switch_position: tuya.enum(2),
-                })],
+                [
+                    15,
+                    "indicator_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on_off_status: tuya.enum(1),
+                        switch_position: tuya.enum(2),
+                    }),
+                ],
                 [16, "backlight_switch", tuya.valueConverter.onOff],
                 [101, "child_lock", tuya.valueConverter.onOff],
                 [102, "backlight", tuya.valueConverter.raw],
-                [103, "on_color", tuya.valueConverterBasic.lookup({
-                    red: tuya.enum(0), blue: tuya.enum(1), green: tuya.enum(2), white: tuya.enum(3),
-                    yellow: tuya.enum(4), magenta: tuya.enum(5), cyan: tuya.enum(6),
-                    warm_white: tuya.enum(7), warm_yellow: tuya.enum(8),
-                })],
-                [104, "off_color", tuya.valueConverterBasic.lookup({
-                    red: tuya.enum(0), blue: tuya.enum(1), green: tuya.enum(2), white: tuya.enum(3),
-                    yellow: tuya.enum(4), magenta: tuya.enum(5), cyan: tuya.enum(6),
-                    warm_white: tuya.enum(7), warm_yellow: tuya.enum(8),
-                })],
+                [
+                    103,
+                    "on_color",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warm_white: tuya.enum(7),
+                        warm_yellow: tuya.enum(8),
+                    }),
+                ],
+                [
+                    104,
+                    "off_color",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warm_white: tuya.enum(7),
+                        warm_yellow: tuya.enum(8),
+                    }),
+                ],
             ],
         },
     },
@@ -1623,24 +1669,22 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l2"),
             tuya.exposes.switch().withEndpoint("l3"),
             tuya.exposes.switch().withEndpoint("l4"),
-    
+
             e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Backlight master switch"),
-            e.numeric("backlight", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%")
-                .withDescription("Backlight brightness percentage"),
-            e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"])
-                .withDescription("LED indicator mode"),
-    
+            e.numeric("backlight", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Backlight brightness percentage"),
+            e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("LED indicator mode"),
+
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
-    
-            e.enum("on_color", ea.STATE_SET,
-                ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"]
-            ).withDescription("ON color"),
-    
-            e.enum("off_color", ea.STATE_SET,
-                ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"]
-            ).withDescription("OFF color"),
-    
+
+            e
+                .enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("ON color"),
+
+            e
+                .enum("off_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("OFF color"),
+
             e.numeric("countdown_l1", ea.STATE_SET).withUnit("s").withDescription("Countdown for l1").withValueMin(0).withValueMax(86400),
             e.numeric("countdown_l2", ea.STATE_SET).withUnit("s").withDescription("Countdown for l2").withValueMin(0).withValueMax(86400),
             e.numeric("countdown_l3", ea.STATE_SET).withUnit("s").withDescription("Countdown for l3").withValueMin(0).withValueMax(86400),
@@ -1659,24 +1703,48 @@ export const definitions: DefinitionWithExtend[] = [
                 [9, "countdown_l3", tuya.valueConverter.countdown],
                 [10, "countdown_l4", tuya.valueConverter.countdown],
                 [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
-                [15, "indicator_mode", tuya.valueConverterBasic.lookup({
-                    off: tuya.enum(0),
-                    on_off_status: tuya.enum(1),
-                    switch_position: tuya.enum(2),
-                })],
+                [
+                    15,
+                    "indicator_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on_off_status: tuya.enum(1),
+                        switch_position: tuya.enum(2),
+                    }),
+                ],
                 [16, "backlight_switch", tuya.valueConverter.onOff],
                 [101, "child_lock", tuya.valueConverter.onOff],
                 [102, "backlight", tuya.valueConverter.raw],
-                [103, "on_color", tuya.valueConverterBasic.lookup({
-                    red: tuya.enum(0), blue: tuya.enum(1), green: tuya.enum(2), white: tuya.enum(3),
-                    yellow: tuya.enum(4), magenta: tuya.enum(5), cyan: tuya.enum(6),
-                    warm_white: tuya.enum(7), warm_yellow: tuya.enum(8),
-                })],
-                [104, "off_color", tuya.valueConverterBasic.lookup({
-                    red: tuya.enum(0), blue: tuya.enum(1), green: tuya.enum(2), white: tuya.enum(3),
-                    yellow: tuya.enum(4), magenta: tuya.enum(5), cyan: tuya.enum(6),
-                    warm_white: tuya.enum(7), warm_yellow: tuya.enum(8),
-                })],
+                [
+                    103,
+                    "on_color",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warm_white: tuya.enum(7),
+                        warm_yellow: tuya.enum(8),
+                    }),
+                ],
+                [
+                    104,
+                    "off_color",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warm_white: tuya.enum(7),
+                        warm_yellow: tuya.enum(8),
+                    }),
+                ],
             ],
         },
     },
