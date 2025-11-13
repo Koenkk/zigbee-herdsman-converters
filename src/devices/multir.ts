@@ -1,6 +1,6 @@
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, Fz ,Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -26,7 +26,7 @@ const tzLocal = {
 	MIRSM200: {
 		key: ["silence"],
 		convertSet: async (entity, key, value, meta) => {
-			if (value == "enable") {
+			if (value === "enable") {
 				await entity.command("genOnOff", "off", {});
 			}
 			return {
