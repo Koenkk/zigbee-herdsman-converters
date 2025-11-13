@@ -23,19 +23,19 @@ const fzLocal = {
 };
 
 const tzLocal = {
-	MIRSM200: {
-		key: ["silence"],
-		convertSet: async (entity, key, value, meta) => {
-			if (value === "enable") {
-				await entity.command("genOnOff", "off", {});
-			}
-			return {
-				state: {
-					silence: value
-				}
-			};
-		}
-	} satisfies Tz.Converter
+    MIRSM200: {
+        key: ["silence"],
+        convertSet: async (entity, key, value, meta) => {
+            if (value === "enable") {
+                await entity.command("genOnOff", "off", {});
+            }
+            return {
+                state: {
+                    silence: value,
+                },
+            };
+        },
+    } satisfies Tz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -83,7 +83,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MIR-SM200",
         vendor: "MultIR",
         description: "Smoke sensor",
-		toZigbee: [tzLocal.MIRSM200],
+        toZigbee: [tzLocal.MIRSM200],
         extend: [
             m.battery(),
             m.iasZoneAlarm({
@@ -91,7 +91,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zoneAttributes: ["alarm_1", "tamper", "battery_low"],
             }),
         ],
-		exposes: [exposes.binary("silence", ea.SET, "enable", "disabled").withDescription("Silence the alarm")]
+        exposes: [exposes.binary("silence", ea.SET, "enable", "disabled").withDescription("Silence the alarm")],
     },
     {
         zigbeeModel: ["MIR-SO100"],
