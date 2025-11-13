@@ -328,7 +328,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature & Humidity Sensor (pvxx/ZigbeeTLc)",
         extend: [
             m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
-            m.humidity({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
+            m.humidity({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 50}}),
             extend.temperatureCalibration,
             extend.humidityCalibration,
             extend.measurementInterval,
@@ -336,5 +336,6 @@ export const definitions: DefinitionWithExtend[] = [
                 voltage: true,
             }),
         ],
+        ota: true,
     },
 ];
