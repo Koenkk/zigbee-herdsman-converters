@@ -91,6 +91,7 @@ const IAS_EXPOSE_LOOKUP = {
     alarm_2: e.binary("alarm_2", ea.STATE, true, false).withDescription("Indicates whether IAS Zone alarm 2 is active"),
     tamper: e.binary("tamper", ea.STATE, true, false).withDescription("Indicates whether the device is tampered").withCategory("diagnostic"),
     rain: e.binary("rain", ea.STATE, true, false).withDescription("Indicates whether the device detected rainfall"),
+    pressure: e.binary("pressure", ea.STATE, true, false).withDescription("Indicates whether the device detected pressure"),
     battery_low: e
         .binary("battery_low", ea.STATE, true, false)
         .withDescription("Indicates whether the battery of the device is almost empty")
@@ -1605,6 +1606,7 @@ export type IasZoneType =
     | "smoke"
     | "water_leak"
     | "rain"
+    | "pressure"
     | "carbon_monoxide"
     | "sos"
     | "vibration"
@@ -3164,7 +3166,7 @@ const SETPOINT_LIMIT_LOOKUP = {
 export interface ThermostatArgs {
     localTemperature?: Partial<ValuesWithModernExtendConfiguration<Description>>;
     localTemperatureCalibration?: Omit<ValuesWithModernExtendConfiguration<true | MinMaxStep>, "fromZigbee">;
-    setpoints?: Omit<ValuesWithModernExtendConfiguration<Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>>, "fromZigbee">;
+    setpoints: Omit<ValuesWithModernExtendConfiguration<Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>>, "fromZigbee">;
     setpointsLimit?: Partial<Record<keyof typeof SETPOINT_LIMIT_LOOKUP, MinMaxStep>>;
     systemMode?: Omit<
         ValuesWithModernExtendConfiguration<Array<"off" | "heat" | "cool" | "auto" | "dry" | "fan_only" | "sleep" | "emergency_heating">>,
@@ -3178,11 +3180,11 @@ export interface ThermostatArgs {
     temperatureSetpointHoldDuration?: true;
 }
 
-export function thermostat(args: ThermostatArgs = {}): ModernExtend {
+export function thermostat(args: ThermostatArgs): ModernExtend {
     const {
         localTemperature = undefined,
         localTemperatureCalibration = undefined,
-        setpoints = undefined,
+        setpoints,
         setpointsLimit = {},
         systemMode = undefined,
         runningState = undefined,

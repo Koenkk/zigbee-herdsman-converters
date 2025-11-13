@@ -3400,7 +3400,7 @@ export const boschThermostatExtend = {
                     occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
                     occupiedCoolingSetpoint: {min: 5, max: 30, step: 0.5},
                 },
-                configure: {reporting: false},
+                configure: {reporting: {min: "10_SECONDS", max: "MAX", change: 50}},
             },
             systemMode: {
                 values: ["heat", "cool"],
@@ -3409,7 +3409,7 @@ export const boschThermostatExtend = {
             },
             runningState: {
                 values: ["idle", "heat", "cool"],
-                configure: {reporting: false},
+                configure: {reporting: {min: "MIN", max: "MAX", change: null}},
             },
         });
 
@@ -3541,7 +3541,7 @@ export const boschThermostatExtend = {
                     occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
                 },
                 configure: {
-                    reporting: {min: "MIN", max: "MAX", change: 1},
+                    reporting: {min: "10_SECONDS", max: "MAX", change: 50},
                 },
             },
             systemMode: {

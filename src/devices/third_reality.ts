@@ -337,6 +337,8 @@ export const definitions: DefinitionWithExtend[] = [
                     infraredEnable: {ID: 0x0000, type: Zcl.DataType.UINT8},
                     compensationSpeed: {ID: 0x0001, type: Zcl.DataType.INT8},
                     limitPosition: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    totalCycleTimes: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                    lastRemainingBatteryPercentage: {ID: 0x0004, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -363,6 +365,23 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+        ],
+    },
+    {
+        zigbeeModel: ["3RSB01085Z"],
+        model: "3RSB01085Z",
+        vendor: "Third Reality",
+        description: "Smart Scene Button S3",
+        ota: true,
+        extend: [
+            m.deviceEndpoints({endpoints: {2: 3, 1: 2, 3: 1}}),
+            m.actionEnumLookup({
+                endpointNames: ["1", "2", "3"],
+                cluster: "genMultistateInput",
+                attribute: "presentValue",
+                actionLookup: {single: 0, double: 1, send: 2},
+            }),
+            m.battery(),
         ],
     },
     {
