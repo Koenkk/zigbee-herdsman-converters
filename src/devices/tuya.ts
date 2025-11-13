@@ -11965,7 +11965,7 @@ export const definitions: DefinitionWithExtend[] = [
                 tuya.exposes.powerFactorWithPhase("c"),
             ];
 
-            if ((device as any).applicationVersion >= 132) {
+            if (device.applicationVersion >= 132) {
                 baseExposes.push(e.numeric("ac_frequency_high_precision", ea.STATE).withUnit("Hz").withValueMin(0).withValueMax(100));
             }
 
