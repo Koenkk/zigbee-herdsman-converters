@@ -226,7 +226,7 @@ const fzLocal = {
                 /* 0x0227 */ "daysProfileCurrentCalendar",
                 /* 0x0228 */ "daysProfileNextCalendar",
             ] as const;
-            const kWhP = options?.kWh_precision ? options.kWh_precision : 0;
+            const kWhP = options?.kWh_precision ? options.kWh_precision : 2;
             utils.assertNumber(kWhP);
             for (const at of elements) {
                 const at_snake = at
@@ -441,7 +441,7 @@ const fzLocal = {
                 /* 0x0307 */ "siteId",
                 /* 0x0308 */ "meterSerialNumber",
             ] as const;
-            const kWhP = options?.kWh_precision ? options.kWh_precision : 0;
+            const kWhP = options?.kWh_precision ? options.kWh_precision : 2;
             for (const at of elements) {
                 const at_snake = at
                     .split(/(?=[A-Z])/)
@@ -1857,7 +1857,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription(
                     "Overrides the automatic current tarif. This option will exclude unnecessary attributes. Open a issue to support more of them. Default: auto",
                 ),
-            exposes.options.precision("kWh"),
+            exposes.options
+                .precision("kWh")
+                .withDescription("Number of digits after decimal point for kWh, takes into effect on next report of device. Default: 2"),
             e
                 .numeric("measurement_poll_chunk", ea.SET)
                 .withValueMin(1)
