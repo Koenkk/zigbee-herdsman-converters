@@ -1986,13 +1986,6 @@ function genericMeter(args: MeterArgs = {}) {
                 forced: args.current,
                 change: 0.05,
             },
-            current_neutral: {
-                attribute: "neutralCurrent" as const,
-                divisor: "acCurrentDivisor",
-                multiplier: "acCurrentMultiplier",
-                forced: args.current,
-                change: 0.05,
-            },
             power_factor: {
                 attribute: "powerFactor" as const,
                 change: 10,
@@ -2300,8 +2293,7 @@ function genericMeter(args: MeterArgs = {}) {
         result.configure = [
             async (device, coordinatorEndpoint) => {
                 for (const [cluster, properties] of Object.entries(configureLookup)) {
-                    const endpoints = getEndpointsWithCluster(device, cluster, "input");
-                    for (const endpoint of endpoints) {
+                    for (const endpoint of getEndpointsWithCluster(device, cluster, "input")) {
                         const items: ReportingConfig<typeof cluster>[] = [];
                         for (const property of Object.values(properties)) {
                             let change = property.change;
@@ -2345,18 +2337,6 @@ function genericMeter(args: MeterArgs = {}) {
                         if (items.length) {
                             await setupAttributes(endpoint, coordinatorEndpoint, cluster, items);
                         }
-                    }
-                }
-                if (args.tariffs) {
-                    const tariffAttributes = [
-                        "currentTier1SummDelivered",
-                        "currentTier2SummDelivered",
-                        "currentTier1SummReceived",
-                        "currentTier2SummReceived",
-                    ] as const;
-                    const seEndpoints = getEndpointsWithCluster(device, "seMetering", "input");
-                    for (const endpoint of seEndpoints) {
-                        await endpoint.read<"seMetering">("seMetering", tariffAttributes as unknown as ClusterOrRawAttributeKeys<"seMetering">);
                     }
                 }
             },
