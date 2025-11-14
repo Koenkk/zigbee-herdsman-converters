@@ -164,6 +164,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [154, 455]}, color: true})],
     },
     {
+        zigbeeModel: ["LCA013"],
+        model: "929003853701",
+        vendor: "Philips",
+        description: "Hue white ambiance and color 806lm A19 E26",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["LTA013"],
         model: "929003596001",
         vendor: "Philips",
@@ -549,7 +556,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["LTD021"],
+        zigbeeModel: ["LTD021", "LTD022"],
         model: "9290035842",
         vendor: "Philips",
         description: "Garnea downlight",
@@ -770,6 +777,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290038561",
         vendor: "Philips",
         description: "Hue White A60 E27 1100 lumen",
+        extend: [philips.m.light()],
+    },
+    {
+        zigbeeModel: ["LWA035"],
+        model: "929003856303",
+        vendor: "Philips",
+        description: "Hue White A19 bulb E26 810lm with Bluetooth",
         extend: [philips.m.light()],
     },
     {
