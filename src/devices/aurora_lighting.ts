@@ -304,10 +304,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.identify(), m.light({powerOnBehavior: false})],
     },
     {
-    zigbeeModel: ["AU-A1CE14ZCX6"],
-    model: "AU-A1CE14ZCX6",
-    vendor: "Aurora Lighting",
-    description: "AOne smart tuneable candle lamp bulb",
-    extend: [m.light({"colorTemp":{"range":[200,454]}})],
+        zigbeeModel: ["AU-A1CE14ZCX6"],
+        model: "AU-A1CE14ZCX6",
+        vendor: "Aurora Lighting",
+        description: "AOne smart tuneable candle lamp bulb",
+        extend: [m.light({colorTemp: {range: [200, 454]}})],
     },
 ];
