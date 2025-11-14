@@ -4192,7 +4192,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["929003822901", "929003823101", "929003823301", "929003823001", "929003823201", "929003823401"],
+        zigbeeModel: ["929003822901", "929003823101", "929003823301", "929003823001", "929003823201", "929003823401", "929003846401"],
         model: "929003822901",
         vendor: "Philips",
         description: "Hue Tento WA 29,1cm (White)",
@@ -4202,6 +4202,7 @@ export const definitions: DefinitionWithExtend[] = [
             {model: "929003823001", vendor: "Philips", description: "Hue Tento WA 29,1 cm (Black)", fingerprint: [{modelID: "929003823001"}]},
             {model: "929003823201", vendor: "Philips", description: "Hue Tento WA 42,1 cm (Black)", fingerprint: [{modelID: "929003823201"}]},
             {model: "929003823401", vendor: "Philips", description: "Hue Tento WA 54,2 cm (Black)", fingerprint: [{modelID: "929003823401"}]},
+            {model: "929003846401", vendor: "Philips", description: "Hue Tento WA 39,5 cm (White)", fingerprint: [{modelID: "929003846401"}]},            
         ],
         extend: [philips.m.light({colorTemp: {range: [153, 438]}})],
     },
