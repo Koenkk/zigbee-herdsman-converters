@@ -37,4 +37,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "LED Controller 12/24v",
         extend: [m.light()],
     },
+    {
+        zigbeeModel: ["91-943-PRO"],
+        model: "91-943-PRO",
+        vendor: "Light Solutions",
+        description: "LED Controller 12/24v",
+        extend: [m.light()],
+    },
 ];
