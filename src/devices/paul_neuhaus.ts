@@ -5,6 +5,41 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 
+function paulNeuhausTWLight(args?: m.LightArgs) {
+    const result = m.light(args);
+
+    result.onEvent = m.poll({
+        key: "interval",
+        defaultIntervalSeconds: 5,
+        poll: async (device) => {
+            // check if this firmware version needs polling
+            const version = device.softwareBuildID;
+            if (!version) {
+                // default to no polling
+                return;
+            }
+            if (version !== "1.0.6" && version !== "1.1") {
+                // not an affected version
+                return;
+            }
+
+            const endpoint = device.getEndpoint(1);
+            try {
+                await endpoint.read("genOnOff", ["onOff"]);
+                await endpoint.read("genLevelCtrl", ["currentLevel"]);
+
+                if (endpoint.supportsInputCluster("lightingColorCtrl")) {
+                    await endpoint.read("lightingColorCtrl", ["colorTemperature"]);
+                }
+            } catch {
+                // do nothing
+            }
+        },
+    }).onEvent;
+
+    return result;
+}
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["NLG-remote", "Neuhaus remote"],
@@ -58,7 +93,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NLG-TW light",
         vendor: "Paul Neuhaus",
         description: "Various tunable white lights (e.g. 8195-55)",
-        extend: [m.light({colorTemp: {range: [153, 370]}})],
+        extend: [paulNeuhausTWLight({colorTemp: {range: [153, 370]}, configureReporting: true})],
     },
     {
         zigbeeModel: ["NLG-RGBW light "], // the space as the end is intentional, as this is what the device sends
