@@ -367,4 +367,189 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Puric pane pendant light 6x6W dimmable",
         extend: [m.light()],
     },
+    {
+    zigbeeModel: ['CCT-I'],
+    model: 'CCT-I',
+    vendor: 'Paulmann Licht GmbH',
+    description: 'Smart Home Zigbee LED Light withe motion detection (HF)',
+    extend: [m.light({"colorTemp":{"range":[153,370]}})],
+    exposes": [
+        {
+            "features": [
+                {
+                    "access": 7,
+                    "description": "On/off state of this light",
+                    "label": "State",
+                    "name": "state",
+                    "property": "state",
+                    "type": "binary",
+                    "value_off": "OFF",
+                    "value_on": "ON",
+                    "value_toggle": "TOGGLE"
+                },
+                {
+                    "access": 7,
+                    "description": "Brightness of this light",
+                    "label": "Brightness",
+                    "name": "brightness",
+                    "property": "brightness",
+                    "type": "numeric",
+                    "value_max": 254,
+                    "value_min": 0
+                },
+                {
+                    "access": 7,
+                    "description": "Color temperature of this light",
+                    "label": "Color temp",
+                    "name": "color_temp",
+                    "presets": [
+                        {
+                            "description": "Coolest temperature supported",
+                            "name": "coolest",
+                            "value": 153
+                        },
+                        {
+                            "description": "Cool temperature (250 mireds / 4000 Kelvin)",
+                            "name": "cool",
+                            "value": 250
+                        },
+                        {
+                            "description": "Neutral temperature (370 mireds / 2700 Kelvin)",
+                            "name": "neutral",
+                            "value": 370
+                        },
+                        {
+                            "description": "Warmest temperature supported",
+                            "name": "warmest",
+                            "value": 370
+                        }
+                    ],
+                    "property": "color_temp",
+                    "type": "numeric",
+                    "unit": "mired",
+                    "value_max": 370,
+                    "value_min": 153
+                },
+                {
+                    "access": 7,
+                    "description": "Color temperature after cold power on of this light",
+                    "label": "Color temp startup",
+                    "name": "color_temp_startup",
+                    "presets": [
+                        {
+                            "description": "Coolest temperature supported",
+                            "name": "coolest",
+                            "value": 153
+                        },
+                        {
+                            "description": "Cool temperature (250 mireds / 4000 Kelvin)",
+                            "name": "cool",
+                            "value": 250
+                        },
+                        {
+                            "description": "Neutral temperature (370 mireds / 2700 Kelvin)",
+                            "name": "neutral",
+                            "value": 370
+                        },
+                        {
+                            "description": "Warmest temperature supported",
+                            "name": "warmest",
+                            "value": 370
+                        },
+                        {
+                            "description": "Restore previous color_temp on cold power on",
+                            "name": "previous",
+                            "value": 65535
+                        }
+                    ],
+                    "property": "color_temp_startup",
+                    "type": "numeric",
+                    "unit": "mired",
+                    "value_max": 370,
+                    "value_min": 153
+                }
+            ],
+            "type": "light"
+        },
+        {
+            "access": 2,
+            "description": "Triggers an effect on the light (e.g. make light blink for a few seconds)",
+            "label": "Effect",
+            "name": "effect",
+            "property": "effect",
+            "type": "enum",
+            "values": [
+                "blink",
+                "breathe",
+                "okay",
+                "channel_change",
+                "finish_effect",
+                "stop_effect"
+            ]
+        },
+        {
+            "access": 7,
+            "category": "config",
+            "description": "Controls the behavior when the device is powered on after power loss",
+            "label": "Power-on behavior",
+            "name": "power_on_behavior",
+            "property": "power_on_behavior",
+            "type": "enum",
+            "values": [
+                "off",
+                "on",
+                "toggle",
+                "previous"
+            ]
+        },
+        {
+            "access": 1,
+            "category": "diagnostic",
+            "description": "Link quality (signal strength)",
+            "label": "Linkquality",
+            "name": "linkquality",
+            "property": "linkquality",
+            "type": "numeric",
+            "unit": "lqi",
+            "value_max": 255,
+            "value_min": 0
+        }
+    ],
+    "model": "CCT-I",
+    "options": [
+        {
+            "access": 2,
+            "description": "Controls the transition time (in seconds) of on/off, brightness, color temperature (if applicable) and color (if applicable) changes. Defaults to `0` (no transition).",
+            "label": "Transition",
+            "name": "transition",
+            "property": "transition",
+            "type": "numeric",
+            "value_min": 0
+        },
+        {
+            "access": 2,
+            "description": "When enabled colors will be synced, e.g. if the light supports both color x/y and color temperature a conversion from color x/y to color temperature will be done when setting the x/y color (default true).",
+            "label": "Color sync",
+            "name": "color_sync",
+            "property": "color_sync",
+            "type": "binary",
+            "value_off": false,
+            "value_on": true
+        },
+        {
+            "access": 2,
+            "description": "State actions will also be published as 'action' when true (default false).",
+            "label": "State action",
+            "name": "state_action",
+            "property": "state_action",
+            "type": "binary",
+            "value_off": false,
+            "value_on": true
+        }
+    ],
+    "source": "generated",
+    "supports_ota": false,
+    "vendor": "Paulmann Licht GmbH"
+}
+};
 ];
