@@ -309,5 +309,5 @@ export const definitions: DefinitionWithExtend[] = [
     vendor: "Aurora Lighting",
     description: "AOne smart tuneable candle lamp bulb",
     extend: [m.light({"colorTemp":{"range":[200,454]}})],
-    };
+    },
 ];
