@@ -303,4 +303,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "AOne 1-10V in-line dimmer",
         extend: [m.identify(), m.light({powerOnBehavior: false})],
     },
+    {
+    zigbeeModel: ["TWCLBulb50AU"],
+    model: "TWCLBulb50AU",
+    vendor: "Aurora Lighting",
+    description: "AOne smart tuneable candle lamp bulb",
+    extend: [m.light({"colorTemp":{"range":[200,454]}})],
+    };
 ];
