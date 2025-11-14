@@ -701,6 +701,24 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BTH-RA",
         vendor: "Bosch",
         description: "Radiator thermostat II",
+        meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                // Override climate discovery
+                // https://github.com/Koenkk/zigbee2mqtt/pull/23075#issue-2355829475
+                if (payload.mode_command_topic?.endsWith("/system_mode")) {
+                    payload.mode_command_topic = payload.mode_command_topic.substring(0, payload.mode_command_topic.lastIndexOf("/system_mode"));
+                    payload.mode_command_template =
+                        "{% set values = " +
+                        `{ 'auto':'schedule','heat':'manual','off':'pause'} %}` +
+                        `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}`;
+                    payload.mode_state_template =
+                        "{% set values = " +
+                        `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
+                        `{% set value = value_json.operating_mode %}{{ values[value] if value in values.keys() else 'off' }}`;
+                    payload.modes = ["off", "heat", "auto"];
+                }
+            },
+        },
         extend: [
             boschThermostatExtend.customThermostatCluster(),
             boschThermostatExtend.customUserInterfaceCfgCluster(),
@@ -730,7 +748,6 @@ export const definitions: DefinitionWithExtend[] = [
             boschGeneralExtend.handleZclVersionReadRequest(),
             boschThermostatExtend.customThermostatCluster(),
             boschThermostatExtend.customUserInterfaceCfgCluster(),
-            boschThermostatExtend.customSystemMode(),
             boschThermostatExtend.operatingMode({enableReporting: true}),
             boschThermostatExtend.rmThermostat(),
             boschThermostatExtend.setpointChangeSource({enableReporting: true}),
@@ -758,7 +775,6 @@ export const definitions: DefinitionWithExtend[] = [
             boschThermostatExtend.customThermostatCluster(),
             boschThermostatExtend.customUserInterfaceCfgCluster(),
             boschThermostatExtend.relayState(),
-            boschThermostatExtend.customSystemMode(),
             boschThermostatExtend.operatingMode({enableReporting: true}),
             boschThermostatExtend.rmThermostat(),
             boschThermostatExtend.setpointChangeSource({enableReporting: true}),
