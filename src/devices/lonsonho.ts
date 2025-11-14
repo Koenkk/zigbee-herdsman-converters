@@ -58,6 +58,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Dual curtain/blind module",
         fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        whiteLabel: [tuya.whitelabel("Girier", "TS130F_GIRIER_DUAL", "Dual smart curtain switch", ["_TZ3000_j1xl73iw"])],
         meta: {multiEndpoint: true, coverInverted: true},
         endpoint: (device) => {
             return {left: 1, right: 2};
@@ -65,8 +66,20 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]).withEndpoint("left"),
             e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]).withEndpoint("right"),
-            e.numeric("calibration_time", ea.STATE).withUnit("s").withDescription("Calibration time").withEndpoint("left"),
-            e.numeric("calibration_time", ea.STATE).withUnit("s").withDescription("Calibration time").withEndpoint("right"),
+            e
+                .numeric("calibration_time", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(500)
+                .withUnit("s")
+                .withDescription("Calibration time")
+                .withEndpoint("left"),
+            e
+                .numeric("calibration_time", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(500)
+                .withUnit("s")
+                .withDescription("Calibration time")
+                .withEndpoint("right"),
             e.cover_position().withEndpoint("left"),
             e.binary("calibration", ea.ALL, "ON", "OFF").withEndpoint("left"),
             e.binary("motor_reversal", ea.ALL, "ON", "OFF").withEndpoint("left"),
@@ -92,7 +105,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Lonsonho",
         description: "1 gang switch",
         exposes: [e.switch().setAccess("state", ea.STATE_SET)],
-        fromZigbee: [legacy.fz.tuya_switch, fz.ignore_time_read],
+        fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
     },
     {
@@ -101,7 +114,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Lonsonho",
         description: "2 gang switch",
         exposes: [e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET), e.switch().withEndpoint("l2").setAccess("state", ea.STATE_SET)],
-        fromZigbee: [legacy.fz.tuya_switch, fz.ignore_time_read],
+        fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -119,7 +132,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("l2").setAccess("state", ea.STATE_SET),
             e.switch().withEndpoint("l3").setAccess("state", ea.STATE_SET),
         ],
-        fromZigbee: [legacy.fz.tuya_switch, fz.ignore_time_read],
+        fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -224,8 +237,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VM-Zigbee-S02-0-10V",
         vendor: "Lonsonho",
         description: "2 channel Zigbee 0-10V dimmer module",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l1"),
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l2"),

@@ -4,7 +4,6 @@ import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const defaultReporting = {min: 0, max: 300, change: 0};
-const normalReporting = {min: 0, max: 3600, change: 0};
 const rareReporting = {min: 0, max: 21600, change: 0};
 const rarestReporting = {min: 0, max: 64800, change: 0};
 const threeReporting = {min: 30, max: 1800, change: 1};

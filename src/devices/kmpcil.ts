@@ -28,7 +28,13 @@ const kmpcilOptions = {
     },
 };
 
-function handleKmpcilPresence(model: DefinitionWithExtend, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta): KeyValue {
+function handleKmpcilPresence(
+    model: DefinitionWithExtend,
+    msg: Fz.Message<"genBinaryInput" | "genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
+    publish: Publish,
+    options: KeyValue,
+    meta: Fz.Meta,
+): KeyValue {
     const useOptionsTimeoutBattery = options?.presence_timeout_battery != null;
     const timeoutBattery = useOptionsTimeoutBattery ? options.presence_timeout_battery : 420; // 100 seconds by default
 
@@ -60,7 +66,7 @@ const kmpcilConverters = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>,
     presence_power: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
@@ -76,7 +82,7 @@ const kmpcilConverters = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -103,7 +109,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.humidity(endpoint);
             const payloadBattery = [
                 {
-                    attribute: "batteryPercentageRemaining",
+                    attribute: "batteryPercentageRemaining" as const,
                     minimumReportInterval: 1,
                     maximumReportInterval: 120,
                     reportableChange: 1,
@@ -126,7 +132,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.write("genBinaryInput", {257: {value: 25, type: 0x23}}, options);
             const payloadBinaryInput = [
                 {
-                    attribute: "presentValue",
+                    attribute: "presentValue" as const,
                     minimumReportInterval: 0,
                     maximumReportInterval: 30,
                     reportableChange: 1,
@@ -136,7 +142,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.write("genBinaryOutput", {81: {value: 0x01, type: 0x10}}, options);
             const payloadBinaryOutput = [
                 {
-                    attribute: "presentValue",
+                    attribute: "presentValue" as const,
                     minimumReportInterval: 0,
                     maximumReportInterval: 30,
                     reportableChange: 1,
@@ -174,11 +180,11 @@ export const definitions: DefinitionWithExtend[] = [
             }
 
             await utils.sleep(1000);
-            const p = reporting.payload("batteryVoltage", 0, 10, 1);
+            const p = reporting.payload<"genPowerCfg">("batteryVoltage", 0, 10, 1);
             await endpoint.configureReporting("genPowerCfg", p);
 
             await utils.sleep(1000);
-            const p2 = reporting.payload("presentValue", 0, 300, 1);
+            const p2 = reporting.payload<"genBinaryInput">("presentValue", 0, 300, 1);
             await endpoint.configureReporting("genBinaryInput", p2);
 
             await utils.sleep(1000);

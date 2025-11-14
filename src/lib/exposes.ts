@@ -206,7 +206,6 @@ export class List extends Base {
         this.property = name;
         this.access = access;
         this.item_type = itemType;
-        // biome-ignore lint/performance/noDelete: ignored using `--suppress`
         delete this.item_type.property;
     }
 
@@ -467,7 +466,6 @@ export class Light extends Base {
             feature._colorTempRangeProvided = rangeProvided;
         }
 
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         [
             {name: "coolest", value: range[0], description: "Coolest temperature supported"},
             {name: "cool", value: 250, description: "Cool temperature (250 mireds / 4000 Kelvin)"},
@@ -476,7 +474,9 @@ export class Light extends Base {
             {name: "warmest", value: range[1], description: "Warmest temperature supported"},
         ]
             .filter((p) => p.value >= range[0] && p.value <= range[1])
-            .forEach((p) => feature.withPreset(p.name, p.value, p.description));
+            .forEach((p) => {
+                feature.withPreset(p.name, p.value, p.description);
+            });
 
         this.addFeature(feature);
         return this;
@@ -494,7 +494,6 @@ export class Light extends Base {
             .withValueMax(range[1])
             .withDescription("Color temperature after cold power on of this light");
 
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
         [
             {name: "coolest", value: range[0], description: "Coolest temperature supported"},
             {name: "cool", value: 250, description: "Cool temperature (250 mireds / 4000 Kelvin)"},
@@ -503,7 +502,9 @@ export class Light extends Base {
             {name: "warmest", value: range[1], description: "Warmest temperature supported"},
         ]
             .filter((p) => p.value >= range[0] && p.value <= range[1])
-            .forEach((p) => feature.withPreset(p.name, p.value, p.description));
+            .forEach((p) => {
+                feature.withPreset(p.name, p.value, p.description);
+            });
         feature.withPreset("previous", 65535, "Restore previous color_temp on cold power on");
 
         this.addFeature(feature);
@@ -649,32 +650,36 @@ export class Climate extends Base {
 
     withSystemMode(modes: string[], access = a.ALL, description = "Mode of this device") {
         const allowed = ["off", "heat", "cool", "auto", "dry", "fan_only", "sleep", "emergency_heating"];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        modes.forEach((m) => assert(allowed.includes(m)));
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
         this.addFeature(new Enum("system_mode", access, modes).withDescription(description));
         return this;
     }
 
     withRunningState(modes: string[], access = a.STATE_GET) {
         const allowed = ["idle", "heat", "cool", "fan_only"];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        modes.forEach((m) => assert(allowed.includes(m)));
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
         this.addFeature(new Enum("running_state", access, modes).withDescription("The current running state"));
         return this;
     }
 
     withRunningMode(modes: string[], access = a.STATE_GET) {
         const allowed = ["off", "cool", "heat"];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        modes.forEach((m) => assert(allowed.includes(m)));
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
         this.addFeature(new Enum("running_mode", access, modes).withDescription("The current running mode"));
         return this;
     }
 
     withFanMode(modes: string[], access = a.ALL) {
         const allowed = ["off", "low", "medium", "high", "on", "auto", "smart"];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        modes.forEach((m) => assert(allowed.includes(m)));
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
         this.addFeature(new Enum("fan_mode", access, modes).withDescription("Mode of the fan"));
         return this;
     }
@@ -696,7 +701,21 @@ export class Climate extends Base {
                 .withValueMin(0)
                 .withValueMax(100)
                 .withUnit("%")
-                .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open"),
+                .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open")
+                .withAccess(access),
+        );
+        return this;
+    }
+
+    withPiCoolingDemand(access = a.STATE) {
+        this.addFeature(
+            new Numeric("pi_cooling_demand", access)
+                .withLabel("PI cooling demand")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withUnit("%")
+                .withDescription("Position of the valve (= demanded cooling) where 0% is fully closed and 100% is fully open")
+                .withAccess(access),
         );
         return this;
     }
@@ -710,16 +729,18 @@ export class Climate extends Base {
             "cooling_and_heating_4-pipes",
             "cooling_and_heating_4-pipes_with_reheat",
         ];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        modes.forEach((m) => assert(allowed.includes(m)));
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
         this.addFeature(new Enum("control_sequence_of_operation", access, modes).withDescription("Operating environment of the thermostat"));
         return this;
     }
 
     withAcLouverPosition(positions: string[], access = a.ALL) {
         const allowed = ["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        positions.forEach((m) => assert(allowed.includes(m)));
+        positions.forEach((m) => {
+            assert(allowed.includes(m));
+        });
         this.addFeature(
             new Enum("ac_louver_position", access, positions).withLabel("AC louver position").withDescription("AC louver position of this device"),
         );
@@ -728,8 +749,9 @@ export class Climate extends Base {
 
     withWeeklySchedule(modes: string[], access = a.ALL) {
         const allowed = ["heat", "cool"];
-        // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
-        modes.forEach((m) => assert(allowed.includes(m)));
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
 
         const featureDayOfWeek = new List(
             "dayofweek",
@@ -865,11 +887,11 @@ export const options = {
             .withFeature(new Numeric("interval", access.SET).withValueMin(0).withUnit("ms").withDescription("Interval duration")),
     no_occupancy_since_true: () =>
         new List("no_occupancy_since", access.SET, new Numeric("time", access.STATE_SET)).withDescription(
-            'Sends a message the last time occupancy (occupancy: true) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be send after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
+            'Sends a message the last time occupancy (occupancy: true) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be sent after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
         ),
     no_occupancy_since_false: () =>
         new List("no_occupancy_since", access.SET, new Numeric("time", access.STATE_SET)).withDescription(
-            'Sends a message after the last time no occupancy (occupancy: false) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be send after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
+            'Sends a message after the last time no occupancy (occupancy: false) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be sent after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
         ),
     presence_timeout: () =>
         new Numeric("presence_timeout", access.SET)
@@ -882,6 +904,7 @@ export const options = {
     transition: () =>
         new Numeric("transition", access.SET)
             .withValueMin(0)
+            .withValueStep(0.1)
             .withDescription(
                 "Controls the transition time (in seconds) of on/off, brightness, color temperature (if applicable) and color (if applicable) changes. Defaults to `0` (no transition).",
             ),
@@ -1067,6 +1090,7 @@ export const presets = {
     force: () => new Enum("force", access.STATE_SET, ["normal", "open", "close"]).withDescription("Force the valve position"),
     formaldehyd: () => new Numeric("formaldehyd", access.STATE).withDescription("The measured formaldehyd value").withUnit("mg/m³"),
     gas: () => new Binary("gas", access.STATE, true, false).withDescription("Indicates whether the device detected gas"),
+    dry: () => new Binary("dry", access.STATE, true, false).withDescription("Water shortage warning"),
     hcho: () => new Numeric("hcho", access.STATE).withLabel("HCHO").withUnit("mg/m³").withDescription("Measured HCHO value"),
     holiday_temperature: () =>
         new Numeric("holiday_temperature", access.STATE_SET).withUnit("°C").withDescription("Holiday temperature").withValueMin(0).withValueMax(30),
@@ -1303,13 +1327,6 @@ export const presets = {
     tilt: () => new Binary("tilt", access.STATE, true, false).withDescription("Indicates whether the device detected tilt"),
     voc: () => new Numeric("voc", access.STATE).withLabel("VOC").withUnit("µg/m³").withDescription("Measured VOC value"),
     voc_index: () => new Numeric("voc_index", access.STATE).withLabel("VOC index").withDescription("VOC index"),
-    pi_heating_demand: () =>
-        new Numeric("pi_heating_demand", access.STATE)
-            .withLabel("PI heating demand")
-            .withValueMin(0)
-            .withValueMax(100)
-            .withUnit("%")
-            .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open"),
     voltage: () => new Numeric("voltage", access.STATE).withUnit("V").withDescription("Measured electrical potential value"),
     voltage_phase_b: () =>
         new Numeric("voltage_phase_b", access.STATE)
@@ -1323,7 +1340,7 @@ export const presets = {
             .withDescription("Measured electrical potential value on phase C"),
     water_leak: () => new Binary("water_leak", access.STATE, true, false).withDescription("Indicates whether the device detected a water leak"),
     pilot_wire_mode: (values = ["comfort", "eco", "frost_protection", "off", "comfort_-1", "comfort_-2"]) =>
-        new Enum("pilot_wire_mode", access.ALL, ["comfort", "eco", "frost_protection", "off", "comfort_-1", "comfort_-2"]).withDescription(
+        new Enum("pilot_wire_mode", access.ALL, values).withDescription(
             "Controls the target temperature of the heater, with respect to the temperature set on that heater. Possible values: comfort (target temperature = heater set temperature) eco (target temperature = heater set temperature - 3.5°C), frost_protection (target temperature = 7 to 8°C), off (heater stops heating), and the less commonly used comfort_-1 (target temperature = heater set temperature - 1°C), comfort_-2 (target temperature = heater set temperature - 2°C),.",
         ),
     rain: () => new Binary("rain", access.STATE, true, false).withDescription("Indicates whether the device detected rainfall"),
@@ -1353,7 +1370,8 @@ export const presets = {
             .withState("window_detection", true, "Enables/disables window detection on the device", access.STATE_SET),
     window_detection_bool: (access: number = a.ALL) =>
         new Binary("window_detection", access, true, false).withDescription("Enables/disables window detection on the device").withCategory("config"),
-    window_open: () => new Binary("window_open", access.STATE, true, false).withDescription("Indicates if window is open").withCategory("diagnostic"),
+    window_open: (access: number = a.STATE) =>
+        new Binary("window_open", access, true, false).withDescription("Indicates if window is open").withCategory("diagnostic"),
     moving: () => new Binary("moving", access.STATE, true, false).withDescription("Indicates if the device is moving"),
     x_axis: () => new Numeric("x_axis", access.STATE).withDescription("Accelerometer X value"),
     y_axis: () => new Numeric("y_axis", access.STATE).withDescription("Accelerometer Y value"),

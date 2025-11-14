@@ -1,5 +1,4 @@
 import type {DefinitionWithExtend} from "../lib/types";
-import {definitions as ITCommander} from "./ITCommander";
 import {definitions as acova} from "./acova";
 import {definitions as acuityBrandsLighting} from "./acuity_brands_lighting";
 import {definitions as adeo} from "./adeo";
@@ -32,6 +31,7 @@ import {definitions as blaupunkt} from "./blaupunkt";
 import {definitions as blitzwolf} from "./blitzwolf";
 import {definitions as bosch} from "./bosch";
 import {definitions as bouffaloLab} from "./bouffalo_lab";
+import {definitions as box} from "./box";
 import {definitions as brimate} from "./brimate";
 import {definitions as brunHolding} from "./brun_holding";
 import {definitions as bseed} from "./bseed";
@@ -65,6 +65,7 @@ import {definitions as directSigns} from "./direct_signs";
 import {definitions as diyruz} from "./diyruz";
 import {definitions as dlink} from "./dlink";
 import {definitions as dnake} from "./dnake";
+import {definitions as domraem} from "./domraem";
 import {definitions as dowsingReynolds} from "./dowsing_reynolds";
 import {definitions as dqsmart} from "./dqsmart";
 import {definitions as dresdenElektronik} from "./dresden_elektronik";
@@ -85,6 +86,7 @@ import {definitions as engo} from "./engo";
 import {definitions as enkin} from "./enkin";
 import {definitions as enocean} from "./enocean";
 import {definitions as envilar} from "./envilar";
+import {definitions as espressif} from "./espressif";
 import {definitions as essentialb} from "./essentialb";
 import {definitions as essentials} from "./essentials";
 import {definitions as eucontrols} from "./eucontrols";
@@ -121,10 +123,13 @@ import {definitions as hej} from "./hej";
 import {definitions as hfh} from "./hfh";
 import {definitions as hilux} from "./hilux";
 import {definitions as hive} from "./hive";
+import {definitions as hoftronic} from "./hoftronic";
+import {definitions as homeseer} from "./homeseer";
 import {definitions as hommyn} from "./hommyn";
 import {definitions as honyar} from "./honyar";
 import {definitions as hornbach} from "./hornbach";
 import {definitions as hzcElectric} from "./hzc_electric";
+import {definitions as ITCommander} from "./ITCommander";
 import {definitions as icasa} from "./icasa";
 import {definitions as idinio} from "./idinio";
 import {definitions as ihorn} from "./ihorn";
@@ -138,6 +143,7 @@ import {definitions as imou} from "./imou";
 import {definitions as innr} from "./innr";
 import {definitions as inovelli} from "./inovelli";
 import {definitions as insta} from "./insta";
+import {definitions as intuis} from "./intuis";
 import {definitions as iolloi} from "./iolloi";
 import {definitions as iotperfect} from "./iotperfect";
 import {definitions as iris} from "./iris";
@@ -192,10 +198,12 @@ import {definitions as meazon} from "./meazon";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
 import {definitions as micromatic} from "./micromatic";
+import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
 import {definitions as mullerLicht} from "./muller_licht";
+import {definitions as multir} from "./multir";
 import {definitions as multiterm} from "./multiterm";
 import {definitions as namron} from "./namron";
 import {definitions as nanoleaf} from "./nanoleaf";
@@ -215,6 +223,7 @@ import {definitions as nue3a} from "./nue_3a";
 import {definitions as nyce} from "./nyce";
 import {definitions as onenuo} from "./onenuo";
 import {definitions as onesti} from "./onesti";
+import {definitions as onokom} from "./onokom";
 import {definitions as openlumi} from "./openlumi";
 import {definitions as orvibo} from "./orvibo";
 import {definitions as orztech} from "./orztech";
@@ -266,14 +275,17 @@ import {definitions as shinasystem} from "./shinasystem";
 import {definitions as shyugj} from "./shyugj";
 import {definitions as siglis} from "./siglis";
 import {definitions as sikom} from "./sikom";
+import {definitions as siliconLabs} from "./silicon_labs";
 import {definitions as simon} from "./simon";
+import {definitions as simplaHome} from "./simpla_home";
 import {definitions as sinope} from "./sinope";
 import {definitions as siterwell} from "./siterwell";
 import {definitions as skydance} from "./skydance";
 import {definitions as slackyDiy} from "./slacky_diy";
 import {definitions as slv} from "./slv";
-import {definitions as smart9} from "./smart9";
+import {definitions as smarli} from "./smarli";
 import {definitions as smartHomePty} from "./smart_home_pty";
+import {definitions as smart9} from "./smart9";
 import {definitions as smartenit} from "./smartenit";
 import {definitions as smartthings} from "./smartthings";
 import {definitions as smartwings} from "./smartwings";
@@ -303,6 +315,7 @@ import {definitions as theLightGroup} from "./the_light_group";
 import {definitions as thirdReality} from "./third_reality";
 import {definitions as titanProducts} from "./titan_products";
 import {definitions as tlwglobal} from "./tlwglobal";
+import {definitions as tnce} from "./tnce";
 import {definitions as tplink} from "./tplink";
 import {definitions as trust} from "./trust";
 import {definitions as tubeszb} from "./tubeszb";
@@ -310,6 +323,7 @@ import {definitions as tuya} from "./tuya";
 import {definitions as ubisys} from "./ubisys";
 import {definitions as uhome} from "./uhome";
 import {definitions as universalElectronicsInc} from "./universal_electronics_inc";
+import {definitions as vav} from "./vav";
 import {definitions as vbled} from "./vbled";
 import {definitions as vesternet} from "./vesternet";
 import {definitions as viessmann} from "./viessmann";
@@ -317,6 +331,7 @@ import {definitions as villeroyBoch} from "./villeroy_boch";
 import {definitions as vimar} from "./vimar";
 import {definitions as visonic} from "./visonic";
 import {definitions as vrey} from "./vrey";
+import {definitions as vsmart} from "./vsmart";
 import {definitions as wally} from "./wally";
 import {definitions as waxman} from "./waxman";
 import {definitions as weiser} from "./weiser";
@@ -374,6 +389,7 @@ const definitions: DefinitionWithExtend[] = [
     ...blitzwolf,
     ...bosch,
     ...bouffaloLab,
+    ...box,
     ...brimate,
     ...brunHolding,
     ...bseed,
@@ -407,6 +423,7 @@ const definitions: DefinitionWithExtend[] = [
     ...diyruz,
     ...dlink,
     ...dnake,
+    ...domraem,
     ...dowsingReynolds,
     ...dresdenElektronik,
     ...dqsmart,
@@ -423,9 +440,10 @@ const definitions: DefinitionWithExtend[] = [
     ...eglo,
     ...elko,
     ...enbrighten,
-    ...enocean,
     ...enkin,
+    ...enocean,
     ...envilar,
+    ...espressif,
     ...essentialb,
     ...essentials,
     ...eucontrols,
@@ -462,6 +480,8 @@ const definitions: DefinitionWithExtend[] = [
     ...hfh,
     ...hilux,
     ...hive,
+    ...hoftronic,
+    ...homeseer,
     ...hommyn,
     ...honyar,
     ...hornbach,
@@ -479,6 +499,7 @@ const definitions: DefinitionWithExtend[] = [
     ...innr,
     ...inovelli,
     ...insta,
+    ...intuis,
     ...iolloi,
     ...iotperfect,
     ...iris,
@@ -533,10 +554,12 @@ const definitions: DefinitionWithExtend[] = [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...mill,
     ...mindy,
     ...modular,
     ...moes,
     ...mullerLicht,
+    ...multir,
     ...multiterm,
     ...namron,
     ...nanoleaf,
@@ -556,6 +579,7 @@ const definitions: DefinitionWithExtend[] = [
     ...nyce,
     ...onenuo,
     ...onesti,
+    ...onokom,
     ...openlumi,
     ...orvibo,
     ...orztech,
@@ -606,13 +630,16 @@ const definitions: DefinitionWithExtend[] = [
     ...shinasystem,
     ...shyugj,
     ...siglis,
+    ...siliconLabs,
     ...sikom,
     ...simon,
+    ...simplaHome,
     ...sinope,
     ...siterwell,
     ...skydance,
     ...slackyDiy,
     ...slv,
+    ...smarli,
     ...smart9,
     ...smartenit,
     ...smartHomePty,
@@ -629,8 +656,8 @@ const definitions: DefinitionWithExtend[] = [
     ...sowilo,
     ...spotmau,
     ...sprut,
-    ...stelpro,
     ...stello,
+    ...stelpro,
     ...sunricher,
     ...superled,
     ...swann,
@@ -644,6 +671,7 @@ const definitions: DefinitionWithExtend[] = [
     ...thirdReality,
     ...titanProducts,
     ...tlwglobal,
+    ...tnce,
     ...tplink,
     ...trust,
     ...tubeszb,
@@ -651,6 +679,7 @@ const definitions: DefinitionWithExtend[] = [
     ...ubisys,
     ...uhome,
     ...universalElectronicsInc,
+    ...vav,
     ...vbled,
     ...vesternet,
     ...viessmann,
@@ -683,6 +712,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zipato,
     ...qa,
     ...engo,
+    ...vsmart,
 ];
 
 export default definitions;

@@ -1,6 +1,5 @@
-import {Zcl} from "zigbee-herdsman";
-
 import {gt as semverGt, valid as semverValid} from "semver";
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -9,12 +8,13 @@ import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
+import {isDummyDevice} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
 const nodonModernExtend = {
-    calibrationVerticalRunTimeUp: (args?: Partial<m.NumericArgs>) =>
+    calibrationVerticalRunTimeUp: (args?: Partial<m.NumericArgs<"closuresWindowCovering">>) =>
         m.numeric({
             name: "calibration_vertical_run_time_up",
             unit: "10 ms",
@@ -30,7 +30,7 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
             ...args,
         }),
-    calibrationVerticalRunTimeDowm: (args?: Partial<m.NumericArgs>) =>
+    calibrationVerticalRunTimeDowm: (args?: Partial<m.NumericArgs<"closuresWindowCovering">>) =>
         m.numeric({
             name: "calibration_vertical_run_time_down",
             unit: "10 ms",
@@ -46,7 +46,7 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
             ...args,
         }),
-    calibrationRotationRunTimeUp: (args?: Partial<m.NumericArgs>) =>
+    calibrationRotationRunTimeUp: (args?: Partial<m.NumericArgs<"closuresWindowCovering">>) =>
         m.numeric({
             name: "calibration_rotation_run_time_up",
             unit: "ms",
@@ -62,7 +62,7 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
             ...args,
         }),
-    calibrationRotationRunTimeDown: (args?: Partial<m.NumericArgs>) =>
+    calibrationRotationRunTimeDown: (args?: Partial<m.NumericArgs<"closuresWindowCovering">>) =>
         m.numeric({
             name: "calibration_rotation_run_time_down",
             unit: "ms",
@@ -78,7 +78,7 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
             ...args,
         }),
-    dryContact: (args?: Partial<m.EnumLookupArgs>) =>
+    dryContact: (args?: Partial<m.EnumLookupArgs<"genBinaryInput">>) =>
         m.enumLookup({
             name: "dry_contact",
             lookup: {contact_closed: 0x00, contact_open: 0x01},
@@ -87,7 +87,7 @@ const nodonModernExtend = {
             description: "State of the contact, closed or open.",
             ...args,
         }),
-    impulseMode: (args?: Partial<m.NumericArgs>) => {
+    impulseMode: (args?: Partial<m.NumericArgs<"genOnOff">>) => {
         const resultName = "impulse_mode_configuration";
         const resultUnit = "ms";
         const resultValueMin = 0;
@@ -109,7 +109,12 @@ const nodonModernExtend = {
         // NOTE: make exposes dynamic based on fw version
         result.exposes = [
             (device, options) => {
-                if (device?.softwareBuildID && semverValid(device.softwareBuildID) && semverGt(device.softwareBuildID, "3.4.0")) {
+                if (
+                    !isDummyDevice(device) &&
+                    device.softwareBuildID &&
+                    semverValid(device.softwareBuildID) &&
+                    semverGt(device.softwareBuildID, "3.4.0")
+                ) {
                     return [
                         e
                             .numeric(resultName, ea.ALL)
@@ -125,7 +130,7 @@ const nodonModernExtend = {
 
         return result;
     },
-    switchTypeOnOff: (args?: Partial<m.EnumLookupArgs>) => {
+    switchTypeOnOff: (args?: Partial<m.EnumLookupArgs<"genOnOff">>) => {
         const resultName = "switch_type_on_off";
         const resultLookup = {bistable: 0x00, monostable: 0x01, auto_detect: 0x02};
         const resultDescription = "Select the switch type wire to the device.";
@@ -143,7 +148,12 @@ const nodonModernExtend = {
         // NOTE: make exposes dynamic based on fw version
         result.exposes = [
             (device, options) => {
-                if (device?.softwareBuildID && semverValid(device.softwareBuildID) && semverGt(device.softwareBuildID, "3.4.0")) {
+                if (
+                    !isDummyDevice(device) &&
+                    device.softwareBuildID &&
+                    semverValid(device.softwareBuildID) &&
+                    semverGt(device.softwareBuildID, "3.4.0")
+                ) {
                     return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
                 }
                 return [];
@@ -152,7 +162,7 @@ const nodonModernExtend = {
 
         return result;
     },
-    switchTypeWindowCovering: (args?: Partial<m.EnumLookupArgs>) => {
+    switchTypeWindowCovering: (args?: Partial<m.EnumLookupArgs<"closuresWindowCovering">>) => {
         const resultName = "switch_type_window_covering";
         const resultLookup = {bistable: 0x00, monostable: 0x01, auto_detect: 0x02};
         const resultDescription = "Select the switch type wire to the device.";
@@ -170,7 +180,12 @@ const nodonModernExtend = {
         // NOTE: make exposes dynamic based on fw version
         result.exposes = [
             (device, options) => {
-                if (device?.softwareBuildID && semverValid(device.softwareBuildID) && semverGt(device.softwareBuildID, "3.4.0")) {
+                if (
+                    !isDummyDevice(device) &&
+                    device.softwareBuildID &&
+                    semverValid(device.softwareBuildID) &&
+                    semverGt(device.softwareBuildID, "3.4.0")
+                ) {
                     return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
                 }
                 return [];
@@ -179,7 +194,7 @@ const nodonModernExtend = {
 
         return result;
     },
-    trvMode: (args?: Partial<m.EnumLookupArgs>) =>
+    trvMode: (args?: Partial<m.EnumLookupArgs<"hvacThermostat">>) =>
         m.enumLookup({
             name: "trv_mode",
             lookup: {auto: 0x00, valve_position_mode: 0x01, manual: 0x02},
@@ -193,7 +208,7 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS},
             ...args,
         }),
-    valvePosition: (args?: Partial<m.NumericArgs>) =>
+    valvePosition: (args?: Partial<m.NumericArgs<"hvacThermostat">>) =>
         m.numeric({
             name: "valve_position",
             cluster: "hvacThermostat",
@@ -212,6 +227,14 @@ const nodonModernExtend = {
 };
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["FPS-4-1-00"],
+        model: "FPS-4-1-00",
+        vendor: "NodOn",
+        description: "Electrical heating actuator",
+        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), m.temperature(), ...nodonPilotWire(true)],
+        ota: true,
+    },
     {
         zigbeeModel: ["IRB-4-1-00"],
         model: "IRB-4-1-00",
@@ -242,6 +265,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withFanMode(["off", "low", "medium", "high", "auto"])
                 .withAcLouverPosition(["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"]),
         ],
+        extend: [m.humidity()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["hvacFanCtrl", "genIdentify", "hvacThermostat"];
@@ -277,7 +301,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SEM-4-1-00",
         vendor: "NodOn",
         description: "Energy monitoring sensor",
-        extend: [m.electricityMeter()],
+        extend: [
+            m.electricityMeter({
+                acFrequency: true,
+                powerFactor: true,
+                producedEnergy: true,
+            }),
+        ],
         ota: true,
     },
     {

@@ -10,14 +10,21 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ICZB-IW11D"],
         model: "ICZB-IW11D",
         vendor: "iCasa",
-        description: "ZigBee AC dimmer",
+        description: "Zigbee AC dimmer",
         extend: [m.light({configureReporting: true})],
+    },
+    {
+        zigbeeModel: ["ICZB-IW21D"],
+        model: "ICZB-IW21D",
+        vendor: "iCasa",
+        description: "Zigbee AC dimmer",
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
     {
         zigbeeModel: ["ICZB-DC11"],
         model: "ICZB-DC11",
         vendor: "iCasa",
-        description: "ZigBee 12-36V DC LED dimmer",
+        description: "Zigbee 12-36V DC LED dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -102,7 +109,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee 3.0 remote control",
         meta: {battery: {dontDividePercentage: true}},
         fromZigbee: [fz.command_recall, fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
-        exposes: [e.battery(), e.action(["recall_*", "on", "off", "brightness_stop", "brightness_move_up", "brightness_move_down"])],
+        exposes: [
+            e.battery(),
+            e.action(["recall_*", "on", "off", "brightness_stop", "brightness_move_up", "brightness_move_down"]),
+            e.action_group(),
+        ],
         toZigbee: [],
     },
     {

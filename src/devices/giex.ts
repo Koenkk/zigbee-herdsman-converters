@@ -12,9 +12,9 @@ const SECONDS_IN_12_HOURS = 43200;
 
 const exportTemplates = {
     giexWaterValve: {
-        vendor: "GiEX",
+        vendor: "GIEX",
         description: "Water irrigation valve",
-        onEvent: tuya.onEventSetLocalTime,
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, timeStart: "1970"})],
         fromZigbee: [legacy.fromZigbee.giexWaterValve],
         toZigbee: [legacy.toZigbee.giexWaterValve],
         exposes: [
@@ -80,6 +80,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("sec")
                 .withDescription("Cycle irrigation interval"),
         ],
-        whiteLabel: [tuya.whitelabel("GiEX", "GX02", "Water valve", ["_TZE204_7ytb3h8u", "_TZE284_7ytb3h8u", "_TZE200_7ytb3h8u"])],
+        whiteLabel: [tuya.whitelabel("GIEX", "GX02", "Water valve", ["_TZE204_7ytb3h8u", "_TZE284_7ytb3h8u", "_TZE200_7ytb3h8u"])],
     },
 ];

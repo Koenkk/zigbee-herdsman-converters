@@ -1,11 +1,11 @@
 import {Buffer} from "node:buffer";
-
+import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -43,9 +43,10 @@ const tzSeMetering: Tz.Converter = {
             await entity.read("seMetering", [key]);
             return {state: {unitOfMeasure: value}};
         }
-        await entity.write("seMetering", {
-            [key]: value,
-        });
+        const payload: TPartialClusterAttributes<"seMetering"> = {
+            [key as "divisor" | "multiplier" | "unitOfMeasure"]: value,
+        };
+        await entity.write("seMetering", payload);
 
         return {state: {[key]: value}};
     },
@@ -54,7 +55,7 @@ const tzSeMetering: Tz.Converter = {
     // },
 };
 
-const fzZiPulses: Fz.Converter = {
+const fzZiPulses: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -109,7 +110,7 @@ const fzLocal = {
                 /* 0x0A0E */ "reactivePowerPhC",
                 /* 0x0A0F */ "apparentPowerPhC",
                 /* 0x0A11 */ "averageRmsVoltageMeasPeriodPhC",
-            ];
+            ] as const;
 
             for (const at of elements) {
                 const at_snake = at
@@ -122,7 +123,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
     lixee_private_fz: {
         cluster: "liXeePrivate", // 0xFF66
         type: ["attributeReport", "readResponse"],
@@ -168,7 +169,7 @@ const fzLocal = {
                 /* 0x0226 */ "daysNumberNextCalendar",
                 /* 0x0227 */ "daysProfileCurrentCalendar",
                 /* 0x0228 */ "daysProfileNextCalendar",
-            ];
+            ] as const;
             const kWhP = options?.kWh_precision ? options.kWh_precision : 0;
             utils.assertNumber(kWhP);
             for (const at of elements) {
@@ -178,13 +179,14 @@ const fzLocal = {
                     .toLowerCase();
                 let val = msg.data[at];
                 if (val != null) {
-                    if (val.type !== undefined && val.type === "Buffer") {
-                        val = Buffer.from(val.data);
+                    // TODO: this is not possible??
+                    if (utils.isObject(val) && "type" in val && "data" in val && val.type === "Buffer") {
+                        val = Buffer.from(val.data as number[]);
                     }
                     if (Buffer.isBuffer(val)) {
                         val = val.toString(); // Convert buffer to string
                     }
-                    if (typeof val === "string" || val instanceof String) {
+                    if (typeof val === "string") {
                         val = val.replace(/\0/g, ""); // Remove all null chars when str
                         val = val.replace(/\s+/g, " ").trim(); // Remove extra and leading spaces
                     }
@@ -193,7 +195,7 @@ const fzLocal = {
                         case "activeEnergyOutD02":
                         case "activeEnergyOutD03":
                         case "activeEnergyOutD04":
-                            val = utils.precisionRound(val / 1000, kWhP); // from Wh to kWh
+                            val = utils.precisionRound(Number.parseInt(val as string, 10) / 1000, kWhP); // from Wh to kWh
                             break;
                         case "relais": {
                             // relais is a decimal value representing the bits
@@ -210,7 +212,7 @@ const fzLocal = {
                             // relais8 Unassigned
                             const relais_breakout: KeyValue = {};
                             for (let i = 0; i < 8; i++) {
-                                relais_breakout[at_snake + (i + 1)] = (val & (1 << i)) >>> i;
+                                relais_breakout[at_snake + (i + 1)] = (Number.parseInt(val as string, 10) & (1 << i)) >>> i;
                             }
                             result[`${at_snake}_breakout`] = relais_breakout;
                             break;
@@ -360,7 +362,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"liXeePrivate", undefined, ["attributeReport", "readResponse"]>,
     lixee_metering: {
         cluster: "seMetering", // 0x0702
         type: ["attributeReport", "readResponse"],
@@ -382,7 +384,7 @@ const fzLocal = {
                 /* 0x0112 */ "currentTier10SummDelivered",
                 /* 0x0307 */ "siteId",
                 /* 0x0308 */ "meterSerialNumber",
-            ];
+            ] as const;
             const kWhP = options?.kWh_precision ? options.kWh_precision : 0;
             for (const at of elements) {
                 const at_snake = at
@@ -429,7 +431,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
 };
 
 // we are doing it with exclusion and not inclusion because the list is dynamic (based on zlinky mode),
@@ -1161,7 +1163,7 @@ const singlePhaseData = [
         att: "activePowerMax",
         reportable: true,
         onlyProducer: false,
-        exposes: e.numeric("SMAXN", ea.STATE).withUnit("VA").withProperty("active_power_max").withDescription("Apparent power delivered peak"),
+        exposes: e.numeric("SMAXSN", ea.STATE).withUnit("VA").withProperty("active_power_max").withDescription("Apparent power delivered peak"),
     },
     {
         cluster: clustersDef._0x0B04,
@@ -1175,7 +1177,7 @@ const singlePhaseData = [
         att: "drawnVAMaxN1",
         reportable: false,
         onlyProducer: false,
-        exposes: e.numeric("SMAXN-1", ea.STATE).withUnit("VA").withProperty("drawn_v_a_max_n1").withDescription("Apparent power max. draw-off n-1"),
+        exposes: e.numeric("SMAXSN-1", ea.STATE).withUnit("VA").withProperty("drawn_v_a_max_n1").withDescription("Apparent power max. draw-off n-1"),
     },
 ].map((x) => {
     return {...x, linkyPhase: linkyPhaseDef.single, linkyMode: linkyModeDef.standard};
@@ -1188,7 +1190,7 @@ const threePhasesData = [
         reportable: true,
         onlyProducer: false,
         exposes: e
-            .numeric("SMAXN1", ea.STATE)
+            .numeric("SMAXSN1", ea.STATE)
             .withUnit("VA")
             .withProperty("active_power_max")
             .withDescription("Apparent power delivered peak (phase 1)"),
@@ -1199,7 +1201,7 @@ const threePhasesData = [
         reportable: true,
         onlyProducer: false,
         exposes: e
-            .numeric("SMAXN2", ea.STATE)
+            .numeric("SMAXSN2", ea.STATE)
             .withUnit("VA")
             .withProperty("active_power_max_ph_b")
             .withDescription("Apparent power delivered peak (phase 2)"),
@@ -1210,7 +1212,7 @@ const threePhasesData = [
         reportable: true,
         onlyProducer: false,
         exposes: e
-            .numeric("SMAXN3", ea.STATE)
+            .numeric("SMAXSN3", ea.STATE)
             .withUnit("VA")
             .withProperty("active_power_max_ph_c")
             .withDescription("Apparent power delivered peak (phase 3)"),
@@ -1315,7 +1317,7 @@ const threePhasesData = [
         reportable: false,
         onlyProducer: false,
         exposes: e
-            .numeric("SMAXN1-1", ea.STATE)
+            .numeric("SMAXSN1-1", ea.STATE)
             .withUnit("VA")
             .withProperty("drawn_v_a_max_n1")
             .withDescription("Apparent power max. draw-off n-1 (phase 1)"),
@@ -1326,7 +1328,7 @@ const threePhasesData = [
         reportable: false,
         onlyProducer: false,
         exposes: e
-            .numeric("SMAXN2-1", ea.STATE)
+            .numeric("SMAXSN2-1", ea.STATE)
             .withUnit("VA")
             .withProperty("drawn_v_a_max_n1_p2")
             .withDescription("Apparent power max. draw-off n-1 (phase 2)"),
@@ -1337,7 +1339,7 @@ const threePhasesData = [
         reportable: false,
         onlyProducer: false,
         exposes: e
-            .numeric("SMAXN3-1", ea.STATE)
+            .numeric("SMAXSN3-1", ea.STATE)
             .withUnit("VA")
             .withProperty("drawn_v_a_max_n1_p3")
             .withDescription("Apparent power max. draw-off n-1 (phase 3)"),
@@ -1744,7 +1746,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     }
 
     // Filter exposed attributes with user whitelist
-    if (options?.tic_command_whitelist != null) {
+    if (options?.tic_command_whitelist) {
         // @ts-expect-error ignore
         const tic_commands_str = options.tic_command_whitelist.toUpperCase();
         if (tic_commands_str !== "ALL") {
@@ -1768,7 +1770,7 @@ export const definitions: DefinitionWithExtend[] = [
             // docs generation
             // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let exposes;
-            if (device == null && options == null) {
+            if (utils.isDummyDevice(device)) {
                 exposes = exposedData
                     .map((e) => e.exposes)
                     .filter(
@@ -1785,7 +1787,6 @@ export const definitions: DefinitionWithExtend[] = [
             return exposes;
         },
         options: [
-            exposes.options.measurement_poll_interval(),
             e
                 .enum("linky_mode", ea.SET, ["auto", linkyModeDef.legacy, linkyModeDef.standard])
                 .withDescription("Counter with TIC in mode standard or historique. May require restart (default: auto)"),
@@ -1805,11 +1806,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("measurement_poll_chunk", ea.SET)
                 .withValueMin(1)
                 .withDescription(
-                    "During the poll, request multiple exposes to the Zlinky at once for reducing Zigbee network overload. Too much request at once could exceed device limit. Requires Z2M restart. Default: 1",
+                    "Number of attributes requested from the ZLinky in each poll to reduce Zigbee network load. " +
+                        "Requesting too many at once may exceed the device's limit and cause read errors. Requires Z2M restart. Default: 4.",
                 ),
             e
                 .text("tic_command_whitelist", ea.SET)
-                .withDescription("List of TIC commands to be exposed (separated by comma). Reconfigure device after change. Default: all"),
+                .withDescription("Comma-separated list of TIC commands to expose. Requires Z2M restart. Default: all"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1833,13 +1835,18 @@ export const definitions: DefinitionWithExtend[] = [
                 (e) => !suscribeNew.some((r) => e.cluster.name === r.cluster && e.attribute.name === r.att),
             );
             // Unsuscribe reports that doesn't correspond with the current config
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             (
                 await Promise.allSettled(
                     unsuscribe.map((e) =>
                         endpoint.configureReporting(
                             e.cluster.name,
-                            reporting.payload(e.attribute.name, e.minimumReportInterval, 65535, e.reportableChange),
+                            reporting.payload(
+                                // @ts-expect-error dynamic, expected correct since already applied
+                                e.attribute.name,
+                                e.minimumReportInterval,
+                                65535,
+                                e.reportableChange,
+                            ),
                             {manufacturerCode: null},
                         ),
                     ),
@@ -1864,12 +1871,21 @@ export const definitions: DefinitionWithExtend[] = [
                     params = {...params, ...e.report};
                 }
                 configReportings.push(
-                    endpoint.configureReporting(e.cluster, reporting.payload(params.att, params.min, params.max, params.change), {
-                        manufacturerCode: null,
-                    }),
+                    endpoint.configureReporting(
+                        e.cluster,
+                        reporting.payload(
+                            // @ts-expect-error dynamic, expected correct since already applied
+                            params.att,
+                            params.min,
+                            params.max,
+                            params.change,
+                        ),
+                        {
+                            manufacturerCode: null,
+                        },
+                    ),
                 );
             }
-            // biome-ignore lint/complexity/noForEach: ignored using `--suppress`
             (await Promise.allSettled(configReportings))
                 .filter((e) => e.status === "rejected")
                 .forEach((e) => {
@@ -1877,59 +1893,56 @@ export const definitions: DefinitionWithExtend[] = [
                 });
         },
         ota: {manufacturerName: "LiXee"}, // TODO: not sure if it's set properly in device
-        onEvent: async (type, data, device, options) => {
-            const endpoint = device.getEndpoint(1);
-            if (type === "start") {
-                endpoint.read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null}).catch((e) => {
-                    // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                    logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
-                });
-            } else if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "interval"));
-                globalStore.clearValue(device, "interval");
-            } else if (!globalStore.hasValue(device, "interval")) {
-                const seconds = options?.measurement_poll_interval ? options.measurement_poll_interval : 600;
-                utils.assertNumber(seconds);
-                const measurement_poll_chunk = options?.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
-                utils.assertNumber(measurement_poll_chunk);
+        extend: [
+            m.poll({
+                key: "measurement",
+                defaultIntervalSeconds: 600,
+                option: exposes.options
+                    .measurement_poll_interval()
+                    .withDescription(
+                        "Some attributes do not support reporting and are polled instead. " +
+                            "The default poll interval for these is 600 seconds. Set to -1 to disable polling. " +
+                            "Polled attributes are those marked as read-only at https://github.com/fairecasoimeme/Zlinky_TIC/",
+                    ),
+                poll: async (device, options) => {
+                    const endpoint = device.getEndpoint(1);
+                    const measurement_poll_chunk = options?.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
+                    utils.assertNumber(measurement_poll_chunk);
+                    const currentExposes = getCurrentConfig(device, options).filter(
+                        (e) => !endpoint.configuredReportings.some((r) => r.cluster.name === e.cluster && r.attribute.name === e.att),
+                    );
 
-                const setTimer = () => {
-                    const timer = setTimeout(async () => {
-                        try {
-                            const currentExposes = getCurrentConfig(device, options).filter(
-                                (e) => !endpoint.configuredReportings.some((r) => r.cluster.name === e.cluster && r.attribute.name === e.att),
-                            );
-
-                            for (const key in clustersDef) {
-                                if (Object.hasOwnProperty.call(clustersDef, key)) {
-                                    // @ts-expect-error ignore
-                                    const cluster = clustersDef[key];
-                                    const targ = currentExposes.filter((e) => e.cluster === cluster).map((e) => e.att);
-                                    if (targ.length) {
-                                        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-                                        let i;
-                                        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-                                        let j;
-                                        // Split array by chunks
-                                        for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
-                                            await endpoint
-                                                .read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null})
-                                                .catch((e) => {
-                                                    // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                                                    logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
-                                                });
-                                        }
-                                    }
+                    for (const key in clustersDef) {
+                        if (Object.hasOwn(clustersDef, key)) {
+                            // @ts-expect-error ignore
+                            const cluster = clustersDef[key];
+                            const targ = currentExposes.filter((e) => e.cluster === cluster).map((e) => e.att);
+                            if (targ.length) {
+                                let i: number;
+                                let j: number;
+                                // Split array by chunks
+                                for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
+                                    await endpoint.read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null}).catch((e) => {
+                                        // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                                        logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
+                                    });
                                 }
                             }
-                        } catch {
-                            /* Do nothing*/
                         }
-                        setTimer();
-                    }, seconds * 1000);
-                    globalStore.putValue(device, "interval", timer);
-                };
-                setTimer();
+                    }
+                },
+            }),
+        ],
+
+        onEvent: (event) => {
+            if (event.type === "start") {
+                event.data.device
+                    .getEndpoint(1)
+                    .read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null})
+                    .catch((e) => {
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                        logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
+                    });
             }
         },
     },

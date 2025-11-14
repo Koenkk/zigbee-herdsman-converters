@@ -1,18 +1,37 @@
 import type {Models as ZHModels} from "zigbee-herdsman";
-
 import {Zcl} from "zigbee-herdsman";
-
+import type {ClusterCommandKeys} from "zigbee-herdsman/dist/controller/tstype";
 import {access as ea} from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import type {Configure, DefinitionWithExtend, ModernExtend, OnEvent, Tz} from "../lib/types";
-import {getFromLookup, isString} from "../lib/utils";
+import {determineEndpoint, getFromLookup, isString} from "../lib/utils";
 
 const NS = "zhc:yandex";
 const manufacturerCode = 0x140a;
 
-interface EnumLookupWithSetCommandArgs extends m.EnumLookupArgs {
-    setCommand: string;
+interface Yandex {
+    attributes: {
+        switchMode: number;
+        switchType: number;
+        powerType: number;
+        ledIndicator: number;
+        interlock: number;
+        buttonMode: number;
+    };
+    commands: {
+        switchMode: {value: number};
+        switchType: {value: number};
+        powerType: {value: number};
+        ledIndicator: {value: number};
+        interlock: {value: number};
+        buttonMode: {value: number};
+    };
+    commandResponses: never;
+}
+
+interface EnumLookupWithSetCommandArgs extends m.EnumLookupArgs<"manuSpecificYandex", Yandex> {
+    setCommand: ClusterCommandKeys<"manuSpecificYandex", Yandex>[number];
 }
 
 function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExtend {
@@ -20,7 +39,7 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
-    const mExtend = m.enumLookup(args);
+    const mExtend = m.enumLookup<"manuSpecificYandex", Yandex>(args);
 
     const toZigbee: Tz.Converter[] = [
         {
@@ -29,15 +48,20 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
                           const payloadValue = getFromLookup(value, lookup);
-                          await m.determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
-                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).command<typeof cluster, typeof setCommand, Yandex>(
+                              cluster,
+                              setCommand,
+                              {value: payloadValue},
+                              zigbeeCommandOptions,
+                          );
+                          await determineEndpoint(entity, meta, cluster).read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
@@ -46,8 +70,8 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
     return {...mExtend, toZigbee};
 }
 
-interface BinaryWithSetCommandArgs extends m.BinaryArgs {
-    setCommand: string;
+interface BinaryWithSetCommandArgs extends m.BinaryArgs<"manuSpecificYandex", Yandex> {
+    setCommand: ClusterCommandKeys<"manuSpecificYandex", Yandex>[number];
 }
 
 function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
@@ -55,7 +79,7 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
-    const mExtend = m.binary(args);
+    const mExtend = m.binary<"manuSpecificYandex", Yandex>(args);
 
     const toZigbee: Tz.Converter[] = [
         {
@@ -64,15 +88,20 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
                           const payloadValue = value === valueOn[0] ? valueOn[1] : valueOff[1];
-                          await m.determineEndpoint(entity, meta, cluster).command(cluster, setCommand, {value: payloadValue}, zigbeeCommandOptions);
-                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).command<typeof cluster, typeof setCommand, Yandex>(
+                              cluster,
+                              setCommand,
+                              {value: payloadValue},
+                              zigbeeCommandOptions,
+                          );
+                          await determineEndpoint(entity, meta, cluster).read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
@@ -130,10 +159,11 @@ function reinterview(): ModernExtend {
             coordEnd = coordinatorEndpoint;
         },
     ];
-    const onEvent: OnEvent[] = [
-        async (type, data, device, settings, state, meta) => {
-            if (type === "deviceAnnounce") {
+    const onEvent: OnEvent.Handler[] = [
+        async (event) => {
+            if (event.type === "deviceAnnounce") {
                 // reinterview
+                const {device, deviceExposesChanged} = event.data;
                 try {
                     await device.interview(true);
                     logger.info(`Successfully interviewed '${device.ieeeAddr}'`, NS);
@@ -144,7 +174,7 @@ function reinterview(): ModernExtend {
                         }
                     }
                     // send updates to clients
-                    if (meta) meta.deviceExposesChanged();
+                    deviceExposesChanged();
                 } catch (error) {
                     logger.error(`Reinterview failed for '${device.ieeeAddr} with error '${error}'`, NS);
                 }

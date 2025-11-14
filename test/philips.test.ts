@@ -1,3 +1,4 @@
+import {describe, expect, test} from "vitest";
 import {decodeGradientColors, encodeGradientColors} from "../src/lib/philips";
 
 describe("lib/philips", () => {

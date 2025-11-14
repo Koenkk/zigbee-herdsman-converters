@@ -19,7 +19,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & (1 << 3)) > 0,
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
 };
 
 const tzLocal = {
@@ -226,7 +226,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone"]);
             const payload = [
                 {
-                    attribute: "zoneState",
+                    attribute: "zoneState" as const,
                     minimumReportInterval: 0,
                     maximumReportInterval: 3600,
                     reportableChange: 0,

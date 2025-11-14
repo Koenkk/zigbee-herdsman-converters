@@ -7,7 +7,6 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -40,22 +39,27 @@ const fzLocal = {
             }
             if (data[0x1009] !== undefined) {
                 // WindowOpenCheck
-                const lookup = {0: "enable", 1: "disable"};
-                result.window_open_check = utils.getFromLookup(data[0x1009], lookup);
+                // According to manual 0: enable, 1: disable
+                // According to real life testing 0: disable, 1: enable
+                result.window_detection = data[0x1009] === 1;
             }
             if (data[0x100a] !== undefined) {
                 // Hysterersis
-                result.hysterersis = utils.precisionRound(data[0x100a], 2) / 10;
+                result.hysterersis = utils.precisionRound(data[0x100a] as number, 2) / 10;
+            }
+            if (data[0x100b] !== undefined) {
+                // WindowOpen, 0: Window is not opened, 1: Window is opened
+                result.window_open = data[0x100b] === 1;
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     namron_thermostat2: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
         options: [exposes.options.local_temperature_based_on_sensor()],
         convert: (model, msg, publish, options, meta) => {
-            const runningModeStateMap: KeyValue = {0: 0, 3: 2, 4: 5};
+            const runningModeStateMap: Record<number, number> = {0: 0, 3: 2, 4: 5};
             // override mode "idle" - not a supported running mode
             if (msg.data.runningMode === 0x10) msg.data.runningMode = 0;
             // map running *mode* to *state*, as that's what used
@@ -63,12 +67,12 @@ const fzLocal = {
             if (msg.data.runningMode !== undefined) msg.data.runningState = runningModeStateMap[msg.data.runningMode];
             return fz.thermostat.convert(model, msg, publish, options, meta); // as KeyValue;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
     namron_panelheater: {
-        key: ["display_brightnesss", "display_auto_off", "power_up_status", "window_open_check", "hysterersis"],
+        key: ["display_brightnesss", "display_auto_off", "power_up_status", "window_detection", "hysterersis", "window_open"],
         convertSet: async (entity, key, value, meta) => {
             if (key === "display_brightnesss") {
                 const payload = {4096: {value: value, type: Zcl.DataType.ENUM8}};
@@ -81,12 +85,11 @@ const tzLocal = {
                 const lookup = {manual: 0, last_state: 1};
                 const payload = {4100: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
-            } else if (key === "window_open_check") {
-                const lookup = {enable: 0, disable: 1};
-                const payload = {4105: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
+            } else if (key === "window_detection") {
+                const payload = {4105: {value: value ? 1 : 0, type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
             } else if (key === "hysterersis") {
-                const payload = {4106: {value: utils.toNumber(value, "hysterersis") * 10, type: 0x20}};
+                const payload = {4106: {value: utils.toNumber(value, "hysterersis") * 10, type: Zcl.DataType.UINT8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
             }
         },
@@ -101,11 +104,14 @@ const tzLocal = {
                 case "power_up_status":
                     await entity.read("hvacThermostat", [0x1004], sunricherManufacturer);
                     break;
-                case "window_open_check":
+                case "window_detection":
                     await entity.read("hvacThermostat", [0x1009], sunricherManufacturer);
                     break;
                 case "hysterersis":
                     await entity.read("hvacThermostat", [0x100a], sunricherManufacturer);
+                    break;
+                case "window_open":
+                    await entity.read("hvacThermostat", [0x100b], sunricherManufacturer);
                     break;
 
                 default: // Unknown key
@@ -144,7 +150,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "Zigbee dimmer 400W",
         ota: true,
-        extend: [m.light({configureReporting: true})],
+        extend: [m.light({configureReporting: true}), m.electricityMeter({voltage: false, current: false})],
     },
     {
         zigbeeModel: ["4512708"],
@@ -170,6 +176,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff(), m.electricityMeter()],
     },
     {
+        zigbeeModel: ["4512789"],
+        model: "4512789",
+        vendor: "Namron AS",
+        description: "Zigbee smart plug 16A IP44",
+        extend: [m.deviceTemperature({scale: 100}), m.onOff(), m.electricityMeter()],
+    },
+    {
         zigbeeModel: ["1402767"],
         model: "1402767",
         vendor: "Namron",
@@ -188,7 +201,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["4512733"],
         model: "4512733",
         vendor: "Namron",
-        description: "ZigBee dimmer 2-pol 400W",
+        description: "Zigbee dimmer 2-pol 400W",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -203,7 +216,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["1402755"],
         model: "1402755",
         vendor: "Namron",
-        description: "ZigBee LED dimmer",
+        description: "Zigbee LED dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -304,7 +317,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["1402769"],
         model: "1402769",
         vendor: "Namron",
-        description: "ZigBee LED dimmer",
+        description: "Zigbee LED dimmer",
         extend: [m.light({configureReporting: true}), m.forcePowerSource({powerSource: "Mains (single phase)"})],
         ota: true,
     },
@@ -360,15 +373,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512726",
         vendor: "Namron",
         description: "Zigbee 4 in 1 dimmer",
-        fromZigbee: [
-            fz.battery,
-            fz.command_on,
-            fz.command_off,
-            fz.command_move_to_level,
-            fz.command_move_to_color_temp,
-            fz.command_move_to_hue,
-            fz.ignore_genOta,
-        ],
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp, fz.command_move_to_hue],
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.action(["on", "off", "brightness_move_to_level", "color_temperature_move", "move_to_hue"])],
         meta: {battery: {dontDividePercentage: true}},
@@ -624,26 +629,8 @@ export const definitions: DefinitionWithExtend[] = [
                         "0 means this function is disabled, default value is 27.",
                 ),
         ],
-        onEvent: (type, data, device, options) => {
-            const endpoint = device.getEndpoint(1);
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "time"));
-                globalStore.clearValue(device, "time");
-            } else if (!globalStore.hasValue(device, "time")) {
-                const hours24 = 1000 * 60 * 60 * 24;
-                const interval = setInterval(async () => {
-                    try {
-                        // Device does not asks for the time with binding, therefore we write the time every 24 hours
-                        const time = Math.round((new Date().getTime() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
-                        const values = {time: time};
-                        await endpoint.write("genTime", values);
-                    } catch {
-                        /* Do nothing*/
-                    }
-                }, hours24);
-                globalStore.putValue(device, "time", interval);
-            }
-        },
+        // Device does not asks for the time with binding, therefore we write the time every 24 hours
+        extend: [m.writeTimeDaily({endpointId: 1})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -946,7 +933,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("power_up_status", ea.ALL, ["manual", "last_state"])
                 .withDescription("The mode after a power reset.  Default: Previous Mode. See instructions for information about manual"),
-            e.enum("window_open_check", ea.ALL, ["enable", "disable"]).withDescription("Turn on/off window check mode"),
+            e.window_detection_bool(),
+            e.window_open(ea.STATE_GET),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -984,7 +972,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacThermostat",
                 [
                     {
-                        attribute: {ID: 0x1000, type: 0x30},
+                        attribute: {ID: 0x1000, type: Zcl.DataType.ENUM8},
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -997,7 +985,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacThermostat",
                 [
                     {
-                        attribute: {ID: 0x1001, type: 0x30},
+                        attribute: {ID: 0x1001, type: Zcl.DataType.ENUM8},
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -1010,7 +998,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacThermostat",
                 [
                     {
-                        attribute: {ID: 0x1004, type: 0x30},
+                        attribute: {ID: 0x1004, type: Zcl.DataType.ENUM8},
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -1018,12 +1006,12 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 sunricherManufacturer,
             );
-            // window_open_check
+            // window_detection
             await endpoint.configureReporting(
                 "hvacThermostat",
                 [
                     {
-                        attribute: {ID: 0x1009, type: 0x30},
+                        attribute: {ID: 0x1009, type: Zcl.DataType.ENUM8},
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -1044,10 +1032,23 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 sunricherManufacturer,
             );
+            // window_open
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x100b, type: Zcl.DataType.ENUM8},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                sunricherManufacturer,
+            );
 
             await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint"]);
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read("hvacThermostat", [0x1000, 0x1001, 0x1004, 0x1009, 0x100a], sunricherManufacturer);
+            await endpoint.read("hvacThermostat", [0x1000, 0x1001, 0x1004, 0x1009, 0x100a, 0x100b], sunricherManufacturer);
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
@@ -1384,10 +1385,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512752/4512753",
         vendor: "Namron",
         description: "Touch thermostat 16A 2.0",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         options: [],
         exposes: [
             e
@@ -1529,36 +1527,6 @@ export const definitions: DefinitionWithExtend[] = [
             namron.toZigbee.namron_edge_thermostat_holiday_temp,
             namron.toZigbee.namron_edge_thermostat_vacation_date,
         ],
-        onEvent: (type, data, device, options) => {
-            if (type === "stop") {
-                try {
-                    const key = "time_sync_value";
-                    clearInterval(globalStore.getValue(device, key));
-                    globalStore.clearValue(device, key);
-                } catch {
-                    /* Do nothing*/
-                }
-            }
-            if (!globalStore.hasValue(device, "time_sync_value")) {
-                const hours24 = 1000 * 60 * 60 * 24;
-                const interval = setInterval(async () => {
-                    try {
-                        const endpoint = device.getEndpoint(1);
-                        // Device does not asks for the time with binding, therefore we write the time every 24 hours
-                        const time = new Date().getTime() / 1000;
-                        await endpoint.write("hvacThermostat", {
-                            [0x800b]: {
-                                value: time,
-                                type: Zcl.DataType.UINT32,
-                            },
-                        });
-                    } catch {
-                        /* Do nothing*/
-                    }
-                }, hours24);
-                globalStore.putValue(device, "time_sync_value", interval);
-            }
-        },
         configure: async (device, coordinatorEndpoint, _logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -1589,6 +1557,20 @@ export const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
+            m.poll({
+                key: "time",
+                defaultIntervalSeconds: 60 * 60 * 24,
+                poll: async (device) => {
+                    const endpoint = device.getEndpoint(1);
+                    // Device does not asks for the time with binding, therefore we write the time every 24 hours
+                    await endpoint.write("hvacThermostat", {
+                        [0x800b]: {
+                            value: Date.now() / 1000,
+                            type: Zcl.DataType.UINT32,
+                        },
+                    });
+                },
+            }),
             m.electricityMeter({voltage: false}),
             m.onOff({powerOnBehavior: false}),
             namron.edgeThermostat.systemMode(),
@@ -1653,6 +1635,41 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.battery(),
             m.temperature({reporting: undefined}),
+        ],
+    },
+    {
+        zigbeeModel: ["4512792"],
+        model: "4512792",
+        vendor: "Namron",
+        description: "Simplify 1-2p relay (Zigbee / BT)",
+        extend: [
+            m.onOff(),
+            m.electricityMeter({
+                power: {multiplier: 1, divisor: 10}, // W
+                voltage: {multiplier: 1, divisor: 10}, // V -> 2383 -> 238.3
+                current: {multiplier: 1, divisor: 100}, // A
+                energy: {multiplier: 1, divisor: 100}, // kWh
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["4512791"],
+        model: "4512791",
+        vendor: "Namron",
+        description: "Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)",
+        extend: [
+            m.light({}),
+            m.electricityMeter({
+                power: {multiplier: 1, divisor: 10},
+                voltage: {multiplier: 1, divisor: 10},
+                current: {multiplier: 1, divisor: 100},
+                energy: {multiplier: 1, divisor: 100},
+            }),
+        ],
+        exposes: [
+            exposes.numeric("min_brightness", ea.ALL).withValueMin(1).withValueMax(127).withDescription("Minimum brightness (≈1–50%)"),
+            exposes.numeric("max_brightness", ea.ALL).withValueMin(127).withValueMax(254).withDescription("Maximum brightness (≈50–100%)"),
+            exposes.numeric("start_brightness", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Default brightness at power-on/startup"),
         ],
     },
 ];

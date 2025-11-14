@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -12,6 +11,24 @@ import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} fro
 const e = exposes.presets;
 const ea = exposes.access;
 const NS = "zhc:orvibo";
+
+interface Orvibo {
+    attributes: never;
+    commands: {
+        setSwitchRelay: {data: Buffer};
+        clearSwitchAction: {data: Buffer};
+        setSwitchScene: {data: Buffer};
+    };
+    commandResponses: never;
+}
+
+interface Orvibo2 {
+    attributes: {
+        powerOnBehavior: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const tzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -103,6 +120,7 @@ const clusterManuSpecifcOrviboSwitchRewiring = () => {
         commandsResponse: {},
     });
 };
+
 const clusterManuSpecificOrviboPowerOnBehavior = () => {
     return m.deviceAddCustomCluster("manuSpecificOrvibo2", {
         ID: 0xff00,
@@ -160,7 +178,7 @@ const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
     );
     const options: Option[] = [composite];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "genScenes",
             type: "commandRecall",
@@ -201,16 +219,17 @@ const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
                 }
                 return payload;
             },
-        },
+        } satisfies Fz.Converter<"genScenes", undefined, "commandRecall">,
     ];
 
-    const onEvent: OnEvent[] = [
-        async (type, data, device, settings, state, meta) => {
-            if (type !== "deviceOptionsChanged") {
+    const onEvent: OnEvent.Handler[] = [
+        async (event) => {
+            if (event.type !== "deviceOptionsChanged") {
                 return;
             }
-            const endpointsOptionsFrom = (data as KeyValueAny)?.from?.switch_actions ?? {};
-            const endpointsOptionsTo = (data as KeyValueAny)?.to?.switch_actions ?? {};
+            const device = event.data.device;
+            const endpointsOptionsFrom = event.data.from.switch_actions as KeyValueAny;
+            const endpointsOptionsTo = event.data.to.switch_actions as KeyValueAny;
             if (!endpointsOptionsTo) {
                 return;
             }
@@ -229,15 +248,21 @@ const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
                 from = from ?? {};
                 if (from.sceneid !== to.sceneid || from.relaynumber !== to.relaynumber || from.relayaction !== to.relayaction || forceUpdate) {
                     const switchId = args.endpoints[endpointName];
-                    await device.getEndpoint(7).command("manuSpecificOrvibo", "clearSwitchAction", {data: [switchId, 0, 0]});
+                    await device
+                        .getEndpoint(7)
+                        .command<"manuSpecificOrvibo", "clearSwitchAction", Orvibo>("manuSpecificOrvibo", "clearSwitchAction", {
+                            data: Buffer.from([switchId, 0, 0]),
+                        });
                     const {sceneid, relaynumber, relayaction} = to;
                     if (sceneid) {
-                        await device.getEndpoint(7).command("manuSpecificOrvibo", "setSwitchScene", {data: [switchId, 0, 0, 0, 0, sceneid]});
+                        await device.getEndpoint(7).command<"manuSpecificOrvibo", "setSwitchScene", Orvibo>("manuSpecificOrvibo", "setSwitchScene", {
+                            data: Buffer.from([switchId, 0, 0, 0, 0, sceneid]),
+                        });
                     }
                     if (relaynumber && device.ieeeAddr.length > 3) {
                         const invertedAddress = hexToBytes(device.ieeeAddr).reverse();
-                        await device.getEndpoint(7).command("manuSpecificOrvibo", "setSwitchRelay", {
-                            data: [switchId, 0, 0, ...invertedAddress, relaynumber, 4, 1, 6, 0, 1, relayaction],
+                        await device.getEndpoint(7).command<"manuSpecificOrvibo", "setSwitchRelay", Orvibo>("manuSpecificOrvibo", "setSwitchRelay", {
+                            data: Buffer.from([switchId, 0, 0, ...invertedAddress, relaynumber, 4, 1, 6, 0, 1, relayaction]),
                         });
                     }
                 }
@@ -255,7 +280,7 @@ const orviboSwitchPowerOnBehavior = (): ModernExtend => {
     const powerOnLookup: {[k: number]: string} = {1: "off", 2: "previous"};
     const powerOnLookup2: {[k: string]: number} = {off: 1, previous: 2};
     const exposes: Expose[] = [e.power_on_behavior(["off", "previous"])];
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "manuSpecificOrvibo2",
             type: ["readResponse"],
@@ -266,19 +291,19 @@ const orviboSwitchPowerOnBehavior = (): ModernExtend => {
                 }
                 return result;
             },
-        },
+        } satisfies Fz.Converter<"manuSpecificOrvibo2", Orvibo2, ["readResponse"]>,
     ];
     const toZigbee: Tz.Converter[] = [
         {
             key: ["power_on_behavior"],
             convertSet: async (entity, key, value, meta) => {
                 if (key === "power_on_behavior") {
-                    await entity.write("manuSpecificOrvibo2", {powerOnBehavior: powerOnLookup2[value as string]});
+                    await entity.write<"manuSpecificOrvibo2", Orvibo2>("manuSpecificOrvibo2", {powerOnBehavior: powerOnLookup2[value as string]});
                 }
             },
             convertGet: async (entity, key, meta) => {
                 if (key === "power_on_behavior") {
-                    await entity.read("manuSpecificOrvibo2", ["powerOnBehavior"]);
+                    await entity.read<"manuSpecificOrvibo2", Orvibo2>("manuSpecificOrvibo2", ["powerOnBehavior"]);
                 }
             },
         },
@@ -476,7 +501,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "W40CZ",
         vendor: "ORVIBO",
         description: "Smart curtain motor",
-        fromZigbee: [fz.curtain_position_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
+        fromZigbee: [fz.curtain_position_analog_output, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
     },
@@ -485,7 +510,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "W45CZ",
         vendor: "ORVIBO",
         description: "Smart curtain motor",
-        fromZigbee: [fz.curtain_position_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
+        fromZigbee: [fz.curtain_position_analog_output, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
     },

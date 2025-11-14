@@ -9,6 +9,27 @@ import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
 
 const e = exposes.presets;
 
+interface ThirdAcceleration {
+    attributes: {
+        coolDownTime: number;
+        xAxis: number;
+        yAxis: number;
+        zAxis: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdMotionSensor {
+    attributes: {
+        coldDownTime: number;
+        localRoutinTime: number;
+        luxThreshold: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     thirdreality_acceleration: {
         cluster: "3rVirationSpecialcluster",
@@ -20,15 +41,15 @@ const fzLocal = {
             if (msg.data.zAxis) payload.z_axis = msg.data.zAxis;
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"3rVirationSpecialcluster", ThirdAcceleration, ["attributeReport", "readResponse"]>,
     thirdreality_private_motion_sensor: {
         cluster: "r3Specialcluster",
         type: "attributeReport",
         convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data[2];
+            const zoneStatus = msg.data[2] as number;
             return {occupancy: (zoneStatus & 1) > 0};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"r3Specialcluster", ThirdMotionSensor, "attributeReport">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -52,8 +73,8 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff02,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    backOn: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    backOff: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -110,6 +131,26 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric({
+                name: "siren_on_off",
+                unit: "on/off",
+                valueMin: 0,
+                valueMax: 1,
+                cluster: "r3Specialcluster",
+                attribute: {ID: 0x0010, type: Zcl.DataType.UINT8},
+                description: "Siren on/off",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "siren_minutes",
+                unit: "min",
+                valueMin: 0,
+                valueMax: 600,
+                cluster: "r3Specialcluster",
+                attribute: {ID: 0x0011, type: Zcl.DataType.UINT8},
+                description: "Siren duration",
+                access: "ALL",
             }),
         ],
         exposes: [e.water_leak(), e.battery_low(), e.battery(), e.battery_voltage()],
@@ -229,6 +270,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attributes: {
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -262,6 +304,7 @@ export const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: 0x1233,
                 attributes: {
                     infraredOff: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -282,7 +325,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RSB02015Z"],
         model: "3RSB02015Z",
         vendor: "Third Reality",
-        description: "Smart blind Gen2",
+        description: "Third Reality Blind Gen2",
         extend: [
             m.battery(),
             m.windowCovering({controls: ["lift"]}),
@@ -291,9 +334,11 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    infrared_enable: {ID: 0x0000, type: 0x20},
-                    calibration_distance: {ID: 0x0001, type: 0x28},
-                    limit_position: {ID: 0x0002, type: 0x21},
+                    infraredEnable: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    compensationSpeed: {ID: 0x0001, type: Zcl.DataType.INT8},
+                    limitPosition: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    totalCycleTimes: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                    lastRemainingBatteryPercentage: {ID: 0x0004, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -320,6 +365,23 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+        ],
+    },
+    {
+        zigbeeModel: ["3RSB01085Z"],
+        model: "3RSB01085Z",
+        vendor: "Third Reality",
+        description: "Smart Scene Button S3",
+        ota: true,
+        extend: [
+            m.deviceEndpoints({endpoints: {2: 3, 1: 2, 3: 1}}),
+            m.actionEnumLookup({
+                endpointNames: ["1", "2", "3"],
+                cluster: "genMultistateInput",
+                attribute: "presentValue",
+                actionLookup: {single: 0, double: 1, send: 2},
+            }),
+            m.battery(),
         ],
     },
     {
@@ -354,6 +416,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.temperature(),
             m.humidity(),
+            m.soilMoisture(),
             m.battery(),
             m.deviceAddCustomCluster("3rSoilSpecialCluster", {
                 ID: 0xff01,
@@ -450,6 +513,7 @@ export const definitions: DefinitionWithExtend[] = [
                     resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -468,13 +532,16 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.onOff(),
             m.electricityMeter({acFrequency: true, powerFactor: true}),
-            m.deviceAddCustomCluster("3rDualPlugSpecialcluster", {
+            m.deviceAddCustomCluster("3rPlugSpecialcluster", {
                 ID: 0xff03,
                 manufacturerCode: 0x1407,
                 attributes: {
                     resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                    powerUpValue: {ID: 0x0040, type: Zcl.DataType.UINT16},
+                    powerDownValue: {ID: 0x0041, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -562,12 +629,24 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy()],
     },
     {
-        zigbeeModel: ["3RCB01057Z"],
+        zigbeeModel: ["3RCB01057Z", "3RCB02070Z"],
         model: "3RCB01057Z",
         vendor: "Third Reality",
-        description: "Zigbee color lights",
+        description: "Smart Color Bulb ZL1",
+        whiteLabel: [{vendor: "Third Reality", model: "3RCB02070Z", description: "Smart Color Bulb ZL4", fingerprint: [{modelID: "3RCB02070Z"}]}],
         ota: true,
-        extend: [m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"]}})],
+        extend: [
+            m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
+            m.deviceAddCustomCluster("3rColorSpecialCluster", {
+                ID: 0xff04,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
     },
     {
         zigbeeModel: ["3RSPE01044BZ"],
@@ -606,6 +685,7 @@ export const definitions: DefinitionWithExtend[] = [
                     resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},

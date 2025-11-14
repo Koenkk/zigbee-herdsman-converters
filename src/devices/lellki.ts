@@ -62,7 +62,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "XF-EU-S100-1-M",
         description: "Touch switch 1 gang (with power monitoring)",
         vendor: "LELLKI",
-        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true})],
+        extend: [
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true}),
+            tuya.modernExtend.electricityMeasurementPoll(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
@@ -70,15 +73,16 @@ export const definitions: DefinitionWithExtend[] = [
             endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 100, multiplier: 1});
             device.save();
         },
-        options: [exposes.options.measurement_poll_interval()],
-        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options),
     },
     {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_0yxeawjt"]),
         model: "WK34-EU",
         description: "Power socket EU (with power monitoring)",
         vendor: "LELLKI",
-        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true})],
+        extend: [
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true}),
+            tuya.modernExtend.electricityMeasurementPoll(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -87,16 +91,15 @@ export const definitions: DefinitionWithExtend[] = [
             endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 100, multiplier: 1});
             device.save();
         },
-        options: [exposes.options.measurement_poll_interval()],
-        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options),
     },
     {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_c7nc9w3c", "_TZ3210_c7nc9w3c"]),
         model: "WP30-EU",
         description: "Power cord 4 sockets EU (with power monitoring)",
         vendor: "LELLKI",
-        fromZigbee: [fz.on_off_force_multiendpoint, fz.electrical_measurement, fz.metering, fz.ignore_basic_report, tuya.fz.power_outage_memory],
+        fromZigbee: [fz.on_off_force_multiendpoint, fz.electrical_measurement, fz.metering, tuya.fz.power_outage_memory],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1],
+        extend: [tuya.modernExtend.electricityMeasurementPoll()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -108,7 +111,6 @@ export const definitions: DefinitionWithExtend[] = [
             endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 100, multiplier: 1});
             device.save();
         },
-        options: [exposes.options.measurement_poll_interval()],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -122,6 +124,5 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
-        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options),
     },
 ];

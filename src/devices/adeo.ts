@@ -22,7 +22,7 @@ const fzLocal = {
                 battery_low: (zoneStatus & (1 << 3)) > 0,
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
 };
 
 const tzLocal = {
@@ -66,13 +66,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.command_arm, fz.command_panic],
         toZigbee: [],
         exposes: [e.action(["panic", "disarm", "arm_partial_zones", "arm_all_zones"])],
-        onEvent: async (type, data, device) => {
-            // Since arm command has a response zigbee-herdsman doesn't send a default response.
-            // This causes the remote to repeat the arm command, so send a default response here.
-            if (data.type === "commandArm" && data.cluster === "ssIasAce") {
-                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
-            }
-        },
+        extend: [m.iasArmCommandDefaultResponse()],
     },
     {
         zigbeeModel: ["ZBEK-1"],
@@ -266,7 +260,6 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_step_saturation,
             fz.color_stop_raw,
             fz.scenes_recall_scene_65024,
-            fz.ignore_genOta,
         ],
         toZigbee: [],
         exposes: [
@@ -382,6 +375,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["SIN-4-1-20_EQU"],
+        model: "SIN-4-1-20_EQU",
+        vendor: "Adeo",
+        description: "Dry contact switch for central heating boilers",
+        extend: [m.onOff(), m.commandsOnOff()],
+    },
+
+    {
         zigbeeModel: ["SIN-4-RS-20_LEX"],
         model: "SIN-4-RS-20_LEX",
         vendor: "ADEO",
@@ -455,5 +456,19 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ADEO",
         description: "ENKI LEXMAN wireless smart door window sensor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
+    },
+    {
+        zigbeeModel: ["ZB-WaterSensor-D0001"],
+        model: "83633206",
+        vendor: "ADEO",
+        description: "ENKI LEXMAN water leak sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
+    },
+    {
+        zigbeeModel: ["WSD005"],
+        model: "WSD005",
+        vendor: "ADEO",
+        description: "ENKI LEXMAN motor for roller shutler",
+        extend: [m.windowCovering({controls: ["lift"]})],
     },
 ];

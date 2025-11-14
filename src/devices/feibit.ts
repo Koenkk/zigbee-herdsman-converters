@@ -178,18 +178,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NZRC106W-M2",
         vendor: "Feibit",
         description: "Security Remote",
-        extend: [],
+        extend: [m.iasArmCommandDefaultResponse()],
         fromZigbee: [fz.command_arm, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(["panic", "disarm", "arm_day_zones", "arm_all_zones"])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
-        },
-        onEvent: async (_, data) => {
-            if (data.type === "commandArm" && data.cluster === "ssIasAce") {
-                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
-            }
         },
     },
     {
