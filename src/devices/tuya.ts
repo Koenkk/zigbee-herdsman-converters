@@ -5178,27 +5178,6 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: true,
                 endpoints: ["l1", "l2", "l3"],
             }),
-        ],
-        exposes: [
-            // Switches
-            e
-                .switch()
-                .withEndpoint("l1"),
-            e.switch().withEndpoint("l2"),
-            e.switch().withEndpoint("l3"),
-            // Countdown per channel
-            exposes
-                .numeric("countdown_l1", ea.ALL)
-                .withUnit("s")
-                .withDescription("Turn off L1 after time"),
-            exposes.numeric("countdown_l2", ea.ALL).withUnit("s").withDescription("Turn off L2 after time"),
-            exposes.numeric("countdown_l3", ea.ALL).withUnit("s").withDescription("Turn off L3 after time"),
-            // Power outage
-            exposes
-                .enum("power_outage_memory", ea.ALL, ["on", "off", "restore"])
-                .withDescription("State after power loss"),
-            exposes.enum("indicator_mode", ea.ALL, ["off", "off/on", "on/off", "on"]).withDescription("LED indicator / backlight mode"),
-        ],
     },
     {
         zigbeeModel: ["TS0003"],
