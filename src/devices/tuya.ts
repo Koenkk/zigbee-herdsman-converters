@@ -5165,7 +5165,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_dyzkbcip"]),
-        model: "Mercurio",
+        model: "Mercurio-3",
         vendor: "Ekaza",
         description: "Smart 3-channel switch with countdown + indicator mode + power outage memory",
         configure: tuya.configureMagicPacket,
@@ -5177,7 +5177,6 @@ export const definitions: DefinitionWithExtend[] = [
                 indicatorMode: true,
                 onOffCountdown: true,
                 endpoints: ["l1", "l2", "l3"],
-                disableState: true, // remove state_left/center/right
             }),
         ],
         exposes: [
