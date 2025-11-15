@@ -2173,9 +2173,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1),
-            e.binary("vibration_sirene", ea.STATE_SET, true, false).withDescription("Activate the siren when vibrating."),
+            e.binary("vibration_siren", ea.STATE_SET, true, false).withDescription("Activate the siren when vibrating."),
             e
-                .numeric("vibration_sirene_duration", ea.STATE_SET)
+                .numeric("vibration_siren_duration", ea.STATE_SET)
                 .withDescription("Duration of the vibrating siren.")
                 .withValueMin(5)
                 .withValueMax(180)
@@ -2207,8 +2207,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [109, "alarm_siren_duration", tuya.valueConverter.raw],
                 [102, "vibration", tuya.valueConverter.raw],
                 [106, "vibration_limit", tuya.valueConverter.raw],
-                [110, "vibration_sirene_duration", tuya.valueConverter.raw],
-                [108, "vibration_sirene", tuya.valueConverter.raw],
+                [110, "vibration_siren_duration", tuya.valueConverter.raw],
+                [108, "vibration_siren", tuya.valueConverter.raw],
                 [104, "close_signal", tuya.valueConverter.raw],
                 [105, "transmission_power", tuya.valueConverter.raw],
                 [111, "magnetic_status", tuya.valueConverter.raw],
