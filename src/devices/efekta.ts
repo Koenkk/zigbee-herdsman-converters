@@ -5948,7 +5948,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["EFEKTA_Air_Monitor"],
         model: "EFEKTA_Air_Monitor",
-        vendor: "EfektaLab",
+        vendor: "EFEKTA",
         description: "CO2 smart monitor, AA battery",
         extend: [
             m.co2({
