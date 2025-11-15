@@ -5145,10 +5145,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_fawk5xjv", "_TZ3000_bvij6kod"]),
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_fawk5xjv", "_TZ3000_bvij6kod", "_TZ3000_aracgljk"]),
         model: "NFZB-03",
         vendor: "Nova Digital",
         description: "3 gang switch with power-on behavior and indicator mode",
+        whiteLabel: [tuya.whitelabel("Nova Digital", "SA-3", "Safira smart light switch - 3 gang", ["_TZ3000_aracgljk"])],
         extend: [
             tuya.modernExtend.tuyaBase(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
@@ -5159,23 +5160,6 @@ export const definitions: DefinitionWithExtend[] = [
                 indicatorMode: true,
                 backlightModeOffOn: true,
                 inchingSwitch: true,
-            }),
-        ],
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_aracgljk"]),
-        model: "SA-3",
-        vendor: "Nova Digital",
-        description: "Safira smart light switch - 3 gang",
-        extend: [
-            tuya.modernExtend.tuyaBase(),
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            tuya.modernExtend.tuyaOnOff({
-                endpoints: ["l1", "l2", "l3"],
-                powerOutageMemory: true,
-                switchType: true,
-                indicatorMode: true,
-                backlightModeOffOn: true,
             }),
         ],
     },
