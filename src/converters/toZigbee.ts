@@ -292,8 +292,21 @@ export const arm_mode: Tz.Converter = {
             panelStatus = mode !== 0 && mode !== 4 ? 0x80 : 0x00;
         }
 
+        let secondsRemain = 0;
+        let delayUntil = 0;
+        if ((mode === 4 || mode === 5) && value.delay != null) {
+            utils.assertNumber(value.delay, "delay");
+            if (!utils.isInRange(0, constants.iasMaxSecondsRemain, value.delay)) {
+                throw new Error(`Invalid delay value: ${value.delay} (expected ${0} to ${constants.iasMaxSecondsRemain})`);
+            }
+
+            secondsRemain = Math.round(value.delay);
+            delayUntil = performance.now() + value.delay * 1000;
+        }
+
         globalStore.putValue(entity, "panelStatus", panelStatus);
-        const payload = {panelstatus: panelStatus, secondsremain: 0, audiblenotif: 0, alarmstatus: 0};
+        globalStore.putValue(entity, "delayUntil", delayUntil);
+        const payload = {panelstatus: panelStatus, secondsremain: secondsRemain, audiblenotif: 0, alarmstatus: 0};
         await entity.commandResponse("ssIasAce", "panelStatusChanged", payload);
     },
 };
