@@ -45,12 +45,6 @@ const tzLocalHueChime = {
                 volume_int ?? 0xFD         // volume
             ]);
             
-            const values = {
-                // @ts-expect-error ignore
-                sound: value.sound || "hue_default",
-                volume: value.volume || 253
-            };
-
             if (value.sound === 'triple_beep') {
                 // This sound can only be triggered with a separate command that doesn't appear to 
                 // support volume. It's unclear how to trigger this from the Hue bridge, and the 
