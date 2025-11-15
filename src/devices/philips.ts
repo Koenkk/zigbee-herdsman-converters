@@ -39,12 +39,12 @@ const tzLocalHueChime = {
 
             const volume_int = Math.round(value.volume * 2.53); // convert from 0-100 to 0-253
             const payload = Buffer.from([
-                0x01, // constant
-                sounds[value.sound] ?? 10, // sound ID
-                0x00,
-                0x00,
-                0x00, // constant
-                volume_int ?? 0xfd, // volume
+                0x01,                        // constant
+                sounds[value.sound] ?? 10,   // sound ID
+                0x00,                        // constant
+                0x00,                        // constant
+                0x00,                        // constant
+                volume_int ?? 0xfd,          // volume
             ]);
 
             if (value.sound === "triple_beep") {
@@ -72,15 +72,15 @@ const tzLocalHueChime = {
             const duration_bytes = [duration_ms & 0xff, (duration_ms >> 8) & 0xff, (duration_ms >> 16) & 0xff];
             // payload: {"duration": <0-16777>} (seconds) (but please don't trigger the siren for 4+ hours)
             const payload = Buffer.from([
-                0x02,
-                0x06,
-                0x00,
-                0x00,
-                0x00, // constant
+                0x02,                // constant
+                0x06,                // constant
+                0x00,                // constant
+                0x00,                // constant
+                0x00,                // constant
                 duration_bytes[0],
                 duration_bytes[1],
-                duration_bytes[2], // duration converted to ms, little endian
-                0x00, // constant
+                duration_bytes[2],   // duration converted to ms, little endian
+                0x00,                // constant
             ]);
 
             await entity.command("customHueChime", "triggerSiren", {data: payload}, hue_chime_meta);
