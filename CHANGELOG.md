@@ -1,5 +1,15 @@
 # Changelog
 
+## [25.68.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.68.0...v25.68.1) (2025-11-15)
+
+
+### Bug Fixes
+
+* Aqara FP300: fix detection range labels ([#10726](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10726)) ([9d90c31](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9d90c31ba1cd02a4998e3c95c32c73331b186d12))
+* Efekta: correct some data types ([#10737](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10737)) ([e8278aa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8278aa0e8fb599ca40a0ec341b7c79dcd57f155))
+* Rename Namron AS to Namron ([#10743](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10743)) ([5671246](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5671246887023b6ea3c25463ad20669c735e4fc4))
+* SONOFF TRVZB: move weekly schedule to config section ([#10730](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10730)) ([cd7a210](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cd7a21053b437f6be3b0da5997d3c7f51f174d16))
+
 ## [25.68.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.67.0...v25.68.0) (2025-11-12)
 
 
