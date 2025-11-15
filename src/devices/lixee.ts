@@ -1885,15 +1885,15 @@ export const definitions: DefinitionWithExtend[] = [
             });
 
             const configReportings = [];
-            const suscribeNew = getCurrentConfig(device, {}).filter((e) => e.reportable);
+            const subscribeNew = getCurrentConfig(device, {}).filter((e) => e.reportable);
 
-            const unsuscribe = endpoint.configuredReportings.filter(
-                (e) => !suscribeNew.some((r) => e.cluster.name === r.cluster && e.attribute.name === r.att),
+            const unsubscribe = endpoint.configuredReportings.filter(
+                (e) => !subscribeNew.some((r) => e.cluster.name === r.cluster && e.attribute.name === r.att),
             );
-            // Unsuscribe reports that doesn't correspond with the current config
+            // Unsubscribe reports that doesn't correspond with the current config
             (
                 await Promise.allSettled(
-                    unsuscribe.map((e) =>
+                    unsubscribe.map((e) =>
                         endpoint.configureReporting(
                             e.cluster.name,
                             reporting.payload(
@@ -1913,7 +1913,7 @@ export const definitions: DefinitionWithExtend[] = [
                     throw e.reason;
                 });
 
-            for (const e of suscribeNew) {
+            for (const e of subscribeNew) {
                 let params = {
                     att: e.att,
                     min: repInterval.MINUTE,
