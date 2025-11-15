@@ -5178,6 +5178,7 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: true,
                 endpoints: ["l1", "l2", "l3"],
             }),
+        ],
     },
     {
         zigbeeModel: ["TS0003"],
