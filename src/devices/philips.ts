@@ -11,6 +11,152 @@ import type {DefinitionWithExtend} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
+const hue_chime_meta = {
+    manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+    disableDefaultResponse: true
+};
+
+const tzLocalHueChime = {
+    play_sound: {
+        key: ['play_sound'],
+        convertSet: async (entity, key, value, meta) => {
+            // payload: {"sound": <key from sounds dict>, "volume": <0-100>}
+            const sounds = {
+                "triple_beep": 1,
+                "bleep": 2, 
+                "ding_dong_classic": 3, 
+                "ding_dong_modern": 4, 
+                "rise": 5,
+                // the siren appears to be sound ID 6, but it can only be triggered with a separate command
+                "westminster_classic": 7, 
+                "westminster_modern": 8, 
+                "ding_dong_xylo": 9, 
+                "hue_default": 10, 
+                "sonar": 11, 
+                "swing": 12, 
+                "bright": 13
+            };
+
+            let volume_int = Math.round(value.volume * 2.53); // convert from 0-100 to 0-253
+            const payload = Buffer.from([
+                0x01,                      // constant
+                sounds[value.sound] ?? 10, // sound ID
+                0x00, 0x00, 0x00,          // constant
+                volume_int ?? 0xFD         // volume
+            ]);
+            
+            const values = {
+                // @ts-expect-error ignore
+                sound: value.sound || "hue_default",
+                volume: value.volume || 253
+            };
+
+            if (value.sound === 'triple_beep') {
+                // This sound can only be triggered with a separate command that doesn't appear to 
+                // support volume. It's unclear how to trigger this from the Hue bridge, and the 
+                // identify command blinks the LED, so I'm not sure what this is actually used for.
+                // I figured having this sound available only at max volume is better than not
+                // having it available at all.
+                await entity.command(
+                    'customHueChime',
+                    'playTripleBeep',
+                    {data: "ffffff"}, // value doesn't appear to matter as long as it's 3 bytes
+                    hue_chime_meta
+                );
+            } else {
+                await entity.command(
+                    'customHueChime',
+                    'playSound',
+                    {data: payload},
+                    hue_chime_meta
+                );
+            }
+        },
+    },
+
+    trigger_siren: {
+        key: ['trigger_siren'],
+        convertSet: async (entity, key, value, meta) => {
+            let duration_ms = Math.round(value.duration * 1000);
+            let duration_bytes = [
+                duration_ms & 0xFF,
+                (duration_ms >> 8) & 0xFF,
+                (duration_ms >> 16) & 0xFF
+            ];
+            // payload: {"duration": <0-16777>} (seconds) (but please don't trigger the siren for 4+ hours)
+            const payload = Buffer.from([
+                0x02, 0x06, 0x00, 0x00, 0x00,                            // constant
+                duration_bytes[0], duration_bytes[1], duration_bytes[2], // duration converted to ms, little endian
+                0x00                                                     // constant
+            ]);
+
+            await entity.command(
+                'customHueChime',
+                'triggerSiren',
+                {data: payload},
+                hue_chime_meta
+            );
+        },
+    },
+
+    mute_unmute: {
+        key: ['state'],
+        convertSet: async (entity, key, value, meta) => {
+            if (value === 'ON') {
+                await entity.command(
+                    'customHueChime',
+                    'unmute',
+                    [],
+                    hue_chime_meta
+                );
+            } else if (value === 'OFF') {
+                await entity.command(
+                    'customHueChime',
+                    'mute',
+                    [],
+                    hue_chime_meta
+                );
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            let mute_unmute_state = await entity.read('customHueChime', ['sirenIsMuted'], hue_chime_meta);
+            return { state: mute_unmute_state === 0 ? 'ON' : 'OFF' };
+        }
+    },
+};
+
+const fzLocalHueChime = {
+    siren_is_muted: {
+        cluster: 'customHueChime',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            let value = msg.data['sirenIsMuted'] === 0 ? 'ON' : 'OFF';
+            return { state: value };
+        },
+    },
+};
+
+const hueChimeExtend = {
+    addCustomClusterHueChime: () =>
+        m.deviceAddCustomCluster("customHueChime", {
+            ID: 0xfc07,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {
+                sirenIsMuted: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+                soundIDPlaying: {ID: 0x0001, type: Zcl.DataType.UINT32},
+                unknownAttr: {ID: 0x0002, type: Zcl.DataType.UINT32}
+            },
+            commands: {
+                mute: {ID: 0x00, parameters: []},
+                unmute: {ID: 0x01, parameters: []},
+                triggerSiren: {ID: 0x02, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                playSound: {ID: 0x03, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                playTripleBeep: {ID: 0x04, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]}
+            },
+            commandsResponse: {},
+        }),
+}
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["929004610602"],
@@ -4401,5 +4547,66 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue smart button",
         extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl()],
+    },
+    {
+        zigbeeModel: ['COM001'],
+        model: 'Hue Secure Chime',
+        vendor: 'Signify Netherlands B.V.',
+        description: 'Hue Secure siren and chime',
+        extend: [hueChimeExtend.addCustomClusterHueChime(), m.identify()],
+        toZigbee: [tzLocalHueChime.play_sound, tzLocalHueChime.trigger_siren, tzLocalHueChime.mute_unmute],
+        fromZigbee: [fzLocalHueChime.siren_is_muted],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(11);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['customHueChime']);
+            await endpoint.configureReporting('customHueChime', [
+                {attribute: 'sirenIsMuted', minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+                {attribute: 'soundIDPlaying', minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+                {attribute: 'unknownAttr', minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}
+            ]);
+        },
+        exposes: [
+            exposes.switch().withState('state', false, 'Mute/unmute siren (off = muted)'),
+            exposes.composite('play_sound', 'play_sound')
+                .withFeature(
+                    exposes.enum('sound', ea.SET, [
+                        "bleep",
+                        "bright",
+                        "ding_dong_classic",
+                        "ding_dong_modern",
+                        "ding_dong_xylo",
+                        "hue_default",
+                        "rise",
+                        "sonar",
+                        "swing",
+                        "triple_beep",
+                        "westminster_classic",
+                        "westminster_modern"
+                    ])
+                )
+                .withFeature(
+                    exposes.numeric('volume', ea.SET)
+                        .withValueMin(0)
+                        .withValueMax(100)
+                        .withDescription('Volume 0–100')
+                        .withPreset('25',25)
+                        .withPreset('50',50)
+                        .withPreset('75',75)
+                        .withPreset('100',100)
+                ),
+            exposes.composite('trigger_siren', 'trigger_siren')
+                .withFeature(
+                    exposes.numeric('duration')
+                        .withUnit('seconds')
+                        .withValueMin(0)
+                        .withValueMax(600)
+                        .withValueStep(1)
+                        .withPreset('stop',0)
+                        .withPreset('30s',30)
+                        .withPreset('60s',60)
+                        .withPreset('120s',120)
+                ),
+        ],
     },
 ];
