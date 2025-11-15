@@ -264,7 +264,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C202.1",
         vendor: "Candeo",
         description: "Zigbee LED smart dimmer switch",
-        extend: [m.light({configureReporting: true, powerOnBehavior: false})],
+        extend: [
+            m.light({
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                powerOnBehavior: false
+            }),
+        ],
     },
     {
         fingerprint: [
