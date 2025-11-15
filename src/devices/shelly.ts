@@ -624,11 +624,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("shellyWS90Wind", {
                 ID: 0xfc01,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
-                attributes: {
-                    wind_speed: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                    wind_direction: {ID: 0x0004, type: Zcl.DataType.UINT16},
-                    gust_speed: {ID: 0x0007, type: Zcl.DataType.UINT16},
-                },
+                attributes: {},
                 commands: {},
                 commandsResponse: {},
             }),
@@ -671,9 +667,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("shellyWS90UV", {
                 ID: 0xfc02,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
-                attributes: {
-                    uv_index: {ID: 0x0000, type: Zcl.DataType.UINT8},
-                },
+                attributes: {},
                 commands: {},
                 commandsResponse: {},
             }),
@@ -691,10 +685,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("shellyWS90Rain", {
                 ID: 0xfc03,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
-                attributes: {
-                    rain_status: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
-                    precipitation: {ID: 0x0001, type: Zcl.DataType.UINT24},
-                },
+                attributes: {},
                 commands: {},
                 commandsResponse: {},
             }),
