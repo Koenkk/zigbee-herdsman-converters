@@ -1960,7 +1960,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dwcarsat", "_TZE204_dwcarsat"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dwcarsat", "_TZE204_dwcarsat", "_TZE200_blfcpsxz"]),
         model: "TS0601_smart_air_house_keeper",
         vendor: "Tuya",
         description: "Smart air house keeper",
