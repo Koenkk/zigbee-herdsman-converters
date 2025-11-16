@@ -35,6 +35,14 @@ const tzLocalHueChime = {
                 sonar: 11,
                 swing: 12,
                 bright: 13,
+                glow: 14, // sounds 14-21 are only available in firmware version >= 1.123.13
+                bounce: 15,
+                reveal: 16,
+                welcome: 17,
+                bright_modern: 18,
+                fairy: 19,
+                galaxy: 20,
+                echo: 21,
             };
 
             const volume_int = Math.round(value.volume * 2.53); // convert from 0-100 to 0-253
@@ -4551,15 +4559,23 @@ export const definitions: DefinitionWithExtend[] = [
                 .withFeature(
                     exposes.enum("sound", ea.SET, [
                         "bleep",
+                        "bounce",
                         "bright",
+                        "bright_modern",
                         "ding_dong_classic",
                         "ding_dong_modern",
                         "ding_dong_xylo",
+                        "echo",
+                        "fairy",
+                        "galaxy",
+                        "glow",
                         "hue_default",
+                        "reveal",
                         "rise",
                         "sonar",
                         "swing",
                         "triple_beep",
+                        "welcome",
                         "westminster_classic",
                         "westminster_modern",
                     ]),
