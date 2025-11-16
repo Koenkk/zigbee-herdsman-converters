@@ -1960,7 +1960,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dwcarsat", "_TZE204_dwcarsat"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dwcarsat", "_TZE204_dwcarsat", "_TZE200_blfcpsxz"]),
         model: "TS0601_smart_air_house_keeper",
         vendor: "Tuya",
         description: "Smart air house keeper",
@@ -2173,9 +2173,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1),
-            e.binary("vibration_sirene", ea.STATE_SET, true, false).withDescription("Activate the siren when vibrating."),
+            e.binary("vibration_siren", ea.STATE_SET, true, false).withDescription("Activate the siren when vibrating."),
             e
-                .numeric("vibration_sirene_duration", ea.STATE_SET)
+                .numeric("vibration_siren_duration", ea.STATE_SET)
                 .withDescription("Duration of the vibrating siren.")
                 .withValueMin(5)
                 .withValueMax(180)
@@ -2207,8 +2207,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [109, "alarm_siren_duration", tuya.valueConverter.raw],
                 [102, "vibration", tuya.valueConverter.raw],
                 [106, "vibration_limit", tuya.valueConverter.raw],
-                [110, "vibration_sirene_duration", tuya.valueConverter.raw],
-                [108, "vibration_sirene", tuya.valueConverter.raw],
+                [110, "vibration_siren_duration", tuya.valueConverter.raw],
+                [108, "vibration_siren", tuya.valueConverter.raw],
                 [104, "close_signal", tuya.valueConverter.raw],
                 [105, "transmission_power", tuya.valueConverter.raw],
                 [111, "magnetic_status", tuya.valueConverter.raw],
@@ -4367,6 +4367,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Moes", "ZT-SR-EU4", "Star Ring 4 Gang Scene Switch", ["_TZ3000_a4xycprs"]),
             tuya.whitelabel("Tuya", "TS0044_1", "Zigbee 4 button remote - 12 scene", ["_TZ3000_dziaict4", "_TZ3000_j61x9rxn"]),
             tuya.whitelabel("iHseno", "_TZ3000_mh9px7cq", "Zigbee 4 button remote - 12 scene", ["_TZ3000_mh9px7cq"]),
+            tuya.whitelabel("iHseno", "TS0044_5tqxpine", "Zigbee 4 button wall switch", ["_TZ3000_5tqxpine"]),
             tuya.whitelabel("Tuya", "TM-YKQ004", "Zigbee 4 button remote - 12 scene", ["_TZ3000_u3nv1jwk"]),
             tuya.whitelabel("HOBEIAN", "ZG-101ZS", "Star Ring 4 Gang Scene Switch", ["_TZ3000_bgtzm4ny"]),
             tuya.whitelabel("Moes", "XH-SY-04Z", "4 button portable remote control", ["_TZ3000_kfu8zapd"]),
@@ -5145,10 +5146,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_fawk5xjv", "_TZ3000_bvij6kod"]),
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_fawk5xjv", "_TZ3000_bvij6kod", "_TZ3000_aracgljk"]),
         model: "NFZB-03",
         vendor: "Nova Digital",
         description: "3 gang switch with power-on behavior and indicator mode",
+        whiteLabel: [tuya.whitelabel("Nova Digital", "SA-3", "Safira smart light switch - 3 gang", ["_TZ3000_aracgljk"])],
         extend: [
             tuya.modernExtend.tuyaBase(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
@@ -5163,19 +5165,19 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_aracgljk"]),
-        model: "SA-3",
-        vendor: "Nova Digital",
-        description: "Safira smart light switch - 3 gang",
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_dyzkbcip"]),
+        model: "Mercurio-3",
+        vendor: "Ekaza",
+        description: "Smart 3-channel switch",
+        configure: tuya.configureMagicPacket,
         extend: [
             tuya.modernExtend.tuyaBase(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.modernExtend.tuyaOnOff({
-                endpoints: ["l1", "l2", "l3"],
                 powerOutageMemory: true,
-                switchType: true,
                 indicatorMode: true,
-                backlightModeOffOn: true,
+                onOffCountdown: true,
+                endpoints: ["l1", "l2", "l3"],
             }),
         ],
     },
@@ -5740,7 +5742,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_debczeci", "_TZE284_1lvln0x6", "_TZE204_debczeci"]),
-        model: "iHsenso_TS0601_human_presence",
+        model: "TS0601_human_presence",
         vendor: "iHseno",
         description: "Human presence sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
@@ -9905,7 +9907,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0222", ["_TZ3000_kky16aay", "_TZE204_myd45weu"]),
+        fingerprint: tuya.fingerprint("TS0222", ["_TZ3000_kky16aay", "_TZE204_myd45weu", "_TZ3000_ceplrhnu"]),
         model: "TS0222_temperature_humidity",
         vendor: "Tuya",
         description: "Temperature & humidity sensor",
@@ -11941,28 +11943,36 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "MatSee Plus", model: "PC321-Z-TY"},
             {vendor: "OWON", model: "PC321-Z-TY"},
         ],
-        exposes: [
-            e.ac_frequency(),
-            e.temperature(),
-            e.current(),
-            e.power(),
-            e.energy(),
-            tuya.exposes.energyWithPhase("a"),
-            tuya.exposes.energyWithPhase("b"),
-            tuya.exposes.energyWithPhase("c"),
-            tuya.exposes.voltageWithPhase("a"),
-            tuya.exposes.voltageWithPhase("b"),
-            tuya.exposes.voltageWithPhase("c"),
-            tuya.exposes.powerWithPhase("a"),
-            tuya.exposes.powerWithPhase("b"),
-            tuya.exposes.powerWithPhase("c"),
-            tuya.exposes.currentWithPhase("a"),
-            tuya.exposes.currentWithPhase("b"),
-            tuya.exposes.currentWithPhase("c"),
-            tuya.exposes.powerFactorWithPhase("a"),
-            tuya.exposes.powerFactorWithPhase("b"),
-            tuya.exposes.powerFactorWithPhase("c"),
-        ],
+        exposes: (device) => {
+            const baseExposes = [
+                e.ac_frequency(),
+                e.temperature(),
+                e.current(),
+                e.power(),
+                e.energy(),
+                tuya.exposes.energyWithPhase("a"),
+                tuya.exposes.energyWithPhase("b"),
+                tuya.exposes.energyWithPhase("c"),
+                tuya.exposes.voltageWithPhase("a"),
+                tuya.exposes.voltageWithPhase("b"),
+                tuya.exposes.voltageWithPhase("c"),
+                tuya.exposes.powerWithPhase("a"),
+                tuya.exposes.powerWithPhase("b"),
+                tuya.exposes.powerWithPhase("c"),
+                tuya.exposes.currentWithPhase("a"),
+                tuya.exposes.currentWithPhase("b"),
+                tuya.exposes.currentWithPhase("c"),
+                tuya.exposes.powerFactorWithPhase("a"),
+                tuya.exposes.powerFactorWithPhase("b"),
+                tuya.exposes.powerFactorWithPhase("c"),
+            ];
+
+            if (device.applicationVersion >= 132) {
+                baseExposes.push(e.numeric("ac_frequency_high_precision", ea.STATE).withUnit("Hz").withValueMin(0).withValueMax(100));
+            }
+
+            return baseExposes;
+        },
         meta: {
             multiEndpointSkip: ["power_factor", "power_factor_phase_b", "power_factor_phase_c", "energy"],
             tuyaDatapoints: [
@@ -11981,6 +11991,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [7, null, tuya.valueConverter.phaseVariant2WithPhase("b")],
                 [8, null, tuya.valueConverter.phaseVariant2WithPhase("c")],
                 [134, "device_status", tuya.valueConverter.raw],
+                [135, "ac_frequency_high_precision", tuya.valueConverter.divideBy100],
             ],
         },
     },
@@ -20245,6 +20256,74 @@ export const definitions: DefinitionWithExtend[] = [
                 [118, "comfort_temperature", tuya.valueConverter.divideBy10],
                 [119, "antifrost_temperature", tuya.valueConverter.divideBy10],
                 [120, "light", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ilzkxrav"]),
+        model: "TWC-R01",
+        vendor: "THALEOS",
+        description: "Smart thermostat for electric heater with pilot wire",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.pilot_wire_mode(["comfort", "eco", "antifrost", "off", "comfort_1", "comfort_2"]), // Not using climate here because setpoint is not supported
+            e.local_temperature(),
+            e
+                .numeric("local_temperature_calibration", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(-8)
+                .withValueMax(8)
+                .withValueStep(0.5)
+                .withDescription("Set temperature calibration"),
+            e.binary("eco_mode", ea.STATE_SET, "ON", "OFF").withDescription("Enables/disables the weekly program."),
+            e.open_window(),
+            e.open_window_temperature(),
+            e.power(),
+            e.voltage(),
+            e.current(),
+            e.energy(),
+            e.numeric("energy_today", ea.STATE).withUnit("kWh").withDescription("Energy consumed today"),
+            e.numeric("energy_yesterday", ea.STATE).withUnit("kWh").withDescription("Energy consumed yesterday"),
+            e.binary("device_mode_type", ea.STATE_SET, "ON", "OFF").withDescription("Set pilot wire mode to 6 (includes comfort 1 & 2)."),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    "pilot_wire_mode",
+                    tuya.valueConverterBasic.lookup({
+                        comfort: tuya.enum(0),
+                        eco: tuya.enum(1),
+                        antifrost: tuya.enum(2),
+                        off: tuya.enum(3),
+                        comfort_1: tuya.enum(4),
+                        comfort_2: tuya.enum(5),
+                    }),
+                ],
+                [11, "power", tuya.valueConverter.raw],
+                [16, "local_temperature", tuya.valueConverter.divideBy10],
+                [19, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
+                [20, "fault", tuya.valueConverter.raw],
+                [40, "eco_mode", tuya.valueConverter.onOff],
+                [101, "week_program", tuya.valueConverter.raw],
+                [102, "work_state", tuya.valueConverter.raw],
+                [103, "week_program_1", tuya.valueConverter.raw],
+                [104, "week_program_2", tuya.valueConverter.raw],
+                [105, "week_program_3", tuya.valueConverter.raw],
+                [106, "week_program_4", tuya.valueConverter.raw],
+                [107, "week_program_5", tuya.valueConverter.raw],
+                [108, "week_program_6", tuya.valueConverter.raw],
+                [109, "week_program_7", tuya.valueConverter.raw],
+                [110, "open_window", tuya.valueConverter.onOff],
+                [111, "open_window_temperature", tuya.valueConverter.raw],
+                [112, "window_time", tuya.valueConverter.raw],
+                [113, "window_timeout", tuya.valueConverter.raw],
+                [114, "device_mode_type", tuya.valueConverter.onOff],
+                [115, "voltage", tuya.valueConverter.divideBy10],
+                [116, "current", tuya.valueConverter.divideBy1000],
+                [117, "energy", tuya.valueConverter.raw],
+                [119, "energy_today", tuya.valueConverter.raw],
+                [120, "energy_yesterday", tuya.valueConverter.raw],
             ],
         },
     },

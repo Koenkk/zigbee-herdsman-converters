@@ -25,6 +25,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "color_temperature_move",
             ]),
         ],
+        extend: [m.battery()],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ["genBasic", "genOnOff", "genLevelCtrl", "lightingColorCtrl"]);
@@ -38,6 +39,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.command_step, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp],
         toZigbee: [],
         exposes: [e.action(["on", "off", "brightness_step_up", "brightness_step_down", "brightness_move_to_level", "color_temperature_move"])],
+        extend: [m.battery()],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ["genBasic", "genGroups", "genScenes", "genOnOff", "genLevelCtrl", "lightingColorCtrl"]);
