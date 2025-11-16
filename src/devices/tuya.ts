@@ -11941,28 +11941,36 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "MatSee Plus", model: "PC321-Z-TY"},
             {vendor: "OWON", model: "PC321-Z-TY"},
         ],
-        exposes: [
-            e.ac_frequency(),
-            e.temperature(),
-            e.current(),
-            e.power(),
-            e.energy(),
-            tuya.exposes.energyWithPhase("a"),
-            tuya.exposes.energyWithPhase("b"),
-            tuya.exposes.energyWithPhase("c"),
-            tuya.exposes.voltageWithPhase("a"),
-            tuya.exposes.voltageWithPhase("b"),
-            tuya.exposes.voltageWithPhase("c"),
-            tuya.exposes.powerWithPhase("a"),
-            tuya.exposes.powerWithPhase("b"),
-            tuya.exposes.powerWithPhase("c"),
-            tuya.exposes.currentWithPhase("a"),
-            tuya.exposes.currentWithPhase("b"),
-            tuya.exposes.currentWithPhase("c"),
-            tuya.exposes.powerFactorWithPhase("a"),
-            tuya.exposes.powerFactorWithPhase("b"),
-            tuya.exposes.powerFactorWithPhase("c"),
-        ],
+        exposes: (device) => {
+            const baseExposes = [
+                e.ac_frequency(),
+                e.temperature(),
+                e.current(),
+                e.power(),
+                e.energy(),
+                tuya.exposes.energyWithPhase("a"),
+                tuya.exposes.energyWithPhase("b"),
+                tuya.exposes.energyWithPhase("c"),
+                tuya.exposes.voltageWithPhase("a"),
+                tuya.exposes.voltageWithPhase("b"),
+                tuya.exposes.voltageWithPhase("c"),
+                tuya.exposes.powerWithPhase("a"),
+                tuya.exposes.powerWithPhase("b"),
+                tuya.exposes.powerWithPhase("c"),
+                tuya.exposes.currentWithPhase("a"),
+                tuya.exposes.currentWithPhase("b"),
+                tuya.exposes.currentWithPhase("c"),
+                tuya.exposes.powerFactorWithPhase("a"),
+                tuya.exposes.powerFactorWithPhase("b"),
+                tuya.exposes.powerFactorWithPhase("c"),
+            ];
+
+            if (device.applicationVersion >= 132) {
+                baseExposes.push(e.numeric("ac_frequency_high_precision", ea.STATE).withUnit("Hz").withValueMin(0).withValueMax(100));
+            }
+
+            return baseExposes;
+        },
         meta: {
             multiEndpointSkip: ["power_factor", "power_factor_phase_b", "power_factor_phase_c", "energy"],
             tuyaDatapoints: [
@@ -11981,6 +11989,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [7, null, tuya.valueConverter.phaseVariant2WithPhase("b")],
                 [8, null, tuya.valueConverter.phaseVariant2WithPhase("c")],
                 [134, "device_status", tuya.valueConverter.raw],
+                [135, "ac_frequency_high_precision", tuya.valueConverter.divideBy100],
             ],
         },
     },
