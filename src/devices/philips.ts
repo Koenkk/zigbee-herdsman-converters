@@ -4528,7 +4528,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["COM001"],
-        model: "Hue Secure Chime",
+        model: "8720169277243",
         vendor: "Philips",
         description: "Hue Secure siren and chime",
         extend: [hueChimeExtend.addCustomClusterHueChime(), m.identify()],
