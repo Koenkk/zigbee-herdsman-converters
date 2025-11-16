@@ -4529,7 +4529,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["COM001"],
         model: "Hue Secure Chime",
-        vendor: "Signify Netherlands B.V.",
+        vendor: "Philips",
         description: "Hue Secure siren and chime",
         extend: [hueChimeExtend.addCustomClusterHueChime(), m.identify()],
         toZigbee: [tzLocalHueChime.play_sound, tzLocalHueChime.trigger_siren, tzLocalHueChime.mute_unmute],
