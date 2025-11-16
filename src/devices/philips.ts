@@ -3308,7 +3308,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003099301",
         vendor: "Philips",
         description: "Hue Aurelle W 39,5 cm (White)",
-        whiteLabel: [{model: "929003099302", vendor: "Philips", description: "Hue Aurelle W 39,5 cm (White)", fingerprint: [{modelID: "929003099302"}]}],
+        whiteLabel: [
+            {model: "929003099302", vendor: "Philips", description: "Hue Aurelle W 39,5 cm (White)", fingerprint: [{modelID: "929003099302"}]},
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
