@@ -5167,7 +5167,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_dyzkbcip"]),
         model: "Mercurio-3",
         vendor: "Ekaza",
-        description: "Smart 3-channel switch with countdown + indicator mode + power outage memory",
+        description: "Smart 3-channel switch",
         configure: tuya.configureMagicPacket,
         extend: [
             tuya.modernExtend.tuyaBase(),
