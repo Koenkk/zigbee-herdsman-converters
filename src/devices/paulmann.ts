@@ -368,11 +368,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light()],
     },
     {
-    zigbeeModel: ["98442","98443"],
+    zigbeeModel: ["984.42", "98442", "984.43", "98443"],
     model: '984.42 / 984.43',
     vendor: 'Paulmann Licht GmbH',
-    description: 'Smart Home Zigbee LED Light withe motion detection (HF)',
+    description: 'Azalena Smart Home Zigbee LED Light withe motion detection (HF)',
     extend: [m.light({"colorTemp":{"range":[153,370]}})],
-    }
-};
+    },
 ];
