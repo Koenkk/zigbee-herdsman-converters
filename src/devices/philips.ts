@@ -489,7 +489,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["5063130P7"],
+        zigbeeModel: ["5063130P7", "929003810601"],
         model: "5063130P7",
         vendor: "Philips",
         description: "Hue Bluetooth white & color ambiance spot Fugato black (1 spots)",
