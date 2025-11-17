@@ -95,6 +95,9 @@ interface SonoffTrvzb {
         tempAccuracy: number;
         externalTemperatureInput: number;
         temperatureSensorSelect: number;
+        temporaryMode: number;
+        temporaryModeTime: number;
+        temporaryModeTemp: number;
     };
     commands: never;
     commandResponses: never;
@@ -329,6 +332,7 @@ const sonoffExtend = {
     weeklySchedule: (): ModernExtend => {
         const exposes = e
             .composite("schedule", "weekly_schedule", ea.STATE_SET)
+            .withCategory("config")
             .withDescription(
                 'The preset heating schedule to use when the system mode is set to "auto" (indicated with ⏲ on the TRV). ' +
                     "Up to 6 transitions can be defined per day, where a transition is expressed in the format 'HH:mm/temperature', each " +
@@ -1430,6 +1434,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_temperature_min",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortTemperatureMin",
+                entityCategory: "config",
                 description:
                     "Minimum temperature that is considered comfortable. The device will display ❄️ when the temperature is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: -10,
@@ -1442,6 +1447,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_temperature_max",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortTemperatureMax",
+                entityCategory: "config",
                 description:
                     "Maximum temperature that is considered comfortable. The device will display 🔥 when the temperature is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: -10,
@@ -1454,6 +1460,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_humidity_min",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortHumidityMin",
+                entityCategory: "config",
                 description:
                     "Minimum relative humidity that is considered comfortable. The device will display ☀️ when the humidity is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
@@ -1466,6 +1473,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_humidity_max",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortHumidityMax",
+                entityCategory: "config",
                 description:
                     "Maximum relative humidity that is considered comfortable. The device will display 💧 when the humidity is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
@@ -1479,6 +1487,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02d",
                 attribute: "temperatureUnits",
+                entityCategory: "config",
                 description:
                     "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
             }),
@@ -1486,6 +1495,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02d",
                 attribute: "temperatureCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported temperature",
                 valueMin: -50,
                 valueMax: 50,
@@ -1497,6 +1507,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "humidity_calibration",
                 cluster: "customSonoffSnzb02d",
                 attribute: "humidityCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported relative humidity",
                 valueMin: -50,
                 valueMax: 50,
@@ -1529,6 +1540,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02ld",
                 attribute: "temperatureUnits",
+                entityCategory: "config",
                 description:
                     "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
             }),
@@ -1536,6 +1548,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02ld",
                 attribute: "temperatureCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported temperature",
                 valueMin: -50,
                 valueMax: 50,
@@ -1570,6 +1583,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02wd",
                 attribute: "temperatureUnits",
+                entityCategory: "config",
                 description:
                     "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
             }),
@@ -1577,6 +1591,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02wd",
                 attribute: "temperatureCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported temperature",
                 valueMin: -50,
                 valueMax: 50,
@@ -1588,6 +1603,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "humidity_calibration",
                 cluster: "customSonoffSnzb02wd",
                 attribute: "humidityCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported relative humidity",
                 valueMin: -50,
                 valueMax: 50,
@@ -1625,6 +1641,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_temperature_min",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortTemperatureMin",
+                entityCategory: "config",
                 description:
                     "Minimum temperature that is considered comfortable. The device will display ❄️ when the temperature is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: -10,
@@ -1637,6 +1654,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_temperature_max",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortTemperatureMax",
+                entityCategory: "config",
                 description:
                     "Maximum temperature that is considered comfortable. The device will display 🔥 when the temperature is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: -10,
@@ -1649,6 +1667,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_humidity_min",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortHumidityMin",
+                entityCategory: "config",
                 description:
                     "Minimum relative humidity that is considered comfortable. The device will display ☀️ when the humidity is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
@@ -1661,6 +1680,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_humidity_max",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortHumidityMax",
+                entityCategory: "config",
                 description:
                     "Maximum relative humidity that is considered comfortable. The device will display 💧 when the humidity is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
@@ -1674,6 +1694,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "temperatureUnits",
+                entityCategory: "config",
                 description:
                     "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
             }),
@@ -1681,6 +1702,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "temperatureCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported temperature",
                 valueMin: -50,
                 valueMax: 50,
@@ -1692,6 +1714,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "humidity_calibration",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "humidityCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported relative humidity",
                 valueMin: -50,
                 valueMax: 50,
@@ -2062,6 +2085,9 @@ export const definitions: DefinitionWithExtend[] = [
                     valveOpeningDegree: {ID: 0x600b, type: Zcl.DataType.UINT8},
                     valveClosingDegree: {ID: 0x600c, type: Zcl.DataType.UINT8},
                     tempAccuracy: {ID: 0x6011, type: Zcl.DataType.INT16},
+                    temporaryMode: {ID: 0x6014, type: Zcl.DataType.UINT8},
+                    temporaryModeTime: {ID: 0x6015, type: Zcl.DataType.UINT32},
+                    temporaryModeTemp: {ID: 0x6016, type: Zcl.DataType.INT16},
                     externalTemperatureInput: {
                         ID: 0x600d,
                         type: Zcl.DataType.INT16,
@@ -2073,6 +2099,43 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "timer_mode_target_temp",
+                cluster: "customSonoffTrvzb",
+                attribute: "temporaryModeTemp",
+                entityCategory: "config",
+                description: "In timer mode, the temperature can be set to 4-35 ℃.",
+                valueMin: 4.0,
+                valueMax: 35.0,
+                valueStep: 0.5,
+                unit: "°C",
+                scale: 100,
+            }),
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "temporary_mode_duration",
+                cluster: "customSonoffTrvzb",
+                attribute: "temporaryModeTime",
+                entityCategory: "config",
+                description:
+                    "Boost Mode: Sets maximum TRV temperature for up to 180 minutes." +
+                    "Timer Mode: Customizes temperature and duration, up to 24 hours.",
+                valueMin: 0,
+                valueMax: 1440,
+                valueStep: 1,
+                unit: "minutes",
+                scale: 60,
+            }),
+            m.enumLookup<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "temporary_mode_select",
+                label: "Temporary mode ",
+                lookup: {boost: 0, timer: 1},
+                cluster: "customSonoffTrvzb",
+                attribute: "temporaryMode",
+                description:
+                    "Boost mode: Activates maximum TRV temperature for a user-defined duration, enabling rapid heating. " +
+                    "Timer Mode: Allows customization of temperature and duration for precise heating control." +
+                    "After the set duration, the system will return to its previous normal mode and temperature.",
             }),
             m.binary<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "child_lock",

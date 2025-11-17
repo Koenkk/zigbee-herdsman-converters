@@ -74,6 +74,13 @@ const attrDisplayInversion = 0xf00b;
 
 const switchFeatures = ["nothing", "co2_forced_calibration", "co2_factory_reset", "bind_reset", ""];
 
+const attrPlugKeyLock = 0xf000;
+const attrPlugSwitchCurrentMax = 0xf002;
+const attrPlugSwitchPowerMax = 0xf003;
+const attrPlugSwitchTimeReload = 0xf004;
+const attrPlugSwitchProtectCtrl = 0xf005;
+const attrPlugSwitchAutoRestart = 0xf006;
+
 const fzLocal = {
     thermostat_custom_fw: {
         cluster: "hvacThermostat",
@@ -539,7 +546,7 @@ function localActionExtend(args: LocalActionExtendArgs = {}): ModernExtend {
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
     if (reporting)
         result.configure = [
-            m.setupConfigureForBinding("genMultistateInput", "output", endpointNames),
+            m.setupConfigureForBinding("genMultistateInput", "input", endpointNames),
             m.setupConfigureForReporting("genMultistateInput", "presentValue", {config: reportingConfig, access: ea.GET, endpointNames}),
         ];
 
@@ -706,6 +713,27 @@ async function configureCommon(device: Zh.Device, coordinatorEndpoint: Zh.Endpoi
         await endpoint1.configureReporting("hvacThermostat", payload_ext_temp_calibration);
     }
 }
+
+const energyResetExtend = {
+    energyReset: (): ModernExtend => {
+        const exposes: Expose[] = [e.enum("energy_reset", ea.SET, ["reset"]).withDescription("Reset of accumulated energy")];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["energy_reset"],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.command("seMetering", 0x80, {}, utils.getOptions(meta.mapped, entity));
+                },
+            },
+        ];
+        //      const fromZigbee = [];
+        return {
+            exposes,
+            fromZigbee: [],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+};
 
 const electricityMeterExtend = {
     elMeter: (): ModernExtend => {
@@ -2508,6 +2536,41 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["QS-Zigbee-SEC01-Mod"],
+        model: "QS-Zigbee-SEC01-Mod",
+        vendor: "Svetomaniya",
+        description: "Smart light switch module 1 gang",
+        extend: [
+            m.onOff({powerOnBehavior: true}),
+            m.commandsOnOff(),
+            localActionExtend(),
+            m.enumLookup({
+                name: "switch_actions",
+                lookup: {off: 0, on: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+            m.enumLookup({
+                name: "switch_type",
+                lookup: {toggle: 0, momentary: 1, multifunction: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: {ID: 0xf000, type: 0x30},
+                description: "Switch type",
+            }),
+            m.enumLookup({
+                name: "operation_mode",
+                lookup: {control_relay: 0, decoupled: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: {ID: 0xf001, type: 0x30},
+                reporting: {min: 0, max: 65000, change: 0},
+                description: "Relay decoupled",
+            }),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
         zigbeeModel: ["QS-Zigbee-SEC02-Mod"],
         model: "QS-Zigbee-SEC02-Mod",
         vendor: "Svetomaniya",
@@ -2569,6 +2632,228 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         meta: {multiEndpoint: true},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["TS011F-SlD"],
+        model: "TS011F_plug-SlD",
+        vendor: "Slacky-DIY",
+        description: "Plug with power monitoring",
+        extend: [
+            m.onOff({powerOnBehavior: true}),
+            m.binary({
+                name: "key_lock",
+                valueOn: ["LOCK", 1],
+                valueOff: ["UNLOCK", 0],
+                cluster: "genOnOff",
+                attribute: {ID: attrPlugKeyLock, type: 0x10},
+                description: "Key lock enable/disable",
+            }),
+            m.electricityMeter({
+                current: {divisor: 100},
+                voltage: {divisor: 100},
+                power: {divisor: 1},
+                energy: {divisor: 100},
+                acFrequency: {divisor: 100},
+            }),
+            m.deviceAddCustomCluster("seMetering", {
+                ID: 0x0702,
+                attributes: {},
+                commands: {
+                    resetEnergyMeters: {
+                        ID: 0x80,
+                        parameters: [],
+                    },
+                },
+                commandsResponse: {},
+            }),
+            energyResetExtend.energyReset(),
+            m.binary({
+                name: "protect_control",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "haElectricalMeasurement",
+                attribute: {ID: attrPlugSwitchProtectCtrl, type: 0x10},
+                description: "Protection control enable/disable",
+            }),
+            m.binary({
+                name: "automatic_restart",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "haElectricalMeasurement",
+                attribute: {ID: attrPlugSwitchAutoRestart, type: 0x10},
+                description: "Automatic restart enable/disable for voltage only",
+            }),
+            m.numeric({
+                name: "voltage_min",
+                unit: "V",
+                cluster: "haElectricalMeasurement",
+                attribute: "rmsExtremeUnderVoltage",
+                description: "Minimum voltage value",
+                valueMin: 0,
+                valueMax: 300,
+                scale: 100,
+            }),
+            m.numeric({
+                name: "voltage_max",
+                unit: "V",
+                cluster: "haElectricalMeasurement",
+                attribute: "rmsExtremeOverVoltage",
+                description: "Maximum voltage value",
+                valueMin: 0,
+                valueMax: 300,
+                scale: 100,
+            }),
+            m.numeric({
+                name: "current_max",
+                unit: "A",
+                cluster: "haElectricalMeasurement",
+                attribute: {ID: attrPlugSwitchCurrentMax, type: 0x21},
+                description: "Maximum current value",
+                scale: 100,
+                valueMin: 0,
+                valueMax: 16,
+                valueStep: 0.1,
+            }),
+            m.numeric({
+                name: "power_max",
+                unit: "W",
+                cluster: "haElectricalMeasurement",
+                attribute: {ID: attrPlugSwitchPowerMax, type: 0x29},
+                description: "Maximum power value",
+                valueMin: 0,
+                valueMax: 3600,
+            }),
+            m.numeric({
+                name: "time_reload",
+                unit: "sec",
+                cluster: "haElectricalMeasurement",
+                attribute: {ID: attrPlugSwitchTimeReload, type: 0x21},
+                description: "Reload time",
+                valueMin: 5,
+                valueMax: 60,
+            }),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["TS0001_power-SlD"],
+        model: "TS0001_power-SlD",
+        vendor: "Slacky-DIY",
+        description: "Switch with power monitoring",
+        extend: [
+            m.onOff({powerOnBehavior: true}),
+            m.commandsOnOff(),
+            localActionExtend(),
+            m.enumLookup({
+                name: "switch_actions",
+                lookup: {off: 0, on: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+            m.enumLookup({
+                name: "switch_type",
+                lookup: {toggle: 0, momentary: 1, multifunction: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: {ID: 0xf000, type: 0x30},
+                description: "Switch 1 type",
+            }),
+            m.enumLookup({
+                name: "operation_mode",
+                lookup: {control_relay: 0, decoupled: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: {ID: 0xf001, type: 0x30},
+                reporting: {min: 0, max: 65000, change: 0},
+                description: "Relay decoupled",
+            }),
+            m.electricityMeter({
+                current: {divisor: 100},
+                voltage: {divisor: 100},
+                power: {divisor: 1},
+                energy: {divisor: 100},
+                acFrequency: {divisor: 100},
+            }),
+            m.deviceAddCustomCluster("seMetering", {
+                ID: 0x0702,
+                attributes: {},
+                commands: {
+                    resetEnergyMeters: {
+                        ID: 0x80,
+                        parameters: [],
+                    },
+                },
+                commandsResponse: {},
+            }),
+            energyResetExtend.energyReset(),
+            m.binary({
+                name: "protect_control",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "haElectricalMeasurement",
+                attribute: {ID: attrPlugSwitchProtectCtrl, type: 0x10},
+                description: "Protection control enable/disable",
+            }),
+            m.binary({
+                name: "automatic_restart",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "haElectricalMeasurement",
+                attribute: {ID: attrPlugSwitchAutoRestart, type: 0x10},
+                description: "Automatic restart enable/disable for voltage only",
+            }),
+            m.numeric({
+                name: "voltage_min",
+                unit: "V",
+                cluster: "haElectricalMeasurement",
+                attribute: "rmsExtremeUnderVoltage",
+                description: "Minimum voltage value",
+                valueMin: 0,
+                valueMax: 300,
+                scale: 100,
+            }),
+            m.numeric({
+                name: "voltage_max",
+                unit: "V",
+                cluster: "haElectricalMeasurement",
+                attribute: "rmsExtremeOverVoltage",
+                description: "Maximum voltage value",
+                valueMin: 0,
+                valueMax: 300,
+                scale: 100,
+            }),
+            m.numeric({
+                name: "current_max",
+                unit: "A",
+                cluster: "haElectricalMeasurement",
+                attribute: {ID: attrPlugSwitchCurrentMax, type: 0x21},
+                description: "Maximum current value",
+                scale: 100,
+                valueMin: 0,
+                valueMax: 16,
+                valueStep: 0.1,
+            }),
+            m.numeric({
+                name: "power_max",
+                unit: "W",
+                cluster: "haElectricalMeasurement",
+                attribute: {ID: attrPlugSwitchPowerMax, type: 0x29},
+                description: "Maximum power value",
+                valueMin: 0,
+                valueMax: 3600,
+            }),
+            m.numeric({
+                name: "time_reload",
+                unit: "sec",
+                cluster: "haElectricalMeasurement",
+                attribute: {ID: attrPlugSwitchTimeReload, type: 0x21},
+                description: "Reload time",
+                valueMin: 5,
+                valueMax: 60,
+            }),
+        ],
+        meta: {},
         ota: true,
     },
 ];

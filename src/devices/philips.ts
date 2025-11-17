@@ -143,6 +143,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [222, 454]}})],
     },
     {
+        zigbeeModel: ["LTA016"],
+        model: "9290038550H",
+        vendor: "Philips",
+        description: "Hue white ambiance A67 1600lm with Bluetooth E27",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}})],
+    },
+    {
         zigbeeModel: ["LTA018"],
         model: "9290038552",
         vendor: "Philips",
@@ -162,6 +169,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue white ambiance and color",
         extend: [philips.m.light({colorTemp: {range: [154, 455]}, color: true})],
+    },
+    {
+        zigbeeModel: ["LCA013"],
+        model: "929003853701",
+        vendor: "Philips",
+        description: "Hue white ambiance and color 806lm A19 E26",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["LTA013"],
@@ -549,7 +563,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["LTD021"],
+        zigbeeModel: ["LTD021", "LTD022"],
         model: "9290035842",
         vendor: "Philips",
         description: "Garnea downlight",
@@ -770,6 +784,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290038561",
         vendor: "Philips",
         description: "Hue White A60 E27 1100 lumen",
+        extend: [philips.m.light()],
+    },
+    {
+        zigbeeModel: ["LWA035"],
+        model: "929003856303",
+        vendor: "Philips",
+        description: "Hue White A19 bulb E26 810lm with Bluetooth",
         extend: [philips.m.light()],
     },
     {
@@ -3269,10 +3290,17 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
+        zigbeeModel: ["929004608001"],
+        model: "929004608001",
+        vendor: "Philips",
+        description: "Hue OmniGlow lightstrip 3m",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
+    },
+    {
         zigbeeModel: ["929004608004"],
         model: "929004608004",
         vendor: "Philips",
-        description: "Hue Omniglow lightstrip",
+        description: "Hue OmniGlow lightstrip",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
     },
     {
@@ -4178,7 +4206,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["929003822901", "929003823101", "929003823301", "929003823001", "929003823201", "929003823401"],
+        zigbeeModel: ["929003822901", "929003823101", "929003823301", "929003823001", "929003823201", "929003823401", "929003846401"],
         model: "929003822901",
         vendor: "Philips",
         description: "Hue Tento WA 29,1cm (White)",
@@ -4188,6 +4216,7 @@ export const definitions: DefinitionWithExtend[] = [
             {model: "929003823001", vendor: "Philips", description: "Hue Tento WA 29,1 cm (Black)", fingerprint: [{modelID: "929003823001"}]},
             {model: "929003823201", vendor: "Philips", description: "Hue Tento WA 42,1 cm (Black)", fingerprint: [{modelID: "929003823201"}]},
             {model: "929003823401", vendor: "Philips", description: "Hue Tento WA 54,2 cm (Black)", fingerprint: [{modelID: "929003823401"}]},
+            {model: "929003846401", vendor: "Philips", description: "Hue Tento WA 39,5 cm (White)", fingerprint: [{modelID: "929003846401"}]},
         ],
         extend: [philips.m.light({colorTemp: {range: [153, 438]}})],
     },
