@@ -15603,7 +15603,7 @@ export const definitions: DefinitionWithExtend[] = [
                 respondToMcuVersionResponse: true,
             }),
         ],
-        whiteLabel: [tuya.whitelabel("Tongou", "TOSA1", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_432zhuwe", "_TZE204_432zhuwe"])],
+        whiteLabel: [tuya.whitelabel("Tongou", "TOWSMR1-40A-AC", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_432zhuwe", "_TZE204_432zhuwe"])],
         exposes: [
             tuya.exposes.switch(),
             e.temperature(),
@@ -15665,6 +15665,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("leakage_threshold", ea.STATE_SET)
                 .withUnit("mA")
                 .withDescription("Setup value on the device")
+                .withValueStep(5)
                 .withValueMin(30)
                 .withValueMax(100),
             e.enum("temperature_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Temperature setting"),
@@ -15679,7 +15680,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("over_power_threshold", ea.STATE_SET)
                 .withUnit("W")
                 .withDescription("Setup value on the device")
-                .withValueMin(1)
+                .withValueStep(10)
+                .withValueMin(5)
                 .withValueMax(25000),
             e
                 .binary("auto_reclosing", ea.STATE_SET, "ON", "OFF")
