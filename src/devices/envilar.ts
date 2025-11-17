@@ -83,8 +83,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["5491"],
         model: "5491",
-        vendor: "ENVILAR",
-        description: "Automatically generated definition",
-        extend: [philips.m.light({colorTemp: {range: [160, 450]}})],
+        vendor: "Envilar",
+        description: "Dimmable driver",
+        extend: [m.light({colorTemp: {range: [160, 450]}})],
     },
 ];
