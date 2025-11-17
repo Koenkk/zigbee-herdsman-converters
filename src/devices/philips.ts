@@ -6,20 +6,22 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as philips from "../lib/philips";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const hue_chime_meta = {
+const HUE_CHIME_META = {
     manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
     disableDefaultResponse: true,
 };
 
-const tzLocalHueChime = {
+const tzLocal = {
     play_sound: {
         key: ["play_sound"],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertObject(value);
             // payload: {"sound": <key from sounds dict>, "volume": <0-100>}
             const sounds = {
                 triple_beep: 1,
@@ -48,7 +50,7 @@ const tzLocalHueChime = {
             const volume_int = Math.round(value.volume * 2.53); // convert from 0-100 to 0-253
             const payload = Buffer.from([
                 0x01, // constant
-                sounds[value.sound] ?? 10, // sound ID
+                utils.getFromLookup(value.sound, sounds, 10), // sound ID
                 0x00, // constant
                 0x00, // constant
                 0x00, // constant
@@ -65,17 +67,17 @@ const tzLocalHueChime = {
                     "customHueChime",
                     "playTripleBeep",
                     {data: "ffffff"}, // value doesn't appear to matter as long as it's 3 bytes
-                    hue_chime_meta,
+                    HUE_CHIME_META,
                 );
             } else {
-                await entity.command("customHueChime", "playSound", {data: payload}, hue_chime_meta);
+                await entity.command("customHueChime", "playSound", {data: payload}, HUE_CHIME_META);
             }
         },
-    },
-
+    } satisfies Tz.Converter,
     trigger_siren: {
         key: ["trigger_siren"],
         convertSet: async (entity, key, value, meta) => {
+            utils.assertObject(value);
             const duration_ms = Math.round(value.duration * 1000);
             const duration_bytes = [duration_ms & 0xff, (duration_ms >> 8) & 0xff, (duration_ms >> 16) & 0xff];
             // payload: {"duration": <0-16777>} (seconds) (but please don't trigger the siren for 4+ hours)
@@ -91,27 +93,26 @@ const tzLocalHueChime = {
                 0x00, // constant
             ]);
 
-            await entity.command("customHueChime", "triggerSiren", {data: payload}, hue_chime_meta);
+            await entity.command("customHueChime", "triggerSiren", {data: payload}, HUE_CHIME_META);
         },
-    },
-
+    } satisfies Tz.Converter,
     mute_unmute: {
         key: ["state"],
         convertSet: async (entity, key, value, meta) => {
             if (value === "ON") {
-                await entity.command("customHueChime", "unmute", [], hue_chime_meta);
+                await entity.command("customHueChime", "unmute", {}, HUE_CHIME_META);
             } else if (value === "OFF") {
-                await entity.command("customHueChime", "mute", [], hue_chime_meta);
+                await entity.command("customHueChime", "mute", {}, HUE_CHIME_META);
             }
         },
         convertGet: async (entity, key, meta) => {
-            const mute_unmute_state = await entity.read("customHueChime", ["sirenIsMuted"], hue_chime_meta);
+            const mute_unmute_state = await entity.read("customHueChime", ["sirenIsMuted"], HUE_CHIME_META);
             return {state: mute_unmute_state === 0 ? "ON" : "OFF"};
         },
-    },
+    } satisfies Tz.Converter,
 };
 
-const fzLocalHueChime = {
+const fzLocal = {
     siren_is_muted: {
         cluster: "customHueChime",
         type: ["attributeReport", "readResponse"],
@@ -119,10 +120,10 @@ const fzLocalHueChime = {
             const value = msg.data["sirenIsMuted"] === 0 ? "ON" : "OFF";
             return {state: value};
         },
-    },
+    } satisfies Fz.Converter,
 };
 
-const hueChimeExtend = {
+const extendLocal = {
     addCustomClusterHueChime: () =>
         m.deviceAddCustomCluster("customHueChime", {
             ID: 0xfc07,
@@ -4539,9 +4540,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "8720169277243",
         vendor: "Philips",
         description: "Hue Secure siren and chime",
-        extend: [hueChimeExtend.addCustomClusterHueChime(), m.identify()],
-        toZigbee: [tzLocalHueChime.play_sound, tzLocalHueChime.trigger_siren, tzLocalHueChime.mute_unmute],
-        fromZigbee: [fzLocalHueChime.siren_is_muted],
+        extend: [extendLocal.addCustomClusterHueChime(), m.identify()],
+        toZigbee: [tzLocal.play_sound, tzLocal.trigger_siren, tzLocal.mute_unmute],
+        fromZigbee: [fzLocal.siren_is_muted],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
