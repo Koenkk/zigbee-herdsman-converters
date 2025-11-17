@@ -81,10 +81,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [160, 450]}}), m.identify()],
     },
     {
-        zigbeeModel: ['5491'],
-        model: '5491',
-        vendor: 'ENVILAR',
-        description: 'Automatically generated definition',
-        extend: [philips.m.light({"colorTemp":{"range":[160,450]}})],
+        zigbeeModel: ["5491"],
+        model: "5491",
+        vendor: "ENVILAR",
+        description: "Automatically generated definition",
+        extend: [philips.m.light({colorTemp: {range: [160, 450]}})],
     },
 ];
