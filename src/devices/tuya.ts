@@ -9832,7 +9832,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withSystemMode(["off", "heat"], ea.STATE_SET)
-                .withPreset(["manual", "auto"])
+                .withPreset(["manual", "auto", "eco"])
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
                 .withRunningState(["idle", "heat"], ea.STATE)
                 .withLocalTemperature(ea.STATE)
@@ -9868,6 +9868,7 @@ export const definitions: DefinitionWithExtend[] = [
                     tuya.valueConverterBasic.lookup({
                         manual: tuya.enum(0),
                         auto: tuya.enum(1),
+                        eco: tuya.enum(3),
                     }),
                 ],
                 [9, "child_lock", tuya.valueConverter.lockUnlock],
