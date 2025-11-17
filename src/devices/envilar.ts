@@ -80,4 +80,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee CCT dimmable LED driver",
         extend: [m.light({colorTemp: {range: [160, 450]}}), m.identify()],
     },
+    {
+        zigbeeModel: ['5491'],
+        model: '5491',
+        vendor: 'ENVILAR',
+        description: 'Automatically generated definition',
+        extend: [philips.m.light({"colorTemp":{"range":[160,450]}})],
+    },
 ];
