@@ -1855,7 +1855,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("tarif", ea.SET, [...Object.entries(tarifsDef).map(([k, v]) => v.fname), "auto"])
                 .withDescription(
-                    "Overrides the automatic current tarif. This option will exclude unnecessary attributes. Open a issue to support more of them. Default: auto",
+                    "Overrides the automatic current tarif. This option will exclude unnecessary attributes. Open an issue to support more of them. Default: auto",
                 ),
             exposes.options
                 .precision("kWh")
