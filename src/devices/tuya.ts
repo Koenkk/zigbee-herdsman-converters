@@ -2003,7 +2003,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.binary("carbon_monoxide", ea.STATE, "ON", "OFF").withDescription("Indicates if CO (carbon monoxide) is detected"), e.co()],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ggev5fsl", "_TZE200_u319yc66", "_TZE200_kvpwq8z7"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ggev5fsl", "_TZE200_u319yc66", "_TZE200_kvpwq8z7", "_TZE204_kvpwq8z7"]),
         model: "TS0601_gas_sensor_1",
         vendor: "Tuya",
         description: "Gas sensor",
