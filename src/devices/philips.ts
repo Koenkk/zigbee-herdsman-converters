@@ -3513,6 +3513,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
+        zigbeeModel: ["LTE003"],
+        model: "9290020400",
+        vendor: "Philips",
+        description: "Hue White Gradient E17 40W",
+        extend: [philips.m.light({colorTemp: {range: [153,454]}})],
+    },
+    {
         zigbeeModel: ["1746630P7"],
         model: "1746630P7",
         vendor: "Philips",
