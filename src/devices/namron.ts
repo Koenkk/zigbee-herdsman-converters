@@ -1714,7 +1714,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-    zigbeeModel: ["4512792"],
+        zigbeeModel: ["4512792"],
         model: "4512792",
         vendor: "Namron",
         description: "Simplify 1-2p relay (Zigbee / BT)",
@@ -1727,9 +1727,9 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {multiplier: 1, divisor: 100}, // kWh
             }),
         ],
-    }, 
+    },
     {
-    zigbeeModel: ["4512793", "4512794"],
+        zigbeeModel: ["4512793", "4512794"],
         model: "4512793",
         vendor: "Namron AS",
         description: "Namron Simplify 4512793 / 4512794 — 6-button remote with battery",
