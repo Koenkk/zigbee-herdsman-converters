@@ -3517,7 +3517,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290022975",
         vendor: "Philips",
         description: "Hue White Ambiance E17 40W 470 lumen",
-        extend: [philips.m.light({colorTemp: {range: [153,454]}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["1746630P7"],
