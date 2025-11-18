@@ -17,6 +17,16 @@ const HUE_CHIME_META = {
     disableDefaultResponse: true,
 };
 
+interface CustomHueChime {
+    attributes: {
+        sirenIsMuted: boolean;
+        soundIDPlaying: number;
+        unknownAttr: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const tzLocal = {
     play_sound: {
         key: ["play_sound"],
@@ -66,10 +76,12 @@ const tzLocal = {
                 await entity.command(
                     "customHueChime",
                     "playTripleBeep",
+                    // @ts-expect-error no typing yet for toZigbee converters
                     {data: "ffffff"}, // value doesn't appear to matter as long as it's 3 bytes
                     HUE_CHIME_META,
                 );
             } else {
+                // @ts-expect-error no typing yet for toZigbee converters
                 await entity.command("customHueChime", "playSound", {data: payload}, HUE_CHIME_META);
             }
         },
@@ -93,6 +105,7 @@ const tzLocal = {
                 0x00, // constant
             ]);
 
+            // @ts-expect-error no typing yet for toZigbee converters
             await entity.command("customHueChime", "triggerSiren", {data: payload}, HUE_CHIME_META);
         },
     } satisfies Tz.Converter,
@@ -100,14 +113,16 @@ const tzLocal = {
         key: ["state"],
         convertSet: async (entity, key, value, meta) => {
             if (value === "ON") {
+                // @ts-expect-error no typing yet for toZigbee converters
                 await entity.command("customHueChime", "unmute", {}, HUE_CHIME_META);
             } else if (value === "OFF") {
+                // @ts-expect-error no typing yet for toZigbee converters
                 await entity.command("customHueChime", "mute", {}, HUE_CHIME_META);
             }
         },
         convertGet: async (entity, key, meta) => {
-            const mute_unmute_state = await entity.read("customHueChime", ["sirenIsMuted"], HUE_CHIME_META);
-            return {state: mute_unmute_state === 0 ? "ON" : "OFF"};
+            // @ts-expect-error no typing yet for toZigbee converters
+            await entity.read("customHueChime", ["sirenIsMuted"], HUE_CHIME_META);
         },
     } satisfies Tz.Converter,
 };
@@ -117,10 +132,11 @@ const fzLocal = {
         cluster: "customHueChime",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const value = msg.data["sirenIsMuted"] === 0 ? "ON" : "OFF";
-            return {state: value};
+            if ("sirenIsMuted" in msg.data) {
+                return {state: msg.data.sirenIsMuted ? "ON" : "OFF"};
+            }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"customHueChime", CustomHueChime, ["attributeReport", "readResponse"]>,
 };
 
 const extendLocal = {
@@ -4547,7 +4563,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ["customHueChime"]);
-            await endpoint.configureReporting("customHueChime", [
+            await endpoint.configureReporting<"customHueChime", CustomHueChime>("customHueChime", [
                 {attribute: "sirenIsMuted", minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
                 {attribute: "soundIDPlaying", minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
                 {attribute: "unknownAttr", minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
@@ -4556,7 +4572,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             exposes.switch().withState("state", false, "Mute/unmute siren (off = muted)"),
             exposes
-                .composite("play_sound", "play_sound")
+                .composite("play_sound", "play_sound", ea.SET)
                 .withFeature(
                     exposes.enum("sound", ea.SET, [
                         "bleep",
@@ -4581,30 +4597,17 @@ export const definitions: DefinitionWithExtend[] = [
                         "westminster_modern",
                     ]),
                 )
-                .withFeature(
-                    exposes
-                        .numeric("volume", ea.SET)
-                        .withValueMin(0)
-                        .withValueMax(100)
-                        .withDescription("Volume 0–100")
-                        .withPreset("25", 25)
-                        .withPreset("50", 50)
-                        .withPreset("75", 75)
-                        .withPreset("100", 100),
-                ),
+                .withFeature(exposes.numeric("volume", ea.SET).withValueMin(0).withValueMax(100).withDescription("Volume 0-100")),
             exposes
-                .composite("trigger_siren", "trigger_siren")
+                .composite("trigger_siren", "trigger_siren", ea.SET)
                 .withFeature(
                     exposes
-                        .numeric("duration")
+                        .numeric("duration", ea.SET)
                         .withUnit("seconds")
                         .withValueMin(0)
                         .withValueMax(600)
                         .withValueStep(1)
-                        .withPreset("stop", 0)
-                        .withPreset("30s", 30)
-                        .withPreset("60s", 60)
-                        .withPreset("120s", 120),
+                        .withPreset("stop", 0, "Stop the siren"),
                 ),
         ],
     },
