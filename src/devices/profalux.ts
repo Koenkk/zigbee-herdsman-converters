@@ -162,13 +162,20 @@ export const definitions: DefinitionWithExtend[] = [
             },
         ],
         model: "MAI-ZTM20C",
+        zigbeeModel: ["MAI-ZTM20C"],
         vendor: "Profalux",
         description: "Cover remote",
-        extend: [
-            m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false}),
-            m.forcePowerSource({powerSource: "Battery"}),
-            // Poll battery voltage as reporting doesn't work
-            mLocal.pollBatteryVoltage(),
-        ],
+        extend: [m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false})],
+        fromZigbee: [fz.command_cover_close, fz.command_cover_open, fz.command_cover_stop],
+        exposes: [e.action(["up", "down", "stop"])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            // Bind clusters
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genLevelCtrl"]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genPowerCfg", "closureWindowCovering"]);
+            // Configure battery voltage reporting from endpoint 2
+            await reporting.batteryVoltage(endpoint2, {min: 3600, max: 86400, change: 1});
+        },
     },
 ];
