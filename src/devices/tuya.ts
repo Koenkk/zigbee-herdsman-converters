@@ -2359,7 +2359,7 @@ export const definitions: DefinitionWithExtend[] = [
                 : [];
             
             // Add power on behavior expose
-            return [...baseExposes, e.power_on_behavior()];
+            return [...baseExposes, e.power_on_behavior(['off', 'on', 'toggle', 'previous'])];
         },
             
         meta: {
