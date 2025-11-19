@@ -21210,10 +21210,27 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TY0A01_smart_lock",
         vendor: "AVATTO",
         description: "Smart Digital Lock",
-        extend: [tuya.modernExtend.tuyaBase({ dp: true, forceTimeUpdates: true })],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             e.battery(),
-            e.enum("alarm_lock", ea.STATE, ["fingerprint_error", "password_error", "card_error", "face_error", "lock_stuck", "high_temperature", "close_timeout", "pop_out_error", "anti_pry_alarm", "key_inserted", "low_battery", "battery_depleted", "vibration_alarm", "arming_alarm"]).withDescription("Warning reporting when an anomaly occurs"),
+            e
+                .enum("alarm_lock", ea.STATE, [
+                    "fingerprint_error",
+                    "password_error",
+                    "card_error",
+                    "face_error",
+                    "lock_stuck",
+                    "high_temperature",
+                    "close_timeout",
+                    "pop_out_error",
+                    "anti_pry_alarm",
+                    "key_inserted",
+                    "low_battery",
+                    "battery_depleted",
+                    "vibration_alarm",
+                    "arming_alarm",
+                ])
+                .withDescription("Warning reporting when an anomaly occurs"),
             e.binary("reverse_lock", ea.STATE_SET, "ON", "OFF").withDescription("Reverse lock"),
             e.binary("doorbell", ea.STATE, "ON", "OFF").withDescription("Doorbell"),
             e.binary("remote_unlock_switch", ea.STATE_SET, "ON", "OFF").withDescription("Disable remote door opening"),
@@ -21260,10 +21277,10 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [57, "lock_motor_state", tuya.valueConverter.onOff],
-                [62, "unlock_voice_remote", tuya.valueConverter.raw], 
+                [62, "unlock_voice_remote", tuya.valueConverter.raw],
                 [71, "arming_switch", tuya.valueConverter.onOff],
                 [76, "normal_open_switch", tuya.valueConverter.onOff],
             ],
-        }
+        },
     },
 ];
