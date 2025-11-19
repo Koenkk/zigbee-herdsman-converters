@@ -250,6 +250,7 @@ export interface ModernExtend {
 export type DummyDevice = {
     manufacturerName?: string;
     isDummyDevice: true;
+    applicationVersion?: number;
 };
 
 export type DefinitionExposesFunction = (device: Zh.Device | DummyDevice, options: KeyValue) => Expose[];

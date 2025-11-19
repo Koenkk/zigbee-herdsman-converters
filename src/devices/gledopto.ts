@@ -650,7 +650,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({color: {modes: ["xy", "hs"], enhancedHue: true}}), m.identify(), gledoptoConfigureReadModelID()],
     },
     {
-        zigbeeModel: ["GL-C-008P"],
+        zigbeeModel: ["GL-C-008P", "C-ZB-LC20v2-RGBCCT"],
         model: "GL-C-008P",
         vendor: "Gledopto",
         ota: true,

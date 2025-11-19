@@ -737,9 +737,11 @@ export function iasGetPanelStatusResponse(): ModernExtend {
         type: ["commandGetPanelStatus"],
         convert: (model, msg, publish, options, meta) => {
             if (globalStore.hasValue(msg.endpoint, "panelStatus")) {
+                const delayUntil = globalStore.getValue(msg.endpoint, "delayUntil", 0);
+                const secondsRemain = delayUntil > 0 ? Math.round(Math.max(0, delayUntil - performance.now()) / 1000) : 0;
                 const payload = {
                     panelstatus: globalStore.getValue(msg.endpoint, "panelStatus"),
-                    secondsremain: 0x00,
+                    secondsremain: Math.min(secondsRemain, constants.iasMaxSecondsRemain),
                     audiblenotif: 0x00,
                     alarmstatus: 0x00,
                 };
@@ -1986,13 +1988,6 @@ function genericMeter(args: MeterArgs = {}) {
                 forced: args.current,
                 change: 0.05,
             },
-            current_neutral: {
-                attribute: "neutralCurrent" as const,
-                divisor: "acCurrentDivisor",
-                multiplier: "acCurrentMultiplier",
-                forced: args.current,
-                change: 0.05,
-            },
             power_factor: {
                 attribute: "powerFactor" as const,
                 change: 10,
@@ -2118,7 +2113,6 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement.current;
         delete configureLookup.haElectricalMeasurement.current_phase_b;
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        delete configureLookup.haElectricalMeasurement.current_neutral;
         delete configureLookup.haElectricalMeasurement.dc_current;
     }
     if (args.energy === false) {
@@ -2138,7 +2132,6 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement.power_phase_c;
         delete configureLookup.haElectricalMeasurement.current_phase_b;
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        delete configureLookup.haElectricalMeasurement.current_neutral;
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
@@ -2153,7 +2146,6 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement.power_phase_c;
         delete configureLookup.haElectricalMeasurement.current_phase_b;
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        delete configureLookup.haElectricalMeasurement.current_neutral;
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
@@ -2277,7 +2269,6 @@ function genericMeter(args: MeterArgs = {}) {
             e.voltage_phase_c().withAccess(ea.STATE_GET),
             e.current_phase_b().withAccess(ea.STATE_GET),
             e.current_phase_c().withAccess(ea.STATE_GET),
-            e.current_neutral().withAccess(ea.STATE_GET),
         );
         toZigbee.push(
             tz.electrical_measurement_power_phase_b,
@@ -2286,7 +2277,6 @@ function genericMeter(args: MeterArgs = {}) {
             tz.acvoltage_phase_c,
             tz.accurrent_phase_b,
             tz.accurrent_phase_c,
-            tz.accurrent_neutral,
         );
     }
 
