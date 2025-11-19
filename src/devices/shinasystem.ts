@@ -1207,7 +1207,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature({reporting: {min: 1, max: "1_HOUR", change: 9}}),
             m.enumLookup({
                 name: "system_mode",
-                lookup: {"off": 0, "cool": 3, "heat": 4, "away": 10, "schedule": 11},
+                lookup: {off: 0, cool: 3, heat: 4, away: 10, schedule: 11},
                 cluster: "hvacThermostat",
                 attribute: "systemMode",
                 description: "Mode of this device",
@@ -1259,7 +1259,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: {min: 0, max: "1_HOUR", change: 1},
             }),
             m.humidity(),
-            m.battery()
+            m.battery(),
         ],
     },
 ];
