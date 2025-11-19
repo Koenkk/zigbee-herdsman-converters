@@ -19,6 +19,9 @@ import * as zosung from "../lib/zosung";
 const NS = "zhc:tuya";
 const {tuyaLight, tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup, tuyaWeatherForecast} = tuya.modernExtend;
 
+const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
+const tz = require('zigbee-herdsman-converters/converters/toZigbee');
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -21209,3 +21212,105 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
+const tzLocal = {
+    motion_detection_distance: {
+        key: ['motion_detection_distance'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, 'motion_detection_distance');
+            await entity.write('manuSpecificTuya2', {57355: {value, type: 0x21}});
+        },
+    },
+    motion_detection_sensitivity: {
+        key: ['motion_detection_sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, 'motion_detection_sensitivity');
+            await entity.write('manuSpecificTuya2', {57348: {value, type: 0x20}});
+        },
+    },
+    static_detection_sensitivity: {
+        key: ['static_detection_sensitivity'],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, 'static_detection_sensitivity');
+            await entity.write('manuSpecificTuya2', {57349: {value, type: 0x20}});
+        },
+    },
+};    
+
+const fzLocal = {
+    illuminance: {
+        cluster: 'msIlluminanceMeasurement',
+        type: 'raw',
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            const buffer = msg.data;
+            result['illuminance'] = Math.round(0.0001 * Math.pow(Number(buffer[7]), 3.413));
+            return result;
+        },
+    },
+    target_distance: {
+        cluster: 'manuSpecificTuya2',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('57354')) {
+                result['target_distance'] = msg.data['57354'];
+                meta.logger.debug(`Parsed target_distance: ${result['target_distance']}`);
+            }
+            return result;
+        },
+    },
+    presence_keep_time: {
+        cluster: 'manuSpecificTuya2',
+        type: ['attributeReport'],
+        convert: (model, msg, publish, options, meta) => {
+            const result = {};
+            if (msg.data.hasOwnProperty('57345')) {
+                result['presence_keep_time'] = msg.data['57345'];
+                meta.logger.debug(`Parsed presence_keep_time: ${result['presence_keep_time']}`);
+            }
+            return result;
+        },
+    },
+};
+
+const definition = {
+    fingerprint: tuya.fingerprint('TS0225', ['_TZ3218_ewrxirng']),
+    model: 'TS0225_TZ3218_ewrxirng',
+    vendor: 'Momax',
+    description: 'Presence sensor',
+    fromZigbee: [
+        fz.ias_occupancy_alarm_1,
+        fzLocal.illuminance,
+        fzLocal.target_distance,
+        fzLocal.presence_keep_time,
+        tuya.fz.datapoints,
+    ],
+    toZigbee: [
+        tzLocal.motion_detection_distance,
+        tzLocal.motion_detection_sensitivity,
+        tzLocal.static_detection_sensitivity,
+        tuya.tz.datapoints,
+    ],
+    configure: tuya.configureMagicPacket,
+    exposes: [
+        exposes.device({icon: 'https://i.imgur.com/MmjMZON.png'}),
+        e.occupancy().withDescription('Presence state'),
+        e.numeric('illuminance', ea.STATE).withDescription('Illuminance in lux').withUnit('lx'),
+        e.numeric('target_distance', ea.STATE).withDescription('Distance to target').withUnit('cm'),
+        e.numeric('motion_detection_distance', ea.STATE_SET).withValueMin(75).withValueMax(600).withValueStep(75).withDescription('Motion detection distance').withUnit('cm'),
+        e.numeric('presence_keep_time', ea.STATE).withDescription('Presence keep time').withUnit('min'), 
+        e.numeric('motion_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(5).withValueStep(1).withDescription('Motion detection sensitivity'),
+        e.numeric('static_detection_sensitivity', ea.STATE_SET).withValueMin(0).withValueMax(5).withValueStep(1).withDescription('Static detection sensitivity'),
+        e.numeric('fading_time', ea.STATE_SET).withValueMin(10).withValueMax(10000).withValueStep(1).withUnit('sec').withDescription('Time after which the device will check again for presence'),
+    ],
+    meta: {
+        tuyaDatapoints: [
+            [101, 'fading_time', tuya.valueConverter.raw],
+            [102, 'motion_detection_distance', tuya.valueConverter.raw],
+            [103, 'motion_detection_sensitivity', tuya.valueConverter.raw],
+            [104, 'static_detection_sensitivity', tuya.valueConverter.raw],
+            [106, 'illuminance', tuya.valueConverter.raw],
+        ],
+    },
+};
+
