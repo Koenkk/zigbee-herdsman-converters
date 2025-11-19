@@ -122,7 +122,8 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             // @ts-expect-error no typing yet for toZigbee converters
-            await entity.read("customHueChime", ["sirenIsMuted"], HUE_CHIME_META);
+            const mute_unmute_state = await entity.read("customHueChime", ["sirenIsMuted"], HUE_CHIME_META);
+            return {state: mute_unmute_state ? "OFF" : "ON"};
         },
     } satisfies Tz.Converter,
 };
@@ -133,7 +134,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if ("sirenIsMuted" in msg.data) {
-                return {state: msg.data.sirenIsMuted ? "ON" : "OFF"};
+                return {state: msg.data.sirenIsMuted ? "OFF" : "ON"};
             }
         },
     } satisfies Fz.Converter<"customHueChime", CustomHueChime, ["attributeReport", "readResponse"]>,
