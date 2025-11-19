@@ -5954,7 +5954,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_8thwkzxl",
             "_TZE200_4eeyebrt",
             "_TZE200_8whxpsiw",
-            "_TZE200_xby0s3ta",
             "_TZE200_7fqkphoq",
             "_TZE200_rufdtfyv" /* model: '07732L', vendor: 'Immax' */,
             "_TZE200_lpwgshtl",
@@ -6521,6 +6520,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_0hg58wyk" /* model: 'S366', vendor: 'Cloud Even' */,
             "_TZE200_cpmgn2cf" /* model_ 'HY367RT' vendor: 'Tuya' */,
+            "_TZE200_xby0s3ta",
         ]),
         model: "TS0601_thermostat_2",
         vendor: "Tuya",
