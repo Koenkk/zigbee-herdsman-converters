@@ -4690,7 +4690,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["plus", "center", "minus"],
             }),
             m.binary({
-                name: "Auto_Hide_Middle_Line",
+                name: "auto_hide_middle_line",
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0173, type: Zcl.DataType.BOOLEAN},
                 valueOn: [true, 0],
