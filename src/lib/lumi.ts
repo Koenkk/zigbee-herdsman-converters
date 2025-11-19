@@ -4550,6 +4550,22 @@ export const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
+
+    w100_temperature: {
+        cluster: "msTemperatureMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            // W100 needs a custom converter to:
+            // 1. Expose both 'temperature' and 'local_temperature' (needed for climate)
+            // 2. Initialize device defaults (w100EnsureDefaults) needed for other converters
+            const result = fz.temperature.convert(model, msg, publish, options, meta);
+            if (result) {
+                const temperature = Object.values(result)[0];
+                const defaults = w100EnsureDefaults(meta);
+                return {temperature, local_temperature: temperature, ...defaults};
+            }
+        },
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const toZigbee = {

@@ -4609,25 +4609,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH-S04D",
         vendor: "Aqara",
         description: "Climate Sensor W100",
-        fromZigbee: [
-            lumi.fromZigbee.lumi_specific,
-            lumi.fromZigbee.w100_specific,
-            {
-                cluster: "msTemperatureMeasurement",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    // W100 needs a custom converter to:
-                    // 1. Expose both 'temperature' and 'local_temperature' (needed for climate)
-                    // 2. Initialize device defaults (w100EnsureDefaults) needed for other converters
-                    const result = fz.temperature.convert(model, msg, publish, options, meta);
-                    if (result) {
-                        const temperature = Object.values(result)[0];
-                        const defaults = lumi.w100EnsureDefaults(meta);
-                        return {temperature, local_temperature: temperature, ...defaults};
-                    }
-                },
-            },
-        ],
+        fromZigbee: [lumi.fromZigbee.lumi_specific, lumi.fromZigbee.w100_specific, lumi.fromZigbee.w100_temperature],
         toZigbee: [lumi.toZigbee.w100_pmtsd, lumi.toZigbee.w100_mode],
         exposes: [
             e
