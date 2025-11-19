@@ -168,8 +168,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false})],
         fromZigbee: [fz.command_cover_close, fz.command_cover_open, fz.command_cover_stop],
         exposes: [e.action(["up", "down", "stop"])],
-        meta: {battery: {voltageToPercentage: {min: 2200, max: 3100}}},
-        options: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
