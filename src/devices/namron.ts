@@ -71,45 +71,62 @@ const fzLocal = {
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 // Namron Simplify 3-button remote (4512793 / 4512794)
-const NAMRON_SIMPLIFY_ACTIONS: Record<number, "press" | "release" | "hold"> = {
-    0: "press",
-    1: "release",
-    2: "hold",
+// -----------------------------------------------------------
+const NAMRON_SIMPLIFY_ACTIONS: Record<number, 'press' | 'release' | 'hold'> = {
+    0x00: 'press',
+    0x01: 'release',
+    0x02: 'hold',
 };
-const HOLD_KEY_SIMPLIFY = "namron_simplify_lastHold";
+
+const HOLD_KEY_SIMPLIFY = 'namron_simplify_lastHold';
 const simplify_col = (n: number) => Math.floor((n - 1) / 2) + 1;
-const simplify_sub = (n: number) => (n % 2 === 1 ? "up" : "down");
+const simplify_sub = (n: number) => (n % 2 === 1 ? 'up' : 'down');
 
-const fzNamronSimplifyRemote = {
-    cluster: "zosungIRControl",
-    type: ["raw"] as const,
-    convert(
-        model: unknown,
-        msg: unknown,
-        publish: (data: Record<string, unknown>) => void,
-        options: Record<string, unknown>,
-        meta: Record<string, unknown>,
+// Minimal custom-cluster shape to satisfy Fz.Converter generic constraints
+type ZosungIRCustomCluster = {
+    attributes: Record<string, never>;
+    commands: Record<string, never>;
+    commandResponses: Record<string, never>;
+};
+
+// Helper to safely parse bytes from msg without any/unknown
+function parseZosungIRBytes(
+    msg: Fz.Message<'zosungIRControl', ZosungIRCustomCluster, ['raw']>
+): number[] {
+    type RawContainer = { data?: number[] };
+    type DataShape = RawContainer | number[] | Record<string, number>;
+    const m = msg as { type?: string; data?: DataShape };
+
+    if (
+        m.type === 'raw' &&
+        m.data &&
+        typeof m.data === 'object' &&
+        'data' in (m.data as RawContainer) &&
+        Array.isArray((m.data as RawContainer).data)
     ) {
-        // ---- Byte parsing uten any ----
-        type RawContainer = {data?: number[]};
-        type MaybeData = {data?: RawContainer | number[] | Record<string, number>; type?: string};
+        return (m.data as RawContainer).data as number[];
+    }
 
-        const container = msg as MaybeData;
-        const d = container.data;
-        let bytes: number[] = [];
+    if (Array.isArray(m.data)) {
+        return m.data as number[];
+    }
 
-        if (container.type === "raw" && d && typeof d === "object" && "data" in (d as RawContainer) && Array.isArray((d as RawContainer).data)) {
-            bytes = (d as RawContainer).data as number[];
-        } else if (Array.isArray(d)) {
-            bytes = d as number[];
-        } else if (d && typeof d === "object") {
-            const obj = d as Record<string, number>;
-            const keys = Object.keys(obj)
-                .filter((k) => !Number.isNaN(Number(k)))
-                .sort((a, b) => Number(a) - Number(b));
-            bytes = keys.map((k) => obj[k]);
-        }
+    if (m.data && typeof m.data === 'object') {
+        const obj = m.data as Record<string, number>;
+        const keys = Object.keys(obj)
+            .filter((k) => !Number.isNaN(Number(k)))
+            .sort((a, b) => Number(a) - Number(b));
+        return keys.map((k) => obj[k]);
+    }
 
+    return [];
+}
+
+const fzNamronSimplifyRemote: Fz.Converter<'zosungIRControl', ZosungIRCustomCluster, ['raw']> = {
+    cluster: 'zosungIRControl',
+    type: ['raw'],
+    convert(model, msg, publish, _options, meta) {
+        const bytes = parseZosungIRBytes(msg);
         if (bytes.length === 0) return;
 
         const btn = bytes.at(-2);
@@ -119,31 +136,31 @@ const fzNamronSimplifyRemote = {
         const kind = NAMRON_SIMPLIFY_ACTIONS[raw as 0x00 | 0x01 | 0x02];
         const base = `button_${simplify_col(btn)}_${simplify_sub(btn)}_`;
 
+        // Firmware sometimes sends empty action after hold: synthesize release
         if (!kind) {
-            const lastHold = store.getValue(meta.device as never, HOLD_KEY_SIMPLIFY) as string | undefined;
-            if (lastHold?.endsWith("_hold")) {
-                publish({action: lastHold.replace("_hold", "_release")});
-                store.putValue(meta.device as never, HOLD_KEY_SIMPLIFY, null);
+            const lastHold = store.getValue(meta.device, HOLD_KEY_SIMPLIFY) as string | undefined;
+            if (lastHold?.endsWith('_hold')) {
+                publish({ action: lastHold.replace('_hold', '_release') });
+                store.putValue(meta.device, HOLD_KEY_SIMPLIFY, null);
             }
             return;
         }
 
-        if (kind === "hold") {
-            store.putValue(meta.device as never, HOLD_KEY_SIMPLIFY, `${base}hold`);
-            publish({action: `${base}hold`});
+        if (kind === 'hold') {
+            store.putValue(meta.device, HOLD_KEY_SIMPLIFY, `${base}hold`);
+            publish({ action: `${base}hold` });
             return;
         }
 
-        if (kind === "release") {
-            publish({action: `${base}press`});
-            publish({action: `${base}release`});
+        if (kind === 'release') {
+            publish({ action: `${base}press` });
+            publish({ action: `${base}release` });
             return;
         }
 
-        publish({action: `${base}press`});
+        publish({ action: `${base}press` });
     },
-    // biome-ignore lint/suspicious/noExplicitAny: required generic cast for Converter
-} as unknown as Fz.Converter<any, any, any>;
+};
 
 // END SimplifyBryter
 const tzLocal = {
