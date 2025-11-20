@@ -22,7 +22,7 @@ export interface MqttRawPayload {
     /** Expected as `number` for ZDO */
     cluster_key?: number | string;
     /** Only used for ZDO */
-    zdo_args?: unknown[];
+    zdo_params?: unknown[];
     /** Only used for ZCL */
     zcl?: {
         frame_type?: number;
