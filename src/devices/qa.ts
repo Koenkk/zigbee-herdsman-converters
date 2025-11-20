@@ -349,7 +349,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
     fingerprint: tuya.fingerprint("TS0601", ["_TZE284_nzns7udm"]),
-    model: "QAT42Z1",
+    model: "QAT42Z1B",
     vendor: "QA",
     description: "QA 1CH Scene Switch",
     extend: [tuya.modernExtend.tuyaBase({ dp: true })],
@@ -379,7 +379,7 @@ export const definitions: DefinitionWithExtend[] = [
   },
   {
     fingerprint: tuya.fingerprint("TS0601", ["_TZE284_1aqlsquf"]),
-    model: "QAT42Z2",
+    model: "QAT42Z2B",
     vendor: "QA",
     description: "QA 2CH Scene Switch",
     extend: [tuya.modernExtend.tuyaBase({ dp: true })],
@@ -413,7 +413,7 @@ export const definitions: DefinitionWithExtend[] = [
   },
   {
     fingerprint: tuya.fingerprint("TS0601", ["_TZE284_pgxndxp4"]),
-    model: "QAT42Z3",
+    model: "QAT42Z3B",
     vendor: "QA",
     description: "QA 3CH Scene Switch",
     extend: [tuya.modernExtend.tuyaBase({ dp: true })],
