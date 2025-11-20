@@ -118,8 +118,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RWS18BZ",
         vendor: "Third Reality",
         description: "Water sensor",
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        toZigbee: [],
         ota: true,
         extend: [
             m.deviceAddCustomCluster("r3Specialcluster", {
@@ -132,34 +130,31 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.numeric({
-                name: "siren_on_off",
-                unit: "on/off",
-                valueMin: 0,
-                valueMax: 1,
-                cluster: "r3Specialcluster",
-                attribute: {ID: 0x0010, type: Zcl.DataType.UINT8},
-                description: "Siren on/off",
+            m.iasZoneAlarm({
+                zoneType: "water_leak",
+                zoneAttributes: ["alarm_1", "battery_low"],
+            }),
+            m.battery(),
+            m.binary({
+                name: "Water Leak Buzzer On/Off",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3rWaterSensorcluster",
+                attribute: "siren_on_off",
+                description: "Turns the water-leak detection buzzer on or off.",
                 access: "ALL",
             }),
             m.numeric({
-                name: "siren_minutes",
+                name: "Water Leak Buzzer Alarm Mode",
                 unit: "min",
                 valueMin: 0,
                 valueMax: 600,
                 cluster: "r3Specialcluster",
-                attribute: {ID: 0x0011, type: Zcl.DataType.UINT8},
-                description: "Siren duration",
+                attribute: "siren_mintues",
+                description: "Sets the buzzers beeping mode for water-leak alerts.(0 = continuous;values = beeping duration (minutes).)",
                 access: "ALL",
             }),
         ],
-        exposes: [e.water_leak(), e.battery_low(), e.battery(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            device.powerSource = "Battery";
-            device.save();
-        },
     },
     {
         zigbeeModel: ["3RMS16BZ"],
