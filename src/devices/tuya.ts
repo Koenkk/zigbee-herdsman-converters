@@ -2348,10 +2348,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
 
         exposes: (device, options) => {
-            const baseExposes = tuya.modernExtend.tuyaLight({
+            const eForExtend = tuya.modernExtend.tuyaLight({
                 colorTemp: {range: [142, 500]},
                 color: true,
-            }).exposes(device, options) as any;
+            });
+            const baseExposes = typeof eForExtend.exposes === "function" ? eForExtend.exposes(device, options) : [];
 
             // Add power on behavior expose
             return [...baseExposes, e.power_on_behavior(["off", "on", "toggle", "previous"])];
