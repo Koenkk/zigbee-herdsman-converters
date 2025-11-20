@@ -2003,7 +2003,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.binary("carbon_monoxide", ea.STATE, "ON", "OFF").withDescription("Indicates if CO (carbon monoxide) is detected"), e.co()],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ggev5fsl", "_TZE200_u319yc66", "_TZE200_kvpwq8z7"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ggev5fsl", "_TZE200_u319yc66", "_TZE200_kvpwq8z7", "_TZE204_kvpwq8z7"]),
         model: "TS0601_gas_sensor_1",
         vendor: "Tuya",
         description: "Gas sensor",
@@ -5954,7 +5954,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_8thwkzxl",
             "_TZE200_4eeyebrt",
             "_TZE200_8whxpsiw",
-            "_TZE200_xby0s3ta",
             "_TZE200_7fqkphoq",
             "_TZE200_rufdtfyv" /* model: '07732L', vendor: 'Immax' */,
             "_TZE200_lpwgshtl",
@@ -6383,6 +6382,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_py4cm3he" /* model: 'TV06-Zigbee', vendor: 'Tuya' */,
             "_TZE200_wsbfwodu" /* model: 'HA-08 THERMO', vendor: 'AlecoAir' */,
             "_TZE200_x9axofse" /* model: 'ZTRV-ZX-TV02', vendor: 'Moes' */,
+            "_TZE200_lhzapfg9" /* model: 'ETT-8', vendor: 'EKF' */,
         ]),
         model: "TV02-Zigbee",
         vendor: "Tuya",
@@ -6398,6 +6398,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("AlecoAir", "HA-08_THERMO", "Thermostat radiator valve", ["_TZE200_wsbfwodu"]),
             tuya.whitelabel("GIEX", "TV06", "Thermostat radiator valve", ["_TZE200_py4cm3he"]),
             tuya.whitelabel("Moes", "ZTRV-ZX-TV02", "Thermostat radiator valve", ["_TZE200_x9axofse"]),
+            tuya.whitelabel("EKF", "ETT-8", "Thermostat radiator valve", ["_TZE200_lhzapfg9"]),
         ],
         ota: true,
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
@@ -6519,6 +6520,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_0hg58wyk" /* model: 'S366', vendor: 'Cloud Even' */,
             "_TZE200_cpmgn2cf" /* model_ 'HY367RT' vendor: 'Tuya' */,
+            "_TZE200_xby0s3ta",
         ]),
         model: "TS0601_thermostat_2",
         vendor: "Tuya",
@@ -9832,7 +9834,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withSystemMode(["off", "heat"], ea.STATE_SET)
-                .withPreset(["manual", "auto"])
+                .withPreset(["manual", "auto", "eco"])
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
                 .withRunningState(["idle", "heat"], ea.STATE)
                 .withLocalTemperature(ea.STATE)
@@ -9868,6 +9870,7 @@ export const definitions: DefinitionWithExtend[] = [
                     tuya.valueConverterBasic.lookup({
                         manual: tuya.enum(0),
                         auto: tuya.enum(1),
+                        eco: tuya.enum(3),
                     }),
                 ],
                 [9, "child_lock", tuya.valueConverter.lockUnlock],
@@ -15591,7 +15594,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_kobbcyum", "_TZE284_kobbcyum", "_TZE284_hecsejsb", "_TZE284_432zhuwe", "_TZE204_432zhuwe"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE204_kobbcyum",
+            "_TZE284_kobbcyum",
+            "_TZE284_hecsejsb",
+            "_TZE284_432zhuwe",
+            "_TZE204_432zhuwe",
+            "_TZE284_s5vuaadg",
+        ]),
         model: "TOWSMR1",
         vendor: "Tongou",
         description: "Single-phase multifunction RCBO (DIN Module)",
@@ -17698,7 +17708,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pbo8cj0z"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pbo8cj0z", "_TZE200_eo6xhfbo"]),
         model: "TS0601_GTZ10",
         vendor: "Tuya",
         description: "Thermostat radiator valve",
@@ -20365,12 +20375,15 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_k7p2q5d9", "_TZE284_65gzcss7"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_k7p2q5d9", "_TZE284_65gzcss7", "_TZE284_0ints6wl", "_TZE284_yzr43ayq"]),
         model: "ZS-300Z",
         vendor: "Arteco",
         description: "Soil moisture sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        whiteLabel: [tuya.whitelabel("Arteco", "ZS-302Z", "Soil moisture sensor", ["_TZE284_65gzcss7"])],
+        whiteLabel: [
+            tuya.whitelabel("Arteco", "ZS-302Z", "Soil moisture sensor", ["_TZE284_65gzcss7"]),
+            tuya.whitelabel("Arteco", "ZS-304Z", "Soil moisture sensor", ["_TZE284_0ints6wl", "_TZE284_yzr43ayq"]),
+        ],
         exposes: [
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
             e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("low: 16.67%, middle:16.68-83.33%, high: 83.34-100%"),

@@ -5948,7 +5948,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["EFEKTA_Air_Monitor"],
         model: "EFEKTA_Air_Monitor",
-        vendor: "EfektaLab",
+        vendor: "EFEKTA",
         description: "CO2 smart monitor, AA battery",
         extend: [
             m.co2({
@@ -6858,7 +6858,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "invert_logic_onoff",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                cluster: "genAnalogInput",
+                cluster: "msCO2",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
                 description: "Enable invert logic onoff",
                 access: "STATE_SET",
