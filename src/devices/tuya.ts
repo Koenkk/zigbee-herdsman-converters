@@ -2352,15 +2352,7 @@ export const definitions: DefinitionWithExtend[] = [
             const tuyaLightExtend = tuya.modernExtend.tuyaLight({
                 colorTemp: {range: [142, 500]},
                 color: true,
-            });
-
-            // Handle both array and function types
-            let baseExposes;
-            if (typeof tuyaLightExtend.exposes === "function") {
-                baseExposes = tuyaLightExtend.exposes(device, options);
-            } else {
-                baseExposes = tuyaLightExtend.exposes;
-            }
+            }).exposes(device, options) as any;
 
             // Add power on behavior expose
             return [...baseExposes, e.power_on_behavior(["off", "on", "toggle", "previous"])];
