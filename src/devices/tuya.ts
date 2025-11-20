@@ -7993,7 +7993,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "soil_moisture", tuya.valueConverter.raw],
                 [5, "temperature", tuya.valueConverter.divideBy10],
                 [14, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
-                [101, "humidity", tuya.valueConverter.raw],
+                [101, "soil_moisture", tuya.valueConverter.raw],
                 [102, "illuminance", tuya.valueConverter.raw],
                 [103, "humidity_calibration", tuya.valueConverter.raw],
                 [104, "report_interval", tuya.valueConverter.raw],
