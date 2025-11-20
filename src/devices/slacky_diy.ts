@@ -75,6 +75,7 @@ const attrDisplayInversion = 0xf00b;
 const switchFeatures = ["nothing", "co2_forced_calibration", "co2_factory_reset", "bind_reset", ""];
 
 const attrPlugKeyLock = 0xf000;
+const attrPlugLedCtrl = 0xf001;
 const attrPlugSwitchCurrentMax = 0xf002;
 const attrPlugSwitchPowerMax = 0xf003;
 const attrPlugSwitchTimeReload = 0xf004;
@@ -2115,7 +2116,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
         exposes: [
-            e.binary("child_lock", ea.ALL, "Lock", "Unlock").withDescription("Enables/disables physical input on the device"),
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
             e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
             e
@@ -2648,6 +2649,13 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: attrPlugKeyLock, type: 0x10},
                 description: "Key lock enable/disable",
+            }),
+            m.enumLookup({
+                name: "led_control",
+                lookup: {off: 0, on: 1, "on/off": 2},
+                cluster: "genOnOff",
+                attribute: {ID: attrPlugLedCtrl, type: 0x30},
+                description: "Led control",
             }),
             m.electricityMeter({
                 current: {divisor: 100},
