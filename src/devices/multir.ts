@@ -91,7 +91,9 @@ export const definitions: DefinitionWithExtend[] = [
                 zoneAttributes: ["alarm_1", "tamper", "battery_low"],
             }),
         ],
-        exposes: [exposes.enum("silence", ea.SET, ["ON"]).withDescription("After enabling mute, it will return to detection state after 90 seconds.")],
+        exposes: [
+            exposes.enum("silence", ea.SET, ["ON"]).withDescription("After enabling mute, it will return to detection state after 90 seconds."),
+        ],
     },
     {
         zigbeeModel: ["MIR-SO100"],
