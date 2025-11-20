@@ -79,10 +79,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "MultIR",
         description: "Smoke sensor",
         toZigbee: [tzLocal.MIRSM200],
-        extend: [
-            m.battery(),
-            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
-        ],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
         exposes: [
             exposes.enum("silence", ea.SET, ["ON"]).withDescription("After enabling mute, it will return to detection state after 90 seconds."),
         ],
