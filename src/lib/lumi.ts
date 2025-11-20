@@ -2415,7 +2415,7 @@ export const lumiModernExtend = {
             detectionRangeComposite = detectionRangeComposite.withFeature(
                 e
                     .binary(`detection_range_${i}`, ea.SET, true, false)
-                    .withDescription(`${(i * args.rangeOffset).toFixed(2)}m - ${(i * args.rangeOffset + 1).toFixed(2)}m`),
+                    .withDescription(`${(i * args.rangeOffset).toFixed(2)}m - ${((i + 1) * args.rangeOffset).toFixed(2)}m`),
             );
         }
 

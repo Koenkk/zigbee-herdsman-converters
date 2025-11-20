@@ -288,6 +288,8 @@ export const armNotification = {
     6: "already_disarmed",
 };
 
+export const iasMaxSecondsRemain = 255;
+
 // ID's from ZCL mapped to ha names where appropriate
 // https://github.com/home-assistant/core/pull/47720
 export const ColorMode = {
