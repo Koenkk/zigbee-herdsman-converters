@@ -122,8 +122,7 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             // @ts-expect-error no typing yet for toZigbee converters
-            const mute_unmute_state = await entity.read("customHueChime", ["sirenIsMuted"], HUE_CHIME_META);
-            return {state: mute_unmute_state ? "OFF" : "ON"};
+            await entity.read("customHueChime", ["sirenIsMuted"], HUE_CHIME_META);
         },
     } satisfies Tz.Converter,
 };
