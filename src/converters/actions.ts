@@ -5,7 +5,7 @@ import type {CustomClusters} from "zigbee-herdsman/dist/zspec/zcl/definition/tst
 import {logger} from "../lib/logger";
 import * as utils from "../lib/utils";
 
-const NS = "zhc:raw";
+const NS = "zhc:actions";
 
 /** biome-ignore-start lint/style/useNamingConvention: MQTT convention */
 export interface MqttRawPayload {
@@ -59,10 +59,38 @@ const ClusterHueTouchlink: CustomClusters = {
     },
 };
 
-export const RAW_PAYLOADS: Record<string, MqttRawPayload> = {};
-
 /** biome-ignore-start lint/style/useNamingConvention: MQTT convention */
-export const QUICK_ACTIONS: Record<string, (controller: Controller, args: Record<string, unknown>) => ReturnType<typeof controller.sendRaw>> = {
+export const ACTIONS: Record<string, (controller: Controller, args: Record<string, unknown>) => ReturnType<typeof controller.sendRaw>> = {
+    raw: async (controller, args) => {
+        const payload = args as MqttRawPayload;
+        const rawPayload: RawPayload = {
+            ieeeAddress: payload.ieee_address,
+            networkAddress: payload.network_address,
+            groupId: payload.group_id,
+            dstEndpoint: payload.dst_endpoint,
+            srcEndpoint: payload.src_endpoint,
+            interPan: payload.interpan,
+            profileId: payload.profile_id,
+            clusterKey: payload.cluster_key,
+            zdoParams: payload.zdo_params,
+            disableResponse: payload.disable_response,
+            timeout: payload.timeout,
+        };
+
+        if (payload.zcl && typeof payload.zcl === "object") {
+            rawPayload.zcl = {
+                frameType: payload.zcl.frame_type,
+                direction: payload.zcl.direction,
+                disableDefaultResponse: payload.zcl.disable_default_response,
+                manufacturerCode: payload.zcl.manufacturer_code,
+                tsn: payload.zcl.tsn,
+                commandKey: payload.zcl.command_key,
+                payload: payload.zcl.payload,
+            };
+        }
+
+        return await controller.sendRaw(rawPayload);
+    },
     hue_factory_reset: async (controller, args): Promise<undefined> => {
         assert(typeof args.extended_pan_id === "string" && /^0x[a-f0-9]{16}$/.test(args.extended_pan_id));
         assert(Array.isArray(args.serial_numbers));

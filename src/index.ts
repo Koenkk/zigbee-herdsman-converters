@@ -47,7 +47,7 @@ type ModelIndex = [module: string, index: number];
 
 const MODELS_INDEX = modelsIndexJson as Record<string, ModelIndex[]>;
 
-export {MqttRawPayload, QUICK_ACTIONS, RAW_PAYLOADS} from "./converters/raw";
+export {ACTIONS, MqttRawPayload} from "./converters/actions";
 export type {Ota} from "./lib/types";
 export {
     DefinitionWithExtend,
