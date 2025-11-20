@@ -2347,25 +2347,25 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
 
-        exposes: (device, options) => {
+        exposes: ((
+            device: unknown,
+            options: unknown,
+        ) => {
             const baseExtend = tuya.modernExtend.tuyaLight({
-                colorTemp: {range: [142, 500]},
+                colorTemp: { range: [142, 500] },
                 color: true,
             });
-
+        
             type ExposesFn = (device: unknown, options: unknown) => unknown[];
-
-            const exposesFn = (
-                baseExtend as unknown as {
-                    exposes?: ExposesFn;
-                }
-            ).exposes;
-
+        
+            const exposesFn = (baseExtend as unknown as { exposes?: ExposesFn }).exposes;
             const baseExposes = exposesFn ? (exposesFn(device, options) as unknown[]) : [];
-
-            // Add power on behavior expose
-            return [...baseExposes, e.power_on_behavior(["off", "on", "toggle", "previous"])];
-        },
+        
+            return [
+                ...baseExposes,
+                e.power_on_behavior(["off", "on", "toggle", "previous"]),
+            ];
+        }) as unknown as DefinitionExposes,
 
         meta: {
             moveToLevelWithOnOffDisable: true,
