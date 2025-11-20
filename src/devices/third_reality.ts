@@ -32,8 +32,8 @@ interface ThirdMotionSensor {
 
 interface ThirdWaterSensor {
     attributes: {
-        siren_on_off: number;
-        siren_mintues: number;
+        sirenOnOff: number;
+        sirenMinutes: number;
     };
     commands: never;
     commandResponses: never;
@@ -133,8 +133,8 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    siren_on_off: {ID: 0x0010, type: Zcl.DataType.UINT8},
-                    siren_mintues: {ID: 0x0011, type: Zcl.DataType.UINT8},
+                    sirenOnOff: {ID: 0x0010, type: Zcl.DataType.UINT8},
+                    sirenMinutes: {ID: 0x0011, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -149,7 +149,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "3rWaterSensorcluster",
-                attribute: "siren_on_off",
+                attribute: "sirenOnOff",
                 description: "Turns the water-leak detection buzzer on or off.",
                 access: "ALL",
             }),
@@ -159,7 +159,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 600,
                 cluster: "3rWaterSensorcluster",
-                attribute: "siren_mintues",
+                attribute: "sirenMinutes",
                 description: "Sets the buzzers beeping mode for water-leak alerts.(0 = continuous;values = beeping duration (minutes).)",
                 access: "ALL",
             }),
