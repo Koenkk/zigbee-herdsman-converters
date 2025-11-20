@@ -2353,12 +2353,13 @@ export const definitions: DefinitionWithExtend[] = [
                 color: true,
             });
         
-            // FIX: TypeScript akan menganggap .exposes valid setelah double-cast
+            type ExposesFn = (device: unknown, options: unknown) => unknown[];
+        
             const exposesFn = (baseExtend as unknown as {
-                exposes?: (device: any, options: any) => any[];
+                exposes?: ExposesFn;
             }).exposes;
         
-            const baseExposes = exposesFn ? exposesFn(device, options) : [];
+            const baseExposes = exposesFn ? (exposesFn(device, options) as unknown[]) : [];
 
             // Add power on behavior expose
             return [...baseExposes, e.power_on_behavior(["off", "on", "toggle", "previous"])];
