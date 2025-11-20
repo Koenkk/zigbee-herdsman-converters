@@ -24,7 +24,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2"], configureReporting: true}),
             m.electricityMeter({endpointNames: ["3"]}),
         ],
-        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["S-ZB-COV1-R251"],
@@ -61,6 +60,5 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
             await reporting.currentPositionTiltPercentage(endpoint);
         },
-        meta: {multiEndpoint: true},
     },
 ];
