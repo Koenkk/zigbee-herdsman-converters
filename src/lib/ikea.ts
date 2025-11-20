@@ -15,6 +15,7 @@ import {
     getFromLookup,
     getTransition,
     hasAlreadyProcessedMessage,
+    isDummyDevice,
     isObject,
     mapNumberRange,
     postfixWithEndpointName,
@@ -22,7 +23,6 @@ import {
     replaceToZigbeeConvertersInArray,
 } from "../lib/utils";
 import {logger} from "./logger";
-import {isDummyDevice} from "../lib/utils";
 
 const NS = "zhc:ikea";
 
