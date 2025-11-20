@@ -2347,17 +2347,16 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
 
-        function getBaseExposesFromExtend(ext: any, device: any, options: any) {
-          return typeof ext?.exposes === "function" ? ext.exposes(device, options) : [];
-        }
-        
         exposes: (device, options) => {
-          const eForExtend = tuya.modernExtend.tuyaLight({
-            colorTemp: { range: [142, 500] },
-            color: true,
-          });
-        
-          const baseExposes = getBaseExposesFromExtend(eForExtend, device, options);
+            const baseExtend = tuya.modernExtend.tuyaLight({
+                colorTemp: { range: [142, 500] },
+                color: true,
+            });
+    
+            let baseExposes = [];
+            if (typeof baseExtend.exposes === "function") {
+                baseExposes = baseExtend.exposes(device, options);
+            }
 
             // Add power on behavior expose
             return [...baseExposes, e.power_on_behavior(["off", "on", "toggle", "previous"])];
