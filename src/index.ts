@@ -1,7 +1,5 @@
 import assert from "node:assert";
-
 import {Zcl} from "zigbee-herdsman";
-
 import * as fromZigbee from "./converters/fromZigbee";
 import * as toZigbee from "./converters/toZigbee";
 import * as exposesLib from "./lib/exposes";
@@ -49,6 +47,7 @@ type ModelIndex = [module: string, index: number];
 
 const MODELS_INDEX = modelsIndexJson as Record<string, ModelIndex[]>;
 
+export {MqttRawPayload, QUICK_ACTIONS, RAW_PAYLOADS} from "./converters/raw";
 export type {Ota} from "./lib/types";
 export {
     DefinitionWithExtend,
