@@ -2352,11 +2352,13 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: {range: [142, 500]},
                 color: true,
             });
-
-            let baseExposes = [];
-            if (typeof baseExtend.exposes === "function") {
-                baseExposes = baseExtend.exposes(device, options);
-            }
+        
+            // FIX: TypeScript akan menganggap .exposes valid setelah double-cast
+            const exposesFn = (baseExtend as unknown as {
+                exposes?: (device: any, options: any) => any[];
+            }).exposes;
+        
+            const baseExposes = exposesFn ? exposesFn(device, options) : [];
 
             // Add power on behavior expose
             return [...baseExposes, e.power_on_behavior(["off", "on", "toggle", "previous"])];
