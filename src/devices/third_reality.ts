@@ -120,7 +120,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Water sensor",
         ota: true,
         extend: [
-            m.deviceAddCustomCluster("r3Specialcluster", {
+            m.deviceAddCustomCluster("3rWaterSensorcluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
@@ -149,7 +149,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "min",
                 valueMin: 0,
                 valueMax: 600,
-                cluster: "r3Specialcluster",
+                cluster: "3rWaterSensorcluster",
                 attribute: "siren_mintues",
                 description: "Sets the buzzers beeping mode for water-leak alerts.(0 = continuous;values = beeping duration (minutes).)",
                 access: "ALL",
