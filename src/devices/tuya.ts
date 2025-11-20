@@ -2348,11 +2348,16 @@ export const definitions: DefinitionWithExtend[] = [
         ],
 
         exposes: (device, options) => {
-            // Get base exposes from tuyaLight
             const tuyaLightExtend = tuya.modernExtend.tuyaLight({
                 colorTemp: {range: [142, 500]},
                 color: true,
-            }).exposes(device, options) as any;
+            });
+    
+            // Type assertion to bypass TypeScript complexity
+            const exposesValue = tuyaLightExtend.exposes as any;
+            const baseExposes = typeof exposesValue === "function" 
+                ? exposesValue(device, options)
+                : exposesValue;
 
             // Add power on behavior expose
             return [...baseExposes, e.power_on_behavior(["off", "on", "toggle", "previous"])];
