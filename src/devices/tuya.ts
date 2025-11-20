@@ -2352,13 +2352,15 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: {range: [142, 500]},
                 color: true,
             });
-        
+
             type ExposesFn = (device: unknown, options: unknown) => unknown[];
-        
-            const exposesFn = (baseExtend as unknown as {
-                exposes?: ExposesFn;
-            }).exposes;
-        
+
+            const exposesFn = (
+                baseExtend as unknown as {
+                    exposes?: ExposesFn;
+                }
+            ).exposes;
+
             const baseExposes = exposesFn ? (exposesFn(device, options) as unknown[]) : [];
 
             // Add power on behavior expose
