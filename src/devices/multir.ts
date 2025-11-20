@@ -29,11 +29,6 @@ const tzLocal = {
             if (value === "ON") {
                 await entity.command("genOnOff", "off", {});
             }
-            return {
-                state: {
-                    silence: value,
-                },
-            };
         },
     } satisfies Tz.Converter,
 };
@@ -86,10 +81,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.MIRSM200],
         extend: [
             m.battery(),
-            m.iasZoneAlarm({
-                zoneType: "smoke",
-                zoneAttributes: ["alarm_1", "tamper", "battery_low"],
-            }),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
         ],
         exposes: [
             exposes.enum("silence", ea.SET, ["ON"]).withDescription("After enabling mute, it will return to detection state after 90 seconds."),
