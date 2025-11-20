@@ -2339,7 +2339,7 @@ export const definitions: DefinitionWithExtend[] = [
         // Add standard Zigbee power on behavior converters
         toZigbee: [tz.power_on_behavior],
         fromZigbee: [fz.power_on_behavior],
-        
+
         extend: [
             tuya.modernExtend.tuyaLight({
                 colorTemp: {range: [142, 500]},
@@ -2354,21 +2354,19 @@ export const definitions: DefinitionWithExtend[] = [
                 color: true,
             });
 
-            const baseExposes = typeof tuyaLightExtend.exposes === 'function' 
-                ? tuyaLightExtend.exposes(device, options)
-                : [];
-            
+            const baseExposes = typeof tuyaLightExtend.exposes === "function" ? tuyaLightExtend.exposes(device, options) : [];
+
             // Add power on behavior expose
-            return [...baseExposes, e.power_on_behavior(['off', 'on', 'toggle', 'previous'])];
+            return [...baseExposes, e.power_on_behavior(["off", "on", "toggle", "previous"])];
         },
-            
+
         meta: {
             moveToLevelWithOnOffDisable: true,
         },
 
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read('genOnOff', ['startUpOnOff']);
+            await endpoint.read("genOnOff", ["startUpOnOff"]);
         },
     },
     {
