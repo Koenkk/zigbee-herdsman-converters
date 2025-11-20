@@ -161,7 +161,7 @@ export const definitions: DefinitionWithExtend[] = [
             device.save();
         },
     },
-        {
+    {
         zigbeeModel: ["3RWS0218Z"],
         model: "3RWS0218Z",
         vendor: "Third Reality",
