@@ -15621,152 +15621,142 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: (device, options) => {
             const exps: Expose[] = [
-            tuya.exposes.switch(),
-            e.temperature(),
-            e.current(),
-            e.power(),
-            e.voltage(),
-            e.energy(),
-            e
-                .enum("event", ea.STATE, [
-                    "normal",
-                    "over_current_trip",
-                    "over_power_trip",
-                    "high_temp_trip",
-                    "over_voltage_trip",
-                    "under_voltage_trip",
-                    "over_current_alarm",
-                    "over_power_alarm",
-                    "high_temp_alarm",
-                    "over_voltage_alarm",
-                    "under_voltage_alarm",
-                    "remote_on",
-                    "remote_off",
-                    "manual_on",
-                    "manual_off",
-                    "leakage_trip",
-                    "leakage_alarm",
-                    "restore_default",
-                    "automatic_closing",
-                    "electricity_shortage",
-                    "electricity_shortage_alarm",
-                    "timing_switch_On",
-                    "timing_switch_off",
-                ])
-                .withDescription("Last event of the device"),
-            e.enum("over_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over voltage setting"),
-            e
-                .numeric("over_voltage_threshold", ea.STATE_SET)
-                .withUnit("V")
-                .withDescription("Setup value on the device")
-                .withValueMin(240)
-                .withValueMax(295),
-            e.enum("under_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Under voltage setting"),
-            e
-                .numeric("under_voltage_threshold", ea.STATE_SET)
-                .withUnit("V")
-                .withDescription("Setup value on the device")
-                .withValueMin(145)
-                .withValueMax(220),
-            e.enum("temperature_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Temperature setting"),
-            e
-                .numeric("temperature_threshold", ea.STATE_SET)
-                .withUnit("°C")
-                .withDescription("Setup value on the device")
-                .withValueMin(-25)
-                .withValueMax(100),
-            e.enum("over_power_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over power setting"),
-            e
-                .numeric("over_power_threshold", ea.STATE_SET)
-                .withUnit("W")
-                .withDescription("Setup value on the device")
-                .withValueStep(10)
-                .withValueMin(5)
-                .withValueMax(25000),
-            e
-                .binary("auto_reclosing", ea.STATE_SET, "ON", "OFF")
-                .withLabel("Auto reclosing")
-                .withDescription(
-                    "When the circuit breaker trips due to voltage protection, it will automatically close when the circuit voltage returns to normal",
-                ),
-            e.binary("restore_default", ea.STATE_SET, "ON", "OFF").withDescription("Turn ON to restore default settings"),
-            e
-                .binary("overcurrent_recloser", ea.STATE_SET, "ON", "OFF")
-                .withLabel("Overcurrent Recloser")
-                .withDescription(
-                    "When the circuit breaker trips due to overcurrent protection, it will automatically close when the circuit voltage returns to normal",
-                ),
-            e
-                .binary("leakage_recloser", ea.STATE_SET, "ON", "OFF")
-                .withLabel("Leakage Recloser")
-                .withDescription(
-                    "When the circuit breaker trips due to leakage protection, it will automatically close when the circuit voltage returns to normal",
-                ),
-            e
-                .binary("overpower_recloser", ea.STATE_SET, "ON", "OFF")
-                .withLabel("Overpower Recloser")
-                .withDescription(
-                    "When the circuit breaker trips due to overpower protection, it will automatically close when the circuit voltage returns to normal",
-                ),
+                tuya.exposes.switch(),
+                e.temperature(),
+                e.current(),
+                e.power(),
+                e.voltage(),
+                e.energy(),
+                e
+                    .enum("event", ea.STATE, [
+                        "normal",
+                        "over_current_trip",
+                        "over_power_trip",
+                        "high_temp_trip",
+                        "over_voltage_trip",
+                        "under_voltage_trip",
+                        "over_current_alarm",
+                        "over_power_alarm",
+                        "high_temp_alarm",
+                        "over_voltage_alarm",
+                        "under_voltage_alarm",
+                        "remote_on",
+                        "remote_off",
+                        "manual_on",
+                        "manual_off",
+                        "leakage_trip",
+                        "leakage_alarm",
+                        "restore_default",
+                        "automatic_closing",
+                        "electricity_shortage",
+                        "electricity_shortage_alarm",
+                        "timing_switch_On",
+                        "timing_switch_off",
+                    ])
+                    .withDescription("Last event of the device"),
+                e.enum("over_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over voltage setting"),
+                e
+                    .numeric("over_voltage_threshold", ea.STATE_SET)
+                    .withUnit("V")
+                    .withDescription("Setup value on the device")
+                    .withValueMin(240)
+                    .withValueMax(295),
+                e.enum("under_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Under voltage setting"),
+                e
+                    .numeric("under_voltage_threshold", ea.STATE_SET)
+                    .withUnit("V")
+                    .withDescription("Setup value on the device")
+                    .withValueMin(145)
+                    .withValueMax(220),
+                e.enum("temperature_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Temperature setting"),
+                e
+                    .numeric("temperature_threshold", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withDescription("Setup value on the device")
+                    .withValueMin(-25)
+                    .withValueMax(100),
+                e.enum("over_power_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over power setting"),
+                e
+                    .numeric("over_power_threshold", ea.STATE_SET)
+                    .withUnit("W")
+                    .withDescription("Setup value on the device")
+                    .withValueStep(10)
+                    .withValueMin(5)
+                    .withValueMax(25000),
+                e
+                    .binary("auto_reclosing", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Auto reclosing")
+                    .withDescription(
+                        "When the circuit breaker trips due to voltage protection, it will automatically close when the circuit voltage returns to normal",
+                    ),
+                e.binary("restore_default", ea.STATE_SET, "ON", "OFF").withDescription("Turn ON to restore default settings"),
+                e
+                    .binary("overcurrent_recloser", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Overcurrent Recloser")
+                    .withDescription(
+                        "When the circuit breaker trips due to overcurrent protection, it will automatically close when the circuit voltage returns to normal",
+                    ),
+                e
+                    .binary("leakage_recloser", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Leakage Recloser")
+                    .withDescription(
+                        "When the circuit breaker trips due to leakage protection, it will automatically close when the circuit voltage returns to normal",
+                    ),
+                e
+                    .binary("overpower_recloser", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Overpower Recloser")
+                    .withDescription(
+                        "When the circuit breaker trips due to overpower protection, it will automatically close when the circuit voltage returns to normal",
+                    ),
             ];
-            if (
-                !device ||
-                device.manufacturerName === "_TZE284_432zhuwe" ||
-                device.manufacturerName === "_TZE204_432zhuwe"
-            ) {
+            if (!device || device.manufacturerName === "_TZE284_432zhuwe" || device.manufacturerName === "_TZE204_432zhuwe") {
                 exps.push(
-                e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
-                e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
-                e
-                .numeric("over_current_threshold", ea.STATE_SET)
-                .withUnit("A")
-                .withDescription("Setup the value on the device")
-                .withValueMin(1)
-                .withValueMax(40),
-                e.enum("leakage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Leakage setting"),
-                e
-                .numeric("leakage_threshold", ea.STATE_SET)
-                .withUnit("mA")
-                .withDescription("Setup value on the device")
-                .withValueStep(5)
-                .withValueMin(30)
-                .withValueMax(100),
-               );
-            }
-            else if (
-                device.manufacturerName === "_TZE284_s5vuaadg"
-            ) {
-               exps.push(
-                e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
-                e
-                .numeric("over_current_threshold", ea.STATE_SET)
-                .withUnit("A")
-                .withDescription("Setup the value on the device")
-                .withValueMin(1)
-                .withValueMax(40),
-               );
-            }
-            else if (
-                device.manufacturerName === "_TZE284_tuhfx7tf"
-            ) {
-               exps.push(
-                e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
-                e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
-                e
-                .numeric("over_current_threshold", ea.STATE_SET)
-                .withUnit("A")
-                .withDescription("Setup the value on the device")
-                .withValueMin(1)
-                .withValueMax(20),
-                e.enum("leakage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Leakage setting"),
-                e
-                .numeric("leakage_threshold", ea.STATE_SET)
-                .withUnit("mA")
-                .withDescription("Setup value on the device")
-                .withValueStep(5)
-                .withValueMin(30)
-                .withValueMax(100),
-               );
+                    e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
+                    e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
+                    e
+                        .numeric("over_current_threshold", ea.STATE_SET)
+                        .withUnit("A")
+                        .withDescription("Setup the value on the device")
+                        .withValueMin(1)
+                        .withValueMax(40),
+                    e.enum("leakage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Leakage setting"),
+                    e
+                        .numeric("leakage_threshold", ea.STATE_SET)
+                        .withUnit("mA")
+                        .withDescription("Setup value on the device")
+                        .withValueStep(5)
+                        .withValueMin(30)
+                        .withValueMax(100),
+                );
+            } else if (device.manufacturerName === "_TZE284_s5vuaadg") {
+                exps.push(
+                    e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
+                    e
+                        .numeric("over_current_threshold", ea.STATE_SET)
+                        .withUnit("A")
+                        .withDescription("Setup the value on the device")
+                        .withValueMin(1)
+                        .withValueMax(40),
+                );
+            } else if (device.manufacturerName === "_TZE284_tuhfx7tf") {
+                exps.push(
+                    e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
+                    e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
+                    e
+                        .numeric("over_current_threshold", ea.STATE_SET)
+                        .withUnit("A")
+                        .withDescription("Setup the value on the device")
+                        .withValueMin(1)
+                        .withValueMax(20),
+                    e.enum("leakage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Leakage setting"),
+                    e
+                        .numeric("leakage_threshold", ea.STATE_SET)
+                        .withUnit("mA")
+                        .withDescription("Setup value on the device")
+                        .withValueStep(5)
+                        .withValueMin(30)
+                        .withValueMax(100),
+                );
             }
             return exps;
         },
