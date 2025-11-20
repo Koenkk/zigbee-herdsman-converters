@@ -20837,7 +20837,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vjpaih9f"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vjpaih9f", "_TZE284_vjpaih9f"]),
         model: "TS0601_thermostat_14",
         vendor: "AVATTO",
         description: "Thermostatic radiator valve",
