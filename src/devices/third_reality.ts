@@ -30,6 +30,15 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
+interface ThirdWaterSensor {
+    attributes: {
+        siren_on_off: number;
+        siren_mintues: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     thirdreality_acceleration: {
         cluster: "3rVirationSpecialcluster",
@@ -135,22 +144,22 @@ export const definitions: DefinitionWithExtend[] = [
                 zoneAttributes: ["alarm_1", "battery_low"],
             }),
             m.battery(),
-            m.binary({
+            m.binary<"3rWaterSensorcluster", ThirdWaterSensor>({
                 name: "Water Leak Buzzer On/Off",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "3rWaterSensorcluster",
-                attribute: {ID: 0x0010, type: Zcl.DataType.UINT8},
+                attribute: "siren_on_off",
                 description: "Turns the water-leak detection buzzer on or off.",
                 access: "ALL",
             }),
-            m.numeric({
+            m.numeric<"3rWaterSensorcluster", ThirdWaterSensor>({
                 name: "Water Leak Buzzer Alarm Mode",
                 unit: "min",
                 valueMin: 0,
                 valueMax: 600,
                 cluster: "3rWaterSensorcluster",
-                attribute: {ID: 0x0011, type: Zcl.DataType.UINT8},
+                attribute: "siren_mintues",
                 description: "Sets the buzzers beeping mode for water-leak alerts.(0 = continuous;values = beeping duration (minutes).)",
                 access: "ALL",
             }),
