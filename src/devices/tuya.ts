@@ -2349,10 +2349,10 @@ export const definitions: DefinitionWithExtend[] = [
 
         exposes: (device, options) => {
             const baseExtend = tuya.modernExtend.tuyaLight({
-                colorTemp: { range: [142, 500] },
+                colorTemp: {range: [142, 500]},
                 color: true,
             });
-    
+
             let baseExposes = [];
             if (typeof baseExtend.exposes === "function") {
                 baseExposes = baseExtend.exposes(device, options);
