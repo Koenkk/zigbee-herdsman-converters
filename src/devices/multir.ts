@@ -26,7 +26,7 @@ const tzLocal = {
     MIRSM200: {
         key: ["silence"],
         convertSet: async (entity, key, value, meta) => {
-            if (value === "enable") {
+            if (value === "ON") {
                 await entity.command("genOnOff", "off", {});
             }
             return {
@@ -91,7 +91,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zoneAttributes: ["alarm_1", "tamper", "battery_low"],
             }),
         ],
-        exposes: [exposes.binary("silence", ea.SET, "enable", "disabled").withDescription("Silence the alarm")],
+        exposes: [exposes.enum("silence", ea.SET, ["ON"]).withDescription("After enabling mute, it will return to detection state after 90 seconds.")],
     },
     {
         zigbeeModel: ["MIR-SO100"],
