@@ -15601,6 +15601,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_432zhuwe",
             "_TZE204_432zhuwe",
             "_TZE284_s5vuaadg",
+            "_TZE284_tuhfx7tf",
         ]),
         model: "TOWSMR1",
         vendor: "Tongou",
@@ -15613,15 +15614,19 @@ export const definitions: DefinitionWithExtend[] = [
                 respondToMcuVersionResponse: true,
             }),
         ],
-        whiteLabel: [tuya.whitelabel("Tongou", "TOSA1", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_432zhuwe", "_TZE204_432zhuwe"])],
-        exposes: [
+        whiteLabel: [
+            tuya.whitelabel("Tongou", "TOWSMR1-40A-AC", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_432zhuwe", "_TZE204_432zhuwe"]),
+            tuya.whitelabel("Tongou", "TOWSMR1-40A-A", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_s5vuaadg"]),
+            tuya.whitelabel("Tongou", "TOWSMR1-20A-AC", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_tuhfx7tf"]),
+        ],
+        exposes: (device, options) => {
+            const exps: Expose[] = [
             tuya.exposes.switch(),
             e.temperature(),
             e.current(),
             e.power(),
             e.voltage(),
             e.energy(),
-            e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
             e
                 .enum("event", ea.STATE, [
                     "normal",
@@ -15649,13 +15654,6 @@ export const definitions: DefinitionWithExtend[] = [
                     "timing_switch_off",
                 ])
                 .withDescription("Last event of the device"),
-            e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
-            e
-                .numeric("over_current_threshold", ea.STATE_SET)
-                .withUnit("A")
-                .withDescription("Setup the value on the device")
-                .withValueMin(1)
-                .withValueMax(40),
             e.enum("over_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over voltage setting"),
             e
                 .numeric("over_voltage_threshold", ea.STATE_SET)
@@ -15670,13 +15668,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Setup value on the device")
                 .withValueMin(145)
                 .withValueMax(220),
-            e.enum("leakage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Leakage setting"),
-            e
-                .numeric("leakage_threshold", ea.STATE_SET)
-                .withUnit("mA")
-                .withDescription("Setup value on the device")
-                .withValueMin(30)
-                .withValueMax(100),
             e.enum("temperature_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Temperature setting"),
             e
                 .numeric("temperature_threshold", ea.STATE_SET)
@@ -15689,7 +15680,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("over_power_threshold", ea.STATE_SET)
                 .withUnit("W")
                 .withDescription("Setup value on the device")
-                .withValueMin(1)
+                .withValueStep(10)
+                .withValueMin(5)
                 .withValueMax(25000),
             e
                 .binary("auto_reclosing", ea.STATE_SET, "ON", "OFF")
@@ -15716,7 +15708,68 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription(
                     "When the circuit breaker trips due to overpower protection, it will automatically close when the circuit voltage returns to normal",
                 ),
-        ],
+            ];
+            if (
+                !device ||
+                device.manufacturerName === "_TZE284_432zhuwe" ||
+                device.manufacturerName === "_TZE204_432zhuwe"
+            ) {
+                exps.push(
+                e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
+                e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
+                e
+                .numeric("over_current_threshold", ea.STATE_SET)
+                .withUnit("A")
+                .withDescription("Setup the value on the device")
+                .withValueMin(1)
+                .withValueMax(40),
+                e.enum("leakage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Leakage setting"),
+                e
+                .numeric("leakage_threshold", ea.STATE_SET)
+                .withUnit("mA")
+                .withDescription("Setup value on the device")
+                .withValueStep(5)
+                .withValueMin(30)
+                .withValueMax(100),
+               );
+            }
+            else if (
+                device.manufacturerName === "_TZE284_s5vuaadg"
+            ) {
+               exps.push(
+                e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
+                e
+                .numeric("over_current_threshold", ea.STATE_SET)
+                .withUnit("A")
+                .withDescription("Setup the value on the device")
+                .withValueMin(1)
+                .withValueMax(40),
+               );
+            }
+            else if (
+                device.manufacturerName === "_TZE284_tuhfx7tf"
+            ) {
+               exps.push(
+                e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
+                e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
+                e
+                .numeric("over_current_threshold", ea.STATE_SET)
+                .withUnit("A")
+                .withDescription("Setup the value on the device")
+                .withValueMin(1)
+                .withValueMax(20),
+                e.enum("leakage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Leakage setting"),
+                e
+                .numeric("leakage_threshold", ea.STATE_SET)
+                .withUnit("mA")
+                .withDescription("Setup value on the device")
+                .withValueStep(5)
+                .withValueMin(30)
+                .withValueMax(100),
+               );
+            }
+            return exps;
+        },
         meta: {
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100],
