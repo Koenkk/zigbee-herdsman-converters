@@ -489,7 +489,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["5063130P7"],
+        zigbeeModel: ["5063130P7", "929003810601"],
         model: "5063130P7",
         vendor: "Philips",
         description: "Hue Bluetooth white & color ambiance spot Fugato black (1 spots)",
@@ -1032,10 +1032,17 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ["LCG004"],
+        model: "929003575701",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance GU5.3",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ["LCG005"],
         model: "929003575501",
         vendor: "Philips",
-        description: "Hue White and Color Ambiance GU5.3/MR16",
+        description: "Hue White and Color Ambiance GU5.3",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
@@ -3290,17 +3297,27 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
-        zigbeeModel: ["929004608004"],
-        model: "929004608004",
+        zigbeeModel: ["929004608001"],
+        model: "929004608001",
         vendor: "Philips",
-        description: "Hue Omniglow lightstrip",
+        description: "Hue OmniGlow lightstrip 3m",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
     },
     {
-        zigbeeModel: ["929003099301"],
+        zigbeeModel: ["929004608004"],
+        model: "929004608004",
+        vendor: "Philips",
+        description: "Hue OmniGlow lightstrip",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
+    },
+    {
+        zigbeeModel: ["929003099301", "929003099302"],
         model: "929003099301",
         vendor: "Philips",
-        description: "Hue white ambiance Aurelle round panel light",
+        description: "Hue Aurelle W 39,5 cm (White)",
+        whiteLabel: [
+            {model: "929003099302", vendor: "Philips", description: "Hue Aurelle W 39,5 cm (White)", fingerprint: [{modelID: "929003099302"}]},
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
@@ -3501,6 +3518,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue White E17 470 lumen",
         extend: [philips.m.light()],
+    },
+    {
+        zigbeeModel: ["LTE003"],
+        model: "9290022975",
+        vendor: "Philips",
+        description: "Hue White Ambiance E17 40W 470 lumen",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["1746630P7"],

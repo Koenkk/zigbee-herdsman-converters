@@ -1149,7 +1149,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nhyj64w2", "_TZE200_127x7wnl", "_TZE204_5slehgeo"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nhyj64w2", "_TZE200_127x7wnl", "_TZE204_5slehgeo", "_TZE284_5slehgeo"]),
         model: "ZTS-EUR-C",
         vendor: "Moes",
         description: "Zigbee + RF curtain switch",
