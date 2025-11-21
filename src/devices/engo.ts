@@ -418,10 +418,9 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         whiteLabel: [tuya.whitelabel("ENGO", "E40", "Zigbee Smart Thermostat", ["_TZE204_lnxdk2ch"])],
-        // we gebruiken hier de veilige 'rest parameter' methode om typescript errors te voorkomen
         onEvent: async (...args: any[]) => {
-            const device = args.find(a => a && typeof a === 'object' && 'manufacturerName' in a && 'meta' in a) as any | undefined;
-            if (device && device.manufacturerName?.startsWith('_TZE204')) {
+            const device = args[2];
+            if (device?.manufacturerName?.startsWith('_TZE204')) {
                 device.meta.supported = true;
             }
         },
