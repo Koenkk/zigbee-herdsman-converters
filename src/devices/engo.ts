@@ -418,8 +418,21 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         whiteLabel: [tuya.whitelabel("ENGO", "E40", "Zigbee Smart Thermostat", ["_TZE204_lnxdk2ch"])],
-        onEvent: async (type, data, device) => {
+        // HIER ZAT DE FOUT: Nu types toegevoegd (type: string, data: any, device: any)
+        onEvent: async (type: string, data: any, device: any) => {
             if (device.manufacturerName?.startsWith('_TZE204')) device.meta.supported = true;
+            
+            // Read schedule on connection
+            if (type === 'deviceInterview' || type === 'deviceAnnounce') {
+                const scheduleDPs = [109, 110, 111, 112, 113, 114, 115];
+                for (const dp of scheduleDPs) {
+                    try {
+                        await tuya.sendDataPointValue(device.getEndpoint(1), dp, null, {read: true});
+                    } catch (e) {
+                        // Fail silently
+                    }
+                }
+            }
         },
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
