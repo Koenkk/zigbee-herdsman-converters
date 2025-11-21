@@ -289,20 +289,20 @@ const tzLocal = {
     hqm_system_mode: {
         key: ["system_mode", "preset"],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {"off": 0, "cool": 3, "heat": 4, "away": 10, "schedule": 11};
+            const lookup = {off: 0, cool: 3, heat: 4, away: 10, schedule: 11};
             await entity.write("hvacThermostat", {systemMode: utils.getFromLookup(value, lookup)});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacThermostat", "systemMode");
-        }, 
+        },
     } satisfies Tz.Converter,
     hqm_local_temperature: {
         key: ["local_temperature"],
         convertGet: async (entity, key, meta) => {
             await entity.read("msTemperatureMeasurement", ["measuredValue"]);
         },
-    } satisfies Tz.Converter,  
+    } satisfies Tz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -1244,11 +1244,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS Zigbee Wireless Round Thermostat",
-        fromZigbee: [
-            fz.thermostat,
-            fzLocal.hqm_system_mode,
-            fzLocal.hqm_local_temperature,
-        ],
+        fromZigbee: [fz.thermostat, fzLocal.hqm_system_mode, fzLocal.hqm_local_temperature],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint,
@@ -1297,7 +1293,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
             await reporting.thermostatSystemMode(endpoint, {min: 0, max: 600});
             await reporting.temperature(endpoint, {min: 5, max: 300, change: 10});
-            await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint", "occupiedCoolingSetpoint","systemMode"]);
+            await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint", "occupiedCoolingSetpoint", "systemMode"]);
         },
     },
 ];
