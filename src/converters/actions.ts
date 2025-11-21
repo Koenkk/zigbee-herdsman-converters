@@ -93,7 +93,7 @@ export const ACTIONS: Record<string, (controller: Controller, args: Record<strin
     },
     hue_factory_reset: async (controller, args): Promise<undefined> => {
         assert(typeof args.extended_pan_id === "string" && /^0x[a-f0-9]{16}$/.test(args.extended_pan_id));
-        assert(Array.isArray(args.serial_numbers));
+        assert(Array.isArray(args.serial_numbers) && args.serial_numbers.length > 0);
 
         const rawPayload: RawPayload = {
             clusterKey: "manuSpecificPhilipsPairing",
