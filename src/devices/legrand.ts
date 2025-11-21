@@ -719,7 +719,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 {
     zigbeeModel: ['NLIS - Triple light switch'],
-    model: 'NLIS - Triple light switch',
+    model: '281506',
     vendor: 'Legrand',
     description: 'Triple light switch',
     fromZigbee: [fz.on_off],
