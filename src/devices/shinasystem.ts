@@ -111,6 +111,30 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
+    hqm_system_mode: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.systemMode !== undefined) {
+                const value = msg.data.systemMode;
+                const lookup = {0: "off", 3: "cool", 4: "heat", 10: "away", 11: "schedule"};
+                return {
+                    system_mode: utils.getFromLookup(value, lookup),
+                    preset: utils.getFromLookup(value, lookup),
+                };
+            }
+        },
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    hqm_local_temperature: {
+        cluster: "msTemperatureMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.measuredValue !== undefined) {
+                const temperature = msg.data.measuredValue / 100.0;
+                return {local_temperature: temperature};
+            }
+        },
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -262,6 +286,23 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+    hqm_system_mode: {
+        key: ["system_mode", "preset"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {"off": 0, "cool": 3, "heat": 4, "away": 10, "schedule": 11};
+            await entity.write("hvacThermostat", {systemMode: utils.getFromLookup(value, lookup)});
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("hvacThermostat", "systemMode");
+        }, 
+    } satisfies Tz.Converter,
+    hqm_local_temperature: {
+        key: ["local_temperature"],
+        convertGet: async (entity, key, meta) => {
+            await entity.read("msTemperatureMeasurement", ["measuredValue"]);
+        },
+    } satisfies Tz.Converter,  
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -1203,40 +1244,27 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS Zigbee Wireless Round Thermostat",
+        fromZigbee: [
+            fz.thermostat,
+            fzLocal.hqm_system_mode,
+            fzLocal.hqm_local_temperature,
+        ],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tzLocal.hqm_system_mode,
+            tzLocal.hqm_local_temperature,
+        ],
+        exposes: [
+            e
+                .climate()
+                .withSystemMode(["off", "cool", "heat"])
+                .withPreset(["off", "cool", "heat", "away", "schedule"])
+                .withLocalTemperature()
+                .withSetpoint("occupied_heating_setpoint", 5, 35, 0.5)
+                .withSetpoint("occupied_cooling_setpoint", 5, 35, 0.5),
+        ],
         extend: [
-            m.temperature({reporting: {min: 1, max: "1_HOUR", change: 9}}),
-            m.enumLookup({
-                name: "system_mode",
-                lookup: {off: 0, cool: 3, heat: 4, away: 10, schedule: 11},
-                cluster: "hvacThermostat",
-                attribute: "systemMode",
-                description: "Mode of this device",
-                reporting: {min: 0, max: "1_HOUR", change: 1},
-            }),
-            m.numeric({
-                name: "occupied_heating_setpoint",
-                cluster: "hvacThermostat",
-                attribute: "occupiedHeatingSetpoint",
-                description: "Heating setpoint",
-                valueMin: 5,
-                valueMax: 35,
-                valueStep: 0.5,
-                unit: "°C",
-                scale: 100,
-                reporting: {min: 0, max: "1_HOUR", change: 10},
-            }),
-            m.numeric({
-                name: "occupied_cooling_setpoint",
-                cluster: "hvacThermostat",
-                attribute: "occupiedCoolingSetpoint",
-                description: "Cooling setpoint",
-                valueMin: 5,
-                valueMax: 35,
-                valueStep: 0.5,
-                unit: "°C",
-                scale: 100,
-                reporting: {min: 0, max: "1_HOUR", change: 10},
-            }),
             m.binary({
                 name: "valve_status",
                 valueOn: ["open", 1],
@@ -1261,5 +1289,15 @@ export const definitions: DefinitionWithExtend[] = [
             m.humidity(),
             m.battery(),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["hvacThermostat", "msTemperatureMeasurement"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint, {min: 0, max: 600});
+            await reporting.temperature(endpoint, {min: 5, max: 300, change: 10});
+            await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint", "occupiedCoolingSetpoint","systemMode"]);
+        },
     },
 ];
