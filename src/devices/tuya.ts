@@ -21263,8 +21263,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {
-                modelID: 'TLSR82xx',
-                manufacturerName: 'TELINK',
+                modelID: "TLSR82xx",
+                manufacturerName: "TELINK",
                 applicationVersion: 0,
 
                 endpoints: [
@@ -21273,36 +21273,36 @@ export const definitions: DefinitionWithExtend[] = [
                         profileID: 260,
                         deviceID: 0,
                         inputClusters: [0, 3, 1, 6], // genBasic, genIdentify, genPowerCfg, genOnOff
-                        outputClusters: [4, 5, 4096] // genGroups, genScenes, touchlink
+                        outputClusters: [4, 5, 4096], // genGroups, genScenes, touchlink
                     },
                     {
                         ID: 2,
                         profileID: 260,
                         deviceID: 0,
-                        inputClusters: [0, 3, 6],    // genBasic, genIdentify, genOnOff
-                        outputClusters: []
-                    }
-                ]
-            }
+                        inputClusters: [0, 3, 6], // genBasic, genIdentify, genOnOff
+                        outputClusters: [],
+                    },
+                ],
+            },
         ],
 
-        model: 'TLSR82xx_2Btn_Remote',
-        vendor: 'Telink',
-        description: '2-Button Remote',
+        model: "TLSR82xx_2Btn_Remote",
+        vendor: "Telink",
+        description: "2-Button Remote",
 
         fromZigbee: [
             {
-                cluster: 'genOnOff',
-                type: ['attributeReport', 'readResponse'],
+                cluster: "genOnOff",
+                type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.hasOwnProperty('onOff')) {
+                    if (Object.hasOwn(msg.data, "onOff")) {
                         const btn = msg.endpoint.ID;
-                        const state = msg.data['onOff'] === 1 ? 'on' : 'off';
+                        const state = msg.data["onOff"] === 1 ? "on" : "off";
                         return {action: `${state}_${btn}`};
                     }
                 },
             },
-            fz.battery
+            fz.battery,
         ],
 
         toZigbee: [],
@@ -21311,15 +21311,12 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
 
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
         },
 
-        exposes: [
-            e.battery(),
-            e.action(['on_1', 'off_1', 'on_2', 'off_2'])
-        ],
+        exposes: [e.battery(), e.action(["on_1", "off_1", "on_2", "off_2"])],
 
         meta: {multiEndpoint: true},
-    }
+    },
 ];
