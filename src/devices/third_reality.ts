@@ -30,6 +30,15 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
+interface ThirdWaterSensor {
+    attributes: {
+        sirenOnOff: number;
+        sirenMinutes: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     thirdreality_acceleration: {
         cluster: "3rVirationSpecialcluster",
@@ -118,48 +127,43 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RWS18BZ",
         vendor: "Third Reality",
         description: "Water sensor",
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        toZigbee: [],
         ota: true,
         extend: [
-            m.deviceAddCustomCluster("r3Specialcluster", {
+            m.deviceAddCustomCluster("3rWaterSensorcluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    siren_on_off: {ID: 0x0010, type: Zcl.DataType.UINT8},
-                    siren_mintues: {ID: 0x0011, type: Zcl.DataType.UINT8},
+                    sirenOnOff: {ID: 0x0010, type: Zcl.DataType.UINT8},
+                    sirenMinutes: {ID: 0x0011, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
-            m.numeric({
-                name: "siren_on_off",
-                unit: "on/off",
-                valueMin: 0,
-                valueMax: 1,
-                cluster: "r3Specialcluster",
-                attribute: {ID: 0x0010, type: Zcl.DataType.UINT8},
-                description: "Siren on/off",
+            m.iasZoneAlarm({
+                zoneType: "water_leak",
+                zoneAttributes: ["alarm_1", "battery_low"],
+            }),
+            m.battery(),
+            m.binary<"3rWaterSensorcluster", ThirdWaterSensor>({
+                name: "Water Leak Buzzer On/Off",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3rWaterSensorcluster",
+                attribute: "sirenOnOff",
+                description: "Turns the water-leak detection buzzer on or off.",
                 access: "ALL",
             }),
-            m.numeric({
-                name: "siren_minutes",
+            m.numeric<"3rWaterSensorcluster", ThirdWaterSensor>({
+                name: "Water Leak Buzzer Alarm Mode",
                 unit: "min",
                 valueMin: 0,
                 valueMax: 600,
-                cluster: "r3Specialcluster",
-                attribute: {ID: 0x0011, type: Zcl.DataType.UINT8},
-                description: "Siren duration",
+                cluster: "3rWaterSensorcluster",
+                attribute: "sirenMinutes",
+                description: "Sets the buzzers beeping mode for water-leak alerts.(0 = continuous;values = beeping duration (minutes).)",
                 access: "ALL",
             }),
         ],
-        exposes: [e.water_leak(), e.battery_low(), e.battery(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            device.powerSource = "Battery";
-            device.save();
-        },
     },
     {
         zigbeeModel: ["3RMS16BZ"],
