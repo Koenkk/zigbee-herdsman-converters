@@ -294,7 +294,7 @@ const tzLocal = {
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", "systemMode");
+            await entity.read("hvacThermostat", ["systemMode"]);
         },
     } satisfies Tz.Converter,
     hqm_local_temperature: {
