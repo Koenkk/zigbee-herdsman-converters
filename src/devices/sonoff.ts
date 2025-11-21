@@ -195,12 +195,12 @@ export interface SonoffEwelink {
         energyToday: number;
         energyMonth: number;
         energyYesterday: number;
-        setCalibrationAction:number[]; 
-        calibrationStatus:number;
-        calibrationProgress:number;
-        minBrightnessThreshold:number;
-        transitionTime:number;
-        dimmingLightRate:number;
+        setCalibrationAction: number[];
+        calibrationStatus: number;
+        calibrationProgress: number;
+        minBrightnessThreshold: number;
+        transitionTime: number;
+        dimmingLightRate: number;
     };
     commands: {
         protocolData: {data: number[]};
@@ -238,19 +238,19 @@ const sonoffExtend = {
                 energyToday: {ID: 0x7009, type: Zcl.DataType.UINT32},
                 energyMonth: {ID: 0x700a, type: Zcl.DataType.UINT32},
                 energyYesterday: {ID: 0x700b, type: Zcl.DataType.UINT32},
-                setCalibrationAction:{ID:0x001D, type:Zcl.DataType.CHAR_STR},
-                calibrationStatus:{ID:0x001e, type:Zcl.DataType.UINT8},
-                calibrationProgress:{ID:0x0020,type:Zcl.DataType.UINT8},
-                minBrightnessThreshold:{ID:0x4001,type:Zcl.DataType.UINT8},
-                dimmingLightRate:{ID:0x4003,type:Zcl.DataType.UINT8},
-                transitionTime:{ID:0x001f,type:Zcl.DataType.UINT32},
+                setCalibrationAction: {ID: 0x001d, type: Zcl.DataType.CHAR_STR},
+                calibrationStatus: {ID: 0x001e, type: Zcl.DataType.UINT8},
+                calibrationProgress: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                minBrightnessThreshold: {ID: 0x4001, type: Zcl.DataType.UINT8},
+                dimmingLightRate: {ID: 0x4003, type: Zcl.DataType.UINT8},
+                transitionTime: {ID: 0x001f, type: Zcl.DataType.UINT32},
             },
             commands: {
                 protocolData: {ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
             },
             commandsResponse: {},
         }),
-    inchingControlSet: (args: ExternalInchingAgs = {},max_time:number = 3599.5): ModernExtend => {
+    inchingControlSet: (args: ExternalInchingAgs = {}, maxTime = 3599.5): ModernExtend => {
         const {endpointNames = undefined} = args;
         const clusterName = "customClusterEwelink";
         const commandName = "protocolData";
@@ -268,7 +268,7 @@ const sonoffExtend = {
                         .withDescription("Delay time for executing a inching action.")
                         .withUnit("seconds")
                         .withValueMin(0.5)
-                        .withValueMax(max_time)
+                        .withValueMax(maxTime)
                         .withValueStep(0.5),
                 )
                 .withFeature(
@@ -1189,8 +1189,8 @@ const sonoffExtend = {
     dimmerExternalSwitchTriggerMode: (): ModernExtend => {
         const clusterName = "customClusterEwelink" as const;
         const attributeName = "externalTriggerMode" as const;
-        let exposes = e
-            .enum("external_trigger_mode", ea.ALL, ["edge", "pulse","double pulse","triple pulse"])
+        const exposes = e
+            .enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "double pulse", "triple pulse"])
             .withDescription(
                 "External trigger mode, which can be one of edge, pulse, " +
                     "double pulse,triple pulse. The appropriate triggering mode can be selected according to the type of " +
@@ -1202,7 +1202,7 @@ const sonoffExtend = {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    const lookup: KeyValue = {edge: 0, pulse: 1, "double pulse": 3,"triple pulse": 4};
+                    const lookup: KeyValue = {edge: 0, pulse: 1, "double pulse": 3, "triple pulse": 4};
                     // logger.debug(`from zigbee msg.data['externalTriggerMode'] ${msg.data['externalTriggerMode']}`, NS);
                     if (msg.data.externalTriggerMode !== undefined) {
                         let switchType = "edge";
@@ -1225,7 +1225,7 @@ const sonoffExtend = {
                     utils.assertString(value, key);
                     // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value.toLowerCase();
-                    const lookup = {edge: 0, pulse: 1,  "double pulse": 3, "triple pulse": 4};
+                    const lookup = {edge: 0, pulse: 1, "double pulse": 3, "triple pulse": 4};
                     const tmpValue = utils.getFromLookup(value, lookup);
                     await entity.write<typeof clusterName, SonoffEwelink>(clusterName, {[attributeName]: tmpValue}, defaultResponseOptions);
                     return {state: {[key]: value}};
@@ -1243,71 +1243,75 @@ const sonoffExtend = {
         };
     },
     setAutoCalibrationAction: (): ModernExtend => {
-        const exposes = e.enum("set_calibration_action", ea.SET, ["START", "STOP","CLEAR"]).withDescription("Start/Stop/Clear calibration")
+        const exposes = e.enum("set_calibration_action", ea.SET, ["START", "STOP", "CLEAR"]).withDescription("Start/Stop/Clear calibration");
         exposes.withDescription(
-                    "After calibration, the light adjustment becomes smooth and consistent.. Takes about 2 minutes; device unavailable during calibration.",
-                )
+            "After calibration, the light adjustment becomes smooth and consistent.. Takes about 2 minutes; device unavailable during calibration.",
+        );
         const clusterName = "customClusterEwelink";
         const attributeName = "setCalibrationAction";
-        const toZigbee:Tz.Converter[] = [
+        const toZigbee: Tz.Converter[] = [
             {
                 key: ["set_calibration_action"],
                 convertSet: async (entity, key, value, meta) => {
-                    let action:number = 0;
+                    let action = 0;
                     if (value === "START") {
                         action = 0x01;
-                    }else if (value === "STOP") {
-                        action= 0x02;
-                    }else if (value === "CLEAR") {
+                    } else if (value === "STOP") {
+                        action = 0x02;
+                    } else if (value === "CLEAR") {
                         action = 0x03;
                     }
                     logger.info(`from zigbee set calibration action: ${action}`, NS);
-                    await entity.write<typeof clusterName, SonoffEwelink>(clusterName, {[attributeName]:[0x03,0x01,0x01,action]}, defaultResponseOptions);
+                    await entity.write<typeof clusterName, SonoffEwelink>(
+                        clusterName,
+                        {[attributeName]: [0x03, 0x01, 0x01, action]},
+                        defaultResponseOptions,
+                    );
                     return {state: {[key]: value}};
                 },
-                convertGet: async (entity, key, meta) => {
-                   
-                },
-            }
+                convertGet: async (entity, key, meta) => {},
+            },
         ];
-       
+
         return {
-            exposes:[exposes],
-            fromZigbee:undefined,
+            exposes: [exposes],
+            fromZigbee: undefined,
             toZigbee,
-            isModernExtend:true,
+            isModernExtend: true,
         };
     },
-    setDimmingLightRate:():ModernExtend => {
-        const exposes = e.enum("dimming_light_rate", ea.ALL, ["1x", "2x","3x","4x","5x"]).withDescription("Speed of brightness change via external switch.")
+    setDimmingLightRate: (): ModernExtend => {
+        const exposes = e
+            .enum("dimming_light_rate", ea.ALL, ["1x", "2x", "3x", "4x", "5x"])
+            .withDescription("Speed of brightness change via external switch.");
         const clusterName = "customClusterEwelink";
         const attributeName = "dimmingLightRate";
-        const toZigbee:Tz.Converter[] = [
+        const toZigbee: Tz.Converter[] = [
             {
                 key: ["dimming_light_rate"],
                 convertSet: async (entity, key, value, meta) => {
-                    let rate:number = 0;
+                    let rate = 0;
                     if (value === "1x") {
                         rate = 1;
-                    }else if (value === "2x") {
+                    } else if (value === "2x") {
                         rate = 2;
-                    }else if (value === "3x") {
+                    } else if (value === "3x") {
                         rate = 3;
-                    }else if (value === "4x") {
+                    } else if (value === "4x") {
                         rate = 4;
-                    }else if (value === "5x") {
+                    } else if (value === "5x") {
                         rate = 5;
                     }
                     logger.info(`from zigbee set dimming light rate: ${rate}`, NS);
-                    await entity.write<typeof clusterName, SonoffEwelink>(clusterName, {[attributeName]:rate}, defaultResponseOptions);
+                    await entity.write<typeof clusterName, SonoffEwelink>(clusterName, {[attributeName]: rate}, defaultResponseOptions);
                     return {state: {[key]: value}};
                 },
                 convertGet: async (entity, key, meta) => {
                     await entity.read<typeof clusterName, SonoffEwelink>(clusterName, [attributeName], defaultResponseOptions);
                 },
-            }
+            },
         ];
-         const fromZigbee = [
+        const fromZigbee = [
             {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
@@ -1317,15 +1321,15 @@ const sonoffExtend = {
                         logger.info(`form zigbee dimming light rate ${rate}`, NS);
 
                         let rateStatus = "1x";
-                        if (rate === 1){
+                        if (rate === 1) {
                             rateStatus = "1x";
-                        }else if(rate === 2){
+                        } else if (rate === 2) {
                             rateStatus = "2x";
-                        }else if(rate === 3){
+                        } else if (rate === 3) {
                             rateStatus = "3x";
-                        }else if(rate === 4){
+                        } else if (rate === 4) {
                             rateStatus = "4x";
-                        }else if(rate === 5){
+                        } else if (rate === 5) {
                             rateStatus = "5x";
                         }
                         return {dimming_light_rate: rateStatus};
@@ -1334,35 +1338,38 @@ const sonoffExtend = {
             } satisfies Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport", "readResponse"]>,
         ];
         return {
-            exposes:[exposes],
+            exposes: [exposes],
             fromZigbee,
             toZigbee,
-            isModernExtend:true,
+            isModernExtend: true,
         };
     },
-    minBrightnessThreshold:():ModernExtend => {
-        const exposes = e.numeric("min_brightness_threshold",ea.ALL)
-            .withValueMax(50).withUnit("%").withValueMin(1)
-            .withCategory("config" )
+    minBrightnessThreshold: (): ModernExtend => {
+        const exposes = e
+            .numeric("min_brightness_threshold", ea.ALL)
+            .withValueMax(50)
+            .withUnit("%")
+            .withValueMin(1)
+            .withCategory("config")
             .withDescription("Lowest brightness level mapped to 1 % on the dimmer slider.");
-        
+
         const clusterName = "customClusterEwelink";
         const attributeName = "minBrightnessThreshold";
-        const toZigbee:Tz.Converter[] = [
+        const toZigbee: Tz.Converter[] = [
             {
                 key: ["min_brightness_threshold"],
                 convertSet: async (entity, key, value, meta) => {
-                    let rate = Number(value) * 255 / 100
+                    const rate = (Number(value) * 255) / 100;
                     logger.info(`from zigbee set min brightness threshold: ${rate}`, NS);
-                    await entity.write<typeof clusterName, SonoffEwelink>(clusterName, {[attributeName]:rate}, defaultResponseOptions);
+                    await entity.write<typeof clusterName, SonoffEwelink>(clusterName, {[attributeName]: rate}, defaultResponseOptions);
                     return {state: {[key]: value}};
                 },
                 convertGet: async (entity, key, meta) => {
                     await entity.read<typeof clusterName, SonoffEwelink>(clusterName, [attributeName], defaultResponseOptions);
                 },
-            }
+            },
         ];
-         const fromZigbee = [
+        const fromZigbee = [
             {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
@@ -1370,19 +1377,19 @@ const sonoffExtend = {
                     if (msg.data.minBrightnessThreshold !== undefined) {
                         const value = msg.data.minBrightnessThreshold;
                         logger.info(`form zigbee min brightness threshold ${value}`, NS);
-                        let rate = value / 255 * 100
+                        const rate = (value / 255) * 100;
                         return {min_brightness_threshold: Math.round(rate)};
                     }
                 },
             } satisfies Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport", "readResponse"]>,
         ];
         return {
-            exposes:[exposes],
+            exposes: [exposes],
             fromZigbee,
             toZigbee,
-            isModernExtend:true,
+            isModernExtend: true,
         };
-    }
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -3210,9 +3217,9 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart mini dimmer switch",
         extend: [
             m.light({
-                effect:false,
-                powerOnBehavior:true,
-                configureReporting:true
+                effect: false,
+                powerOnBehavior: true,
+                configureReporting: true,
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "current",
@@ -3220,7 +3227,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "acCurrentCurrentValue",
                 description: "Current",
                 unit: "A",
-                valueStep:0.01,
+                valueStep: 0.01,
                 scale: 1000,
                 access: "STATE_GET",
             }),
@@ -3265,12 +3272,12 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "seconds",
                 scale: 2,
             }),
-            sonoffExtend.inchingControlSet({},86399.5),
+            sonoffExtend.inchingControlSet({}, 86399.5),
             sonoffExtend.dimmerExternalSwitchTriggerMode(),
             sonoffExtend.setAutoCalibrationAction(),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "calibration_status",
-                lookup: {UnCalibrate: 0, Calibrating: 1,CalibrationFailed:2, Calibrated: 3},
+                lookup: {UnCalibrate: 0, Calibrating: 1, CalibrationFailed: 2, Calibrated: 3},
                 cluster: "customClusterEwelink",
                 attribute: "calibrationStatus",
                 description: "Calibration status.",
@@ -3279,7 +3286,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "calibration_progress",
-                access:"STATE_GET",
+                access: "STATE_GET",
                 cluster: "customClusterEwelink",
                 attribute: "calibrationProgress",
                 description: "Calibration progress.",
@@ -3289,10 +3296,10 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 1,
                 unit: "%",
             }),
-            sonoffExtend.minBrightnessThreshold(),     
+            sonoffExtend.minBrightnessThreshold(),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "transition_time",
-                access:"ALL",
+                access: "ALL",
                 cluster: "customClusterEwelink",
                 attribute: "transitionTime",
                 description: "Transition time",
@@ -3301,7 +3308,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 5,
                 valueStep: 0.1,
                 unit: "s",
-                scale:10,
+                scale: 10,
             }),
             sonoffExtend.setDimmingLightRate(),
         ],
@@ -3310,9 +3317,9 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read<"customClusterEwelink", SonoffEwelink>(
                 "customClusterEwelink",
-                [0x0016,0x001e,0x4001,0x4003],
+                [0x0016, 0x001e, 0x4001, 0x4003],
                 defaultResponseOptions,
             );
         },
-    }
+    },
 ];
