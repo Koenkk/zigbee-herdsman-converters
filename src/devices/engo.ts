@@ -418,9 +418,8 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         whiteLabel: [tuya.whitelabel("ENGO", "E40", "Zigbee Smart Thermostat", ["_TZE204_lnxdk2ch"])],
-        onEvent: async (...args: any[]) => {
-            const device = args[2];
-            if (device?.manufacturerName?.startsWith('_TZE204')) {
+        onEvent: async (_type: unknown, _data: unknown, device: any) => {
+            if (device.manufacturerName?.startsWith('_TZE204')) {
                 device.meta.supported = true;
             }
         },
