@@ -196,6 +196,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<'genOnOff', undefined, ['attributeReport', 'readResponse']>,
     
+    // Fix 1: Type the locationDesc properly
     acw02_error_text: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
@@ -206,8 +207,9 @@ const fzLocal = {
                 if (typeof locationDesc === 'string') {
                     errorText = locationDesc;
                 } else if (Array.isArray(locationDesc) && locationDesc.length > 0) {
-                    const textLength = locationDesc[0];
-                    errorText = String.fromCharCode.apply(null, locationDesc.slice(1, 1 + textLength));
+                    const textLength = locationDesc[0] as number;
+                    const textData = locationDesc.slice(1, 1 + textLength) as number[];
+                    errorText = String.fromCharCode(...textData);  // Changed from .apply
                 }
                 return {error_text: errorText.trim()};
             }
@@ -1268,13 +1270,9 @@ export const definitions: DefinitionWithExtend[] = [
             }
             
             // Initial read of unreportable attributes
-            try {
-                await endpoint1.read('hvacThermostat', ['runningMode']);
-                await endpoint1.read('genBasic', ['locationDesc']);
-                await endpoint1.read('hvacFanCtrl', ['fanMode']);
-            } catch (error) {
-                logger?.warn(`ACW02: Initial read failed: ${(error as Error).message}`);
-            }
+            await endpoint1.read('hvacThermostat', ['runningMode']);
+            await endpoint1.read('genBasic', ['locationDesc']);
+            await endpoint1.read('hvacFanCtrl', ['fanMode']);
         },
         
         extend: [
