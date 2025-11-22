@@ -55,20 +55,25 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     acw02_fan_mode: {
-        key: ['fan_mode'],
+        key: ["fan_mode"],
         convertSet: async (entity, key, value, meta) => {
             const fanModeMap: {[key: string]: number} = {
-                'quiet': 0x06, 'low': 0x01, 'low-med': 0x02,
-                'medium': 0x03, 'med-high': 0x04, 'high': 0x05, 'auto': 0x00,
+                quiet: 0x06,
+                low: 0x01,
+                "low-med": 0x02,
+                medium: 0x03,
+                "med-high": 0x04,
+                high: 0x05,
+                auto: 0x00,
             };
             const numericValue = fanModeMap[value as string];
             if (numericValue !== undefined) {
-                await entity.write('hvacFanCtrl', {'fanMode': numericValue});
+                await entity.write("hvacFanCtrl", {fanMode: numericValue});
                 return {state: {fan_mode: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacFanCtrl', ['fanMode']);
+            await entity.read("hvacFanCtrl", ["fanMode"]);
         },
     } satisfies Tz.Converter,
 };
@@ -161,50 +166,55 @@ const fzLocal = {
             return {[`switch_type_${channel}`]: getKey(switchTypesList, switchType)};
         },
     } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["readResponse", "attributeReport"]>,
-     acw02_fan_mode: {
-        cluster: 'hvacFanCtrl',
-        type: ['attributeReport', 'readResponse'],
+    acw02_fan_mode: {
+        cluster: "hvacFanCtrl",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('fanMode')) {
+            if (Object.hasOwn(msg.data, "fanMode")) {
                 const fanModeMap: {[key: number]: string} = {
-                    0x00: 'auto', 0x01: 'low', 0x02: 'low-med',
-                    0x03: 'medium', 0x04: 'med-high', 0x05: 'high',
-                    0x06: 'quiet', 0x0D: 'quiet',
+                    0: "auto",
+                    1: "low",
+                    2: "low-med",
+                    3: "medium",
+                    4: "med-high",
+                    5: "high",
+                    6: "quiet",
+                    13: "quiet",
                 };
                 return {fan_mode: fanModeMap[msg.data.fanMode as number]};
             }
         },
-    } satisfies Fz.Converter<'hvacFanCtrl', undefined, ['attributeReport', 'readResponse']>,
-    
+    } satisfies Fz.Converter<"hvacFanCtrl", undefined, ["attributeReport", "readResponse"]>,
+
     acw02_clean_status: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID === 7 && msg.data.hasOwnProperty('onOff')) {
-                return {filter_clean_status: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            if (msg.endpoint.ID === 7 && Object.hasOwn(msg.data, "onOff")) {
+                return {filter_clean_status: msg.data["onOff"] === 1 ? "ON" : "OFF"};
             }
         },
-    } satisfies Fz.Converter<'genOnOff', undefined, ['attributeReport', 'readResponse']>,
-    
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+
     acw02_error_status: {
-        cluster: 'genOnOff',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID === 9 && msg.data.hasOwnProperty('onOff')) {
-                return {ac_error_status: msg.data['onOff'] === 1 ? 'ON' : 'OFF'};
+            if (msg.endpoint.ID === 9 && Object.hasOwn(msg.data, "onOff")) {
+                return {ac_error_status: msg.data["onOff"] === 1 ? "ON" : "OFF"};
             }
         },
-    } satisfies Fz.Converter<'genOnOff', undefined, ['attributeReport', 'readResponse']>,
-    
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+
     acw02_error_text: {
-        cluster: 'genBasic',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "genBasic",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID === 1 && msg.data['locationDesc'] !== undefined) {
-                let errorText = '';
-                const locationDesc = msg.data['locationDesc'] as string | number[] | undefined;
-                
-                if (typeof locationDesc === 'string') {
+            if (msg.endpoint.ID === 1 && msg.data["locationDesc"] !== undefined) {
+                let errorText = "";
+                const locationDesc = msg.data["locationDesc"] as string | number[] | undefined;
+
+                if (typeof locationDesc === "string") {
                     errorText = locationDesc;
                 } else if (Array.isArray(locationDesc) && locationDesc.length > 0) {
                     const textLength = locationDesc[0] as number;
@@ -214,37 +224,44 @@ const fzLocal = {
                 return {error_text: errorText.trim()};
             }
         },
-    } satisfies Fz.Converter<'genBasic', undefined, ['attributeReport', 'readResponse']>,
-    
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
+
     acw02_thermostat: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data.hasOwnProperty('localTemp')) {
+            if (Object.hasOwn(msg.data, "localTemp")) {
                 result.local_temperature = (msg.data.localTemp as number) / 100;
             }
-            if (msg.data.hasOwnProperty('runningMode')) {
+            if (Object.hasOwn(msg.data, "runningMode")) {
                 const modeMap: {[key: number]: string} = {
-                    0x00: 'idle', 0x03: 'cool', 0x04: 'heat', 0x07: 'fan_only',
+                    0: "idle",
+                    3: "cool",
+                    4: "heat",
+                    7: "fan_only",
                 };
-                result.running_state = modeMap[msg.data.runningMode as number] || 'idle';
+                result.running_state = modeMap[msg.data.runningMode as number] || "idle";
             }
-            if (msg.data.hasOwnProperty('systemMode')) {
+            if (Object.hasOwn(msg.data, "systemMode")) {
                 const sysModeMap: {[key: number]: string} = {
-                    0x00: 'off', 0x01: 'auto', 0x03: 'cool',
-                    0x04: 'heat', 0x07: 'fan_only', 0x08: 'dry',
+                    0: "off",
+                    1: "auto",
+                    3: "cool",
+                    4: "heat",
+                    7: "fan_only",
+                    8: "dry",
                 };
-                result.system_mode = sysModeMap[msg.data.systemMode as number] || 'off';
+                result.system_mode = sysModeMap[msg.data.systemMode as number] || "off";
             }
-            if (msg.data.hasOwnProperty('occupiedHeatingSetpoint')) {
+            if (Object.hasOwn(msg.data, "occupiedHeatingSetpoint")) {
                 result.occupied_heating_setpoint = (msg.data.occupiedHeatingSetpoint as number) / 100;
-            } else if (msg.data.hasOwnProperty('occupiedCoolingSetpoint')) {
+            } else if (Object.hasOwn(msg.data, "occupiedCoolingSetpoint")) {
                 result.occupied_heating_setpoint = (msg.data.occupiedCoolingSetpoint as number) / 100;
             }
             return result;
         },
-    } satisfies Fz.Converter<'hvacThermostat', undefined, ['attributeReport', 'readResponse']>,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 
 function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {
@@ -1180,16 +1197,16 @@ export const definitions: DefinitionWithExtend[] = [
         description: "DIY Zigbee light using M5NanoC6",
         extend: [m.light({color: {modes: ["xy", "hs"]}})],
     },
-        {
-        zigbeeModel: ['acw02-z'],
-        model: 'ACW02-ZB',
-        vendor: 'Custom devices (DiY)',
-        description: 'ACW02 HVAC Thermostat Controller via Zigbee (Router)',
-        
+    {
+        zigbeeModel: ["acw02-z"],
+        model: "ACW02-ZB",
+        vendor: "Custom devices (DiY)",
+        description: "ACW02 HVAC Thermostat Controller via Zigbee (Router)",
+
         meta: {
             multiEndpoint: true,
         },
-        
+
         fromZigbee: [
             fzLocal.acw02_thermostat,
             fzLocal.acw02_fan_mode,
@@ -1205,43 +1222,42 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.acw02_fan_mode,
             tz.on_off,
         ],
-        
+
         exposes: [
-            e.climate()
-                .withSetpoint('occupied_heating_setpoint', 16, 31, 1)
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 16, 31, 1)
                 .withLocalTemperature()
-                .withSystemMode(['off', 'auto', 'cool', 'heat', 'dry', 'fan_only'])
-                .withRunningState(['idle', 'heat', 'cool', 'fan_only']),
-            exposes.enum('fan_mode', ea.ALL, ['quiet', 'low', 'low-med', 'medium', 'med-high', 'high', 'auto'])
-                .withDescription('Fan speed: Quiet=SILENT, Low=P20, Low-Med=P40, Medium=P60, Med-High=P80, High=P100, Auto=AUTO'),
-            exposes.text('error_text', ea.STATE_GET)
-                .withDescription('Error message from AC unit (read-only)'),
-            exposes.binary('ac_error_status', ea.STATE_GET, 'ON', 'OFF')
-                .withDescription('Error status indicator (read-only)'),
-            e.switch().withEndpoint('eco_mode').withDescription('Eco mode'),
-            e.switch().withEndpoint('swing_mode').withDescription('Swing mode'),
-            e.switch().withEndpoint('display').withDescription('Display control'),
-            e.switch().withEndpoint('night_mode').withDescription('Night/sleep mode'),
-            e.switch().withEndpoint('purifier').withDescription('Air purifier/ionizer'),
-            exposes.binary('filter_clean_status', ea.STATE_GET, 'ON', 'OFF')
-                .withDescription('Filter cleaning reminder (read-only)'),
-            e.switch().withEndpoint('mute').withDescription('Mute beep sounds'),
+                .withSystemMode(["off", "auto", "cool", "heat", "dry", "fan_only"])
+                .withRunningState(["idle", "heat", "cool", "fan_only"]),
+            exposes
+                .enum("fan_mode", ea.ALL, ["quiet", "low", "low-med", "medium", "med-high", "high", "auto"])
+                .withDescription("Fan speed: Quiet=SILENT, Low=P20, Low-Med=P40, Medium=P60, Med-High=P80, High=P100, Auto=AUTO"),
+            exposes.text("error_text", ea.STATE_GET).withDescription("Error message from AC unit (read-only)"),
+            exposes.binary("ac_error_status", ea.STATE_GET, "ON", "OFF").withDescription("Error status indicator (read-only)"),
+            e.switch().withEndpoint("eco_mode").withDescription("Eco mode"),
+            e.switch().withEndpoint("swing_mode").withDescription("Swing mode"),
+            e.switch().withEndpoint("display").withDescription("Display control"),
+            e.switch().withEndpoint("night_mode").withDescription("Night/sleep mode"),
+            e.switch().withEndpoint("purifier").withDescription("Air purifier/ionizer"),
+            exposes.binary("filter_clean_status", ea.STATE_GET, "ON", "OFF").withDescription("Filter cleaning reminder (read-only)"),
+            e.switch().withEndpoint("mute").withDescription("Mute beep sounds"),
         ],
-        
+
         endpoint: (device) => {
             return {
-                'default': 1,
-                'eco_mode': 2,
-                'swing_mode': 3,
-                'display': 4,
-                'night_mode': 5,
-                'purifier': 6,
-                'clean_sensor': 7,
-                'mute': 8,
-                'error_sensor': 9,
+                default: 1,
+                eco_mode: 2,
+                swing_mode: 3,
+                display: 4,
+                night_mode: 5,
+                purifier: 6,
+                clean_sensor: 7,
+                mute: 8,
+                error_sensor: 9,
             };
         },
-        
+
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -1252,44 +1268,47 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint7 = device.getEndpoint(7);
             const endpoint8 = device.getEndpoint(8);
             const endpoint9 = device.getEndpoint(9);
-            
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genBasic', 'hvacThermostat', 'hvacFanCtrl']);
+
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genBasic", "hvacThermostat", "hvacFanCtrl"]);
             await reporting.thermostatTemperature(endpoint1);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
-            await endpoint1.configureReporting('hvacThermostat', [{
-                attribute: 'systemMode',
-                minimumReportInterval: 1,
-                maximumReportInterval: 300,
-                reportableChange: 1,
-            }]);
-            
+            await endpoint1.configureReporting("hvacThermostat", [
+                {
+                    attribute: "systemMode",
+                    minimumReportInterval: 1,
+                    maximumReportInterval: 300,
+                    reportableChange: 1,
+                },
+            ]);
+
             // Configure all switch endpoints
             for (const ep of [endpoint2, endpoint3, endpoint4, endpoint5, endpoint6, endpoint7, endpoint8, endpoint9]) {
-                await reporting.bind(ep, coordinatorEndpoint, ['genOnOff']);
+                await reporting.bind(ep, coordinatorEndpoint, ["genOnOff"]);
                 await reporting.onOff(ep);
             }
-            
+
             // Initial read of unreportable attributes
-            await endpoint1.read('hvacThermostat', ['runningMode']);
-            await endpoint1.read('genBasic', ['locationDesc']);
-            await endpoint1.read('hvacFanCtrl', ['fanMode']);
+            await endpoint1.read("hvacThermostat", ["runningMode"]);
+            await endpoint1.read("genBasic", ["locationDesc"]);
+            await endpoint1.read("hvacFanCtrl", ["fanMode"]);
         },
-        
+
         extend: [
             m.poll({
                 key: "acw02_state",
-                option: e.numeric("acw02_poll_interval", ea.SET)
+                option: e
+                    .numeric("acw02_poll_interval", ea.SET)
                     .withValueMin(-1)
                     .withDescription("Polling interval in seconds for unreportable attributes (default: 60s, -1 to disable)"),
                 defaultIntervalSeconds: 60,
                 poll: async (device) => {
                     const endpoint1 = device.getEndpoint(1);
                     if (!endpoint1) return;
-                    
+
                     try {
-                        await endpoint1.read('hvacThermostat', ['runningMode']);
-                        await endpoint1.read('hvacFanCtrl', ['fanMode']);
-                        await endpoint1.read('genBasic', ['locationDesc']);
+                        await endpoint1.read("hvacThermostat", ["runningMode"]);
+                        await endpoint1.read("hvacFanCtrl", ["fanMode"]);
+                        await endpoint1.read("genBasic", ["locationDesc"]);
                     } catch (error) {
                         console.error(`ACW02 polling failed: ${(error as Error).message}`);
                     }
