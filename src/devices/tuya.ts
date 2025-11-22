@@ -790,6 +790,17 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    TLSR82xxAction: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (Object.hasOwn(msg.data, "onOff")) {
+                const btn = msg.endpoint.ID;
+                const state = msg.data["onOff"] === 1 ? "on" : "off";
+                return {action: `${state}_${btn}`};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0726_action: {
         cluster: "genOnOff",
@@ -21266,57 +21277,21 @@ export const definitions: DefinitionWithExtend[] = [
                 modelID: "TLSR82xx",
                 manufacturerName: "TELINK",
                 applicationVersion: 0,
-
                 endpoints: [
-                    {
-                        ID: 1,
-                        profileID: 260,
-                        deviceID: 0,
-                        inputClusters: [0, 3, 1, 6], // genBasic, genIdentify, genPowerCfg, genOnOff
-                        outputClusters: [4, 5, 4096], // genGroups, genScenes, touchlink
-                    },
-                    {
-                        ID: 2,
-                        profileID: 260,
-                        deviceID: 0,
-                        inputClusters: [0, 3, 6], // genBasic, genIdentify, genOnOff
-                        outputClusters: [],
-                    },
+                    {ID: 1, profileID: 260, deviceID: 0, inputClusters: [0, 3, 1, 6], outputClusters: [4, 5, 4096]},
+                    {ID: 2, profileID: 260, deviceID: 0, inputClusters: [0, 3, 6], outputClusters: []},
                 ],
             },
         ],
-
-        model: "TLSR82xx_2Btn_Remote",
+        model: "TLSR82xx_2btn_remote",
         vendor: "Telink",
-        description: "2-Button Remote",
-
-        fromZigbee: [
-            {
-                cluster: "genOnOff",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if (Object.hasOwn(msg.data, "onOff")) {
-                        const btn = msg.endpoint.ID;
-                        const state = msg.data["onOff"] === 1 ? "on" : "off";
-                        return {action: `${state}_${btn}`};
-                    }
-                },
-            },
-            fz.battery,
-        ],
-
+        description: "2 button remote",
+        fromZigbee: [fzLocal.TLSR82xxAction, fz.battery],
         toZigbee: [],
-
         configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
         },
-
         exposes: [e.battery(), e.action(["on_1", "off_1", "on_2", "off_2"])],
-
-        meta: {multiEndpoint: true},
     },
 ];
