@@ -1,5 +1,42 @@
 # Changelog
 
+## [25.73.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.72.0...v25.73.0) (2025-11-21)
+
+
+### Features
+
+* **add:** 3RWS0218Z ([#10792](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10792)) ([c9314b3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c9314b3f4651caae6c57cee688c84acc5cf432db))
+* **add:** HQM-300Z ([#10779](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10779)) ([c0c7f4f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c0c7f4f0773ddb5223eaa0a17081575c1a4eb51b))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE200_jhkttplm` as Tuya TS0601_cover_with_1_switch ([#10808](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10808)) ([d8b98f8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d8b98f8647158283c34ce6112cab005bd186923f))
+* Tongou TOQCB2-80: fix `commandMcuVersionResponse` spamming https://github.com/Koenkk/zigbee-herdsman-converters/issues/10810 ([f999dd1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f999dd1a5c04fc4173352e04ccded2a5f16664f4))
+
+## [25.72.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.71.0...v25.72.0) (2025-11-20)
+
+
+### Features
+
+* **add:** 4512793 ([#10022](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10022)) ([f2abbbd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f2abbbddcad958dde06adaff91598d2c14227f58))
+* **add:** 8720169277243 ([#10745](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10745)) ([ad63113](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ad631133faea90450f17b1d6ab29acef3f224c90))
+* **add:** S-ZB-1RE1-R251, S-ZB-COV1-R251 ([#10791](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10791)) ([5466227](https://github.com/Koenkk/zigbee-herdsman-converters/commit/546622738795fbc90804dc4c09c505a33b1a9236))
+* **add:** TOWSMR1-20A-AC ([#10789](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10789)) ([943ac80](https://github.com/Koenkk/zigbee-herdsman-converters/commit/943ac80dac09f0f6ce6872ebd909c38986fd2dd3))
+* Aqara W100: re-work support ([#10787](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10787)) ([a219cb3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a219cb3eb5b7dfa686ea1c2ab6778fe82745d893))
+* IKEA E2204/2206: expose `child_lock` and `led_enable` ([#10793](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10793)) ([a88bb18](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a88bb189367538eb07531be06c28fcce3d906be2))
+* MultIR MIR-SM200: expose `silence` ([#10733](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10733)) ([b69bafa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b69bafae7914ba474f426234413d45c01cddd187))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3210_klsm24op` as Oz Smart Things DL41-03-10-R-ZB ([#10803](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10803)) ([59584d4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/59584d45a1f32e15fa3c87335ffd2b6cea1bdf49))
+* **detect:** Detect `_TZE200_vizxbhco` as Tuya TS0601_dimmer_3 ([#10801](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10801)) ([db43bb9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db43bb906626808383d942a22ea8c5155a2d06dc))
+* **detect:** Detect `_TZE284_vjpaih9f` as AVATTO TS0601_thermostat_14 https://github.com/Koenkk/zigbee2mqtt/issues/29726 ([a7074a2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a7074a2a008a1594899b045adb63589a4e75426b))
+* Slacky-DIY THERM_SLACKY_DIY_R0A: various fixes ([#10804](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10804)) ([617992b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/617992b61351f6710a3d91bf5e0f7a73b265f076))
+* Third Reality 3RWS18BZ: various updates ([#10790](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10790)) ([30ed83e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/30ed83eed6d3554f03f998613133fb0129db43a7))
+* Woolley BSD29/BSD59: dont' respond to genTime request https://github.com/Koenkk/zigbee2mqtt/issues/29673 ([644bd96](https://github.com/Koenkk/zigbee-herdsman-converters/commit/644bd964553fae40621b490bb39417dd00289bbd))
+
 ## [25.71.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.70.0...v25.71.0) (2025-11-19)
 
 

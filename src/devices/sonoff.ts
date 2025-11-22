@@ -2311,7 +2311,7 @@ export const definitions: DefinitionWithExtend[] = [
                 skipDuplicateTransaction: true,
                 configureReporting: true,
             }),
-            // m.electricityMeter({current: {divisor: 100}, voltage: {divisor: 100}, power: {divisor: 1}, energy: {divisor: 1000}}),
+            m.electricityMeter({cluster: "metering", power: false}),
             sonoffExtend.addCustomClusterEwelink(),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "current",

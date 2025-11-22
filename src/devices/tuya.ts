@@ -790,6 +790,17 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    TLSR82xxAction: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (Object.hasOwn(msg.data, "onOff")) {
+                const btn = msg.endpoint.ID;
+                const state = msg.data["onOff"] === 1 ? "on" : "off";
+                return {action: `${state}_${btn}`};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0726_action: {
         cluster: "genOnOff",
@@ -3252,7 +3263,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vm1gyrso", "_TZE204_1v1dxkck", "_TZE204_znvwzxkq", "_TZE284_znvwzxkq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vm1gyrso", "_TZE204_1v1dxkck", "_TZE204_znvwzxkq", "_TZE284_znvwzxkq", "_TZE200_vizxbhco"]),
         model: "TS0601_dimmer_3",
         vendor: "Tuya",
         description: "3 gang smart dimmer",
@@ -6593,7 +6604,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_9xfjixap" /* model: 'ME167', vendor: 'AVATTO' */,
             "_TZE200_jkfbph7l" /* model: 'ME167', vendor: 'AVATTO' */,
             "_TZE200_rxntag7i" /* model: 'ME168', vendor: 'AVATTO' */,
-            "_TZE200_4utwozi2" /* model: 'ME167', vendor: 'MYUET' */,
+            "_TZE200_4utwozi2" /* model: 'ME167', vendor: 'AVATTO' */,
             "_TZE200_yqgbrdyo",
             "_TZE284_p3dbf6qs",
             "_TZE200_rxq4iti9",
@@ -12625,7 +12636,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["TLSR82xx"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jhkttplm"]),
         model: "TS0601_cover_with_1_switch",
         vendor: "Tuya",
         description: "Curtain/blind switch with 1 Gang switch",
@@ -13469,8 +13480,8 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_tdhnhhiy",
         ]),
         model: "TS0601_switch_8",
-        vendor: "Tuya",
-        description: "ZYXH 8 gang switch",
+        vendor: "ZYXH",
+        description: "8 gang switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch().withEndpoint("l1"),
@@ -13593,8 +13604,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dqolcpcp", "_TZE284_dqolcpcp"]),
         model: "TS0601_switch_12",
-        vendor: "Tuya",
-        description: "ZXYH 12 gang switch",
+        vendor: "ZYXH",
+        description: "12 gang switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [...Array.from({length: 12}, (_, i) => tuya.exposes.switch().withEndpoint(`l${i + 1}`))],
         endpoint: (device) => {
@@ -14238,8 +14249,8 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vmcgja59", "_TZE284_vmcgja59"]),
-        model: "ZYXH",
-        vendor: "Tuya",
+        model: "ZYXH_switch_24",
+        vendor: "ZYXH",
         description: "24 gang switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [...Array.from(Array(24).keys()).map((ep) => tuya.exposes.switch().withEndpoint(`l${ep + 1}`))],
@@ -15614,6 +15625,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_432zhuwe",
             "_TZE204_432zhuwe",
             "_TZE284_s5vuaadg",
+            "_TZE284_tuhfx7tf",
         ]),
         model: "TOWSMR1",
         vendor: "Tongou",
@@ -15626,110 +15638,152 @@ export const definitions: DefinitionWithExtend[] = [
                 respondToMcuVersionResponse: true,
             }),
         ],
-        whiteLabel: [tuya.whitelabel("Tongou", "TOSA1", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_432zhuwe", "_TZE204_432zhuwe"])],
-        exposes: [
-            tuya.exposes.switch(),
-            e.temperature(),
-            e.current(),
-            e.power(),
-            e.voltage(),
-            e.energy(),
-            e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
-            e
-                .enum("event", ea.STATE, [
-                    "normal",
-                    "over_current_trip",
-                    "over_power_trip",
-                    "high_temp_trip",
-                    "over_voltage_trip",
-                    "under_voltage_trip",
-                    "over_current_alarm",
-                    "over_power_alarm",
-                    "high_temp_alarm",
-                    "over_voltage_alarm",
-                    "under_voltage_alarm",
-                    "remote_on",
-                    "remote_off",
-                    "manual_on",
-                    "manual_off",
-                    "leakage_trip",
-                    "leakage_alarm",
-                    "restore_default",
-                    "automatic_closing",
-                    "electricity_shortage",
-                    "electricity_shortage_alarm",
-                    "timing_switch_On",
-                    "timing_switch_off",
-                ])
-                .withDescription("Last event of the device"),
-            e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
-            e
-                .numeric("over_current_threshold", ea.STATE_SET)
-                .withUnit("A")
-                .withDescription("Setup the value on the device")
-                .withValueMin(1)
-                .withValueMax(40),
-            e.enum("over_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over voltage setting"),
-            e
-                .numeric("over_voltage_threshold", ea.STATE_SET)
-                .withUnit("V")
-                .withDescription("Setup value on the device")
-                .withValueMin(240)
-                .withValueMax(295),
-            e.enum("under_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Under voltage setting"),
-            e
-                .numeric("under_voltage_threshold", ea.STATE_SET)
-                .withUnit("V")
-                .withDescription("Setup value on the device")
-                .withValueMin(145)
-                .withValueMax(220),
-            e.enum("leakage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Leakage setting"),
-            e
-                .numeric("leakage_threshold", ea.STATE_SET)
-                .withUnit("mA")
-                .withDescription("Setup value on the device")
-                .withValueMin(30)
-                .withValueMax(100),
-            e.enum("temperature_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Temperature setting"),
-            e
-                .numeric("temperature_threshold", ea.STATE_SET)
-                .withUnit("°C")
-                .withDescription("Setup value on the device")
-                .withValueMin(-25)
-                .withValueMax(100),
-            e.enum("over_power_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over power setting"),
-            e
-                .numeric("over_power_threshold", ea.STATE_SET)
-                .withUnit("W")
-                .withDescription("Setup value on the device")
-                .withValueMin(1)
-                .withValueMax(25000),
-            e
-                .binary("auto_reclosing", ea.STATE_SET, "ON", "OFF")
-                .withLabel("Auto reclosing")
-                .withDescription(
-                    "When the circuit breaker trips due to voltage protection, it will automatically close when the circuit voltage returns to normal",
-                ),
-            e.binary("restore_default", ea.STATE_SET, "ON", "OFF").withDescription("Turn ON to restore default settings"),
-            e
-                .binary("overcurrent_recloser", ea.STATE_SET, "ON", "OFF")
-                .withLabel("Overcurrent Recloser")
-                .withDescription(
-                    "When the circuit breaker trips due to overcurrent protection, it will automatically close when the circuit voltage returns to normal",
-                ),
-            e
-                .binary("leakage_recloser", ea.STATE_SET, "ON", "OFF")
-                .withLabel("Leakage Recloser")
-                .withDescription(
-                    "When the circuit breaker trips due to leakage protection, it will automatically close when the circuit voltage returns to normal",
-                ),
-            e
-                .binary("overpower_recloser", ea.STATE_SET, "ON", "OFF")
-                .withLabel("Overpower Recloser")
-                .withDescription(
-                    "When the circuit breaker trips due to overpower protection, it will automatically close when the circuit voltage returns to normal",
-                ),
+        whiteLabel: [
+            tuya.whitelabel("Tongou", "TOWSMR1-40A-AC", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_432zhuwe", "_TZE204_432zhuwe"]),
+            tuya.whitelabel("Tongou", "TOWSMR1-40A-A", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_s5vuaadg"]),
+            tuya.whitelabel("Tongou", "TOWSMR1-20A-AC", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_tuhfx7tf"]),
         ],
+        exposes: (device, options) => {
+            const exps: Expose[] = [
+                tuya.exposes.switch(),
+                e.temperature(),
+                e.current(),
+                e.power(),
+                e.voltage(),
+                e.energy(),
+                e
+                    .enum("event", ea.STATE, [
+                        "normal",
+                        "over_current_trip",
+                        "over_power_trip",
+                        "high_temp_trip",
+                        "over_voltage_trip",
+                        "under_voltage_trip",
+                        "over_current_alarm",
+                        "over_power_alarm",
+                        "high_temp_alarm",
+                        "over_voltage_alarm",
+                        "under_voltage_alarm",
+                        "remote_on",
+                        "remote_off",
+                        "manual_on",
+                        "manual_off",
+                        "leakage_trip",
+                        "leakage_alarm",
+                        "restore_default",
+                        "automatic_closing",
+                        "electricity_shortage",
+                        "electricity_shortage_alarm",
+                        "timing_switch_On",
+                        "timing_switch_off",
+                    ])
+                    .withDescription("Last event of the device"),
+                e.enum("over_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over voltage setting"),
+                e
+                    .numeric("over_voltage_threshold", ea.STATE_SET)
+                    .withUnit("V")
+                    .withDescription("Setup value on the device")
+                    .withValueMin(240)
+                    .withValueMax(295),
+                e.enum("under_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Under voltage setting"),
+                e
+                    .numeric("under_voltage_threshold", ea.STATE_SET)
+                    .withUnit("V")
+                    .withDescription("Setup value on the device")
+                    .withValueMin(145)
+                    .withValueMax(220),
+                e.enum("temperature_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Temperature setting"),
+                e
+                    .numeric("temperature_threshold", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withDescription("Setup value on the device")
+                    .withValueMin(-25)
+                    .withValueMax(100),
+                e.enum("over_power_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over power setting"),
+                e
+                    .numeric("over_power_threshold", ea.STATE_SET)
+                    .withUnit("W")
+                    .withDescription("Setup value on the device")
+                    .withValueStep(10)
+                    .withValueMin(5)
+                    .withValueMax(25000),
+                e
+                    .binary("auto_reclosing", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Auto reclosing")
+                    .withDescription(
+                        "When the circuit breaker trips due to voltage protection, it will automatically close when the circuit voltage returns to normal",
+                    ),
+                e.binary("restore_default", ea.STATE_SET, "ON", "OFF").withDescription("Turn ON to restore default settings"),
+                e
+                    .binary("overcurrent_recloser", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Overcurrent Recloser")
+                    .withDescription(
+                        "When the circuit breaker trips due to overcurrent protection, it will automatically close when the circuit voltage returns to normal",
+                    ),
+                e
+                    .binary("leakage_recloser", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Leakage Recloser")
+                    .withDescription(
+                        "When the circuit breaker trips due to leakage protection, it will automatically close when the circuit voltage returns to normal",
+                    ),
+                e
+                    .binary("overpower_recloser", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Overpower Recloser")
+                    .withDescription(
+                        "When the circuit breaker trips due to overpower protection, it will automatically close when the circuit voltage returns to normal",
+                    ),
+            ];
+            if (!device || device.manufacturerName === "_TZE284_432zhuwe" || device.manufacturerName === "_TZE204_432zhuwe") {
+                exps.push(
+                    e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
+                    e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
+                    e
+                        .numeric("over_current_threshold", ea.STATE_SET)
+                        .withUnit("A")
+                        .withDescription("Setup the value on the device")
+                        .withValueMin(1)
+                        .withValueMax(40),
+                    e.enum("leakage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Leakage setting"),
+                    e
+                        .numeric("leakage_threshold", ea.STATE_SET)
+                        .withUnit("mA")
+                        .withDescription("Setup value on the device")
+                        .withValueStep(5)
+                        .withValueMin(30)
+                        .withValueMax(100),
+                );
+            } else if (device.manufacturerName === "_TZE284_s5vuaadg") {
+                exps.push(
+                    e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
+                    e
+                        .numeric("over_current_threshold", ea.STATE_SET)
+                        .withUnit("A")
+                        .withDescription("Setup the value on the device")
+                        .withValueMin(1)
+                        .withValueMax(40),
+                );
+            } else if (device.manufacturerName === "_TZE284_tuhfx7tf") {
+                exps.push(
+                    e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
+                    e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
+                    e
+                        .numeric("over_current_threshold", ea.STATE_SET)
+                        .withUnit("A")
+                        .withDescription("Setup the value on the device")
+                        .withValueMin(1)
+                        .withValueMax(20),
+                    e.enum("leakage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Leakage setting"),
+                    e
+                        .numeric("leakage_threshold", ea.STATE_SET)
+                        .withUnit("mA")
+                        .withDescription("Setup value on the device")
+                        .withValueStep(5)
+                        .withValueMin(30)
+                        .withValueMax(100),
+                );
+            }
+            return exps;
+        },
         meta: {
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100],
@@ -16627,7 +16681,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart circuit breaker",
         // Important: respondToMcuVersionResponse should be false otherwise there is an avalanche of commandMcuVersionResponse messages every second.
         // queryIntervalSeconds: is doing a pooling to update the device's parameters, now defined to update data every 3 minutes.
-        extend: [tuya.modernExtend.tuyaBase({dp: true, queryIntervalSeconds: 3 * 60, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryIntervalSeconds: 3 * 60})],
         exposes: [
             tuya.exposes.switch(),
             e.energy(),
@@ -20807,7 +20861,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vjpaih9f"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vjpaih9f", "_TZE284_vjpaih9f"]),
         model: "TS0601_thermostat_14",
         vendor: "AVATTO",
         description: "Thermostatic radiator valve",
@@ -21229,5 +21283,28 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}}),
         ],
+    },
+    {
+        fingerprint: [
+            {
+                modelID: "TLSR82xx",
+                manufacturerName: "TELINK",
+                applicationVersion: 0,
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 0, inputClusters: [0, 3, 1, 6], outputClusters: [4, 5, 4096]},
+                    {ID: 2, profileID: 260, deviceID: 0, inputClusters: [0, 3, 6], outputClusters: []},
+                ],
+            },
+        ],
+        model: "TLSR82xx_2btn_remote",
+        vendor: "Telink",
+        description: "2 button remote",
+        fromZigbee: [fzLocal.TLSR82xxAction, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+        },
+        exposes: [e.battery(), e.action(["on_1", "off_1", "on_2", "off_2"])],
     },
 ];

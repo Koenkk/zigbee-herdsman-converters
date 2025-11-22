@@ -1,8 +1,9 @@
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 const fzLocal = {
     MIRSO100: {
@@ -19,6 +20,17 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"ssIasZone", undefined, "raw">,
+};
+
+const tzLocal = {
+    MIRSM200: {
+        key: ["silence"],
+        convertSet: async (entity, key, value, meta) => {
+            if (value === "ON") {
+                await entity.command("genOnOff", "off", {});
+            }
+        },
+    } satisfies Tz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -66,12 +78,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MIR-SM200",
         vendor: "MultIR",
         description: "Smoke sensor",
-        extend: [
-            m.battery(),
-            m.iasZoneAlarm({
-                zoneType: "smoke",
-                zoneAttributes: ["alarm_1", "tamper", "battery_low"],
-            }),
+        toZigbee: [tzLocal.MIRSM200],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
+        exposes: [
+            exposes.enum("silence", ea.SET, ["ON"]).withDescription("After enabling mute, it will return to detection state after 90 seconds."),
         ],
     },
     {
