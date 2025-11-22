@@ -1,4 +1,3 @@
-import type {Device} from "zigbee-herdsman/dist/controller/model";
 import * as exposes from "../lib/exposes";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -6,30 +5,6 @@ import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
-
-// --- Helper Functions (Specifiek voor de E40) ---
-
-const retryOperation = async (operation: () => Promise<void>, retries = 3, delayMs = 2000) => {
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-            await operation();
-            return true;
-        } catch {
-            if (attempt < retries) await new Promise((res) => setTimeout(res, delayMs));
-        }
-    }
-};
-
-const readWeeklySchedule = async (device: Device) => {
-    const scheduleDPs = [109, 110, 111, 112, 113, 114, 115];
-    for (const dp of scheduleDPs) {
-        await retryOperation(async () => {
-            await tuya.sendDataPointValue(device.getEndpoint(1), dp, null, {read: true});
-        });
-    }
-};
-
-// --- Definitions ---
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -443,11 +418,6 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         whiteLabel: [tuya.whitelabel("ENGO", "E40", "Zigbee Smart Thermostat", ["_TZE204_lnxdk2ch"])],
-        onEvent: async (type, data, device) => {
-            if (type === "deviceInterview" || type === "deviceAnnounce") {
-                await readWeeklySchedule(device);
-            }
-        },
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF"),
             e
