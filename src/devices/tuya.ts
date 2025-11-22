@@ -10495,6 +10495,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_402vrq2i",
             "_TZ3000_abrsvsou",
             "_TZ3000_gwkzibhs",
+            "_TZ3000_ugi8ky6u",
         ]),
         model: "ERS-10TZBVK-AA",
         vendor: "Tuya",
@@ -10512,6 +10513,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Tuya", "ZG-101Z_D_1", "Smart knob", ["_TZ3000_402vrq2i"]),
             tuya.whitelabel("Moes", "ZG-101ZD", "Smart knob", ["_TZ3000_gwkzibhs"]),
+            tuya.whitelabel("Immax", "07768L", "Immax NEO Smart rotary knob", ["_TZ3000_ugi8ky6u"]),
         ],
         toZigbee: [tz.tuya_operation_mode],
         exposes: [
