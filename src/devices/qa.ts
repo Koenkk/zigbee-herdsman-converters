@@ -310,4 +310,41 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_nthhgkd6"]),
+        model: "QADZ4DIN",
+        vendor: "QA",
+        description: "4 channel dimmer module",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.lightBrightness().withMinBrightness().withEndpoint("l1"),
+            tuya.exposes.lightBrightness().withMinBrightness().withEndpoint("l2"),
+            tuya.exposes.lightBrightness().withMinBrightness().withEndpoint("l3"),
+            tuya.exposes.lightBrightness().withMinBrightness().withEndpoint("l4"),
+            tuya.exposes.switchType(),
+            e.enum("power_on_behavior", ea.STATE_SET, ["off", "on", "previous"]),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1, l4: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, "brightness_l1", tuya.valueConverter.scale0_254to0_1000],
+                [3, "min_brightness_l1", tuya.valueConverter.scale0_254to0_1000],
+                [7, "state_l2", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [8, "brightness_l2", tuya.valueConverter.scale0_254to0_1000],
+                [9, "min_brightness_l2", tuya.valueConverter.scale0_254to0_1000],
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [15, "state_l3", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [16, "brightness_l3", tuya.valueConverter.scale0_254to0_1000],
+                [17, "min_brightness_l3", tuya.valueConverter.scale0_254to0_1000],
+                [101, "state_l4", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [102, "brightness_l4", tuya.valueConverter.scale0_254to0_1000],
+                [103, "min_brightness_l4", tuya.valueConverter.scale0_254to0_1000],
+                [106, "switch_type", tuya.valueConverter.switchType],
+            ],
+        },
+    },
 ];

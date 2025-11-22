@@ -737,9 +737,11 @@ export function iasGetPanelStatusResponse(): ModernExtend {
         type: ["commandGetPanelStatus"],
         convert: (model, msg, publish, options, meta) => {
             if (globalStore.hasValue(msg.endpoint, "panelStatus")) {
+                const delayUntil = globalStore.getValue(msg.endpoint, "delayUntil", 0);
+                const secondsRemain = delayUntil > 0 ? Math.round(Math.max(0, delayUntil - performance.now()) / 1000) : 0;
                 const payload = {
                     panelstatus: globalStore.getValue(msg.endpoint, "panelStatus"),
-                    secondsremain: 0x00,
+                    secondsremain: Math.min(secondsRemain, constants.iasMaxSecondsRemain),
                     audiblenotif: 0x00,
                     alarmstatus: 0x00,
                 };

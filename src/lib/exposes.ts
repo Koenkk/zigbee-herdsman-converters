@@ -904,6 +904,7 @@ export const options = {
     transition: () =>
         new Numeric("transition", access.SET)
             .withValueMin(0)
+            .withValueStep(0.1)
             .withDescription(
                 "Controls the transition time (in seconds) of on/off, brightness, color temperature (if applicable) and color (if applicable) changes. Defaults to `0` (no transition).",
             ),
