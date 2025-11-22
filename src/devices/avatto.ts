@@ -32,7 +32,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_4aijvczq",
             "_TZE200_r5ksy7qo",
             "_TZE200_4utwozi2",
-            "_TZE200_9xfjixap",
         ]),
         model: "ME168_AVATTO",
         vendor: "AVATTO",
