@@ -20423,7 +20423,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "switch_1", tuya.valueConverter.onOff],
+                [1, "state", tuya.valueConverter.onOff],
                 [21, "cur_current", tuya.valueConverterBasic.scale(0, 30000, 0, 30000)],
                 [22, "cur_power", tuya.valueConverter.divideBy10],
                 [23, "cur_voltage", tuya.valueConverter.divideBy10],
