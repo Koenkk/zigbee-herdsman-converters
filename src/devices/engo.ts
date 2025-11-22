@@ -412,12 +412,10 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_lnxdk2ch"]),
-        model: "E40-THERMOSTAT",
+        model: "E40",
         vendor: "ENGO",
-        description: "Zigbee smart thermostat E40",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        whiteLabel: [tuya.whitelabel("ENGO", "E40", "Zigbee Smart Thermostat", ["_TZE204_lnxdk2ch"])],
+        description: "Zigbee smart thermostat",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF"),
             e
@@ -427,7 +425,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-3.5, 3.5, 0.5, ea.STATE_SET)
                 .withRunningState(["idle", "heat", "cool"], ea.STATE)
-                .withPreset(["Manual", "Schedule", "Frost"]),
+                .withPreset(["manual", "schedule", "frost"]),
             e
                 .numeric("backlight", ea.STATE_SET)
                 .withUnit("%")
@@ -435,10 +433,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1),
-            e.enum("sensor_error", ea.STATE, ["Normal", "E1", "E2"]),
+            e.enum("sensor_error", ea.STATE, ["normal", "E1", "E2"]),
             e.child_lock(),
             e.enum("relay_mode", ea.STATE_SET, ["NO", "NC", "OFF"]),
-            e.enum("sensor_choose", ea.STATE_SET, ["Internal", "All", "External"]),
+            e.enum("sensor_choose", ea.STATE_SET, ["internal", "all", "external"]),
             e.numeric("holiday_temperature", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(45).withValueStep(0.5),
             e.numeric("holiday_days", ea.STATE_SET).withUnit("days").withValueMin(1).withValueMax(30).withValueStep(1),
             e.enum("control_algorithm", ea.STATE_SET, [
@@ -503,7 +501,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [32, "holiday_temperature", tuya.valueConverter.divideBy10],
                 [33, "holiday_days", tuya.valueConverter.raw],
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
-                [43, "sensor_choose", tuya.valueConverterBasic.lookup({Internal: tuya.enum(0), All: tuya.enum(1), External: tuya.enum(2)})],
+                [43, "sensor_choose", tuya.valueConverterBasic.lookup({internal: tuya.enum(0), all: tuya.enum(1), external: tuya.enum(2)})],
                 [44, "backlight", tuya.valueConverter.raw],
                 [
                     45,
@@ -517,7 +515,7 @@ export const definitions: DefinitionWithExtend[] = [
                         LEVEL5: tuya.enum(5),
                     }),
                 ],
-                [58, "preset", tuya.valueConverterBasic.lookup({Manual: tuya.enum(0), Schedule: tuya.enum(1), Frost: tuya.enum(3)})],
+                [58, "preset", tuya.valueConverterBasic.lookup({manual: tuya.enum(0), schedule: tuya.enum(1), frost: tuya.enum(3)})],
                 [
                     101,
                     "control_algorithm",
@@ -537,7 +535,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [106, "frost_set", tuya.valueConverter.divideBy10],
                 [107, "valve_protection", tuya.valueConverter.onOff],
                 [108, "relay_mode", tuya.valueConverterBasic.lookup({NO: tuya.enum(0), NC: tuya.enum(1), OFF: tuya.enum(2)})],
-                [120, "sensor_error", tuya.valueConverterBasic.lookup({Normal: tuya.enum(0), E1: tuya.enum(1), E2: tuya.enum(2)})],
+                [120, "sensor_error", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), E1: tuya.enum(1), E2: tuya.enum(2)})],
                 [109, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
                 [110, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
                 [111, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
