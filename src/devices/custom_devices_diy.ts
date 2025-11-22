@@ -196,20 +196,20 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<'genOnOff', undefined, ['attributeReport', 'readResponse']>,
     
-    // Fix 1: Type the locationDesc properly
     acw02_error_text: {
         cluster: 'genBasic',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID === 1 && msg.data['locationDesc'] !== undefined) {
                 let errorText = '';
-                const locationDesc = msg.data['locationDesc'];
+                const locationDesc = msg.data['locationDesc'] as string | number[] | undefined;
+                
                 if (typeof locationDesc === 'string') {
                     errorText = locationDesc;
                 } else if (Array.isArray(locationDesc) && locationDesc.length > 0) {
                     const textLength = locationDesc[0] as number;
                     const textData = locationDesc.slice(1, 1 + textLength) as number[];
-                    errorText = String.fromCharCode(...textData);  // Changed from .apply
+                    errorText = String.fromCharCode(...textData);
                 }
                 return {error_text: errorText.trim()};
             }
