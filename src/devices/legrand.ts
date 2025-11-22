@@ -717,4 +717,11 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ["NLIS - Triple light switch"],
+        model: "281506",
+        vendor: "Legrand",
+        description: "Triple light switch",
+        extend: [m.deviceEndpoints({endpoints: {right: 1, center: 2, left: 3}}), m.onOff({endpointNames: ["right", "center", "left"]})],
+    },
 ];
