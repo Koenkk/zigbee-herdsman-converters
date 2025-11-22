@@ -920,7 +920,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GL-D-001P",
         vendor: "Gledopto",
         description: "Zigbee 9W Downlight RGB+CCT 350-450 lm",
-        extend: [gledoptoLight({colorTemp: {range:[158,500]}, color:{modes:["xy","hs"], enhancedHue:true}})],
+        extend: [gledoptoLight({colorTemp: {range: [158, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["GL-D-002P"],
