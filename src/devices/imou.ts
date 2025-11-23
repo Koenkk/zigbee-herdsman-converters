@@ -73,4 +73,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Wireless switch",
         extend: [m.battery(), imouAlarmButton()],
     },
+    {
+        zigbeeModel: ['ZD2-EN'],
+        model: 'ZD2-EN',
+        vendor: 'MultIR',
+        description: 'Automatically generated definition',
+        extend: [m.battery(), m.iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]})],
+    },
 ];
