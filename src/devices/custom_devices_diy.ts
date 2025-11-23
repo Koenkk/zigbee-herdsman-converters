@@ -154,7 +154,6 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
-
     acw02_error_status: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -164,7 +163,6 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
-
     acw02_error_text: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
@@ -184,7 +182,6 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
-
     acw02_thermostat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -1161,14 +1158,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ACW02-ZB",
         vendor: "Custom devices (DiY)",
         description: "ACW02 HVAC Thermostat Controller via Zigbee (Router)",
-
-        meta: {
-            multiEndpoint: true,
-        },
-
+        meta: {multiEndpoint: true},
         fromZigbee: [fzLocal.acw02_thermostat, fzLocal.acw02_clean_status, fzLocal.acw02_error_status, fz.on_off, fzLocal.acw02_error_text],
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.on_off],
-
         exposes: [
             e
                 .climate()
@@ -1186,7 +1178,6 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.binary("filter_clean_status", ea.STATE_GET, "ON", "OFF").withDescription("Filter cleaning reminder (read-only)"),
             e.switch().withEndpoint("mute").withDescription("Mute beep sounds"),
         ],
-
         endpoint: (device) => {
             return {
                 default: 1,
@@ -1200,7 +1191,6 @@ export const definitions: DefinitionWithExtend[] = [
                 error_sensor: 9,
             };
         },
-
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
@@ -1235,7 +1225,6 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint1.read("genBasic", ["locationDesc"]);
             await endpoint1.read("hvacFanCtrl", ["fanMode"]);
         },
-
         extend: [
             m.enumLookup({
                 name: "fan_mode",
