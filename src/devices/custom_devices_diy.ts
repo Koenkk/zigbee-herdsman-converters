@@ -1166,19 +1166,8 @@ export const definitions: DefinitionWithExtend[] = [
             multiEndpoint: true,
         },
 
-        fromZigbee: [
-            fzLocal.acw02_thermostat,
-            fzLocal.acw02_clean_status,
-            fzLocal.acw02_error_status,
-            fz.on_off,
-            fzLocal.acw02_error_text,
-        ],
-        toZigbee: [
-            tz.thermostat_local_temperature,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_system_mode,
-            tz.on_off,
-        ],
+        fromZigbee: [fzLocal.acw02_thermostat, fzLocal.acw02_clean_status, fzLocal.acw02_error_status, fz.on_off, fzLocal.acw02_error_text],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.on_off],
 
         exposes: [
             e
