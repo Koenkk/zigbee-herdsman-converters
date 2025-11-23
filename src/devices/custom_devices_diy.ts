@@ -54,28 +54,6 @@ const tzLocal = {
             return;
         },
     } satisfies Tz.Converter,
-    acw02_fan_mode: {
-        key: ["fan_mode"],
-        convertSet: async (entity, key, value, meta) => {
-            const fanModeMap: {[key: string]: number} = {
-                quiet: 0x06,
-                low: 0x01,
-                "low-med": 0x02,
-                medium: 0x03,
-                "med-high": 0x04,
-                high: 0x05,
-                auto: 0x00,
-            };
-            const numericValue = fanModeMap[value as string];
-            if (numericValue !== undefined) {
-                await entity.write("hvacFanCtrl", {fanMode: numericValue});
-                return {state: {fan_mode: value}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read("hvacFanCtrl", ["fanMode"]);
-        },
-    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -166,25 +144,6 @@ const fzLocal = {
             return {[`switch_type_${channel}`]: getKey(switchTypesList, switchType)};
         },
     } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["readResponse", "attributeReport"]>,
-    acw02_fan_mode: {
-        cluster: "hvacFanCtrl",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            if (Object.hasOwn(msg.data, "fanMode")) {
-                const fanModeMap: {[key: number]: string} = {
-                    0: "auto",
-                    1: "low",
-                    2: "low-med",
-                    3: "medium",
-                    4: "med-high",
-                    5: "high",
-                    6: "quiet",
-                    13: "quiet",
-                };
-                return {fan_mode: fanModeMap[msg.data.fanMode as number]};
-            }
-        },
-    } satisfies Fz.Converter<"hvacFanCtrl", undefined, ["attributeReport", "readResponse"]>,
 
     acw02_clean_status: {
         cluster: "genOnOff",
@@ -423,7 +382,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["cc2538.router.v1"],
         model: "CC2538.ROUTER.V1",
         vendor: "Custom devices (DiY)",
-        description: "MODKAM stick СС2538 router",
+        description: "MODKAM stick Ð¡Ð¡2538 router",
         fromZigbee: [],
         toZigbee: [],
         exposes: [],
@@ -432,7 +391,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["cc2538.router.v2"],
         model: "CC2538.ROUTER.V2",
         vendor: "Custom devices (DiY)",
-        description: "MODKAM stick СС2538 router with temperature sensor",
+        description: "MODKAM stick Ð¡Ð¡2538 router with temperature sensor",
         fromZigbee: [fz.device_temperature],
         toZigbee: [],
         exposes: [e.device_temperature()],
@@ -925,14 +884,14 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 name: "temperature_calibration",
-                unit: "°C",
+                unit: "Â°C",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0010, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 valueStep: 0.01,
                 scale: 100,
-                description: "The temperature calibration offset is set in 0.01° steps.",
+                description: "The temperature calibration offset is set in 0.01Â° steps.",
             }),
             m.numeric({
                 name: "humidity_calibration",
@@ -947,23 +906,23 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 name: "comfort_temperature_min",
-                unit: "°C",
+                unit: "Â°C",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: {ID: 0x0102, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 scale: 100,
-                description: "Comfort parameters/Temperature minimum, in 0.01°C steps.",
+                description: "Comfort parameters/Temperature minimum, in 0.01Â°C steps.",
             }),
             m.numeric({
                 name: "comfort_temperature_max",
-                unit: "°C",
+                unit: "Â°C",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: {ID: 0x0103, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 scale: 100,
-                description: "Comfort parameters/Temperature maximum, in 0.01°C steps.",
+                description: "Comfort parameters/Temperature maximum, in 0.01Â°C steps.",
             }),
             m.numeric({
                 name: "comfort_humidity_min",
@@ -1045,7 +1004,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 12.7,
                 valueStep: 0.1,
                 scale: 10,
-                description: "The temperature calibration, in 0.1° steps. Requires v0.1.1.6 or newer.",
+                description: "The temperature calibration, in 0.1Â° steps. Requires v0.1.1.6 or newer.",
             }),
             m.numeric({
                 name: "humidity_calibration",
@@ -1067,7 +1026,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0102, type: 40},
                 valueMin: -127,
                 valueMax: 127,
-                description: "Comfort parameters/Temperature minimum, in 1° steps. Requires v0.1.1.7 or newer.",
+                description: "Comfort parameters/Temperature minimum, in 1Â° steps. Requires v0.1.1.7 or newer.",
             }),
             m.numeric({
                 name: "comfort_temperature_max",
@@ -1076,7 +1035,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0103, type: 40},
                 valueMin: -127,
                 valueMax: 127,
-                description: "Comfort parameters/Temperature maximum, in 1° steps. Requires v0.1.1.7 or newer.",
+                description: "Comfort parameters/Temperature maximum, in 1Â° steps. Requires v0.1.1.7 or newer.",
             }),
             m.numeric({
                 name: "comfort_humidity_min",
@@ -1209,7 +1168,6 @@ export const definitions: DefinitionWithExtend[] = [
 
         fromZigbee: [
             fzLocal.acw02_thermostat,
-            fzLocal.acw02_fan_mode,
             fzLocal.acw02_clean_status,
             fzLocal.acw02_error_status,
             fz.on_off,
@@ -1219,7 +1177,6 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_system_mode,
-            tzLocal.acw02_fan_mode,
             tz.on_off,
         ],
 
@@ -1230,9 +1187,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature()
                 .withSystemMode(["off", "auto", "cool", "heat", "dry", "fan_only"])
                 .withRunningState(["idle", "heat", "cool", "fan_only"]),
-            exposes
-                .enum("fan_mode", ea.ALL, ["quiet", "low", "low-med", "medium", "med-high", "high", "auto"])
-                .withDescription("Fan speed: Quiet=SILENT, Low=P20, Low-Med=P40, Medium=P60, Med-High=P80, High=P100, Auto=AUTO"),
             exposes.text("error_text", ea.STATE_GET).withDescription("Error message from AC unit (read-only)"),
             exposes.binary("ac_error_status", ea.STATE_GET, "ON", "OFF").withDescription("Error status indicator (read-only)"),
             e.switch().withEndpoint("eco_mode").withDescription("Eco mode"),
@@ -1294,6 +1248,21 @@ export const definitions: DefinitionWithExtend[] = [
         },
 
         extend: [
+            m.enumLookup({
+                name: "fan_mode",
+                cluster: "hvacFanCtrl",
+                attribute: "fanMode",
+                lookup: {
+                    auto: 0x00,
+                    low: 0x01,
+                    "low-med": 0x02,
+                    medium: 0x03,
+                    "med-high": 0x04,
+                    high: 0x05,
+                    quiet: 0x06,
+                },
+                description: "Fan speed: Quiet=SILENT, Low=P20, Low-Med=P40, Medium=P60, Med-High=P80, High=P100, Auto=AUTO",
+            }),
             m.poll({
                 key: "acw02_state",
                 option: e
