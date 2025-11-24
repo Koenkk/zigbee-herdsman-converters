@@ -15,8 +15,8 @@ importers:
         specifier: ^7.7.3
         version: 7.7.3
       zigbee-herdsman:
-        specifier: ^6.4.0
-        version: 6.4.0
+        specifier: ^7.0.0
+        version: 7.0.0
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.3.4
@@ -1048,11 +1048,11 @@ packages:
     resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
     engines: {node: '>=12'}
 
-  zigbee-herdsman@6.4.0:
-    resolution: {integrity: sha512-OPTCVv1HWmN1orCBTQC9PvzohRm0ulctDxMeHDB2Zs6DNcgBlxiLe+KWpPjwPOJgsNkc6EWoK+oKwesU+A/ioA==}
+  zigbee-herdsman@7.0.0:
+    resolution: {integrity: sha512-2qB2/DxWRaUxTfoFNLa7pNV+FR0UJrDoqgbqMKjw9MGe1HjjSyq6lUXN1e9IGJ4Hezx4uKSkYVBr2zDUS+qxsA==}
 
-  zigbee-on-host@0.2.0:
-    resolution: {integrity: sha512-w77v8G0BCNHHSWS6G+ZDq9LN2rA5gBWEUd8uW4/zdzVP0TD2AZ7/I2gsxmkMwpSqJa6GKjNe86A2uSmHiHHUZw==}
+  zigbee-on-host@0.2.2:
+    resolution: {integrity: sha512-GixjVXTWDaLAN2650vuafv+KUY0JbwsCg5n8dsarFvCREkQw1B5DbQjbMs2Gz1+aRto2QtKfU7tkdDEa5JtIUg==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
 snapshots:
@@ -1930,7 +1930,7 @@ snapshots:
       string-width: 5.1.2
       strip-ansi: 7.1.2
 
-  zigbee-herdsman@6.4.0:
+  zigbee-herdsman@7.0.0:
     dependencies:
       '@date-fns/tz': 1.4.1
       '@serialport/bindings-cpp': 13.0.1
@@ -1941,8 +1941,8 @@ snapshots:
       fast-deep-equal: 3.1.3
       mixin-deep: 2.0.1
       slip: 1.0.2
-      zigbee-on-host: 0.2.0
+      zigbee-on-host: 0.2.2
     transitivePeerDependencies:
       - supports-color
 
-  zigbee-on-host@0.2.0: {}
+  zigbee-on-host@0.2.2: {}
