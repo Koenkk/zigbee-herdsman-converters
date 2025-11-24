@@ -567,7 +567,7 @@ export const definitions: DefinitionWithExtend[] = [
                     now.getMinutes(),
                     now.getSeconds()
                 ];
-                await endpoint.command('manuSpecificTuya', 'mcuSyncTime', {payload: payload});
+                await endpoint.command('manuSpecificTuya', 'mcuSyncTime', {payload: payload, payloadSize: 7});
             } catch (error) {
                  // fail silently
             }
