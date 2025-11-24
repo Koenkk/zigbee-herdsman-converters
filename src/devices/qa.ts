@@ -356,12 +356,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.switch(),
             e.action(["scene_1"]),
-            e
-                .numeric("backlight_brightness", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(99)
-                .withDescription("Backlight brightness (0-99)")
-                .withUnit("%"),
+            e.numeric("backlight_brightness", ea.ALL).withValueMin(0).withValueMax(99).withDescription("Backlight brightness (0-99)").withUnit("%"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -376,17 +371,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QAT42Z2B",
         vendor: "QA",
         description: "2 channel scene switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {"l1": 1, "l2": 2}})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 2}})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
             e.action(["scene_1", "scene_2"]),
-            e
-                .numeric("backlight_brightness", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(99)
-                .withDescription("Backlight brightness (0-99)")
-                .withUnit("%"),
+            e.numeric("backlight_brightness", ea.ALL).withValueMin(0).withValueMax(99).withDescription("Backlight brightness (0-99)").withUnit("%"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -403,18 +393,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QAT42Z3B",
         vendor: "QA",
         description: "3 channel scene switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {"l1": 1, "l2": 2, "l3": 3}})],],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
             e.switch().withEndpoint("l3"),
             e.action(["scene_1", "scene_2", "scene_3"]),
-            e
-                .numeric("backlight_brightness", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(99)
-                .withDescription("Backlight brightness (0-99)")
-                .withUnit("%"),
+            e.numeric("backlight_brightness", ea.ALL).withValueMin(0).withValueMax(99).withDescription("Backlight brightness (0-99)").withUnit("%"),
         ],
         meta: {
             tuyaDatapoints: [
