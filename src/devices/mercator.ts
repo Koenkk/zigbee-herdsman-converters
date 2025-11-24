@@ -88,6 +88,27 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+    fingerprint: tuya.fingerprint("TS011F", ["_TZ3210_q7oryllx"]),
+        model: "SPP01G",
+        vendor: "Mercator Ikuü",
+        description: "Single power point",
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genBasic", "genOnOff", "haElectricalMeasurement", "seMetering"]);
+            await reporting.onOff(endpoint1);
+            await reporting.rmsVoltage(endpoint1, { change: 5 });
+            await reporting.rmsCurrent(endpoint1, { change: 50 });
+            await reporting.activePower(endpoint1, { change: 1 });
+            await reporting.currentSummDelivered(endpoint1);
+            //await reporting.onOff(endpoint1);
+            endpoint1.saveClusterAttributeKeyValue("haElectricalMeasurement", { acCurrentDivisor: 1000, acCurrentMultiplier: 1 });
+            endpoint1.saveClusterAttributeKeyValue("seMetering", { divisor: 100, multiplier: 1 });
+            device.save();
+        },
+        extend: [tuya.modernExtend.tuyaOnOff({ powerOutageMemory: true, electricalMeasurements: true, onOffCountdown: true, childLock: true})],
+},
+    {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3210_raqjcxo5"]),
         model: "SPP02G",
         vendor: "Mercator Ikuü",
