@@ -2346,24 +2346,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CK-BL702-AL-01",
         vendor: "Tuya",
         description: "Zigbee LED bulb",
-
-        // Add standard Zigbee power on behavior converters
         toZigbee: [tz.power_on_behavior],
         fromZigbee: [fz.power_on_behavior],
-
         extend: [
             tuya.modernExtend.tuyaLight({
                 colorTemp: {range: [142, 500]},
                 color: true,
             }),
         ],
-        // Add power on behavior expose
         exposes: [e.power_on_behavior(["off", "on", "toggle", "previous"])],
-
         meta: {
             moveToLevelWithOnOffDisable: true,
         },
-
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("genOnOff", ["startUpOnOff"]);
