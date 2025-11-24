@@ -3959,7 +3959,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_go3tvswy", "_TZE204_2imwyigp", "_TZE200_2imwyigp"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_2imwyigp", "_TZE200_2imwyigp"]),
         model: "MG-ZG03W",
         vendor: "Tuya",
         description: "3 gang switch",
@@ -3979,6 +3979,40 @@ export const definitions: DefinitionWithExtend[] = [
         },
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1};
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_go3tvswy", "_TZE200_oyti2ums"]),
+        model: "MG-GPO04ZSLP",
+        vendor: "Tuya",
+        description: "2 x socket + 1 x light with master switch and metering",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        onEvent: tuya.onEventSetTime,
+        exposes: [
+            e.switch().withEndpoint("master").setAccess("state", ea.STATE_SET).withDescription("Master switch controlling all relays"),
+            e.switch().withEndpoint("light").setAccess("state", ea.STATE_SET).withDescription("Light relay"),
+            e.switch().withEndpoint("left").setAccess("state", ea.STATE_SET).withDescription("Left socket"),
+            e.switch().withEndpoint("right").setAccess("state", ea.STATE_SET).withDescription("Right socket"),
+            e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Line voltage reported by the outlet"),
+            e.numeric("current", ea.STATE).withUnit("A").withDescription("Line current reported by the outlet"),
+            e.numeric("energy_wh", ea.STATE).withUnit("Wh").withDescription("Accumulated energy (raw Wh counter)"),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_right", tuya.valueConverter.onOff],
+                [2, "state_light", tuya.valueConverter.onOff],
+                [3, "state_left", tuya.valueConverter.onOff],
+                [13, "state_master", tuya.valueConverter.onOff],
+                [21, "current", tuya.valueConverter.divideBy1000],
+                [22, "energy_wh", tuya.valueConverter.raw],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+            ],
+        },
+        endpoint: (device) => {
+            return {master: 1, light: 1, left: 1, right: 1};
         },
     },
     {
