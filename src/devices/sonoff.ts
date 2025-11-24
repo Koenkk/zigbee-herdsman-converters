@@ -3310,7 +3310,15 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "s",
                 scale: 10,
             }),
-            sonoffExtend.setDimmingLightRate(),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "dimming_light_rate",
+                lookup: {"1x": 1, "2x": 2, "3x": 3, "4x": 4, "5x": 5},
+                cluster: "customClusterEwelink",
+                attribute: "dimmingLightRate",
+                description: "Speed of brightness change via external switch.",
+                access: "ALL",
+                entityCategory: "config",
+            }),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
