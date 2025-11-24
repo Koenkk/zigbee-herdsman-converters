@@ -203,11 +203,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
-        zigbeeModel: ['ZBEK-30'],
-        model: 'ZBEK-30',
-        vendor: 'Adeo',
-        description: 'ENKI LEXMAN Gdansk',
-        extend: [m.light({"colorTemp":{"range":[153,370]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        zigbeeModel: ["ZBEK-30"],
+        model: "ZBEK-30",
+        vendor: "Adeo",
+        description: "ENKI LEXMAN Gdansk",
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["ZBEK-31"],
