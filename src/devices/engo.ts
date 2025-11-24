@@ -604,7 +604,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(5)
                 .withValueMax(45)
                 .withValueStep(0.5),
-            e.numeric("holiday_days", ea.STATE_SET).withUnit("days").withDescription("Number of holiday days"),
+            e
+                .numeric("holiday_days", ea.STATE_SET)
+                .withUnit("days")
+                .withDescription("Number of holiday days")
+                .withValueMin(1)
+                .withValueMax(30)
+                .withValueStep(1),
             e
                 .numeric("frost_set", ea.STATE_SET)
                 .withUnit("°C")
