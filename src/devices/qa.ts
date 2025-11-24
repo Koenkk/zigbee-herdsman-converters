@@ -347,4 +347,100 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_nzns7udm"]),
+        model: "QAT42Z1B",
+        vendor: "QA",
+        description: "QA 1CH Scene Switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch(),
+            e.action(["scene_1"]),
+            // Backlight brightness control (0-99%)
+            e
+                .numeric("backlight_brightness", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(99)
+                .withDescription("Backlight brightness (0-99)")
+                .withUnit("%"),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [24, "state", tuya.valueConverter.onOff],
+                [5, "action", tuya.valueConverter.static("scene_1")],
+                // Backlight brightness datapoint
+                [101, "backlight_brightness", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_1aqlsquf"]),
+        model: "QAT42Z2B",
+        vendor: "QA",
+        description: "QA 2CH Scene Switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.action(["scene_1", "scene_2"]),
+            // Backlight brightness control (0-99%)
+            e
+                .numeric("backlight_brightness", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(99)
+                .withDescription("Backlight brightness (0-99)")
+                .withUnit("%"),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [5, "action", tuya.valueConverter.static("scene_1")],
+                [6, "action", tuya.valueConverter.static("scene_2")],
+                // Backlight brightness datapoint
+                [101, "backlight_brightness", tuya.valueConverter.raw],
+            ],
+        },
+        endpoint: (device) => {
+            return {l1: 1, l2: 1};
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_pgxndxp4"]),
+        model: "QAT42Z3B",
+        vendor: "QA",
+        description: "QA 3CH Scene Switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e.action(["scene_1", "scene_2", "scene_3"]),
+            // Backlight brightness control (0-99%)
+            e
+                .numeric("backlight_brightness", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(99)
+                .withDescription("Backlight brightness (0-99)")
+                .withUnit("%"),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [26, "state_l3", tuya.valueConverter.onOff],
+                [5, "action", tuya.valueConverter.static("scene_1")],
+                [6, "action", tuya.valueConverter.static("scene_2")],
+                [7, "action", tuya.valueConverter.static("scene_3")],
+                // Backlight brightness datapoint
+                [101, "backlight_brightness", tuya.valueConverter.raw],
+            ],
+        },
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1};
+        },
+    },
 ];
