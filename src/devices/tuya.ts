@@ -3986,9 +3986,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MG-GPO04ZSLP",
         vendor: "Tuya",
         description: "2 x socket + 1 x light with master switch and metering",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {master: 1, light: 1, left: 2, right: 3}})],
         exposes: [
             e.switch().withEndpoint("master").setAccess("state", ea.STATE_SET).withDescription("Master switch controlling all relays"),
             e.switch().withEndpoint("light").setAccess("state", ea.STATE_SET).withDescription("Light relay"),
@@ -3999,7 +3997,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("energy_wh", ea.STATE).withUnit("Wh").withDescription("Accumulated energy (raw Wh counter)"),
         ],
         meta: {
-            multiEndpoint: true,
             tuyaDatapoints: [
                 [1, "state_right", tuya.valueConverter.onOff],
                 [2, "state_light", tuya.valueConverter.onOff],
@@ -4009,9 +4006,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [22, "energy_wh", tuya.valueConverter.raw],
                 [23, "voltage", tuya.valueConverter.divideBy10],
             ],
-        },
-        endpoint: (device) => {
-            return {master: 1, light: 1, left: 1, right: 1};
         },
     },
     {
