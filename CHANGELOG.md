@@ -1,5 +1,28 @@
 # Changelog
 
+## [25.75.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.74.0...v25.75.0) (2025-11-24)
+
+
+### Features
+
+* Add actions ([#10800](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10800)) ([1ad3dcf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1ad3dcfd0db34a9fa8a7a16ffb04123e7a0701dd))
+* **add:** 07768L ([#10829](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10829)) ([9f47768](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9f477680cb9427325f0edcbd3dfbc4e9764ccdff))
+* **add:** ACW02-ZB ([#10826](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10826)) ([9ce4dac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9ce4dacfb8defc4f8c0c94baf32cf5a34b966fe1))
+* **add:** MG-GPO04ZSLP ([#10838](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10838)) ([1d5e819](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1d5e8196ff48a61b1de6ef4803d01dd8c974ef62))
+* **add:** QAT42Z1B, QAT42Z2B, QAT42Z3B ([#10842](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10842)) ([601d3cb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/601d3cbbcc0b3012fd8a4b24196490c683ea0a05))
+* **add:** ZBEK-30 ([#10841](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10841)) ([80ff5d8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/80ff5d8408e2ec9a3069e98a53d3835891d0482e))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_isw9u95y` as Tuya TH09Z https://github.com/Koenkk/zigbee2mqtt/issues/29554 ([9252f60](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9252f60ef2ca4e483dc7e5f96cc92558917fa704))
+* **ignore:** bump the minor-patch group with 3 updates ([#10835](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10835)) ([e3f42f4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e3f42f434779afdefe021b26476a260a3e770ebd))
+* **ignore:** bump zigbee-herdsman from 6.4.0 to 7.0.0 ([#10836](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10836)) ([854b130](https://github.com/Koenkk/zigbee-herdsman-converters/commit/854b130dd9f0e438df016c58278665ba62c97f1a))
+* Innr RB and BB 262: fix description and OTA ([#10840](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10840)) ([e1426b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e1426b78fbeba7bda2410d3404ecee40178c2795))
+* Moes ZM-104B-M: disable unsupported power on behaviour https://github.com/Koenkk/zigbee2mqtt/issues/29759 ([c4f5e94](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c4f5e94ccf2805c9effa52c187c2ad290cfd2876))
+* Perenio PEHPL0X: fix `consumed_energy` unit ([#10830](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10830)) ([e517b7d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e517b7dbf4f2bc97bac88e326dc983b521d34dbf))
+* Tuya CK-BL702-AL-01: expose power on behaviour ([#10796](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10796)) ([67dc471](https://github.com/Koenkk/zigbee-herdsman-converters/commit/67dc471038442b77f950e3e664b2adc8186207d0))
+
 ## [25.74.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.73.0...v25.74.0) (2025-11-22)
 
 
