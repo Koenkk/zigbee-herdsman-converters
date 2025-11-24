@@ -550,8 +550,8 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ca3i8m8p"]),
         model: "EONE-230W",
         vendor: "ENGO",
-        description: "Zigbee smart thermostat EONE-230W",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        description: "Zigbee smart thermostat",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", queryOnConfigure: true})],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
 
@@ -571,13 +571,6 @@ export const definitions: DefinitionWithExtend[] = [
             } catch (_error) {
                 // fail silently
             }
-
-            // Force Read of all settings
-            try {
-                await endpoint.command("manuSpecificTuya", "dataQuery", {});
-            } catch (_error) {
-                // fail silently
-            }
         },
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
@@ -593,10 +586,10 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("floor_temperature", ea.STATE).withUnit("°C").withDescription("Measured floor temperature"),
             e.numeric("humidity", ea.STATE).withUnit("%").withDescription("Measured humidity"),
             e.numeric("backlight", ea.STATE_SET).withUnit("%").withDescription("Backlight brightness").withValueMin(0).withValueMax(100),
-            e.enum("sensor_error", ea.STATE, ["Normal", "E1", "E2"]).withDescription("Sensor error status"),
-            e.child_lock().withDescription("Child lock"),
+            e.enum("sensor_error", ea.STATE, ["normal", "E1", "E2"]).withDescription("Sensor error status"),
+            e.child_lock(),
             e.enum("relay_mode", ea.STATE_SET, ["NO", "NC", "OFF"]).withDescription("Relay mode"),
-            e.enum("sensor_choose", ea.STATE_SET, ["Internal", "All", "External"]).withDescription("Sensor selection"),
+            e.enum("sensor_choose", ea.STATE_SET, ["internal", "all", "external"]).withDescription("Sensor selection"),
             e
                 .numeric("holiday_temperature", ea.STATE_SET)
                 .withUnit("°C")
@@ -625,7 +618,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("comfort_warm_floor", ea.STATE_SET, ["OFF", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"])
                 .withDescription("Comfort warm floor setting"),
-            e.enum("temp_resolution", ea.STATE_SET, ["One", "Five"]).withDescription("Temperature resolution"),
+            e.enum("temp_resolution", ea.STATE_SET, ["one", "five"]).withDescription("Temperature resolution"),
             e.max_temperature().withValueMin(5).withValueMax(45).withDescription("Max temperature"),
             e.min_temperature().withValueMin(5).withValueMax(45).withDescription("Min temperature"),
             e.text("schedule_monday", ea.STATE_SET).withDescription("Schedule Monday"),
@@ -649,7 +642,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [33, "holiday_days", tuya.valueConverter.raw],
                 [34, "humidity", tuya.valueConverter.raw],
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
-                [43, "sensor_choose", tuya.valueConverterBasic.lookup({Internal: tuya.enum(0), All: tuya.enum(1), External: tuya.enum(2)})],
+                [43, "sensor_choose", tuya.valueConverterBasic.lookup({internal: tuya.enum(0), all: tuya.enum(1), external: tuya.enum(2)})],
                 [44, "backlight", tuya.valueConverter.raw],
                 [
                     101,
@@ -673,7 +666,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [114, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
                 [115, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
                 [116, "floor_temperature", tuya.valueConverter.divideBy10],
-                [117, "temp_resolution", tuya.valueConverterBasic.lookup({One: tuya.enum(0), Five: tuya.enum(1)})],
+                [117, "temp_resolution", tuya.valueConverterBasic.lookup({one: tuya.enum(0), five: tuya.enum(1)})],
                 [
                     118,
                     "comfort_warm_floor",
@@ -686,7 +679,7 @@ export const definitions: DefinitionWithExtend[] = [
                         LEVEL5: tuya.enum(5),
                     }),
                 ],
-                [120, "sensor_error", tuya.valueConverterBasic.lookup({Normal: tuya.enum(0), E1: tuya.enum(1), E2: tuya.enum(2)})],
+                [120, "sensor_error", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), E1: tuya.enum(1), E2: tuya.enum(2)})],
                 [122, "valve_protection", tuya.valueConverter.onOff],
             ],
         },
