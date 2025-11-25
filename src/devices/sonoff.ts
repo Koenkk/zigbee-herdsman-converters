@@ -250,7 +250,7 @@ const sonoffExtend = {
             },
             commandsResponse: {},
         }),
-    inchingControlSet: (args: ExternalInchingAgs = {},max_time:number = 3599.5): ModernExtend => {
+    inchingControlSet: (args: ExternalInchingAgs = {}, maxTime = 3599.5): ModernExtend => {
         const {endpointNames = undefined} = args;
         const clusterName = "customClusterEwelink";
         const commandName = "protocolData";
@@ -268,7 +268,7 @@ const sonoffExtend = {
                         .withDescription("Delay time for executing a inching action.")
                         .withUnit("seconds")
                         .withValueMin(0.5)
-                        .withValueMax(max_time)
+                        .withValueMax(maxTime)
                         .withValueStep(0.5),
                 )
                 .withFeature(
@@ -1184,7 +1184,7 @@ const sonoffExtend = {
             fromZigbee,
             isModernExtend: true,
         };
-    }
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -3012,9 +3012,9 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart mini dimmer switch",
         extend: [
             m.light({
-                effect:false,
-                powerOnBehavior:true,
-                configureReporting:true
+                effect: false,
+                powerOnBehavior: true,
+                configureReporting: true,
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "current",
@@ -3067,29 +3067,31 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "seconds",
                 scale: 2,
             }),
-            sonoffExtend.inchingControlSet({},86399.5),
+            sonoffExtend.inchingControlSet({}, 86399.5),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "external_trigger_mode",
-                lookup:{edge: 0, pulse: 1, "double pulse": 3,"triple pulse": 4},
-                cluster:"customClusterEwelink",
-                attribute:"externalTriggerMode",
-                access :"ALL",
-                entityCategory:"config",
-                description:"External trigger mode, which can be one of edge, pulse,double pulse,triple pulse."+
-                    "The appropriate triggering mode can be selected according to the type of external switch to achieve a better use experience."
+                lookup: {edge: 0, pulse: 1, "double pulse": 3, "triple pulse": 4},
+                cluster: "customClusterEwelink",
+                attribute: "externalTriggerMode",
+                access: "ALL",
+                entityCategory: "config",
+                description:
+                    "External trigger mode, which can be one of edge, pulse,double pulse,triple pulse." +
+                    "The appropriate triggering mode can be selected according to the type of external switch to achieve a better use experience.",
             }),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "set_calibration_action",
-                lookup: {start: [0x03,0x01,0x01,0x01], stop: [0x03,0x01,0x01,0x02], clear:[0x03,0x01,0x01,0x03]},
+                lookup: {start: [0x03, 0x01, 0x01, 0x01], stop: [0x03, 0x01, 0x01, 0x02], clear: [0x03, 0x01, 0x01, 0x03]},
                 cluster: "customClusterEwelink",
                 attribute: "setCalibrationAction",
-                description: "After calibration, the light adjustment becomes smooth and consistent.. Takes about 2 minutes; device unavailable during calibration.",
+                description:
+                    "After calibration, the light adjustment becomes smooth and consistent.. Takes about 2 minutes; device unavailable during calibration.",
                 access: "ALL",
                 entityCategory: "config",
             }),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "calibration_status",
-                lookup: {uncalibrate: 0, cailbrating: 1,calibration_failed:2, calibrated: 3},
+                lookup: {uncalibrate: 0, cailbrating: 1, calibration_failed: 2, calibrated: 3},
                 cluster: "customClusterEwelink",
                 attribute: "calibrationStatus",
                 description: "Calibration status.",
@@ -3110,7 +3112,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "min_brightness_threshold",
-                access:"ALL",
+                access: "ALL",
                 cluster: "customClusterEwelink",
                 attribute: "minBrightnessThreshold",
                 description: "Lowest brightness level mapped to 1 % on the dimmer slider.",
@@ -3119,8 +3121,8 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 50,
                 valueStep: 1,
                 unit: "%",
-                scale:2.55,
-                precision:0,
+                scale: 2.55,
+                precision: 0,
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "transition_time",
@@ -3154,5 +3156,5 @@ export const definitions: DefinitionWithExtend[] = [
                 defaultResponseOptions,
             );
         },
-    }
+    },
 ];
