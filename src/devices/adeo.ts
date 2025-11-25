@@ -38,6 +38,13 @@ const tzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["LDSENK06"],
+        model: "LDSENK06",
+        vendor: "ADEO",
+        description: "ENKI LEXMAN indoor siren 85db",
+        extend: [m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}), m.iasWarning()],
+    },
+    {
         zigbeeModel: ["LDSENK08"],
         model: "LDSENK08",
         vendor: "ADEO",
