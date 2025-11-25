@@ -2067,7 +2067,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 4, 35, 0.5)
                 .withLocalTemperature()
-                .withLocalTemperatureCalibration(-12.8, 12.7, 0.2)
+                .withLocalTemperatureCalibration(-12.7, 12.7, 0.2)
                 .withSystemMode(["off", "auto", "heat"], ea.ALL, "Mode of the thermostat")
                 .withRunningState(["idle", "heat"], ea.STATE_GET),
             e.battery(),
