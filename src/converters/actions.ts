@@ -92,7 +92,11 @@ export const ACTIONS: Record<string, (controller: Controller, args: Record<strin
         return await controller.sendRaw(rawPayload);
     },
     hue_factory_reset: async (controller, args): Promise<undefined> => {
-        assert(typeof args.extended_pan_id === "string" && /^0x[a-f0-9]{16}$/.test(args.extended_pan_id));
+        let extendedPanId = args.extended_pan_id;
+        if (!extendedPanId) {
+            extendedPanId = (await controller.getNetworkParameters()).extendedPanID;
+        }
+        assert(typeof extendedPanId === "string" && /^0x[a-f0-9]{16}$/.test(extendedPanId));
         assert(Array.isArray(args.serial_numbers) && args.serial_numbers.length > 0);
 
         const rawPayload: RawPayload = {
@@ -105,7 +109,7 @@ export const ACTIONS: Record<string, (controller: Controller, args: Record<strin
                 manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
                 tsn: 0,
                 commandKey: "hueResetRequest",
-                payload: {extendedPanId: args.extended_pan_id, serialCount: args.serial_numbers.length, serialNumbers: args.serial_numbers},
+                payload: {extendedPanId, serialCount: args.serial_numbers.length, serialNumbers: args.serial_numbers},
             },
             disableResponse: true,
         };
