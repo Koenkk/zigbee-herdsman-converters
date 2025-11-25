@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_sonkaxrd"]),
         model: "E12",
-        vendor: "NOUS",
+        vendor: "Nous",
         description: "Zigbee carbon monoxide (CO) sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
@@ -42,7 +42,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_1di7ujzp"]),
         model: "E13",
-        vendor: "NOUS",
+        vendor: "Nous",
         description: "Zigbee water leak sensor with sound alarm",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
@@ -201,7 +201,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_t9ffmdin"]),
         model: "D5Z",
-        vendor: "NOUS",
+        vendor: "Nous",
         description: "Zigbee smart energy meter with leakage and prepayment",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
@@ -258,4 +258,24 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+    fingerprint: [{modelID: 'TS011F', manufacturerName: '_TZ3210_6cmeijtd'}],
+    model: 'A11Z',
+    vendor: 'Nous',
+    description: 'Smart power strip 3 gang with power monitoring',
+    extend: [
+        m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}), 
+        m.onOff({endpointNames: ['l1', 'l2', 'l3'], powerOnBehavior: false}), 
+        m.electricityMeter(), 
+    ],
+    exposes: [
+        e.switch().withEndpoint('l1'),
+        e.switch().withEndpoint('l2'),
+        e.switch().withEndpoint('l3'),
+        e.power(),
+        e.current(),
+        e.voltage(),
+        e.energy(),
+    ],
+},
 ];
