@@ -1489,20 +1489,15 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l2"),
             e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Backlight master switch"),
             e.numeric("backlight", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Backlight brightness percentage"),
-
             e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("LED indicator mode"),
-
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
-
             e
                 .enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("ON color"),
-
             e
                 .enum("off_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("OFF color"),
-
             e.numeric("countdown_l1", ea.STATE_SET).withUnit("s").withDescription("Countdown for l1").withValueMin(0).withValueMax(86400),
             e.numeric("countdown_l2", ea.STATE_SET).withUnit("s").withDescription("Countdown for l2").withValueMin(0).withValueMax(86400),
         ],
@@ -1528,7 +1523,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [16, "backlight_switch", tuya.valueConverter.onOff],
                 [101, "child_lock", tuya.valueConverter.onOff],
                 [102, "backlight", tuya.valueConverter.raw],
-
                 [
                     103,
                     "on_color",
@@ -1573,14 +1567,11 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l1"),
             tuya.exposes.switch().withEndpoint("l2"),
             tuya.exposes.switch().withEndpoint("l3"),
-
             e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Backlight master switch"),
             e.numeric("backlight", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Backlight brightness percentage"),
             e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("LED indicator mode"),
-
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
-
             e
                 .enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("ON color"),
@@ -1588,7 +1579,6 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("off_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("OFF color"),
-
             e.numeric("countdown_l1", ea.STATE_SET).withUnit("s").withDescription("Countdown for l1").withValueMin(0).withValueMax(86400),
             e.numeric("countdown_l2", ea.STATE_SET).withUnit("s").withDescription("Countdown for l2").withValueMin(0).withValueMax(86400),
             e.numeric("countdown_l3", ea.STATE_SET).withUnit("s").withDescription("Countdown for l3").withValueMin(0).withValueMax(86400),
@@ -1661,22 +1651,17 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l2"),
             tuya.exposes.switch().withEndpoint("l3"),
             tuya.exposes.switch().withEndpoint("l4"),
-
             e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Backlight master switch"),
             e.numeric("backlight", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Backlight brightness percentage"),
             e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("LED indicator mode"),
-
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
-
             e
                 .enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("ON color"),
-
             e
                 .enum("off_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("OFF color"),
-
             e.numeric("countdown_l1", ea.STATE_SET).withUnit("s").withDescription("Countdown for l1").withValueMin(0).withValueMax(86400),
             e.numeric("countdown_l2", ea.STATE_SET).withUnit("s").withDescription("Countdown for l2").withValueMin(0).withValueMax(86400),
             e.numeric("countdown_l3", ea.STATE_SET).withUnit("s").withDescription("Countdown for l3").withValueMin(0).withValueMax(86400),
