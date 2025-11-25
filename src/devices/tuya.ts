@@ -7767,6 +7767,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["SM0212"],
+        model: "SM0212",
+        vendor: "Tuya",
+        description: "Gas sensor",
+        extend: [m.iasZoneAlarm({zoneType: "gas", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
+    },
+    {
         fingerprint: [
             {modelID: "TS011F", applicationVersion: 192, manufacturerName: "_TZ3000_2uollq9d", priority: -1},
             {modelID: "TS011F", applicationVersion: 160, priority: -1},
