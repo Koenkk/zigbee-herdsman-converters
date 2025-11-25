@@ -250,7 +250,7 @@ const sonoffExtend = {
             },
             commandsResponse: {},
         }),
-    inchingControlSet: (args: ExternalInchingAgs = {}, maxTime = 3599.5): ModernExtend => {
+    inchingControlSet: (args: ExternalInchingAgs = {},max_time:number = 3599.5): ModernExtend => {
         const {endpointNames = undefined} = args;
         const clusterName = "customClusterEwelink";
         const commandName = "protocolData";
@@ -268,7 +268,7 @@ const sonoffExtend = {
                         .withDescription("Delay time for executing a inching action.")
                         .withUnit("seconds")
                         .withValueMin(0.5)
-                        .withValueMax(maxTime)
+                        .withValueMax(max_time)
                         .withValueStep(0.5),
                 )
                 .withFeature(
@@ -344,7 +344,6 @@ const sonoffExtend = {
     weeklySchedule: (): ModernExtend => {
         const exposes = e
             .composite("schedule", "weekly_schedule", ea.STATE_SET)
-            .withCategory("config")
             .withDescription(
                 'The preset heating schedule to use when the system mode is set to "auto" (indicated with ⏲ on the TRV). ' +
                     "Up to 6 transitions can be defined per day, where a transition is expressed in the format 'HH:mm/temperature', each " +
@@ -1185,211 +1184,7 @@ const sonoffExtend = {
             fromZigbee,
             isModernExtend: true,
         };
-    },
-    dimmerExternalSwitchTriggerMode: (): ModernExtend => {
-        const clusterName = "customClusterEwelink" as const;
-        const attributeName = "externalTriggerMode" as const;
-        const exposes = e
-            .enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "double pulse", "triple pulse"])
-            .withDescription(
-                "External trigger mode, which can be one of edge, pulse, " +
-                    "double pulse,triple pulse. The appropriate triggering mode can be selected according to the type of " +
-                    "external switch to achieve a better use experience.",
-            );
-
-        const fromZigbee = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const lookup: KeyValue = {edge: 0, pulse: 1, "double pulse": 3, "triple pulse": 4};
-                    // logger.debug(`from zigbee msg.data['externalTriggerMode'] ${msg.data['externalTriggerMode']}`, NS);
-                    if (msg.data.externalTriggerMode !== undefined) {
-                        let switchType = "edge";
-                        for (const name in lookup) {
-                            if (lookup[name] === msg.data.externalTriggerMode) {
-                                switchType = name;
-                                break;
-                            }
-                        }
-                        // logger.debug(`form zigbee switchType ${switchType}`, NS);
-                        return {external_trigger_mode: switchType};
-                    }
-                },
-            } satisfies Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport", "readResponse"]>,
-        ];
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["external_trigger_mode"],
-                convertSet: async (entity, key, value, meta) => {
-                    utils.assertString(value, key);
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-                    value = value.toLowerCase();
-                    const lookup = {edge: 0, pulse: 1, "double pulse": 3, "triple pulse": 4};
-                    const tmpValue = utils.getFromLookup(value, lookup);
-                    await entity.write<typeof clusterName, SonoffEwelink>(clusterName, {[attributeName]: tmpValue}, defaultResponseOptions);
-                    return {state: {[key]: value}};
-                },
-                convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, SonoffEwelink>(clusterName, [attributeName], defaultResponseOptions);
-                },
-            },
-        ];
-        return {
-            exposes: [exposes],
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
-    setAutoCalibrationAction: (): ModernExtend => {
-        const exposes = e.enum("set_calibration_action", ea.SET, ["START", "STOP", "CLEAR"]).withDescription("Start/Stop/Clear calibration");
-        exposes.withDescription(
-            "After calibration, the light adjustment becomes smooth and consistent.. Takes about 2 minutes; device unavailable during calibration.",
-        );
-        const clusterName = "customClusterEwelink";
-        const attributeName = "setCalibrationAction";
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["set_calibration_action"],
-                convertSet: async (entity, key, value, meta) => {
-                    let action = 0;
-                    if (value === "START") {
-                        action = 0x01;
-                    } else if (value === "STOP") {
-                        action = 0x02;
-                    } else if (value === "CLEAR") {
-                        action = 0x03;
-                    }
-                    logger.info(`from zigbee set calibration action: ${action}`, NS);
-                    await entity.write<typeof clusterName, SonoffEwelink>(
-                        clusterName,
-                        {[attributeName]: [0x03, 0x01, 0x01, action]},
-                        defaultResponseOptions,
-                    );
-                    return {state: {[key]: value}};
-                },
-                convertGet: async (entity, key, meta) => {},
-            },
-        ];
-
-        return {
-            exposes: [exposes],
-            fromZigbee: undefined,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
-    setDimmingLightRate: (): ModernExtend => {
-        const exposes = e
-            .enum("dimming_light_rate", ea.ALL, ["1x", "2x", "3x", "4x", "5x"])
-            .withDescription("Speed of brightness change via external switch.");
-        const clusterName = "customClusterEwelink";
-        const attributeName = "dimmingLightRate";
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["dimming_light_rate"],
-                convertSet: async (entity, key, value, meta) => {
-                    let rate = 0;
-                    if (value === "1x") {
-                        rate = 1;
-                    } else if (value === "2x") {
-                        rate = 2;
-                    } else if (value === "3x") {
-                        rate = 3;
-                    } else if (value === "4x") {
-                        rate = 4;
-                    } else if (value === "5x") {
-                        rate = 5;
-                    }
-                    logger.info(`from zigbee set dimming light rate: ${rate}`, NS);
-                    await entity.write<typeof clusterName, SonoffEwelink>(clusterName, {[attributeName]: rate}, defaultResponseOptions);
-                    return {state: {[key]: value}};
-                },
-                convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, SonoffEwelink>(clusterName, [attributeName], defaultResponseOptions);
-                },
-            },
-        ];
-        const fromZigbee = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.dimmingLightRate !== undefined) {
-                        const rate = msg.data.dimmingLightRate;
-                        logger.info(`form zigbee dimming light rate ${rate}`, NS);
-
-                        let rateStatus = "1x";
-                        if (rate === 1) {
-                            rateStatus = "1x";
-                        } else if (rate === 2) {
-                            rateStatus = "2x";
-                        } else if (rate === 3) {
-                            rateStatus = "3x";
-                        } else if (rate === 4) {
-                            rateStatus = "4x";
-                        } else if (rate === 5) {
-                            rateStatus = "5x";
-                        }
-                        return {dimming_light_rate: rateStatus};
-                    }
-                },
-            } satisfies Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport", "readResponse"]>,
-        ];
-        return {
-            exposes: [exposes],
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
-    minBrightnessThreshold: (): ModernExtend => {
-        const exposes = e
-            .numeric("min_brightness_threshold", ea.ALL)
-            .withValueMax(50)
-            .withUnit("%")
-            .withValueMin(1)
-            .withCategory("config")
-            .withDescription("Lowest brightness level mapped to 1 % on the dimmer slider.");
-
-        const clusterName = "customClusterEwelink";
-        const attributeName = "minBrightnessThreshold";
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["min_brightness_threshold"],
-                convertSet: async (entity, key, value, meta) => {
-                    const rate = (Number(value) * 255) / 100;
-                    logger.info(`from zigbee set min brightness threshold: ${rate}`, NS);
-                    await entity.write<typeof clusterName, SonoffEwelink>(clusterName, {[attributeName]: rate}, defaultResponseOptions);
-                    return {state: {[key]: value}};
-                },
-                convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, SonoffEwelink>(clusterName, [attributeName], defaultResponseOptions);
-                },
-            },
-        ];
-        const fromZigbee = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if (msg.data.minBrightnessThreshold !== undefined) {
-                        const value = msg.data.minBrightnessThreshold;
-                        logger.info(`form zigbee min brightness threshold ${value}`, NS);
-                        const rate = (value / 255) * 100;
-                        return {min_brightness_threshold: Math.round(rate)};
-                    }
-                },
-            } satisfies Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport", "readResponse"]>,
-        ];
-        return {
-            exposes: [exposes],
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
+    }
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -2527,7 +2322,7 @@ export const definitions: DefinitionWithExtend[] = [
                 skipDuplicateTransaction: true,
                 configureReporting: true,
             }),
-            m.electricityMeter({cluster: "metering", power: false}),
+            // m.electricityMeter({current: {divisor: 100}, voltage: {divisor: 100}, power: {divisor: 1}, energy: {divisor: 1000}}),
             sonoffExtend.addCustomClusterEwelink(),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "current",
@@ -3217,9 +3012,9 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart mini dimmer switch",
         extend: [
             m.light({
-                effect: false,
-                powerOnBehavior: true,
-                configureReporting: true,
+                effect:false,
+                powerOnBehavior:true,
+                configureReporting:true
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "current",
@@ -3272,12 +3067,29 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "seconds",
                 scale: 2,
             }),
-            sonoffExtend.inchingControlSet({}, 86399.5),
-            sonoffExtend.dimmerExternalSwitchTriggerMode(),
-            sonoffExtend.setAutoCalibrationAction(),
+            sonoffExtend.inchingControlSet({},86399.5),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "external_trigger_mode",
+                lookup:{edge: 0, pulse: 1, "double pulse": 3,"triple pulse": 4},
+                cluster:"customClusterEwelink",
+                attribute:"externalTriggerMode",
+                access :"ALL",
+                entityCategory:"config",
+                description:"External trigger mode, which can be one of edge, pulse,double pulse,triple pulse."+
+                    "The appropriate triggering mode can be selected according to the type of external switch to achieve a better use experience."
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "set_calibration_action",
+                lookup: {start: [0x03,0x01,0x01,0x01], stop: [0x03,0x01,0x01,0x02], clear:[0x03,0x01,0x01,0x03]},
+                cluster: "customClusterEwelink",
+                attribute: "setCalibrationAction",
+                description: "After calibration, the light adjustment becomes smooth and consistent.. Takes about 2 minutes; device unavailable during calibration.",
+                access: "ALL",
+                entityCategory: "config",
+            }),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "calibration_status",
-                lookup: {UnCalibrate: 0, Calibrating: 1, CalibrationFailed: 2, Calibrated: 3},
+                lookup: {uncalibrate: 0, cailbrating: 1,calibration_failed:2, calibrated: 3},
                 cluster: "customClusterEwelink",
                 attribute: "calibrationStatus",
                 description: "Calibration status.",
@@ -3296,7 +3108,20 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 1,
                 unit: "%",
             }),
-            sonoffExtend.minBrightnessThreshold(),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "min_brightness_threshold",
+                access:"ALL",
+                cluster: "customClusterEwelink",
+                attribute: "minBrightnessThreshold",
+                description: "Lowest brightness level mapped to 1 % on the dimmer slider.",
+                entityCategory: "config",
+                valueMin: 1,
+                valueMax: 50,
+                valueStep: 1,
+                unit: "%",
+                scale:2.55,
+                precision:0,
+            }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "transition_time",
                 access: "ALL",
@@ -3329,5 +3154,5 @@ export const definitions: DefinitionWithExtend[] = [
                 defaultResponseOptions,
             );
         },
-    },
+    }
 ];
