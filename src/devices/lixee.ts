@@ -7,7 +7,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const ea = exposes.access;
@@ -17,6 +17,20 @@ const NS = "zhc:lixee";
 
 const local = {
     modernExtend: {
+        readAttributesOnStartup: (): ModernExtend => {
+            const onEvent: OnEvent.Handler = (event) => {
+                if (event.type === "start") {
+                    event.data.device
+                        .getEndpoint(1)
+                        .read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null})
+                        .catch((e) => {
+                            // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                            logger.warning(`Failed to read Zigbee attributes during startup: ${e}`, NS);
+                        });
+                }
+            };
+            return {onEvent: [onEvent], isModernExtend: true};
+        },
         addCustomClusterManuSpecificLixee: () =>
             m.deviceAddCustomCluster("liXeePrivate", {
                 ID: 0xff66,
@@ -1995,19 +2009,8 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                 },
             }),
+            local.modernExtend.readAttributesOnStartup(),
         ],
-
-        onEvent: (event) => {
-            if (event.type === "start") {
-                event.data.device
-                    .getEndpoint(1)
-                    .read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null})
-                    .catch((e) => {
-                        // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                        logger.warning(`Failed to read Zigbee attributes during startup: ${e}`, NS);
-                    });
-            }
-        },
     },
     {
         zigbeeModel: ["ZiPulses"],
