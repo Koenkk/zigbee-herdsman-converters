@@ -1481,14 +1481,12 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zpvusbtv"]),
         model: "ZN2S-RS02E",
         vendor: "Tuya",
-        description: "Two gang switch with colored backlight modes (ZN2S-RS02E)",
+        description: "Two gang switch with colored backlight modes",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch().withDescription("All switches"),
             tuya.exposes.switch().withEndpoint("l1"),
             tuya.exposes.switch().withEndpoint("l2"),
-
-            // --- Mejoras añadidas ---
             e
                 .binary("backlight_switch", ea.STATE_SET, "ON", "OFF")
                 .withDescription("Backlight master switch"),
@@ -1519,8 +1517,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [7, "countdown_l1", tuya.valueConverter.countdown],
                 [8, "countdown_l2", tuya.valueConverter.countdown],
                 [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
-
-                // ✅ Corregido: ENUM
                 [
                     15,
                     "indicator_mode",
@@ -1533,8 +1529,6 @@ export const definitions: DefinitionWithExtend[] = [
 
                 [16, "backlight_switch", tuya.valueConverter.onOff],
                 [101, "child_lock", tuya.valueConverter.onOff],
-
-                // ✅ Nuevo: backlight %
                 [102, "backlight", tuya.valueConverter.raw],
 
                 [
@@ -1574,7 +1568,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_rkbxtclc"]),
         model: "TS0601_3gang_rkbxtclc",
         vendor: "Tuya",
-        description: "Three gang smart switch with backlight (_TZE204_rkbxtclc)",
+        description: "Three gang smart switch with colored backlight modes",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch().withDescription("All switches"),
@@ -1661,7 +1655,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_7ytnacie"]),
         model: "TS0601_4gang_7ytnacie",
         vendor: "Tuya",
-        description: "Four gang smart switch with backlight (_TZE204_7ytnacie)",
+        description: "Four gang smart switch with colored backlight modes",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch().withDescription("All switches"),
