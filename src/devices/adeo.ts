@@ -41,8 +41,8 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["LDSENK06"],
         model: "LDSENK06",
         vendor: "ADEO",
-        description: "ENKI LEXMAN Indoor Siren 85db",
-        extend: [m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}), m.iasWarning()],
+        description: "ENKI LEXMAN indoor siren 85db",
+        extend: [m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}), m.iasWarning()],
     },
     {
         zigbeeModel: ["LDSENK08"],
