@@ -2446,12 +2446,18 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Aqara", model: "RSD-M01"}],
         fromZigbee: [lumi.fromZigbee.lumi_curtain_position, lumi.fromZigbee.lumi_curtain_status, lumi.fromZigbee.lumi_specific],
         ota: true,
-        toZigbee: [lumi.toZigbee.lumi_curtain_position_state, lumi.toZigbee.lumi_curtain_battery, lumi.toZigbee.lumi_curtain_charging_status],
+        toZigbee: [
+            lumi.toZigbee.lumi_curtain_position_state,
+            lumi.toZigbee.lumi_curtain_battery,
+            lumi.toZigbee.lumi_curtain_charging_status,
+            lumi.toZigbee.lumi_curtain_reverse,
+        ],
         exposes: [
             e.cover_position().setAccess("state", ea.ALL),
             e.battery().withAccess(ea.STATE_GET),
             e.device_temperature(),
             e.binary("charging_status", ea.STATE_GET, true, false).withDescription("The current charging status."),
+            e.binary("reverse_direction", ea.ALL, true, false).withDescription("Whether the curtain direction is inverted"),
             e.enum("motor_state", ea.STATE, ["closing", "opening", "stopped", "blocked"]).withDescription("The current state of the motor."),
             e.binary("running", ea.STATE, true, false).withDescription("Whether the motor is moving or not"),
         ],
@@ -4603,17 +4609,76 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH-S04D",
         vendor: "Aqara",
         description: "Climate Sensor W100",
-        fromZigbee: [lumi.fromZigbee.w100_0844_req, lumi.fromZigbee.pmtsd_from_w100],
-        toZigbee: [lumi.toZigbee.pmtsd_to_w100, lumi.toZigbee.thermostat_mode],
+        fromZigbee: [lumi.fromZigbee.lumi_specific, lumi.fromZigbee.w100_specific, lumi.fromZigbee.w100_temperature],
+        toZigbee: [lumi.toZigbee.w100_pmtsd, lumi.toZigbee.w100_mode],
         exposes: [
-            e.action(["data_request"]).withDescription("W100 Requesting PMTSD Data via 08000844 Request"),
-            e.text("data", ea.STATE).withDescription("Timestamp+Most Recent PMTSD Values Sent by W100"),
             e
-                .binary("mode", ea.ALL, "ON", "OFF")
+                .binary("thermostat_mode", ea.ALL, "ON", "OFF")
                 .withDescription(
-                    "On: Enable thermostat mode. Buttons send encrypted payloads and middle line is enabled. Off: Disable thermostat mode. Buttons send actions and middle line is disabled.",
+                    "ON: Enables thermostat mode, buttons send encrypted payloads, and the middle line is displayed. OFF: Disables thermostat mode, buttons send actions, and the middle line is hidden.",
                 ),
+            e
+                .climate()
+                .withSystemMode(["off", "heat", "cool", "auto"])
+                .withFanMode(["auto", "low", "medium", "high"])
+                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
+                .withLocalTemperature()
+                .withDescription(
+                    "Climate control (HVAC Mode & Target Temperature): Use when thermostat_mode is ON. Configure min/max temperature range in device-specific Settings.",
+                ),
+            e.action(["W100_PMTSD_request"]).withDescription("PMTSD request sent by the W100 via the 08000844 sequence"),
+            e
+                .text("PMTSD_from_W100_Data", ea.STATE)
+                .withDescription('Latest PMTSD values sent by the W100 when manually changed, formatted as "YYYY-MM-DD HH:mm:ss_Px_Mx_Tx_Sx_Dx"'),
+            e.battery(),
         ],
+        options: [
+            e
+                .numeric("min_target_temp", ea.STATE_SET)
+                .withValueMin(-20)
+                .withValueMax(60)
+                .withValueStep(0.5)
+                .withUnit("°C")
+                .withCategory("config")
+                .withDescription("Minimum target temperature for the thermostat (default: 5°C)"),
+            e
+                .numeric("max_target_temp", ea.STATE_SET)
+                .withValueMin(-20)
+                .withValueMax(60)
+                .withValueStep(0.5)
+                .withUnit("°C")
+                .withCategory("config")
+                .withDescription("Maximum target temperature for the thermostat (default: 30°C)"),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+
+            if (!device.meta) device.meta = {};
+            // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+            if (!device.meta.state) (device.meta as any).state = {};
+
+            // Send thermostat_mode = OFF. We construct a fake meta object as convertSet needs it.
+            // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+            const meta = {device, state: (device.meta as any).state, logger} as any;
+            try {
+                // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+                await lumi.toZigbee.w100_mode.convertSet(endpoint, "thermostat_mode", "OFF", meta as any);
+            } catch (_error) {
+                // ignore
+            }
+
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement"]);
+            await endpoint.configureReporting("msTemperatureMeasurement", [
+                {
+                    attribute: "measuredValue",
+                    minimumReportInterval: 10,
+                    maximumReportInterval: 3600,
+                    reportableChange: 100,
+                },
+            ]);
+
+            logger.info("Aqara W100: configure completed", NS);
+        },
         extend: [
             lumiZigbeeOTA(),
             m.temperature(),
@@ -4625,12 +4690,13 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["plus", "center", "minus"],
             }),
             m.binary({
-                name: "display_off",
+                name: "auto_hide_middle_line",
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0173, type: Zcl.DataType.BOOLEAN},
-                valueOn: [true, 1],
-                valueOff: [false, 0],
-                description: "Enables/disables auto display off",
+                valueOn: [true, 0],
+                valueOff: [false, 1],
+                description:
+                    "Applies only when thermostat mode is enabled. True: Hides the middle line after 30 seconds of inactivity. False: Always displays the middle line.",
                 access: "ALL",
                 entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -4646,6 +4712,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0167, type: Zcl.DataType.INT16},
                 description: "High temperature alert",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -4658,6 +4725,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0166, type: Zcl.DataType.INT16},
                 description: "Low temperature alert",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -4670,6 +4738,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x016e, type: Zcl.DataType.INT16},
                 description: "High humidity alert",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -4682,6 +4751,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x016d, type: Zcl.DataType.INT16},
                 description: "Low humidity alert",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.enumLookup({
@@ -4690,6 +4760,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0170, type: Zcl.DataType.UINT8},
                 description: "Temperature and Humidity sampling settings",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -4702,6 +4773,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0162, type: Zcl.DataType.UINT32},
                 description: "Sampling period",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.enumLookup({
@@ -4710,6 +4782,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0165, type: Zcl.DataType.UINT8},
                 description: "Temperature reporting mode",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -4722,6 +4795,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0163, type: Zcl.DataType.UINT32},
                 description: "Temperature reporting period",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -4734,6 +4808,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0164, type: Zcl.DataType.UINT16},
                 description: "Temperature reporting threshold",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.enumLookup({
@@ -4742,6 +4817,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x016c, type: Zcl.DataType.UINT8},
                 description: "Humidity reporting mode",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -4754,6 +4830,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x016a, type: Zcl.DataType.UINT32},
                 description: "Humidity reporting period",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -4766,6 +4843,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x016b, type: Zcl.DataType.UINT16},
                 description: "Humidity reporting threshold",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.identify(),
