@@ -3,7 +3,7 @@ import {gt as semverGt, gte as semverGte, lt as semverLt, valid as semverValid} 
 import {Zcl} from "zigbee-herdsman";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
-import {access, options, presets} from "../lib/exposes";
+import {access, binary, options, presets} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
@@ -15,6 +15,7 @@ import {
     getFromLookup,
     getTransition,
     hasAlreadyProcessedMessage,
+    isDummyDevice,
     isObject,
     mapNumberRange,
     postfixWithEndpointName,
@@ -895,6 +896,20 @@ export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExt
     });
 }
 
+export function addCustomClusterManuSpecificIkeaSmartPlug(): ModernExtend {
+    return m.deviceAddCustomCluster("manuSpecificIkeaSmartPlug", {
+        ID: 0xfc85,
+        manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
+        attributes: {
+            childLock: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+            ledEnable: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
+        },
+
+        commands: {},
+        commandsResponse: {},
+    });
+}
+
 export interface IkeaUnknown {
     attributes: never;
     commands: never;
@@ -1006,4 +1021,72 @@ const trackFreezing = (next: Tz.Converter["convertSet"]) => {
     };
 
     return converter;
+};
+
+export const ikeaModernExtend = {
+    smartPlugChildLock: (args?: Partial<m.BinaryArgs<"manuSpecificIkeaSmartPlug">>) => {
+        const resultName = "child_lock";
+        const resultDescription = "Enables/disables physical input on the device.";
+
+        const result: ModernExtend = m.binary({
+            name: resultName,
+            cluster: "manuSpecificIkeaSmartPlug",
+            attribute: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+            entityCategory: "config",
+            valueOff: ["UNLOCK", 0x00],
+            valueOn: ["LOCK", 0x01],
+            description: resultDescription,
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
+        });
+
+        // NOTE: make exposes dynamic based on fw version
+        result.exposes = [
+            (device, options) => {
+                if (
+                    !isDummyDevice(device) &&
+                    device.softwareBuildID &&
+                    semverValid(device.softwareBuildID) &&
+                    semverGte(device.softwareBuildID, "2.4.25")
+                ) {
+                    return [binary(resultName, access.ALL, "LOCK", "UNLOCK").withDescription(resultDescription).withCategory("config")];
+                }
+                return [];
+            },
+        ];
+
+        return result;
+    },
+
+    smartPlugLedEnable: (args?: Partial<m.BinaryArgs<"manuSpecificIkeaSmartPlug">>) => {
+        const resultName = "led_enable";
+        const resultDescription = "Enables/disables the led on the device.";
+
+        const result: ModernExtend = m.binary({
+            name: resultName,
+            cluster: "manuSpecificIkeaSmartPlug",
+            attribute: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
+            entityCategory: "config",
+            valueOff: ["FALSE", 0x00],
+            valueOn: ["TRUE", 0x01],
+            description: resultDescription,
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
+        });
+
+        // NOTE: make exposes dynamic based on fw version
+        result.exposes = [
+            (device, options) => {
+                if (
+                    !isDummyDevice(device) &&
+                    device.softwareBuildID &&
+                    semverValid(device.softwareBuildID) &&
+                    semverGte(device.softwareBuildID, "2.4.25")
+                ) {
+                    return [binary(resultName, access.ALL, "TRUE", "FALSE").withDescription(resultDescription).withCategory("config")];
+                }
+                return [];
+            },
+        ];
+
+        return result;
+    },
 };
