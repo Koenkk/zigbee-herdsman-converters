@@ -7687,6 +7687,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Zbeacon", "TS011F_plug_1_1", "Smart plug (with power monitoring)", ["Zbeacon"]),
             tuya.whitelabel("NEO", "NAS-WR01B", "Smart plug (with electrical measurements)", ["_TZ3000_gjnozsaz"]),
             tuya.whitelabel("GreenSun", "HSC-ZW-EU", "Outdoor Smart Plug (with power monitoring)", ["_TZ3000_cicwjqth"]),
+            tuya.whitelabel("Nous", "A10Z", "Smart Zigbee Socket", ["_TZ3210_jlf1nepw"]),
         ],
         ota: true,
         extend: [
@@ -7878,7 +7879,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [14, "battery_low", tuya.valueConverter.trueFalse0],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Nous", "E8", "Smoke sensor", ["_TZE200_0zaf1cr8", "_TZE284_0zaf1cr8"])],
+        whiteLabel: [tuya.whitelabel("", "E8", "Smoke sensor", ["_TZE200_0zaf1cr8", "_TZE284_0zaf1cr8"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ntcy3xu1"]),
