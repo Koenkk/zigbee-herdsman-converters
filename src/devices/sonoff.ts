@@ -344,6 +344,7 @@ const sonoffExtend = {
     weeklySchedule: (): ModernExtend => {
         const exposes = e
             .composite("schedule", "weekly_schedule", ea.STATE_SET)
+			.withCategory("config")
             .withDescription(
                 'The preset heating schedule to use when the system mode is set to "auto" (indicated with ⏲ on the TRV). ' +
                     "Up to 6 transitions can be defined per day, where a transition is expressed in the format 'HH:mm/temperature', each " +
