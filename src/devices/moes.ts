@@ -1691,4 +1691,28 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_criiahcg"]),
+        model: "ZM4LT2",
+        vendor: "Moes",
+        description: "2-gang switch module with buzzer",
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                indicatorMode: true,
+                onOffCountdown: true,
+                inchingSwitch: true,
+                endpoints: ["l1", "l2"],
+            }),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
 ];
