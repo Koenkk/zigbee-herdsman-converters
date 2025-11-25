@@ -268,14 +268,5 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff({endpointNames: ["l1", "l2", "l3"], powerOnBehavior: false}),
             m.electricityMeter(),
         ],
-        exposes: [
-            e.switch().withEndpoint("l1"),
-            e.switch().withEndpoint("l2"),
-            e.switch().withEndpoint("l3"),
-            e.power(),
-            e.current(),
-            e.voltage(),
-            e.energy(),
-        ],
     },
 ];
