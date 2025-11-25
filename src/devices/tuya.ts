@@ -1487,9 +1487,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withDescription("All switches"),
             tuya.exposes.switch().withEndpoint("l1"),
             tuya.exposes.switch().withEndpoint("l2"),
-            e
-                .binary("backlight_switch", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Backlight master switch"),
+            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Backlight master switch"),
             e.numeric("backlight", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Backlight brightness percentage"),
 
             e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("LED indicator mode"),
