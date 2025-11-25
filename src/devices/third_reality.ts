@@ -157,7 +157,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "Water Leak Buzzer Alarm Mode",
                 unit: "min",
                 valueMin: 0,
-                valueMax: 600,
+                valueMax: 255,
                 cluster: "3rWaterSensorcluster",
                 attribute: "sirenMinutes",
                 description: "Sets the buzzers beeping mode for water-leak alerts.(0 = continuous;values = beeping duration (minutes).)",
