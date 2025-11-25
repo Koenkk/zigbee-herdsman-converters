@@ -166,6 +166,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["3RWS0218Z"],
+        model: "3RWS0218Z",
+        vendor: "Third Reality",
+        description: "Water sensor gen2",
+        ota: true,
+        extend: [m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1"]}), m.battery()],
+    },
+    {
         zigbeeModel: ["3RMS16BZ"],
         model: "3RMS16BZ",
         vendor: "Third Reality",

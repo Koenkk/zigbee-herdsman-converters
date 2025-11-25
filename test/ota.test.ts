@@ -1024,36 +1024,38 @@ describe("OTA", () => {
             expect(mockEndpointWrite).toHaveBeenCalledWith("genScenes", {currentGroup: 49502});
         });
 
-        it.each(["lumi.airrtc.agl001", "lumi.curtain.acn003", "lumi.curtain.agl001"])(
-            "executes workaround for modelIDs=%s to correct fileVersion",
-            async (modelID) => {
-                // doesn't matter, forcing the trigger
-                const [device, image] = await getBoschDevice(-1);
-                device.modelID = modelID;
-                const lumiFileVersion = image.header.fileVersion + 123;
-                device.meta = {lumiFileVersion};
+        it.each([
+            "lumi.airrtc.agl001",
+            "lumi.curtain.acn003",
+            "lumi.curtain.agl001",
+        ])("executes workaround for modelIDs=%s to correct fileVersion", async (modelID) => {
+            // doesn't matter, forcing the trigger
+            const [device, image] = await getBoschDevice(-1);
+            device.modelID = modelID;
+            const lumiFileVersion = image.header.fileVersion + 123;
+            device.meta = {lumiFileVersion};
 
-                const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image), false);
+            const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image), false);
 
-                // otaFileVersion set to current of device when not found
-                expectAvailableResult(result, false, lumiFileVersion, image.header.fileVersion);
-            },
-        );
+            // otaFileVersion set to current of device when not found
+            expectAvailableResult(result, false, lumiFileVersion, image.header.fileVersion);
+        });
 
-        it.each(["lumi.airrtc.agl001", "lumi.curtain.acn003", "lumi.curtain.agl001"])(
-            "does not execute workaround for modelIDs=%s to correct fileVersion if not needed",
-            async (modelID) => {
-                // doesn't matter, forcing the trigger
-                const [device, image] = await getBoschDevice(-1);
-                device.modelID = modelID;
-                // const lumiFileVersion = image.header.fileVersion + 123; // no meta, no need to trigger
+        it.each([
+            "lumi.airrtc.agl001",
+            "lumi.curtain.acn003",
+            "lumi.curtain.agl001",
+        ])("does not execute workaround for modelIDs=%s to correct fileVersion if not needed", async (modelID) => {
+            // doesn't matter, forcing the trigger
+            const [device, image] = await getBoschDevice(-1);
+            device.modelID = modelID;
+            // const lumiFileVersion = image.header.fileVersion + 123; // no meta, no need to trigger
 
-                const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image), false);
+            const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image), false);
 
-                // otaFileVersion set to current of device when not found
-                expectAvailableResult(result, false, image.header.fileVersion, image.header.fileVersion);
-            },
-        );
+            // otaFileVersion set to current of device when not found
+            expectAvailableResult(result, false, image.header.fileVersion, image.header.fileVersion);
+        });
 
         describe("with local override index", () => {
             it("matches from override first using local file", async () => {
