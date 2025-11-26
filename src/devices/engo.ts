@@ -552,26 +552,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ENGO",
         description: "Zigbee smart thermostat",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", queryOnConfigure: true})],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-
-            // Force Time Sync immediately
-            try {
-                const now = new Date();
-                const payload = [
-                    0x01,
-                    now.getFullYear() - 2000,
-                    now.getMonth() + 1,
-                    now.getDate(),
-                    now.getHours(),
-                    now.getMinutes(),
-                    now.getSeconds(),
-                ];
-                await endpoint.command("manuSpecificTuya", "mcuSyncTime", {payload: payload, payloadSize: 7});
-            } catch (_error) {
-                // fail silently
-            }
-        },
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
             e
