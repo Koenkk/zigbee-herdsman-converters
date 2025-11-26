@@ -91,7 +91,7 @@ export const ACTIONS: Record<string, (controller: Controller, args: Record<strin
 
         return await controller.sendRaw(rawPayload);
     },
-    hue_factory_reset: async (controller, args): Promise<undefined> => {
+    philips_hue_factory_reset: async (controller, args): Promise<undefined> => {
         let extendedPanId = args.extended_pan_id;
         if (!extendedPanId) {
             extendedPanId = (await controller.getNetworkParameters()).extendedPanID;
