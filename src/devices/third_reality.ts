@@ -30,7 +30,7 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
-interface ThirdBlindGen2Sensor {
+interface ThirdBlindGen2 {
     attributes: {
         infraredEnable: number;
         compensationSpeed: number;
@@ -375,7 +375,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "infraredEnable",
                 description: "IR Remote Function Enable/Disable",
             }),
-            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2Sensor>({
+            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
                 name: "bottom_balance_adjustment",
                 valueMin: -100,
                 valueMax: 100,
@@ -384,7 +384,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Adjusts the left-right balance of the shade's bottom bar(turns -100 ~ 100).",
                 access: "ALL",
             }),
-            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2Sensor>({
+            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
                 name: "preset_bottom_position",
                 valueMin: 50,
                 valueMax: 3800,
@@ -393,7 +393,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Preset the bottom limit position of the blind",
                 access: "ALL",
             }),
-            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2Sensor>({
+            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
                 name: "estimated_usable_curtain_cycles",
                 valueMin: 200,
                 valueMax: 334,
@@ -402,7 +402,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Indicates the estimated number of remaining curtain cycles, used to gauge the battery charge level(based on battery level).",
                 access: "ALL",
             }),
-            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2Sensor>({
+            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
                 name: "battery_level_at_last_power_off",
                 valueMin: 0,
                 valueMax: 100,
