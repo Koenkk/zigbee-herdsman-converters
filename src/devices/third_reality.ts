@@ -367,7 +367,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.binary<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2Sensor>({
+            m.binary<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
                 name: "ir_remote",
                 valueOn: ["ON", 0x00],
                 valueOff: ["OFF", 0x01],
