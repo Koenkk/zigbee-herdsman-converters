@@ -30,10 +30,32 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
+interface ThirdBlindGen2 {
+    attributes: {
+        infraredEnable: number;
+        compensationSpeed: number;
+        limitPosition: number;
+        totalCycleTimes: number;
+        lastRemainingBatteryPercentage: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface ThirdWaterSensor {
     attributes: {
         sirenOnOff: number;
         sirenMinutes: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdDualPlug {
+    attributes: {
+        resetSummationDelivered: number;
+        onToOffDelay: number;
+        offToOnDelay: number;
     };
     commands: never;
     commandResponses: never;
@@ -145,7 +167,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.battery(),
             m.binary<"3rWaterSensorcluster", ThirdWaterSensor>({
-                name: "Water Leak Buzzer On/Off",
+                name: "water_leak_buzzer",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "3rWaterSensorcluster",
@@ -154,10 +176,10 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
             m.numeric<"3rWaterSensorcluster", ThirdWaterSensor>({
-                name: "Water Leak Buzzer Alarm Mode",
+                name: "water_leak_buzzer_alarm_mode",
                 unit: "min",
                 valueMin: 0,
-                valueMax: 600,
+                valueMax: 255,
                 cluster: "3rWaterSensorcluster",
                 attribute: "sirenMinutes",
                 description: "Sets the buzzers beeping mode for water-leak alerts.(0 = continuous;values = beeping duration (minutes).)",
@@ -354,6 +376,52 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.binary<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
+                name: "ir_remote",
+                valueOn: ["ON", 0x00],
+                valueOff: ["OFF", 0x01],
+                cluster: "3rSmartBlindGen2SpecialCluster",
+                attribute: "infraredEnable",
+                description: "IR Remote Function Enable/Disable",
+            }),
+            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
+                name: "bottom_balance_adjustment",
+                valueMin: -100,
+                valueMax: 100,
+                cluster: "3rSmartBlindGen2SpecialCluster",
+                attribute: "compensationSpeed",
+                description: "Adjusts the left-right balance of the shade's bottom bar(turns -100 ~ 100).",
+                access: "ALL",
+            }),
+            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
+                name: "preset_bottom_position",
+                valueMin: 50,
+                valueMax: 3800,
+                cluster: "3rSmartBlindGen2SpecialCluster",
+                attribute: "limitPosition",
+                description: "Preset the bottom limit position of the blind",
+                access: "ALL",
+            }),
+            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
+                name: "estimated_usable_curtain_cycles",
+                valueMin: 200,
+                valueMax: 334,
+                cluster: "3rSmartBlindGen2SpecialCluster",
+                attribute: "totalCycleTimes",
+                description:
+                    "Indicates the estimated number of remaining curtain cycles, used to gauge the battery charge level(based on battery level).",
+                access: "ALL",
+            }),
+            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
+                name: "battery_level_at_last_power_off",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "3rSmartBlindGen2SpecialCluster",
+                attribute: "lastRemainingBatteryPercentage",
+                description:
+                    "Stores the battery level recorded at the moment of the last power-off, used to help estimate the current battery capacity.",
+                access: "STATE_GET",
             }),
         ],
     },
@@ -582,6 +650,68 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.enumLookup<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+                endpointName: "1",
+                name: "reset_total_energy",
+                lookup: {Reset: 1},
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "resetSummationDelivered",
+                description: "Reset the sum of consumed energy",
+                access: "ALL",
+            }),
+            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+                name: "countdown_time_on_to_off",
+                endpointNames: ["1"],
+                unit: "s",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "onToOffDelay",
+                description: "(ON-OFF)",
+                access: "ALL",
+            }),
+            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+                name: "countdown_time_off_to_on",
+                endpointNames: ["1"],
+                unit: "s",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "offToOnDelay",
+                description: "(OFF-ON)",
+                access: "ALL",
+            }),
+            m.enumLookup<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+                endpointName: "2",
+                name: "reset_total_energy",
+                lookup: {Reset: 1},
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "resetSummationDelivered",
+                description: "Reset the sum of consumed energy",
+                access: "ALL",
+            }),
+            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+                name: "countdown_time_on_to_off",
+                endpointNames: ["2"],
+                unit: "s",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "onToOffDelay",
+                description: "(ON-OFF)",
+                access: "ALL",
+            }),
+            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+                name: "countdown_time_off_to_on",
+                endpointNames: ["2"],
+                unit: "s",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "offToOnDelay",
+                description: "(OFF-ON)",
+                access: "ALL",
             }),
         ],
     },
