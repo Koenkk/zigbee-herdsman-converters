@@ -4,7 +4,7 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
-import {binary, deviceAddCustomCluster, deviceEndpoints, electricityMeter, enumLookup, identify, numeric} from "../lib/modernExtend";
+import {binary, deviceAddCustomCluster, deviceEndpoints, electricityMeter, enumLookup, identify, numeric, thermostat} from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import {getFromLookup, getKey, postfixWithEndpointName, precisionRound, toNumber} from "../lib/utils";
@@ -782,52 +782,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "L101Ze-SLN",
         vendor: "LYTKO",
         description: "Lytko single chanel thermostat without display",
-        fromZigbee: [fz.thermostat],
-        toZigbee: [
-            tz.thermostat_local_temperature,
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_running_mode,
-            tz.thermostat_remote_sensing,
-            tz.thermostat_control_sequence_of_operation,
-            tz.thermostat_system_mode,
-        ],
         ota: true,
         meta: {multiEndpoint: true},
-        exposes: [
-            e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_heating_setpoint", 10, 40, 0.5)
-                .withSystemMode(["off", "heat"])
-                .withRunningMode(["off", "heat"])
-                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)
-                .withEndpoint("3"),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["hvacThermostat"]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "localTemp", minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "occupiedHeatingSetpoint", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "systemMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "runningMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "localTemperatureCalibration", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.read("hvacThermostat", ["localTemp"]);
-            await endpoint3.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-            await endpoint3.read("hvacThermostat", ["systemMode"]);
-            await endpoint3.read("hvacThermostat", ["runningMode"]);
-            await endpoint3.read("hvacThermostat", ["localTemperatureCalibration"]);
-        },
         extend: [
             deviceAddCustomCluster("hvacThermostat", {
                 ID: Zcl.Clusters.hvacThermostat.ID,
@@ -848,10 +804,34 @@ export const definitions: DefinitionWithExtend[] = [
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3},
             }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "3",
+            }),
             identify(),
             numeric<"hvacThermostat", LytoThermostat>({
                 name: "occupied_setback",
-                description: "Гистерезис",
+                description: "Hysteresis",
                 unit: "°C",
                 cluster: "hvacThermostat",
                 attribute: "occupiedSetback",
@@ -878,7 +858,7 @@ export const definitions: DefinitionWithExtend[] = [
             enumLookup<"hvacThermostat", LytoThermostat>({
                 name: "sensor_type",
                 label: "Sensor",
-                description: "Тип датчка термостата",
+                description: "Sensor type",
                 lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
                 cluster: "hvacThermostat",
                 attribute: "lytkoSensor",
@@ -894,52 +874,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "L101Ze-SLM",
         vendor: "LYTKO",
         description: "Lytko single chanel thermostat without display",
-        fromZigbee: [fz.thermostat],
-        toZigbee: [
-            tz.thermostat_local_temperature,
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_running_mode,
-            tz.thermostat_remote_sensing,
-            tz.thermostat_control_sequence_of_operation,
-            tz.thermostat_system_mode,
-        ],
         ota: true,
         meta: {multiEndpoint: true},
-        exposes: [
-            e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_heating_setpoint", 10, 40, 0.5)
-                .withSystemMode(["off", "heat"])
-                .withRunningMode(["off", "heat"])
-                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)
-                .withEndpoint("3"),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["hvacThermostat"]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "localTemp", minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "occupiedHeatingSetpoint", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "systemMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "runningMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "localTemperatureCalibration", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.read("hvacThermostat", ["localTemp"]);
-            await endpoint3.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-            await endpoint3.read("hvacThermostat", ["systemMode"]);
-            await endpoint3.read("hvacThermostat", ["runningMode"]);
-            await endpoint3.read("hvacThermostat", ["localTemperatureCalibration"]);
-        },
         extend: [
             deviceAddCustomCluster("hvacThermostat", {
                 ID: Zcl.Clusters.hvacThermostat.ID,
@@ -960,10 +896,34 @@ export const definitions: DefinitionWithExtend[] = [
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3},
             }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "3",
+            }),
             identify(),
             numeric<"hvacThermostat", LytoThermostat>({
                 name: "occupied_setback",
-                description: "Гистерезис",
+                description: "Hysteresis",
                 unit: "°C",
                 cluster: "hvacThermostat",
                 attribute: "occupiedSetback",
@@ -990,7 +950,7 @@ export const definitions: DefinitionWithExtend[] = [
             enumLookup<"hvacThermostat", LytoThermostat>({
                 name: "sensor_type",
                 label: "Sensor",
-                description: "Тип датчка термостата",
+                description: "Sensor type",
                 lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
                 cluster: "hvacThermostat",
                 attribute: "lytkoSensor",
@@ -1002,7 +962,7 @@ export const definitions: DefinitionWithExtend[] = [
             numeric({
                 name: "power_apparent",
                 label: "Power Apparent",
-                description: "Полная мощность",
+                description: "Power apparent",
                 unit: "VA",
                 cluster: "haElectricalMeasurement",
                 attribute: "apparentPower",
@@ -1026,52 +986,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "L101Ze-SBN",
         vendor: "LYTKO",
         description: "Lytko single chanel thermostat with big display",
-        fromZigbee: [fz.thermostat],
-        toZigbee: [
-            tz.thermostat_local_temperature,
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_running_mode,
-            tz.thermostat_remote_sensing,
-            tz.thermostat_control_sequence_of_operation,
-            tz.thermostat_system_mode,
-        ],
         ota: true,
         meta: {multiEndpoint: true},
-        exposes: [
-            e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_heating_setpoint", 10, 40, 0.5)
-                .withSystemMode(["off", "heat"])
-                .withRunningMode(["off", "heat"])
-                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)
-                .withEndpoint("3"),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["hvacThermostat"]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "localTemp", minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "occupiedHeatingSetpoint", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "systemMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "runningMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "localTemperatureCalibration", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.read("hvacThermostat", ["localTemp"]);
-            await endpoint3.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-            await endpoint3.read("hvacThermostat", ["systemMode"]);
-            await endpoint3.read("hvacThermostat", ["runningMode"]);
-            await endpoint3.read("hvacThermostat", ["localTemperatureCalibration"]);
-        },
         extend: [
             deviceAddCustomCluster("hvacThermostat", {
                 ID: Zcl.Clusters.hvacThermostat.ID,
@@ -1114,6 +1030,30 @@ export const definitions: DefinitionWithExtend[] = [
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3},
             }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "3",
+            }),
             identify(),
             binary({
                 name: "child_lock",
@@ -1129,7 +1069,7 @@ export const definitions: DefinitionWithExtend[] = [
             numeric<"hvacUserInterfaceCfg", LytoUIThermostat>({
                 name: "brigness_Active",
                 label: "Brigness Active",
-                description: "Яркость в режиме работы",
+                description: "Display brightness in work mode",
                 unit: "%",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: "brignessActive",
@@ -1142,7 +1082,7 @@ export const definitions: DefinitionWithExtend[] = [
             numeric<"hvacUserInterfaceCfg", LytoUIThermostat>({
                 name: "brigness_Standby",
                 label: "Brigness Standby",
-                description: "Яркость в режиме ожидания",
+                description: "Display brightness in standby mode",
                 unit: "%",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: "brignessStandby",
@@ -1154,7 +1094,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             numeric<"hvacThermostat", LytoThermostat>({
                 name: "occupied_setback",
-                description: "Гистерезис",
+                description: "Hysteresis",
                 unit: "°C",
                 cluster: "hvacThermostat",
                 attribute: "occupiedSetback",
@@ -1170,7 +1110,7 @@ export const definitions: DefinitionWithExtend[] = [
             enumLookup<"hvacThermostat", LytoThermostat>({
                 name: "sensor_type",
                 label: "Sensor",
-                description: "Тип датчка термостата",
+                description: "Sensor type",
                 lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
                 cluster: "hvacThermostat",
                 attribute: "lytkoSensor",
@@ -1182,7 +1122,7 @@ export const definitions: DefinitionWithExtend[] = [
             enumLookup<"hvacThermostat", LytoThermostat>({
                 name: "target_first",
                 label: "First temperature",
-                description: "Сначала отображать заданную/текущую температуру",
+                description: "Display target/current temperature first",
                 lookup: {Target: 0, Current: 1},
                 cluster: "hvacThermostat",
                 attribute: "lytkoTargetFirst",
@@ -1198,82 +1138,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "L101Ze-DLN",
         vendor: "LYTKO",
         description: "Lytko dual chanel thermostat without display",
-        fromZigbee: [fz.thermostat],
-        toZigbee: [
-            tz.thermostat_local_temperature,
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_running_mode,
-            tz.thermostat_remote_sensing,
-            tz.thermostat_control_sequence_of_operation,
-            tz.thermostat_system_mode,
-        ],
         ota: true,
         meta: {multiEndpoint: true},
-        exposes: [
-            e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_heating_setpoint", 10, 40, 0.5)
-                .withSystemMode(["off", "heat"])
-                .withRunningMode(["off", "heat"])
-                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)
-                .withEndpoint("3"),
-            e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_heating_setpoint", 10, 40, 0.5)
-                .withSystemMode(["off", "heat"])
-                .withRunningMode(["off", "heat"])
-                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)
-                .withEndpoint("4"),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["hvacThermostat"]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "localTemp", minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "occupiedHeatingSetpoint", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "systemMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "runningMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "localTemperatureCalibration", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.read("hvacThermostat", ["localTemp"]);
-            await endpoint3.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-            await endpoint3.read("hvacThermostat", ["systemMode"]);
-            await endpoint3.read("hvacThermostat", ["runningMode"]);
-            await endpoint3.read("hvacThermostat", ["localTemperatureCalibration"]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["hvacThermostat"]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "localTemp", minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "occupiedHeatingSetpoint", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "systemMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "runningMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "localTemperatureCalibration", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint4.read("hvacThermostat", ["localTemp"]);
-            await endpoint4.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-            await endpoint4.read("hvacThermostat", ["systemMode"]);
-            await endpoint4.read("hvacThermostat", ["runningMode"]);
-            await endpoint4.read("hvacThermostat", ["localTemperatureCalibration"]);
-        },
         extend: [
             deviceAddCustomCluster("hvacThermostat", {
                 ID: Zcl.Clusters.hvacThermostat.ID,
@@ -1294,10 +1160,58 @@ export const definitions: DefinitionWithExtend[] = [
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3, 4: 4},
             }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "3",
+            }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "4",
+            }),
             identify(),
             numeric<"hvacThermostat", LytoThermostat>({
                 name: "occupied_setback",
-                description: "Гистерезис",
+                description: "Hysteresis",
                 unit: "°C",
                 cluster: "hvacThermostat",
                 attribute: "occupiedSetback",
@@ -1335,7 +1249,7 @@ export const definitions: DefinitionWithExtend[] = [
             enumLookup<"hvacThermostat", LytoThermostat>({
                 name: "sensor_type",
                 label: "Sensor",
-                description: "Тип датчка термостата",
+                description: "Sensor type",
                 lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
                 cluster: "hvacThermostat",
                 attribute: "lytkoSensor",
@@ -1347,7 +1261,7 @@ export const definitions: DefinitionWithExtend[] = [
             enumLookup<"hvacThermostat", LytoThermostat>({
                 name: "sensor_type",
                 label: "Sensor",
-                description: "Тип датчка термостата",
+                description: "Sensor type",
                 lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
                 cluster: "hvacThermostat",
                 attribute: "lytkoSensor",
@@ -1363,82 +1277,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "L101Ze-DLM",
         vendor: "LYTKO",
         description: "Lytko dual chanel thermostat without display",
-        fromZigbee: [fz.thermostat],
-        toZigbee: [
-            tz.thermostat_local_temperature,
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_running_mode,
-            tz.thermostat_remote_sensing,
-            tz.thermostat_control_sequence_of_operation,
-            tz.thermostat_system_mode,
-        ],
         ota: true,
         meta: {multiEndpoint: true},
-        exposes: [
-            e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_heating_setpoint", 10, 40, 0.5)
-                .withSystemMode(["off", "heat"])
-                .withRunningMode(["off", "heat"])
-                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)
-                .withEndpoint("3"),
-            e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_heating_setpoint", 10, 40, 0.5)
-                .withSystemMode(["off", "heat"])
-                .withRunningMode(["off", "heat"])
-                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)
-                .withEndpoint("4"),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["hvacThermostat"]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "localTemp", minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "occupiedHeatingSetpoint", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "systemMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "runningMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "localTemperatureCalibration", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.read("hvacThermostat", ["localTemp"]);
-            await endpoint3.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-            await endpoint3.read("hvacThermostat", ["systemMode"]);
-            await endpoint3.read("hvacThermostat", ["runningMode"]);
-            await endpoint3.read("hvacThermostat", ["localTemperatureCalibration"]);
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["hvacThermostat"]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "localTemp", minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "occupiedHeatingSetpoint", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "systemMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "runningMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "localTemperatureCalibration", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint4.read("hvacThermostat", ["localTemp"]);
-            await endpoint4.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-            await endpoint4.read("hvacThermostat", ["systemMode"]);
-            await endpoint4.read("hvacThermostat", ["runningMode"]);
-            await endpoint4.read("hvacThermostat", ["localTemperatureCalibration"]);
-        },
         extend: [
             deviceAddCustomCluster("hvacThermostat", {
                 ID: Zcl.Clusters.hvacThermostat.ID,
@@ -1459,10 +1299,58 @@ export const definitions: DefinitionWithExtend[] = [
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3, 4: 4},
             }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "3",
+            }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "4",
+            }),
             identify(),
             numeric<"hvacThermostat", LytoThermostat>({
                 name: "occupied_setback",
-                description: "Гистерезис",
+                description: "Hysteresis",
                 unit: "°C",
                 cluster: "hvacThermostat",
                 attribute: "occupiedSetback",
@@ -1500,7 +1388,7 @@ export const definitions: DefinitionWithExtend[] = [
             enumLookup<"hvacThermostat", LytoThermostat>({
                 name: "sensor_type",
                 label: "Sensor",
-                description: "Тип датчка термостата",
+                description: "Sensor type",
                 lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
                 cluster: "hvacThermostat",
                 attribute: "lytkoSensor",
@@ -1512,7 +1400,7 @@ export const definitions: DefinitionWithExtend[] = [
             enumLookup<"hvacThermostat", LytoThermostat>({
                 name: "sensor_type",
                 label: "Sensor",
-                description: "Тип датчка термостата",
+                description: "Sensor type",
                 lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
                 cluster: "hvacThermostat",
                 attribute: "lytkoSensor",
@@ -1524,7 +1412,7 @@ export const definitions: DefinitionWithExtend[] = [
             numeric({
                 name: "power_apparent",
                 label: "Power Apparent",
-                description: "Полная мощность",
+                description: "Power apparent",
                 unit: "VA",
                 cluster: "haElectricalMeasurement",
                 attribute: "apparentPower",
@@ -1548,83 +1436,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "L101Ze-DBN",
         vendor: "LYTKO",
         description: "Lytko dual chanel thermostat with big display",
-        fromZigbee: [fz.thermostat],
-        toZigbee: [
-            tz.thermostat_local_temperature,
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_running_mode,
-            tz.thermostat_remote_sensing,
-            tz.thermostat_control_sequence_of_operation,
-            tz.thermostat_system_mode,
-        ],
         ota: true,
         meta: {multiEndpoint: true},
-        exposes: [
-            e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_heating_setpoint", 10, 40, 0.5)
-                .withSystemMode(["off", "heat"])
-                .withRunningMode(["off", "heat"])
-                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)
-                .withEndpoint("3"),
-            e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_heating_setpoint", 10, 40, 0.5)
-                .withSystemMode(["off", "heat"])
-                .withRunningMode(["off", "heat"])
-                .withLocalTemperatureCalibration(-2.5, 2.5, 0.1)
-                .withEndpoint("4"),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["hvacThermostat"]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "localTemp", minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "occupiedHeatingSetpoint", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "systemMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "runningMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.configureReporting("hvacThermostat", [
-                {attribute: "localTemperatureCalibration", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint3.read("hvacThermostat", ["localTemp"]);
-            await endpoint3.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-            await endpoint3.read("hvacThermostat", ["systemMode"]);
-            await endpoint3.read("hvacThermostat", ["runningMode"]);
-            await endpoint3.read("hvacThermostat", ["localTemperatureCalibration"]);
-
-            const endpoint4 = device.getEndpoint(4);
-            await reporting.bind(endpoint4, coordinatorEndpoint, ["hvacThermostat"]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "localTemp", minimumReportInterval: 60, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "occupiedHeatingSetpoint", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 50},
-            ]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "systemMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "runningMode", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint4.configureReporting("hvacThermostat", [
-                {attribute: "localTemperatureCalibration", minimumReportInterval: 1, maximumReportInterval: 120, reportableChange: 1},
-            ]);
-            await endpoint4.read("hvacThermostat", ["localTemp"]);
-            await endpoint4.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-            await endpoint4.read("hvacThermostat", ["systemMode"]);
-            await endpoint4.read("hvacThermostat", ["runningMode"]);
-            await endpoint4.read("hvacThermostat", ["localTemperatureCalibration"]);
-        },
         extend: [
             deviceAddCustomCluster("hvacThermostat", {
                 ID: Zcl.Clusters.hvacThermostat.ID,
@@ -1667,6 +1480,54 @@ export const definitions: DefinitionWithExtend[] = [
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3, 4: 4},
             }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "3",
+            }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "4",
+            }),
             identify(),
             binary({
                 name: "child_lock",
@@ -1682,7 +1543,7 @@ export const definitions: DefinitionWithExtend[] = [
             numeric<"hvacUserInterfaceCfg", LytoUIThermostat>({
                 name: "brigness_Active",
                 label: "Brigness Active",
-                description: "Яркость в режиме работы",
+                description: "Display brightness in work mode",
                 unit: "%",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: "brignessActive",
@@ -1695,7 +1556,7 @@ export const definitions: DefinitionWithExtend[] = [
             numeric<"hvacUserInterfaceCfg", LytoUIThermostat>({
                 name: "brigness_Standby",
                 label: "Brigness Standby",
-                description: "Яркость в режиме ожидания",
+                description: "Display brightness in standby mode",
                 unit: "%",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: "brignessStandby",
@@ -1707,7 +1568,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             numeric<"hvacThermostat", LytoThermostat>({
                 name: "occupied_setback",
-                description: "Гистерезис",
+                description: "Hysteresis",
                 unit: "°C",
                 cluster: "hvacThermostat",
                 attribute: "occupiedSetback",
@@ -1722,7 +1583,7 @@ export const definitions: DefinitionWithExtend[] = [
             enumLookup<"hvacThermostat", LytoThermostat>({
                 name: "sensor_type_3",
                 label: "Sensor",
-                description: "Тип датчка термостата",
+                description: "Sensor type",
                 lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
                 cluster: "hvacThermostat",
                 attribute: "lytkoSensor",
@@ -1734,7 +1595,7 @@ export const definitions: DefinitionWithExtend[] = [
             enumLookup<"hvacThermostat", LytoThermostat>({
                 name: "sensor_type_4",
                 label: "Sensor",
-                description: "Тип датчка термостата",
+                description: "Sensor type",
                 lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
                 cluster: "hvacThermostat",
                 attribute: "lytkoSensor",
@@ -1746,7 +1607,7 @@ export const definitions: DefinitionWithExtend[] = [
             enumLookup<"hvacThermostat", LytoThermostat>({
                 name: "target_first_3",
                 label: "First temperature",
-                description: "Сначала отображать заданную/текущую температуру",
+                description: "Display target/current temperature first",
                 lookup: {Target: 0, Current: 1},
                 cluster: "hvacThermostat",
                 attribute: "lytkoTargetFirst",
@@ -1758,7 +1619,7 @@ export const definitions: DefinitionWithExtend[] = [
             enumLookup<"hvacThermostat", LytoThermostat>({
                 name: "target_first_4",
                 label: "First temperature",
-                description: "Сначала отображать заданную/текущую температуру",
+                description: "Display target/current temperature first",
                 lookup: {Target: 0, Current: 1},
                 cluster: "hvacThermostat",
                 attribute: "lytkoTargetFirst",
