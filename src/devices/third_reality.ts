@@ -30,6 +30,18 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
+interface ThirdBlindGen2Sensor {
+    attributes: {
+        infraredEnable: number;
+        compensationSpeed: number;
+        limitPosition: number;
+        totalCycleTimes: number;
+        lastRemainingBatteryPercentage: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface ThirdWaterSensor {
     attributes: {
         sirenOnOff: number;
@@ -354,6 +366,50 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.binary<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2Sensor>({
+                name: "ir_remote",
+                valueOn: ["ON", 0x00],
+                valueOff: ["OFF", 0x01],
+                cluster: "3rSmartBlindGen2SpecialCluster",
+                attribute: "infraredEnable",
+                description: "IR Remote Function Enable/Disable",
+            }),
+            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2Sensor>({
+                name: "bottom_balance_adjustment",
+                valueMin: -100,
+                valueMax: 100,
+                cluster: "3rSmartBlindGen2SpecialCluster",
+                attribute: "compensation_speed",
+                description: "Adjusts the left-right balance of the shade's bottom bar(turns -100 ~ 100).",
+                access: "ALL",
+            }),
+            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2Sensor>({
+                name: "preset_bottom_position",
+                valueMin: 50,
+                valueMax: 3800,
+                cluster: "3rSmartBlindGen2SpecialCluster",
+                attribute: "limit_position",
+                description: "Preset the bottom limit position of the blind",
+                access: "ALL",
+            }),
+            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2Sensor>({
+                name: "estimated_usable_curtain_cycles",
+                valueMin: 200,
+                valueMax: 334,
+                cluster: "3rSmartBlindGen2SpecialCluster",
+                attribute: "total_cycle_times",
+                description: "Indicates the estimated number of remaining curtain cycles, used to gauge the battery charge level(based on battery level).",
+                access: "ALL",
+            }),
+            m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2Sensor>({
+                name: "battery_level_at_last_power_off",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "3rSmartBlindGen2SpecialCluster",
+                attribute: "last_remaining_battery_percentage",
+                description: "Stores the battery level recorded at the moment of the last power-off, used to help estimate the current battery capacity.",
+                access: "STATE_GET",
             }),
         ],
     },
