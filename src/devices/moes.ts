@@ -1697,6 +1697,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "2-gang switch module with buzzer",
         extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             tuya.modernExtend.tuyaOnOff({
                 switchType: true,
                 indicatorMode: true,
@@ -1705,10 +1706,6 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoints: ["l1", "l2"],
             }),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
