@@ -4584,6 +4584,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
+    zigbeeModel: ['Xi InterAct'],
+    model: 'RC132V LED36S/840 W30L120 IA1 NOC',
+    vendor: 'Philips Lighting',
+    description: 'Signify rectangle panel light',
+    extend: [m.deviceEndpoints({"endpoints":{"2":2,"64":64,"80":80}}), m.light({"colorTemp":{"range":[150,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}}), m.light()],
+    };
+    {
         zigbeeModel: ["RDM005"],
         model: "RDM005",
         vendor: "Philips",
