@@ -2759,7 +2759,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0501B",
         description: "Zigbee light",
         vendor: "Tuya",
-        extend: [tuyaLight()],
+        extend: [
+            tuya.modernExtend.tuyaLight({
+                doNotDisturb: true,
+            }),
+        ],
         whiteLabel: [
             tuya.whitelabel("MiBoxer", "FUT036Z", "Single color LED controller", ["_TZ3210_dxroobu3", "_TZ3210_dbilpfqk"]),
             tuya.whitelabel("Mercator Ikuü", "SMFL20W-ZB", "Ridley Floodlight", ["_TZ3000_juq7i1fr"]),
