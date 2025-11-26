@@ -798,4 +798,11 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
     },
+    {
+        zigbeeModel: ["SLT6b"],
+        model: "SLT6b",
+        vendor: "Hive",
+        description: "Heating thermostat remote control",
+        extend: [m.battery(), m.temperature()],
+    },
 ];
