@@ -808,7 +808,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg","msTemperatureMeasurement"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "msTemperatureMeasurement"]);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.temperature(endpoint);
         },
