@@ -157,7 +157,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.battery(),
             m.binary<"3rWaterSensorcluster", ThirdWaterSensor>({
-                name: "Water Leak Buzzer On/Off",
+                name: "water_leak_buzzer",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "3rWaterSensorcluster",
@@ -166,7 +166,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
             m.numeric<"3rWaterSensorcluster", ThirdWaterSensor>({
-                name: "Water Leak Buzzer Alarm Mode",
+                name: "water_leak_buzzer_alarm_mode",
                 unit: "min",
                 valueMin: 0,
                 valueMax: 255,
