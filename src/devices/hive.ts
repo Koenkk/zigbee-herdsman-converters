@@ -803,14 +803,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SLT6b",
         vendor: "Hive",
         description: "Heating thermostat remote control",
-        fromZigbee: [fz.battery, fz.temperature],
-        toZigbee: [],
-        exposes: [e.battery(), e.temperature()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(9);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "msTemperatureMeasurement"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.temperature(endpoint);
-        },
+        extend: [m.battery(), m.temperature()],
     },
 ];
