@@ -399,7 +399,8 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 334,
                 cluster: "3rSmartBlindGen2SpecialCluster",
                 attribute: "total_cycle_times",
-                description: "Indicates the estimated number of remaining curtain cycles, used to gauge the battery charge level(based on battery level).",
+                description:
+                    "Indicates the estimated number of remaining curtain cycles, used to gauge the battery charge level(based on battery level).",
                 access: "ALL",
             }),
             m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
@@ -408,7 +409,8 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 100,
                 cluster: "3rSmartBlindGen2SpecialCluster",
                 attribute: "last_remaining_battery_percentage",
-                description: "Stores the battery level recorded at the moment of the last power-off, used to help estimate the current battery capacity.",
+                description:
+                    "Stores the battery level recorded at the moment of the last power-off, used to help estimate the current battery capacity.",
                 access: "STATE_GET",
             }),
         ],
