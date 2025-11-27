@@ -2186,7 +2186,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ZGRC-KEY-017"],
         model: "ZGRC-KEY-017",
         vendor: "Sunricher",
-        description: "Sunricher ZGRC-KEY-017 6-zone RGB+CCT remote",
+        description: "6-zone RGB+CCT remote",
         extend: [
             m.deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6}}),
             m.battery(),
@@ -2194,7 +2194,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4", "5", "6"]}),
             m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4", "5", "6"]}),
         ],
-        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["ZG9095B"],
