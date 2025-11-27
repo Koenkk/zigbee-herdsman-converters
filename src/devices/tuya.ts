@@ -21532,22 +21532,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: 'ZP-301Z',
         vendor: 'Arteco',
         description: 'PIR Motion Sensor Light with Night Light Function',
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [
-            ...tuya.tz.datapoints,
-            key:[
-                 'detection_cycle',
-                'presence_state',
-                'battery_value',
-                'illuminance',
-                'illuminance_trig',
-                'bright_value',
-                'presence_time',
-                'presence_delay'      
-            ]
-        ],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("presence_state", ea.STATE, ["NONE", "PRESENCE"]).withDescription("NONE: no presence, PRESENCE: presence"),
             e.numeric('battery_value',ea.STATE).withDescription('battery value in %'),
