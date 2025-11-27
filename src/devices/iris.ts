@@ -122,14 +122,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "iL07_1",
         vendor: "Iris",
         description: "Motion Sensor",
-        fromZigbee: [fz.ias_occupancy_alarm_2, fz.temperature, fz.humidity],
+        fromZigbee: [fz.ias_occupancy_alarm_2, fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
+        exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity(), e.battery()],
+        meta: {battery: {voltageToPercentage: "3V_2100"}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "msRelativeHumidity"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "msRelativeHumidity", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.humidity(endpoint);
+            await reporting.batteryVoltage(endpoint);
+            device.powerSource = "Battery";
+            device.save();
         },
     },
     {
