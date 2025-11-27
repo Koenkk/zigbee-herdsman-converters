@@ -21525,3 +21525,34 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(["on_1", "off_1", "on_2", "off_2"])],
     },
 ];
+{
+    fingerprint: [
+        { modelID: 'TS0601', manufacturerName: '_TZE204_odlldrxx' },
+        { modelID: 'TS0601', manufacturerName: '_TZE200_odlldrxx' },
+    ],
+    model: 'TS0601_cover_1',
+    vendor: 'TuYa',
+    description: 'Curtain motor/roller blind motor/window pusher/tubular motor',
+    fromZigbee: [
+        legacy.fromZigbee.tuya_cover,
+    ],
+    toZigbee: [
+        legacy.toZigbee.tuya_cover_control,
+        legacy.toZigbee.tuya_cover_options,
+    ],
+    exposes: [
+        e.cover_position().setAccess(ea.STATE_SET),
+        e.composite('options', 'options', ea.STATE_SET)
+            .withFeature(
+                e.numeric('motor_speed', ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(255)
+                    .withDescription('Motor speed')
+            )
+            .withFeature(
+                e.binary('reverse_direction', ea.STATE_SET, true, false)
+                    .withDescription('Reverse the motor direction')
+            ),
+    ],
+    options: [exposes.options.cover_position_percent_fix()],
+},
