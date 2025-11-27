@@ -363,7 +363,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery(),
             m.windowCovering({controls: ["lift"]}),
-            m.commandsWindowCovering({commands: ["open", "close", "stop"], endpointNames: ["3"]}),
+            m.commandsWindowCovering({commands: ["open", "close", "stop"]}),
             m.deviceAddCustomCluster("3rSmartBlindGen2SpecialCluster", {
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
