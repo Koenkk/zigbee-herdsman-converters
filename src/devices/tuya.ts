@@ -5678,6 +5678,8 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_7shyddj3",
                 "_TZE204_a2jcoyuk",
                 "_TZE204_ic7jtutb",
+                "_TZE204_odlldrxx",
+                "_TZE200_odlldrxx",
                 "_TZE204_zuq5xxib",
             ]),
             ...tuya.fingerprint("zo2pocs\u0000", ["_TYST11_fzo2pocs"]),
@@ -21525,35 +21527,3 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(["on_1", "off_1", "on_2", "off_2"])],
     },
 ];
-{
-    fingerprint: [
-        { modelID: 'TS0601', manufacturerName: '_TZE204_odlldrxx' },
-        { modelID: 'TS0601', manufacturerName: '_TZE200_odlldrxx' },
-    ],
-    model: 'TS0601_cover_1',
-    vendor: 'TuYa',
-    description: '窗帘电机/卷帘电机/推窗器/管状电机',
-    fromZigbee: [
-        legacy.fromZigbee.tuya_cover,
-    ],
-    toZigbee: [
-        legacy.toZigbee.tuya_cover_control,
-        legacy.toZigbee.tuya_cover_options,
-    ],
-    exposes: [
-        e.cover_position()
-            .setAccess('position', ea.STATE_SET),
-        e.composite('options', 'options', ea.STATE_SET)
-            .withFeature(
-                e.numeric('motor_speed', ea.STATE_SET)
-                    .withValueMin(0)
-                    .withValueMax(255)
-                    .withDescription('Motor speed')
-            )
-            .withFeature(
-                e.binary('reverse_direction', ea.STATE_SET, true, false)
-                    .withDescription('Reverse the motor direction')
-            ),
-    ],
-    options: [exposes.options.cover_position_percent_fix()],
-},
