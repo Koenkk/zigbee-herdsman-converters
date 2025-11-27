@@ -1521,6 +1521,89 @@ export const lumiModernExtend = {
 
         return result;
     },
+    lumiDimmingRangeMin: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>) =>
+        modernExtend.numeric({
+            name: "dimming_range_minimum",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x0515, type: 0x20},
+            description: "Minimum allowed dimming value",
+            zigbeeCommandOptions: {manufacturerCode},
+            unit: "%",
+            valueMin: 1,
+            valueMax: 99,
+            valueStep: 1,
+            entityCategory: "config",
+            ...args,
+        }),
+    lumiDimmingRangeMax: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>) =>
+        modernExtend.numeric({
+            name: "dimming_range_maximum",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x0516, type: 0x20},
+            description: "Maximum allowed dimming value",
+            zigbeeCommandOptions: {manufacturerCode},
+            unit: "%",
+            valueMin: 2,
+            valueMax: 100,
+            valueStep: 1,
+            entityCategory: "config",
+            ...args,
+        }),
+    lumiOffOnDuration: (args?: Partial<modernExtend.NumericArgs<"genLevelCtrl">>) =>
+        modernExtend.numeric({
+            name: "off_on_duration",
+            cluster: "genLevelCtrl",
+            attribute: {ID: 0x0012, type: 0x21},
+            description: "Duration for light to gradually brighten when turning on",
+            unit: "s",
+            valueMin: 0,
+            valueMax: 10,
+            valueStep: 0.5,
+            scale: 10,
+            entityCategory: "config",
+            ...args,
+        }),
+    lumiOnOffDuration: (args?: Partial<modernExtend.NumericArgs<"genLevelCtrl">>) =>
+        modernExtend.numeric({
+            name: "on_off_duration",
+            cluster: "genLevelCtrl",
+            attribute: {ID: 0x0013, type: 0x21},
+            description: "Duration for light to gradually dim when turning off",
+            unit: "s",
+            valueMin: 0,
+            valueMax: 10,
+            valueStep: 0.5,
+            scale: 10,
+            entityCategory: "config",
+            ...args,
+        }),
+    lumiTransitionCurveCurvature: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>) =>
+        modernExtend.numeric({
+            name: "transition_curve_curvature",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x0528, type: 0x39},
+            description: "Transition curve shape: 0.2-1 (fast to slow), 1 (uniform), 1-6 (slow to fast)",
+            zigbeeCommandOptions: {manufacturerCode},
+            valueMin: 0.2,
+            valueMax: 6,
+            valueStep: 0.01,
+            entityCategory: "config",
+            ...args,
+        }),
+    lumiTransitionInitialBrightness: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>) =>
+        modernExtend.numeric({
+            name: "transition_initial_brightness",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x052c, type: 0x20},
+            description: "Starting brightness level when light turns on before transition",
+            zigbeeCommandOptions: {manufacturerCode},
+            unit: "%",
+            valueMin: 0,
+            valueMax: 50,
+            valueStep: 1,
+            entityCategory: "config",
+            ...args,
+        }),
     lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean; powerOutageMemory?: "binary" | "enum"; lockRelay?: boolean}) => {
         // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {operationMode: false, lockRelay: false, ...args};
