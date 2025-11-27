@@ -6,10 +6,159 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as philips from "../lib/philips";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const HUE_CHIME_META = {
+    manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+    disableDefaultResponse: true,
+};
+
+interface CustomHueChime {
+    attributes: {
+        sirenIsMuted: boolean;
+        soundIDPlaying: number;
+        unknownAttr: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+const tzLocal = {
+    play_sound: {
+        key: ["play_sound"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertObject(value);
+            // payload: {"sound": <key from sounds dict>, "volume": <0-100>}
+            const sounds = {
+                triple_beep: 1,
+                bleep: 2,
+                ding_dong_classic: 3,
+                ding_dong_modern: 4,
+                rise: 5,
+                // the siren appears to be sound ID 6, but it can only be triggered with a separate command
+                westminster_classic: 7,
+                westminster_modern: 8,
+                ding_dong_xylo: 9,
+                hue_default: 10,
+                sonar: 11,
+                swing: 12,
+                bright: 13,
+                glow: 14, // sounds 14-21 are only available in firmware version >= 1.123.13
+                bounce: 15,
+                reveal: 16,
+                welcome: 17,
+                bright_modern: 18,
+                fairy: 19,
+                galaxy: 20,
+                echo: 21,
+            };
+
+            const volume_int = Math.round(value.volume * 2.53); // convert from 0-100 to 0-253
+            const payload = Buffer.from([
+                0x01, // constant
+                utils.getFromLookup(value.sound, sounds, 10), // sound ID
+                0x00, // constant
+                0x00, // constant
+                0x00, // constant
+                volume_int ?? 0xfd, // volume
+            ]);
+
+            if (value.sound === "triple_beep") {
+                // This sound can only be triggered with a separate command that doesn't appear to
+                // support volume. It's unclear how to trigger this from the Hue bridge, and the
+                // identify command blinks the LED, so I'm not sure what this is actually used for.
+                // I figured having this sound available only at max volume is better than not
+                // having it available at all.
+                await entity.command(
+                    "customHueChime",
+                    "playTripleBeep",
+                    // @ts-expect-error no typing yet for toZigbee converters
+                    {data: "ffffff"}, // value doesn't appear to matter as long as it's 3 bytes
+                    HUE_CHIME_META,
+                );
+            } else {
+                // @ts-expect-error no typing yet for toZigbee converters
+                await entity.command("customHueChime", "playSound", {data: payload}, HUE_CHIME_META);
+            }
+        },
+    } satisfies Tz.Converter,
+    trigger_siren: {
+        key: ["trigger_siren"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertObject(value);
+            const duration_ms = Math.round(value.duration * 1000);
+            const duration_bytes = [duration_ms & 0xff, (duration_ms >> 8) & 0xff, (duration_ms >> 16) & 0xff];
+            // payload: {"duration": <0-16777>} (seconds) (but please don't trigger the siren for 4+ hours)
+            const payload = Buffer.from([
+                0x02, // constant
+                0x06, // constant
+                0x00, // constant
+                0x00, // constant
+                0x00, // constant
+                duration_bytes[0],
+                duration_bytes[1],
+                duration_bytes[2], // duration converted to ms, little endian
+                0x00, // constant
+            ]);
+
+            // @ts-expect-error no typing yet for toZigbee converters
+            await entity.command("customHueChime", "triggerSiren", {data: payload}, HUE_CHIME_META);
+        },
+    } satisfies Tz.Converter,
+    mute_unmute: {
+        key: ["state"],
+        convertSet: async (entity, key, value, meta) => {
+            if (value === "ON") {
+                // @ts-expect-error no typing yet for toZigbee converters
+                await entity.command("customHueChime", "unmute", {}, HUE_CHIME_META);
+            } else if (value === "OFF") {
+                // @ts-expect-error no typing yet for toZigbee converters
+                await entity.command("customHueChime", "mute", {}, HUE_CHIME_META);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            // @ts-expect-error no typing yet for toZigbee converters
+            await entity.read("customHueChime", ["sirenIsMuted"], HUE_CHIME_META);
+        },
+    } satisfies Tz.Converter,
+};
+
+const fzLocal = {
+    siren_is_muted: {
+        cluster: "customHueChime",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if ("sirenIsMuted" in msg.data) {
+                return {state: msg.data.sirenIsMuted ? "OFF" : "ON"};
+            }
+        },
+    } satisfies Fz.Converter<"customHueChime", CustomHueChime, ["attributeReport", "readResponse"]>,
+};
+
+const extendLocal = {
+    addCustomClusterHueChime: () =>
+        m.deviceAddCustomCluster("customHueChime", {
+            ID: 0xfc07,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {
+                sirenIsMuted: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+                soundIDPlaying: {ID: 0x0001, type: Zcl.DataType.UINT32},
+                unknownAttr: {ID: 0x0002, type: Zcl.DataType.UINT32},
+            },
+            commands: {
+                mute: {ID: 0x00, parameters: []},
+                unmute: {ID: 0x01, parameters: []},
+                triggerSiren: {ID: 0x02, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                playSound: {ID: 0x03, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                playTripleBeep: {ID: 0x04, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+            },
+            commandsResponse: {},
+        }),
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -134,6 +283,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Philips Hue A60 bulb with on/off control",
         extend: [philips.m.light()],
+    },
+    {
+        zigbeeModel: ["LTA014"],
+        model: "9290038548H",
+        vendor: "Philips",
+        description: "Hue white ambiance A60 810lm with Bluetooth E27",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}})],
     },
     {
         zigbeeModel: ["LTA015"],
@@ -4433,5 +4589,65 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue smart button",
         extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl()],
+    },
+    {
+        zigbeeModel: ["COM001"],
+        model: "8720169277243",
+        vendor: "Philips",
+        description: "Hue Secure siren and chime",
+        extend: [extendLocal.addCustomClusterHueChime(), m.identify()],
+        toZigbee: [tzLocal.play_sound, tzLocal.trigger_siren, tzLocal.mute_unmute],
+        fromZigbee: [fzLocal.siren_is_muted],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(11);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["customHueChime"]);
+            await endpoint.configureReporting<"customHueChime", CustomHueChime>("customHueChime", [
+                {attribute: "sirenIsMuted", minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+                {attribute: "soundIDPlaying", minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+                {attribute: "unknownAttr", minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
+            ]);
+        },
+        exposes: [
+            exposes.switch().withState("state", false, "Mute/unmute siren (off = muted)"),
+            exposes
+                .composite("play_sound", "play_sound", ea.SET)
+                .withFeature(
+                    exposes.enum("sound", ea.SET, [
+                        "bleep",
+                        "bounce",
+                        "bright",
+                        "bright_modern",
+                        "ding_dong_classic",
+                        "ding_dong_modern",
+                        "ding_dong_xylo",
+                        "echo",
+                        "fairy",
+                        "galaxy",
+                        "glow",
+                        "hue_default",
+                        "reveal",
+                        "rise",
+                        "sonar",
+                        "swing",
+                        "triple_beep",
+                        "welcome",
+                        "westminster_classic",
+                        "westminster_modern",
+                    ]),
+                )
+                .withFeature(exposes.numeric("volume", ea.SET).withValueMin(0).withValueMax(100).withDescription("Volume 0-100")),
+            exposes
+                .composite("trigger_siren", "trigger_siren", ea.SET)
+                .withFeature(
+                    exposes
+                        .numeric("duration", ea.SET)
+                        .withUnit("seconds")
+                        .withValueMin(0)
+                        .withValueMax(600)
+                        .withValueStep(1)
+                        .withPreset("stop", 0, "Stop the siren"),
+                ),
+        ],
     },
 ];

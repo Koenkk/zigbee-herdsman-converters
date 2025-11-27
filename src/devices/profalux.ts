@@ -1,5 +1,6 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
@@ -175,7 +176,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genLevelCtrl"]);
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genPowerCfg", "closureWindowCovering"]);
             // Configure battery voltage reporting from endpoint 2
-            await reporting.batteryVoltage(endpoint2, {min: 3600, max: 86400, change: 1});
+            await reporting.batteryVoltage(endpoint2, {min: 3600, max: repInterval.MAX, change: 1});
         },
     },
 ];

@@ -790,6 +790,17 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    TLSR82xxAction: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (Object.hasOwn(msg.data, "onOff")) {
+                const btn = msg.endpoint.ID;
+                const state = msg.data["onOff"] === 1 ? "on" : "off";
+                return {action: `${state}_${btn}`};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0726_action: {
         cluster: "genOnOff",
@@ -1484,11 +1495,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Two gang switch with colored backlight modes",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.switch().withDescription("All switches"),
-            e.switch().withEndpoint("l1"),
-            e.switch().withEndpoint("l2"),
-            e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight mode"),
-            e.binary("indicator_mode", ea.STATE_SET, "ON", "OFF").withDescription("Indicator mode"),
+            tuya.exposes.switch().withDescription("All switches"),
+            tuya.exposes.switch().withEndpoint("l1"),
+            tuya.exposes.switch().withEndpoint("l2"),
+            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Backlight master switch"),
+            e.numeric("backlight", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Backlight brightness percentage"),
+            e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("LED indicator mode"),
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
             e
@@ -1509,9 +1521,188 @@ export const definitions: DefinitionWithExtend[] = [
                 [7, "countdown_l1", tuya.valueConverter.countdown],
                 [8, "countdown_l2", tuya.valueConverter.countdown],
                 [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
-                [15, "indicator_mode", tuya.valueConverter.onOff],
-                [16, "backlight_mode", tuya.valueConverter.onOff],
+                [
+                    15,
+                    "indicator_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on_off_status: tuya.enum(1),
+                        switch_position: tuya.enum(2),
+                    }),
+                ],
+
+                [16, "backlight_switch", tuya.valueConverter.onOff],
                 [101, "child_lock", tuya.valueConverter.onOff],
+                [102, "backlight", tuya.valueConverter.raw],
+                [
+                    103,
+                    "on_color",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warm_white: tuya.enum(7),
+                        warm_yellow: tuya.enum(8),
+                    }),
+                ],
+                [
+                    104,
+                    "off_color",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warm_white: tuya.enum(7),
+                        warm_yellow: tuya.enum(8),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_rkbxtclc"]),
+        model: "TS0601_3gang_rkbxtclc",
+        vendor: "Tuya",
+        description: "Three gang smart switch with colored backlight modes",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.switch().withDescription("All switches"),
+            tuya.exposes.switch().withEndpoint("l1"),
+            tuya.exposes.switch().withEndpoint("l2"),
+            tuya.exposes.switch().withEndpoint("l3"),
+            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Backlight master switch"),
+            e.numeric("backlight", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Backlight brightness percentage"),
+            e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("LED indicator mode"),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
+            e
+                .enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("ON color"),
+
+            e
+                .enum("off_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("OFF color"),
+            e.numeric("countdown_l1", ea.STATE_SET).withUnit("s").withDescription("Countdown for l1").withValueMin(0).withValueMax(86400),
+            e.numeric("countdown_l2", ea.STATE_SET).withUnit("s").withDescription("Countdown for l2").withValueMin(0).withValueMax(86400),
+            e.numeric("countdown_l3", ea.STATE_SET).withUnit("s").withDescription("Countdown for l3").withValueMin(0).withValueMax(86400),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [13, "state", tuya.valueConverter.onOff],
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+                [3, "state_l3", tuya.valueConverter.onOff],
+                [7, "countdown_l1", tuya.valueConverter.countdown],
+                [8, "countdown_l2", tuya.valueConverter.countdown],
+                [9, "countdown_l3", tuya.valueConverter.countdown],
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [
+                    15,
+                    "indicator_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on_off_status: tuya.enum(1),
+                        switch_position: tuya.enum(2),
+                    }),
+                ],
+                [16, "backlight_switch", tuya.valueConverter.onOff],
+                [101, "child_lock", tuya.valueConverter.onOff],
+                [102, "backlight", tuya.valueConverter.raw],
+                [
+                    103,
+                    "on_color",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warm_white: tuya.enum(7),
+                        warm_yellow: tuya.enum(8),
+                    }),
+                ],
+                [
+                    104,
+                    "off_color",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        blue: tuya.enum(1),
+                        green: tuya.enum(2),
+                        white: tuya.enum(3),
+                        yellow: tuya.enum(4),
+                        magenta: tuya.enum(5),
+                        cyan: tuya.enum(6),
+                        warm_white: tuya.enum(7),
+                        warm_yellow: tuya.enum(8),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_7ytnacie"]),
+        model: "TS0601_4gang_7ytnacie",
+        vendor: "Tuya",
+        description: "Four gang smart switch with colored backlight modes",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.switch().withDescription("All switches"),
+            tuya.exposes.switch().withEndpoint("l1"),
+            tuya.exposes.switch().withEndpoint("l2"),
+            tuya.exposes.switch().withEndpoint("l3"),
+            tuya.exposes.switch().withEndpoint("l4"),
+            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Backlight master switch"),
+            e.numeric("backlight", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Backlight brightness percentage"),
+            e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("LED indicator mode"),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
+            e
+                .enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("ON color"),
+            e
+                .enum("off_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("OFF color"),
+            e.numeric("countdown_l1", ea.STATE_SET).withUnit("s").withDescription("Countdown for l1").withValueMin(0).withValueMax(86400),
+            e.numeric("countdown_l2", ea.STATE_SET).withUnit("s").withDescription("Countdown for l2").withValueMin(0).withValueMax(86400),
+            e.numeric("countdown_l3", ea.STATE_SET).withUnit("s").withDescription("Countdown for l3").withValueMin(0).withValueMax(86400),
+            e.numeric("countdown_l4", ea.STATE_SET).withUnit("s").withDescription("Countdown for l4").withValueMin(0).withValueMax(86400),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [13, "state", tuya.valueConverter.onOff],
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+                [3, "state_l3", tuya.valueConverter.onOff],
+                [4, "state_l4", tuya.valueConverter.onOff],
+                [7, "countdown_l1", tuya.valueConverter.countdown],
+                [8, "countdown_l2", tuya.valueConverter.countdown],
+                [9, "countdown_l3", tuya.valueConverter.countdown],
+                [10, "countdown_l4", tuya.valueConverter.countdown],
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [
+                    15,
+                    "indicator_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on_off_status: tuya.enum(1),
+                        switch_position: tuya.enum(2),
+                    }),
+                ],
+                [16, "backlight_switch", tuya.valueConverter.onOff],
+                [101, "child_lock", tuya.valueConverter.onOff],
+                [102, "backlight", tuya.valueConverter.raw],
                 [
                     103,
                     "on_color",
@@ -2335,14 +2526,21 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CK-BL702-AL-01",
         vendor: "Tuya",
         description: "Zigbee LED bulb",
+        toZigbee: [tz.power_on_behavior],
+        fromZigbee: [fz.power_on_behavior],
         extend: [
             tuya.modernExtend.tuyaLight({
                 colorTemp: {range: [142, 500]},
                 color: true,
             }),
         ],
+        exposes: [e.power_on_behavior(["off", "on", "toggle", "previous"])],
         meta: {
             moveToLevelWithOnOffDisable: true,
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("genOnOff", ["startUpOnOff"]);
         },
     },
     {
@@ -2561,7 +2759,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0501B",
         description: "Zigbee light",
         vendor: "Tuya",
-        extend: [tuyaLight()],
+        extend: [
+            tuya.modernExtend.tuyaLight({
+                doNotDisturb: true,
+            }),
+        ],
         whiteLabel: [
             tuya.whitelabel("MiBoxer", "FUT036Z", "Single color LED controller", ["_TZ3210_dxroobu3", "_TZ3210_dbilpfqk"]),
             tuya.whitelabel("Mercator Ikuü", "SMFL20W-ZB", "Ridley Floodlight", ["_TZ3000_juq7i1fr"]),
@@ -3239,7 +3441,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vm1gyrso", "_TZE204_1v1dxkck", "_TZE204_znvwzxkq", "_TZE284_znvwzxkq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vm1gyrso", "_TZE204_1v1dxkck", "_TZE204_znvwzxkq", "_TZE284_znvwzxkq", "_TZE200_vizxbhco"]),
         model: "TS0601_dimmer_3",
         vendor: "Tuya",
         description: "3 gang smart dimmer",
@@ -3948,7 +4150,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_go3tvswy", "_TZE204_2imwyigp", "_TZE200_2imwyigp"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_2imwyigp", "_TZE200_2imwyigp"]),
         model: "MG-ZG03W",
         vendor: "Tuya",
         description: "3 gang switch",
@@ -3968,6 +4170,33 @@ export const definitions: DefinitionWithExtend[] = [
         },
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1};
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_go3tvswy", "_TZE200_oyti2ums"]),
+        model: "MG-GPO04ZSLP",
+        vendor: "Tuya",
+        description: "2 x socket + 1 x light with master switch and metering",
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {master: 1, light: 1, left: 2, right: 3}})],
+        exposes: [
+            e.switch().withEndpoint("master").setAccess("state", ea.STATE_SET).withDescription("Master switch controlling all relays"),
+            e.switch().withEndpoint("light").setAccess("state", ea.STATE_SET).withDescription("Light relay"),
+            e.switch().withEndpoint("left").setAccess("state", ea.STATE_SET).withDescription("Left socket"),
+            e.switch().withEndpoint("right").setAccess("state", ea.STATE_SET).withDescription("Right socket"),
+            e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Line voltage reported by the outlet"),
+            e.numeric("current", ea.STATE).withUnit("A").withDescription("Line current reported by the outlet"),
+            e.numeric("energy_wh", ea.STATE).withUnit("Wh").withDescription("Accumulated energy (raw Wh counter)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state_right", tuya.valueConverter.onOff],
+                [2, "state_light", tuya.valueConverter.onOff],
+                [3, "state_left", tuya.valueConverter.onOff],
+                [13, "state_master", tuya.valueConverter.onOff],
+                [21, "current", tuya.valueConverter.divideBy1000],
+                [22, "energy_wh", tuya.valueConverter.raw],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+            ],
         },
     },
     {
@@ -4165,6 +4394,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Danfoss", "014G2480", "Temperature and humidity sensor", ["_TZ3000_mxzo5rhf"]),
             tuya.whitelabel("Tuya", "HS09", "Hanging temperature humidity sensor", ["_TZ3000_1twfmkcc"]),
             tuya.whitelabel("Nedis", "ZBSC10WT", "Temperature and humidity sensor", ["_TZ3000_fie1dpkm"]),
+            tuya.whitelabel("Tuya", "TH09Z", "Temperature and humidity sensor", ["_TZ3000_isw9u95y"]),
         ],
     },
     {
@@ -4999,6 +5229,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaOnOff({
                 switchType: true,
                 endpoints: ["l1", "l2"],
+                powerOutageMemory: (manufacturerName) => manufacturerName !== "_TZ3000_qaa59zqd",
             }),
         ],
         endpoint: (device) => {
@@ -6580,7 +6811,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_9xfjixap" /* model: 'ME167', vendor: 'AVATTO' */,
             "_TZE200_jkfbph7l" /* model: 'ME167', vendor: 'AVATTO' */,
             "_TZE200_rxntag7i" /* model: 'ME168', vendor: 'AVATTO' */,
-            "_TZE200_4utwozi2" /* model: 'ME167', vendor: 'MYUET' */,
+            "_TZE200_4utwozi2" /* model: 'ME167', vendor: 'AVATTO' */,
             "_TZE200_yqgbrdyo",
             "_TZE284_p3dbf6qs",
             "_TZE200_rxq4iti9",
@@ -7640,6 +7871,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Zbeacon", "TS011F_plug_1_1", "Smart plug (with power monitoring)", ["Zbeacon"]),
             tuya.whitelabel("NEO", "NAS-WR01B", "Smart plug (with electrical measurements)", ["_TZ3000_gjnozsaz"]),
             tuya.whitelabel("GreenSun", "HSC-ZW-EU", "Outdoor Smart Plug (with power monitoring)", ["_TZ3000_cicwjqth"]),
+            tuya.whitelabel("Nous", "A10Z", "Smart Zigbee Socket", ["_TZ3210_jlf1nepw"]),
         ],
         ota: true,
         extend: [
@@ -7718,6 +7950,13 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
         },
+    },
+    {
+        zigbeeModel: ["SM0212"],
+        model: "SM0212",
+        vendor: "Tuya",
+        description: "Gas sensor",
+        extend: [m.iasZoneAlarm({zoneType: "gas", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
     },
     {
         fingerprint: [
@@ -10484,6 +10723,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_402vrq2i",
             "_TZ3000_abrsvsou",
             "_TZ3000_gwkzibhs",
+            "_TZ3000_ugi8ky6u",
         ]),
         model: "ERS-10TZBVK-AA",
         vendor: "Tuya",
@@ -10501,6 +10741,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Tuya", "ZG-101Z_D_1", "Smart knob", ["_TZ3000_402vrq2i"]),
             tuya.whitelabel("Moes", "ZG-101ZD", "Smart knob", ["_TZ3000_gwkzibhs"]),
+            tuya.whitelabel("Immax", "07768L", "NEO Smart rotary knob", ["_TZ3000_ugi8ky6u"]),
         ],
         toZigbee: [tz.tuya_operation_mode],
         exposes: [
@@ -10681,7 +10922,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [legacy.tz.tuya_smart_human_presense_sensor],
         whiteLabel: [
             tuya.whitelabel("Tuya", "ZY-M100-L", "Ceiling human breathe sensor", ["_TZE204_ztc6ggyl"]),
-            tuya.whitelabel("Moes", "ZSS-QY-HP", "Human presence sensor", ["_TZE204_fwondbzy"]),
+            tuya.whitelabel("Moes", "ZSS-QY-HP", "Human presence sensor", ["_TZE204_fwondbzy", "_TZE284_fwondbzy"]),
         ],
         exposes: [
             e.illuminance(),
@@ -12612,7 +12853,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["TLSR82xx"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jhkttplm"]),
         model: "TS0601_cover_with_1_switch",
         vendor: "Tuya",
         description: "Curtain/blind switch with 1 Gang switch",
@@ -13456,8 +13697,8 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_tdhnhhiy",
         ]),
         model: "TS0601_switch_8",
-        vendor: "Tuya",
-        description: "ZYXH 8 gang switch",
+        vendor: "ZYXH",
+        description: "8 gang switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch().withEndpoint("l1"),
@@ -13580,8 +13821,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dqolcpcp", "_TZE284_dqolcpcp"]),
         model: "TS0601_switch_12",
-        vendor: "Tuya",
-        description: "ZXYH 12 gang switch",
+        vendor: "ZYXH",
+        description: "12 gang switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [...Array.from({length: 12}, (_, i) => tuya.exposes.switch().withEndpoint(`l${i + 1}`))],
         endpoint: (device) => {
@@ -14225,8 +14466,8 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vmcgja59", "_TZE284_vmcgja59"]),
-        model: "ZYXH",
-        vendor: "Tuya",
+        model: "ZYXH_switch_24",
+        vendor: "ZYXH",
         description: "24 gang switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [...Array.from(Array(24).keys()).map((ep) => tuya.exposes.switch().withEndpoint(`l${ep + 1}`))],
@@ -15601,6 +15842,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_432zhuwe",
             "_TZE204_432zhuwe",
             "_TZE284_s5vuaadg",
+            "_TZE284_tuhfx7tf",
         ]),
         model: "TOWSMR1",
         vendor: "Tongou",
@@ -15613,110 +15855,152 @@ export const definitions: DefinitionWithExtend[] = [
                 respondToMcuVersionResponse: true,
             }),
         ],
-        whiteLabel: [tuya.whitelabel("Tongou", "TOSA1", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_432zhuwe", "_TZE204_432zhuwe"])],
-        exposes: [
-            tuya.exposes.switch(),
-            e.temperature(),
-            e.current(),
-            e.power(),
-            e.voltage(),
-            e.energy(),
-            e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
-            e
-                .enum("event", ea.STATE, [
-                    "normal",
-                    "over_current_trip",
-                    "over_power_trip",
-                    "high_temp_trip",
-                    "over_voltage_trip",
-                    "under_voltage_trip",
-                    "over_current_alarm",
-                    "over_power_alarm",
-                    "high_temp_alarm",
-                    "over_voltage_alarm",
-                    "under_voltage_alarm",
-                    "remote_on",
-                    "remote_off",
-                    "manual_on",
-                    "manual_off",
-                    "leakage_trip",
-                    "leakage_alarm",
-                    "restore_default",
-                    "automatic_closing",
-                    "electricity_shortage",
-                    "electricity_shortage_alarm",
-                    "timing_switch_On",
-                    "timing_switch_off",
-                ])
-                .withDescription("Last event of the device"),
-            e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
-            e
-                .numeric("over_current_threshold", ea.STATE_SET)
-                .withUnit("A")
-                .withDescription("Setup the value on the device")
-                .withValueMin(1)
-                .withValueMax(40),
-            e.enum("over_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over voltage setting"),
-            e
-                .numeric("over_voltage_threshold", ea.STATE_SET)
-                .withUnit("V")
-                .withDescription("Setup value on the device")
-                .withValueMin(240)
-                .withValueMax(295),
-            e.enum("under_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Under voltage setting"),
-            e
-                .numeric("under_voltage_threshold", ea.STATE_SET)
-                .withUnit("V")
-                .withDescription("Setup value on the device")
-                .withValueMin(145)
-                .withValueMax(220),
-            e.enum("leakage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Leakage setting"),
-            e
-                .numeric("leakage_threshold", ea.STATE_SET)
-                .withUnit("mA")
-                .withDescription("Setup value on the device")
-                .withValueMin(30)
-                .withValueMax(100),
-            e.enum("temperature_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Temperature setting"),
-            e
-                .numeric("temperature_threshold", ea.STATE_SET)
-                .withUnit("°C")
-                .withDescription("Setup value on the device")
-                .withValueMin(-25)
-                .withValueMax(100),
-            e.enum("over_power_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over power setting"),
-            e
-                .numeric("over_power_threshold", ea.STATE_SET)
-                .withUnit("W")
-                .withDescription("Setup value on the device")
-                .withValueMin(1)
-                .withValueMax(25000),
-            e
-                .binary("auto_reclosing", ea.STATE_SET, "ON", "OFF")
-                .withLabel("Auto reclosing")
-                .withDescription(
-                    "When the circuit breaker trips due to voltage protection, it will automatically close when the circuit voltage returns to normal",
-                ),
-            e.binary("restore_default", ea.STATE_SET, "ON", "OFF").withDescription("Turn ON to restore default settings"),
-            e
-                .binary("overcurrent_recloser", ea.STATE_SET, "ON", "OFF")
-                .withLabel("Overcurrent Recloser")
-                .withDescription(
-                    "When the circuit breaker trips due to overcurrent protection, it will automatically close when the circuit voltage returns to normal",
-                ),
-            e
-                .binary("leakage_recloser", ea.STATE_SET, "ON", "OFF")
-                .withLabel("Leakage Recloser")
-                .withDescription(
-                    "When the circuit breaker trips due to leakage protection, it will automatically close when the circuit voltage returns to normal",
-                ),
-            e
-                .binary("overpower_recloser", ea.STATE_SET, "ON", "OFF")
-                .withLabel("Overpower Recloser")
-                .withDescription(
-                    "When the circuit breaker trips due to overpower protection, it will automatically close when the circuit voltage returns to normal",
-                ),
+        whiteLabel: [
+            tuya.whitelabel("Tongou", "TOWSMR1-40A-AC", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_432zhuwe", "_TZE204_432zhuwe"]),
+            tuya.whitelabel("Tongou", "TOWSMR1-40A-A", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_s5vuaadg"]),
+            tuya.whitelabel("Tongou", "TOWSMR1-20A-AC", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_tuhfx7tf"]),
         ],
+        exposes: (device, options) => {
+            const exps: Expose[] = [
+                tuya.exposes.switch(),
+                e.temperature(),
+                e.current(),
+                e.power(),
+                e.voltage(),
+                e.energy(),
+                e
+                    .enum("event", ea.STATE, [
+                        "normal",
+                        "over_current_trip",
+                        "over_power_trip",
+                        "high_temp_trip",
+                        "over_voltage_trip",
+                        "under_voltage_trip",
+                        "over_current_alarm",
+                        "over_power_alarm",
+                        "high_temp_alarm",
+                        "over_voltage_alarm",
+                        "under_voltage_alarm",
+                        "remote_on",
+                        "remote_off",
+                        "manual_on",
+                        "manual_off",
+                        "leakage_trip",
+                        "leakage_alarm",
+                        "restore_default",
+                        "automatic_closing",
+                        "electricity_shortage",
+                        "electricity_shortage_alarm",
+                        "timing_switch_On",
+                        "timing_switch_off",
+                    ])
+                    .withDescription("Last event of the device"),
+                e.enum("over_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over voltage setting"),
+                e
+                    .numeric("over_voltage_threshold", ea.STATE_SET)
+                    .withUnit("V")
+                    .withDescription("Setup value on the device")
+                    .withValueMin(240)
+                    .withValueMax(295),
+                e.enum("under_voltage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Under voltage setting"),
+                e
+                    .numeric("under_voltage_threshold", ea.STATE_SET)
+                    .withUnit("V")
+                    .withDescription("Setup value on the device")
+                    .withValueMin(145)
+                    .withValueMax(220),
+                e.enum("temperature_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Temperature setting"),
+                e
+                    .numeric("temperature_threshold", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withDescription("Setup value on the device")
+                    .withValueMin(-25)
+                    .withValueMax(100),
+                e.enum("over_power_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over power setting"),
+                e
+                    .numeric("over_power_threshold", ea.STATE_SET)
+                    .withUnit("W")
+                    .withDescription("Setup value on the device")
+                    .withValueStep(10)
+                    .withValueMin(5)
+                    .withValueMax(25000),
+                e
+                    .binary("auto_reclosing", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Auto reclosing")
+                    .withDescription(
+                        "When the circuit breaker trips due to voltage protection, it will automatically close when the circuit voltage returns to normal",
+                    ),
+                e.binary("restore_default", ea.STATE_SET, "ON", "OFF").withDescription("Turn ON to restore default settings"),
+                e
+                    .binary("overcurrent_recloser", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Overcurrent Recloser")
+                    .withDescription(
+                        "When the circuit breaker trips due to overcurrent protection, it will automatically close when the circuit voltage returns to normal",
+                    ),
+                e
+                    .binary("leakage_recloser", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Leakage Recloser")
+                    .withDescription(
+                        "When the circuit breaker trips due to leakage protection, it will automatically close when the circuit voltage returns to normal",
+                    ),
+                e
+                    .binary("overpower_recloser", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Overpower Recloser")
+                    .withDescription(
+                        "When the circuit breaker trips due to overpower protection, it will automatically close when the circuit voltage returns to normal",
+                    ),
+            ];
+            if (!device || device.manufacturerName === "_TZE284_432zhuwe" || device.manufacturerName === "_TZE204_432zhuwe") {
+                exps.push(
+                    e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
+                    e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
+                    e
+                        .numeric("over_current_threshold", ea.STATE_SET)
+                        .withUnit("A")
+                        .withDescription("Setup the value on the device")
+                        .withValueMin(1)
+                        .withValueMax(40),
+                    e.enum("leakage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Leakage setting"),
+                    e
+                        .numeric("leakage_threshold", ea.STATE_SET)
+                        .withUnit("mA")
+                        .withDescription("Setup value on the device")
+                        .withValueStep(5)
+                        .withValueMin(30)
+                        .withValueMax(100),
+                );
+            } else if (device.manufacturerName === "_TZE284_s5vuaadg") {
+                exps.push(
+                    e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
+                    e
+                        .numeric("over_current_threshold", ea.STATE_SET)
+                        .withUnit("A")
+                        .withDescription("Setup the value on the device")
+                        .withValueMin(1)
+                        .withValueMax(40),
+                );
+            } else if (device.manufacturerName === "_TZE284_tuhfx7tf") {
+                exps.push(
+                    e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
+                    e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
+                    e
+                        .numeric("over_current_threshold", ea.STATE_SET)
+                        .withUnit("A")
+                        .withDescription("Setup the value on the device")
+                        .withValueMin(1)
+                        .withValueMax(20),
+                    e.enum("leakage_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Leakage setting"),
+                    e
+                        .numeric("leakage_threshold", ea.STATE_SET)
+                        .withUnit("mA")
+                        .withDescription("Setup value on the device")
+                        .withValueStep(5)
+                        .withValueMin(30)
+                        .withValueMax(100),
+                );
+            }
+            return exps;
+        },
         meta: {
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100],
@@ -16614,7 +16898,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart circuit breaker",
         // Important: respondToMcuVersionResponse should be false otherwise there is an avalanche of commandMcuVersionResponse messages every second.
         // queryIntervalSeconds: is doing a pooling to update the device's parameters, now defined to update data every 3 minutes.
-        extend: [tuya.modernExtend.tuyaBase({dp: true, queryIntervalSeconds: 3 * 60, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryIntervalSeconds: 3 * 60})],
         exposes: [
             tuya.exposes.switch(),
             e.energy(),
@@ -20794,7 +21078,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vjpaih9f"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vjpaih9f", "_TZE284_vjpaih9f"]),
         model: "TS0601_thermostat_14",
         vendor: "AVATTO",
         description: "Thermostatic radiator valve",
@@ -21216,5 +21500,28 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}}),
         ],
+    },
+    {
+        fingerprint: [
+            {
+                modelID: "TLSR82xx",
+                manufacturerName: "TELINK",
+                applicationVersion: 0,
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 0, inputClusters: [0, 3, 1, 6], outputClusters: [4, 5, 4096]},
+                    {ID: 2, profileID: 260, deviceID: 0, inputClusters: [0, 3, 6], outputClusters: []},
+                ],
+            },
+        ],
+        model: "TLSR82xx_2btn_remote",
+        vendor: "Telink",
+        description: "2 button remote",
+        fromZigbee: [fzLocal.TLSR82xxAction, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+        },
+        exposes: [e.battery(), e.action(["on_1", "off_1", "on_2", "off_2"])],
     },
 ];
