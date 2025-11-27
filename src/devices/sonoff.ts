@@ -718,7 +718,10 @@ const sonoffExtend = {
             "external switch to achieve a better use experience.";
 
         const exposes: Expose[] = utils.exposeEndpoints(
-            e.enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "following(off)", "following(on)"]).withDescription(description),
+            e
+                .enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "following(off)", "following(on)"])
+                .withDescription(description)
+                .withCategory("config"),
             endpointNames,
         );
 

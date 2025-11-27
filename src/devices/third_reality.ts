@@ -51,6 +51,16 @@ interface ThirdWaterSensor {
     commandResponses: never;
 }
 
+interface ThirdDualPlug {
+    attributes: {
+        resetSummationDelivered: number;
+        onToOffDelay: number;
+        offToOnDelay: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     thirdreality_acceleration: {
         cluster: "3rVirationSpecialcluster",
@@ -640,6 +650,68 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.enumLookup<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+                endpointName: "1",
+                name: "reset_total_energy",
+                lookup: {Reset: 1},
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "resetSummationDelivered",
+                description: "Reset the sum of consumed energy",
+                access: "ALL",
+            }),
+            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+                name: "countdown_time_on_to_off",
+                endpointNames: ["1"],
+                unit: "s",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "onToOffDelay",
+                description: "(ON-OFF)",
+                access: "ALL",
+            }),
+            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+                name: "countdown_time_off_to_on",
+                endpointNames: ["1"],
+                unit: "s",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "offToOnDelay",
+                description: "(OFF-ON)",
+                access: "ALL",
+            }),
+            m.enumLookup<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+                endpointName: "2",
+                name: "reset_total_energy",
+                lookup: {Reset: 1},
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "resetSummationDelivered",
+                description: "Reset the sum of consumed energy",
+                access: "ALL",
+            }),
+            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+                name: "countdown_time_on_to_off",
+                endpointNames: ["2"],
+                unit: "s",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "onToOffDelay",
+                description: "(ON-OFF)",
+                access: "ALL",
+            }),
+            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+                name: "countdown_time_off_to_on",
+                endpointNames: ["2"],
+                unit: "s",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "offToOnDelay",
+                description: "(OFF-ON)",
+                access: "ALL",
             }),
         ],
     },
