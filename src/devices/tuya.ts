@@ -21524,4 +21524,51 @@ export const definitions: DefinitionWithExtend[] = [
         },
         exposes: [e.battery(), e.action(["on_1", "off_1", "on_2", "off_2"])],
     },
+    {
+        fingerprint:
+        [
+            {modelID: 'ZP-301Z',manufacturerName: '_TZE284_d4h8j2n6'},
+        ],
+        model: 'ZP-301Z',
+        vendor: 'Arteco',
+        description: 'PIR Motion Sensor Light with Night Light Function',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [
+            ...tuya.tz.datapoints,
+            key:[
+                 'detection_cycle',
+                'presence_state',
+                'battery_value',
+                'illuminance',
+                'illuminance_trig',
+                'bright_value',
+                'presence_time',
+                'presence_delay'      
+            ]
+        ],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum("presence_state", ea.STATE, ["NONE", "PRESENCE"]).withDescription("NONE: no presence, PRESENCE: presence"),
+            e.numeric('battery_value',ea.STATE).withDescription('battery value in %'),
+            e.illuminance(),
+            e.numeric('bright_value',ea.STATE_SET).withDescription('When the light brightness is activated after the lights are turned on').withValueMin(5).withValueMax(100).withValueStep(1),
+            e.numeric('presence_time',ea.STATE_SET).withDescription('How long to wait before turning on the lights after detecting a person and meeting the light conditions').withValueMin(0).withValueMax(60).withUnit('s').withValueStep(1),
+            e.numeric('presence_delay',ea.STATE_SET).withDescription('How long after no one is detected will the lights turn off').withValueMin(5).withValueMax(120).withUnit('s').withValueStep(1),
+            e.numeric('illuminance_trig',ea.STATE_SET).withDescription('Detection is only allowed when the illuminance is less than the current value.').withValueMin(0).withValueMax(10000).withUnit('lx').withValueStep(1),
+            e.numeric('detection_cycle',ea.STATE_SET).withDescription('How often is the battery level and illuminance detected').withValueMin(10).withValueMax(1200).withValueStep(5).withUnit('s'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+              [1,'presence_state',tuya.valueConverterBasic.lookup({'NONE':tuya.enum(0),'PRESENCE':tuya.enum(1)})],
+              [14,'battery_value',tuya.valueConverter.raw],
+              [20,'illuminance',tuya.valueConverter.raw],
+              [100,'bright_value',tuya.valueConverter.raw],
+              [101,'illuminance_trig',tuya.valueConverter.raw],
+              [102,'presence_time',tuya.valueConverter.raw],
+              [103,'presence_delay',tuya.valueConverter.raw],
+              [104,'detection_cycle',tuya.valueConverter.raw]
+            ],
+        },
+    }
 ];
