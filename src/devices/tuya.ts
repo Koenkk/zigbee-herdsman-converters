@@ -5210,7 +5210,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_ruldv5dt",
             "_TZ3000_fbjdkph9",
             "_TZ3000_zbfya6h0",
-            "_TZ3000_tas0zemd",
         ]),
         model: "TS0002_basic",
         vendor: "Tuya",
@@ -5323,11 +5322,12 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_h1ipgkwn"]),
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_h1ipgkwn", "_TZ3000_tas0zemd"]),
         model: "_TZ3000_h1ipgkwn",
         description: "2 channel USB switch",
         vendor: "Tuya",
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({powerOnBehavior: true, endpointNames: ["l1", "l2"]})],
+        whiteLabel: [tuya.whitelabel("Hej", "BDS03G2", "2 gang switch", ["_TZ3000_tas0zemd"])],
     },
 
     ////////////////////////
