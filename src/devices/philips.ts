@@ -4659,4 +4659,3 @@ export const definitions: DefinitionWithExtend[] = [
         extend: light_onoff_brightness,
     },
 ];
-];
