@@ -238,10 +238,16 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
             m.electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
-            m.onOff({powerOnBehavior: false}),
+            m.onOff({powerOnBehavior: false, configureReporting: false}),
         ],
         endpoint: (device) => {
             return {default: 2};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            // Device also has genOnOff on endpoint 1, but that fails to setup, disable configureReporting in m.onOff above
+            // and configure it for endpoint 2 here instead.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/29548
+            await reporting.onOff(device.getEndpoint(2));
         },
     },
     {
@@ -1056,6 +1062,56 @@ export const definitions: DefinitionWithExtend[] = [
         },
         endpoint: (device) => {
             return {default: 32};
+        },
+    },
+    {
+        zigbeeModel: ["REXZB-111"],
+        model: "REXZB-111",
+        vendor: "Develco",
+        description: "Range extender with backup battery",
+        whiteLabel: [{vendor: "Frient", model: "REXZB-111"}],
+        ota: true,
+        endpoint: (device) => {
+            return {default: 37};
+        },
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoIasZone(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            m.battery({
+                voltage: true,
+                voltageReporting: true,
+                voltageReportingConfig: {min: "1_HOUR", max: "MAX", change: 10},
+                voltageToPercentage: {min: 3450, max: 4100},
+                percentage: true,
+                percentageReporting: false,
+                lowStatus: false,
+            }),
+            m.iasZoneAlarm({
+                zoneType: "generic",
+                zoneAttributes: ["battery_low", "battery_defect"],
+            }),
+            develcoModernExtend.acConnected(),
+            develcoModernExtend.ledControl(),
+            develcoModernExtend.txPower(),
+            develcoModernExtend.zoneStatusInterval(),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(37);
+
+            // Bind clusters
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "ssIasZone", "genBasic", "genIdentify"]);
+
+            // Configure battery reporting
+            await reporting.batteryVoltage(endpoint, {min: 3600, max: constants.repInterval.MAX, change: 10});
+
+            // Read initial zone status to populate ac_connected state
+            try {
+                await endpoint.read("ssIasZone", ["zoneStatus"]);
+            } catch {
+                // Device may be sleeping, will be read on next wake
+            }
         },
     },
 ];

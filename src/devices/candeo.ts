@@ -276,7 +276,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Candeo",
         description: "Zigbee dimming smart plug",
         extend: [m.light({configureReporting: true, levelConfig: {features: ["current_level_startup"]}, powerOnBehavior: true})],
-        meta: {disableDefaultResponse: true},
     },
     {
         fingerprint: [{modelID: "C204", manufacturerName: "Candeo"}],

@@ -188,7 +188,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 86400, change: 1});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: constants.repInterval.MAX, change: 1});
         },
     },
     {
@@ -275,7 +275,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 86400, change: 1});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: constants.repInterval.MAX, change: 1});
         },
     },
 ];

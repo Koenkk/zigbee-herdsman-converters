@@ -411,7 +411,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("default_on_off_state", ea.ALL, defaultOnOffStateValues),
             e.numeric("rms_voltage", ea.STATE).withUnit("V").withDescription("RMS voltage"),
             e.numeric("active_power", ea.STATE).withUnit("W").withDescription("Active power"),
-            e.numeric("consumed_energy", ea.STATE).withUnit("W*h").withDescription("Consumed energy"),
+            e.numeric("consumed_energy", ea.STATE).withUnit("Wh").withDescription("Consumed energy"),
             e
                 .binary("alarm_voltage_min", ea.ALL, true, false)
                 .withDescription("Indicates if the alarm is triggered on the voltage drop below the limit, allows to reset alarms"),
