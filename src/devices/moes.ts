@@ -1717,8 +1717,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM-104-M-16AM",
         vendor: "Moes",
         description: "1-gang switch module with electricity measurement",
-        extend: [
-            m.onOff({"powerOnBehavior":false}), 
-            m.electricityMeter()],
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
     },
 ];
