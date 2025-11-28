@@ -21531,7 +21531,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "PIR Motion Sensor Light with Night Light Function",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.enum("presence_state", ea.STATE, ["NONE", "PRESENCE"]).withDescription("NONE: no presence, PRESENCE: presence"),
+            e.presence().withDescription("Human presence detected"),
             e.numeric("battery_value", ea.STATE).withDescription("battery value in %"),
             e.illuminance(),
             e
@@ -21571,7 +21571,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "presence_state", tuya.valueConverterBasic.lookup({NONE: tuya.enum(0), PRESENCE: tuya.enum(1)})],
+                [1, "presence", tuya.valueConverter.trueFalse1],
                 [14, "battery_value", tuya.valueConverter.raw],
                 [20, "illuminance", tuya.valueConverter.raw],
                 [100, "bright_value", tuya.valueConverter.raw],
