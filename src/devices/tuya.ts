@@ -21662,21 +21662,6 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(["on_1", "off_1", "on_2", "off_2"])],
     },
     {
-        zigbeeModel: ["ZG-106Z"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7y90pany"]),
-        model: "ZG-106Z",
-        vendor: "HOBEIAN",
-        description: "Illuminance sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [e.illuminance(), e.battery()],
-        meta: {
-            tuyaDatapoints: [
-                [2, "illuminance", tuya.valueConverter.raw],
-                [4, "battery", tuya.valueConverter.raw],
-            ],
-        },
-    },
-    {
         zigbeeModel: ["ZG-204ZQ"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p9zbdqgs"]),
         model: "ZG-204ZQ",
