@@ -1184,7 +1184,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Air quality monitor",
         extend: [
             addCustomClusterHeimanSpecificAirQualityShort(),
-
+            m.battery(),
+            m.humidity(),
             m.enumLookup({
                 name: "charging_status",
                 lookup: {NotCharged: 0, Charging: 1, FullyCharged: 2},
@@ -1194,7 +1195,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
         ],
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pm25, fz.heiman_hcho, fz.heiman_air_quality],
+        fromZigbee: [fz.temperature, fz.pm25, fz.heiman_hcho, fz.heiman_air_quality],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1241,18 +1242,14 @@ export const definitions: DefinitionWithExtend[] = [
             };
 
             await reporting.bind(endpoint, coordinatorEndpoint, [
-                "genPowerCfg",
                 "genTime",
                 "msTemperatureMeasurement",
-                "msRelativeHumidity",
                 "pm25Measurement",
                 "msFormaldehyde",
                 "heimanSpecificAirQuality",
             ]);
 
-            await reporting.batteryPercentageRemaining(endpoint);
             await reporting.temperature(endpoint);
-            await reporting.humidity(endpoint);
 
             await heiman.configureReporting.pm25MeasuredValue(endpoint);
             await heiman.configureReporting.formAldehydeMeasuredValue(endpoint);
@@ -1260,9 +1257,7 @@ export const definitions: DefinitionWithExtend[] = [
             await heiman.configureReporting.pm10measuredValue(endpoint);
             await heiman.configureReporting.aqiMeasuredValue(endpoint);
 
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
             await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
-            await endpoint.read("msRelativeHumidity", ["measuredValue"]);
             await endpoint.read("pm25Measurement", ["measuredValue"]);
             await endpoint.read("msFormaldehyde", ["measuredValue"]);
             await endpoint.read("heimanSpecificAirQuality", ["batteryState", "pm10measuredValue", "aqiMeasuredValue"]);
@@ -1276,6 +1271,6 @@ export const definitions: DefinitionWithExtend[] = [
                 timeZone: new Date().getTimezoneOffset() * -1 * 60,
             });
         },
-        exposes: [e.battery(), e.temperature(), e.humidity(), e.pm25(), e.hcho(), e.aqi(), e.pm10()],
+        exposes: [e.temperature(), e.pm25(), e.hcho(), e.aqi(), e.pm10()],
     },
 ];
