@@ -1126,7 +1126,9 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: "Tesla Smart", model: "TSL-SEN-SMOKE"},
             {vendor: "Dongguan Daying Electornics Technology", model: "YG400A"},
+            {vendor: "AVATTO", model: "Zigbee Smoke Detector"},
             tuya.whitelabel("Tuya", "TS0205_smoke_2", "Optical smoke sensor (model YG500A on the PCB)", ["_TZ3210_up3pngle"]),
+            tuya.whitelabel("Tuya", "TS0205_smoke_3", "Optical smoke sensor", ["_TZ3210_4c6b5m1e"]),
             tuya.whitelabel("Nedis", "ZBDS10WT", "Smoke sensor", ["_TYZB01_wqcac7lo"]),
         ],
         // Configure battery % fails
@@ -1139,13 +1141,13 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            if (device.manufacturerName === "_TZ3210_up3pngle") {
-                // Required for this version
-                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/8004
+            // https://github.com/Koenkk/zigbee2mqtt/issues/19910#issuecomment-2634971788
+            try {
                 const endpoint = device.getEndpoint(1);
-                await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+                await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
                 await reporting.batteryPercentageRemaining(endpoint);
-            }
+                //await reporting.batteryVoltage(endpoint);
+            } catch (error) {/* may fail for some devices */}
         },
     },
     {
