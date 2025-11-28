@@ -2311,6 +2311,25 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.switch.aeu003"],
+        model: "DS-K02E",
+        vendor: "Aqara",
+        description: "Shutter Switch H2 EU",
+        extend: [
+            m.windowCovering({controls: ["lift", "tilt"]}),
+            m.electricityMeter(),
+            m.numeric({
+                name: "analog_input_21",
+                cluster: "genAnalogInput",
+                attribute: "presentValue",
+                reporting: {min: "MIN", max: "MAX", change: 1},
+                description: "analog_input_21",
+                access: "STATE_GET",
+                endpointNames: ["21"],
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.curtain"],
         model: "ZNCLDJ11LM",
         description: "Curtain controller",
