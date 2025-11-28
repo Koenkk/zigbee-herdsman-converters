@@ -5210,7 +5210,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_ruldv5dt",
             "_TZ3000_fbjdkph9",
             "_TZ3000_zbfya6h0",
-            "_TZ3000_tas0zemd",
         ]),
         model: "TS0002_basic",
         vendor: "Tuya",
@@ -5323,11 +5322,12 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_h1ipgkwn"]),
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_h1ipgkwn", "_TZ3000_tas0zemd"]),
         model: "_TZ3000_h1ipgkwn",
         description: "2 channel USB switch",
         vendor: "Tuya",
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({powerOnBehavior: true, endpointNames: ["l1", "l2"]})],
+        whiteLabel: [tuya.whitelabel("Hej", "BDS03G2", "2 gang switch", ["_TZ3000_tas0zemd"])],
     },
 
     ////////////////////////
@@ -5678,6 +5678,8 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_7shyddj3",
                 "_TZE204_a2jcoyuk",
                 "_TZE204_ic7jtutb",
+                "_TZE204_odlldrxx",
+                "_TZE200_odlldrxx",
                 "_TZE204_zuq5xxib",
             ]),
             ...tuya.fingerprint("zo2pocs\u0000", ["_TYST11_fzo2pocs"]),
@@ -6191,6 +6193,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_rk1wojce" /* model: 'P5630S', vendor: 'Emos' */,
             "_TZE200_rndg81sf" /* model: 'HY368', vendor: 'THALEOS' */,
             "_TZE200_qjp4ynvi",
+            "_TZE200_xby0s3ta",
         ]),
         model: "TS0601_thermostat",
         vendor: "Tuya",
@@ -6751,7 +6754,6 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_0hg58wyk" /* model: 'S366', vendor: 'Cloud Even' */,
             "_TZE200_cpmgn2cf" /* model_ 'HY367RT' vendor: 'Tuya' */,
-            "_TZE200_xby0s3ta",
         ]),
         model: "TS0601_thermostat_2",
         vendor: "Tuya",

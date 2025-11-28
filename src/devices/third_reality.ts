@@ -637,9 +637,11 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         whiteLabel: [{vendor: "Third Reality", model: "3RWP01073Z", description: "Smart Wall Plug ZW1", fingerprint: [{modelID: "3RWP01073Z"}]}],
         extend: [
-            m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
-            m.onOff({endpointNames: ["left", "right"]}),
-            m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ["left", "right"], energy: {divisor: 1000}}),
+            m.deviceEndpoints({endpoints: {1: 1, 2: 2}}),
+            m.onOff({endpointNames: ["1"], description: "On/off state of the switch left/bottom"}),
+            m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ["1"], energy: {divisor: 1000, multiplier: 1}}),
+            m.onOff({endpointNames: ["2"], description: "On/off state of the switch right/top"}),
+            m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ["2"], energy: {divisor: 1000, multiplier: 1}}),
             m.deviceAddCustomCluster("3rDualPlugSpecialcluster", {
                 ID: 0xff03,
                 manufacturerCode: 0x1407,
