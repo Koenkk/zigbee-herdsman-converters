@@ -1592,10 +1592,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({effect: false, configureReporting: true}), m.electricityMeter({cluster: "electrical"})],
     },
     {
-        zigbeeModel: ["4512783", "4512784"],
+        zigbeeModel: ["4512783", "4512784", "4566702"],
         model: "4512783/4512784",
         vendor: "Namron",
         description: "Namron edge thermostat",
+        whiteLabel: [{vendor: "Namron", model: "4566702", fingerprint: [{modelID: "4566702"}]}],
         fromZigbee: [
             fz.thermostat,
             namron.fromZigbee.namron_edge_thermostat_holiday_temp,

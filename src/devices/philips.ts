@@ -4556,6 +4556,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["929003597702"],
+        model: "929003597702",
+        vendor: "Philips",
+        description: "Hue Aurelle Panel White Ambiance",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
         zigbeeModel: ["LCG008"],
         model: "8720169392540",
         vendor: "Philips",
@@ -4582,6 +4589,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue White ambiance Milliskin (square)",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["Xi InterAct"],
+        model: "912401483126",
+        vendor: "Philips",
+        description: "Signify rectangle panel light",
+        extend: [m.light({colorTemp: {range: [150, 500]}})],
     },
     {
         zigbeeModel: ["RDM005"],
