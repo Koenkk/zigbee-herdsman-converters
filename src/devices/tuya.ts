@@ -10187,12 +10187,16 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
-        fingerprint: tuya.fingerprint("TS0222", ["_TYZB01_4mdqxxnn", "_TYZB01_m6ec2pgj", "_TZ3000_do6txrcw", "_TZ3000_7kscdesh", "_TZ3000_hy6ncvmw"]),
+        zigbeeModel: ["ZG-106Z"],
+        fingerprint: tuya.fingerprint("TS0222", ["_TYZB01_4mdqxxnn", "_TYZB01_m6ec2pgj", "_TZ3000_do6txrcw", "_TZ3000_7kscdesh", "_TZ3000_hy6ncvmw","_TZ3000_7y90pany"]),
         model: "TS0222",
         vendor: "Tuya",
         description: "Light intensity sensor",
         fromZigbee: [fz.battery, legacy.fromZigbee.TS0222],
         toZigbee: [],
+        whiteLabel: [
+            {vendor: "HOBEIAN", model: "ZG-106Z", fingerprint: [{modelID: "ZG-106Z"}]},
+        ],
         exposes: [e.battery()],
         configure: tuya.configureMagicPacket,
         extend: [m.illuminance()],
