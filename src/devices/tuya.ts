@@ -17590,7 +17590,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [16, "backlight", tuya.valueConverter.onOff],
                 [103, "trigger_hold", tuya.valueConverter.raw],
                 [
-                 14,"power_outage_memory",
+                    14,
+                    "power_outage_memory",
                     tuya.valueConverterBasic.lookup({
                         off: tuya.enum(0),
                         on: tuya.enum(1),
@@ -20819,7 +20820,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-204ZK"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ka8l86iu","_TZE200_zbfmvj13"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ka8l86iu", "_TZE200_zbfmvj13"]),
         model: "ZG-204ZK",
         vendor: "HOBEIAN",
         description: "24Ghz human presence sensor",
@@ -20873,9 +20874,11 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-204ZE"],
-        fingerprint: [{modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZG-204ZE"},
-        {modelID: "TS0601", manufacturerName: "_TZE200_cq8lu23i"},
-        {modelID: "TS0601", manufacturerName: "_TZE200_4pm4pekt"},],
+        fingerprint: [
+            {modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZG-204ZE"},
+            {modelID: "TS0601", manufacturerName: "_TZE200_cq8lu23i"},
+            {modelID: "TS0601", manufacturerName: "_TZE200_4pm4pekt"},
+        ],
         model: "ZG-204ZE",
         vendor: "HOBEIAN",
         description: "10G mw motion detection",
@@ -20899,7 +20902,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("x")
                 .withDescription("The larger the value, the more sensitive it is (refresh and update only while active)"),
-             e
+            e
                 .numeric("illuminance_interval", ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(720)
@@ -21660,7 +21663,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [2, "illuminance", tuya.valueConverter.raw],
-                [4, "battery", tuya.valueConverter.raw]
+                [4, "battery", tuya.valueConverter.raw],
             ],
         },
     },
@@ -21711,5 +21714,5 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
-      },
+    },
 ];
