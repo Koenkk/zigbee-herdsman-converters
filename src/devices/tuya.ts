@@ -21534,11 +21534,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence().withDescription("Human presence detected"),
-            e.numeric("battery_value", ea.STATE).withDescription("battery value in %"),
+            e.numeric("battery_value", ea.STATE).withDescription("battery value in %").withUnit("%"),
             e.illuminance(),
             e
                 .numeric("bright_value", ea.STATE_SET)
                 .withDescription("When the light brightness is activated after the lights are turned on")
+                .withUnit("%")
                 .withValueMin(5)
                 .withValueMax(100)
                 .withValueStep(1),
@@ -21561,7 +21562,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Detection is only allowed when the illuminance is less than the current value.")
                 .withValueMin(0)
                 .withValueMax(10000)
-                .withUnit("lx")
                 .withValueStep(1),
             e
                 .numeric("detection_cycle", ea.STATE_SET)
