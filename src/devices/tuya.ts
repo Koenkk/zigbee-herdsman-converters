@@ -1223,6 +1223,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_gntwytxo", // Moes ZSS-X-GWM-C
                 "_TZ3000_4ugnzsli", // Luminea ZX-5232
                 "_TZ3000_timx9ivq", //Woox R7047
+                "_TZ3000_t3vvhrmh",
             ];
             if (!device || !noTamperModels.includes(device.manufacturerName)) {
                 exps.push(e.tamper());
@@ -17538,6 +17539,96 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["ZG-302ZL"],
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_khzbklyh",
+            "_TZE200_df04ghrb",
+            "_TZE200_toeldckg",
+            "_TZE200_cqtamhh5",
+            "_TZE200_xlnzk169",
+            "_TZE200_llvwkkde",
+        ]),
+        model: "ZG-302ZL",
+        vendor: "HOBEIAN",
+        description: "Motion sensing switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence(),
+            e.binary("switch1", ea.STATE_SET, "ON", "OFF").withDescription("Switch1"),
+            e.binary("switch2", ea.STATE_SET, "ON", "OFF").withDescription("Switch2"),
+            e.binary("switch3", ea.STATE_SET, "ON", "OFF").withDescription("Switch3"),
+            e
+                .numeric("sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(19)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("detection sensitivity"),
+            e.binary("backlight", ea.STATE_SET, "ON", "OFF").withDescription("backlight"),
+            e
+                .numeric("trigger_hold", ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(28800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Trigger hold(second)"),
+            tuya.exposes.powerOutageMemory(),
+            e
+                .enum("auto_on", ea.STATE_SET, ["off", "all", "ch1", "ch2", "ch3", "ch1_2", "ch2_3", "ch1_3"])
+                .withDescription("Someone turn on the light"),
+            e
+                .enum("auto_off", ea.STATE_SET, ["off", "all", "ch1", "ch2", "ch3", "ch1_2", "ch2_3", "ch1_3"])
+                .withDescription("No one turns off the lights"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [101, "presence", tuya.valueConverter.trueFalse1],
+                [102, "sensitivity", tuya.valueConverter.raw],
+                [1, "switch1", tuya.valueConverter.onOff],
+                [2, "switch2", tuya.valueConverter.onOff],
+                [3, "switch3", tuya.valueConverter.onOff],
+                [16, "backlight", tuya.valueConverter.onOff],
+                [103, "trigger_hold", tuya.valueConverter.raw],
+                [
+                 14,"power_outage_memory",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on: tuya.enum(1),
+                        restore: tuya.enum(2),
+                    }),
+                ],
+                [
+                    104,
+                    "auto_on",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        all: tuya.enum(1),
+                        ch1: tuya.enum(1),
+                        ch2: tuya.enum(2),
+                        ch3: tuya.enum(3),
+                        ch1_2: tuya.enum(4),
+                        ch2_3: tuya.enum(5),
+                        ch1_3: tuya.enum(6),
+                    }),
+                ],
+                [
+                    105,
+                    "auto_off",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        all: tuya.enum(1),
+                        ch1: tuya.enum(1),
+                        ch2: tuya.enum(2),
+                        ch3: tuya.enum(3),
+                        ch1_2: tuya.enum(4),
+                        ch2_3: tuya.enum(5),
+                        ch1_3: tuya.enum(6),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wqashyqo"]),
         model: "ZG-303Z",
         vendor: "HOBEIAN",
@@ -20709,13 +20800,14 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-204ZK"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ka8l86iu"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ka8l86iu","_TZE200_zbfmvj13"]),
         model: "ZG-204ZK",
         vendor: "HOBEIAN",
         description: "24Ghz human presence sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
+            e.illuminance(),
             e.battery(),
             e
                 .numeric("fading_time", ea.STATE_SET)
@@ -20756,19 +20848,22 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "indicator", tuya.valueConverter.onOff],
                 [123, "motion_detection_sensitivity", tuya.valueConverter.raw],
                 [121, "battery", tuya.valueConverter.raw],
+                [106, "illuminance", tuya.valueConverter.raw],
             ],
         },
     },
     {
         zigbeeModel: ["ZG-204ZE"],
-        fingerprint: [{modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZG-204ZE"}],
+        fingerprint: [{modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZG-204ZE"},
+        {modelID: "TS0601", manufacturerName: "_TZE200_cq8lu23i"},
+        {modelID: "TS0601", manufacturerName: "_TZE200_4pm4pekt"},],
         model: "ZG-204ZE",
         vendor: "HOBEIAN",
         description: "10G mw motion detection",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
-
+            e.illuminance(),
             e.battery(),
             e
                 .numeric("fading_time", ea.STATE_SET)
@@ -20785,6 +20880,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("x")
                 .withDescription("The larger the value, the more sensitive it is (refresh and update only while active)"),
+             e
+                .numeric("illuminance_interval", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(720)
+                .withValueStep(1)
+                .withUnit("minutes")
+                .withDescription("Light sensing sampling(refresh and update only while active)"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -20793,6 +20895,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "motion_detection_sensitivity", tuya.valueConverter.raw],
                 [108, "indicator", tuya.valueConverter.onOff],
                 [110, "battery", tuya.valueConverter.raw],
+                [106, "illuminance", tuya.valueConverter.raw],
+                [107, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
     },
@@ -21525,5 +21629,20 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
         },
         exposes: [e.battery(), e.action(["on_1", "off_1", "on_2", "off_2"])],
+    },
+    {
+        zigbeeModel: ["ZG-106Z"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7y90pany"]),
+        model: "ZG-106Z",
+        vendor: "HOBEIAN",
+        description: "Illuminance sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [e.illuminance(), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [2, "illuminance", tuya.valueConverter.raw],
+                [4, "battery", tuya.valueConverter.raw]
+            ],
+        },
     },
 ];
