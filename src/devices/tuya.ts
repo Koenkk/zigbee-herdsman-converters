@@ -21527,17 +21527,17 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(["on_1", "off_1", "on_2", "off_2"])],
     },
     {
-        fingerprint: [{modelID: "ZP-301Z", manufacturerName: "_TZE284_d4h8j2n6"}],
+        fingerprint: tuya.fingerprint("ZP-301Z", ["_TZE284_d4h8j2n6"]),
         model: "ZP-301Z",
         vendor: "Arteco",
-        description: "PIR Motion Sensor Light with Night Light Function",
+        description: "PIR motion sensor light with night light function",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence().withDescription("Human presence detected"),
             e.numeric("battery_value", ea.STATE).withDescription("battery value in %").withUnit("%"),
             e.illuminance(),
             e
-                .numeric("bright_value", ea.STATE_SET)
+                .numeric("brightness_value", ea.STATE_SET)
                 .withDescription("When the light brightness is activated after the lights are turned on")
                 .withUnit("%")
                 .withValueMin(5)
@@ -21558,7 +21558,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("s")
                 .withValueStep(1),
             e
-                .numeric("illuminance_trig", ea.STATE_SET)
+                .numeric("illuminance_trigger", ea.STATE_SET)
                 .withDescription("Detection is only allowed when the illuminance is less than the current value.")
                 .withValueMin(0)
                 .withValueMax(10000)
@@ -21576,8 +21576,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "presence", tuya.valueConverter.trueFalse1],
                 [14, "battery_value", tuya.valueConverter.raw],
                 [20, "illuminance", tuya.valueConverter.raw],
-                [100, "bright_value", tuya.valueConverter.raw],
-                [101, "illuminance_trig", tuya.valueConverter.raw],
+                [100, "brightness_value", tuya.valueConverter.raw],
+                [101, "illuminance_trigger", tuya.valueConverter.raw],
                 [102, "presence_time", tuya.valueConverter.raw],
                 [103, "presence_delay", tuya.valueConverter.raw],
                 [104, "detection_cycle", tuya.valueConverter.raw],
