@@ -5205,7 +5205,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             // Sampling parameters
             m.enumLookup({
-                name: "temp_&_humidity_sampling",
+                name: "temp_and_humidity_sampling",
                 lookup: {off: 0, low: 1, medium: 2, high: 3, custom: 4},
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0170, type: Zcl.DataType.UINT8}, // Attribute: 368
@@ -5214,7 +5214,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "temp_&_humidity_sampling_period",
+                name: "temp_and_humidity_sampling_period",
                 valueMin: 0.5, // Min: 500ms
                 valueMax: 3600, // Max: 1h = 3600s
                 valueStep: 0.5, // Step: 500ms
