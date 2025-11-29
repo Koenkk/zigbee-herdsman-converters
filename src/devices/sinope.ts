@@ -705,7 +705,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1124ZB",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [m.electricityMeter()],
+        extend: [m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
