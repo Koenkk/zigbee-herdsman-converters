@@ -17594,7 +17594,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [101, "presence", tuya.valueConverter.trueFalse1],
                 [102, "sensitivity", tuya.valueConverter.raw],
-                [1, "switch1", tuya.valueConverter.onOff],
+                [1, "switch_1", tuya.valueConverter.onOff],
                 [2, "switch2", tuya.valueConverter.onOff],
                 [3, "switch3", tuya.valueConverter.onOff],
                 [16, "backlight", tuya.valueConverter.onOff],
