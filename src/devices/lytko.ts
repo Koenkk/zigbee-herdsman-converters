@@ -781,7 +781,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["L101Ze-SLN"],
         model: "L101Ze-SLN",
         vendor: "LYTKO",
-        description: "Lytko single chanel thermostat without display",
+        description: "Single channel thermostat without display",
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
@@ -873,7 +873,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["L101Ze-SLM"],
         model: "L101Ze-SLM",
         vendor: "LYTKO",
-        description: "Lytko single chanel thermostat without display",
+        description: "Single channel thermostat without display",
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
@@ -985,7 +985,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["L101Ze-SBN"],
         model: "L101Ze-SBN",
         vendor: "LYTKO",
-        description: "Lytko single chanel thermostat with big display",
+        description: "Single channel thermostat with big display",
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
@@ -1137,7 +1137,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["L101Ze-DLN"],
         model: "L101Ze-DLN",
         vendor: "LYTKO",
-        description: "Lytko dual chanel thermostat without display",
+        description: "Dual channel thermostat without display",
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
@@ -1276,7 +1276,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["L101Ze-DLM"],
         model: "L101Ze-DLM",
         vendor: "LYTKO",
-        description: "Lytko dual chanel thermostat without display",
+        description: "Dual channel thermostat without display",
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
@@ -1435,7 +1435,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["L101Ze-DBN"],
         model: "L101Ze-DBN",
         vendor: "LYTKO",
-        description: "Lytko dual chanel thermostat with big display",
+        description: "Dual channel thermostat with big display",
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
@@ -1634,7 +1634,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["L101Ze-SMN"],
         model: "L101Ze-SMN",
         vendor: "LYTKO",
-        description: "Lytko single chanel thermostat with small display",
+        description: "Single channel thermostat with small display",
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
