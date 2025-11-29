@@ -467,6 +467,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]})],
     },
     {
+       zigbeeModel: ['HS2SA-EF-3.0'],
+       model: 'HS2SA-EF-3.0',
+       vendor: 'HEIMAN',
+       description: 'Automatically generated definition',
+       extend: [m.battery(), m.iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]}), m.iasWarning()],
+       meta: {}, 
+    },
+    {
         zigbeeModel: ["D1-EF2-3.0"],
         model: "D1-EFA",
         vendor: "Heiman",
