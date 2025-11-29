@@ -17563,7 +17563,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
-            e.binary("switch1", ea.STATE_SET, "ON", "OFF").withDescription("Switch1"),
+            e.switch().withEndpoint("1")
             e.binary("switch2", ea.STATE_SET, "ON", "OFF").withDescription("Switch2"),
             e.binary("switch3", ea.STATE_SET, "ON", "OFF").withDescription("Switch3"),
             e
