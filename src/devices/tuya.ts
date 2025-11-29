@@ -1147,7 +1147,9 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
                 await reporting.batteryPercentageRemaining(endpoint);
                 //await reporting.batteryVoltage(endpoint);
-            } catch (error) {/* may fail for some devices */}
+            } catch {
+                // may fail for some devices
+            }
         },
     },
     {
