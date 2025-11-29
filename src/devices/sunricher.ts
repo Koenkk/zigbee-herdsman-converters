@@ -1377,6 +1377,20 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["ZGRC-KEY-044"],
+        model: "SR-ZG2868EK7-DIM",
+        vendor: "Sunricher",
+        description: " ZigBee handheld diming remote, 4 scenes",
+        extend: [
+            m.battery(),
+            m.commandsOnOff({commands: ["on", "off"]}),
+            m.commandsLevelCtrl({
+                commands: ["brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down", "brightness_stop"],
+            }),
+            m.commandsScenes({commands: ["recall", "store"]}),
+        ],
+    },
+    {
         zigbeeModel: ["HK-SL-DIM-US-A"],
         model: "HK-SL-DIM-US-A",
         vendor: "Sunricher",
@@ -2167,6 +2181,19 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.U02I007C01_contact, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
+    },
+    {
+        zigbeeModel: ["ZGRC-KEY-017"],
+        model: "ZGRC-KEY-017",
+        vendor: "Sunricher",
+        description: "6-zone RGB+CCT remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4", "5", "6"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4", "5", "6"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4", "5", "6"]}),
+        ],
     },
     {
         zigbeeModel: ["ZG9095B"],

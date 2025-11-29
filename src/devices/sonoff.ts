@@ -95,6 +95,9 @@ interface SonoffTrvzb {
         tempAccuracy: number;
         externalTemperatureInput: number;
         temperatureSensorSelect: number;
+        temporaryMode: number;
+        temporaryModeTime: number;
+        temporaryModeTemp: number;
     };
     commands: never;
     commandResponses: never;
@@ -192,6 +195,12 @@ export interface SonoffEwelink {
         energyToday: number;
         energyMonth: number;
         energyYesterday: number;
+        setCalibrationAction: number[];
+        calibrationStatus: number;
+        calibrationProgress: number;
+        minBrightnessThreshold: number;
+        transitionTime: number;
+        dimmingLightRate: number;
     };
     commands: {
         protocolData: {data: number[]};
@@ -229,13 +238,19 @@ const sonoffExtend = {
                 energyToday: {ID: 0x7009, type: Zcl.DataType.UINT32},
                 energyMonth: {ID: 0x700a, type: Zcl.DataType.UINT32},
                 energyYesterday: {ID: 0x700b, type: Zcl.DataType.UINT32},
+                setCalibrationAction: {ID: 0x001d, type: Zcl.DataType.CHAR_STR},
+                calibrationStatus: {ID: 0x001e, type: Zcl.DataType.UINT8},
+                calibrationProgress: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                minBrightnessThreshold: {ID: 0x4001, type: Zcl.DataType.UINT8},
+                dimmingLightRate: {ID: 0x4003, type: Zcl.DataType.UINT8},
+                transitionTime: {ID: 0x001f, type: Zcl.DataType.UINT32},
             },
             commands: {
                 protocolData: {ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
             },
             commandsResponse: {},
         }),
-    inchingControlSet: (args: ExternalInchingAgs = {}): ModernExtend => {
+    inchingControlSet: (args: ExternalInchingAgs = {}, maxTime = 3599.5): ModernExtend => {
         const {endpointNames = undefined} = args;
         const clusterName = "customClusterEwelink";
         const commandName = "protocolData";
@@ -253,7 +268,7 @@ const sonoffExtend = {
                         .withDescription("Delay time for executing a inching action.")
                         .withUnit("seconds")
                         .withValueMin(0.5)
-                        .withValueMax(3599.5)
+                        .withValueMax(maxTime)
                         .withValueStep(0.5),
                 )
                 .withFeature(
@@ -329,6 +344,7 @@ const sonoffExtend = {
     weeklySchedule: (): ModernExtend => {
         const exposes = e
             .composite("schedule", "weekly_schedule", ea.STATE_SET)
+            .withCategory("config")
             .withDescription(
                 'The preset heating schedule to use when the system mode is set to "auto" (indicated with ⏲ on the TRV). ' +
                     "Up to 6 transitions can be defined per day, where a transition is expressed in the format 'HH:mm/temperature', each " +
@@ -702,7 +718,10 @@ const sonoffExtend = {
             "external switch to achieve a better use experience.";
 
         const exposes: Expose[] = utils.exposeEndpoints(
-            e.enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "following(off)", "following(on)"]).withDescription(description),
+            e
+                .enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "following(off)", "following(on)"])
+                .withDescription(description)
+                .withCategory("config"),
             endpointNames,
         );
 
@@ -1174,7 +1193,7 @@ const sonoffExtend = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["NSPanelP-Router"],
+        zigbeeModel: ["NSPanelP-Router", "Cuber ZLI Router"],
         model: "NSPanelP-Router",
         vendor: "SONOFF",
         description: "Router",
@@ -1430,6 +1449,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_temperature_min",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortTemperatureMin",
+                entityCategory: "config",
                 description:
                     "Minimum temperature that is considered comfortable. The device will display ❄️ when the temperature is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: -10,
@@ -1442,6 +1462,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_temperature_max",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortTemperatureMax",
+                entityCategory: "config",
                 description:
                     "Maximum temperature that is considered comfortable. The device will display 🔥 when the temperature is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: -10,
@@ -1454,6 +1475,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_humidity_min",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortHumidityMin",
+                entityCategory: "config",
                 description:
                     "Minimum relative humidity that is considered comfortable. The device will display ☀️ when the humidity is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
@@ -1466,6 +1488,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_humidity_max",
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortHumidityMax",
+                entityCategory: "config",
                 description:
                     "Maximum relative humidity that is considered comfortable. The device will display 💧 when the humidity is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
@@ -1479,6 +1502,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02d",
                 attribute: "temperatureUnits",
+                entityCategory: "config",
                 description:
                     "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
             }),
@@ -1486,6 +1510,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02d",
                 attribute: "temperatureCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported temperature",
                 valueMin: -50,
                 valueMax: 50,
@@ -1497,6 +1522,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "humidity_calibration",
                 cluster: "customSonoffSnzb02d",
                 attribute: "humidityCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported relative humidity",
                 valueMin: -50,
                 valueMax: 50,
@@ -1529,6 +1555,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02ld",
                 attribute: "temperatureUnits",
+                entityCategory: "config",
                 description:
                     "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
             }),
@@ -1536,6 +1563,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02ld",
                 attribute: "temperatureCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported temperature",
                 valueMin: -50,
                 valueMax: 50,
@@ -1570,6 +1598,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02wd",
                 attribute: "temperatureUnits",
+                entityCategory: "config",
                 description:
                     "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
             }),
@@ -1577,6 +1606,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02wd",
                 attribute: "temperatureCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported temperature",
                 valueMin: -50,
                 valueMax: 50,
@@ -1588,6 +1618,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "humidity_calibration",
                 cluster: "customSonoffSnzb02wd",
                 attribute: "humidityCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported relative humidity",
                 valueMin: -50,
                 valueMax: 50,
@@ -1625,6 +1656,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_temperature_min",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortTemperatureMin",
+                entityCategory: "config",
                 description:
                     "Minimum temperature that is considered comfortable. The device will display ❄️ when the temperature is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: -10,
@@ -1637,6 +1669,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_temperature_max",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortTemperatureMax",
+                entityCategory: "config",
                 description:
                     "Maximum temperature that is considered comfortable. The device will display 🔥 when the temperature is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: -10,
@@ -1649,6 +1682,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_humidity_min",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortHumidityMin",
+                entityCategory: "config",
                 description:
                     "Minimum relative humidity that is considered comfortable. The device will display ☀️ when the humidity is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
@@ -1661,6 +1695,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_humidity_max",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortHumidityMax",
+                entityCategory: "config",
                 description:
                     "Maximum relative humidity that is considered comfortable. The device will display 💧 when the humidity is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
@@ -1674,6 +1709,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "temperatureUnits",
+                entityCategory: "config",
                 description:
                     "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
             }),
@@ -1681,6 +1717,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "temperatureCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported temperature",
                 valueMin: -50,
                 valueMax: 50,
@@ -1692,6 +1729,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "humidity_calibration",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "humidityCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported relative humidity",
                 valueMin: -50,
                 valueMax: 50,
@@ -2032,7 +2070,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 4, 35, 0.5)
                 .withLocalTemperature()
-                .withLocalTemperatureCalibration(-12.8, 12.7, 0.2)
+                .withLocalTemperatureCalibration(-12.7, 12.7, 0.2)
                 .withSystemMode(["off", "auto", "heat"], ea.ALL, "Mode of the thermostat")
                 .withRunningState(["idle", "heat"], ea.STATE_GET),
             e.battery(),
@@ -2062,6 +2100,9 @@ export const definitions: DefinitionWithExtend[] = [
                     valveOpeningDegree: {ID: 0x600b, type: Zcl.DataType.UINT8},
                     valveClosingDegree: {ID: 0x600c, type: Zcl.DataType.UINT8},
                     tempAccuracy: {ID: 0x6011, type: Zcl.DataType.INT16},
+                    temporaryMode: {ID: 0x6014, type: Zcl.DataType.UINT8},
+                    temporaryModeTime: {ID: 0x6015, type: Zcl.DataType.UINT32},
+                    temporaryModeTemp: {ID: 0x6016, type: Zcl.DataType.INT16},
                     externalTemperatureInput: {
                         ID: 0x600d,
                         type: Zcl.DataType.INT16,
@@ -2073,6 +2114,43 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "timer_mode_target_temp",
+                cluster: "customSonoffTrvzb",
+                attribute: "temporaryModeTemp",
+                entityCategory: "config",
+                description: "In timer mode, the temperature can be set to 4-35 ℃.",
+                valueMin: 4.0,
+                valueMax: 35.0,
+                valueStep: 0.5,
+                unit: "°C",
+                scale: 100,
+            }),
+            m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "temporary_mode_duration",
+                cluster: "customSonoffTrvzb",
+                attribute: "temporaryModeTime",
+                entityCategory: "config",
+                description:
+                    "Boost Mode: Sets maximum TRV temperature for up to 180 minutes." +
+                    "Timer Mode: Customizes temperature and duration, up to 24 hours.",
+                valueMin: 0,
+                valueMax: 1440,
+                valueStep: 1,
+                unit: "minutes",
+                scale: 60,
+            }),
+            m.enumLookup<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "temporary_mode_select",
+                label: "Temporary mode ",
+                lookup: {boost: 0, timer: 1},
+                cluster: "customSonoffTrvzb",
+                attribute: "temporaryMode",
+                description:
+                    "Boost mode: Activates maximum TRV temperature for a user-defined duration, enabling rapid heating. " +
+                    "Timer Mode: Allows customization of temperature and duration for precise heating control." +
+                    "After the set duration, the system will return to its previous normal mode and temperature.",
             }),
             m.binary<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "child_lock",
@@ -2248,7 +2326,7 @@ export const definitions: DefinitionWithExtend[] = [
                 skipDuplicateTransaction: true,
                 configureReporting: true,
             }),
-            // m.electricityMeter({current: {divisor: 100}, voltage: {divisor: 100}, power: {divisor: 1}, energy: {divisor: 1000}}),
+            m.electricityMeter({cluster: "metering", power: false}),
             sonoffExtend.addCustomClusterEwelink(),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "current",
@@ -2929,6 +3007,158 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint2.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
                 {attribute: "externalTriggerMode", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
             ]);
+        },
+    },
+    {
+        zigbeeModel: ["MINI-ZBDIM"],
+        model: "MINI-ZBDIM",
+        vendor: "SONOFF",
+        description: "Zigbee smart mini dimmer switch",
+        extend: [
+            m.light({
+                effect: false,
+                powerOnBehavior: true,
+                configureReporting: true,
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "current",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentCurrentValue",
+                description: "Current",
+                unit: "A",
+                valueStep: 0.01,
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "voltage",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentVoltageValue",
+                description: "Voltage",
+                unit: "V",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "power",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentPowerValue",
+                description: "Active power",
+                unit: "W",
+                scale: 1000,
+                access: "STATE_GET",
+                reporting: {min: "10_SECONDS", max: "MAX", change: 0},
+            }),
+            sonoffExtend.addCustomClusterEwelink(),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "delayed_power_on_state",
+                cluster: "customClusterEwelink",
+                attribute: "delayedPowerOnState",
+                description: "Delayed Power-on State",
+                entityCategory: "config",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "delayed_power_on_time",
+                cluster: "customClusterEwelink",
+                attribute: "delayedPowerOnTime",
+                description: "Delayed Power-on time",
+                entityCategory: "config",
+                valueMin: 0.5,
+                valueMax: 3599.5,
+                valueStep: 0.5,
+                unit: "seconds",
+                scale: 2,
+            }),
+            sonoffExtend.inchingControlSet({}, 86399.5),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "external_trigger_mode",
+                lookup: {edge: 0, pulse: 1, "double pulse": 3, "triple pulse": 4},
+                cluster: "customClusterEwelink",
+                attribute: "externalTriggerMode",
+                access: "ALL",
+                entityCategory: "config",
+                description:
+                    "External trigger mode, which can be one of edge, pulse,double pulse,triple pulse." +
+                    "The appropriate triggering mode can be selected according to the type of external switch to achieve a better use experience.",
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "set_calibration_action",
+                lookup: {start: [0x03, 0x01, 0x01, 0x01], stop: [0x03, 0x01, 0x01, 0x02], clear: [0x03, 0x01, 0x01, 0x03]},
+                cluster: "customClusterEwelink",
+                attribute: "setCalibrationAction",
+                description:
+                    "After calibration, the light adjustment becomes smooth and consistent.. Takes about 2 minutes; device unavailable during calibration.",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "calibration_status",
+                lookup: {uncalibrate: 0, cailbrating: 1, calibration_failed: 2, calibrated: 3},
+                cluster: "customClusterEwelink",
+                attribute: "calibrationStatus",
+                description: "Calibration status.",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "calibration_progress",
+                access: "STATE_GET",
+                cluster: "customClusterEwelink",
+                attribute: "calibrationProgress",
+                description: "Calibration progress.",
+                entityCategory: "diagnostic",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                unit: "%",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "min_brightness_threshold",
+                access: "ALL",
+                cluster: "customClusterEwelink",
+                attribute: "minBrightnessThreshold",
+                description: "Lowest brightness level mapped to 1 % on the dimmer slider.",
+                entityCategory: "config",
+                valueMin: 1,
+                valueMax: 50,
+                valueStep: 1,
+                unit: "%",
+                scale: 2.55,
+                precision: 0,
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "transition_time",
+                access: "ALL",
+                cluster: "customClusterEwelink",
+                attribute: "transitionTime",
+                description: "Transition time",
+                entityCategory: "config",
+                valueMin: 0,
+                valueMax: 5,
+                valueStep: 0.1,
+                unit: "s",
+                scale: 10,
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "dimming_light_rate",
+                lookup: {"1x": 1, "2x": 2, "3x": 3, "4x": 4, "5x": 5},
+                cluster: "customClusterEwelink",
+                attribute: "dimmingLightRate",
+                description: "Speed of brightness change via external switch.",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read<"customClusterEwelink", SonoffEwelink>(
+                "customClusterEwelink",
+                [0x0016, 0x001e, 0x4001, 0x4003],
+                defaultResponseOptions,
+            );
         },
     },
 ];

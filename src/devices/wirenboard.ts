@@ -648,6 +648,19 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Wirenboard",
         description: "Wall-mounted multi sensor",
         extend: [
+            m.deviceAddCustomCluster("sprutDeviceBase", {
+                ID: 0,
+                manufacturerCode: 26214,
+                attributes: {
+                    deviceVersion: {ID: 26113, type: Zcl.DataType.CHAR_STR},
+                    deviceSignature: {ID: 26114, type: Zcl.DataType.CHAR_STR},
+                    deviceBootVersion: {ID: 26115, type: Zcl.DataType.CHAR_STR},
+                    componentVersion: {ID: 26117, type: Zcl.DataType.CHAR_STR},
+                    componentSignature: {ID: 26118, type: Zcl.DataType.CHAR_STR},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
             m.deviceAddCustomCluster("sprutDevice", {
                 ID: 26112,
                 manufacturerCode: 26214,

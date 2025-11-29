@@ -1,8 +1,8 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -160,21 +160,26 @@ export const definitions: DefinitionWithExtend[] = [
         model: "158-01",
         vendor: "Plugwise",
         description: "Lisa zone thermostat",
-        fromZigbee: [fz.thermostat, fz.temperature, fz.battery],
-        toZigbee: [tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genPowerCfg", "hvacThermostat"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.thermostatTemperature(endpoint);
-        },
-        exposes: [
-            e.battery(),
-            e
-                .climate()
-                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5, ea.ALL)
-                .withLocalTemperature(ea.STATE)
-                .withSystemMode(["off", "auto"], ea.ALL),
+        extend: [
+            m.thermostat({
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 0, max: 30, step: 0.5}}},
+                systemMode: {values: ["off", "auto"]},
+            }),
+            m.battery(),
+        ],
+    },
+    {
+        zigbeeModel: ["170-01"],
+        model: "170-01",
+        vendor: "Plugwise",
+        description: "Emma Pro thermostat",
+        extend: [
+            m.thermostat({
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 0, max: 30, step: 0.5}}},
+                systemMode: {values: ["off", "auto"]},
+            }),
+            m.battery(),
+            m.humidity(),
         ],
     },
 ];

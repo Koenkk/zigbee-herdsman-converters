@@ -39,6 +39,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.child_lock(),
             e
                 .climate()
+                .withSetpoint("current_heating_setpoint", 5, 30, 0.5)
                 .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "auto", "heat"])
@@ -187,7 +188,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 86400, change: 1});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: constants.repInterval.MAX, change: 1});
         },
     },
     {
@@ -274,7 +275,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 86400, change: 1});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: constants.repInterval.MAX, change: 1});
         },
     },
 ];
