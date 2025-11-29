@@ -21238,350 +21238,64 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fodv6bkr"]),
-        model: "RM28-LE",
-        vendor: "Ronco",
-        description: "Zigbee roller shade motor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+       fingerprint: tuya.fingerprint("TS0601", ["_TZE284_waa352qv"]),
+        model: "_TZE284_waa352qvi",
+        vendor: "Tuya",
+        description: "Shutter-1-Switch-Curry Smarter",
+	
+      options: [exposes.options.invert_cover()],
         options: [exposes.options.invert_cover()],
+
+        fromZigbee: [tuya.fz.datapoints, fz.tuya_cover_options],
+
+        toZigbee: [tuya.tz.datapoints],
+
+        // onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await endpoint.command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
+            await endpoint.command("manuSpecificTuya", "dataQuery", {});
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genTime", "manuSpecificTuya"]);
+            await reporting.currentPositionLiftPercentage(endpoint);
+        },
+
         exposes: [
-            e.battery(),
+            // Here you should put all functionality that your device exposes
+            e
+                .enum("display_brightness", ea.STATE_SET, ["high", "medium", "off"])
+                .withDescription("Display brightness"),
             e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
-            e.text("work_state", ea.STATE),
-            e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Single motor steps"),
-            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]),
-            e.binary("motor_fault", ea.STATE, true, false),
+            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
+            e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
+            e
+                .binary("direction", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Inverts the cover direction"),
+
+            //    e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
         ],
+
         meta: {
             // All datapoints go in here
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
-                    }),
-                ],
-                [2, "position", tuya.valueConverter.coverPosition],
-                [3, "position", tuya.valueConverter.coverPosition],
-                [5, "reverse_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
-                [
-                    7,
-                    "work_state",
-                    tuya.valueConverterBasic.lookup((options) =>
-                        options.invert_cover ? {opening: tuya.enum(0), closing: tuya.enum(1)} : {opening: tuya.enum(1), closing: tuya.enum(0)},
-                    ),
-                ],
-                [12, "motor_fault", tuya.valueConverter.trueFalse1],
-                [13, "battery", tuya.valueConverter.raw],
-                [
-                    16,
-                    "border",
-                    tuya.valueConverterBasic.lookup({
-                        up: tuya.enum(0),
-                        down: tuya.enum(1),
-                        up_delete: tuya.enum(2),
-                        down_delete: tuya.enum(3),
-                        remove_top_bottom: tuya.enum(4),
-                    }),
-                ],
-                [20, "click_control", tuya.valueConverterBasic.lookup({up: tuya.enum(0), down: tuya.enum(1)})],
-            ],
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_iwyqtclw"]),
-        model: "M9Pro",
-        vendor: "Tuya",
-        description: "Smart 4 gang switch, curtain, smart light or scene. 1x thermosat control",
-        exposes: [
-            ...[1, 2, 3, 4].map((i) => e.switch().withEndpoint(`l${i}`).setAccess("state", ea.STATE_SET)),
-            ...[1, 2, 3].map((i) =>
-                e.enum("mode", ea.STATE_SET, ["switch", "scene", "smart_light", "curtain"]).withEndpoint(`l${i}`).withDescription(`Switch ${i} mode`),
-            ),
-            e
-                .enum("mode", ea.STATE_SET, ["switch", "scene", "smart_light", "curtain", "thermostat"])
-                .withEndpoint("l4")
-                .withDescription("Switch 4 mode"),
-            ...[1, 2, 3, 4].map((i) =>
-                e.text("name", ea.STATE_SET).withEndpoint(`l${i}`).withDescription(`Name for Switch ${i} (max 8 chars displayed)`),
-            ),
-            ...[1, 2, 3, 4].map((i) =>
-                e.text("scene_name", ea.STATE_SET).withEndpoint(`l${i}`).withDescription(`Scene name for switch ${i} (max 8 chars displayed)`),
-            ),
-            ...[1, 2, 3, 4].map((i) =>
-                e.text("dimmer_name", ea.STATE_SET).withEndpoint(`l${i}`).withDescription(`Smart Light name for switch ${i} (max 8 chars displayed)`),
-            ),
-            ...[1, 2, 3, 4].map((i) =>
-                exposes.binary("dimmer_switch", ea.STATE_SET, "ON", "OFF").withEndpoint(`l${i}`).withDescription(`Smart Light - toggle switch ${i}`),
-            ),
-            ...[1, 2, 3, 4].map((i) =>
-                e.text("curtain_name", ea.STATE_SET).withEndpoint(`l${i}`).withDescription(`Curtain name for switch ${i} (max 8 chars displayed)`),
-            ),
-            ...[1, 2, 3, 4].map((i) =>
-                exposes.binary("curtain_switch", ea.STATE_SET, "ON", "OFF").withEndpoint(`l${i}`).withDescription(`Curtain - toggle switch ${i}`),
-            ),
-            e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET).withDescription("Whole panel override.").withCategory("config"),
-            ...[1, 2, 3, 4].map((i) => e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET).withEndpoint(`l${i}`)),
-            exposes.binary("show_weather", ea.STATE_SET, "ON", "OFF").withDescription("Show time and weather (on) or just switch names (off)"),
-            exposes.binary("backlight", ea.STATE_SET, "ON", "OFF").withDescription("Button LED backlights"),
-            e.enum("show_screen", ea.STATE_SET, ["motion", "on_press", "on"]).withDescription("Screen display mode"),
-            // Thermostat - Switch 4 only
-            exposes
-                .binary("thermostat", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Thermostat - toggle switch"),
-            e.text("thermostat_name", ea.STATE_SET).withDescription("Name for Thermostat (max 8 chars displayed)"),
+                [1, "state", tuya.valueConverterBasic.lookup({CLOSE: tuya.enum(1), STOP: tuya.enum(0), OPEN: tuya.enum(2)})],
+                [2, "position", tuya.valueConverter.coverPositionInverted],
+                [3, "calibration", tuya.valueConverterBasic.lookup({START: tuya.enum(0), END: tuya.enum(1)})],
+                [5, "direction", tuya.valueConverter.onOff],
+                [102, "display_brightness", tuya.valueConverterBasic.lookup({high: tuya.enum(0), medium: tuya.enum(1), off: tuya.enum(2)})],
+                [103, "child_lock", tuya.valueConverter.onOff],
 
-            e
-                .enum("scene_switch", ea.STATE_SET, [
-                    "switch_1",
-                    "switch_2",
-                    "switch_3",
-                    "switch_4",
-                    "switch_5",
-                    "switch_6",
-                    "switch_7",
-                    "switch_8",
-                    "switch_9",
-                ])
-                .withDescription("Scene Switch"),
-            e.action(["scene_0", "scene_1", "scene_2", "scene_3", "scene_4", "scene_5", "scene_6", "scene_7", "scene_8"]),
-            // Set weather
-            // Temperature will accept decimal values e.g. 0.1 but display will round off to nearest whole number.
-            // Best to handle rounding in HA before passing to z2m.
-            e
-                .numeric("temperature_1", ea.STATE_SET)
-                .withValueMin(-65)
-                .withValueMax(99)
-                .withDescription("Temperature")
-                .withValueStep(0.1),
-            // If you need other values to match your weather provider, map them with a template in HA or
-            // add a z2m 'External Extension' to override tuya.M8ProTuyaWeatherCondition.
-            e
-                .enum("condition_1", ea.STATE_SET, Object.keys(tuya.M8ProTuyaWeatherCondition))
-                .withDescription("Weather condition"),
-        ],
-        meta: {
-            multiEndpoint: true,
-            disableDefaultResponse: true,
-            tuyaDatapoints: [
-                [1, "action", tuya.valueConverter.static("scene_1")],
-                [2, "action", tuya.valueConverter.static("scene_2")],
-                [3, "action", tuya.valueConverter.static("scene_3")],
-                [4, "action", tuya.valueConverter.static("scene_4")],
-                [17, "action", tuya.valueConverter.static("scene_0")],
-                [
-                    18,
-                    "mode_l1",
-                    tuya.valueConverterBasic.lookup({
-                        switch: tuya.enum(0),
-                        scene: tuya.enum(1),
-                        smart_light: tuya.enum(2),
-                        curtain: tuya.enum(3),
-                    }),
-                ],
-                [
-                    19,
-                    "mode_l2",
-                    tuya.valueConverterBasic.lookup({
-                        switch: tuya.enum(0),
-                        scene: tuya.enum(1),
-                        smart_light: tuya.enum(2),
-                        curtain: tuya.enum(3),
-                    }),
-                ],
-                [
-                    20,
-                    "mode_l3",
-                    tuya.valueConverterBasic.lookup({
-                        switch: tuya.enum(0),
-                        scene: tuya.enum(1),
-                        smart_light: tuya.enum(2),
-                        curtain: tuya.enum(3),
-                    }),
-                ],
-                [
-                    21,
-                    "mode_l4",
-                    tuya.valueConverterBasic.lookup({
-                        switch: tuya.enum(0),
-                        scene: tuya.enum(1),
-                        smart_light: tuya.enum(2),
-                        curtain: tuya.enum(3),
-                        thermostat: tuya.enum(4),
-                    }),
-                ],
-                [24, "state_l1", tuya.valueConverter.onOff],
-                [25, "state_l2", tuya.valueConverter.onOff],
-                [26, "state_l3", tuya.valueConverter.onOff],
-                [27, "state_l4", tuya.valueConverter.onOff],
-                [36, "show_weather", tuya.valueConverter.onOff],
-                // Screen display modes.
-                // From Tuya Dev Platform: enum "range": ["relay", "pos", "none"].  These names don't match what's happening on the device
-                [
-                    37,
-                    "show_screen",
-                    tuya.valueConverterBasic.lookup({
-                        motion: tuya.enum(0), // Screen on/off with motion detection.
-                        on_press: tuya.enum(1), // Disable motion detection. Only show screen on physical button press.
-                        on: tuya.enum(2), // Screen stays on.
-                    }),
-                ],
-
-                [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum], // whole panel
-                [39, "power_on_behavior_l1", tuya.valueConverter.powerOnBehaviorEnum],
-                [40, "power_on_behavior_l2", tuya.valueConverter.powerOnBehaviorEnum],
-                [41, "power_on_behavior_l3", tuya.valueConverter.powerOnBehaviorEnum],
-                [42, "power_on_behavior_l4", tuya.valueConverter.powerOnBehaviorEnum],
-                [101, "backlight", tuya.valueConverter.onOff], // Buttton backlights
-                [
-                    102,
-                    "scene_switch",
-                    tuya.valueConverterBasic.lookup({
-                        switch_1: tuya.enum(0),
-                        switch_2: tuya.enum(1),
-                        switch_3: tuya.enum(2),
-                        switch_4: tuya.enum(3),
-                        switch_5: tuya.enum(4),
-                        switch_6: tuya.enum(5),
-                        switch_7: tuya.enum(6),
-                        switch_8: tuya.enum(7),
-                        switch_9: tuya.enum(8),
-                    }),
-                ],
-
-                // The M9 Pro only displays first 8 chars of names, but state will hold the whole string.
-                // I prefer that the state always equals what is displayed, so trim name to 8 chars.
-                // Switch names
-                [103, "name_l1", convLocal.nameTrunc],
-                [104, "name_l2", convLocal.nameTrunc],
-                [105, "name_l3", convLocal.nameTrunc],
-                [106, "name_l4", convLocal.nameTrunc],
-
-                // Scene names
-                [107, "scene_name_l1", convLocal.nameTrunc],
-                [108, "scene_name_l2", convLocal.nameTrunc],
-                [109, "scene_name_l3", convLocal.nameTrunc],
-                [110, "scene_name_l4", convLocal.nameTrunc],
-
-                // Dimmer names
-                [111, "dimmer_name_l1", convLocal.nameTrunc],
-                [112, "dimmer_name_l2", convLocal.nameTrunc],
-                [113, "dimmer_name_l3", convLocal.nameTrunc],
-                [114, "dimmer_name_l4", convLocal.nameTrunc],
-
-                // Curtain names
-                [115, "curtain_name_l1", convLocal.nameTrunc],
-                [116, "curtain_name_l2", convLocal.nameTrunc],
-                [117, "curtain_name_l3", convLocal.nameTrunc],
-                [118, "curtain_name_l4", convLocal.nameTrunc],
-
-                [119, "curtain_switch_l1", tuya.valueConverter.onOff],
-                [120, "curtain_switch_l2", tuya.valueConverter.onOff],
-                [121, "curtain_switch_l3", tuya.valueConverter.onOff],
-                [122, "curtain_switch_l4", tuya.valueConverter.onOff],
-                [123, "dimmer_switch_l1", tuya.valueConverter.onOff],
-                [124, "dimmer_switch_l2", tuya.valueConverter.onOff],
-                [125, "dimmer_switch_l3", tuya.valueConverter.onOff],
-                [126, "dimmer_switch_l4", tuya.valueConverter.onOff],
-                [127, "thermostat", tuya.valueConverter.onOff],
-                [128, "thermostat_name", convLocal.nameTrunc],
+                //            [5, "motor_direction",tuya.valueConverterBasic.lookup({forward: tuya.enum(0),back: tuya.enum(1),}),],
             ],
         },
 
         extend: [
-            // NOTE: M9 Pro only updates the weather condition and temperature on power cycle and once per hour.
-            tuya.modernExtend.tuyaWeatherForecast({includeCurrentWeather: true, numberOfForecastDays: 3, correctForNegativeValues: false}),
-            tuya.modernExtend.tuyaBase({
-                dp: true,
-                timeStart: "1970", // needed else date/time doesn't sync with z2m > 2.6.2
-            }),
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}}),
+            // A preferred new way of extending functionality.
+            tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"}),
         ],
-    },
-    {
-        fingerprint: [
-            {
-                modelID: "TLSR82xx",
-                manufacturerName: "TELINK",
-                applicationVersion: 0,
-                endpoints: [
-                    {ID: 1, profileID: 260, deviceID: 0, inputClusters: [0, 3, 1, 6], outputClusters: [4, 5, 4096]},
-                    {ID: 2, profileID: 260, deviceID: 0, inputClusters: [0, 3, 6], outputClusters: []},
-                ],
-            },
-        ],
-        model: "TLSR82xx_2btn_remote",
-        vendor: "Telink",
-        description: "2 button remote",
-        fromZigbee: [fzLocal.TLSR82xxAction, fz.battery],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
-        },
-        exposes: [e.battery(), e.action(["on_1", "off_1", "on_2", "off_2"])],
-    },
-    {
-        fingerprint: tuya.fingerprint("ZP-301Z", ["_TZE284_d4h8j2n6"]),
-        model: "ZP-301Z",
-        vendor: "Arteco",
-        description: "PIR motion sensor light with night light function",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.presence().withDescription("Human presence detected"),
-            e.numeric("battery_value", ea.STATE).withDescription("battery value in %").withUnit("%"),
-            e.illuminance(),
-            e
-                .numeric("brightness_value", ea.STATE_SET)
-                .withDescription("When the light brightness is activated after the lights are turned on")
-                .withUnit("%")
-                .withValueMin(5)
-                .withValueMax(100)
-                .withValueStep(1),
-            e
-                .numeric("presence_time", ea.STATE_SET)
-                .withDescription("How long to wait before turning on the lights after detecting a person and meeting the light conditions")
-                .withValueMin(0)
-                .withValueMax(60)
-                .withUnit("s")
-                .withValueStep(1),
-            e
-                .numeric("presence_delay", ea.STATE_SET)
-                .withDescription("How long after no one is detected will the lights turn off")
-                .withValueMin(5)
-                .withValueMax(120)
-                .withUnit("s")
-                .withValueStep(1),
-            e
-                .numeric("illuminance_trigger", ea.STATE_SET)
-                .withDescription("Detection is only allowed when the illuminance is less than the current value.")
-                .withValueMin(0)
-                .withValueMax(10000)
-                .withValueStep(1),
-            e
-                .numeric("detection_cycle", ea.STATE_SET)
-                .withDescription("How often is the battery level and illuminance detected")
-                .withValueMin(10)
-                .withValueMax(1200)
-                .withValueStep(5)
-                .withUnit("s"),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, "presence", tuya.valueConverter.trueFalse1],
-                [14, "battery_value", tuya.valueConverter.raw],
-                [20, "illuminance", tuya.valueConverter.raw],
-                [100, "brightness_value", tuya.valueConverter.raw],
-                [101, "illuminance_trigger", tuya.valueConverter.raw],
-                [102, "presence_time", tuya.valueConverter.raw],
-                [103, "presence_delay", tuya.valueConverter.raw],
-                [104, "detection_cycle", tuya.valueConverter.raw],
-            ],
-        },
+
+        whiteLabel: [tuya.whitelabel("6.1Gen-series", "Curry Smarter", "Curtain/blind switch", ["_TZE284_waa352qv"])],
     },
 ];
