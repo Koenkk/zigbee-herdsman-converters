@@ -1,5 +1,21 @@
 # Changelog
 
+## [25.79.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.78.0...v25.79.0) (2025-11-29)
+
+
+### Features
+
+* **add:** 929003856201 ([#10875](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10875)) ([eb7e21b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eb7e21ba5161b1ecdf2c190f80da1c5fb5937c69))
+* **add:** L101Ze-SMN ([#10891](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10891)) ([aa000b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aa000b64e4b4dc394929a6fc65b17a0323e55f71))
+* **add:** ZP-301Z ([#10874](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10874)) ([2995e76](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2995e76e82fe5c61adbe13f505140794ff4d3c4b))
+* Iris iL07_1: expose battery ([#10880](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10880)) ([177e497](https://github.com/Koenkk/zigbee-herdsman-converters/commit/177e497e56b8482d71d65ebf62846d935f0fb419))
+
+
+### Bug Fixes
+
+* Aqara PS-S04D: fix illegal characters in HA error ([#10885](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10885)) ([28ad4a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/28ad4a6c0b0e2ff758c0f082e8bbccda9b9c49ba))
+* Paulmann 500.46: add new fingerprint ([#10886](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10886)) ([5e8cbdb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5e8cbdbd90a81b60af199b4958538d7d44b099a7))
+
 ## [25.78.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.77.0...v25.78.0) (2025-11-27)
 
 
