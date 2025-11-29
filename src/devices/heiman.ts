@@ -5,6 +5,7 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {
     addCustomClusterHeimanSpecificAirQuality,
+    addCustomClusterHeimanSpecificAirQualityShort,
     addCustomClusterHeimanSpecificInfraRedRemote,
     addCustomClusterHeimanSpecificScenes,
 } from "../lib/heiman";
@@ -1175,5 +1176,101 @@ export const definitions: DefinitionWithExtend[] = [
             ]);
         },
         endpoint: (device) => ({default: 1}),
+    },
+    {
+        fingerprint: [{modelID: "HS2AQ-EF-3.0", manufacturerName: "HEIMAN"}],
+        model: "HS2AQ-EF-3.0",
+        vendor: "Heiman",
+        description: "Air quality monitor",
+        extend: [
+            addCustomClusterHeimanSpecificAirQualityShort(),
+            m.battery(),
+            m.humidity(),
+            m.enumLookup({
+                name: "charging_status",
+                lookup: {NotCharged: 0, Charging: 1, FullyCharged: 2},
+                cluster: "heimanSpecificAirQuality",
+                attribute: "batteryState",
+                description: "Current charging status",
+                access: "STATE_GET",
+            }),
+        ],
+        fromZigbee: [fz.temperature, fz.pm25, fz.heiman_hcho, fz.heiman_air_quality],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+
+            const heiman = {
+                configureReporting: {
+                    pm25MeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+                        const payload = reporting.payload({ID: 0x0000, type: Zcl.DataType.UINT16}, 0, constants.repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting("pm25Measurement", payload);
+                    },
+
+                    formAldehydeMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+                        const payload = reporting.payload({ID: 0x0000, type: Zcl.DataType.UINT16}, 0, constants.repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting("msFormaldehyde", payload);
+                    },
+
+                    batteryState: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+                        const payload = reporting.payload<"heimanSpecificAirQuality">("batteryState", 0, constants.repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting("heimanSpecificAirQuality", payload);
+                    },
+
+                    pm10measuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                            "pm10measuredValue",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
+                        await endpoint.configureReporting("heimanSpecificAirQuality", payload);
+                    },
+
+                    aqiMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                            "aqiMeasuredValue",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
+                        await endpoint.configureReporting("heimanSpecificAirQuality", payload);
+                    },
+                },
+            };
+
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                "genTime",
+                "msTemperatureMeasurement",
+                "pm25Measurement",
+                "msFormaldehyde",
+                "heimanSpecificAirQuality",
+            ]);
+
+            await reporting.temperature(endpoint);
+
+            await heiman.configureReporting.pm25MeasuredValue(endpoint);
+            await heiman.configureReporting.formAldehydeMeasuredValue(endpoint);
+            await heiman.configureReporting.batteryState(endpoint);
+            await heiman.configureReporting.pm10measuredValue(endpoint);
+            await heiman.configureReporting.aqiMeasuredValue(endpoint);
+
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("pm25Measurement", ["measuredValue"]);
+            await endpoint.read("msFormaldehyde", ["measuredValue"]);
+            await endpoint.read("heimanSpecificAirQuality", ["batteryState", "pm10measuredValue", "aqiMeasuredValue"]);
+
+            // Bug Heiman
+            const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
+
+            await endpoint.write("genTime", {
+                timeStatus: 3,
+                time,
+                timeZone: new Date().getTimezoneOffset() * -1 * 60,
+            });
+        },
+        exposes: [e.temperature(), e.pm25(), e.hcho(), e.aqi(), e.pm10()],
     },
 ];
