@@ -17563,9 +17563,9 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
-            e.switch().withEndpoint("1")
-            e.binary("switch2", ea.STATE_SET, "ON", "OFF").withDescription("Switch2"),
-            e.binary("switch3", ea.STATE_SET, "ON", "OFF").withDescription("Switch3"),
+            e.binary("switch_1", ea.STATE_SET, "ON", "OFF").withDescription("Switch2"),
+            e.binary("switch_2", ea.STATE_SET, "ON", "OFF").withDescription("Switch2"),
+            e.binary("switch_3", ea.STATE_SET, "ON", "OFF").withDescription("Switch3"),
             e
                 .numeric("sensitivity", ea.STATE_SET)
                 .withValueMin(0)
@@ -17583,10 +17583,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Trigger hold(second)"),
             tuya.exposes.powerOutageMemory(),
             e
-                .enum("auto_on", ea.STATE_SET, ["off", "all", "ch1", "ch2", "ch3", "ch1_2", "ch2_3", "ch1_3"])
-                .withDescription("Someone turn on the light"),
+                .enum("auto_on", ea.STATE_SET, ["off", "all", "ch1", "ch2", "ch3", "ch1_and_ch2", "ch2_and_ch3", "ch1_and_ch3"])
+                .withDescription("When somebody passes in front of their sensors, the lights turn"),
             e
-                .enum("auto_off", ea.STATE_SET, ["off", "all", "ch1", "ch2", "ch3", "ch1_2", "ch2_3", "ch1_3"])
+                .enum("auto_off", ea.STATE_SET, ["off", "all", "ch1", "ch2", "ch3", "ch1_and_ch2", "ch2_and_ch3", "ch1_and_ch3"])
                 .withDescription("No one turns off the lights"),
         ],
         meta: {
@@ -17595,8 +17595,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [101, "presence", tuya.valueConverter.trueFalse1],
                 [102, "sensitivity", tuya.valueConverter.raw],
                 [1, "switch_1", tuya.valueConverter.onOff],
-                [2, "switch2", tuya.valueConverter.onOff],
-                [3, "switch3", tuya.valueConverter.onOff],
+                [2, "switch_2", tuya.valueConverter.onOff],
+                [3, "switch_3", tuya.valueConverter.onOff],
                 [16, "backlight", tuya.valueConverter.onOff],
                 [103, "trigger_hold", tuya.valueConverter.raw],
                 [
@@ -17617,9 +17617,9 @@ export const definitions: DefinitionWithExtend[] = [
                         ch1: tuya.enum(1),
                         ch2: tuya.enum(2),
                         ch3: tuya.enum(3),
-                        ch1_2: tuya.enum(4),
-                        ch2_3: tuya.enum(5),
-                        ch1_3: tuya.enum(6),
+                        ch1_and_ch2: tuya.enum(4),
+                        ch2_and_ch3: tuya.enum(5),
+                        ch1_and_ch3: tuya.enum(6),
                     }),
                 ],
                 [
@@ -17631,9 +17631,9 @@ export const definitions: DefinitionWithExtend[] = [
                         ch1: tuya.enum(1),
                         ch2: tuya.enum(2),
                         ch3: tuya.enum(3),
-                        ch1_2: tuya.enum(4),
-                        ch2_3: tuya.enum(5),
-                        ch1_3: tuya.enum(6),
+                        ch1_and_ch2: tuya.enum(4),
+                        ch2_and_ch3: tuya.enum(5),
+                        ch1_and_ch3: tuya.enum(6),
                     }),
                 ],
             ],
