@@ -17590,6 +17590,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("No one turns off the lights"),
         ],
         meta: {
+            multiEndpoint: true,
             tuyaDatapoints: [
                 [101, "presence", tuya.valueConverter.trueFalse1],
                 [102, "sensitivity", tuya.valueConverter.raw],
