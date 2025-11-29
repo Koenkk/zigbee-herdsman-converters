@@ -4654,8 +4654,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["LWA034"],
         model: "929003856201",
-        vendor: "Signify Netherlands B.V.",
-        description: "Philips Hue White Ambiance — dimmable white light",
+        vendor: "Philips",
+        description: "Hue White Ambiance — dimmable white light",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}})],
     },
 ];
