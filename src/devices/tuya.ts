@@ -1144,7 +1144,7 @@ export const definitions: DefinitionWithExtend[] = [
             // https://github.com/Koenkk/zigbee2mqtt/issues/19910#issuecomment-2634971788
             try {
                 const endpoint = device.getEndpoint(1);
-                await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
                 await reporting.batteryPercentageRemaining(endpoint);
                 //await reporting.batteryVoltage(endpoint);
             } catch {
