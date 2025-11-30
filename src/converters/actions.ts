@@ -96,8 +96,14 @@ export const ACTIONS: Record<string, (controller: Controller, args: Record<strin
         if (!extendedPanId) {
             extendedPanId = (await controller.getNetworkParameters()).extendedPanID;
         }
-        assert(typeof extendedPanId === "string" && /^0x[a-f0-9]{16}$/.test(extendedPanId));
-        assert(Array.isArray(args.serial_numbers) && args.serial_numbers.length > 0);
+        assert(typeof extendedPanId === "string" && /^0x[a-f0-9]{16}$/i.test(extendedPanId));
+        assert(
+            Array.isArray(args.serial_numbers) &&
+                args.serial_numbers.length > 0 &&
+                args.serial_numbers.every((sn) => typeof sn === "string" && /^[a-f0-9]{6}$/i.test(sn)),
+            "serial_numbers must be an array of 6-character hex strings",
+        );
+        const serialNumbers = args.serial_numbers.map((sn) => Number.parseInt(`0x${sn}`, 16));
 
         const rawPayload: RawPayload = {
             clusterKey: "manuSpecificPhilipsPairing",
@@ -109,7 +115,7 @@ export const ACTIONS: Record<string, (controller: Controller, args: Record<strin
                 manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
                 tsn: 0,
                 commandKey: "hueResetRequest",
-                payload: {extendedPanId, serialCount: args.serial_numbers.length, serialNumbers: args.serial_numbers},
+                payload: {extendedPanId, serialCount: args.serial_numbers.length, serialNumbers},
             },
             disableResponse: true,
         };
