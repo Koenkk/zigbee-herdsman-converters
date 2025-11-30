@@ -1795,4 +1795,264 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.numeric("start_brightness", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Default brightness at power-on/startup"),
         ],
     },
+    {
+        zigbeeModel: ["4512785"],
+        model: "4512785",
+        vendor: "Namron",
+        description: "Zigbee 30A relay with NTC temperature sensors and water leak detection",
+        extend: [
+            m.poll({
+                key: "namron_4512785_poll",
+                option: e
+                    .numeric("poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription("Polling interval in seconds for temperature sensors (default: 60s, -1 to disable)"),
+                defaultIntervalSeconds: 60,
+                poll: async (device) => {
+                    const endpoint = device.getEndpoint(1);
+                    try {
+                        await endpoint.read("msTemperatureMeasurement", [0x0000]);
+                        await endpoint.read(0x04e0, [0x0000, 0x0003]);
+                    } catch (_error) {
+                        // Silently ignore polling errors
+                    }
+                },
+            }),
+        ],
+        fromZigbee: [namron.fromZigbee.namron_relay_ntc_water_sensor],
+        toZigbee: [namron.toZigbee.namron_relay_ntc_water_sensor],
+        exposes: (device, options) => {
+            const exps = [];
+
+            // ====================
+            // SECTION 1: SENSORS
+            // ====================
+
+            // Internal device temperature (always available, main sensor)
+            exps.push(e.numeric("device_temperature", ea.STATE_GET).withUnit("°C").withDescription("Internal device temperature"));
+
+            // External NTC1 temperature sensor
+            exps.push(e.numeric("ntc1_temperature", ea.STATE_GET).withUnit("°C").withDescription("NTC1 external temperature probe"));
+
+            // External NTC2 temperature sensor
+            exps.push(e.numeric("ntc2_temperature", ea.STATE_GET).withUnit("°C").withDescription("NTC2 external temperature probe"));
+
+            // Water leak sensor
+            exps.push(e.binary("water_sensor", ea.STATE_GET, true, false).withDescription("Water leak detection (true = water detected)"));
+
+            // ====================
+            // SECTION 2: RELAY & POWER MONITORING
+            // ====================
+
+            // On/Off switch
+            exps.push(e.switch());
+
+            // Power monitoring
+            exps.push(
+                e.power().withDescription("Instantaneous measured power"),
+                e.voltage().withDescription("Measured electrical potential value"),
+                e.current().withDescription("Instantaneous measured electrical current"),
+                e.energy().withDescription("Sum of consumed energy"),
+            );
+
+            // Power-on behavior (configuration)
+            exps.push(
+                e
+                    .enum("power_on_behavior", ea.ALL, ["off", "on", "toggle", "previous"])
+                    .withDescription("Relay behavior after power cycle")
+                    .withCategory("config"),
+            );
+
+            // ====================
+            // SECTION 3: SENSOR CONFIGURATION
+            // ====================
+
+            exps.push(
+                e
+                    .enum("ntc1_sensor_type", ea.ALL, ["None", "NTC-10K", "NTC-12K", "NTC-15K", "NTC-22K", "NTC-33K", "NTC-47K"])
+                    .withDescription("NTC1 probe type (select resistance value)")
+                    .withCategory("config"),
+                e
+                    .enum("ntc2_sensor_type", ea.ALL, ["None", "NTC-10K", "NTC-12K", "NTC-15K", "NTC-22K", "NTC-33K", "NTC-47K"])
+                    .withDescription("NTC2 probe type (select resistance value)")
+                    .withCategory("config"),
+            );
+
+            // ====================
+            // SECTION 4: NTC1 AUTOMATION
+            // ====================
+
+            exps.push(
+                e
+                    .enum("ntc1_operation_mode", ea.ALL, [
+                        "No action",
+                        "OFF when hot, ON when cold",
+                        "ON when hot, OFF when cold",
+                        "OFF when hot (stay off)",
+                        "ON when hot (stay on)",
+                    ])
+                    .withDescription("NTC1 relay automation mode")
+                    .withCategory("config"),
+                e
+                    .numeric("ntc1_relay_auto_temp", ea.ALL)
+                    .withUnit("°C")
+                    .withValueMin(0)
+                    .withValueMax(100)
+                    .withDescription("NTC1 temperature threshold (0-100°C)")
+                    .withCategory("config"),
+                e
+                    .numeric("ntc1_temp_hysteresis", ea.ALL)
+                    .withUnit("°C")
+                    .withValueMin(-10)
+                    .withValueMax(10)
+                    .withDescription("NTC1 hysteresis to prevent rapid switching")
+                    .withCategory("config"),
+                e
+                    .numeric("ntc1_calibration", ea.ALL)
+                    .withUnit("°C")
+                    .withValueMin(-10)
+                    .withValueMax(10)
+                    .withDescription("NTC1 temperature offset calibration")
+                    .withCategory("config"),
+            );
+
+            // ====================
+            // SECTION 5: NTC2 AUTOMATION
+            // ====================
+
+            exps.push(
+                e
+                    .enum("ntc2_operation_mode", ea.ALL, [
+                        "No action",
+                        "OFF when hot, ON when cold",
+                        "ON when hot, OFF when cold",
+                        "OFF when hot (stay off)",
+                        "ON when hot (stay on)",
+                    ])
+                    .withDescription("NTC2 relay automation mode")
+                    .withCategory("config"),
+                e
+                    .numeric("ntc2_relay_auto_temp", ea.ALL)
+                    .withUnit("°C")
+                    .withValueMin(0)
+                    .withValueMax(100)
+                    .withDescription("NTC2 temperature threshold (0-100°C)")
+                    .withCategory("config"),
+                e
+                    .numeric("ntc2_temp_hysteresis", ea.ALL)
+                    .withUnit("°C")
+                    .withValueMin(-10)
+                    .withValueMax(10)
+                    .withDescription("NTC2 hysteresis to prevent rapid switching")
+                    .withCategory("config"),
+                e
+                    .numeric("ntc2_calibration", ea.ALL)
+                    .withUnit("°C")
+                    .withValueMin(-10)
+                    .withValueMax(10)
+                    .withDescription("NTC2 temperature offset calibration")
+                    .withCategory("config"),
+            );
+
+            // ====================
+            // SECTION 6: WATER ALARM AUTOMATION
+            // ====================
+
+            exps.push(
+                e
+                    .enum("water_alarm_relay_action", ea.ALL, [
+                        "No action",
+                        "Water alarm: Turn OFF (restore when dry)",
+                        "Water alarm: Turn ON (restore when dry)",
+                        "Water alarm: Turn OFF (stay off)",
+                        "Water alarm: Turn ON (stay on)",
+                        "No water: Turn OFF",
+                        "No water: Turn ON",
+                    ])
+                    .withDescription("Relay action on water leak detection")
+                    .withCategory("config"),
+            );
+
+            // ====================
+            // SECTION 7: PRIORITY & STATUS
+            // ====================
+
+            exps.push(
+                e
+                    .enum("override_option", ea.ALL, ["No priority", "Water alarm has priority", "Temperature (NTC) has priority"])
+                    .withDescription("Priority when both triggers activate")
+                    .withCategory("config"),
+            );
+
+            exps.push(
+                e.binary("water_condition_alarm", ea.STATE, true, false).withDescription("Water leak alarm status").withCategory("diagnostic"),
+                e.binary("ntc_condition_alarm", ea.STATE, true, false).withDescription("NTC temperature alarm status").withCategory("diagnostic"),
+                e.binary("is_execute_condition", ea.STATE, true, false).withDescription("Relay action conditions met").withCategory("diagnostic"),
+            );
+
+            return exps;
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                "genOnOff",
+                "genDeviceTempCfg",
+                "msTemperatureMeasurement",
+                "haElectricalMeasurement",
+                "seMetering",
+            ]);
+
+            await reporting.onOff(endpoint);
+            await reporting.deviceTemperature(endpoint, {min: 15, max: 600, change: 10});
+            await reporting.temperature(endpoint, {min: 15, max: 600, change: 10});
+            await reporting.rmsVoltage(endpoint, {min: 10, max: 3600, change: 1});
+            await reporting.rmsCurrent(endpoint, {min: 10, max: 3600, change: 10});
+            await reporting.activePower(endpoint, {min: 10, max: 3600, change: 5});
+
+            try {
+                await endpoint.configureReporting("seMetering", [
+                    {
+                        attribute: "currentSummDelivered",
+                        minimumReportInterval: 30,
+                        maximumReportInterval: 3600,
+                        reportableChange: 1,
+                    },
+                ]);
+            } catch (_error) {
+                // Silently ignore configuration errors
+            }
+
+            try {
+                await endpoint.configureReporting(0x04e0, [
+                    {
+                        attribute: 0x0000,
+                        minimumReportInterval: 15,
+                        maximumReportInterval: 600,
+                        reportableChange: 10,
+                    },
+                    {
+                        attribute: 0x0003,
+                        minimumReportInterval: 1,
+                        maximumReportInterval: 300,
+                        reportableChange: 1,
+                    },
+                ]);
+            } catch (_error) {
+                // Silently ignore configuration errors
+            }
+
+            await endpoint.read("genOnOff", ["onOff"]);
+            await endpoint.read("genDeviceTempCfg", ["currentTemperature"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("haElectricalMeasurement", ["rmsVoltage", "rmsCurrent", "activePower"]);
+            await endpoint.read("seMetering", ["currentSummDelivered"]);
+
+            try {
+                await endpoint.read(0x04e0, [0x0000, 0x0001, 0x0002, 0x0003, 0x0007, 0x0008]);
+            } catch (_error) {
+                // Silently ignore read errors
+            }
+        },
+    },
 ];
