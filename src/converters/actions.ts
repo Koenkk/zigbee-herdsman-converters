@@ -97,8 +97,13 @@ export const ACTIONS: Record<string, (controller: Controller, args: Record<strin
             extendedPanId = (await controller.getNetworkParameters()).extendedPanID;
         }
         assert(typeof extendedPanId === "string" && /^0x[a-f0-9]{16}$/.test(extendedPanId));
-        assert(Array.isArray(args.serial_numbers) && args.serial_numbers.length > 0);
-        const serialNumbers = args.serial_numbers.map((sn) => (typeof sn === "string" ? Number.parseInt(`0x${sn}`, 16) : sn));
+        assert(
+            Array.isArray(args.serial_numbers) &&
+                args.serial_numbers.length > 0 &&
+                args.serial_numbers.every((sn) => typeof sn === "string" && /^[a-f0-9]{6}$/i.test(sn)),
+            "serial_numbers must be an array of 6-character hex strings",
+        );
+        const serialNumbers = args.serial_numbers.map((sn) => Number.parseInt(`0x${sn}`, 16));
 
         const rawPayload: RawPayload = {
             clusterKey: "manuSpecificPhilipsPairing",
