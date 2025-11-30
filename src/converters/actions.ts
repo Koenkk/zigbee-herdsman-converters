@@ -96,7 +96,7 @@ export const ACTIONS: Record<string, (controller: Controller, args: Record<strin
         if (!extendedPanId) {
             extendedPanId = (await controller.getNetworkParameters()).extendedPanID;
         }
-        assert(typeof extendedPanId === "string" && /^0x[a-f0-9]{16}$/.test(extendedPanId));
+        assert(typeof extendedPanId === "string" && /^0x[a-f0-9]{16}$/i.test(extendedPanId));
         assert(
             Array.isArray(args.serial_numbers) &&
                 args.serial_numbers.length > 0 &&
