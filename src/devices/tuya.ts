@@ -4237,6 +4237,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_ug1vtuzn",
             "_TZ3000_eo3dttwe",
             "_TZ3000_jwcixnrz",
+            "_TZ3000_u2bbagu4",
         ]),
         model: "TS0215A_remote",
         vendor: "Tuya",
@@ -13958,7 +13959,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3210_dse8ogfy", "_TZ3210_j4pdtz9v", "_TZ3210_7vgttna6"]),
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3210_dse8ogfy", "_TZ3210_j4pdtz9v", "_TZ3210_7vgttna6", "_TZ3210_a04acm9s"]),
         model: "TS0001_fingerbot",
         vendor: "Tuya",
         description: "Zigbee fingerbot plus",
