@@ -98,6 +98,7 @@ export const ACTIONS: Record<string, (controller: Controller, args: Record<strin
         }
         assert(typeof extendedPanId === "string" && /^0x[a-f0-9]{16}$/.test(extendedPanId));
         assert(Array.isArray(args.serial_numbers) && args.serial_numbers.length > 0);
+        const serialNumbers = args.serial_numbers.map((sn) => (typeof sn === "string" ? Number.parseInt(`0x${sn}`, 16) : sn));
 
         const rawPayload: RawPayload = {
             clusterKey: "manuSpecificPhilipsPairing",
@@ -109,7 +110,7 @@ export const ACTIONS: Record<string, (controller: Controller, args: Record<strin
                 manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
                 tsn: 0,
                 commandKey: "hueResetRequest",
-                payload: {extendedPanId, serialCount: args.serial_numbers.length, serialNumbers: args.serial_numbers},
+                payload: {extendedPanId, serialCount: args.serial_numbers.length, serialNumbers},
             },
             disableResponse: true,
         };
