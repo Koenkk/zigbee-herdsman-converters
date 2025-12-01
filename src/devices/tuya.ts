@@ -21662,7 +21662,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         exposes: [e.battery(), e.action(["on_1", "off_1", "on_2", "off_2"])],
     },
-     {
+    {
         fingerprint: tuya.fingerprint("ZP-301Z", ["_TZE284_d4h8j2n6"]),
         model: "ZP-301Z",
         vendor: "Arteco",
