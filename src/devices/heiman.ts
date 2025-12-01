@@ -581,18 +581,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2WL",
         vendor: "Heiman",
         description: "Water leakage sensor",
-        fromZigbee: [fz.ias_water_leak_alarm_1, fzLocal.diagnosticHeiman],
+        fromZigbee: [],
         toZigbee: [],
-        extend: [m.battery(), m.temperature()],
+        extend: [m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1"]}), m.temperature(), m.battery({lowStatus: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "msTemperatureMeasurement", "haDiagnostic"]);
-            // await reporting.temperature(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "msTemperatureMeasurement"]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
             await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
         },
-        exposes: [e.water_leak(), e.battery_low(), e.numeric("last_message_rssi", ea.STATE).withDescription("rssi")],
     },
     {
         fingerprint: [{modelID: "RC-N", manufacturerName: "HEIMAN"}],
@@ -1266,29 +1264,64 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("RadarSensorHeiman", {
                 ID: 0xfc8b,
                 manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
-                attributes: {
-                    enable_indicator: {ID: 0xf001, type: Zcl.DataType.UINT8}, // 0: off, 1: enable
-                    sensitivity: {ID: 0xf002, type: Zcl.DataType.UINT8}, // 0: min 100: max of sensitivity
-                },
+                attributes: {},
                 commands: {},
                 commandsResponse: {},
             }),
+            m.occupancy(),
+            m.numeric({
+                name: "illuminance",
+                unit: "",
+                valueMin: 0,
+                valueMax: 1200,
+                cluster: "msIlluminanceMeasurement",
+                attribute: {ID: 0x0000, type: 0x21},
+                description: "ambient illuminance in lux",
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "enable_indicator",
+                unit: "",
+                valueMin: 0,
+                valueMax: 1,
+                cluster: "RadarSensorHeiman",
+                attribute: {ID: 0xf001, type: 0x20},
+                description: "0: Off, 1: Enable",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "sensitivity",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "RadarSensorHeiman",
+                attribute: {ID: 0xf002, type: 0x20},
+                description: "Sensitivity of the radar sensor in range of 0 ~ 100%",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "radar_delay_time",
+                unit: "s",
+                valueMin: 60,
+                valueMax: 3600,
+                cluster: "msOccupancySensing",
+                attribute: {ID: 0x0020, type: 0x21},
+                description: "occupied to unccupied delay",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "last_message_rssi",
+                unit: "",
+                cluster: "diagnosticHeiman",
+                attribute: {ID: 0x011d, type: 0x28},
+                description: "rssi",
+                access: "STATE_GET",
+            }),
         ],
-        fromZigbee: [fz.identify, fzLocal.occupancyRadarHeiman, fzLocal.radarSensorHeiman, fzLocal.illuminanceHeiman, fzLocal.diagnosticHeiman],
+        fromZigbee: [],
         toZigbee: [tzLocal.radarSensorHeiman, tzLocal.customFeatureHeiman],
         ota: true,
-        exposes: [
-            e.binary("occupancy", ea.STATE, true, false).withDescription("Indicates if someone is present"),
-            e.enum("enable_indicator", ea.ALL, [0, 1]).withDescription("0: Off, 1: Enable"),
-            e
-                .numeric("sensitivity", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(100)
-                .withDescription("Sensitivity of the radar sensor in range of 0 ~ 100%"),
-            e.numeric("illuminance", ea.STATE).withDescription("ambient illuminance in lux"),
-            e.numeric("last_message_rssi", ea.STATE).withDescription("rssi"),
-            e.numeric("radar_delay_time", ea.ALL).withValueMin(60).withValueMax(3600).withDescription("in range of 60 ~ 3600s"),
-        ],
+        exposes: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
