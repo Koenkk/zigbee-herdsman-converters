@@ -4671,4 +4671,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Hue White Ambiance — dimmable white light",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}})],
     },
+    {
+    zigbeeModel: ['929004610502'],
+    model: '929004610502',
+    vendor: 'Philips',
+    description: 'Flux Lightstrip 4m',
+    extend: [philips.m.light({"colorTemp":{"range":[50,1000]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    },
+    
 ];
