@@ -52,10 +52,38 @@ const fzLocal = {
                 result.occupancy = bit0 === 1;
                 result.sensor_status = ["none", "activity"][bit1to3] || "unknown";
                 result.fall_status = ["normal", "fall_warning", "fall_alarm"][bit4to5] || "unknown";
+            } else if (Object.hasOwn(msg.data, "ultrasonicOToUDelay")) {
+                result.radar_delay_time = msg.data.ultrasonicOToUDelay;
             }
+
             return result;
         },
     } satisfies Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]>,
+    diagnosticHeiman: {
+        cluster: "haDiagnostic",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: Record<string, unknown> = {};
+            if (msg.data.lastMessageLqi !== undefined) {
+                result.last_message_lqi = msg.data.lastMessageLqi;
+            }
+            if (msg.data.lastMessageRssi !== undefined) {
+                result.last_message_rssi = msg.data.lastMessageRssi;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"haDiagnostic", undefined, ["attributeReport", "readResponse"]>,
+    illuminanceHeiman: {
+        cluster: "msIlluminanceMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: Record<string, unknown> = {};
+            if (Object.hasOwn(msg.data, "measuredValue")) {
+                result.illuminance = msg.data.measuredValue;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]>,
     radarSensorHeiman: {
         cluster: "RadarSensorHeiman",
         type: ["attributeReport", "readResponse"],
@@ -263,6 +291,42 @@ const tzLocal = {
             }
 
             await entity.read(cluster, [attributeId], {manufacturerCode: 0x120b});
+        },
+    } satisfies Tz.Converter,
+    customFeatureHeiman: {
+        key: ["radar_delay_time"],
+
+        convertSet: async (entity, key, value, meta) => {
+            const cluster = "msOccupancySensing";
+            const mapAttributes: Record<string, {id: number; type: number}> = {
+                radar_delay_time: {id: 0x0020, type: 0x21},
+            };
+
+            const attributeInfo = mapAttributes[key];
+            if (!attributeInfo) {
+                throw new Error(`Unsupported attribute: ${key}`);
+            }
+
+            const {id, type} = attributeInfo;
+
+            // let payloadValue = value;
+            await entity.write(cluster, {[id]: {value: value, type}});
+
+            return {state: {[key]: value}};
+        },
+
+        convertGet: async (entity, key, meta) => {
+            const cluster = "msOccupancySensing";
+            const mapAttributes: Record<string, number> = {
+                radar_delay_time: 0x0020,
+            };
+
+            const attributeId = mapAttributes[key];
+            if (!attributeId) {
+                throw new Error(`Unsupported attribute for get: ${key}`);
+            }
+
+            await entity.read(cluster, [attributeId]);
         },
     } satisfies Tz.Converter,
 };
@@ -498,7 +562,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ["WaterSensor-N", "WaterSensor-EM", "WaterSensor-N-3.0", "WaterSensor-EF-3.0", "WaterSensor2-EF-3.0", "WATER_TPV13"],
+        zigbeeModel: ["WaterSensor-N", "WaterSensor-EM", "WaterSensor-N-3.0", "WaterSensor-EF-3.0", "WATER_TPV13"],
         model: "HS1WL/HS3WL",
         vendor: "Heiman",
         description: "Water leakage sensor",
@@ -511,6 +575,22 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
         },
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
+        zigbeeModel: ["WaterSensor2-EF-3.0"],
+        model: "HS2WL",
+        vendor: "Heiman",
+        description: "Water leakage sensor",
+        fromZigbee: [],
+        toZigbee: [],
+        extend: [m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1"]}), m.temperature(), m.battery({lowStatus: true})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "msTemperatureMeasurement"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+        },
     },
     {
         fingerprint: [{modelID: "RC-N", manufacturerName: "HEIMAN"}],
@@ -1105,7 +1185,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smoke detector relabeled for zipato",
         extend: [m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}), m.battery(), m.iasWarning()],
     },
-
     {
         zigbeeModel: ["HS2FD-EF1-3.0"],
         model: "HS2FD-EF1-3.0",
@@ -1173,6 +1252,77 @@ export const definitions: DefinitionWithExtend[] = [
                 "wall_mounted_table",
                 "sub_region_isolation_table",
             ]);
+        },
+        endpoint: (device) => ({default: 1}),
+    },
+    {
+        zigbeeModel: ["HS8OS-EF1-3.0"],
+        model: "HS8OS-EF1-3.0",
+        vendor: "Heiman",
+        description: "Human presence sensor",
+        extend: [
+            m.deviceAddCustomCluster("RadarSensorHeiman", {
+                ID: 0xfc8b,
+                manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                attributes: {},
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.occupancy(),
+            m.numeric({
+                name: "illuminance",
+                unit: "",
+                valueMin: 0,
+                valueMax: 1200,
+                cluster: "msIlluminanceMeasurement",
+                attribute: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                description: "ambient illuminance in lux",
+                access: "STATE_GET",
+            }),
+            m.binary({
+                name: "enable_indicator",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "RadarSensorHeiman",
+                attribute: {ID: 0xf001, type: Zcl.DataType.UINT8},
+                description: "0: Off, 1: Enable",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "sensitivity",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "RadarSensorHeiman",
+                attribute: {ID: 0xf002, type: Zcl.DataType.UINT8},
+                description: "Sensitivity of the radar sensor in range of 0 ~ 100%",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "radar_delay_time",
+                unit: "s",
+                valueMin: 60,
+                valueMax: 3600,
+                cluster: "msOccupancySensing",
+                attribute: {ID: 0x0020, type: Zcl.DataType.UINT16},
+                description: "occupied to unccupied delay",
+                access: "ALL",
+            }),
+        ],
+        fromZigbee: [],
+        toZigbee: [tzLocal.radarSensorHeiman, tzLocal.customFeatureHeiman],
+        ota: true,
+        exposes: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                "msOccupancySensing",
+                "msIlluminanceMeasurement",
+                "RadarSensorHeiman",
+                "haDiagnostic",
+            ]);
+            await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
+            await endpoint.read("msOccupancySensing", ["ultrasonicOToUDelay"]);
         },
         endpoint: (device) => ({default: 1}),
     },
