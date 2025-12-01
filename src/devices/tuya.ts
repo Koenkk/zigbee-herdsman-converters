@@ -1223,6 +1223,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_gntwytxo", // Moes ZSS-X-GWM-C
                 "_TZ3000_4ugnzsli", // Luminea ZX-5232
                 "_TZ3000_timx9ivq", //Woox R7047
+                "_TZ3000_t3vvhrmh",
             ];
             if (!device || !noTamperModels.includes(device.manufacturerName)) {
                 exps.push(e.tamper());
@@ -10189,12 +10190,21 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
-        fingerprint: tuya.fingerprint("TS0222", ["_TYZB01_4mdqxxnn", "_TYZB01_m6ec2pgj", "_TZ3000_do6txrcw", "_TZ3000_7kscdesh", "_TZ3000_hy6ncvmw"]),
+        zigbeeModel: ["ZG-106Z"],
+        fingerprint: tuya.fingerprint("TS0222", [
+            "_TYZB01_4mdqxxnn",
+            "_TYZB01_m6ec2pgj",
+            "_TZ3000_do6txrcw",
+            "_TZ3000_7kscdesh",
+            "_TZ3000_hy6ncvmw",
+            "_TZ3000_7y90pany",
+        ]),
         model: "TS0222",
         vendor: "Tuya",
         description: "Light intensity sensor",
         fromZigbee: [fz.battery, legacy.fromZigbee.TS0222],
         toZigbee: [],
+        whiteLabel: [{vendor: "HOBEIAN", model: "ZG-106Z", fingerprint: [{modelID: "ZG-106Z"}]}],
         exposes: [e.battery()],
         configure: tuya.configureMagicPacket,
         extend: [m.illuminance()],
@@ -17541,6 +17551,98 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["ZG-302ZL"],
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_khzbklyh",
+            "_TZE200_df04ghrb",
+            "_TZE200_toeldckg",
+            "_TZE200_cqtamhh5",
+            "_TZE200_xlnzk169",
+            "_TZE200_llvwkkde",
+        ]),
+        model: "ZG-302ZL",
+        vendor: "HOBEIAN",
+        description: "Motion sensing switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence(),
+            e.binary("switch_1", ea.STATE_SET, "ON", "OFF").withDescription("Switch2"),
+            e.binary("switch_2", ea.STATE_SET, "ON", "OFF").withDescription("Switch2"),
+            e.binary("switch_3", ea.STATE_SET, "ON", "OFF").withDescription("Switch3"),
+            e
+                .numeric("sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(19)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("detection sensitivity"),
+            e.binary("backlight", ea.STATE_SET, "ON", "OFF").withDescription("backlight"),
+            e
+                .numeric("trigger_hold", ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(28800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Trigger hold(second)"),
+            tuya.exposes.powerOutageMemory(),
+            e
+                .enum("auto_on", ea.STATE_SET, ["off", "all", "ch1", "ch2", "ch3", "ch1_and_ch2", "ch2_and_ch3", "ch1_and_ch3"])
+                .withDescription("When somebody passes in front of their sensors, the lights turn"),
+            e
+                .enum("auto_off", ea.STATE_SET, ["off", "all", "ch1", "ch2", "ch3", "ch1_and_ch2", "ch2_and_ch3", "ch1_and_ch3"])
+                .withDescription("No one turns off the lights"),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [101, "presence", tuya.valueConverter.trueFalse1],
+                [102, "sensitivity", tuya.valueConverter.raw],
+                [1, "switch_1", tuya.valueConverter.onOff],
+                [2, "switch_2", tuya.valueConverter.onOff],
+                [3, "switch_3", tuya.valueConverter.onOff],
+                [16, "backlight", tuya.valueConverter.onOff],
+                [103, "trigger_hold", tuya.valueConverter.raw],
+                [
+                    14,
+                    "power_outage_memory",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on: tuya.enum(1),
+                        restore: tuya.enum(2),
+                    }),
+                ],
+                [
+                    104,
+                    "auto_on",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        all: tuya.enum(1),
+                        ch1: tuya.enum(1),
+                        ch2: tuya.enum(2),
+                        ch3: tuya.enum(3),
+                        ch1_and_ch2: tuya.enum(4),
+                        ch2_and_ch3: tuya.enum(5),
+                        ch1_and_ch3: tuya.enum(6),
+                    }),
+                ],
+                [
+                    105,
+                    "auto_off",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        all: tuya.enum(1),
+                        ch1: tuya.enum(1),
+                        ch2: tuya.enum(2),
+                        ch3: tuya.enum(3),
+                        ch1_and_ch2: tuya.enum(4),
+                        ch2_and_ch3: tuya.enum(5),
+                        ch1_and_ch3: tuya.enum(6),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wqashyqo"]),
         model: "ZG-303Z",
         vendor: "HOBEIAN",
@@ -20074,6 +20176,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
+            e.enum("motion_state", ea.STATE, ["none", "large", "small", "static"]).withDescription("Motion state"),
             e.illuminance(),
             e.temperature(),
             e.humidity(),
@@ -20111,6 +20214,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("x")
                 .withDescription("Static detection sensitivity"),
             e.enum("motion_detection_mode", ea.STATE_SET, ["pir_and_radar", "pir_or_radar", "only_radar"]).withDescription("Motion detection mode"),
+            e
+                .numeric("motion_detection_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("Radar Motion detection sensitivity"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -20136,6 +20246,17 @@ export const definitions: DefinitionWithExtend[] = [
                         only_radar: tuya.enum(2),
                     }),
                 ],
+                [
+                    103,
+                    "motion_state",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        large: tuya.enum(1),
+                        small: tuya.enum(2),
+                        static: tuya.enum(3),
+                    }),
+                ],
+                [123, "motion_detection_sensitivity", tuya.valueConverter.raw],
             ],
         },
     },
@@ -20712,13 +20833,14 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-204ZK"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ka8l86iu"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ka8l86iu", "_TZE200_zbfmvj13"]),
         model: "ZG-204ZK",
         vendor: "HOBEIAN",
         description: "24Ghz human presence sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
+            e.illuminance(),
             e.battery(),
             e
                 .numeric("fading_time", ea.STATE_SET)
@@ -20759,19 +20881,24 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "indicator", tuya.valueConverter.onOff],
                 [123, "motion_detection_sensitivity", tuya.valueConverter.raw],
                 [121, "battery", tuya.valueConverter.raw],
+                [106, "illuminance", tuya.valueConverter.raw],
             ],
         },
     },
     {
         zigbeeModel: ["ZG-204ZE"],
-        fingerprint: [{modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZG-204ZE"}],
+        fingerprint: [
+            {modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZG-204ZE"},
+            {modelID: "TS0601", manufacturerName: "_TZE200_cq8lu23i"},
+            {modelID: "TS0601", manufacturerName: "_TZE200_4pm4pekt"},
+        ],
         model: "ZG-204ZE",
         vendor: "HOBEIAN",
         description: "10G mw motion detection",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
-
+            e.illuminance(),
             e.battery(),
             e
                 .numeric("fading_time", ea.STATE_SET)
@@ -20788,6 +20915,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("x")
                 .withDescription("The larger the value, the more sensitive it is (refresh and update only while active)"),
+            e
+                .numeric("illuminance_interval", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(720)
+                .withValueStep(1)
+                .withUnit("minutes")
+                .withDescription("Light sensing sampling(refresh and update only while active)"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -20796,6 +20930,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "motion_detection_sensitivity", tuya.valueConverter.raw],
                 [108, "indicator", tuya.valueConverter.onOff],
                 [110, "battery", tuya.valueConverter.raw],
+                [106, "illuminance", tuya.valueConverter.raw],
+                [107, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
     },
@@ -21584,6 +21720,54 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "presence_time", tuya.valueConverter.raw],
                 [103, "presence_delay", tuya.valueConverter.raw],
                 [104, "detection_cycle", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        zigbeeModel: ["ZG-204ZQ"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p9zbdqgs"]),
+        model: "ZG-204ZQ",
+        vendor: "HOBEIAN",
+        description: "PIR temperature&humidity sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e.temperature(),
+            e.humidity(),
+            tuya.exposes.temperatureUnit(),
+            tuya.exposes.temperatureCalibration(),
+            tuya.exposes.humidityCalibration(),
+            e.battery(),
+            e
+                .numeric("fading_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(28800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Motion keep time"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator mode"),
+            e
+                .numeric("illuminance_interval", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(720)
+                .withValueStep(1)
+                .withUnit("minutes")
+                .withDescription("Light sensing sampling(refresh and update only while active)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse1],
+                [106, "illuminance", tuya.valueConverter.raw],
+                [102, "fading_time", tuya.valueConverter.raw],
+                [108, "indicator", tuya.valueConverter.onOff],
+                [110, "battery", tuya.valueConverter.raw],
+                [111, "temperature", tuya.valueConverter.divideBy10],
+                [101, "humidity", tuya.valueConverter.raw],
+                [109, "temperature_unit", tuya.valueConverter.temperatureUnit],
+                [105, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [104, "humidity_calibration", tuya.valueConverter.localTempCalibration2],
+                [107, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
     },
