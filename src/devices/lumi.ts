@@ -321,8 +321,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Light strip T1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
             await endpoint.read("genLevelCtrl", [0x0012], {});
             await endpoint.read("genLevelCtrl", [0x0013], {});
         },
@@ -4341,8 +4341,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ceiling light T1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
             await endpoint.read("genLevelCtrl", [0x0012], {});
             await endpoint.read("genLevelCtrl", [0x0013], {});
         },
@@ -4364,8 +4364,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ceiling light T1M",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
             await endpoint.read("genLevelCtrl", [0x0012], {});
             await endpoint.read("genLevelCtrl", [0x0013], {});
         },
@@ -4456,10 +4456,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("manuSpecificLumi", [0x0528], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x052c], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0528], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x052c], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
             await endpoint.read("genLevelCtrl", [0x0012], {});
             await endpoint.read("genLevelCtrl", [0x0013], {});
         },
@@ -4484,10 +4484,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "E27 led bulb",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("manuSpecificLumi", [0x0528], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x052c], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0528], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x052c], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
             await endpoint.read("genLevelCtrl", [0x0012], {});
             await endpoint.read("genLevelCtrl", [0x0013], {});
         },
