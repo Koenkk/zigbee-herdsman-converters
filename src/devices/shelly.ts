@@ -586,9 +586,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: "Plug US", manufacturerName: "Shelly"}],
-        model: 'S4PL-00116US',
-        vendor: 'Shelly',
-        description: 'Plug US Gen4',
+        model: "S4PL-00116US",
+        vendor: "Shelly",
+        description: "Plug US Gen4",
         extend: [
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter(),
