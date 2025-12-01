@@ -6198,6 +6198,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_rndg81sf" /* model: 'HY368', vendor: 'THALEOS' */,
             "_TZE200_qjp4ynvi",
             "_TZE200_xby0s3ta",
+            "_TZE200_cpmgn2cf",
         ]),
         model: "TS0601_thermostat",
         vendor: "Tuya",
@@ -6755,10 +6756,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", [
-            "_TZE200_0hg58wyk" /* model: 'S366', vendor: 'Cloud Even' */,
-            "_TZE200_cpmgn2cf" /* model_ 'HY367RT' vendor: 'Tuya' */,
-        ]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_0hg58wyk" /* model: 'S366', vendor: 'Cloud Even' */]),
         model: "TS0601_thermostat_2",
         vendor: "Tuya",
         description: "Thermostat radiator valve",
