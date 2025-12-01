@@ -701,7 +701,21 @@ export class Climate extends Base {
                 .withValueMin(0)
                 .withValueMax(100)
                 .withUnit("%")
-                .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open"),
+                .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open")
+                .withAccess(access),
+        );
+        return this;
+    }
+
+    withPiCoolingDemand(access = a.STATE) {
+        this.addFeature(
+            new Numeric("pi_cooling_demand", access)
+                .withLabel("PI cooling demand")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withUnit("%")
+                .withDescription("Position of the valve (= demanded cooling) where 0% is fully closed and 100% is fully open")
+                .withAccess(access),
         );
         return this;
     }
@@ -873,11 +887,11 @@ export const options = {
             .withFeature(new Numeric("interval", access.SET).withValueMin(0).withUnit("ms").withDescription("Interval duration")),
     no_occupancy_since_true: () =>
         new List("no_occupancy_since", access.SET, new Numeric("time", access.STATE_SET)).withDescription(
-            'Sends a message the last time occupancy (occupancy: true) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be send after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
+            'Sends a message the last time occupancy (occupancy: true) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be sent after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
         ),
     no_occupancy_since_false: () =>
         new List("no_occupancy_since", access.SET, new Numeric("time", access.STATE_SET)).withDescription(
-            'Sends a message after the last time no occupancy (occupancy: false) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be send after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
+            'Sends a message after the last time no occupancy (occupancy: false) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be sent after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
         ),
     presence_timeout: () =>
         new Numeric("presence_timeout", access.SET)
@@ -890,6 +904,7 @@ export const options = {
     transition: () =>
         new Numeric("transition", access.SET)
             .withValueMin(0)
+            .withValueStep(0.1)
             .withDescription(
                 "Controls the transition time (in seconds) of on/off, brightness, color temperature (if applicable) and color (if applicable) changes. Defaults to `0` (no transition).",
             ),
@@ -1312,13 +1327,6 @@ export const presets = {
     tilt: () => new Binary("tilt", access.STATE, true, false).withDescription("Indicates whether the device detected tilt"),
     voc: () => new Numeric("voc", access.STATE).withLabel("VOC").withUnit("µg/m³").withDescription("Measured VOC value"),
     voc_index: () => new Numeric("voc_index", access.STATE).withLabel("VOC index").withDescription("VOC index"),
-    pi_heating_demand: () =>
-        new Numeric("pi_heating_demand", access.STATE)
-            .withLabel("PI heating demand")
-            .withValueMin(0)
-            .withValueMax(100)
-            .withUnit("%")
-            .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open"),
     voltage: () => new Numeric("voltage", access.STATE).withUnit("V").withDescription("Measured electrical potential value"),
     voltage_phase_b: () =>
         new Numeric("voltage_phase_b", access.STATE)
@@ -1332,7 +1340,7 @@ export const presets = {
             .withDescription("Measured electrical potential value on phase C"),
     water_leak: () => new Binary("water_leak", access.STATE, true, false).withDescription("Indicates whether the device detected a water leak"),
     pilot_wire_mode: (values = ["comfort", "eco", "frost_protection", "off", "comfort_-1", "comfort_-2"]) =>
-        new Enum("pilot_wire_mode", access.ALL, ["comfort", "eco", "frost_protection", "off", "comfort_-1", "comfort_-2"]).withDescription(
+        new Enum("pilot_wire_mode", access.ALL, values).withDescription(
             "Controls the target temperature of the heater, with respect to the temperature set on that heater. Possible values: comfort (target temperature = heater set temperature) eco (target temperature = heater set temperature - 3.5°C), frost_protection (target temperature = 7 to 8°C), off (heater stops heating), and the less commonly used comfort_-1 (target temperature = heater set temperature - 1°C), comfort_-2 (target temperature = heater set temperature - 2°C),.",
         ),
     rain: () => new Binary("rain", access.STATE, true, false).withDescription("Indicates whether the device detected rainfall"),
@@ -1362,7 +1370,8 @@ export const presets = {
             .withState("window_detection", true, "Enables/disables window detection on the device", access.STATE_SET),
     window_detection_bool: (access: number = a.ALL) =>
         new Binary("window_detection", access, true, false).withDescription("Enables/disables window detection on the device").withCategory("config"),
-    window_open: () => new Binary("window_open", access.STATE, true, false).withDescription("Indicates if window is open").withCategory("diagnostic"),
+    window_open: (access: number = a.STATE) =>
+        new Binary("window_open", access, true, false).withDescription("Indicates if window is open").withCategory("diagnostic"),
     moving: () => new Binary("moving", access.STATE, true, false).withDescription("Indicates if the device is moving"),
     x_axis: () => new Numeric("x_axis", access.STATE).withDescription("Accelerometer X value"),
     y_axis: () => new Numeric("y_axis", access.STATE).withDescription("Accelerometer Y value"),

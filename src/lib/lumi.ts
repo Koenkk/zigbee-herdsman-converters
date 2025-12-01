@@ -18,6 +18,7 @@ import type {
     ModernExtend,
     Range,
     Tz,
+    Zh,
 } from "./types";
 import {
     assertEndpoint,
@@ -293,7 +294,7 @@ export const numericAttributes2Payload = async (
             case "13":
                 if (["ZNXDD01LM"].includes(model.model)) {
                     // We don't know what the value means for these devices.
-                } else if (["ZNCLBL01LM"].includes(model.model)) {
+                } else if (["ZNCLBL01LM", "PS-S04D"].includes(model.model)) {
                     // Overwrite version advertised by `genBasic` and `genOta` with correct version:
                     // https://github.com/Koenkk/zigbee2mqtt/issues/15745
                     assertNumber(value);
@@ -345,6 +346,8 @@ export const numericAttributes2Payload = async (
                     // https://github.com/Koenkk/zigbee2mqtt/issues/12279
                 } else if (["RTCGQ15LM"].includes(model.model)) {
                     payload.occupancy = value;
+                } else if (["PS-S04D"].includes(model.model)) {
+                    payload.presence = value === 1;
                 } else if (["WSDCGQ01LM", "WSDCGQ11LM", "WSDCGQ12LM", "VOCKQJK11LM"].includes(model.model)) {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/798
                     // Sometimes the sensor publishes non-realistic vales, filter these
@@ -436,6 +439,8 @@ export const numericAttributes2Payload = async (
             case "102":
                 if (["QBKG25LM", "QBKG33LM", "QBKG34LM"].includes(model.model)) {
                     payload.state_right = value === 1 ? "ON" : "OFF";
+                } else if (["TH-S04D"].includes(model.model)) {
+                    payload.battery = value;
                 } else if (["WSDCGQ01LM", "WSDCGQ11LM"].includes(model.model)) {
                     assertNumber(value);
                     payload.pressure = value / 100.0;
@@ -468,6 +473,8 @@ export const numericAttributes2Payload = async (
                 } else if (["ZNXDD01LM"].includes(model.model)) {
                     // const color_temp_min = (value & 0xffff); // 2700
                     // const color_temp_max = (value >> 16) & 0xffff; // 6500
+                } else if (["PS-S04D"].includes(model.model)) {
+                    payload.pir_detection = value === 1;
                 }
                 break;
             case "105":
@@ -622,7 +629,7 @@ export const numericAttributes2Payload = async (
                             try {
                                 await callback();
                                 payload.operation_mode = newMode;
-                                globalStore.putValue(meta.device, "opModeSwitchTask", null);
+                                globalStore.clearValue(meta.device, "opModeSwitchTask");
                             } catch {
                                 // do nothing when callback fails
                             }
@@ -638,7 +645,7 @@ export const numericAttributes2Payload = async (
                 payload.detection_interval = value;
                 break;
             case "268":
-                if (["RTCGQ13LM", "RTCGQ14LM", "RTCZCGQ11LM"].includes(model.model)) {
+                if (["RTCGQ13LM", "RTCGQ14LM", "RTCZCGQ11LM", "PS-S04D"].includes(model.model)) {
                     payload.motion_sensitivity = getFromLookup(value, {1: "low", 2: "medium", 3: "high"});
                 } else if (["JT-BZ-01AQ/A"].includes(model.model)) {
                     payload.gas_sensitivity = getFromLookup(value, {1: "15%LEL", 2: "10%LEL"});
@@ -705,7 +712,7 @@ export const numericAttributes2Payload = async (
                 }
                 break;
             case "322":
-                if (["RTCZCGQ11LM"].includes(model.model)) {
+                if (["RTCZCGQ11LM", "PS-S04D"].includes(model.model)) {
                     payload.presence = getFromLookup(value, {0: false, 1: true, 255: null});
                 }
                 break;
@@ -1185,9 +1192,10 @@ function writeTime(buffer: Buffer, offset: number, time: number, isNextDay: bool
 /**
  * Formats a number of minutes into a user-readable 24-hour time notation in the form hh:mm.
  */
-function formatTime(timeMinutes: number): string {
+function formatTime(timeMinutes: number, padHour = false): string {
     const hours = Math.floor(timeMinutes / 60);
     const minutes = timeMinutes % 60;
+    if (padHour) return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
     return `${hours}:${String(minutes).padStart(2, "0")}`;
 }
 
@@ -1195,16 +1203,66 @@ function formatTime(timeMinutes: number): string {
  * Parses a 24-hour time notation string in the form hh:mm into a number of minutes.
  */
 function parseTime(timeString: string): number {
-    const parts = timeString.split(":");
+    const trimmedTimeString = timeString.trim();
+    if (!trimmedTimeString.match(/^\d{1,2}:\d{1,2}$/)) {
+        throw new Error(`Invalid time format: ${trimmedTimeString}. Expected HH:MM format (eg. "21:30")`);
+    }
+    const parts = trimmedTimeString.split(":");
 
     if (parts.length !== 2) {
-        throw new Error(`Cannot parse time string ${timeString}`);
+        throw new Error(`Cannot parse time string ${trimmedTimeString}`);
     }
 
     const hours = Number.parseInt(parts[0], 10);
     const minutes = Number.parseInt(parts[1], 10);
+    if (hours < 0 || hours > 23) {
+        throw new Error(`Invalid time format: ${trimmedTimeString}. Hours out of bounds - should be between 0 and 23.`);
+    }
+    if (minutes < 0 || minutes > 59) {
+        throw new Error(`Invalid time format: ${trimmedTimeString}. Minutes out of bounds - should be between 0 and 59.`);
+    }
 
     return hours * 60 + minutes;
+}
+
+// Time encoding & decoding (used eg in Aqara FP300) (0xMMHHmmhh)
+function encodeTimeFormat(startTime: string, endTime: string): number {
+    const start = parseTime(startTime);
+    const end = parseTime(endTime);
+    return Math.floor(start / 60) | ((start % 60) << 8) | (Math.floor(end / 60) << 16) | ((end % 60) << 24);
+}
+
+function decodeTimeFormat(value: number): {startTime: string; endTime: string} | null {
+    if (value < 0 || value > 0xffffffff) return null;
+
+    const startHour = value & 0xff;
+    const startMin = (value >>> 8) & 0xff;
+    const endHour = (value >>> 16) & 0xff;
+    const endMin = (value >>> 24) & 0xff;
+
+    if (startHour > 23 || startMin > 59 || endHour > 23 || endMin > 59) return null;
+
+    return {
+        startTime: formatTime(startHour * 60 + startMin, true),
+        endTime: formatTime(endHour * 60 + endMin, true),
+    };
+}
+
+// Encodes and decodes detection range composite value (used in FP300) from/to int
+function encodeDetectionRangeComposite(detectionRangeValue: number, rangeCount: number): {[key: string]: boolean} {
+    const composite_values: {[key: string]: boolean} = {};
+    for (let i = 0; i < rangeCount; ++i) {
+        composite_values[`detection_range_${i}`] = ((detectionRangeValue >>> i) & 1) === 1;
+    }
+    return composite_values;
+}
+
+function decodeDetectionRangeComposite(compositeValues: {[key: string]: boolean}, rangeCount: number): number {
+    let intValue = 0;
+    for (let i = 0; i < rangeCount; ++i) {
+        if (compositeValues[`detection_range_${i}`]) intValue |= 1 << i;
+    }
+    return intValue;
 }
 
 const stringifiedScheduleFragmentSeparator = "|";
@@ -1463,6 +1521,89 @@ export const lumiModernExtend = {
 
         return result;
     },
+    lumiDimmingRangeMin: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>) =>
+        modernExtend.numeric({
+            name: "dimming_range_minimum",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x0515, type: 0x20},
+            description: "Minimum allowed dimming value",
+            zigbeeCommandOptions: {manufacturerCode},
+            unit: "%",
+            valueMin: 1,
+            valueMax: 99,
+            valueStep: 1,
+            entityCategory: "config",
+            ...args,
+        }),
+    lumiDimmingRangeMax: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>) =>
+        modernExtend.numeric({
+            name: "dimming_range_maximum",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x0516, type: 0x20},
+            description: "Maximum allowed dimming value",
+            zigbeeCommandOptions: {manufacturerCode},
+            unit: "%",
+            valueMin: 2,
+            valueMax: 100,
+            valueStep: 1,
+            entityCategory: "config",
+            ...args,
+        }),
+    lumiOffOnDuration: (args?: Partial<modernExtend.NumericArgs<"genLevelCtrl">>) =>
+        modernExtend.numeric({
+            name: "off_on_duration",
+            cluster: "genLevelCtrl",
+            attribute: {ID: 0x0012, type: 0x21},
+            description: "Duration for light to gradually brighten when turning on",
+            unit: "s",
+            valueMin: 0,
+            valueMax: 10,
+            valueStep: 0.5,
+            scale: 10,
+            entityCategory: "config",
+            ...args,
+        }),
+    lumiOnOffDuration: (args?: Partial<modernExtend.NumericArgs<"genLevelCtrl">>) =>
+        modernExtend.numeric({
+            name: "on_off_duration",
+            cluster: "genLevelCtrl",
+            attribute: {ID: 0x0013, type: 0x21},
+            description: "Duration for light to gradually dim when turning off",
+            unit: "s",
+            valueMin: 0,
+            valueMax: 10,
+            valueStep: 0.5,
+            scale: 10,
+            entityCategory: "config",
+            ...args,
+        }),
+    lumiTransitionCurveCurvature: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>) =>
+        modernExtend.numeric({
+            name: "transition_curve_curvature",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x0528, type: 0x39},
+            description: "Transition curve shape: 0.2-1 (fast to slow), 1 (uniform), 1-6 (slow to fast)",
+            zigbeeCommandOptions: {manufacturerCode},
+            valueMin: 0.2,
+            valueMax: 6,
+            valueStep: 0.01,
+            entityCategory: "config",
+            ...args,
+        }),
+    lumiTransitionInitialBrightness: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>) =>
+        modernExtend.numeric({
+            name: "transition_initial_brightness",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x052c, type: 0x20},
+            description: "Starting brightness level when light turns on before transition",
+            zigbeeCommandOptions: {manufacturerCode},
+            unit: "%",
+            valueMin: 0,
+            valueMax: 50,
+            valueStep: 1,
+            entityCategory: "config",
+            ...args,
+        }),
     lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean; powerOutageMemory?: "binary" | "enum"; lockRelay?: boolean}) => {
         // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {operationMode: false, lockRelay: false, ...args};
@@ -1913,6 +2054,67 @@ export const lumiModernExtend = {
             reporting: false,
             ...args,
         }),
+    lumiLedDisabledNightTime: () => {
+        return {
+            isModernExtend: true,
+            exposes: [
+                e.text("schedule_start_time", ea.ALL).withDescription("LED disable schedule start time (HH:MM format)"),
+                e.text("schedule_end_time", ea.ALL).withDescription("LED disable schedule end time (HH:MM format)"),
+            ],
+            fromZigbee: [
+                {
+                    cluster: "manuSpecificLumi",
+                    type: ["attributeReport", "readResponse"],
+                    convert: (model, msg, publish, options, meta) => {
+                        if (msg.data["574"] !== undefined) {
+                            const rawValue = msg.data["574"];
+                            const decoded = decodeTimeFormat(rawValue);
+
+                            return {
+                                schedule_start_time: decoded ? decoded.startTime : "--:--",
+                                schedule_end_time: decoded ? decoded.endTime : "--:--",
+                                schedule_time_raw: rawValue,
+                            };
+                        }
+                    },
+                },
+            ],
+            toZigbee: [
+                {
+                    key: ["schedule_start_time", "schedule_end_time"],
+                    convertSet: async (entity, key, value, meta) => {
+                        assertString(value);
+
+                        // Read current and replace the attribute being edited
+                        const newData: KeyValue = {
+                            schedule_start_time: meta.state?.schedule_start_time,
+                            schedule_end_time: meta.state?.schedule_end_time,
+                            schedule_time_raw: meta.state?.schedule_time_raw,
+                        };
+                        newData[key] = value;
+
+                        const startTime: string =
+                            newData.schedule_start_time != null && typeof newData.schedule_start_time === "string"
+                                ? newData.schedule_start_time
+                                : "00:00";
+                        const endTime: string =
+                            newData.schedule_end_time != null && typeof newData.schedule_end_time === "string" ? newData.schedule_end_time : "00:00";
+
+                        // Encode and write
+                        const encodedValue = encodeTimeFormat(startTime, endTime);
+                        newData.schedule_time_raw = encodedValue;
+                        await entity.write("manuSpecificLumi", {574: {value: encodedValue, type: 0x0023}}, {manufacturerCode: manufacturerCode});
+
+                        return {state: newData};
+                    },
+                    convertGet: async (entity, key, meta) => {
+                        const endpoint = meta.device.getEndpoint(1);
+                        await endpoint.read("manuSpecificLumi", [0x023e], {manufacturerCode: manufacturerCode});
+                    },
+                },
+            ],
+        } satisfies ModernExtend;
+    },
     lumiButtonLock: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
             name: "button_lock",
@@ -2270,6 +2472,178 @@ export const lumiModernExtend = {
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
+    },
+    fp300PIRDetection: () => {
+        const attribute = {ID: 0x014d, type: 0x20}; // Attribute: 333
+        return modernExtend.binary({
+            name: "pir_detection",
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            access: "STATE_GET",
+            cluster: "manuSpecificLumi",
+            attribute: attribute,
+            description:
+                "Indicates whether the PIR sensor detects motion (in mmWave + PIR mode after mmWave presence detection PIR sensors gets turned off so this attribute might change to false although the presence is detected).",
+        });
+    },
+    fp300DetectionRange: (args?: {rangeOffset: number; rangesCount: number}): ModernExtend => {
+        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
+        args = {
+            rangeOffset: 0.25,
+            rangesCount: 24,
+            ...args,
+        };
+
+        let detectionRangeComposite = e
+            .composite("detection_range_composite", "detection_range_composite", ea.ALL)
+            .withDescription("Specifies the detection range using set of boolean settings.");
+        for (let i = 0; i < args.rangesCount; ++i) {
+            detectionRangeComposite = detectionRangeComposite.withFeature(
+                e
+                    .binary(`detection_range_${i}`, ea.SET, true, false)
+                    .withDescription(`${(i * args.rangeOffset).toFixed(2)}m - ${((i + 1) * args.rangeOffset).toFixed(2)}m`),
+            );
+        }
+
+        return {
+            isModernExtend: true,
+            exposes: [
+                e
+                    .numeric("detection_range", ea.ALL)
+                    .withValueMin(0)
+                    .withValueMax((1 << 24) - 1)
+                    .withValueStep(1)
+                    .withDescription(
+                        "Specifies the range that is being detected. Requires mmWave radar mode. Press the on-device button to wake the device up and refresh its' settings.",
+                    ),
+                detectionRangeComposite,
+            ],
+            fromZigbee: [
+                {
+                    cluster: "manuSpecificLumi",
+                    type: ["attributeReport", "readResponse"],
+                    convert: (model, msg, publish, options, meta) => {
+                        if (msg.data["410"] && Buffer.isBuffer(msg.data["410"])) {
+                            const buffer = msg.data["410"];
+                            const detection_range_value = buffer.length > 0 ? buffer.readUIntLE(2, 3) : 0xffffff;
+
+                            return {
+                                detection_range_prefix: buffer.length > 0 ? buffer.readUIntLE(0, 2) : 0x0300,
+                                detection_range: detection_range_value,
+                                detection_range_composite: encodeDetectionRangeComposite(detection_range_value, args.rangesCount),
+                            };
+                        }
+                    },
+                },
+            ],
+            toZigbee: [
+                {
+                    key: ["detection_range"],
+                    convertSet: async (entity, key, value, meta) => {
+                        assertNumber(value);
+
+                        const detection_range_prefix: number =
+                            meta.state?.detection_range_prefix != null && typeof meta.state?.detection_range_prefix === "number"
+                                ? meta.state?.detection_range_prefix
+                                : 0x0300;
+
+                        const buffer = Buffer.allocUnsafe(5);
+                        buffer.writeUIntLE(detection_range_prefix, 0, 2);
+                        buffer.writeUIntLE(value, 2, 3);
+
+                        await entity.write(
+                            "manuSpecificLumi",
+                            {
+                                410: {value: buffer, type: 0x41},
+                            },
+                            {manufacturerCode: manufacturerCode},
+                        );
+                        return {
+                            state: {
+                                detection_range: value,
+                                detection_range_composite: encodeDetectionRangeComposite(value, args.rangesCount),
+                            },
+                        };
+                    },
+                    convertGet: async (entity, key, meta) => {
+                        const endpoint = meta.device.getEndpoint(1);
+                        await endpoint.read("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode});
+                    },
+                },
+                {
+                    key: ["detection_range_composite"],
+                    convertSet: async (entity, key, value, meta) => {
+                        assertObject(value);
+
+                        const detection_range_prefix: number =
+                            meta.state?.detection_range_prefix != null && typeof meta.state?.detection_range_prefix === "number"
+                                ? meta.state?.detection_range_prefix
+                                : 0x0300;
+                        const detection_range_value = decodeDetectionRangeComposite(value, args.rangesCount);
+
+                        const buffer = Buffer.allocUnsafe(5);
+                        buffer.writeUIntLE(detection_range_prefix, 0, 2);
+                        buffer.writeUIntLE(detection_range_value, 2, 3);
+
+                        await entity.write("manuSpecificLumi", {410: {value: buffer, type: 0x41}}, {manufacturerCode: manufacturerCode});
+                        return {
+                            state: {
+                                detection_range: detection_range_value,
+                                detection_range_composite: value,
+                            },
+                        };
+                    },
+                    convertGet: async (entity, key, meta) => {
+                        const endpoint = meta.device.getEndpoint(1);
+                        await endpoint.read("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode});
+                    },
+                },
+            ],
+        } satisfies ModernExtend;
+    },
+    fp300TrackDistance: () => {
+        return {
+            isModernExtend: true,
+            exposes: [
+                e.enum("track_target_distance", ea.SET, ["start_tracking_distance"]).withDescription("Initiate current target distance tracking."),
+            ],
+            toZigbee: [
+                {
+                    key: ["track_target_distance"],
+                    convertSet: async (entity, key, value, meta) => {
+                        // Uint8: 1 (0x08) attribute 0x0198 (attribute: 408)
+                        await entity.write("manuSpecificLumi", {408: {value: 1, type: 0x20}}, {manufacturerCode: manufacturerCode});
+                    },
+                },
+            ],
+        } satisfies ModernExtend;
+    },
+    fp1eAIInterference: () => {
+        const attribute = {ID: 0x015e, type: 0x20}; // Attribute: 350
+        return modernExtend.binary({
+            name: "ai_interference_source_selfidentification",
+            valueOn: ["ON", 1],
+            valueOff: ["OFF", 0],
+            cluster: "manuSpecificLumi",
+            attribute: attribute,
+            description:
+                "AI interference source self-identification switch, when enabled can identify fans, air conditioners and other interference sources",
+            access: "ALL",
+            zigbeeCommandOptions: {manufacturerCode},
+        });
+    },
+    fp1eAdaptiveSensitivity: () => {
+        const attribute = {ID: 0x015d, type: 0x20}; // Attribute: 349
+        return modernExtend.binary({
+            name: "ai_sensitivity_adaptive",
+            valueOn: ["ON", 1],
+            valueOff: ["OFF", 0],
+            cluster: "manuSpecificLumi",
+            attribute: attribute,
+            description: "Adaptive sensitivity switch function.",
+            access: "ALL",
+            zigbeeCommandOptions: {manufacturerCode},
+        });
     },
     fp1ePresence: () => {
         const attribute = {ID: 0x0142, type: 0x20};
@@ -2664,6 +3038,110 @@ const feederDaysLookup = {
     42: "tue-thu-sat",
 };
 
+const w100Defaults = {
+    system_mode: "off",
+    occupied_heating_setpoint: 15,
+    fan_mode: "auto",
+    unused: "0",
+    thermostat_mode: "OFF",
+    min_target_temp: 5,
+    max_target_temp: 30,
+};
+
+interface W100Pmtsd {
+    p: number;
+    m: number;
+    t: number;
+    s: number;
+    d: number;
+}
+
+export interface W100State {
+    // biome-ignore lint/style/useNamingConvention: state property
+    system_mode: string;
+    // biome-ignore lint/style/useNamingConvention: state property
+    occupied_heating_setpoint: number | string;
+    // biome-ignore lint/style/useNamingConvention: state property
+    fan_mode: string;
+    unused: string | number;
+    // biome-ignore lint/style/useNamingConvention: state property
+    thermostat_mode: string;
+}
+
+export function w100EnsureDefaults(meta: Fz.Meta | Tz.Meta): W100State {
+    const state = meta.state || {};
+
+    const normalized: W100State = {
+        system_mode: (state.system_mode as string) ?? w100Defaults.system_mode,
+        occupied_heating_setpoint: (state.occupied_heating_setpoint as number | string) ?? w100Defaults.occupied_heating_setpoint,
+        fan_mode: (state.fan_mode as string) ?? w100Defaults.fan_mode,
+        unused: (state.unused as string | number) ?? w100Defaults.unused,
+        thermostat_mode: (state.thermostat_mode as string) ?? w100Defaults.thermostat_mode,
+    };
+
+    meta.state = {
+        ...state,
+        ...normalized,
+    };
+
+    if (meta.device) {
+        if (!meta.device.meta) meta.device.meta = {};
+        if (!meta.device.meta.initialized) {
+            meta.device.meta.initialized = true;
+        }
+    }
+
+    return normalized;
+}
+
+async function w100SendPMTSD(entity: Zh.Endpoint | Zh.Group, pmtsd: W100Pmtsd, meta: Fz.Meta | Tz.Meta) {
+    const {p, m, t, s, d} = pmtsd;
+    const pmtsdStr = `P${p}_M${m}_T${t}_S${s}_D${d}`;
+    const pmtsdBytes = Array.from(pmtsdStr).map((c) => c.charCodeAt(0));
+    const pmtsdLen = pmtsdBytes.length;
+
+    const fixedHeader = [
+        0xaa,
+        0x71,
+        0x1f,
+        0x44,
+        0x00,
+        0x00,
+        0x05,
+        0x41,
+        0x1c,
+        0x00,
+        0x00,
+        0x54,
+        0xef,
+        0x44,
+        0x80,
+        0x71,
+        0x1a,
+        0x08,
+        0x00,
+        0x08,
+        0x44,
+        pmtsdLen,
+    ];
+
+    const counter = Math.floor(Math.random() * 256);
+    fixedHeader[4] = counter;
+
+    const fullPayload = [...fixedHeader, ...pmtsdBytes];
+
+    const checksum = fullPayload.reduce((sum, b) => sum + b, 0) & 0xff;
+    fixedHeader[5] = checksum;
+
+    await entity.write(64704, {65522: {value: Buffer.from(fullPayload), type: 65}}, {manufacturerCode: 4447, disableDefaultResponse: true});
+
+    logger.info(`Aqara W100: PMTSD frame sent: ${pmtsdStr}`, NS);
+
+    if (meta.device) {
+        if (!meta.device.meta) meta.device.meta = {};
+        meta.device.meta.lastPMTSDSend = Date.now();
+    }
+}
 export const fromZigbee = {
     // lumi generic
     lumi_basic: {
@@ -3435,7 +3913,7 @@ export const fromZigbee = {
 
                     // Stop any existing timer cause vibration detected
                     clearTimeout(globalStore.getValue(msg.endpoint, "vibration_timer", null));
-                    globalStore.putValue(msg.endpoint, "vibration_timer", null);
+                    globalStore.clearValue(msg.endpoint, "vibration_timer");
 
                     // Set new timer to publish no_vibration message
                     if (timeout !== 0) {
@@ -3885,7 +4363,7 @@ export const fromZigbee = {
             if (state === 0) {
                 const timer = setTimeout(() => {
                     publish({action: "hold"});
-                    globalStore.putValue(msg.endpoint, "timer", null);
+                    globalStore.clearValue(msg.endpoint, "timer");
                     globalStore.putValue(msg.endpoint, "hold", Date.now());
                     const holdTimer = setTimeout(() => {
                         globalStore.putValue(msg.endpoint, "hold", false);
@@ -3903,7 +4381,7 @@ export const fromZigbee = {
 
                 if (globalStore.getValue(msg.endpoint, "timer")) {
                     clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
-                    globalStore.putValue(msg.endpoint, "timer", null);
+                    globalStore.clearValue(msg.endpoint, "timer");
                     publish({action: "single"});
                 }
             } else {
@@ -3990,6 +4468,187 @@ export const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
+
+    w100_specific: {
+        cluster: "manuSpecificLumi",
+        type: ["attributeReport", "readResponse"],
+        convert: async (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            if (msg.data[65522]) {
+                const base = w100EnsureDefaults(meta);
+                Object.assign(result, base);
+                const attr = msg.data[65522] as Buffer;
+
+                if (!attr || !Buffer.isBuffer(attr)) {
+                    // defaults assigned
+                } else {
+                    const endsWith = Buffer.from([0x08, 0x00, 0x08, 0x44]);
+                    const endsWithData = Buffer.from([0x08, 0x44]);
+
+                    if (attr.length >= 4 && attr.slice(-4).equals(endsWith)) {
+                        logger.info(`Aqara W100: PMTSD request detected from device ${meta.device.ieeeAddr}`, NS);
+                        let modeValue = 0;
+                        if (base.system_mode === "off") {
+                            modeValue = (meta.device.meta.lastActiveMode as number) ?? 0;
+                        } else {
+                            const modeMap: KeyValue = {cool: 0, heat: 1, auto: 2};
+                            modeValue = (modeMap[base.system_mode] as number) ?? 0;
+                        }
+
+                        const convertToNumber = (key: string, value: unknown) => {
+                            if (typeof value !== "string") return value;
+                            if (key === "fan_mode") {
+                                const speedMap: KeyValue = {auto: 0, low: 1, medium: 2, high: 3};
+                                return (speedMap[value.toLowerCase()] as number) ?? 0;
+                            }
+                            if (key === "unused") return Number.parseInt(value, 10);
+                            return value;
+                        };
+
+                        const pmtsdValues: W100Pmtsd = {
+                            p: base.system_mode === "off" ? 1 : 0,
+                            m: modeValue,
+                            t:
+                                typeof base.occupied_heating_setpoint === "string"
+                                    ? Number.parseFloat(base.occupied_heating_setpoint)
+                                    : base.occupied_heating_setpoint,
+                            s: (convertToNumber("fan_mode", base.fan_mode) as number) ?? 0,
+                            d: (convertToNumber("unused", base.unused) as number) ?? 0,
+                        };
+
+                        try {
+                            const endpoint = meta.device.getEndpoint(1);
+                            await w100SendPMTSD(endpoint, pmtsdValues, meta);
+                        } catch (error) {
+                            logger.error(`Aqara W100: Failed to send PMTSD frame: ${(error as Error).message}`, NS);
+                        }
+                        result.action = "W100_PMTSD_request";
+                    } else {
+                        const idx = attr.indexOf(endsWithData);
+                        if (idx !== -1 && idx + 2 < attr.length) {
+                            const payloadLen = attr[idx + 2];
+                            const payloadStart = idx + 3;
+                            const payloadEnd = payloadStart + payloadLen;
+
+                            if (payloadEnd <= attr.length) {
+                                const payloadBytes = attr.slice(payloadStart, payloadEnd);
+                                let payloadAscii: string;
+                                try {
+                                    payloadAscii = payloadBytes.toString("ascii");
+                                } catch {
+                                    return;
+                                }
+
+                                const stateUpdate: KeyValue = {};
+                                const partsForCombined: string[] = [];
+                                const pairs = payloadAscii.split("_");
+                                const pmtsd: KeyValueAny = {
+                                    p: base.system_mode === "off" ? 1 : 0,
+                                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+                                    m: (meta.device.meta as any)?.lastActiveMode ?? 0,
+                                    t: 15,
+                                    s: 0,
+                                    d: 0,
+                                };
+                                if (base.system_mode !== "off") {
+                                    const modeMap: KeyValue = {cool: 0, heat: 1, auto: 2};
+                                    pmtsd.m = (modeMap[base.system_mode] as number) ?? 0;
+                                }
+
+                                pairs.forEach((pair) => {
+                                    if (pair.length >= 2) {
+                                        const key = pair[0].toLowerCase();
+                                        const value = pair.slice(1);
+                                        let newKey: string;
+                                        let stateKey: string | undefined;
+                                        let displayValue: string | number = value;
+                                        let processedValue: string | number = value;
+
+                                        switch (key) {
+                                            case "p":
+                                                newKey = "PW";
+                                                processedValue = Number.parseInt(value, 10);
+                                                pmtsd.p = processedValue;
+                                                break;
+                                            case "m":
+                                                newKey = "MW";
+                                                processedValue = Number.parseInt(value, 10);
+                                                pmtsd.m = processedValue;
+                                                break;
+                                            case "t":
+                                                newKey = "TW";
+                                                stateKey = "occupied_heating_setpoint";
+                                                processedValue = Number.parseFloat(value);
+                                                pmtsd.t = processedValue;
+                                                displayValue = processedValue;
+                                                break;
+                                            case "s":
+                                                newKey = "SW";
+                                                stateKey = "fan_mode";
+                                                processedValue = Number.parseInt(value, 10);
+                                                pmtsd.s = processedValue;
+                                                displayValue = ["auto", "low", "medium", "high"][processedValue];
+                                                break;
+                                            case "d":
+                                                newKey = "DW";
+                                                stateKey = "unused";
+                                                processedValue = Number.parseInt(value, 10);
+                                                pmtsd.d = processedValue;
+                                                displayValue = String(processedValue);
+                                                break;
+                                            default:
+                                                newKey = `${key.toUpperCase()}W`;
+                                        }
+                                        result[newKey] = value;
+                                        if (stateKey) {
+                                            stateUpdate[stateKey] = displayValue;
+                                            result[stateKey] = displayValue;
+                                        }
+                                        partsForCombined.push(`${newKey}${value}`);
+                                    }
+                                });
+
+                                const modeDisplay = ["cool", "heat", "auto"][pmtsd.m] || "cool";
+                                const systemMode = pmtsd.p === 1 ? "off" : modeDisplay;
+                                if (pmtsd.p === 0 && pmtsd.m !== undefined) {
+                                    if (!meta.device.meta) meta.device.meta = {};
+                                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+                                    (meta.device.meta as any).lastActiveMode = pmtsd.m;
+                                }
+                                stateUpdate.system_mode = systemMode;
+                                result.system_mode = systemMode;
+
+                                const date = new Date();
+                                const pad = (n: number) => n.toString().padStart(2, "0");
+                                const formattedDate = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+                                const combinedString = partsForCombined.length
+                                    ? `${formattedDate}_${partsForCombined.join("_")}`
+                                    : `${formattedDate}`;
+                                result.PMTSD_from_W100_Data = combinedString;
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
+
+    w100_temperature: {
+        cluster: "msTemperatureMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            // W100 needs a custom converter to:
+            // 1. Expose both 'temperature' and 'local_temperature' (needed for climate)
+            // 2. Initialize device defaults (w100EnsureDefaults) needed for other converters
+            const result = fz.temperature.convert(model, msg, publish, options, meta);
+            if (result) {
+                const temperature = Object.values(result)[0];
+                const defaults = w100EnsureDefaults(meta);
+                return {temperature, local_temperature: temperature, ...defaults};
+            }
+        },
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const toZigbee = {
@@ -5617,6 +6276,197 @@ export const toZigbee = {
                 return {state: statearr};
             }
             throw new Error(`Not supported: '${key}'`);
+        },
+    } satisfies Tz.Converter,
+
+    w100_pmtsd: {
+        key: ["system_mode", "occupied_heating_setpoint", "fan_mode", "unused", "pmtsd_to_w100"],
+        convertSet: async (entity, key, value, meta) => {
+            const MIN_SEND_INTERVAL_MS = 5000;
+            const base = w100EnsureDefaults(meta);
+
+            let initialP = 0;
+            let initialM = 0;
+            if (base.system_mode === "off") {
+                initialP = 1;
+                initialM = (meta.device?.meta?.lastActiveMode as number) ?? 0;
+            } else {
+                initialP = 0;
+                const modeMap: KeyValue = {cool: 0, heat: 1, auto: 2};
+                initialM = (modeMap[base.system_mode] as number) ?? 0;
+            }
+
+            let initialS = 0;
+            const speedMap: KeyValue = {auto: 0, low: 1, medium: 2, high: 3};
+            initialS = (speedMap[base.fan_mode] as number) ?? 0;
+
+            const pmtsd: W100Pmtsd = {
+                p: initialP,
+                m: initialM,
+                t:
+                    typeof base.occupied_heating_setpoint === "string"
+                        ? Number.parseFloat(base.occupied_heating_setpoint)
+                        : base.occupied_heating_setpoint,
+                s: initialS,
+                d: typeof base.unused === "string" ? Number.parseInt(base.unused, 10) : (base.unused as number),
+            };
+            if (typeof pmtsd.t === "string") pmtsd.t = Number.parseFloat(pmtsd.t);
+            if (typeof pmtsd.d === "string") pmtsd.d = Number.parseInt(pmtsd.d, 10);
+
+            let hasChanged = false;
+            if (key === "pmtsd_to_w100") {
+                const val = value as KeyValue;
+                if (val.P !== undefined) pmtsd.p = Number(val.P);
+                if (val.M !== undefined) pmtsd.m = Number(val.M);
+                if (val.T !== undefined) pmtsd.t = Number(val.T);
+                if (val.S !== undefined) pmtsd.s = Number(val.S);
+                if (val.D !== undefined) pmtsd.d = Number(val.D);
+                hasChanged = true;
+            } else {
+                if (meta.state?.thermostat_mode !== "ON" && ["system_mode", "occupied_heating_setpoint", "fan_mode"].includes(key)) {
+                    logger.warning(`Aqara W100: Ignoring ${key} command - thermostat_mode is not ON`, NS);
+                    return {state: {}};
+                }
+                switch (key) {
+                    case "system_mode": {
+                        if (value === "off") {
+                            if (pmtsd.p === 0 && pmtsd.m !== undefined) {
+                                if (!meta.device.meta) meta.device.meta = {};
+                                // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+                                (meta.device.meta as any).lastActiveMode = pmtsd.m;
+                            }
+                            if (pmtsd.p !== 1) {
+                                pmtsd.p = 1;
+                                hasChanged = true;
+                            }
+                        } else {
+                            if (pmtsd.p !== 0) {
+                                pmtsd.p = 0;
+                                hasChanged = true;
+                            }
+                            const modeMap: KeyValue = {cool: 0, heat: 1, auto: 2};
+                            const numValue = typeof value === "string" ? (modeMap[value.toLowerCase()] as number) : Number(value);
+                            if (numValue !== undefined && [0, 1, 2].includes(numValue)) {
+                                if (pmtsd.m !== numValue) {
+                                    pmtsd.m = numValue;
+                                    hasChanged = true;
+                                    if (!meta.device.meta) meta.device.meta = {};
+                                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+                                    (meta.device.meta as any).lastActiveMode = numValue;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    case "occupied_heating_setpoint": {
+                        const temp = Number.parseFloat(value as string);
+                        const minTarget =
+                            meta.options?.min_target_temp !== undefined ? Number(meta.options.min_target_temp) : w100Defaults.min_target_temp;
+                        const maxTarget =
+                            meta.options?.max_target_temp !== undefined ? Number(meta.options.max_target_temp) : w100Defaults.max_target_temp;
+                        if (Number.isNaN(temp) || temp < (minTarget as number) || temp > (maxTarget as number))
+                            throw new Error(`occupied_heating_setpoint must be between ${minTarget} and ${maxTarget}`);
+                        if (pmtsd.t !== temp) {
+                            pmtsd.t = temp;
+                            hasChanged = true;
+                        }
+                        break;
+                    }
+                    case "fan_mode": {
+                        let numValue: number;
+                        if (typeof value === "string") {
+                            const speedMap: KeyValue = {auto: 0, low: 1, medium: 2, high: 3};
+                            numValue = speedMap[value.toLowerCase()] as number;
+                        } else {
+                            numValue = Number(value);
+                        }
+                        if (pmtsd.s !== numValue) {
+                            pmtsd.s = numValue;
+                            hasChanged = true;
+                        }
+                        break;
+                    }
+                    case "unused": {
+                        const numValue = typeof value === "string" ? Number.parseInt(value, 10) : Number(value);
+                        if (pmtsd.d !== numValue) {
+                            pmtsd.d = numValue;
+                            hasChanged = true;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            const modeDisplay = ["cool", "heat", "auto"][pmtsd.m as number] || "cool";
+            const speedDisplay = ["auto", "low", "medium", "high"][pmtsd.s as number] || "auto";
+            const stateUpdate = {
+                state: {
+                    occupied_heating_setpoint: pmtsd.t,
+                    fan_mode: speedDisplay,
+                    system_mode: pmtsd.p === 1 ? "off" : modeDisplay,
+                    unused: String(pmtsd.d),
+                },
+            };
+
+            const {p, m, t, s, d} = pmtsd;
+            if (p === undefined || m === undefined || t === undefined || s === undefined || d === undefined) return stateUpdate;
+
+            const now = Date.now();
+            if (meta.device) {
+                if (!meta.device.meta) meta.device.meta = {};
+            }
+            const lastSendTime = (meta.device?.meta?.lastPMTSDSend as number) || 0;
+            const timeElapsed = now - lastSendTime;
+            const shouldSend = hasChanged || timeElapsed >= MIN_SEND_INTERVAL_MS;
+
+            if (!shouldSend) return stateUpdate;
+
+            await w100SendPMTSD(entity, pmtsd, meta);
+            return stateUpdate;
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("manuSpecificLumi", [65522], {manufacturerCode: 4447});
+        },
+    } satisfies Tz.Converter,
+
+    w100_mode: {
+        key: ["thermostat_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const deviceMac = meta.device.ieeeAddr.replace(/^0x/, "").toLowerCase();
+            const hubMac = "54ef4480711a";
+            function cleanMac(mac: string, expectedLen: number) {
+                const cleaned = mac.replace(/[:-]/g, "");
+                if (cleaned.length !== expectedLen) throw new Error(`MAC must be ${expectedLen} hex digits`);
+                return cleaned;
+            }
+            const dev = Buffer.from(cleanMac(deviceMac, 16), "hex");
+            const hub = Buffer.from(cleanMac(hubMac, 12), "hex");
+            let frame: Buffer;
+
+            if (value === "ON") {
+                const prefix = Buffer.concat([
+                    Buffer.from("aa713244", "hex"),
+                    Buffer.from([Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)]),
+                ]);
+                const zigbeeHeader = Buffer.from("02412f6891", "hex");
+                const messageId = Buffer.from([Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)]);
+                const control = Buffer.from([0x18]);
+                const payloadMacs = Buffer.concat([dev, Buffer.from("0000", "hex"), hub]);
+                const payloadTail = Buffer.from("08000844150a0109e7a9bae8b083e58a9f000000000001012a40", "hex");
+                frame = Buffer.concat([prefix, zigbeeHeader, messageId, control, payloadMacs, payloadTail]);
+            } else {
+                const prefix = Buffer.from([0xaa, 0x71, 0x1c, 0x44, 0x69, 0x1c, 0x04, 0x41, 0x19, 0x68, 0x91]);
+                const frameId = Buffer.from([Math.floor(Math.random() * 256)]);
+                const seq = Buffer.from([Math.floor(Math.random() * 256)]);
+                const control = Buffer.from([0x18]);
+                frame = Buffer.concat([prefix, frameId, seq, control, dev]);
+                if (frame.length < 34) frame = Buffer.concat([frame, Buffer.alloc(34 - frame.length, 0x00)]);
+            }
+
+            await entity.write(64704, {65522: {value: frame, type: 0x41}}, {manufacturerCode: 4447, disableDefaultResponse: true});
+            logger.info(`Aqara W100: thermostat_mode set to ${value}`, NS);
+            const defaults = w100EnsureDefaults(meta);
+            return {state: {...defaults, thermostat_mode: value}};
         },
     } satisfies Tz.Converter,
 };

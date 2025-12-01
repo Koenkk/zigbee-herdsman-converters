@@ -1377,6 +1377,20 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["ZGRC-KEY-044"],
+        model: "SR-ZG2868EK7-DIM",
+        vendor: "Sunricher",
+        description: " ZigBee handheld diming remote, 4 scenes",
+        extend: [
+            m.battery(),
+            m.commandsOnOff({commands: ["on", "off"]}),
+            m.commandsLevelCtrl({
+                commands: ["brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down", "brightness_stop"],
+            }),
+            m.commandsScenes({commands: ["recall", "store"]}),
+        ],
+    },
+    {
         zigbeeModel: ["HK-SL-DIM-US-A"],
         model: "HK-SL-DIM-US-A",
         vendor: "Sunricher",
@@ -1580,7 +1594,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ZG9101SAC-HP"],
         model: "ZG9101SAC-HP",
         vendor: "Sunricher",
-        description: "ZigBee AC phase-cut dimmer",
+        description: "Zigbee AC phase-cut dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -1594,7 +1608,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["Micro Smart Dimmer", "SM311", "HK-SL-RDIM-A", "HK-SL-DIM-EU-A"],
         model: "ZG2835RAC",
         vendor: "Sunricher",
-        description: "ZigBee knob smart dimmer",
+        description: "Zigbee knob smart dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter()],
         whiteLabel: [
             {vendor: "YPHIX", model: "50208695"},
@@ -1605,14 +1619,14 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HK-SL-DIM-AU-R-A"],
         model: "HK-SL-DIM-AU-R-A",
         vendor: "Sunricher",
-        description: "ZigBee knob smart dimmer",
+        description: "Zigbee knob smart dimmer",
         extend: [m.identify(), m.electricityMeter(), m.light({configureReporting: true}), sunricher.extend.externalSwitchType()],
     },
     {
         zigbeeModel: ["ZG2835"],
         model: "ZG2835",
         vendor: "Sunricher",
-        description: "ZigBee knob smart dimmer",
+        description: "Zigbee knob smart dimmer",
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level],
         exposes: [e.action(["on", "off", "brightness_move_to_level"])],
         toZigbee: [],
@@ -1654,7 +1668,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SR-ZG9040A-S"],
         model: "SR-ZG9040A-S",
         vendor: "Sunricher",
-        description: "ZigBee AC phase-cut dimmer single-line",
+        description: "Zigbee AC phase-cut dimmer single-line",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -1831,7 +1845,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["ZG9092", "HK-LN-HEATER-A", "ROB_200-040-0"],
+        zigbeeModel: ["ZG9092", "HK-LN-HEATER-A", "ROB_200-040-0", "HT-THERMZ3W-1"],
         model: "SR-ZG9092A",
         vendor: "Sunricher",
         description: "Touch thermostat",
@@ -2167,6 +2181,19 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.U02I007C01_contact, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
+    },
+    {
+        zigbeeModel: ["ZGRC-KEY-017"],
+        model: "ZGRC-KEY-017",
+        vendor: "Sunricher",
+        description: "6-zone RGB+CCT remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4", "5", "6"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4", "5", "6"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4", "5", "6"]}),
+        ],
     },
     {
         zigbeeModel: ["ZG9095B"],

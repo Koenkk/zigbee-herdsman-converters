@@ -31,6 +31,7 @@ import {definitions as blaupunkt} from "./blaupunkt";
 import {definitions as blitzwolf} from "./blitzwolf";
 import {definitions as bosch} from "./bosch";
 import {definitions as bouffaloLab} from "./bouffalo_lab";
+import {definitions as box} from "./box";
 import {definitions as brimate} from "./brimate";
 import {definitions as brunHolding} from "./brun_holding";
 import {definitions as bseed} from "./bseed";
@@ -64,6 +65,7 @@ import {definitions as directSigns} from "./direct_signs";
 import {definitions as diyruz} from "./diyruz";
 import {definitions as dlink} from "./dlink";
 import {definitions as dnake} from "./dnake";
+import {definitions as domraem} from "./domraem";
 import {definitions as dowsingReynolds} from "./dowsing_reynolds";
 import {definitions as dqsmart} from "./dqsmart";
 import {definitions as dresdenElektronik} from "./dresden_elektronik";
@@ -121,6 +123,7 @@ import {definitions as hej} from "./hej";
 import {definitions as hfh} from "./hfh";
 import {definitions as hilux} from "./hilux";
 import {definitions as hive} from "./hive";
+import {definitions as hoftronic} from "./hoftronic";
 import {definitions as homeseer} from "./homeseer";
 import {definitions as hommyn} from "./hommyn";
 import {definitions as honyar} from "./honyar";
@@ -312,6 +315,7 @@ import {definitions as theLightGroup} from "./the_light_group";
 import {definitions as thirdReality} from "./third_reality";
 import {definitions as titanProducts} from "./titan_products";
 import {definitions as tlwglobal} from "./tlwglobal";
+import {definitions as tnce} from "./tnce";
 import {definitions as tplink} from "./tplink";
 import {definitions as trust} from "./trust";
 import {definitions as tubeszb} from "./tubeszb";
@@ -319,6 +323,7 @@ import {definitions as tuya} from "./tuya";
 import {definitions as ubisys} from "./ubisys";
 import {definitions as uhome} from "./uhome";
 import {definitions as universalElectronicsInc} from "./universal_electronics_inc";
+import {definitions as vav} from "./vav";
 import {definitions as vbled} from "./vbled";
 import {definitions as vesternet} from "./vesternet";
 import {definitions as viessmann} from "./viessmann";
@@ -326,6 +331,7 @@ import {definitions as villeroyBoch} from "./villeroy_boch";
 import {definitions as vimar} from "./vimar";
 import {definitions as visonic} from "./visonic";
 import {definitions as vrey} from "./vrey";
+import {definitions as vsmart} from "./vsmart";
 import {definitions as wally} from "./wally";
 import {definitions as waxman} from "./waxman";
 import {definitions as weiser} from "./weiser";
@@ -383,6 +389,7 @@ const definitions: DefinitionWithExtend[] = [
     ...blitzwolf,
     ...bosch,
     ...bouffaloLab,
+    ...box,
     ...brimate,
     ...brunHolding,
     ...bseed,
@@ -416,6 +423,7 @@ const definitions: DefinitionWithExtend[] = [
     ...diyruz,
     ...dlink,
     ...dnake,
+    ...domraem,
     ...dowsingReynolds,
     ...dresdenElektronik,
     ...dqsmart,
@@ -472,6 +480,7 @@ const definitions: DefinitionWithExtend[] = [
     ...hfh,
     ...hilux,
     ...hive,
+    ...hoftronic,
     ...homeseer,
     ...hommyn,
     ...honyar,
@@ -647,8 +656,8 @@ const definitions: DefinitionWithExtend[] = [
     ...sowilo,
     ...spotmau,
     ...sprut,
-    ...stelpro,
     ...stello,
+    ...stelpro,
     ...sunricher,
     ...superled,
     ...swann,
@@ -662,6 +671,7 @@ const definitions: DefinitionWithExtend[] = [
     ...thirdReality,
     ...titanProducts,
     ...tlwglobal,
+    ...tnce,
     ...tplink,
     ...trust,
     ...tubeszb,
@@ -669,6 +679,7 @@ const definitions: DefinitionWithExtend[] = [
     ...ubisys,
     ...uhome,
     ...universalElectronicsInc,
+    ...vav,
     ...vbled,
     ...vesternet,
     ...viessmann,
@@ -701,6 +712,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zipato,
     ...qa,
     ...engo,
+    ...vsmart,
 ];
 
 export default definitions;

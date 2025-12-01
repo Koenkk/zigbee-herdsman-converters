@@ -11,7 +11,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Senoro.Win",
         vendor: "Senoro",
         description: "Senoro window alarm",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             // Here you should put all functionality that your device exposes
             e.enum("opening_state", ea.STATE, ["open", "closed", "tilted"]),

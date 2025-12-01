@@ -264,7 +264,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AC01353010G",
         vendor: "OSRAM",
         description: "SMART+ Motion Sensor",
-        fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report, fz.battery],
+        fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2100, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
@@ -359,7 +359,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_move_to_saturation,
         ],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}, multiEndpoint: true},
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);

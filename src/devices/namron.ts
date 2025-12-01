@@ -7,6 +7,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
+import * as store from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -39,12 +40,17 @@ const fzLocal = {
             }
             if (data[0x1009] !== undefined) {
                 // WindowOpenCheck
-                const lookup = {0: "enable", 1: "disable"};
-                result.window_open_check = utils.getFromLookup(data[0x1009], lookup);
+                // According to manual 0: enable, 1: disable
+                // According to real life testing 0: disable, 1: enable
+                result.window_detection = data[0x1009] === 1;
             }
             if (data[0x100a] !== undefined) {
                 // Hysterersis
                 result.hysterersis = utils.precisionRound(data[0x100a] as number, 2) / 10;
+            }
+            if (data[0x100b] !== undefined) {
+                // WindowOpen, 0: Window is not opened, 1: Window is opened
+                result.window_open = data[0x100b] === 1;
             }
             return result;
         },
@@ -64,10 +70,100 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
+// Namron Simplify 3-button remote (4512793 / 4512794)
+// -----------------------------------------------------------
+const NAMRON_SIMPLIFY_ACTIONS: Record<number, "press" | "release" | "hold"> = {
+    0: "press",
+    1: "release",
+    2: "hold",
+};
 
+const HOLD_KEY_SIMPLIFY = "namron_simplify_lastHold";
+const simplify_col = (n: number) => Math.floor((n - 1) / 2) + 1;
+const simplify_sub = (n: number) => (n % 2 === 1 ? "up" : "down");
+
+// Minimal custom-cluster shape to satisfy Fz.Converter generic constraints
+type ZosungIRCustomCluster = {
+    attributes: Record<string, never>;
+    commands: Record<string, never>;
+    commandResponses: Record<string, never>;
+};
+
+// Helper to safely parse bytes from msg without any/unknown
+function parseZosungIRBytes(msg: Fz.Message<"zosungIRControl", ZosungIRCustomCluster, ["raw"]>): number[] {
+    type RawContainer = {data?: number[]};
+    type DataShape = RawContainer | number[] | Record<string, number>;
+    const m = msg as {type?: string; data?: DataShape};
+
+    if (
+        m.type === "raw" &&
+        m.data &&
+        typeof m.data === "object" &&
+        "data" in (m.data as RawContainer) &&
+        Array.isArray((m.data as RawContainer).data)
+    ) {
+        return (m.data as RawContainer).data as number[];
+    }
+
+    if (Array.isArray(m.data)) {
+        return m.data as number[];
+    }
+
+    if (m.data && typeof m.data === "object") {
+        const obj = m.data as Record<string, number>;
+        const keys = Object.keys(obj)
+            .filter((k) => !Number.isNaN(Number(k)))
+            .sort((a, b) => Number(a) - Number(b));
+        return keys.map((k) => obj[k]);
+    }
+
+    return [];
+}
+
+const fzNamronSimplifyRemote: Fz.Converter<"zosungIRControl", ZosungIRCustomCluster, ["raw"]> = {
+    cluster: "zosungIRControl",
+    type: ["raw"],
+    convert(model, msg, publish, _options, meta) {
+        const bytes = parseZosungIRBytes(msg);
+        if (bytes.length === 0) return;
+
+        const btn = bytes.at(-2);
+        const raw = bytes.at(-1);
+        if (btn == null || raw == null) return;
+
+        const kind = NAMRON_SIMPLIFY_ACTIONS[raw as 0x00 | 0x01 | 0x02];
+        const base = `button_${simplify_col(btn)}_${simplify_sub(btn)}_`;
+
+        // Firmware sometimes sends empty action after hold: synthesize release
+        if (!kind) {
+            const lastHold = store.getValue(meta.device, HOLD_KEY_SIMPLIFY) as string | undefined;
+            if (lastHold?.endsWith("_hold")) {
+                publish({action: lastHold.replace("_hold", "_release")});
+                store.putValue(meta.device, HOLD_KEY_SIMPLIFY, null);
+            }
+            return;
+        }
+
+        if (kind === "hold") {
+            store.putValue(meta.device, HOLD_KEY_SIMPLIFY, `${base}hold`);
+            publish({action: `${base}hold`});
+            return;
+        }
+
+        if (kind === "release") {
+            publish({action: `${base}press`});
+            publish({action: `${base}release`});
+            return;
+        }
+
+        publish({action: `${base}press`});
+    },
+};
+
+// END SimplifyBryter
 const tzLocal = {
     namron_panelheater: {
-        key: ["display_brightnesss", "display_auto_off", "power_up_status", "window_open_check", "hysterersis"],
+        key: ["display_brightnesss", "display_auto_off", "power_up_status", "window_detection", "hysterersis", "window_open"],
         convertSet: async (entity, key, value, meta) => {
             if (key === "display_brightnesss") {
                 const payload = {4096: {value: value, type: Zcl.DataType.ENUM8}};
@@ -80,12 +176,11 @@ const tzLocal = {
                 const lookup = {manual: 0, last_state: 1};
                 const payload = {4100: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
-            } else if (key === "window_open_check") {
-                const lookup = {enable: 0, disable: 1};
-                const payload = {4105: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
+            } else if (key === "window_detection") {
+                const payload = {4105: {value: value ? 1 : 0, type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
             } else if (key === "hysterersis") {
-                const payload = {4106: {value: utils.toNumber(value, "hysterersis") * 10, type: 0x20}};
+                const payload = {4106: {value: utils.toNumber(value, "hysterersis") * 10, type: Zcl.DataType.UINT8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
             }
         },
@@ -100,11 +195,14 @@ const tzLocal = {
                 case "power_up_status":
                     await entity.read("hvacThermostat", [0x1004], sunricherManufacturer);
                     break;
-                case "window_open_check":
+                case "window_detection":
                     await entity.read("hvacThermostat", [0x1009], sunricherManufacturer);
                     break;
                 case "hysterersis":
                     await entity.read("hvacThermostat", [0x100a], sunricherManufacturer);
+                    break;
+                case "window_open":
+                    await entity.read("hvacThermostat", [0x100b], sunricherManufacturer);
                     break;
 
                 default: // Unknown key
@@ -143,7 +241,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "Zigbee dimmer 400W",
         ota: true,
-        extend: [m.light({configureReporting: true})],
+        extend: [m.light({configureReporting: true}), m.electricityMeter({voltage: false, current: false})],
     },
     {
         zigbeeModel: ["4512708"],
@@ -171,7 +269,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["4512789"],
         model: "4512789",
-        vendor: "Namron AS",
+        vendor: "Namron",
         description: "Zigbee smart plug 16A IP44",
         extend: [m.deviceTemperature({scale: 100}), m.onOff(), m.electricityMeter()],
     },
@@ -194,7 +292,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["4512733"],
         model: "4512733",
         vendor: "Namron",
-        description: "ZigBee dimmer 2-pol 400W",
+        description: "Zigbee dimmer 2-pol 400W",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -209,7 +307,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["1402755"],
         model: "1402755",
         vendor: "Namron",
-        description: "ZigBee LED dimmer",
+        description: "Zigbee LED dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -310,7 +408,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["1402769"],
         model: "1402769",
         vendor: "Namron",
-        description: "ZigBee LED dimmer",
+        description: "Zigbee LED dimmer",
         extend: [m.light({configureReporting: true}), m.forcePowerSource({powerSource: "Mains (single phase)"})],
         ota: true,
     },
@@ -366,15 +464,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512726",
         vendor: "Namron",
         description: "Zigbee 4 in 1 dimmer",
-        fromZigbee: [
-            fz.battery,
-            fz.command_on,
-            fz.command_off,
-            fz.command_move_to_level,
-            fz.command_move_to_color_temp,
-            fz.command_move_to_hue,
-            fz.ignore_genOta,
-        ],
+        fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp, fz.command_move_to_hue],
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.action(["on", "off", "brightness_move_to_level", "color_temperature_move", "move_to_hue"])],
         meta: {battery: {dontDividePercentage: true}},
@@ -934,7 +1024,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("power_up_status", ea.ALL, ["manual", "last_state"])
                 .withDescription("The mode after a power reset.  Default: Previous Mode. See instructions for information about manual"),
-            e.enum("window_open_check", ea.ALL, ["enable", "disable"]).withDescription("Turn on/off window check mode"),
+            e.window_detection_bool(),
+            e.window_open(ea.STATE_GET),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -972,7 +1063,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacThermostat",
                 [
                     {
-                        attribute: {ID: 0x1000, type: 0x30},
+                        attribute: {ID: 0x1000, type: Zcl.DataType.ENUM8},
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -985,7 +1076,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacThermostat",
                 [
                     {
-                        attribute: {ID: 0x1001, type: 0x30},
+                        attribute: {ID: 0x1001, type: Zcl.DataType.ENUM8},
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -998,7 +1089,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacThermostat",
                 [
                     {
-                        attribute: {ID: 0x1004, type: 0x30},
+                        attribute: {ID: 0x1004, type: Zcl.DataType.ENUM8},
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -1006,12 +1097,12 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 sunricherManufacturer,
             );
-            // window_open_check
+            // window_detection
             await endpoint.configureReporting(
                 "hvacThermostat",
                 [
                     {
-                        attribute: {ID: 0x1009, type: 0x30},
+                        attribute: {ID: 0x1009, type: Zcl.DataType.ENUM8},
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -1032,10 +1123,23 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 sunricherManufacturer,
             );
+            // window_open
+            await endpoint.configureReporting(
+                "hvacThermostat",
+                [
+                    {
+                        attribute: {ID: 0x100b, type: Zcl.DataType.ENUM8},
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ],
+                sunricherManufacturer,
+            );
 
             await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint"]);
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint.read("hvacThermostat", [0x1000, 0x1001, 0x1004, 0x1009, 0x100a], sunricherManufacturer);
+            await endpoint.read("hvacThermostat", [0x1000, 0x1001, 0x1004, 0x1009, 0x100a, 0x100b], sunricherManufacturer);
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
@@ -1488,10 +1592,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({effect: false, configureReporting: true}), m.electricityMeter({cluster: "electrical"})],
     },
     {
-        zigbeeModel: ["4512783", "4512784"],
+        zigbeeModel: ["4512783", "4512784", "4566702"],
         model: "4512783/4512784",
         vendor: "Namron",
         description: "Namron edge thermostat",
+        whiteLabel: [{vendor: "Namron", model: "4566702", fingerprint: [{modelID: "4566702"}]}],
         fromZigbee: [
             fz.thermostat,
             namron.fromZigbee.namron_edge_thermostat_holiday_temp,
@@ -1637,6 +1742,57 @@ export const definitions: DefinitionWithExtend[] = [
                 current: {multiplier: 1, divisor: 100}, // A
                 energy: {multiplier: 1, divisor: 100}, // kWh
             }),
+        ],
+    },
+    {
+        zigbeeModel: ["4512793", "4512794"],
+        model: "4512793",
+        vendor: "Namron",
+        description: "Simplify 6-button remote with battery",
+        extend: [m.battery()],
+        fromZigbee: [fzNamronSimplifyRemote],
+        toZigbee: [],
+        exposes: [
+            e.action([
+                "button_1_up_press",
+                "button_1_up_hold",
+                "button_1_up_release",
+                "button_1_down_press",
+                "button_1_down_hold",
+                "button_1_down_release",
+                "button_2_up_press",
+                "button_2_up_hold",
+                "button_2_up_release",
+                "button_2_down_press",
+                "button_2_down_hold",
+                "button_2_down_release",
+                "button_3_up_press",
+                "button_3_up_hold",
+                "button_3_up_release",
+                "button_3_down_press",
+                "button_3_down_hold",
+                "button_3_down_release",
+            ]),
+        ],
+    },
+    {
+        zigbeeModel: ["4512791"],
+        model: "4512791",
+        vendor: "Namron",
+        description: "Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)",
+        extend: [
+            m.light({}),
+            m.electricityMeter({
+                power: {multiplier: 1, divisor: 10},
+                voltage: {multiplier: 1, divisor: 10},
+                current: {multiplier: 1, divisor: 100},
+                energy: {multiplier: 1, divisor: 100},
+            }),
+        ],
+        exposes: [
+            exposes.numeric("min_brightness", ea.ALL).withValueMin(1).withValueMax(127).withDescription("Minimum brightness (≈1–50%)"),
+            exposes.numeric("max_brightness", ea.ALL).withValueMin(127).withValueMax(254).withDescription("Maximum brightness (≈50–100%)"),
+            exposes.numeric("start_brightness", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Default brightness at power-on/startup"),
         ],
     },
 ];

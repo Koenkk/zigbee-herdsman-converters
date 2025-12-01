@@ -14,7 +14,7 @@ const exportTemplates = {
     giexWaterValve: {
         vendor: "GIEX",
         description: "Water irrigation valve",
-        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, timeStart: "1970"})],
         fromZigbee: [legacy.fromZigbee.giexWaterValve],
         toZigbee: [legacy.toZigbee.giexWaterValve],
         exposes: [

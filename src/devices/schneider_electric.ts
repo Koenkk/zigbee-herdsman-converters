@@ -632,16 +632,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WV704R0A0902",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat",
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_haDiagnostic,
-            fz.ignore_genOta,
-            fz.ignore_zclversion_read,
-            fz.thermostat,
-            fz.battery,
-            fz.hvac_user_interface,
-            fz.wiser_device_info,
-        ],
+        fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fz.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
         exposes: [
@@ -687,7 +678,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Micro module dimmer",
         ota: true,
-        extend: [m.light({configureReporting: true, levelConfig: {}})],
+        extend: [m.light({powerOnBehavior: false, configureReporting: true, levelConfig: {}})],
         fromZigbee: [fz.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
         exposes: [
@@ -1016,16 +1007,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6100Z3",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat",
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_haDiagnostic,
-            fz.ignore_genOta,
-            fz.ignore_zclversion_read,
-            fz.thermostat,
-            fz.battery,
-            fz.hvac_user_interface,
-            fz.wiser_device_info,
-        ],
+        fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fz.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         exposes: [
             e
@@ -1425,9 +1407,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat (VACT)",
         fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_genOta,
-            fz.ignore_zclversion_read,
             fz.battery,
             fz.hvac_user_interface,
             fz.wiser_smart_thermostat,
@@ -1485,9 +1464,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser thermostat (RTS)",
         fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_genOta,
-            fz.ignore_zclversion_read,
             fz.battery,
             fz.hvac_user_interface,
             fz.wiser_smart_thermostat_client,
@@ -1538,7 +1514,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EER50000",
         vendor: "Schneider Electric",
         description: "Wiser H-Relay (HACT)",
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_genOta, fz.ignore_zclversion_read, fz.wiser_smart_thermostat, fz.metering, fz.identify],
+        fromZigbee: [fz.wiser_smart_thermostat, fz.metering, fz.identify],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -1831,7 +1807,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("The temperature format displayed on the thermostat screen"),
             e
                 .climate()
-                .withSetpoint("occupied_heating_setpoint", 4, 30, 0.5)
+                .withSetpoint("occupied_heating_setpoint", 0, 40, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat"])
                 .withRunningState(["idle", "heat"])
@@ -1965,6 +1941,86 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
             m.onOff({powerOnBehavior: false}),
             m.commandsOnOff({endpointNames: ["switch_sw"]}),
+        ],
+    },
+    {
+        zigbeeModel: ["MEG5779"],
+        model: "MEG5779",
+        vendor: "Schneider Electric",
+        description: "Merten Connected Room Temperature Controller",
+        extend: [
+            m.thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 4, max: 30, step: 0.5},
+                        unoccupiedHeatingSetpoint: {min: 4, max: 30, step: 0.5},
+                        occupiedCoolingSetpoint: {min: 4, max: 30, step: 0.5},
+                        unoccupiedCoolingSetpoint: {min: 4, max: 30, step: 0.5},
+                    },
+                },
+                setpointsLimit: {
+                    maxHeatSetpointLimit: {min: 4, max: 30, step: 0.5},
+                    minHeatSetpointLimit: {min: 4, max: 30, step: 0.5},
+                    maxCoolSetpointLimit: {min: 4, max: 30, step: 0.5},
+                    minCoolSetpointLimit: {min: 4, max: 30, step: 0.5},
+                },
+                systemMode: {
+                    values: ["off", "heat", "cool"],
+                },
+                piHeatingDemand: {
+                    values: ea.ALL,
+                },
+            }),
+            m.numeric({
+                name: "display_brightness_active",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe000, type: Zcl.DataType.UINT8},
+                description: "Sets brightness of the temperature display during active state",
+                entityCategory: "config",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric({
+                name: "display_brightness_inactive",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe001, type: Zcl.DataType.UINT8},
+                description: "Sets brightness of the temperature display during inactive state",
+                entityCategory: "config",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric({
+                name: "display_active_timeout",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe002, type: Zcl.DataType.UINT16},
+                description: "Sets timeout of the temperature display active state",
+                entityCategory: "config",
+                unit: "seconds",
+                valueMin: 5,
+                valueMax: 600,
+                valueStep: 5,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                lookup: {celsius: 0, fahrenheit: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "tempDisplayMode",
+                description: "The unit of the temperature displayed on the device screen.",
+            }),
+            m.enumLookup({
+                name: "keypadLockout",
+                lookup: {unlock: 0, lock1: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Enables/disables physical input on the device.",
+            }),
         ],
     },
     {
@@ -2197,6 +2253,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.schneider_pilot_mode,
             tz.schneider_thermostat_keypad_lockout,
             tz.thermostat_temperature_display_mode,
+            tz.thermostat_running_state,
         ],
         exposes: [
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
@@ -2210,7 +2267,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSetpoint("occupied_cooling_setpoint", 4, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat", "cool"])
-                .withPiHeatingDemand(),
+                .withRunningState(["idle", "heat", "cool"])
+                .withPiHeatingDemand()
+                .withPiCoolingDemand(),
             e.temperature(),
             e.occupancy(),
         ],
@@ -2220,12 +2279,13 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint4 = device.getEndpoint(4);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatPIHeatingDemand(endpoint1);
+            await reporting.thermostatPICoolingDemand(endpoint1);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint1);
             await reporting.temperature(endpoint2);
             await endpoint1.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
             await reporting.bind(endpoint4, coordinatorEndpoint, ["msOccupancySensing"]);
-            await reporting.thermostatOccupancy(endpoint4);
+            await utils.ignoreUnsupportedAttribute(async () => await reporting.thermostatOccupancy(endpoint4), "thermostatOccupancy");
         },
         extend: [
             m.poll({

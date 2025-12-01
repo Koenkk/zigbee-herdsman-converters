@@ -91,6 +91,7 @@ const IAS_EXPOSE_LOOKUP = {
     alarm_2: e.binary("alarm_2", ea.STATE, true, false).withDescription("Indicates whether IAS Zone alarm 2 is active"),
     tamper: e.binary("tamper", ea.STATE, true, false).withDescription("Indicates whether the device is tampered").withCategory("diagnostic"),
     rain: e.binary("rain", ea.STATE, true, false).withDescription("Indicates whether the device detected rainfall"),
+    pressure: e.binary("pressure", ea.STATE, true, false).withDescription("Indicates whether the device detected pressure"),
     battery_low: e
         .binary("battery_low", ea.STATE, true, false)
         .withDescription("Indicates whether the battery of the device is almost empty")
@@ -350,11 +351,11 @@ export interface BatteryArgs {
     percentage?: boolean;
     voltage?: boolean;
     lowStatus?: boolean;
-    percentageReportingConfig?: ReportingConfigWithoutAttribute;
+    percentageReportingConfig?: false | ReportingConfigWithoutAttribute;
     percentageReporting?: boolean;
-    voltageReportingConfig?: ReportingConfigWithoutAttribute;
+    voltageReportingConfig?: false | ReportingConfigWithoutAttribute;
     voltageReporting?: boolean;
-    lowStatusReportingConfig?: ReportingConfigWithoutAttribute;
+    lowStatusReportingConfig?: false | ReportingConfigWithoutAttribute;
 }
 export function battery(args: BatteryArgs = {}): ModernExtend {
     const {
@@ -682,7 +683,9 @@ export function poll(args: {
                             } catch (error) {
                                 logger.debug(`Poll of '${event.data.device.ieeeAddr}' failed (${error})`, NS);
                             }
-                            setTimer();
+                            if (globalStore.getValue(event.data.device.ieeeAddr, args.key) === timer) {
+                                setTimer();
+                            }
                         }, seconds * 1000);
                         globalStore.putValue(event.data.device.ieeeAddr, args.key, timer);
                     };
@@ -734,9 +737,11 @@ export function iasGetPanelStatusResponse(): ModernExtend {
         type: ["commandGetPanelStatus"],
         convert: (model, msg, publish, options, meta) => {
             if (globalStore.hasValue(msg.endpoint, "panelStatus")) {
+                const delayUntil = globalStore.getValue(msg.endpoint, "delayUntil", 0);
+                const secondsRemain = delayUntil > 0 ? Math.round(Math.max(0, delayUntil - performance.now()) / 1000) : 0;
                 const payload = {
                     panelstatus: globalStore.getValue(msg.endpoint, "panelStatus"),
-                    secondsremain: 0x00,
+                    secondsremain: Math.min(secondsRemain, constants.iasMaxSecondsRemain),
                     audiblenotif: 0x00,
                     alarmstatus: 0x00,
                 };
@@ -894,6 +899,20 @@ export function soilMoisture(args: Partial<NumericArgs<"msSoilMoisture">> = {}) 
         reporting: {min: "10_SECONDS", max: "1_HOUR", change: 100},
         description: "Measured soil moisture value",
         unit: "%",
+        scale: 100,
+        access: "STATE_GET",
+        ...args,
+    });
+}
+
+export function windSpeed(args: Partial<NumericArgs<"msWindSpeed">> = {}) {
+    return numeric({
+        name: "wind_speed",
+        cluster: "msWindSpeed",
+        attribute: "measuredValue",
+        reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+        description: "Measured wind speed value",
+        unit: "m/s",
         scale: 100,
         access: "STATE_GET",
         ...args,
@@ -1174,7 +1193,7 @@ export function light(args: LightArgs = {}): ModernExtend {
     const lightExpose = exposeEndpoints(e.light().withBrightness(), endpointNames);
 
     const fromZigbee: Fz.Converter<"genBasic" | "genOnOff" | "genLevelCtrl" | "lightingColorCtrl", undefined, ["attributeReport", "readResponse"]>[] =
-        [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config];
+        [fz.on_off, fz.brightness, fz.level_config];
     const toZigbee: Tz.Converter[] = [
         endpointNames ? {...tz.light_onoff_brightness, endpoints: endpointNames} : tz.light_onoff_brightness,
         tz.ignore_transition,
@@ -1589,6 +1608,7 @@ export type IasZoneType =
     | "smoke"
     | "water_leak"
     | "rain"
+    | "pressure"
     | "carbon_monoxide"
     | "sos"
     | "vibration"
@@ -1621,11 +1641,13 @@ export interface IasArgs {
     keepAliveTimeout?: number;
     zoneStatusReporting?: boolean;
     description?: string;
+    invertAlarm?: true;
     manufacturerZoneAttributes?: ManufacturerZoneAttribute[];
 }
 export function iasZoneAlarm(args: IasArgs): ModernExtend {
     const exposes: Expose[] = [];
-    const invertAlarmPayload = args.zoneType === "contact";
+    let invertAlarmPayload = args.zoneType === "contact";
+    if (args.invertAlarm) invertAlarmPayload = !invertAlarmPayload;
     const bothAlarms = args.zoneAttributes.includes("alarm_1") && args.zoneAttributes.includes("alarm_2");
 
     let alarm1Name = "alarm_1";
@@ -1864,10 +1886,12 @@ interface MeterArgs {
     producedEnergy?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     powerFactor?: boolean;
+    tariffs?: boolean;
     // biome-ignore lint/suspicious/noExplicitAny: generic
     fzElectricalMeasurement?: Fz.Converter<"haElectricalMeasurement", any, any>;
 }
 function genericMeter(args: MeterArgs = {}) {
+    const {tariffs = false} = args;
     if (args.cluster !== "electrical") {
         const divisors = new Set([
             args.cluster === "metering" && isObject(args.power) ? args.power?.divisor : false,
@@ -1964,13 +1988,6 @@ function genericMeter(args: MeterArgs = {}) {
                 forced: args.current,
                 change: 0.05,
             },
-            current_neutral: {
-                attribute: "neutralCurrent" as const,
-                divisor: "acCurrentDivisor",
-                multiplier: "acCurrentMultiplier",
-                forced: args.current,
-                change: 0.05,
-            },
             power_factor: {
                 attribute: "powerFactor" as const,
                 change: 10,
@@ -2040,6 +2057,34 @@ function genericMeter(args: MeterArgs = {}) {
                 forced: isObject(args.producedEnergy) ? args.producedEnergy : (false as const),
                 change: 0.1,
             },
+            energy_tier_1: {
+                attribute: "currentTier1SummDelivered" as const,
+                divisor: "divisor",
+                multiplier: "multiplier",
+                forced: false,
+                change: 0.1,
+            },
+            energy_tier_2: {
+                attribute: "currentTier2SummDelivered" as const,
+                divisor: "divisor",
+                multiplier: "multiplier",
+                forced: false,
+                change: 0.1,
+            },
+            produced_energy_tier_1: {
+                attribute: "currentTier1SummReceived" as const,
+                divisor: "divisor",
+                multiplier: "multiplier",
+                forced: false,
+                change: 0.1,
+            },
+            produced_energy_tier_2: {
+                attribute: "currentTier2SummReceived" as const,
+                divisor: "divisor",
+                multiplier: "multiplier",
+                forced: false,
+                change: 0.1,
+            },
             status: {
                 attribute: "status" as const,
                 change: 1,
@@ -2068,7 +2113,6 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement.current;
         delete configureLookup.haElectricalMeasurement.current_phase_b;
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        delete configureLookup.haElectricalMeasurement.current_neutral;
         delete configureLookup.haElectricalMeasurement.dc_current;
     }
     if (args.energy === false) {
@@ -2088,7 +2132,6 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement.power_phase_c;
         delete configureLookup.haElectricalMeasurement.current_phase_b;
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        delete configureLookup.haElectricalMeasurement.current_neutral;
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
@@ -2103,7 +2146,6 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement.power_phase_c;
         delete configureLookup.haElectricalMeasurement.current_phase_b;
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        delete configureLookup.haElectricalMeasurement.current_neutral;
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
@@ -2120,6 +2162,12 @@ function genericMeter(args: MeterArgs = {}) {
     if (args.extendedStatus === false) {
         delete configureLookup.seMetering.extended_status;
     }
+    if (tariffs === false) {
+        delete configureLookup.seMetering.energy_tier_1;
+        delete configureLookup.seMetering.energy_tier_2;
+        delete configureLookup.seMetering.produced_energy_tier_1;
+        delete configureLookup.seMetering.produced_energy_tier_2;
+    }
 
     if (args.cluster === "both") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
@@ -2129,6 +2177,20 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
+        if (tariffs === true) {
+            exposes.push(
+                e.numeric("energy_tier_1", ea.STATE_GET).withUnit("kWh").withDescription("Energy consumed in tariff 1 (peak/high) - OBIS 1.8.1"),
+                e.numeric("energy_tier_2", ea.STATE_GET).withUnit("kWh").withDescription("Energy consumed in tariff 2 (off-peak/low) - OBIS 1.8.2"),
+                e
+                    .numeric("produced_energy_tier_1", ea.STATE_GET)
+                    .withUnit("kWh")
+                    .withDescription("Energy produced in tariff 1 (peak/high) - OBIS 2.8.1"),
+                e
+                    .numeric("produced_energy_tier_2", ea.STATE_GET)
+                    .withUnit("kWh")
+                    .withDescription("Energy produced in tariff 2 (off-peak/low) - OBIS 2.8.2"),
+            );
+        }
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement, args.fzMetering ?? fz.metering];
         const useMeteringForPower = args.power !== false && args.power?.cluster === "metering";
         toZigbee = [
@@ -2149,6 +2211,20 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
+        if (tariffs === true) {
+            exposes.push(
+                e.numeric("energy_tier_1", ea.STATE_GET).withUnit("kWh").withDescription("Energy consumed in tariff 1 (peak/high) - OBIS 1.8.1"),
+                e.numeric("energy_tier_2", ea.STATE_GET).withUnit("kWh").withDescription("Energy consumed in tariff 2 (off-peak/low) - OBIS 1.8.2"),
+                e
+                    .numeric("produced_energy_tier_1", ea.STATE_GET)
+                    .withUnit("kWh")
+                    .withDescription("Energy produced in tariff 1 (peak/high) - OBIS 2.8.1"),
+                e
+                    .numeric("produced_energy_tier_2", ea.STATE_GET)
+                    .withUnit("kWh")
+                    .withDescription("Energy produced in tariff 2 (off-peak/low) - OBIS 2.8.2"),
+            );
+        }
         fromZigbee = [args.fzMetering ?? fz.metering];
         toZigbee = [tz.metering_power, tz.currentsummdelivered, tz.currentsummreceived];
         delete configureLookup.haElectricalMeasurement;
@@ -2193,7 +2269,6 @@ function genericMeter(args: MeterArgs = {}) {
             e.voltage_phase_c().withAccess(ea.STATE_GET),
             e.current_phase_b().withAccess(ea.STATE_GET),
             e.current_phase_c().withAccess(ea.STATE_GET),
-            e.current_neutral().withAccess(ea.STATE_GET),
         );
         toZigbee.push(
             tz.electrical_measurement_power_phase_b,
@@ -2202,7 +2277,6 @@ function genericMeter(args: MeterArgs = {}) {
             tz.acvoltage_phase_c,
             tz.accurrent_phase_b,
             tz.accurrent_phase_c,
-            tz.accurrent_neutral,
         );
     }
 
@@ -2489,7 +2563,7 @@ export interface EnumLookupArgs<Cl extends string | number, Custom extends TCust
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     endpointName?: string;
-    reporting?: ReportingConfigWithoutAttribute;
+    reporting?: false | ReportingConfigWithoutAttribute;
     entityCategory?: "config" | "diagnostic";
     label?: string;
 }
@@ -2576,6 +2650,7 @@ export interface NumericArgs<Cl extends string | number, Custom extends TCustomC
     label?: string;
     entityCategory?: "config" | "diagnostic";
     precision?: number;
+    fzConvert?: Fz.Converter<Cl, Custom, ["attributeReport", "readResponse"]>["convert"];
 }
 export function numeric<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: NumericArgs<Cl, Custom>,
@@ -2595,6 +2670,7 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         label,
         entityCategory,
         precision,
+        fzConvert,
     } = args;
 
     const endpoints = args.endpointNames;
@@ -2628,26 +2704,28 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         {
             cluster: cluster.toString(),
             type: ["attributeReport", "readResponse"],
-            convert: (model, msg, publish, options, meta) => {
-                if (attributeKey in msg.data) {
-                    const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
-                    if (endpoints && !endpoint) {
-                        return;
+            convert:
+                fzConvert ??
+                ((model, msg, publish, options, meta) => {
+                    if (attributeKey in msg.data) {
+                        const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
+                        if (endpoints && !endpoint) {
+                            return;
+                        }
+
+                        let value = msg.data[attributeKey];
+                        assertNumber(value);
+
+                        if (scale !== undefined) {
+                            value = typeof scale === "number" ? value / scale : scale(value, "from");
+                        }
+                        assertNumber(value);
+                        if (precision != null) value = precisionRound(value, precision);
+
+                        const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
+                        return {[expose.property]: value};
                     }
-
-                    let value = msg.data[attributeKey];
-                    assertNumber(value);
-
-                    if (scale !== undefined) {
-                        value = typeof scale === "number" ? value / scale : scale(value, "from");
-                    }
-                    assertNumber(value);
-                    if (precision != null) value = precisionRound(value, precision);
-
-                    const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
-                    return {[expose.property]: value};
-                }
-            },
+                }),
             // biome-ignore lint/suspicious/noExplicitAny: generic
         } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
@@ -2704,7 +2782,7 @@ export interface BinaryArgs<Cl extends string | number, Custom extends TCustomCl
     description: string;
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
-    reporting?: false | ReportingConfig<Cl, Custom>;
+    reporting?: false | ReportingConfigWithoutAttribute;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     label?: string;
     entityCategory?: "config" | "diagnostic";
@@ -3036,10 +3114,29 @@ export function bindCluster(args: {cluster: string | number; clusterType: "input
     return {configure, isModernExtend: true};
 }
 
+interface Description {
+    description: string;
+}
+
 interface MinMaxStep {
     min: number;
     max: number;
     step: number;
+}
+
+interface ValuesWithModernExtendConfiguration<T> {
+    values: T;
+    fromZigbee?: Partial<{
+        skip: boolean;
+    }>;
+    toZigbee?: Partial<{
+        skip: boolean;
+    }>;
+    configure?: Partial<{
+        skip: boolean;
+        reporting: false | ReportingConfigWithoutAttribute;
+        access: Access;
+    }>;
 }
 
 const SETPOINT_LOOKUP = {
@@ -3057,89 +3154,192 @@ const SETPOINT_LIMIT_LOOKUP = {
 } as const;
 
 export interface ThermostatArgs {
-    localTemperatureCalibration?: true | MinMaxStep;
-    setpoints?: Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>;
+    localTemperature?: Partial<ValuesWithModernExtendConfiguration<Description>>;
+    localTemperatureCalibration?: Omit<ValuesWithModernExtendConfiguration<true | MinMaxStep>, "fromZigbee">;
+    setpoints: Omit<ValuesWithModernExtendConfiguration<Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>>, "fromZigbee">;
     setpointsLimit?: Partial<Record<keyof typeof SETPOINT_LIMIT_LOOKUP, MinMaxStep>>;
-    systemMode?: Array<"off" | "heat" | "cool" | "auto" | "dry" | "fan_only" | "sleep" | "emergency_heating">;
-    runningState?: Array<"idle" | "heat" | "cool" | "fan_only">;
-    runningMode?: Array<"off" | "cool" | "heat">;
+    systemMode?: Omit<
+        ValuesWithModernExtendConfiguration<Array<"off" | "heat" | "cool" | "auto" | "dry" | "fan_only" | "sleep" | "emergency_heating">>,
+        "fromZigbee"
+    >;
+    runningState?: Omit<ValuesWithModernExtendConfiguration<Array<"idle" | "heat" | "cool" | "fan_only">>, "fromZigbee">;
+    runningMode?: Omit<ValuesWithModernExtendConfiguration<Array<"off" | "cool" | "heat">>, "fromZigbee">;
     fanMode?: Array<"off" | "low" | "medium" | "high" | "on" | "auto" | "smart">;
-    piHeatingDemand?: true;
+    piHeatingDemand?: Omit<ValuesWithModernExtendConfiguration<true | Access>, "fromZigbee">;
     temperatureSetpointHold?: true;
     temperatureSetpointHoldDuration?: true;
+    endpoint?: string;
 }
 
-export function thermostat(args: ThermostatArgs = {}): ModernExtend {
+export function thermostat(args: ThermostatArgs): ModernExtend {
     const {
-        localTemperatureCalibration = false,
-        setpoints = {},
+        localTemperature = undefined,
+        localTemperatureCalibration = undefined,
+        setpoints,
         setpointsLimit = {},
         systemMode = undefined,
         runningState = undefined,
         runningMode = undefined,
-        piHeatingDemand = false,
+        fanMode = undefined,
+        piHeatingDemand = undefined,
         temperatureSetpointHold = false,
         temperatureSetpointHoldDuration = false,
-        fanMode = undefined,
+        endpoint = undefined,
     } = args;
+
+    const endpointNames = endpoint ? [endpoint] : undefined;
 
     const repConfigChange0: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 0};
     const repConfigChange10: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 10};
 
-    const expose = e.climate().withLocalTemperature();
-    const exposes: Expose[] = [expose];
-    const fromZigbee = [fz.thermostat];
-    const toZigbee = [tz.thermostat_local_temperature];
-    const configure: Configure[] = [
-        setupConfigureForBinding("hvacThermostat", "input"),
-        setupConfigureForReporting("hvacThermostat", "localTemp", {config: repConfigChange10, access: ea.STATE_GET}),
-    ];
+    const exposes: Expose[] = <Expose[]>[];
+    const fromZigbee = [];
+    const toZigbee = [];
+    const configure: Configure[] = <Configure[]>[];
 
-    if (localTemperatureCalibration) {
-        const {min, max, step} = localTemperatureCalibration === true ? {min: -12.8, max: 12.8, step: 0.1} : localTemperatureCalibration;
-        expose.withLocalTemperatureCalibration(min, max, step);
-        toZigbee.push(tz.thermostat_local_temperature_calibration);
+    const expose = e.climate().withLocalTemperature(undefined, localTemperature?.values?.description ?? undefined);
+    exposes.push(expose);
+
+    if (!localTemperature?.fromZigbee?.skip) {
+        fromZigbee.push(fz.thermostat);
     }
 
-    for (const key of Object.keys(setpoints) as Array<keyof typeof SETPOINT_LOOKUP>) {
-        const {min, max, step} = setpoints[key];
+    if (!localTemperature?.toZigbee?.skip) {
+        toZigbee.push(tz.thermostat_local_temperature);
+    }
+
+    if (!localTemperature?.configure?.skip) {
+        configure.push(
+            setupConfigureForBinding("hvacThermostat", "input", endpointNames),
+            setupConfigureForReporting("hvacThermostat", "localTemp", {
+                config: localTemperature?.configure?.reporting ?? repConfigChange10,
+                access: localTemperature?.configure?.access ?? ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
+        );
+    }
+
+    if (localTemperatureCalibration) {
+        const {min, max, step} =
+            localTemperatureCalibration.values === true ? {min: -12.8, max: 12.8, step: 0.1} : localTemperatureCalibration.values;
+        expose.withLocalTemperatureCalibration(min, max, step);
+
+        if (!localTemperatureCalibration.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_local_temperature_calibration);
+        }
+
+        if (!localTemperatureCalibration.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "localTemperatureCalibration", {
+                    config: localTemperatureCalibration.configure?.reporting ?? false,
+                    access: localTemperatureCalibration.configure?.access ?? ea.STATE_GET,
+                    endpointNames: endpointNames,
+                }),
+            );
+        }
+    }
+
+    for (const key of Object.keys(setpoints.values) as Array<keyof typeof SETPOINT_LOOKUP>) {
+        const {min, max, step} = setpoints.values[key];
         const {property, tzConverter} = SETPOINT_LOOKUP[key];
         expose.withSetpoint(property, min, max, step);
-        toZigbee.push(tzConverter);
-        configure.push(setupConfigureForReporting("hvacThermostat", key, {config: repConfigChange10, access: ea.STATE_GET}));
+
+        if (!setpoints.toZigbee?.skip) {
+            toZigbee.push(tzConverter);
+        }
+
+        if (!setpoints.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", key, {
+                    config: setpoints.configure?.reporting ?? repConfigChange10,
+                    access: setpoints.configure?.access ?? ea.STATE_GET,
+                    endpointNames: endpointNames,
+                }),
+            );
+        }
     }
 
     if (systemMode) {
-        expose.withSystemMode(args.systemMode);
-        toZigbee.push(tz.thermostat_system_mode);
-        configure.push(setupConfigureForReporting("hvacThermostat", "systemMode", {config: repConfigChange0, access: ea.STATE_GET}));
+        expose.withSystemMode(systemMode.values);
+
+        if (!systemMode.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_system_mode);
+        }
+
+        if (!systemMode.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "systemMode", {
+                    config: systemMode.configure?.reporting ?? repConfigChange0,
+                    access: systemMode.configure?.access ?? ea.STATE_GET,
+                    endpointNames: endpointNames,
+                }),
+            );
+        }
     }
 
     if (runningState) {
-        expose.withRunningState(runningState);
-        toZigbee.push(tz.thermostat_running_state);
-        configure.push(setupConfigureForReporting("hvacThermostat", "runningState", {config: repConfigChange0, access: ea.STATE_GET}));
+        expose.withRunningState(runningState.values);
+
+        if (!runningState.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_running_state);
+        }
+
+        if (!runningState.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "runningState", {
+                    config: runningState.configure?.reporting ?? repConfigChange0,
+                    access: runningState.configure?.access ?? ea.STATE_GET,
+                    endpointNames: endpointNames,
+                }),
+            );
+        }
     }
 
     if (runningMode) {
-        expose.withRunningMode(runningMode);
-        toZigbee.push(tz.thermostat_running_mode);
-        configure.push(setupConfigureForReporting("hvacThermostat", "runningMode", {config: repConfigChange0, access: ea.STATE_GET}));
+        expose.withRunningMode(runningMode.values);
+        if (!runningMode.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_running_mode);
+        }
+        if (!runningMode.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "runningMode", {
+                    config: runningMode.configure?.reporting ?? repConfigChange0,
+                    access: runningMode.configure?.access ?? ea.STATE_GET,
+                    endpointNames: endpointNames,
+                }),
+            );
+        }
     }
 
     if (fanMode) {
         expose.withFanMode(fanMode);
         toZigbee.push(tz.fan_mode);
         configure.push(
-            setupConfigureForBinding("hvacFanCtrl", "input"),
-            setupConfigureForReporting("hvacFanCtrl", "fanMode", {config: repConfigChange0, access: ea.STATE_GET}),
+            setupConfigureForBinding("hvacFanCtrl", "input", endpointNames),
+            setupConfigureForReporting("hvacFanCtrl", "fanMode", {
+                config: repConfigChange0,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
         );
     }
 
     if (piHeatingDemand) {
-        expose.withPiHeatingDemand();
-        toZigbee.push(tz.thermostat_pi_heating_demand);
-        configure.push(setupConfigureForReporting("hvacThermostat", "pIHeatingDemand", {config: repConfigChange0, access: ea.STATE_GET}));
+        expose.withPiHeatingDemand(piHeatingDemand.values !== true ? piHeatingDemand.values : undefined);
+
+        if (!piHeatingDemand.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_pi_heating_demand);
+        }
+
+        if (!piHeatingDemand.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "pIHeatingDemand", {
+                    config: piHeatingDemand.configure?.reporting ?? repConfigChange0,
+                    access: piHeatingDemand.configure?.access ?? ea.STATE_GET,
+                    endpointNames: endpointNames,
+                }),
+            );
+        }
     }
 
     if (temperatureSetpointHold) {
@@ -3149,7 +3349,13 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
                 .withDescription("Prevent changes. `false` = run normally. `true` = prevent from making changes."),
         );
         toZigbee.push(tz.thermostat_temperature_setpoint_hold);
-        configure.push(setupConfigureForReporting("hvacThermostat", "tempSetpointHold", {config: repConfigChange0, access: ea.STATE_GET}));
+        configure.push(
+            setupConfigureForReporting("hvacThermostat", "tempSetpointHold", {
+                config: repConfigChange0,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
+        );
     }
 
     if (temperatureSetpointHoldDuration) {
@@ -3161,6 +3367,7 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
                 .withDescription("Period in minutes for which the setpoint hold will be active (65535 - forever)"),
         );
         toZigbee.push(tz.thermostat_temperature_setpoint_hold_duration);
+        configure.push(setupConfigureForReading("hvacThermostat", ["tempSetpointHoldDuration"], endpointNames));
     }
 
     for (const key of Object.keys(setpointsLimit) as Array<keyof typeof SETPOINT_LIMIT_LOOKUP>) {
@@ -3168,7 +3375,17 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
         const {expose, tzConverter} = SETPOINT_LIMIT_LOOKUP[key];
         exposes.push(expose(min, max, step));
         toZigbee.push(tzConverter);
-        configure.push(setupConfigureForReporting("hvacThermostat", key, {config: repConfigChange0, access: ea.STATE_GET}));
+        configure.push(
+            setupConfigureForReporting("hvacThermostat", key, {
+                config: repConfigChange0,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
+        );
+    }
+
+    if (endpoint) {
+        expose.withEndpoint(endpoint);
     }
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};

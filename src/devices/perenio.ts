@@ -259,7 +259,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PECLS01",
         vendor: "Perenio",
         description: "Flood alarm device",
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.ignore_basic_report, fz.battery],
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -274,7 +274,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PECWS01",
         vendor: "Perenio",
         description: "Door sensor",
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report, fz.ias_contact_alarm_1_report],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
@@ -411,7 +411,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("default_on_off_state", ea.ALL, defaultOnOffStateValues),
             e.numeric("rms_voltage", ea.STATE).withUnit("V").withDescription("RMS voltage"),
             e.numeric("active_power", ea.STATE).withUnit("W").withDescription("Active power"),
-            e.numeric("consumed_energy", ea.STATE).withUnit("W*h").withDescription("Consumed energy"),
+            e.numeric("consumed_energy", ea.STATE).withUnit("Wh").withDescription("Consumed energy"),
             e
                 .binary("alarm_voltage_min", ea.ALL, true, false)
                 .withDescription("Indicates if the alarm is triggered on the voltage drop below the limit, allows to reset alarms"),

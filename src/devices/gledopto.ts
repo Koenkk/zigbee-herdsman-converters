@@ -650,7 +650,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({color: {modes: ["xy", "hs"], enhancedHue: true}}), m.identify(), gledoptoConfigureReadModelID()],
     },
     {
-        zigbeeModel: ["GL-C-008P"],
+        zigbeeModel: ["GL-C-008P", "C-ZB-LC20v2-RGBCCT"],
         model: "GL-C-008P",
         vendor: "Gledopto",
         ota: true,
@@ -914,6 +914,13 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: "Zigbee 12W E26/E27 Bulb RGB+CCT (pro)",
         extend: [gledoptoLight({colorTemp: {range: undefined}, color: true})],
+    },
+    {
+        zigbeeModel: ["GL-D-001P"],
+        model: "GL-D-001P",
+        vendor: "Gledopto",
+        description: "Zigbee 9W Downlight RGB+CCT 350-450 lm",
+        extend: [gledoptoLight({colorTemp: {range: [158, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["GL-D-002P"],
@@ -1239,9 +1246,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GL-SPI-206P",
         vendor: "Gledopto",
         description: "SPI pixel controller RGBCCT/RGBW/RGB",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tzLocal.glspi206p_brightness_color, tzLocal.glspi206p_music, tzLocal.glspi206p_music, tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        toZigbee: [tzLocal.glspi206p_brightness_color, tzLocal.glspi206p_music, tzLocal.glspi206p_music],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.light_colorhs(),
             e.numeric("brightness", exposes.access.STATE_SET).withValueMin(0).withValueMax(1000),

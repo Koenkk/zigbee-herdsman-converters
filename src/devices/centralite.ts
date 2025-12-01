@@ -217,7 +217,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3157100",
         vendor: "Centralite",
         description: "3-Series pearl touch thermostat",
-        fromZigbee: [fz.battery, fz.thermostat, fz.fan, fz.ignore_time_read],
+        fromZigbee: [fz.battery, fz.thermostat, fz.fan],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_local_temperature_calibration,
@@ -263,7 +263,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3156105",
         vendor: "Centralite",
         description: "HA thermostat",
-        fromZigbee: [fz.battery, fzLocal.thermostat_3156105, fz.fan, fz.ignore_time_read],
+        fromZigbee: [fz.battery, fzLocal.thermostat_3156105, fz.fan],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,

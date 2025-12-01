@@ -53,4 +53,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee multicolor controller with power supply",
         extend: [m.light({colorTemp: {range: [160, 450]}, color: {modes: ["xy", "hs"]}})],
     },
+    {
+        zigbeeModel: ["ZBPD23400"],
+        model: "ZBPD23400",
+        vendor: "EVN",
+        description: "Zigbee AC dimmer",
+        extend: [m.light({configureReporting: true})],
+    },
 ];

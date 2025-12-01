@@ -245,7 +245,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "07703L",
         vendor: "Immax",
         description: "Radiator valve",
-        fromZigbee: [legacy.fz.tuya_thermostat_weekly_schedule_2, legacy.fz.etop_thermostat, fz.ignore_basic_report, fz.ignore_tuya_set_time],
+        fromZigbee: [legacy.fz.tuya_thermostat_weekly_schedule_2, legacy.fz.etop_thermostat, fz.ignore_tuya_set_time],
         toZigbee: [
             legacy.tz.etop_thermostat_system_mode,
             legacy.tz.etop_thermostat_away_mode,
@@ -318,7 +318,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "07502L",
         vendor: "Immax",
         description: "4 in 1 multi sensor",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
+        fromZigbee: [fz.battery, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
         exposes: [
             e.occupancy(),
@@ -405,8 +405,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "07505L",
         vendor: "Immax",
         description: "Neo smart keypad",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.action(["disarm", "arm_home", "arm_away", "sos"]),
             e.battery(),

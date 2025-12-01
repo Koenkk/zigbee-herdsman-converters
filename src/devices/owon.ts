@@ -279,7 +279,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PIR313-E",
         vendor: "OWON",
         description: "Motion sensor",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {
@@ -543,7 +543,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PIR323-PTH",
         vendor: "OWON",
         description: "Multi-sensor",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {
@@ -640,6 +640,29 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.bind("ssIasZone", coordinatorEndpoint);
             await endpoint.bind("genBasic", coordinatorEndpoint);
             await endpoint.bind("fallDetectionOwon", coordinatorEndpoint);
+        },
+    },
+    {
+        zigbeeModel: ["SLC631"],
+        model: "SLC631",
+        vendor: "OWON",
+        description: "Smart plug with doorbell press indicator",
+        extend: [
+            m.onOff({endpointNames: ["l1", "l2", "l3"]}),
+            m.iasZoneAlarm({
+                zoneType: "contact",
+                zoneAttributes: ["alarm_2"],
+            }),
+        ],
+        endpoint: (device) => ({l1: 1, l2: 2, l3: 3}),
+        configure: async (device, coordinatorEndpoint) => {
+            const ep2 = device.getEndpoint(2);
+            if (ep2) {
+                await reporting.bind(ep2, coordinatorEndpoint, ["ssIasZone"]);
+                await ep2.write("ssIasZone", {
+                    16: {value: coordinatorEndpoint.deviceIeeeAddress, type: 0xf0},
+                });
+            }
         },
     },
 ];
