@@ -784,7 +784,7 @@ const tzLocal = {
             const lookup = {red_when_on: 0, pink_when_on: 1, red_on_blue_off: 2, pink_on_blue_off: 3};
             const modeValue = utils.getFromLookup(value, lookup);
             await entity.write("genOnOff", {tuyaBacklightMode: modeValue});
-            return {state: {backlight_mode: utils.getFromLookup(modeValue, lookup)}};
+            return {state: {backlight_mode: value}};
         },
     } satisfies Tz.Converter,
 };
