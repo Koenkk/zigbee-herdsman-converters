@@ -675,7 +675,6 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            m.forcePowerSource({powerSource: "Mains (single phase)"}),
             m.deviceEndpoints({
                 endpoints: {default: 1, l1: 2, l2: 3, l3: 4, indicator: 5},
                 multiEndpointSkip: ["occupancy"],
