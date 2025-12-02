@@ -2340,11 +2340,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        // Tuya/Senoro window sensor variant with 3-state opening on DP101.
+        // Senoro window sensor variant with 3-state opening on DP101.
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6teua268"]),
-        model: "TZE284_6teua268",
-        vendor: "Tuya",
-        whiteLabel: [{vendor: "Senoro", model: "Senoro.Win v2"}],
+        model: "Senoro.Win v2",
+        vendor: "Senoro",
         description: "Window sensor with 3-state opening (DP101), optional alarm, battery",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
