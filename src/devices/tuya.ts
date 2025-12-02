@@ -21737,7 +21737,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Tubular shade motor",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
