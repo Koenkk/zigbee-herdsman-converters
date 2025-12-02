@@ -59,31 +59,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]>,
-    diagnosticHeiman: {
-        cluster: "haDiagnostic",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: Record<string, unknown> = {};
-            if (msg.data.lastMessageLqi !== undefined) {
-                result.last_message_lqi = msg.data.lastMessageLqi;
-            }
-            if (msg.data.lastMessageRssi !== undefined) {
-                result.last_message_rssi = msg.data.lastMessageRssi;
-            }
-            return result;
-        },
-    } satisfies Fz.Converter<"haDiagnostic", undefined, ["attributeReport", "readResponse"]>,
-    illuminanceHeiman: {
-        cluster: "msIlluminanceMeasurement",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: Record<string, unknown> = {};
-            if (Object.hasOwn(msg.data, "measuredValue")) {
-                result.illuminance = msg.data.measuredValue;
-            }
-            return result;
-        },
-    } satisfies Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]>,
     radarSensorHeiman: {
         cluster: "RadarSensorHeiman",
         type: ["attributeReport", "readResponse"],
