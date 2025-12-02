@@ -4375,7 +4375,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumiLight({colorTemp: true, deviceTemperature: false, powerOutageCount: false, color: {modes: ["xy", "hs"]}, endpointNames: ["rgb"]}),
             lumiZigbeeOTA(),
             m.enumLookup({
-                name: "power_on_behaviour",
+                name: "power_on_behavior",
                 lookup: {on: 0, previous: 1, off: 2},
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0517, type: 0x20},
