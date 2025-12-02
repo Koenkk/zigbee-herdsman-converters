@@ -9916,7 +9916,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZWT198/ZWT100-BH",
         vendor: "Tuya",
         description: "Wall thermostat",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true, timeStart: "1970"})],
+        // Don't enable mcuVersionResponse
+        // https://github.com/Koenkk/zigbee2mqtt/issues/28455#issuecomment-3603696676
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         whiteLabel: [tuya.whitelabel("AVATTO", "WT-100-BH", "Wall thermostat", ["_TZE204_gops3slb", "_TZE284_gops3slb"])],
         exposes: [
             e.binary("factory_reset", ea.STATE_SET, "ON", "OFF").withDescription("Full factory reset, use with caution!"),
