@@ -171,7 +171,7 @@ const storeLocal = {
                 // This is most likely a glitch. We flush all values but set them to null
                 // to indicate that they are not valid.
                 //
-                flushNull: function (result, channel, options) {
+                flushNull: function (result: KeyValueAny, channel: string, options: KeyValue) {
                     this[`sign_${channel}`] = null;
                     this[`power_${channel}`] = null;
                     this[`current_${channel}`] = null;
@@ -229,7 +229,7 @@ const convLocal = {
                     const singleZeroRemoveKey = "single_zero_remove";
                     const singleZeroRemove = options[singleZeroRemoveKey] != null ? options[singleZeroRemoveKey] : false;
                     if (singleZeroRemove && !priv[`zero_power_${channel}`]) {
-                        logger.info("[PJ1203A] power is zero, flushing one time");
+                        logger.info("[PJ1203A] power is zero, flushing one time",NS);
                         priv.flushNull(result, channel, options);
                     } else {
                         priv.flushZero(result, channel, options);
@@ -253,7 +253,7 @@ const convLocal = {
                     const singleZeroRemoveKey = "single_zero_remove";
                     const singleZeroRemove = options[singleZeroRemoveKey] != null ? options[singleZeroRemoveKey] : false;
                     if (singleZeroRemove && !priv[`zero_current_${channel}`]) {
-                        logger.info("[PJ1203A] current is zero, flushing one time");
+                        logger.info("[PJ1203A] current is zero, flushing one time",NS);
                         priv.flushNull(result, channel, options);
                     } else {
                         priv.flushZero(result, channel, options);
