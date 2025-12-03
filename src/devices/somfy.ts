@@ -38,7 +38,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Roll Up 24 WF Li-ion Roller"],
-        model: "1240278",
+        model: "1246037",
         vendor: "SOMFY",
         description: "Blinds",
         extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
