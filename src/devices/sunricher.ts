@@ -175,7 +175,6 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: "HK-ZD-DIM-A", manufacturerName: "Somfy"}],
         zigbeeModel: ["ON/OFF (2CH)"],
         model: "SR-ZG9001T2-SW",
         vendor: "Sunricher",
