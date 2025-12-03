@@ -21439,7 +21439,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_iwyqtclw"]),
         model: "M9Pro",
         vendor: "Tuya",
-        description: "Smart 4 gang switch, curtain, smart light or scene. 1x thermosat control",
+        description: "Smart 4 gang switch, curtain, smart light or scene. 1x thermostat control",
         exposes: [
             ...[1, 2, 3, 4].map((i) => e.switch().withEndpoint(`l${i}`).setAccess("state", ea.STATE_SET)),
             ...[1, 2, 3].map((i) =>
