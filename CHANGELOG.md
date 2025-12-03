@@ -1,5 +1,25 @@
 # Changelog
 
+## [25.81.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.80.0...v25.81.0) (2025-12-02)
+
+
+### Features
+
+* **add:** 3200-gb https://github.com/Koenkk/zigbee2mqtt/issues/29388 ([95e7839](https://github.com/Koenkk/zigbee-herdsman-converters/commit/95e7839a30cb8cc541d7236d7081cc3de19c8dfb))
+* **add:** 929003845801, 929003845901, 929003846001, 929003846101, 929003846301, 929003846501, 929003846701, 929004610402, 929004610502, 929004610702, 929004610802 ([#10914](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10914)) ([a3076c1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a3076c12e2a9e99b1dae03df41d6c0b5cfcf68e1))
+* **add:** A11Z ([#10848](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10848)) ([6677eb5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6677eb5534f66b3d75cbde00fff9771bb0971c38))
+* **add:** AU-A1ZBR16A ([#10912](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10912)) ([9e5e366](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9e5e3664037e8c49f6cc078e56469f065af17cf2))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_d0ypnbvn` as IOTPerfect PF-PM02D-TYZ ([#10915](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10915)) ([1fb7f00](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1fb7f009bc0e2e774fc18aee71b61f7e824ca2a1))
+* Rename `TZE284_6teua268` to `Senoro.Win v2` ([#10913](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10913)) ([3f0f249](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f0f249f87a8c42e35168566a0191223d10f0c56))
+* Tuya RB-SRAIN01: change illuminance unit to mV https://github.com/Koenkk/zigbee2mqtt/issues/29901 ([66c7abd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/66c7abd111989fe44cec3bc6707611b8afa22190))
+* Tuya TS0004: fix backlight_mode converter ([#10909](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10909)) ([4d022ed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d022edabc6dd9f8d8eadbb55b43a919a7d2aee7))
+* Tuya ZG-204ZM: fix illuminane not reported https://github.com/Koenkk/zigbee-herdsman-converters/issues/10897 ([ff4ec51](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ff4ec51bfd0c5de1c2e276decbf291cc8cce8924))
+* Tuya ZWT198/ZWT100-BH: disable mcu version response https://github.com/Koenkk/zigbee2mqtt/issues/28455 ([10d7f66](https://github.com/Koenkk/zigbee-herdsman-converters/commit/10d7f66c511f777c8dbf23e51358814557a91114))
+
 ## [25.80.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.79.0...v25.80.0) (2025-12-01)
 
 

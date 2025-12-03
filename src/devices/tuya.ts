@@ -784,7 +784,7 @@ const tzLocal = {
             const lookup = {red_when_on: 0, pink_when_on: 1, red_on_blue_off: 2, pink_on_blue_off: 3};
             const modeValue = utils.getFromLookup(value, lookup);
             await entity.write("genOnOff", {tuyaBacklightMode: modeValue});
-            return {state: {backlight_mode: utils.getFromLookup(modeValue, lookup)}};
+            return {state: {backlight_mode: value}};
         },
     } satisfies Tz.Converter,
 };
@@ -2340,11 +2340,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        // Tuya/Senoro window sensor variant with 3-state opening on DP101.
+        // Senoro window sensor variant with 3-state opening on DP101.
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6teua268"]),
-        model: "TZE284_6teua268",
-        vendor: "Tuya",
-        whiteLabel: [{vendor: "Senoro", model: "Senoro.Win v2"}],
+        model: "Senoro.Win v2",
+        vendor: "Senoro",
         description: "Window sensor with 3-state opening (DP101), optional alarm, battery",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
@@ -9917,7 +9916,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZWT198/ZWT100-BH",
         vendor: "Tuya",
         description: "Wall thermostat",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true, timeStart: "1970"})],
+        // Don't enable mcuVersionResponse
+        // https://github.com/Koenkk/zigbee2mqtt/issues/28455#issuecomment-3603696676
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         whiteLabel: [tuya.whitelabel("AVATTO", "WT-100-BH", "Wall thermostat", ["_TZE204_gops3slb", "_TZE284_gops3slb"])],
         exposes: [
             e.binary("factory_reset", ea.STATE_SET, "ON", "OFF").withDescription("Full factory reset, use with caution!"),
