@@ -7,6 +7,7 @@ import * as tz from "../converters/toZigbee";
 
 const e = exposes.presets;
 const ea = exposes.access;
+respondToMcuVersionResponse?: boolean;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -16,7 +17,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZW08",
         vendor: "Lincukoo",
         description: "Smart water leakage/lack alarm sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
             e.enum("mode", ea.STATE_SET, ["leakage", "shortage"]).withDescription("work mode of the alarm"),
@@ -87,7 +88,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZLM04U",
         vendor: "Lincukoo",
         description: "Motion and brightness sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.occupancy(),
             e.illuminance(),
@@ -148,7 +149,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CZF02",
         vendor: "Lincukoo",
         description: "Finger Robot",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.switch(),
             e.enum("mode", ea.STATE_SET, ["click", "long_press"]).withDescription("work mode of the finger robot"),
@@ -202,7 +203,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZT04",
         vendor: "Lincukoo",
         description: "Temperature and humidity sensor with clock",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.temperature(),
             e.humidity(),
@@ -375,7 +376,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "W04-Z10T",
         vendor: "Lincukoo",
         description: "Smart water leakage alarm sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: (device) => {
             const exps = [
                 e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
@@ -404,7 +405,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "V04-Z10T",
         vendor: "Lincukoo",
         description: "Smart vibration alarm sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: (device) => {
             const exps = [
                 e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
