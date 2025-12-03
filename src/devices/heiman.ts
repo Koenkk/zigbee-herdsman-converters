@@ -1301,4 +1301,35 @@ export const definitions: DefinitionWithExtend[] = [
         },
         endpoint: (device) => ({default: 1}),
     },
+    {
+        zigbeeModel: ["WarningDevice-EFA1-3.0"],
+        model: "HS2WD-EF",
+        vendor: "Heiman",
+        description: "Smart siren",
+        fromZigbee: [fz.battery, fz.ias_wd],
+        toZigbee: [tz.warning, tz.ias_max_duration],
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasWd", ["maxDuration"]);
+        },
+        exposes: [
+            e.battery(),
+            e
+                .numeric("max_duration", ea.ALL)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(1800)
+                .withDescription("Max duration of Siren")
+                .withCategory("config"),
+            e
+                .warning()
+                .removeFeature("strobe_level")
+                .removeFeature("mode")
+                .withFeature(e.enum("mode", ea.SET, ["stop", "burglar", "fire", "emergency"]).withDescription("Mode of the warning(sound effect)")),
+        ],
+        ota: true,
+    },
 ];
