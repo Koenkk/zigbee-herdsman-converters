@@ -7694,35 +7694,45 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery(),
             e.child_lock(),
-            e.window_detection(),
-            e.binary("window", ea.STATE, "OPEN", "CLOSE").withDescription("Window status closed or open "),
-            e.enum("mode", ea.STATE_SET, ["auto", "manual"]).withDescription("Mode"),
-            e.binary("holiday_mode", ea.STATE_SET, "ON", "OFF"),
-            e.binary("heating_stop", ea.STATE_SET, "ON", "OFF"),
+            e.window_detection_bool(),
+            e.window_open(),
             e
                 .climate()
-                .withLocalTemperature(ea.STATE)
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
-                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET),
-            e.comfort_temperature().withValueMin(5).withValueMax(30).withDescription("Comfort mode temperature"),
-            e.eco_temperature().withValueMin(5).withValueMax(30).withDescription("Eco mode temperature"),
-            e.enum("screen_orientation", ea.STATE_SET, ["up", "right", "down", "left"]).withDescription("Screen orientation"),
-            tuya.exposes.frostProtection(),
+                .withLocalTemperature(ea.STATE) // local_temperature
+                .withLocalTemperatureCalibration(-7, 7, 0.5, ea.STATE_SET) // local_temperature_calibration
+                .withSystemMode(["auto", "off"], ea.STATE_SET) // system_mode
+                .withPreset(["schedule", "manual", "holiday"]), //preset
+            e.comfort_temperature().withValueMin(15).withValueMax(35),
+            e.eco_temperature().withValueMin(5).withValueMax(22),
+            e.holiday_temperature().withValueMin(5).withValueMax(35),
+            e.text("holiday_time", ea.STATE_SET).withDescription("Holiday start and end time in format YYYY/MM/DD HH:MM | YYYY/MM/DD HH:MM"),
             e.binary("boost_heating", ea.STATE_SET, "ON", "OFF"),
-            e.numeric("boost_time", ea.STATE_SET).withUnit("min").withDescription("Countdown in minutes").withValueMin(0).withValueMax(1000),
+            e.numeric("boost_time", ea.STATE_SET).withUnit("min").withDescription("Countdown in minutes").withValueMin(0).withValueMax(30),
+            e
+                .binary("frost_protection", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.",
+                ),
+            ...["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) =>
+                e.text(`schedule_${day}`, ea.STATE_SET).withDescription("Schedule in 8 segments format: HH:MM/TT.T HH:MM/TT.T ..."),
+            ),
+            e.enum("screen_orientation", ea.STATE_SET, ["up", "right", "down", "left"]).withDescription("Screen orientation"),
             e.numeric("fault_code", ea.STATE).withDescription("Raw fault code"),
         ],
         meta: {
             tuyaDatapoints: [
                 [
                     2,
-                    "mode",
+                    "preset",
                     tuya.valueConverterBasic.lookup({
-                        auto: tuya.enum(0),
+                        schedule: tuya.enum(0),
+                        holiday: tuya.enum(1), // only possible to set during holiday_time
                         manual: tuya.enum(2),
                     }),
                 ],
-                [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                // when system_mode is 'off', current_heating_setpoint is set to -5000... hence limits
+                [4, "current_heating_setpoint", tuya.valueConverterBasic.divideByWithLimits(10, 0, 35)],
                 [5, "local_temperature", tuya.valueConverter.divideBy10],
                 [6, "battery", tuya.valueConverter.raw],
                 [
@@ -7733,29 +7743,23 @@ export const definitions: DefinitionWithExtend[] = [
                         UNLOCK: false,
                     }),
                 ],
-                [14, "window_detection", tuya.valueConverter.onOff],
-                [
-                    15,
-                    "window",
-                    tuya.valueConverterBasic.lookup({
-                        CLOSE: tuya.enum(0),
-                        OPEN: tuya.enum(1),
-                    }),
-                ],
+                [14, "window_detection", tuya.valueConverter.raw],
+                [15, "window_open", tuya.valueConverter.trueFalseEnum1],
                 [21, "holiday_temperature", tuya.valueConverter.divideBy10],
                 [36, "frost_protection", tuya.valueConverter.onOff],
-                [39, "switch_scale", tuya.valueConverter.raw],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [39, "anti_scale", tuya.valueConverter.raw],
+                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1], // duplicate/legacy
+                [49, "valve_status", tuya.valueConverter.raw],
                 [101, "boost_heating", tuya.valueConverter.onOff],
                 [102, "boost_time", tuya.valueConverter.countdown],
-                [103, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(1)],
-                [104, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(2)],
-                [105, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(3)],
-                [106, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(4)],
-                [107, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(5)],
-                [108, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(6)],
-                [109, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(7)],
-                [110, "holiday_mode", tuya.valueConverter.onOff],
+                [103, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [104, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [105, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [106, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [107, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [108, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [109, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [110, "holiday_time", tuya.valueConverter.thermostatHolidayStartStopUnixTS],
                 [
                     111,
                     "screen_orientation",
@@ -7767,7 +7771,14 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [112, "antifrost_temperature", tuya.valueConverter.divideBy10],
-                [113, "heating_stop", tuya.valueConverter.onOff],
+                [
+                    113,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        auto: false,
+                        off: true,
+                    }),
+                ],
                 [114, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
                 [115, "programming_mode", tuya.valueConverter.raw],
                 [116, "eco_temperature", tuya.valueConverter.divideBy10],
