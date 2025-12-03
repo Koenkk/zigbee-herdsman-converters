@@ -1,5 +1,27 @@
 # Changelog
 
+## [25.82.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.81.0...v25.82.0) (2025-12-03)
+
+
+### Features
+
+* **add:** 1246037 ([#10928](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10928)) ([2a44907](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a44907bb80cccab06a5a487ffdd5522f02b4c2f))
+* Tuya PJ1203A: single zero removal option ([#10924](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10924)) ([5aa45c3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5aa45c39aa5d5e33c64769c7b62b93d3e88b54c8))
+
+
+### Bug Fixes
+
+* Aqara CL-L02D: rename `power_on_behaviour` to `power_on_behavior` ([#10916](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10916)) ([4dd1563](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4dd15637fb3ee5547ba8df6e3daa8463cf93e38a))
+* **detect:** Detect `_TZ3000_kfkqkjqe` as Tuya TS0726_4_gang https://github.com/Koenkk/zigbee2mqtt/issues/29928 ([8ab0942](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ab09427ace1357409948d3ac7a39d24225bfa6d))
+* **detect:** Detect `_TZ3000_yupc0pb7` as Tuya TH09Z ([#10923](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10923)) ([4df57e0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4df57e03b0c9a58b614dd26771526688bea57817))
+* **detect:** Detect `_TZ3210_cm9mbpr1` as Tuya TS0001_fingerbot ([#10925](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10925)) ([b0b8b97](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b0b8b974dbc629433275f50b37ff1a84241148c8))
+* **detect:** Detect `_TZE200_go3tvswy` as Tuya MG-ZG03W ([#10919](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10919)) ([7fa5562](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7fa5562e03f2a1c2ea749e663b6f929438a4e21e))
+* **detect:** Detect `_TZE284_6fopvb6v` as Zemismart ZM25R1 https://github.com/Koenkk/zigbee2mqtt/issues/29967 ([229ef73](https://github.com/Koenkk/zigbee-herdsman-converters/commit/229ef73536ee5d737f5d0a9b767ada835892c416))
+* SONOFF TRVZB: set `temporary_mode_select` category to `config` ([#10921](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10921)) ([57ac858](https://github.com/Koenkk/zigbee-herdsman-converters/commit/57ac8589e3f61d1d4f2566583a3dbd832f0d477f))
+* Tuya M9Pro: fix typo https://github.com/Koenkk/zigbee2mqtt.io/pull/4510 ([fc5f2e1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc5f2e1e7803f70fc927d5e92cde81f5266f687f))
+* Tuya TRV603-WZ: re-work integration ([#10930](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10930)) ([99b7bec](https://github.com/Koenkk/zigbee-herdsman-converters/commit/99b7bec94335ceab22f2f901fbb5bd768b8016aa))
+* Update 91-943 fingerprint ([#10926](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10926)) ([110ea28](https://github.com/Koenkk/zigbee-herdsman-converters/commit/110ea28f8adf6b425d305425cff0eb1c95685ca9))
+
 ## [25.81.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.80.0...v25.81.0) (2025-12-02)
 
 
