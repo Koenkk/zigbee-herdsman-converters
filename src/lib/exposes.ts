@@ -887,11 +887,11 @@ export const options = {
             .withFeature(new Numeric("interval", access.SET).withValueMin(0).withUnit("ms").withDescription("Interval duration")),
     no_occupancy_since_true: () =>
         new List("no_occupancy_since", access.SET, new Numeric("time", access.STATE_SET)).withDescription(
-            'Sends a message the last time occupancy (occupancy: true) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be send after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
+            'Sends a message the last time occupancy (occupancy: true) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be sent after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
         ),
     no_occupancy_since_false: () =>
         new List("no_occupancy_since", access.SET, new Numeric("time", access.STATE_SET)).withDescription(
-            'Sends a message after the last time no occupancy (occupancy: false) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be send after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
+            'Sends a message after the last time no occupancy (occupancy: false) was detected. When setting this for example to [10, 60] a `{"no_occupancy_since": 10}` will be sent after 10 seconds and a `{"no_occupancy_since": 60}` after 60 seconds.',
         ),
     presence_timeout: () =>
         new Numeric("presence_timeout", access.SET)
@@ -904,6 +904,7 @@ export const options = {
     transition: () =>
         new Numeric("transition", access.SET)
             .withValueMin(0)
+            .withValueStep(0.1)
             .withDescription(
                 "Controls the transition time (in seconds) of on/off, brightness, color temperature (if applicable) and color (if applicable) changes. Defaults to `0` (no transition).",
             ),

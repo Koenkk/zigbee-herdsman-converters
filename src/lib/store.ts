@@ -1,9 +1,10 @@
 import type {Zh} from "./types";
 import {isDevice, isEndpoint, isGroup} from "./utils";
 
-let store = new Map();
+// biome-ignore lint/suspicious/noExplicitAny: generic
+const store = new Map<string | number, Record<string, any>>();
 
-function getEntityKey(entity: Zh.Endpoint | Zh.Group | Zh.Device | string) {
+function getEntityKey(entity: Zh.Endpoint | Zh.Group | Zh.Device | string): string | number {
     if (typeof entity === "string") {
         return entity;
     }
@@ -14,41 +15,51 @@ function getEntityKey(entity: Zh.Endpoint | Zh.Group | Zh.Device | string) {
         return `${entity.deviceIeeeAddress}_${entity.ID}`;
     }
     if (isDevice(entity)) {
-        return `${entity.ieeeAddr}`;
+        return entity.ieeeAddr;
     }
     throw new Error("Invalid entity type");
 }
 
-export function hasValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, key: string) {
+export function hasValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, key: string): boolean {
     const entityKey = getEntityKey(entity);
-    return store.has(entityKey) && store.get(entityKey)[key] !== undefined;
+    const entry = store.get(entityKey);
+
+    return entry !== undefined && key in entry;
 }
 
-export function getValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, key: string, default_: unknown = undefined) {
+// biome-ignore lint/suspicious/noExplicitAny: generic
+export function getValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, key: string, fallback: unknown = undefined): any {
     const entityKey = getEntityKey(entity);
-    if (store.has(entityKey) && store.get(entityKey)[key] !== undefined) {
-        return store.get(entityKey)[key];
+    const entry = store.get(entityKey);
+
+    if (entry !== undefined && key in entry) {
+        return entry[key];
     }
 
-    return default_;
+    return fallback;
 }
 
-export function putValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, key: string, value: unknown) {
+export function putValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, key: string, value: unknown & {}): void {
     const entityKey = getEntityKey(entity);
-    if (!store.has(entityKey)) {
-        store.set(entityKey, {});
+    let entry = store.get(entityKey);
+
+    if (entry === undefined) {
+        entry = {};
+        store.set(entityKey, entry);
     }
 
-    store.get(entityKey)[key] = value;
+    entry[key] = value;
 }
 
-export function clearValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, key: string) {
-    if (hasValue(entity, key)) {
-        const entityKey = getEntityKey(entity);
-        delete store.get(entityKey)[key];
+export function clearValue(entity: Zh.Endpoint | Zh.Group | Zh.Device | string, key: string): void {
+    const entityKey = getEntityKey(entity);
+    const entry = store.get(entityKey);
+
+    if (entry !== undefined) {
+        delete entry[key];
     }
 }
 
-export function clear() {
-    store = new Map();
+export function clear(): void {
+    store.clear();
 }

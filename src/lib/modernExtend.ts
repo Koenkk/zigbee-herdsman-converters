@@ -91,6 +91,7 @@ const IAS_EXPOSE_LOOKUP = {
     alarm_2: e.binary("alarm_2", ea.STATE, true, false).withDescription("Indicates whether IAS Zone alarm 2 is active"),
     tamper: e.binary("tamper", ea.STATE, true, false).withDescription("Indicates whether the device is tampered").withCategory("diagnostic"),
     rain: e.binary("rain", ea.STATE, true, false).withDescription("Indicates whether the device detected rainfall"),
+    pressure: e.binary("pressure", ea.STATE, true, false).withDescription("Indicates whether the device detected pressure"),
     battery_low: e
         .binary("battery_low", ea.STATE, true, false)
         .withDescription("Indicates whether the battery of the device is almost empty")
@@ -682,7 +683,9 @@ export function poll(args: {
                             } catch (error) {
                                 logger.debug(`Poll of '${event.data.device.ieeeAddr}' failed (${error})`, NS);
                             }
-                            setTimer();
+                            if (globalStore.getValue(event.data.device.ieeeAddr, args.key) === timer) {
+                                setTimer();
+                            }
                         }, seconds * 1000);
                         globalStore.putValue(event.data.device.ieeeAddr, args.key, timer);
                     };
@@ -734,9 +737,11 @@ export function iasGetPanelStatusResponse(): ModernExtend {
         type: ["commandGetPanelStatus"],
         convert: (model, msg, publish, options, meta) => {
             if (globalStore.hasValue(msg.endpoint, "panelStatus")) {
+                const delayUntil = globalStore.getValue(msg.endpoint, "delayUntil", 0);
+                const secondsRemain = delayUntil > 0 ? Math.round(Math.max(0, delayUntil - performance.now()) / 1000) : 0;
                 const payload = {
                     panelstatus: globalStore.getValue(msg.endpoint, "panelStatus"),
-                    secondsremain: 0x00,
+                    secondsremain: Math.min(secondsRemain, constants.iasMaxSecondsRemain),
                     audiblenotif: 0x00,
                     alarmstatus: 0x00,
                 };
@@ -1603,6 +1608,7 @@ export type IasZoneType =
     | "smoke"
     | "water_leak"
     | "rain"
+    | "pressure"
     | "carbon_monoxide"
     | "sos"
     | "vibration"
@@ -1982,13 +1988,6 @@ function genericMeter(args: MeterArgs = {}) {
                 forced: args.current,
                 change: 0.05,
             },
-            current_neutral: {
-                attribute: "neutralCurrent" as const,
-                divisor: "acCurrentDivisor",
-                multiplier: "acCurrentMultiplier",
-                forced: args.current,
-                change: 0.05,
-            },
             power_factor: {
                 attribute: "powerFactor" as const,
                 change: 10,
@@ -2114,7 +2113,6 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement.current;
         delete configureLookup.haElectricalMeasurement.current_phase_b;
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        delete configureLookup.haElectricalMeasurement.current_neutral;
         delete configureLookup.haElectricalMeasurement.dc_current;
     }
     if (args.energy === false) {
@@ -2134,7 +2132,6 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement.power_phase_c;
         delete configureLookup.haElectricalMeasurement.current_phase_b;
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        delete configureLookup.haElectricalMeasurement.current_neutral;
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
@@ -2149,7 +2146,6 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement.power_phase_c;
         delete configureLookup.haElectricalMeasurement.current_phase_b;
         delete configureLookup.haElectricalMeasurement.current_phase_c;
-        delete configureLookup.haElectricalMeasurement.current_neutral;
         delete configureLookup.haElectricalMeasurement.voltage_phase_b;
         delete configureLookup.haElectricalMeasurement.voltage_phase_c;
     }
@@ -2273,7 +2269,6 @@ function genericMeter(args: MeterArgs = {}) {
             e.voltage_phase_c().withAccess(ea.STATE_GET),
             e.current_phase_b().withAccess(ea.STATE_GET),
             e.current_phase_c().withAccess(ea.STATE_GET),
-            e.current_neutral().withAccess(ea.STATE_GET),
         );
         toZigbee.push(
             tz.electrical_measurement_power_phase_b,
@@ -2282,7 +2277,6 @@ function genericMeter(args: MeterArgs = {}) {
             tz.acvoltage_phase_c,
             tz.accurrent_phase_b,
             tz.accurrent_phase_c,
-            tz.accurrent_neutral,
         );
     }
 
@@ -3162,25 +3156,26 @@ const SETPOINT_LIMIT_LOOKUP = {
 export interface ThermostatArgs {
     localTemperature?: Partial<ValuesWithModernExtendConfiguration<Description>>;
     localTemperatureCalibration?: Omit<ValuesWithModernExtendConfiguration<true | MinMaxStep>, "fromZigbee">;
-    setpoints?: Omit<ValuesWithModernExtendConfiguration<Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>>, "fromZigbee">;
+    setpoints: Omit<ValuesWithModernExtendConfiguration<Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>>, "fromZigbee">;
     setpointsLimit?: Partial<Record<keyof typeof SETPOINT_LIMIT_LOOKUP, MinMaxStep>>;
     systemMode?: Omit<
         ValuesWithModernExtendConfiguration<Array<"off" | "heat" | "cool" | "auto" | "dry" | "fan_only" | "sleep" | "emergency_heating">>,
         "fromZigbee"
     >;
     runningState?: Omit<ValuesWithModernExtendConfiguration<Array<"idle" | "heat" | "cool" | "fan_only">>, "fromZigbee">;
-    runningMode?: Array<"off" | "cool" | "heat">;
+    runningMode?: Omit<ValuesWithModernExtendConfiguration<Array<"off" | "cool" | "heat">>, "fromZigbee">;
     fanMode?: Array<"off" | "low" | "medium" | "high" | "on" | "auto" | "smart">;
     piHeatingDemand?: Omit<ValuesWithModernExtendConfiguration<true | Access>, "fromZigbee">;
     temperatureSetpointHold?: true;
     temperatureSetpointHoldDuration?: true;
+    endpoint?: string;
 }
 
-export function thermostat(args: ThermostatArgs = {}): ModernExtend {
+export function thermostat(args: ThermostatArgs): ModernExtend {
     const {
         localTemperature = undefined,
         localTemperatureCalibration = undefined,
-        setpoints = undefined,
+        setpoints,
         setpointsLimit = {},
         systemMode = undefined,
         runningState = undefined,
@@ -3189,7 +3184,10 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
         piHeatingDemand = undefined,
         temperatureSetpointHold = false,
         temperatureSetpointHoldDuration = false,
+        endpoint = undefined,
     } = args;
+
+    const endpointNames = endpoint ? [endpoint] : undefined;
 
     const repConfigChange0: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 0};
     const repConfigChange10: ReportingConfigWithoutAttribute = {min: "MIN", max: "1_HOUR", change: 10};
@@ -3212,10 +3210,11 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
 
     if (!localTemperature?.configure?.skip) {
         configure.push(
-            setupConfigureForBinding("hvacThermostat", "input"),
+            setupConfigureForBinding("hvacThermostat", "input", endpointNames),
             setupConfigureForReporting("hvacThermostat", "localTemp", {
                 config: localTemperature?.configure?.reporting ?? repConfigChange10,
                 access: localTemperature?.configure?.access ?? ea.STATE_GET,
+                endpointNames: endpointNames,
             }),
         );
     }
@@ -3234,6 +3233,7 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
                 setupConfigureForReporting("hvacThermostat", "localTemperatureCalibration", {
                     config: localTemperatureCalibration.configure?.reporting ?? false,
                     access: localTemperatureCalibration.configure?.access ?? ea.STATE_GET,
+                    endpointNames: endpointNames,
                 }),
             );
         }
@@ -3253,6 +3253,7 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
                 setupConfigureForReporting("hvacThermostat", key, {
                     config: setpoints.configure?.reporting ?? repConfigChange10,
                     access: setpoints.configure?.access ?? ea.STATE_GET,
+                    endpointNames: endpointNames,
                 }),
             );
         }
@@ -3270,6 +3271,7 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
                 setupConfigureForReporting("hvacThermostat", "systemMode", {
                     config: systemMode.configure?.reporting ?? repConfigChange0,
                     access: systemMode.configure?.access ?? ea.STATE_GET,
+                    endpointNames: endpointNames,
                 }),
             );
         }
@@ -3287,23 +3289,38 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
                 setupConfigureForReporting("hvacThermostat", "runningState", {
                     config: runningState.configure?.reporting ?? repConfigChange0,
                     access: runningState.configure?.access ?? ea.STATE_GET,
+                    endpointNames: endpointNames,
                 }),
             );
         }
     }
 
     if (runningMode) {
-        expose.withRunningMode(runningMode);
-        toZigbee.push(tz.thermostat_running_mode);
-        configure.push(setupConfigureForReporting("hvacThermostat", "runningMode", {config: repConfigChange0, access: ea.STATE_GET}));
+        expose.withRunningMode(runningMode.values);
+        if (!runningMode.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_running_mode);
+        }
+        if (!runningMode.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "runningMode", {
+                    config: runningMode.configure?.reporting ?? repConfigChange0,
+                    access: runningMode.configure?.access ?? ea.STATE_GET,
+                    endpointNames: endpointNames,
+                }),
+            );
+        }
     }
 
     if (fanMode) {
         expose.withFanMode(fanMode);
         toZigbee.push(tz.fan_mode);
         configure.push(
-            setupConfigureForBinding("hvacFanCtrl", "input"),
-            setupConfigureForReporting("hvacFanCtrl", "fanMode", {config: repConfigChange0, access: ea.STATE_GET}),
+            setupConfigureForBinding("hvacFanCtrl", "input", endpointNames),
+            setupConfigureForReporting("hvacFanCtrl", "fanMode", {
+                config: repConfigChange0,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
         );
     }
 
@@ -3319,6 +3336,7 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
                 setupConfigureForReporting("hvacThermostat", "pIHeatingDemand", {
                     config: piHeatingDemand.configure?.reporting ?? repConfigChange0,
                     access: piHeatingDemand.configure?.access ?? ea.STATE_GET,
+                    endpointNames: endpointNames,
                 }),
             );
         }
@@ -3331,7 +3349,13 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
                 .withDescription("Prevent changes. `false` = run normally. `true` = prevent from making changes."),
         );
         toZigbee.push(tz.thermostat_temperature_setpoint_hold);
-        configure.push(setupConfigureForReporting("hvacThermostat", "tempSetpointHold", {config: repConfigChange0, access: ea.STATE_GET}));
+        configure.push(
+            setupConfigureForReporting("hvacThermostat", "tempSetpointHold", {
+                config: repConfigChange0,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
+        );
     }
 
     if (temperatureSetpointHoldDuration) {
@@ -3343,7 +3367,7 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
                 .withDescription("Period in minutes for which the setpoint hold will be active (65535 - forever)"),
         );
         toZigbee.push(tz.thermostat_temperature_setpoint_hold_duration);
-        configure.push(setupConfigureForReading("hvacThermostat", ["tempSetpointHoldDuration"]));
+        configure.push(setupConfigureForReading("hvacThermostat", ["tempSetpointHoldDuration"], endpointNames));
     }
 
     for (const key of Object.keys(setpointsLimit) as Array<keyof typeof SETPOINT_LIMIT_LOOKUP>) {
@@ -3351,7 +3375,17 @@ export function thermostat(args: ThermostatArgs = {}): ModernExtend {
         const {expose, tzConverter} = SETPOINT_LIMIT_LOOKUP[key];
         exposes.push(expose(min, max, step));
         toZigbee.push(tzConverter);
-        configure.push(setupConfigureForReporting("hvacThermostat", key, {config: repConfigChange0, access: ea.STATE_GET}));
+        configure.push(
+            setupConfigureForReporting("hvacThermostat", key, {
+                config: repConfigChange0,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
+        );
+    }
+
+    if (endpoint) {
+        expose.withEndpoint(endpoint);
     }
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
