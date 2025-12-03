@@ -16,7 +16,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZW08",
         vendor: "Lincukoo",
         description: "Smart water leakage/lack alarm sensor",
-        respondToMcuVersionResponse?: boolean;
         extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
