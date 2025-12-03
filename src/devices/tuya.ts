@@ -6490,6 +6490,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_ejh6owwz",
             "_TZE200_ba69l9ol",
             "_TZE200_68nvbi09",
+            "_TZE200_sfqyhvpv",
         ]),
         model: "TS0601_cover_3",
         vendor: "Tuya",
@@ -6509,6 +6510,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Zemismart", "ZM25EL", "Cover motor", ["_TZE200_pw7mji0l"]),
             tuya.whitelabel("Zemismart", "ZM85EL-2Z", "Roman Rod I type U curtains track", ["_TZE200_cf1sl3tj", "_TZE200_nw1r9hp6"]),
             tuya.whitelabel("Hiladuo", "B09M3R35GC", "Motorized roller shade", ["_TZE200_9p5xmj5r"]),
+            tuya.whitelabel("Shaman", "25EB-1/30-TYZ", "Motorized roller shade", ["_TZE200_sfqyhvpv"]),
         ],
         meta: {
             // All datapoints go in here
@@ -21722,50 +21724,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "presence_time", tuya.valueConverter.raw],
                 [103, "presence_delay", tuya.valueConverter.raw],
                 [104, "detection_cycle", tuya.valueConverter.raw],
-            ],
-        },
-    },
-    {
-        fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE200_sfqyhvpv",
-            },
-        ],
-        model: "TS0601_cover_sfqyhvpv",
-        vendor: "TuYa",
-        description: "Tubular shade motor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.battery(),
-            e.binary("motor_fault", ea.STATE, true, false).withDescription("Motor fault status"),
-            e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
-            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Set and delete limits"),
-            e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Single motor steps"),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({CLOSE: tuya.enum(2), STOP: tuya.enum(1), OPEN: tuya.enum(0)})],
-                [2, "position", tuya.valueConverter.coverPosition],
-                [3, "position", tuya.valueConverter.raw],
-                [5, "reverse_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
-                [12, "motor_fault", tuya.valueConverter.trueFalse1],
-                [13, "battery", tuya.valueConverter.raw],
-                [
-                    16,
-                    "border",
-                    tuya.valueConverterBasic.lookup({
-                        up: tuya.enum(0),
-                        down: tuya.enum(1),
-                        up_delete: tuya.enum(2),
-                        down_delete: tuya.enum(3),
-                        remove_top_bottom: tuya.enum(4),
-                    }),
-                ],
-                [20, "click_control", tuya.valueConverterBasic.lookup({up: tuya.enum(0), down: tuya.enum(1)})],
             ],
         },
     },
