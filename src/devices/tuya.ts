@@ -172,9 +172,9 @@ const storeLocal = {
                 // to indicate that they are not valid.
                 //
                 flushNull: function (result, channel, options) {
-                    this[`sign_${channel}`] =  null;
-                    this[`power_${channel}`] =  null;
-                    this[`current_${channel}`] =  null;
+                    this[`sign_${channel}`] = null;
+                    this[`power_${channel}`] = null;
+                    this[`current_${channel}`] = null;
                     this[`power_factor_${channel}`] = null;
                     this.flush(result, channel, options);
                 },
@@ -193,7 +193,6 @@ const storeLocal = {
                     priv.zero_power_b = null;
                     priv.zero_current_a = null;
                     priv.zero_current_b = null;
-                    
                 },
             };
             globalStore.putValue(device, "private_state", priv);
@@ -227,17 +226,16 @@ const convLocal = {
                 priv[`power_${channel}`] = v / 10;
                 priv[`timestamp_${channel}`] = new Date().toISOString();
                 if (v === 0) {
-                    const singleZeroRemoveKey = `single_zero_remove`;
+                    const singleZeroRemoveKey = "single_zero_remove";
                     const singleZeroRemove = options[singleZeroRemoveKey] != null ? options[singleZeroRemoveKey] : false;
                     if (singleZeroRemove && !priv[`zero_power_${channel}`]) {
-                        logger.info(`[PJ1203A] power is zero, flushing one time`);
+                        logger.info("[PJ1203A] power is zero, flushing one time");
                         priv.flushNull(result, channel, options);
-                    }
-                    else{
+                    } else {
                         priv.flushZero(result, channel, options);
                     }
                     priv[`zero_power_${channel}`] = true;
-                }else{
+                } else {
                     priv[`zero_power_${channel}`] = false;
                 }
                 return result;
@@ -252,17 +250,16 @@ const convLocal = {
                 const result = {};
                 priv[`current_${channel}`] = v / 1000;
                 if (v === 0) {
-                    const singleZeroRemoveKey = `single_zero_remove`;
+                    const singleZeroRemoveKey = "single_zero_remove";
                     const singleZeroRemove = options[singleZeroRemoveKey] != null ? options[singleZeroRemoveKey] : false;
                     if (singleZeroRemove && !priv[`zero_current_${channel}`]) {
-                        logger.info(`[PJ1203A] current is zero, flushing one time`);
+                        logger.info("[PJ1203A] current is zero, flushing one time");
                         priv.flushNull(result, channel, options);
-                    }
-                    else{
+                    } else {
                         priv.flushZero(result, channel, options);
                     }
-                    priv[`zero_current_${channel}`]= true;
-                }else{
+                    priv[`zero_current_${channel}`] = true;
+                } else {
                     priv[`zero_current_${channel}`] = false;
                 }
                 return result;
@@ -15248,12 +15245,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .binary("signed_power_b", ea.SET, true, false)
                 .withDescription("Report energy flow direction for channel B using signed power (default false)."),
-            e
-                .binary("invert_energy_flow_a", ea.SET, true, false)
-                .withDescription("Report energy flow direction inverted for channel A."),
-            e
-                .binary("invert_energy_flow_b", ea.SET, true, false)
-                .withDescription("Report energy flow direction inverted for channel B."),
+            e.binary("invert_energy_flow_a", ea.SET, true, false).withDescription("Report energy flow direction inverted for channel A."),
+            e.binary("invert_energy_flow_b", ea.SET, true, false).withDescription("Report energy flow direction inverted for channel B."),
             e
                 .binary("single_zero_remove", ea.SET, true, false)
                 .withDescription("If true then single-zero power or current values will be disgarded. The default is false."),
