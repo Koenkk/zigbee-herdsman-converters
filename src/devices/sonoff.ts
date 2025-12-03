@@ -2147,6 +2147,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {boost: 0, timer: 1},
                 cluster: "customSonoffTrvzb",
                 attribute: "temporaryMode",
+                entityCategory: "config",
                 description:
                     "Boost mode: Activates maximum TRV temperature for a user-defined duration, enabling rapid heating. " +
                     "Timer Mode: Allows customization of temperature and duration for precise heating control." +
