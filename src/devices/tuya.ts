@@ -229,7 +229,7 @@ const convLocal = {
                     const singleZeroRemoveKey = "single_zero_remove";
                     const singleZeroRemove = options[singleZeroRemoveKey] != null ? options[singleZeroRemoveKey] : false;
                     if (singleZeroRemove && !priv[`zero_power_${channel}`]) {
-                        logger.info("[PJ1203A] power is zero, flushing one time",NS);
+                        logger.info("[PJ1203A] power is zero, flushing one time", NS);
                         priv.flushNull(result, channel, options);
                     } else {
                         priv.flushZero(result, channel, options);
@@ -253,7 +253,7 @@ const convLocal = {
                     const singleZeroRemoveKey = "single_zero_remove";
                     const singleZeroRemove = options[singleZeroRemoveKey] != null ? options[singleZeroRemoveKey] : false;
                     if (singleZeroRemove && !priv[`zero_current_${channel}`]) {
-                        logger.info("[PJ1203A] current is zero, flushing one time",NS);
+                        logger.info("[PJ1203A] current is zero, flushing one time", NS);
                         priv.flushNull(result, channel, options);
                     } else {
                         priv.flushZero(result, channel, options);
