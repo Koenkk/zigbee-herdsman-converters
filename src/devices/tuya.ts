@@ -167,6 +167,17 @@ const storeLocal = {
                     this[`power_factor_${channel}`] = 100;
                     this.flush(result, channel, options);
                 },
+                // Some times the device sends a single zero value (either power or current).
+                // This is most likely a glitch. We flush all values but set them to null
+                // to indicate that they are not valid.
+                //
+                flushNull: function (result: KeyValueAny, channel: string, options: KeyValue) {
+                    this[`sign_${channel}`] = null;
+                    this[`power_${channel}`] = null;
+                    this[`current_${channel}`] = null;
+                    this[`power_factor_${channel}`] = null;
+                    this.flush(result, channel, options);
+                },
 
                 clear: () => {
                     priv.sign_a = null;
@@ -177,6 +188,11 @@ const storeLocal = {
                     priv.current_b = null;
                     priv.power_factor_a = null;
                     priv.power_factor_b = null;
+                    // Used to detect single zero values
+                    priv.zero_power_a = null;
+                    priv.zero_power_b = null;
+                    priv.zero_current_a = null;
+                    priv.zero_current_b = null;
                 },
             };
             globalStore.putValue(device, "private_state", priv);
@@ -210,8 +226,17 @@ const convLocal = {
                 priv[`power_${channel}`] = v / 10;
                 priv[`timestamp_${channel}`] = new Date().toISOString();
                 if (v === 0) {
-                    priv.flushZero(result, channel, options);
-                    return result;
+                    const singleZeroRemoveKey = "single_zero_remove";
+                    const singleZeroRemove = options[singleZeroRemoveKey] != null ? options[singleZeroRemoveKey] : false;
+                    if (singleZeroRemove && !priv[`zero_power_${channel}`]) {
+                        logger.info("[PJ1203A] power is zero, flushing one time", NS);
+                        priv.flushNull(result, channel, options);
+                    } else {
+                        priv.flushZero(result, channel, options);
+                    }
+                    priv[`zero_power_${channel}`] = true;
+                } else {
+                    priv[`zero_power_${channel}`] = false;
                 }
                 return result;
             },
@@ -225,8 +250,17 @@ const convLocal = {
                 const result = {};
                 priv[`current_${channel}`] = v / 1000;
                 if (v === 0) {
-                    priv.flushZero(result, channel, options);
-                    return result;
+                    const singleZeroRemoveKey = "single_zero_remove";
+                    const singleZeroRemove = options[singleZeroRemoveKey] != null ? options[singleZeroRemoveKey] : false;
+                    if (singleZeroRemove && !priv[`zero_current_${channel}`]) {
+                        logger.info("[PJ1203A] current is zero, flushing one time", NS);
+                        priv.flushNull(result, channel, options);
+                    } else {
+                        priv.flushZero(result, channel, options);
+                    }
+                    priv[`zero_current_${channel}`] = true;
+                } else {
+                    priv[`zero_current_${channel}`] = false;
                 }
                 return result;
             },
@@ -15224,6 +15258,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Report energy flow direction for channel B using signed power (default false)."),
             e.binary("invert_energy_flow_a", ea.SET, true, false).withDescription("Report energy flow direction inverted for channel A."),
             e.binary("invert_energy_flow_b", ea.SET, true, false).withDescription("Report energy flow direction inverted for channel B."),
+            e
+                .binary("single_zero_remove", ea.SET, true, false)
+                .withDescription("If true then single-zero power or current values will be disgarded. The default is false."),
         ],
         exposes: [
             e.ac_frequency(),
