@@ -18196,11 +18196,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(90),
             e.binary("switch_type", ea.STATE_SET, "ON", "OFF").withDescription("Enables/disables valve switch"),
             e
-                .numeric("position", ea.STATE)
+                .numeric("position", ea.STATE_SET)
                 .withUnit("%")
                 .withValueMin(0)
                 .withValueMax(100)
-                .withDescription("Position"), // set actually not working
+                .withDescription("Position. To set the value you need to turn on valve switch"),
             e.enum("screen_orientation", ea.STATE_SET, ["up", "right", "down", "left"]).withDescription("Screen orientation"),
         ],
         meta: {
