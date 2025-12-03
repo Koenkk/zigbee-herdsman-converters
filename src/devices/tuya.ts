@@ -227,7 +227,6 @@ const convLocal = {
                 priv[`power_${channel}`] = v / 10;
                 priv[`timestamp_${channel}`] = new Date().toISOString();
                 if (v === 0) {
-
                     const singleZeroRemoveKey = `single_zero_remove`;
                     const singleZeroRemove = options[singleZeroRemoveKey] != null ? options[singleZeroRemoveKey] : false;
                     if (singleZeroRemove && !priv[`zero_power_${channel}`]) {
@@ -260,7 +259,7 @@ const convLocal = {
                         priv.flushNull(result, channel, options);
                     }
                     else{
-                    priv.flushZero(result, channel, options);
+                        priv.flushZero(result, channel, options);
                     }
                     priv[`zero_current_${channel}`]= true;
                 }else{
