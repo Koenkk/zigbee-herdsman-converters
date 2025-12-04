@@ -233,7 +233,18 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("child_lock").withDescription("Child lock"),
             e.switch().withEndpoint("tt_switch").withDescription("TT switch"),
         ],
-        endpoint: (device) => ({top_left: 1, top_middle: 1, top_right: 1, bottom_left: 1, bottom_middle: 1, bottom_right: 1, all: 1, backlight: 1, child_lock: 1, tt_switch: 1}),
+        endpoint: (device) => ({
+            top_left: 1,
+            top_middle: 1,
+            top_right: 1,
+            bottom_left: 1,
+            bottom_middle: 1,
+            bottom_right: 1,
+            all: 1,
+            backlight: 1,
+            child_lock: 1,
+            tt_switch: 1,
+        }),
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
