@@ -203,19 +203,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.electricityMeter({endpointNames: ["3"]}),
             m.enumLookup({
-                name: "dev_mode",
-                cluster: "genBasic",
-                attribute: {ID: 0x0001, type: 0x30},
-                lookup: {
-                    curtain: 0,
-                    light: 1,
-                },
-                description: "Set device type (curtain or light)",
-                entityCategory: "config",
-                access: "ALL",
-                zigbeeCommandOptions: {manufacturerCode: 0x1224},
-            }),
-            m.enumLookup({
                 name: "curtain_type",
                 cluster: "closuresWindowCovering",
                 attribute: {ID: 0x1000, type: Zcl.DataType.ENUM8},
@@ -226,7 +213,6 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Configure curtain type",
                 access: "ALL",
                 entityCategory: "config",
-                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
             }),
             sunricher.extend.motorControl(),
             m.identify(),
