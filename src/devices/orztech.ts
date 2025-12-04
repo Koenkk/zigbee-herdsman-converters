@@ -158,7 +158,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "state_c4", tuya.valueConverter.onOff],
             ],
         },
-        {
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_htj3hcpl"]),
         model: "_TZE284_htj3hcpl",
         vendor: "Orztech",
