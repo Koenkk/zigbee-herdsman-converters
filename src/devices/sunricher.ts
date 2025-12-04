@@ -1649,8 +1649,9 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ['3986'],
         model: 'SRP-ZG9105-CV',
         vendor: 'Sunricher',
-        description: 'Constant Voltage Zigbee LED driver (White-Label, e.g. LongLife LED 3986)',
+        description: 'Constant voltage Zigbee LED driver',
         extend: [m.light({colorTemp: {range: [160, 450]}, color: false, configureReporting: true})],
+        whiteLabel: [{vendor: "LongLife LED", model: "3986"}],
     },
     {
         fingerprint: [{modelID: "HK-ZD-DIM-A", softwareBuildID: "2.9.2_r72"}],
