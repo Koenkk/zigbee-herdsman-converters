@@ -1646,6 +1646,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true}), sunricher.extend.externalSwitchType()],
     },
     {
+        zigbeeModel: ['3986'],
+        model: 'SRP-ZG9105-CV',
+        vendor: 'Sunricher',
+        description: 'Constant Voltage Zigbee LED driver (White-Label, e.g. LongLife LED 3986)',
+        extend: [m.light({colorTemp: {range: [160, 450]}, color: false, configureReporting: true})],
+    },
+    {
         fingerprint: [{modelID: "HK-ZD-DIM-A", softwareBuildID: "2.9.2_r72"}],
         model: "SR-ZG9101CS",
         vendor: "Sunricher",
