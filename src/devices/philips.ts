@@ -4671,16 +4671,37 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Hue White Ambiance — dimmable white light",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}})],
     },
-    { 
-        zigbeeModel: ["929004610602", "929004610702", "929004610802","929004610502", "929004610402"], 
-        model: "929004610602", 
-        vendor: "Philips", 
-        description: "Hue White and Color Flux Strip Light 5m", 
-        whiteLabel: [ 
-            {model: "929004610702", vendor: "Philips", description: "Hue White and Color Flux Strip Light 6m", fingerprint: [{modelID: "929004610702"}]}, 
-            {model: "929004610802", vendor: "Philips", description: "Hue White and Color Flux Strip Light 10m", fingerprint: [{modelID: "929004610802"}]}, 
-            {model: "929004610502", vendor: "Philips", description: "Hue White and Color Flux Strip Light 4m", fingerprint: [{modelID: "929004610502"}]},
-            {model: "929004610402", vendor: "Philips", description: "Hue White and Color Flux Strip Light 3m", fingerprint: [{modelID: "929004610402"}]},
-        ], 
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})], },
+    {
+        zigbeeModel: ["929004610602", "929004610702", "929004610802", "929004610502", "929004610402"],
+        model: "929004610602",
+        vendor: "Philips",
+        description: "Hue White and Color Flux Strip Light 5m",
+        whiteLabel: [
+            {
+                model: "929004610702",
+                vendor: "Philips",
+                description: "Hue White and Color Flux Strip Light 6m",
+                fingerprint: [{modelID: "929004610702"}],
+            },
+            {
+                model: "929004610802",
+                vendor: "Philips",
+                description: "Hue White and Color Flux Strip Light 10m",
+                fingerprint: [{modelID: "929004610802"}],
+            },
+            {
+                model: "929004610502",
+                vendor: "Philips",
+                description: "Hue White and Color Flux Strip Light 4m",
+                fingerprint: [{modelID: "929004610502"}],
+            },
+            {
+                model: "929004610402",
+                vendor: "Philips",
+                description: "Hue White and Color Flux Strip Light 3m",
+                fingerprint: [{modelID: "929004610402"}],
+            },
+        ],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
 ];
