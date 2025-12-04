@@ -1,5 +1,22 @@
 # Changelog
 
+## [25.83.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.82.0...v25.83.0) (2025-12-04)
+
+
+### Features
+
+* **add:** 929004610502 ([#10906](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10906)) ([02ae58e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/02ae58e443420053542e4d32d3e116eb3d6a240e))
+* **add:** SPM01-1Z2, SDM01-3Z1, SDM02-2Z1, SPM02-3Z3 ([#10936](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10936)) ([6105023](https://github.com/Koenkk/zigbee-herdsman-converters/commit/610502380b6c3fae6fbf47493217815b10a61a73))
+* Aqara W600: expose `position` ([#10934](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10934)) ([a33e753](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a33e753fac910104c2c0d9707566926a84979984))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_bgsigers` as Tuya ZTH05_1 https://github.com/Koenkk/zigbee2mqtt/issues/30003 ([6b9ab37](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6b9ab375a14b1e6874ca8f9496a2eb29cfc70e36))
+* Lumi: suppress unknown key 65522 debug message ([#10937](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10937)) ([af6c337](https://github.com/Koenkk/zigbee-herdsman-converters/commit/af6c33794b1dd955a26af610cd14616df147b61d))
+* Sunricher SR-ZG9101SAC-HP: remove `dev_mode`  ([#10935](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10935)) ([f08b7a7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f08b7a77fcbdfeacb474fe12e4d7f7265cc96e8a))
+* Tuya TS0601_GTZ10: support setting position ([#10932](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10932)) ([eab460d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eab460da43a7ccc2c4784bff747eb41420fc88bb))
+
 ## [25.82.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.81.0...v25.82.0) (2025-12-03)
 
 
