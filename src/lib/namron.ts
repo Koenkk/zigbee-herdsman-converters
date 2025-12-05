@@ -4,6 +4,48 @@ import * as utils from "../lib/utils";
 import * as modernExtend from "./modernExtend";
 import type {Fz, KeyValue, Tz} from "./types";
 
+// Namron relay with NTC sensors and water detection (4512785 and similar models)
+const NAMRON_RELAY_NTC_WATER_CLUSTER = 0x04e0;
+
+const namronRelayNtcWaterLookups = {
+    ntcType: {None: 0, "NTC-10K": 1, "NTC-12K": 2, "NTC-15K": 3, "NTC-22K": 4, "NTC-33K": 5, "NTC-47K": 6} as const,
+    ntcTypeInv: {0: "None", 1: "NTC-10K", 2: "NTC-12K", 3: "NTC-15K", 4: "NTC-22K", 5: "NTC-33K", 6: "NTC-47K"} as const,
+    waterAction: {
+        "No action": 0,
+        "Water alarm: Turn OFF (restore when dry)": 1,
+        "Water alarm: Turn ON (restore when dry)": 2,
+        "Water alarm: Turn OFF (stay off)": 3,
+        "Water alarm: Turn ON (stay on)": 4,
+        "No water: Turn OFF": 5,
+        "No water: Turn ON": 6,
+    } as const,
+    waterActionInv: {
+        0: "No action",
+        1: "Water alarm: Turn OFF (restore when dry)",
+        2: "Water alarm: Turn ON (restore when dry)",
+        3: "Water alarm: Turn OFF (stay off)",
+        4: "Water alarm: Turn ON (stay on)",
+        5: "No water: Turn OFF",
+        6: "No water: Turn ON",
+    } as const,
+    ntcOperation: {
+        "No action": 0,
+        "OFF when hot, ON when cold": 1,
+        "ON when hot, OFF when cold": 2,
+        "OFF when hot (stay off)": 3,
+        "ON when hot (stay on)": 4,
+    } as const,
+    ntcOperationInv: {
+        0: "No action",
+        1: "OFF when hot, ON when cold",
+        2: "ON when hot, OFF when cold",
+        3: "OFF when hot (stay off)",
+        4: "ON when hot (stay on)",
+    } as const,
+    overrideOption: {"No priority": 0, "Water alarm has priority": 1, "Temperature (NTC) has priority": 2} as const,
+    overrideOptionInv: {0: "No priority", 1: "Water alarm has priority", 2: "Temperature (NTC) has priority"} as const,
+};
+
 function toDate(value: number): string {
     if (value === undefined) {
         return;
@@ -66,6 +108,68 @@ export const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    namron_relay_ntc_water_sensor: {
+        cluster: "1248",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            const data = msg.data;
+            if (!data) return;
+
+            // NTC2 temperature (attr 0x0000, ÷100)
+            if (data[0x0000] !== undefined) {
+                const raw = data[0x0000];
+                if (typeof raw === "number" && raw !== -32768 && raw !== 0x8000) {
+                    result.ntc2_temperature = Math.round((raw / 100) * 10) / 10;
+                }
+            }
+
+            // NTC sensor types (attr 0x0001, 0x0002)
+            if (data[0x0001] !== undefined) result.ntc1_sensor_type = utils.getFromLookup(data[0x0001], namronRelayNtcWaterLookups.ntcTypeInv);
+            if (data[0x0002] !== undefined) result.ntc2_sensor_type = utils.getFromLookup(data[0x0002], namronRelayNtcWaterLookups.ntcTypeInv);
+
+            // Water sensor (attr 0x0003, inverted logic)
+            if (data[0x0003] !== undefined) {
+                result.water_sensor = !data[0x0003]; // true = water detected
+            }
+
+            // Calibration values (attr 0x0004, 0x0005)
+            if (typeof data[0x0004] === "number") result.ntc1_calibration = data[0x0004];
+            if (typeof data[0x0005] === "number") result.ntc2_calibration = data[0x0005];
+
+            // Water alarm relay action (attr 0x0006)
+            if (data[0x0006] !== undefined)
+                result.water_alarm_relay_action = utils.getFromLookup(data[0x0006], namronRelayNtcWaterLookups.waterActionInv);
+
+            // NTC operation modes (attr 0x0007, 0x0008)
+            if (data[0x0007] !== undefined)
+                result.ntc1_operation_mode = utils.getFromLookup(data[0x0007], namronRelayNtcWaterLookups.ntcOperationInv);
+            if (data[0x0008] !== undefined)
+                result.ntc2_operation_mode = utils.getFromLookup(data[0x0008], namronRelayNtcWaterLookups.ntcOperationInv);
+
+            // Relay auto temperatures (attr 0x0009, 0x000A, ÷100)
+            if (typeof data[0x0009] === "number" && data[0x0009] !== -32768 && data[0x0009] !== 0x8000) {
+                result.ntc1_relay_auto_temp = Math.round((data[0x0009] / 100) * 10) / 10;
+            }
+            if (typeof data[0x000a] === "number" && data[0x000a] !== -32768 && data[0x000a] !== 0x8000) {
+                result.ntc2_relay_auto_temp = Math.round((data[0x000a] / 100) * 10) / 10;
+            }
+
+            // Override option (attr 0x000B)
+            if (data[0x000b] !== undefined) result.override_option = utils.getFromLookup(data[0x000b], namronRelayNtcWaterLookups.overrideOptionInv);
+
+            // Temperature hysteresis (attr 0x000C, 0x000D)
+            if (typeof data[0x000c] === "number") result.ntc1_temp_hysteresis = data[0x000c];
+            if (typeof data[0x000d] === "number") result.ntc2_temp_hysteresis = data[0x000d];
+
+            // Condition alarms (attr 0x000E, 0x000F, 0x0010)
+            if (data[0x000e] !== undefined) result.water_condition_alarm = !!data[0x000e];
+            if (data[0x000f] !== undefined) result.ntc_condition_alarm = !!data[0x000f];
+            if (data[0x0010] !== undefined) result.is_execute_condition = !!data[0x0010];
+
+            return Object.keys(result).length ? result : undefined;
+        },
+    } satisfies Fz.Converter<"1248", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const toZigbee = {
@@ -120,6 +224,142 @@ export const toZigbee = {
                 case "holiday_temp_set_f":
                     await entity.read("hvacThermostat", [0x801b]);
                     break;
+            }
+        },
+    } satisfies Tz.Converter,
+    namron_relay_ntc_water_sensor: {
+        key: [
+            "ntc1_sensor_type",
+            "ntc2_sensor_type",
+            "water_alarm_relay_action",
+            "ntc1_operation_mode",
+            "ntc2_operation_mode",
+            "ntc1_relay_auto_temp",
+            "ntc2_relay_auto_temp",
+            "override_option",
+            "ntc1_calibration",
+            "ntc2_calibration",
+            "ntc1_temp_hysteresis",
+            "ntc2_temp_hysteresis",
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+                case "ntc1_sensor_type": {
+                    const val = utils.getFromLookup(value, namronRelayNtcWaterLookups.ntcType);
+                    // 0x0001
+                    await entity.write(NAMRON_RELAY_NTC_WATER_CLUSTER, {1: {value: val, type: Zcl.DataType.ENUM8}});
+                    return {state: {ntc1_sensor_type: value}};
+                }
+                case "ntc2_sensor_type": {
+                    const val = utils.getFromLookup(value, namronRelayNtcWaterLookups.ntcType);
+                    // 0x0002
+                    await entity.write(NAMRON_RELAY_NTC_WATER_CLUSTER, {2: {value: val, type: Zcl.DataType.ENUM8}});
+                    return {state: {ntc2_sensor_type: value}};
+                }
+                case "water_alarm_relay_action": {
+                    const val = utils.getFromLookup(value, namronRelayNtcWaterLookups.waterAction);
+                    // 0x0006
+                    await entity.write(NAMRON_RELAY_NTC_WATER_CLUSTER, {6: {value: val, type: Zcl.DataType.ENUM8}});
+                    return {state: {water_alarm_relay_action: value}};
+                }
+                case "ntc1_operation_mode": {
+                    const val = utils.getFromLookup(value, namronRelayNtcWaterLookups.ntcOperation);
+                    // 0x0007
+                    await entity.write(NAMRON_RELAY_NTC_WATER_CLUSTER, {7: {value: val, type: Zcl.DataType.ENUM8}});
+                    return {state: {ntc1_operation_mode: value}};
+                }
+                case "ntc2_operation_mode": {
+                    const val = utils.getFromLookup(value, namronRelayNtcWaterLookups.ntcOperation);
+                    // 0x0008
+                    await entity.write(NAMRON_RELAY_NTC_WATER_CLUSTER, {8: {value: val, type: Zcl.DataType.ENUM8}});
+                    return {state: {ntc2_operation_mode: value}};
+                }
+                case "ntc1_relay_auto_temp": {
+                    const val = Math.round(utils.toNumber(value, key) * 100);
+                    // 0x0009
+                    await entity.write(NAMRON_RELAY_NTC_WATER_CLUSTER, {9: {value: val, type: Zcl.DataType.INT16}});
+                    return {state: {ntc1_relay_auto_temp: value}};
+                }
+                case "ntc2_relay_auto_temp": {
+                    const val = Math.round(utils.toNumber(value, key) * 100);
+                    // 0x000a
+                    await entity.write(NAMRON_RELAY_NTC_WATER_CLUSTER, {10: {value: val, type: Zcl.DataType.INT16}});
+                    return {state: {ntc2_relay_auto_temp: value}};
+                }
+                case "override_option": {
+                    const val = utils.getFromLookup(value, namronRelayNtcWaterLookups.overrideOption);
+                    // 0x000b
+                    await entity.write(NAMRON_RELAY_NTC_WATER_CLUSTER, {11: {value: val, type: Zcl.DataType.ENUM8}});
+                    return {state: {override_option: value}};
+                }
+                case "ntc1_calibration": {
+                    const val = utils.toNumber(value, key);
+                    // 0x0004
+                    await entity.write(NAMRON_RELAY_NTC_WATER_CLUSTER, {4: {value: val, type: Zcl.DataType.INT8}});
+                    return {state: {ntc1_calibration: value}};
+                }
+                case "ntc2_calibration": {
+                    const val = utils.toNumber(value, key);
+                    // 0x0005
+                    await entity.write(NAMRON_RELAY_NTC_WATER_CLUSTER, {5: {value: val, type: Zcl.DataType.INT8}});
+                    return {state: {ntc2_calibration: value}};
+                }
+                case "ntc1_temp_hysteresis": {
+                    const val = utils.toNumber(value, key);
+                    // 0x000c
+                    await entity.write(NAMRON_RELAY_NTC_WATER_CLUSTER, {12: {value: val, type: Zcl.DataType.INT8}});
+                    return {state: {ntc1_temp_hysteresis: value}};
+                }
+                case "ntc2_temp_hysteresis": {
+                    const val = utils.toNumber(value, key);
+                    // 0x000d
+                    await entity.write(NAMRON_RELAY_NTC_WATER_CLUSTER, {13: {value: val, type: Zcl.DataType.INT8}});
+                    return {state: {ntc2_temp_hysteresis: value}};
+                }
+                default:
+                    throw new Error(`Unhandled key toZigbee.namron_relay_ntc_water_sensor.convertSet ${key}`);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            switch (key) {
+                case "ntc1_sensor_type":
+                    await entity.read(NAMRON_RELAY_NTC_WATER_CLUSTER, [0x0001]);
+                    break;
+                case "ntc2_sensor_type":
+                    await entity.read(NAMRON_RELAY_NTC_WATER_CLUSTER, [0x0002]);
+                    break;
+                case "water_alarm_relay_action":
+                    await entity.read(NAMRON_RELAY_NTC_WATER_CLUSTER, [0x0006]);
+                    break;
+                case "ntc1_operation_mode":
+                    await entity.read(NAMRON_RELAY_NTC_WATER_CLUSTER, [0x0007]);
+                    break;
+                case "ntc2_operation_mode":
+                    await entity.read(NAMRON_RELAY_NTC_WATER_CLUSTER, [0x0008]);
+                    break;
+                case "ntc1_relay_auto_temp":
+                    await entity.read(NAMRON_RELAY_NTC_WATER_CLUSTER, [0x0009]);
+                    break;
+                case "ntc2_relay_auto_temp":
+                    await entity.read(NAMRON_RELAY_NTC_WATER_CLUSTER, [0x000a]);
+                    break;
+                case "override_option":
+                    await entity.read(NAMRON_RELAY_NTC_WATER_CLUSTER, [0x000b]);
+                    break;
+                case "ntc1_calibration":
+                    await entity.read(NAMRON_RELAY_NTC_WATER_CLUSTER, [0x0004]);
+                    break;
+                case "ntc2_calibration":
+                    await entity.read(NAMRON_RELAY_NTC_WATER_CLUSTER, [0x0005]);
+                    break;
+                case "ntc1_temp_hysteresis":
+                    await entity.read(NAMRON_RELAY_NTC_WATER_CLUSTER, [0x000c]);
+                    break;
+                case "ntc2_temp_hysteresis":
+                    await entity.read(NAMRON_RELAY_NTC_WATER_CLUSTER, [0x000d]);
+                    break;
+                default:
+                    throw new Error(`Unhandled key toZigbee.namron_relay_ntc_water_sensor.convertGet ${key}`);
             }
         },
     } satisfies Tz.Converter,
