@@ -766,7 +766,7 @@ export const definitions: DefinitionWithExtend[] = [
                 current: {min: 5, max: 900, change: 10},
                 energy: {min: 5, max: 1800, change: 50},
             }),
-            m.deviceAddCustomCluster('genOnOff', {
+            m.deviceAddCustomCluster("genOnOff", {
                 ID: 6,
                 attributes: {},
                 commands: {
@@ -802,7 +802,7 @@ export const definitions: DefinitionWithExtend[] = [
                 current: {min: 5, max: 900, change: 10},
                 energy: {min: 5, max: 1800, change: 50},
             }),
-            m.deviceAddCustomCluster('genOnOff', {
+            m.deviceAddCustomCluster("genOnOff", {
                 ID: 6,
                 attributes: {},
                 commands: {
