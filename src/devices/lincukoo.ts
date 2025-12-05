@@ -3,7 +3,7 @@ import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, KeyValueString, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Expose} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -385,15 +385,9 @@ export const definitions: DefinitionWithExtend[] = [
 			];
 
 			if (["_TZE284_iunyuzwe"].includes(device.manufacturerName)) {
-				exps.push(
-					e.enum("battery_state", ea.STATE, ["low", "middle", "high"])
-						.withDescription("battery state of the sensor")
-				);
+				exps.push(e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("battery state of the sensor"));
 			} else {
-				exps.push(
-					e.enum("alarm_ringtone", ea.STATE_SET, ["ring1", "ring2", "ring3"])
-						.withDescription("Ringtone of the alarm")
-				);
+				exps.push(e.enum("alarm_ringtone", ea.STATE_SET, ["ring1", "ring2", "ring3"]).withDescription("Ringtone of the alarm"));
 				exps.push(e.battery());
 			}
 
