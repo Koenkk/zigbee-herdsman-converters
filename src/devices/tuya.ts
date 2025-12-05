@@ -21858,7 +21858,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.temperatureCalibration(),
             tuya.exposes.soilWarning(),
             e
-                .numeric("soil_fertility_warning_setting")
+                .numeric("soil_fertility_warning_setting",ea.STATE_SET)
                 .withValueMin(5)
                 .withValueMax(80)
                 .withValueStep(1)
