@@ -9,13 +9,24 @@ import {
     addCustomClusterHeimanSpecificInfraRedRemote,
     addCustomClusterHeimanSpecificScenes,
 } from "../lib/heiman";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, Reporting, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const NS = "zhc:heiman";
+
+// biome-ignore lint/correctness/noUnusedVariables: TODO
+const manufacturerOptions = {
+    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD,
+    disableDefaultResponse: false,
+};
+const defaultResponseOptions = {disableDefaultResponse: false};
 
 interface RadarSensorHeiman {
     attributes: {
@@ -37,6 +48,534 @@ interface RadarSensorHeiman {
     commandResponses: never;
 }
 
+interface HeimanPrivateCluster {
+    attributes: {
+        // Sensor 0x0000~0x0FFF
+        sensorPreheatingState: number;
+        sensorSelfCheckState: number;
+        sensorFaultState: number;
+        sensorPollutionLevel: number;
+        sensorSensitivityLevel: number;
+        sensorPrealarmThreshold: number;
+        sensorLifeState: number;
+        sensorLifeTime: number;
+        deviceMuteControl: number;
+        deviceMuteState: number;
+        eviceMuteState: number;
+        deviceCascadeControlEnable: number;
+        deviceSoundToneType: number;
+        deviceSoundControl: number[];
+        deviceBlinkControl: number[];
+        smokeAdValue: number;
+        smokeAlarmType: number;
+        smokeWaterMistState: number;
+        smokeSensorData: number[];
+        deviceCascadeState: number;
+        sensorPrealarmState: number;
+
+        // Light/Switch 0x1000~0x1FFF
+        indicatorLightControl: number;
+        indicatorLightNotDisturbStartTime: number;
+        indicatorLightNotDisturbEndTime: number;
+        indicatorLightLevelControlOf1: number;
+        indicatorLightLevelControlOf2: number;
+        indicatorLightLevelControlOf3: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+const iasWarningMode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
+
+const heimanExtend = {
+    heimanClusterSpecial: () =>
+        m.deviceAddCustomCluster("heimanClusterSpecial", {
+            ID: 0xfc90,
+            manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+            attributes: {
+                // Sensor 0x0000~0x0FFF
+                sensorPreheatingState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+                sensorSelfCheckState: {ID: 0x0001, type: Zcl.DataType.ENUM8},
+                sensorFaultState: {ID: 0x0002, type: Zcl.DataType.BITMAP16},
+                sensorPollutionLevel: {ID: 0x0003, type: Zcl.DataType.UINT8},
+                sensorSensitivityLevel: {ID: 0x0004, type: Zcl.DataType.ENUM8},
+                sensorPrealarmThreshold: {ID: 0x0005, type: Zcl.DataType.ENUM8},
+                sensorLifeState: {ID: 0x0006, type: Zcl.DataType.ENUM8},
+                sensorLifeTime: {ID: 0x0007, type: Zcl.DataType.UINT16},
+                deviceMuteControl: {ID: 0x0008, type: Zcl.DataType.UINT32},
+                deviceMuteState: {ID: 0x0009, type: Zcl.DataType.BITMAP16},
+                deviceCascadeControlEnable: {ID: 0x000a, type: Zcl.DataType.BITMAP8},
+                deviceSoundToneType: {ID: 0x000b, type: Zcl.DataType.ENUM8},
+                deviceSoundControl: {ID: 0x000c, type: Zcl.DataType.ARRAY},
+                deviceBlinkControl: {ID: 0x000d, type: Zcl.DataType.ARRAY},
+                smokeAdValue: {ID: 0x000e, type: Zcl.DataType.UINT16},
+                smokeAlarmType: {ID: 0x000f, type: Zcl.DataType.ENUM8},
+                smokeWaterMistState: {ID: 0x0010, type: Zcl.DataType.ENUM8},
+                smokeSensorData: {ID: 0x0011, type: Zcl.DataType.ARRAY},
+                deviceCascadeState: {ID: 0x0012, type: Zcl.DataType.ENUM8},
+                sensorPrealarmState: {ID: 0x0013, type: Zcl.DataType.ENUM8},
+
+                // Light/Switch 0x1000~0x1FFF
+                indicatorLightControl: {ID: 0x1000, type: Zcl.DataType.BITMAP8},
+                indicatorLightNotDisturbStartTime: {ID: 0x1001, type: Zcl.DataType.UINT16},
+                indicatorLightNotDisturbEndTime: {ID: 0x1002, type: Zcl.DataType.UINT16},
+                indicatorLightLevelControlOf1: {ID: 0x1003, type: Zcl.DataType.UINT8},
+                indicatorLightLevelControlOf2: {ID: 0x1004, type: Zcl.DataType.UINT8},
+                indicatorLightLevelControlOf3: {ID: 0x1005, type: Zcl.DataType.UINT8},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    heimanClusterAirQuality: () =>
+        m.deviceAddCustomCluster("heimanClusterAirQuality", {
+            ID: 0xfc81,
+            attributes: {
+                // (0 is not charged, 1 is charging, 2 is fully charged)
+                batteryState: {ID: 0xf002, type: Zcl.DataType.UINT8},
+                pm10measuredValue: {ID: 0xf003, type: Zcl.DataType.UINT16},
+                tvocMeasuredValue: {ID: 0xf004, type: Zcl.DataType.UINT16},
+                aqiMeasuredValue: {ID: 0xf005, type: Zcl.DataType.UINT16},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    heimanClusterIasZone: () =>
+        m.deviceAddCustomCluster("ssIasZone", {
+            ID: Zcl.Clusters.ssIasZone.ID,
+            attributes: {},
+            commands: {
+                initiateTestMode: {
+                    ID: 0x02,
+                    parameters: [
+                        {name: "testModeDuration", type: Zcl.DataType.UINT8},
+                        {name: "sensitivityLevel", type: Zcl.DataType.UINT8},
+                    ],
+                },
+            },
+            commandsResponse: {},
+        }),
+    // ModernExtend define
+    heimanClusterSensorFaultState: (): ModernExtend => {
+        const clusterName = "heimanClusterSpecial" as const;
+        const faultStateBitMap = {
+            0: "fault",
+            1: "sensor open circuit fault",
+            2: "sensor short circuit fault",
+            3: "sensor pollution fault",
+        };
+        const exposes = utils.exposeEndpoints(e.text("fault_state", ea.STATE_GET).withDescription("Device fault status (normal or fault types)."));
+        const fromZigbee = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    let attrData = null;
+                    let attrValue = 0;
+
+                    if (msg.data["sensorFaultState"] === undefined) {
+                        return {fault_state: "normal"};
+                    }
+                    attrData = msg.data["sensorFaultState"];
+                    attrValue = Number(attrData);
+                    const activeFaults: string[] = [];
+                    for (const [bit, faultDesc] of Object.entries(faultStateBitMap)) {
+                        const bitNum = Number(bit);
+                        const isFault = (attrValue & (1 << bitNum)) !== 0;
+                        if (isFault) {
+                            activeFaults.push(faultDesc);
+                        }
+                    }
+                    const faultResult = activeFaults.length > 0 ? activeFaults.join(" | ") : "normal";
+                    return {fault_state: faultResult};
+                },
+            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["fault_state"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<typeof clusterName, HeimanPrivateCluster>(clusterName, ["sensorFaultState"], defaultResponseOptions);
+                },
+            },
+        ];
+        return {
+            exposes: exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    heimanClusterDeviceMuteState: (): ModernExtend => {
+        const clusterName = "heimanClusterSpecial" as const;
+        const muteStateBitMap = {
+            0: "mute",
+            1: "alarm mute",
+            2: "fault mute",
+            3: "low battery mute",
+        };
+        const exposes = utils.exposeEndpoints(e.text("mute_state", ea.STATE_GET).withDescription("Device mute status (normal or mute types)."));
+        const fromZigbee = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    let attrData = null;
+                    let attrValue = 0;
+
+                    if (msg.data["deviceMuteState"] === undefined) {
+                        return {mute_state: "normal"};
+                    }
+
+                    attrData = msg.data["deviceMuteState"];
+                    attrValue = Number(attrData);
+
+                    const activeMutes: string[] = [];
+                    for (const [bit, muteDesc] of Object.entries(muteStateBitMap)) {
+                        const bitNum = Number(bit);
+                        const isFault = (attrValue & (1 << bitNum)) !== 0;
+                        if (isFault) {
+                            activeMutes.push(muteDesc);
+                        }
+                    }
+                    const muteResult = activeMutes.length > 0 ? activeMutes.join(" | ") : "normal";
+                    return {mute_state: muteResult};
+                },
+            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["mute_state"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<typeof clusterName, HeimanPrivateCluster>(clusterName, ["deviceMuteState"], defaultResponseOptions);
+                },
+            },
+        ];
+        return {
+            exposes: exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    heimanClusterDeviceMuteControl: (): ModernExtend => {
+        const clusterName = "heimanClusterSpecial" as const;
+        const muteModeMap = {
+            "alarm mute": 0x02,
+            "low battery": 0x08,
+        } as const;
+        const exposes = utils.exposeEndpoints(
+            e
+                .composite("mute_control", "mute_control", ea.STATE)
+                .withFeature(
+                    e
+                        .enum(
+                            "mute_mode",
+                            ea.ALL,
+                            Object.keys(muteModeMap).filter((k) => k !== "no"),
+                        )
+                        .withDescription("Mute mode selection: alarm mute, low battery mute"),
+                )
+                .withFeature(
+                    e
+                        .numeric("mute_duration", ea.SET)
+                        .withUnit("seconds")
+                        .withValueMin(0)
+                        .withValueMax(65535)
+                        .withDescription("Mute duration: 65535 indicates continuous mute."),
+                ),
+        );
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["mute_control"],
+                convertSet: async (entity, key, value, meta) => {
+                    const muteValue = (value as Record<string, unknown>) || {};
+                    const {mute_mode, mute_duration} = muteValue;
+
+                    const modeBit = muteModeMap[mute_mode as keyof typeof muteModeMap];
+
+                    let duration = Number(mute_duration);
+                    if (Number.isNaN(duration) || duration < 0 || duration > 65535) {
+                        duration = 0;
+                        logger.debug(`[Heiman] Invalid mute_duration: ${mute_duration}, fallback to 0`, NS);
+                    }
+                    duration = Math.floor(duration);
+
+                    const muteControlValue = (duration << 16) | modeBit;
+                    await entity.write<typeof clusterName, HeimanPrivateCluster>(
+                        clusterName,
+                        {deviceMuteControl: muteControlValue},
+                        defaultResponseOptions,
+                    );
+                },
+            },
+        ];
+        return {
+            exposes: exposes,
+            fromZigbee: [],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    heimanClusterIndicatorLight: (): ModernExtend => {
+        const clusterName = "heimanClusterSpecial" as const;
+        const convertMinutesToTimeStr = (totalMinutes: number): string => {
+            if (Number.isNaN(totalMinutes) || totalMinutes < 0 || totalMinutes > 1440) {
+                return "";
+            }
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            const formattedHours = hours.toString().padStart(2, "0");
+            const formattedMinutes = minutes.toString().padStart(2, "0");
+            return `${formattedHours}:${formattedMinutes}`;
+        };
+        const convertTimeStrToMinutes = (timeStr: string): number => {
+            const timeRegex = /^([0-1]\d|2[0-3]):([0-5]\d)$/;
+            if (!timeRegex.test(timeStr)) {
+                throw new Error(`Invalid time format: ${timeStr}, expected HH:MM (e.g. 20:00)`);
+            }
+            const [hoursStr, minutesStr] = timeStr.split(":");
+            const hours = Number(hoursStr);
+            const minutes = Number(minutesStr);
+            const totalMinutes = hours * 60 + minutes;
+            return totalMinutes;
+        };
+        const exposes = utils.exposeEndpoints(
+            e
+                .composite("indicator_light_mode", "indicator_light_mode", ea.STATE)
+                .withFeature(e.binary("indicator_enable", ea.ALL, true, false))
+                .withFeature(e.text("indicator_not_disturb_start_time", ea.ALL).withDescription("Indicator Light not disturb start time (HH:MM)."))
+                .withFeature(e.text("indicator_not_disturb_end_time", ea.ALL).withDescription("Indicator Light not disturb end time (HH:MM).")),
+        );
+        const fromZigbee = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    let attrData = null;
+                    let attrValue = 0;
+                    if (msg.data.indicatorLightLevelControlOf1 !== undefined) {
+                        attrData = msg.data["indicatorLightLevelControlOf1"];
+                        attrValue = Number(attrData);
+                        const enableState = Boolean(attrValue > 0);
+                        return {indicator_light_mode: {indicator_enable: enableState}};
+                    }
+                    if (msg.data.indicatorLightNotDisturbStartTime !== undefined) {
+                        attrData = msg.data["indicatorLightNotDisturbStartTime"];
+                        attrValue = Number(attrData);
+                        const timeStr = convertMinutesToTimeStr(attrValue);
+                        return {indicator_light_mode: {indicator_not_disturb_start_time: timeStr}};
+                    }
+                    if (msg.data.indicatorLightNotDisturbEndTime !== undefined) {
+                        attrData = msg.data["indicatorLightNotDisturbEndTime"];
+                        attrValue = Number(attrData);
+                        const timeStr = convertMinutesToTimeStr(attrValue);
+                        return {indicator_light_mode: {indicator_not_disturb_end_time: timeStr}};
+                    }
+                },
+            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["indicator_light_mode"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<typeof clusterName, HeimanPrivateCluster>(
+                        clusterName,
+                        ["indicatorLightLevelControlOf1"],
+                        defaultResponseOptions,
+                    );
+                    await entity.read<typeof clusterName, HeimanPrivateCluster>(
+                        clusterName,
+                        ["indicatorLightNotDisturbStartTime"],
+                        defaultResponseOptions,
+                    );
+                    await entity.read<typeof clusterName, HeimanPrivateCluster>(
+                        clusterName,
+                        ["indicatorLightNotDisturbEndTime"],
+                        defaultResponseOptions,
+                    );
+                },
+                convertSet: async (entity, key, value, meta) => {
+                    const indicatorValue = value as {
+                        // biome-ignore lint/style/useNamingConvention: The field name must be consistent with the display.
+                        indicator_enable?: boolean;
+                        // biome-ignore lint/style/useNamingConvention: The field name must be consistent with the display.
+                        indicator_not_disturb_start_time?: string;
+                        // biome-ignore lint/style/useNamingConvention: The field name must be consistent with the display.
+                        indicator_not_disturb_end_time?: string;
+                    };
+
+                    if (indicatorValue.indicator_enable !== undefined) {
+                        const brightnessValue = indicatorValue.indicator_enable ? 1 : 0; // true=1£¨¿ª£©£¬false=0£¨¹Ø£©
+                        await entity.write<typeof clusterName, HeimanPrivateCluster>(
+                            clusterName,
+                            {indicatorLightLevelControlOf1: brightnessValue},
+                            defaultResponseOptions,
+                        );
+                    }
+
+                    if (indicatorValue.indicator_not_disturb_start_time !== undefined) {
+                        const totalMinutes = convertTimeStrToMinutes(indicatorValue.indicator_not_disturb_start_time);
+                        await entity.write<typeof clusterName, HeimanPrivateCluster>(
+                            clusterName,
+                            {indicatorLightNotDisturbStartTime: totalMinutes},
+                            defaultResponseOptions,
+                        );
+                    }
+
+                    if (indicatorValue.indicator_not_disturb_end_time !== undefined) {
+                        const totalMinutes = convertTimeStrToMinutes(indicatorValue.indicator_not_disturb_end_time);
+                        await entity.write<typeof clusterName, HeimanPrivateCluster>(
+                            clusterName,
+                            {indicatorLightNotDisturbEndTime: totalMinutes},
+                            defaultResponseOptions,
+                        );
+                    }
+                },
+            },
+        ];
+        return {
+            exposes: exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    iasZoneInitiateTestMode: (): ModernExtend => {
+        const exposes = utils.exposeEndpoints(e.enum("initiate_test_mode", ea.SET, ["test"]).withDescription("Device self-check test."));
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["initiate_test_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    const testMode = {
+                        testModeDuration: 0x01,
+                        currentZoneSensitivityLevel: 0x01,
+                    };
+                    await entity.command("ssIasZone", "initTestMode", testMode);
+                    return {state: {[key]: value}};
+                },
+            },
+        ];
+        return {
+            exposes: exposes,
+            fromZigbee: [],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    iasWarningDeviceControl: (args?: {warningMode?: (keyof typeof iasWarningMode)[]}): ModernExtend => {
+        const defaultModes = Object.keys(iasWarningMode) as (keyof typeof iasWarningMode)[];
+        const displayModes = args?.warningMode ?? defaultModes;
+
+        const invalidModes = displayModes.filter((m) => !defaultModes.includes(m));
+        if (invalidModes.length > 0) {
+            throw new Error(`Invalid alarm mode: ${invalidModes.join(", ")}, 
+            Legal values: ${defaultModes.join(", ")}`);
+        }
+
+        // biome-ignore lint/correctness/noUnusedVariables: In the future use.
+        const level = {low: 0, medium: 1, high: 2, very_high: 3};
+        // biome-ignore lint/correctness/noUnusedVariables: In the future use.
+        const strobeLevel = {low: 0, medium: 1, high: 2, very_high: 3};
+        const exposes = utils.exposeEndpoints(
+            e
+                .composite("warning_control", "warning_control", ea.SET)
+                .withDescription("Make the device trigger an alarm.")
+                .withFeature(e.enum("mode", ea.SET, displayModes).withDescription("Mode of the warning (sound effect)"))
+                .withFeature(e.numeric("duration", ea.SET).withUnit("s").withDescription("Duration in seconds of the alarm")),
+        );
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["warning_control"],
+                convertSet: async (entity, key, value, meta) => {
+                    const warningModeKey = "mode";
+                    const warningDurationKey = "duration";
+                    const warningModeStr = value[warningModeKey as keyof typeof value];
+                    const warningDurationValue = Number(value[warningDurationKey as keyof typeof value]);
+                    const warningModeValue = iasWarningMode[warningModeStr as keyof typeof iasWarningMode];
+                    if (warningModeValue === undefined) {
+                        throw new Error(`Invalid warning mode: ${invalidModes.join(", ")}, Valid modes:${defaultModes.join(", ")}`);
+                    }
+
+                    if (Number.isNaN(warningDurationValue) || warningDurationValue < 0) {
+                        throw new Error(`Invalid duration: ${warningDurationValue}. Must be a non-negative number.`);
+                    }
+                    const values = {
+                        mode: warningModeValue,
+                        level: warningModeValue ? 1 : 0,
+                        strobe: false,
+                        duration: warningDurationValue,
+                        strobeDutyCycle: 0,
+                        strobeLevel: 0,
+                    };
+
+                    if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
+
+                    const info = (values.mode << 4) + ((values.strobe ? 1 : 0) << 2) + values.level;
+                    await entity.command(
+                        "ssIasWd",
+                        "startWarning",
+                        {
+                            startwarninginfo: info,
+                            warningduration: values.duration,
+                            strobedutycycle: values.strobeDutyCycle,
+                            strobelevel: values.strobeLevel,
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                },
+            },
+        ];
+        return {
+            exposes: exposes,
+            fromZigbee: [],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    iasWarningDeviceMute: (): ModernExtend => {
+        const exposes = utils.exposeEndpoints(
+            e.enum("alarm_mute_setting", ea.SET, ["mute"]).withDescription("When an alarm occurs in the equipment, you can set it to mute mode."),
+        );
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["alarm_mute_setting"],
+                convertSet: async (entity, key, value, meta) => {
+                    const values = {
+                        mode: 0,
+                        level: 0,
+                        strobe: false,
+                        duration: 600,
+                        strobeDutyCycle: 0,
+                        strobeLevel: 0,
+                    };
+
+                    if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
+
+                    const info = (values.mode << 4) + ((values.strobe ? 1 : 0) << 2) + values.level;
+                    await entity.command(
+                        "ssIasWd",
+                        "startWarning",
+                        {
+                            startwarninginfo: info,
+                            warningduration: values.duration,
+                            strobedutycycle: values.strobeDutyCycle,
+                            strobelevel: values.strobeLevel,
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                },
+            },
+        ];
+        return {
+            exposes: exposes,
+            fromZigbee: [],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+};
+
 const fzLocal = {
     occupancyRadarHeiman: {
         cluster: "msOccupancySensing",
@@ -49,7 +588,7 @@ const fzLocal = {
                 const bit1to3 = (occupancy >> 1) & 0x07; // Bits 1-3: Sensor status
                 const bit4to5 = (occupancy >> 4) & 0x03; // Bits 4-5: Fall status
 
-                // Interpretación de los estados
+                // Interpretaci¨®n de los estados
                 result.occupancy = bit0 === 1;
                 result.sensor_status = ["none", "activity"][bit1to3] || "unknown";
                 result.fall_status = ["normal", "fall_warning", "fall_alarm"][bit4to5] || "unknown";
@@ -1120,7 +1659,7 @@ export const definitions: DefinitionWithExtend[] = [
                     enable_indicator: {ID: 0xf001, type: Zcl.DataType.UINT8}, // 0: off, 1: enable
                     sensitivity: {ID: 0xf002, type: Zcl.DataType.UINT8}, // 0: Off, 1: Low sensitivity, 2: High sensitivity
                     enable_sub_region_isolation: {ID: 0xf006, type: Zcl.DataType.UINT8}, // 0: Disable, 1: Enable
-                    installation_method: {ID: 0xf007, type: Zcl.DataType.UINT8}, // 0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45°
+                    installation_method: {ID: 0xf007, type: Zcl.DataType.UINT8}, // 0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45¡ã
                     cell_mounted_table: {
                         ID: 0xf008,
                         type: Zcl.DataType.OCTET_STR,
@@ -1148,21 +1687,21 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("enable_indicator", ea.ALL, [0, 1]).withDescription("0: Off, 1: Enable"),
             e.enum("sensitivity", ea.ALL, [0, 1, 2]).withDescription("0: Off, 1: Low sensitivity, 2: High sensitivity"),
             e.enum("enable_sub_region_isolation", ea.ALL, [0, 1]).withDescription("0: Disable, 1: Enable"),
-            e.enum("installation_method", ea.ALL, [0, 1, 2]).withDescription("0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45°"),
+            e.enum("installation_method", ea.ALL, [0, 1, 2]).withDescription("0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45¡ã"),
             exposes
                 .text("cell_mounted_table", ea.ALL)
                 .withDescription(
-                    "Ceiling installation area coordinate table. Format: 'X1,X2,Y1,Y2,height'. Value range: -2000≤X1≤0, 0≤X2≤2000 -2500≤Y1≤0, 0≤Y2≤2500 2300≤height≤3000 Unit:mm",
+                    "Ceiling installation area coordinate table. Format: 'X1,X2,Y1,Y2,height'. Value range: -2000¡ÜX1¡Ü0, 0¡ÜX2¡Ü2000 -2500¡ÜY1¡Ü0, 0¡ÜY2¡Ü2500 2300¡Üheight¡Ü3000 Unit:mm",
                 ),
             exposes
                 .text("wall_mounted_table", ea.ALL)
                 .withDescription(
-                    "Wall-mounted installation area coordinate table. Format: 'X1,X2,Y2,height' Value range: -2000≤X1≤0, 0≤X2≤2000 200≤Y2≤4000 1500≤height≤1600  Unit:mm.",
+                    "Wall-mounted installation area coordinate table. Format: 'X1,X2,Y2,height' Value range: -2000¡ÜX1¡Ü0, 0¡ÜX2¡Ü2000 200¡ÜY2¡Ü4000 1500¡Üheight¡Ü1600  Unit:mm.",
                 ),
             exposes
                 .text("sub_region_isolation_table", ea.ALL)
                 .withDescription(
-                    "Undetectable area coordinate table. Format: 'x1,x2,y1,y2,z1,z2'. Ranges: X1≤x1≤x2≤X2 When wall-mounted:  200≤y1≤y2≤Y2 0≤z1≤z2≤2300 Ceiling installation: Y1≤y1≤y2≤Y2 0≤z1≤z2≤height Unit:mm",
+                    "Undetectable area coordinate table. Format: 'x1,x2,y1,y2,z1,z2'. Ranges: X1¡Üx1¡Üx2¡ÜX2 When wall-mounted:  200¡Üy1¡Üy2¡ÜY2 0¡Üz1¡Üz2¡Ü2300 Ceiling installation: Y1¡Üy1¡Üy2¡ÜY2 0¡Üz1¡Üz2¡Üheight Unit:mm",
                 ),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -1272,5 +1811,63 @@ export const definitions: DefinitionWithExtend[] = [
             });
         },
         exposes: [e.temperature(), e.pm25(), e.hcho(), e.aqi(), e.pm10()],
+    },
+    {
+        zigbeeModel: ["HS1SA-EF-3.0"],
+        model: "HS1SA-EF",
+        vendor: "Heiman",
+        description: "Smoke detector",
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", 0xfc90]);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterSensorFaultState(),
+            heimanExtend.heimanClusterDeviceMuteState(),
+            heimanExtend.iasZoneInitiateTestMode(),
+            heimanExtend.iasWarningDeviceMute(),
+            heimanExtend.iasWarningDeviceControl({warningMode: ["stop", "emergency"]}),
+            heimanExtend.heimanClusterDeviceMuteControl(),
+            heimanExtend.heimanClusterIndicatorLight(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["WarningDevice-EFA1-3.0"],
+        model: "HS2WD-EF",
+        vendor: "Heiman",
+        description: "Smart siren",
+        fromZigbee: [fz.battery, fz.ias_wd],
+        toZigbee: [tz.warning, tz.ias_max_duration],
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasWd", ["maxDuration"]);
+        },
+        exposes: [
+            e.battery(),
+            e
+                .numeric("max_duration", ea.ALL)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(1800)
+                .withDescription("Max duration of Siren")
+                .withCategory("config"),
+            e
+                .warning()
+                .removeFeature("strobe_level")
+                .removeFeature("mode")
+                .withFeature(e.enum("mode", ea.SET, ["stop", "burglar", "fire", "emergency"]).withDescription("Mode of the warning(sound effect)")),
+        ],
+        ota: true,
     },
 ];
