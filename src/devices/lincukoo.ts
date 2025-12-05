@@ -1,9 +1,9 @@
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, KeyValueString, Tz, Zh} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -16,7 +16,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZW08",
         vendor: "Lincukoo",
         description: "Smart water leakage/lack alarm sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false as const, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970", respondToMcuVersionResponse: false as any})],
         exposes: [
             e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
             e.enum("mode", ea.STATE_SET, ["leakage", "shortage"]).withDescription("work mode of the alarm"),
@@ -87,7 +87,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZLM04U",
         vendor: "Lincukoo",
         description: "Motion and brightness sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false as const, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false as any, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.occupancy(),
             e.illuminance(),
@@ -148,7 +148,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CZF02",
         vendor: "Lincukoo",
         description: "Finger Robot",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false as const, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false as any, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.switch(),
             e.enum("mode", ea.STATE_SET, ["click", "long_press"]).withDescription("work mode of the finger robot"),
@@ -202,7 +202,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZT04",
         vendor: "Lincukoo",
         description: "Temperature and humidity sensor with clock",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false as const, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false as any, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.temperature(),
             e.humidity(),
@@ -329,36 +329,38 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    {
-        zigbeeModel: ["CZB01"],
-        model: "CZB01",
-        vendor: "Lincukoo",
-        description: "Wireless switch with 1 button",
-        fromZigbee: [
-            fz.command_toggle,
-            fz.command_on,
-            fz.command_off,
-            {
-                cluster: "genOnOff",
-                type: ["commandToggle", "commandOn", "commandOff"],
-                convert: (model, msg, publish, options, meta) => {
-                    const actionMap = {
-                        commandToggle: "single_click",
-                        commandOn: "double_click",
-                        commandOff: "long_press",
-                    };
+	{
+		zigbeeModel: ["CZB01"],
+		model: "CZB01",
+		vendor: "Lincukoo",
+		description: "Wireless switch with 1 button",
+		fromZigbee: [
+			fz.command_toggle,
+			fz.command_on,
+			fz.command_off,
+			{
+				cluster: "genOnOff",
+				type: ["commandToggle", "commandOn", "commandOff"],
+				convert: (model, msg, publish, options, meta) => {
+					const actionMap = {
+						commandToggle: "single_click",
+						commandOn: "double_click",
+						commandOff: "long_press",
+					};
 
-                    if (actionMap[msg.type]) {
-                        return {
-                            action: actionMap[msg.type],
-                        };
-                    }
-                },
-            },
-        ],
-        toZigbee: [],
-        exposes: [e.action(["single_click", "double_click", "long_press"])],
-    },
+					const key = msg.type as keyof typeof actionMap;
+					if (key in actionMap) {
+						return {
+							action: actionMap[key],
+						};
+					}
+				},
+			},
+		],
+		toZigbee: [],
+		exposes: [e.action(["single_click", "double_click", "long_press"])],
+	},
+
 
     {
         zigbeeModel: ["G91E-ZH", "G94E-ZH"],
@@ -375,17 +377,29 @@ export const definitions: DefinitionWithExtend[] = [
         model: "W04-Z10T",
         vendor: "Lincukoo",
         description: "Smart water leakage alarm sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false as const, forceTimeUpdates: true, timeStart: "1970"})],
-        exposes: (device) => {
-            const exps = [
-                e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
-                e.enum("alarm_switch", ea.STATE_SET, ["mute", "alarm"]).withDescription("switch of the alarm"),
-            ];
-            if (["_TZE284_iunyuzwe"].includes(device.manufacturerName))
-                exps.push(e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("battery state of the sensor"));
-            else exps.push(e.enum("alarm_ringtone", ea.STATE_SET, ["ring1", "ring2", "ring3"]).withDescription("Ringtone of the alarm"), e.battery());
-            return exps;
-        },
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false as any, forceTimeUpdates: true, timeStart: "1970"})],
+		exposes: (device) => {
+            const exps: Expose[] = [
+				e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
+				e.enum("alarm_switch", ea.STATE_SET, ["mute", "alarm"]).withDescription("switch of the alarm"),
+			];
+
+			if (["_TZE284_iunyuzwe"].includes(device.manufacturerName)) {
+				exps.push(
+					e.enum("battery_state", ea.STATE, ["low", "middle", "high"])
+						.withDescription("battery state of the sensor")
+				);
+			} else {
+				exps.push(
+					e.enum("alarm_ringtone", ea.STATE_SET, ["ring1", "ring2", "ring3"])
+						.withDescription("Ringtone of the alarm")
+				);
+				exps.push(e.battery());
+			}
+
+			return exps;
+			},
+
         meta: {
             // All datapoints go in here
             tuyaDatapoints: [
@@ -404,9 +418,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "V04-Z10T",
         vendor: "Lincukoo",
         description: "Smart vibration alarm sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: false as any, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: (device) => {
-            const exps = [
+            const exps: Expose[] = [
                 e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
                 e.enum("sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("Sensitivity of the sensor"),
             ];
