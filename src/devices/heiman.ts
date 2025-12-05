@@ -588,7 +588,7 @@ const fzLocal = {
                 const bit1to3 = (occupancy >> 1) & 0x07; // Bits 1-3: Sensor status
                 const bit4to5 = (occupancy >> 4) & 0x03; // Bits 4-5: Fall status
 
-                // Interpretaci¨®n de los estados
+                // Interpretación de los estados
                 result.occupancy = bit0 === 1;
                 result.sensor_status = ["none", "activity"][bit1to3] || "unknown";
                 result.fall_status = ["normal", "fall_warning", "fall_alarm"][bit4to5] || "unknown";
@@ -1659,7 +1659,7 @@ export const definitions: DefinitionWithExtend[] = [
                     enable_indicator: {ID: 0xf001, type: Zcl.DataType.UINT8}, // 0: off, 1: enable
                     sensitivity: {ID: 0xf002, type: Zcl.DataType.UINT8}, // 0: Off, 1: Low sensitivity, 2: High sensitivity
                     enable_sub_region_isolation: {ID: 0xf006, type: Zcl.DataType.UINT8}, // 0: Disable, 1: Enable
-                    installation_method: {ID: 0xf007, type: Zcl.DataType.UINT8}, // 0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45¡ã
+                    installation_method: {ID: 0xf007, type: Zcl.DataType.UINT8}, // 0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45°
                     cell_mounted_table: {
                         ID: 0xf008,
                         type: Zcl.DataType.OCTET_STR,
@@ -1687,21 +1687,21 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("enable_indicator", ea.ALL, [0, 1]).withDescription("0: Off, 1: Enable"),
             e.enum("sensitivity", ea.ALL, [0, 1, 2]).withDescription("0: Off, 1: Low sensitivity, 2: High sensitivity"),
             e.enum("enable_sub_region_isolation", ea.ALL, [0, 1]).withDescription("0: Disable, 1: Enable"),
-            e.enum("installation_method", ea.ALL, [0, 1, 2]).withDescription("0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45¡ã"),
+            e.enum("installation_method", ea.ALL, [0, 1, 2]).withDescription("0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45°"),
             exposes
                 .text("cell_mounted_table", ea.ALL)
                 .withDescription(
-                    "Ceiling installation area coordinate table. Format: 'X1,X2,Y1,Y2,height'. Value range: -2000¡ÜX1¡Ü0, 0¡ÜX2¡Ü2000 -2500¡ÜY1¡Ü0, 0¡ÜY2¡Ü2500 2300¡Üheight¡Ü3000 Unit:mm",
+                     "Ceiling installation area coordinate table. Format: 'X1,X2,Y1,Y2,height'. Value range: -2000≤X1≤0, 0≤X2≤2000 -2500≤Y1≤0, 0≤Y2≤2500 2300≤height≤3000 Unit:mm",
                 ),
             exposes
                 .text("wall_mounted_table", ea.ALL)
                 .withDescription(
-                    "Wall-mounted installation area coordinate table. Format: 'X1,X2,Y2,height' Value range: -2000¡ÜX1¡Ü0, 0¡ÜX2¡Ü2000 200¡ÜY2¡Ü4000 1500¡Üheight¡Ü1600  Unit:mm.",
+                    "Wall-mounted installation area coordinate table. Format: 'X1,X2,Y2,height' Value range: -2000≤X1≤0, 0≤X2≤2000 200≤Y2≤4000 1500≤height≤1600  Unit:mm.",
                 ),
             exposes
                 .text("sub_region_isolation_table", ea.ALL)
                 .withDescription(
-                    "Undetectable area coordinate table. Format: 'x1,x2,y1,y2,z1,z2'. Ranges: X1¡Üx1¡Üx2¡ÜX2 When wall-mounted:  200¡Üy1¡Üy2¡ÜY2 0¡Üz1¡Üz2¡Ü2300 Ceiling installation: Y1¡Üy1¡Üy2¡ÜY2 0¡Üz1¡Üz2¡Üheight Unit:mm",
+                    "Undetectable area coordinate table. Format: 'x1,x2,y1,y2,z1,z2'. Ranges: X1≤x1≤x2≤X2 When wall-mounted:  200≤y1≤y2≤Y2 0≤z1≤z2≤2300 Ceiling installation: Y1≤y1≤y2≤Y2 0≤z1≤z2≤height Unit:mm",
                 ),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
