@@ -380,19 +380,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
 		exposes: (device) => {
             const exps: Expose[] = [
-				e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
-				e.enum("alarm_switch", ea.STATE_SET, ["mute", "alarm"]).withDescription("switch of the alarm"),
+                e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
+                e.enum("alarm_switch", ea.STATE_SET, ["mute", "alarm"]).withDescription("switch of the alarm"),
 			];
 
-			if (["_TZE284_iunyuzwe"].includes(device.manufacturerName)) {
-				exps.push(e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("battery state of the sensor"));
-			} else {
-				exps.push(e.enum("alarm_ringtone", ea.STATE_SET, ["ring1", "ring2", "ring3"]).withDescription("Ringtone of the alarm"));
-				exps.push(e.battery());
-			}
-
-			return exps;
-			},
+            if (["_TZE284_iunyuzwe"].includes(device.manufacturerName)) {
+                exps.push(e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("battery state of the sensor"));
+            } else {
+                exps.push(e.enum("alarm_ringtone", ea.STATE_SET, ["ring1", "ring2", "ring3"]).withDescription("Ringtone of the alarm"));
+                exps.push(e.battery());
+            }
+            return exps;
+            },
 
         meta: {
             // All datapoints go in here
