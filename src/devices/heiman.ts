@@ -1691,7 +1691,7 @@ export const definitions: DefinitionWithExtend[] = [
             exposes
                 .text("cell_mounted_table", ea.ALL)
                 .withDescription(
-                     "Ceiling installation area coordinate table. Format: 'X1,X2,Y1,Y2,height'. Value range: -2000≤X1≤0, 0≤X2≤2000 -2500≤Y1≤0, 0≤Y2≤2500 2300≤height≤3000 Unit:mm",
+                    "Ceiling installation area coordinate table. Format: 'X1,X2,Y1,Y2,height'. Value range: -2000≤X1≤0, 0≤X2≤2000 -2500≤Y1≤0, 0≤Y2≤2500 2300≤height≤3000 Unit:mm",
                 ),
             exposes
                 .text("wall_mounted_table", ea.ALL)
