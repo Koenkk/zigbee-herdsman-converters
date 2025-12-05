@@ -2,7 +2,6 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
 import type {DefinitionWithExtend, Expose} from "../lib/types";
 
 const e = exposes.presets;
