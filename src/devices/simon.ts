@@ -1,5 +1,9 @@
 import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
 
+export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["SM0502"],
+
 export default {
     zigbeeModel: ['SM0501'],
     model: 'SM0501',
