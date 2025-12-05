@@ -31,7 +31,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
-        fingerprint: [{modelID: "01F", manufacturerName: "Light"}],
         zigbeeModel: ["91-943-PRO-SINGLE"],
         model: "91-943-PRO",
         vendor: "Light Solutions",
@@ -39,6 +38,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light()],
     },
     {
+        fingerprint: [{modelID: "01F", manufacturerName: "Light"}],
         zigbeeModel: ["91-943"],
         model: "91-943",
         vendor: "Light Solutions",

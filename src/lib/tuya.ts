@@ -470,6 +470,12 @@ export const valueConverterBasic = {
     divideByFromOnly: (value: number) => {
         return {to: (v: number) => v, from: (v: number) => v / value};
     },
+    divideByWithLimits: (value: number, min: number, max: number) => {
+        return {
+            to: (v: number) => (v > max ? max * value : v < min ? min * value : v * value),
+            from: (v: number) => (v / value > max ? max : v / value < min ? min : v / value),
+        };
+    },
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
     },
@@ -847,6 +853,43 @@ export const valueConverter = {
             return v.match(numberPattern).join([]).toString();
         },
     },
+    thermostatHolidayStartStopUnixTS: {
+        // converts 8-byte big-endian 2 times Unix timestamps array to "YYYY/MM/DD HH:MM | YYYY/MM/DD HH:MM" string
+        from: (v: number[]) => {
+            if (!v || v.length !== 8) return "";
+
+            // Convert first 4 bytes → start Unix timestamp
+            const startUnixTS = (v[0] << 24) | (v[1] << 16) | (v[2] << 8) | v[3];
+            // Convert next 4 bytes → end Unix timestamp
+            const endUnixTS = (v[4] << 24) | (v[5] << 16) | (v[6] << 8) | v[7];
+
+            const fmt = (date: Date) => {
+                const year = date.getUTCFullYear();
+                const month = String(date.getUTCMonth() + 1).padStart(2, "0"); // +1 as JavaScript months are zero-based
+                const day = String(date.getUTCDate()).padStart(2, "0");
+                const hours = String(date.getUTCHours()).padStart(2, "0");
+                const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+                return `${year}/${month}/${day} ${hours}:${minutes}`;
+            };
+
+            return `${fmt(new Date(startUnixTS * 1000))} | ${fmt(new Date(endUnixTS * 1000))}`;
+        },
+
+        to: (v: string) => {
+            // converts from string "YYYY/MM/DD HH:MM | YYYY/MM/DD HH:MM" to 8-byte array
+            const [startDate, endDate] = v.split("|").map((s) => s.trim());
+
+            const parse = (s: string) => {
+                const [datePart, timePart] = s.split(" ");
+                const [y, m, d] = datePart.split("/").map(Number);
+                const [h, min] = timePart.split(":").map(Number);
+                const unix = Math.floor(Date.UTC(y, m - 1, d, h, min) / 1000);
+                return [(unix >> 24) & 0xff, (unix >> 16) & 0xff, (unix >> 8) & 0xff, unix & 0xff];
+            };
+
+            return [...parse(startDate), ...parse(endDate)]; // ... to unpack arrays into elements
+        },
+    },
     thermostatScheduleDaySingleDP: {
         from: (v: number[]) => {
             // day split to 10 min segments = total 144 segments
@@ -1056,6 +1099,55 @@ export const valueConverter = {
                 return data;
             },
         };
+    },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    thermostatScheduleDayMultiDP_TRV603WZ: {
+        // Custom schedule value converter for TRV603-WZ 8 pair schedule per day
+        // Structure:
+        //   [0] metadata (unknown purpose, preserved)
+        //   [1] count = number of subsequent bytes (must be even: pairs*2)
+        //   [2..] alternating (timeByte, thermByte) pairs.
+        // Encoding rules:
+        //   timeByte = hour * 10 + (minute / 10) (minute must be multiple of 10)
+        //   thermByte = 2 * temperatureC   (temperature in 0.5°C steps)
+        // Decoded textual schedule format:
+        //   "HH:MM/TT.T HH:MM/TT.T HH:MM/TT.T HH:MM/TT.T HH:MM/TT.T HH:MM/TT.T HH:MM/TT.T HH:MM/TT.T"
+        from: (v: number[]) => {
+            if (!v || v.length < 4) return "";
+            // const meta = v[0];  // (always 7?)
+            const count = v[1];
+            const segments = [];
+            for (let i = 0; i < count; i += 2) {
+                const timeByte = v[2 + i];
+                const thermByte = v[2 + i + 1];
+                const hour = Math.floor(timeByte / 10);
+                const minutes = (timeByte % 10) * 10;
+                const thermC = thermByte / 2;
+                segments.push(`${String(hour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}/${thermC.toFixed(1)}`);
+            }
+            return segments.join(" ");
+        },
+        to: (v: string) => {
+            const parts = v.split(/\s+/).filter(Boolean);
+            const payload = [];
+            const meta = 7; // keep observed metadata value;
+            payload.push(meta); // index 0
+            payload.push(parts.length * 2); // index 1: count of subsequent bytes
+            for (const segment of parts) {
+                // Segment format: HH:MM/TT.T  (e.g. 06:30/21.0 or 17:30/21.5)
+                const match = segment.match(/^(\d{2}):(\d{2})\/(\d{1,2}(?:\.5|\.0)?)$/);
+                if (!match) throw new Error(`Invalid schedule segment "${segment}", expected format "HH:MM/TT.T"`);
+                const hour = Number(match[1]);
+                if (hour < 0 || hour >= 24) throw new Error(`Invalid hour "${hour}" in schedule segment "${segment}", must be 0-23`);
+                const minute = Number(match[2]);
+                if (minute < 0 || minute > 59) throw new Error(`Invalid minute "${minute}" in schedule segment "${segment}", must be 0-59`);
+                const thermC = Number(match[3]);
+                const timeByte = hour * 10 + minute / 10;
+                const thermByte = Math.round(thermC * 2);
+                payload.push(timeByte, thermByte);
+            }
+            return payload;
+        },
     },
     tv02Preset: () => {
         return {
