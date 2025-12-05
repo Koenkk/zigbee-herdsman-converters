@@ -21878,7 +21878,7 @@ export const definitions: DefinitionWithExtend[] = [
               [110,"soil_warning", tuya.valueConverter.raw],
               [111,"water_warning",tuya.valueConverterBasic.lookup({'none': tuya.enum(0),'alarm':tuya.enum(1)})],
               [112,"soil_fertility",tuya.valueConverter.raw],
-              [113,"soil_fertility_calibration",tuya.valueConverter.raw]
+              [113,"soil_fertility_calibration",tuya.valueConverter.raw],
               [114,"soil_fertility_warning_setting",tuya.valueConverter.raw],
               [115,"soil_fertility_warning",tuya.valueConverterBasic.lookup({'none': tuya.enum(0),'alarm':tuya.enum(1)})]
         
