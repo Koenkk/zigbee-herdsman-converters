@@ -21827,7 +21827,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("Arteco", ["A89G12C"]),
         model: "ZS-SF00",
         vendor: "Arteco",
-        description: "Soil Fertility Sensor",
+        description: "Soil fertility sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
