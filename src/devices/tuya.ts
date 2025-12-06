@@ -4392,6 +4392,8 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaLight({
                 colorTemp: {range: undefined},
                 color: true,
+                doNotDisturb: false,
+                colorPowerOnBehavior: false,
             }),
         ],
         whiteLabel: [
