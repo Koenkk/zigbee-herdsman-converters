@@ -45,6 +45,14 @@ const rd1pKnobActionsMap: {[key: string]: string} = {
     commandStop: "stopped_rotating",
 };
 
+interface CandeoOnOff {
+    attributes: never;
+    commands: {
+        release: never;
+    };
+    commandResponses: never;
+}
+
 const luxScale: m.ScaleFunction = (value: number, type: "from" | "to") => {
     let result = value;
     if (type === "from") {
@@ -202,7 +210,7 @@ const fzLocal = {
             utils.addActionGroup(payload, msg, model);
             return payload;
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle", "commandRelease"]>,
+    } satisfies Fz.Converter<"genOnOff", CandeoOnOff, ["commandOn", "commandOff", "commandToggle", "commandRelease"]>,
 };
 
 const tzLocal = {
