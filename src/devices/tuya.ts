@@ -8028,6 +8028,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "AVATTO", model: "MIUCOT10Z"},
             {vendor: "NEO", model: "PLUG-001SPB2"},
             tuya.whitelabel("BSEED", "TS011F_plug_3_1", "Wall-mounted electrical EU/FR/UK socket with power monitoring", ["_TZ3000_2uollq9d"]),
+            tuya.whitelabel("Nous", "A6Z_polling", "Outdoor smart socket", ["_TZ3000_266azbg3"]),
         ],
         ota: true,
         extend: [
