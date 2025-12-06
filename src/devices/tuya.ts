@@ -21826,28 +21826,22 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-    fingerprint: tuya.fingerprint("TS0601", ["_TZE284_4ar89tr1"]),
-    model: 'TS0601_TZE284_4ar89tr1',
-    vendor: 'Tuya',
-    description: 'Tuya dimmer with rotary brightness',
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_4ar89tr1"]),
+        model: "TS0601_TZE284_4ar89tr1",
+        vendor: "Tuya",
+        description: "Tuya dimmer with rotary brightness",
 
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
 
-    exposes: [
-        e.light()
-            .withBrightness()
-            .setAccess('state', ea.STATE_SET)
-            .setAccess('brightness', ea.STATE_SET),
-        tuya.exposes.lightType(),
-    ],
+        exposes: [e.light().withBrightness().setAccess("state", ea.STATE_SET).setAccess("brightness", ea.STATE_SET), tuya.exposes.lightType()],
 
-    meta: {
-        tuyaDatapoints: [
-            [1, 'state', tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
-            [2, 'brightness', tuya.valueConverter.scale0_254to0_1000],
-            [4, "light_type", tuya.valueConverter.lightType],
-        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, "brightness", tuya.valueConverter.scale0_254to0_1000],
+                [4, "light_type", tuya.valueConverter.lightType],
+            ],
+        },
     },
-},
 ];
