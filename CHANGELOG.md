@@ -1,5 +1,19 @@
 # Changelog
 
+## [25.83.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.83.0...v25.83.1) (2025-12-06)
+
+
+### Bug Fixes
+
+* Candeo C-ZB-RD1P-REM and C-ZB-RD1P-DPM: fix release action missing ([#10952](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10952)) ([dad9877](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dad987734caa5da079b206485c92ede78f887b52))
+* **detect:** Detect `_TZ3000_266azbg3` as Nous A6Z_polling https://github.com/Koenkk/zigbee2mqtt/issues/30044 ([f449c3a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f449c3ad2a56c645cd45906bda886baacc85e116))
+* **detect:** Detect `_TZ3000_cjrngdr3` as MatSee Plus PJ-MINI-ZSW01 ([#10955](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10955)) ([e005575](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e0055750ae50911e611ea81d75eb8223fec848e7))
+* Ledvance: fix OTA failing for various plugs ([#10947](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10947)) ([0c71a70](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0c71a707657a5c83c39bfd0348ad19dbaefe14d2))
+* modernExtend: occupancy use correct configs ([#10939](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10939)) ([#10950](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10950)) ([5664ef9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5664ef91e5eef2b9047d5937e6ee7a03ef26d887))
+* Philips 9290038549H: fix color temp range ([#10946](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10946)) ([643048e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/643048e84d4924082b18ee1d678a242dbcce4d41))
+* SONOFF S60ZBTPF: fix current power value not reading ([7cc294a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7cc294abeb58944445e8fc2ba25236ea7921edee))
+* Tuya: modify the lower limit of the report interval for some devices ([#10949](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10949)) ([7764a06](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7764a06340c4f625f49686a99a3ea89efab475d0))
+
 ## [25.83.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.82.0...v25.83.0) (2025-12-04)
 
 
