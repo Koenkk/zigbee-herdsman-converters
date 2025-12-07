@@ -3242,7 +3242,7 @@ export const boschThermostatExtend = {
             reporting: false,
             entityCategory: "config",
         }),
-    humidity: () => m.humidity({reporting: true}),
+    humidity: () => m.humidity({reporting: {min: "1_MINUTE", max: "1_HOUR", change: 100}}),
     operatingMode: (args?: {enableReporting: boolean}) =>
         m.enumLookup<"hvacThermostat", BoschThermostatCluster>({
             name: "operating_mode",
