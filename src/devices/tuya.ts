@@ -7456,7 +7456,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Thermostatic radiator valve.",
         whiteLabel: [tuya.whitelabel("Moes", "TRV801Z", "Thermostatic radiator valve", ["_TZE204_qyr2m29i", "_TZE284_ltwbm23f"])],
-        extend: [tuyaBase({dp: true, timeStart: "1970"})],
+        // _TZE204_qyr2m29i requires 2000
+        // https://github.com/Koenkk/zigbee2mqtt/issues/30054
+        extend: [tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.battery(),
             e.child_lock(),
