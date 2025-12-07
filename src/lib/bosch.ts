@@ -3242,7 +3242,7 @@ export const boschThermostatExtend = {
             reporting: false,
             entityCategory: "config",
         }),
-    humidity: () => m.humidity({reporting: false}),
+    humidity: () => m.humidity({reporting: true}),
     operatingMode: (args?: {enableReporting: boolean}) =>
         m.enumLookup<"hvacThermostat", BoschThermostatCluster>({
             name: "operating_mode",
@@ -3387,7 +3387,7 @@ export const boschThermostatExtend = {
     rmThermostat: (): ModernExtend => {
         const thermostat = m.thermostat({
             localTemperature: {
-                configure: {reporting: {min: 30, max: 900, change: 10}},
+                configure: {reporting: {min: "1_MINUTE", max: "1_HOUR", change: 10}},
             },
             localTemperatureCalibration: {
                 values: {min: -5, max: 5, step: 0.1},
@@ -3431,7 +3431,7 @@ export const boschThermostatExtend = {
                         "remote temperature (if set within the last 30 min).",
                 },
                 configure: {
-                    reporting: {min: 30, max: 900, change: 20},
+                    reporting: {min: "1_MINUTE", max: "1_HOUR", change: 10},
                 },
             },
             localTemperatureCalibration: {
