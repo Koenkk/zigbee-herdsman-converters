@@ -830,7 +830,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "name_l3", valueConverterLocal.name],
             ],
         },
-    }
+    },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mpg22jc1"]),
         model: "ZN-USC1U-HT",
