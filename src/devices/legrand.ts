@@ -727,7 +727,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: [" Wireless Color Dimmer\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"],
         model: "067767",
-        vendor: ' Legrand',
+        vendor: " Legrand",
         description: "Wireless Color Ambiance Switch 067767/68/69 - 077710L",
         ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},

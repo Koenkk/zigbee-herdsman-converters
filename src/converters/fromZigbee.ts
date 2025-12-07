@@ -3688,7 +3688,15 @@ export const legrand_scenes: Fz.Converter<"genScenes", undefined, "commandRecall
     cluster: "genScenes",
     type: "commandRecall",
     convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {65527: "enter", 65526: "leave", 65524: "sleep", 65525: "wakeup", 65518: "ambiance_I", 65519: "ambiance_II", 65520: "ambiance_III"};
+        const lookup: KeyValueAny = {
+            65527: "enter",
+            65526: "leave",
+            65524: "sleep",
+            65525: "wakeup",
+            65518: "ambiance_I",
+            65519: "ambiance_II",
+            65520: "ambiance_III",
+        };
         return {action: lookup[msg.data.groupid] ? lookup[msg.data.groupid] : "default"};
     },
 };
