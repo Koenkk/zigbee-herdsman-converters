@@ -1938,14 +1938,20 @@ export const definitions: DefinitionWithExtend[] = [
                 logger.debug("Failed to setup keypadLockout reporting", NS);
             }
 
-            await endpoint.configureReporting("hvacThermostat", [
-                {
-                    attribute: "occupancy",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: null,
-                },
-            ]);
+            try {
+                await endpoint.configureReporting("hvacThermostat", [
+                    {
+                        attribute: "occupancy",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ]);
+            } catch {
+                // Fails for some
+                // https://github.com/Koenkk/zigbee2mqtt/issues/29833
+                logger.debug("Failed to setup occupancy reporting", NS);
+            }
 
             await endpoint.read("haElectricalMeasurement", ["acVoltageMultiplier", "acVoltageDivisor", "acCurrentMultiplier"]);
             await endpoint.read("haElectricalMeasurement", ["acCurrentDivisor"]);
