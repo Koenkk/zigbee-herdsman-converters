@@ -1542,9 +1542,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue white and color ambiance E26/E27/E14",
         whiteLabel: [
-                {model: "9290012574", vendor: "Philips", description: "Hue White and Color Ambiance B22/E27 806lm", fingerprint: [{modelID: "LCT010"}]},
-            ],
-            extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+            {model: "9290012574", vendor: "Philips", description: "Hue White and Color Ambiance B22/E27 806lm", fingerprint: [{modelID: "LCT010"}]},
+        ],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["1743930P7", "1744030P7", "1744030V7", "1743930V7"],
