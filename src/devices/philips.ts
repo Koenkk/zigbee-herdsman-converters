@@ -320,10 +320,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [154, 455]}, color: true})],
     },
     {
-        zigbeeModel: ["LCA013"],
-        model: "929003853701",
+        zigbeeModel: ["LCA010", "LCA013", "LCA014"],
+        model: "929003853404",
         vendor: "Philips",
-        description: "Hue white ambiance and color 806lm A19 E26",
+        description: "Hue white ambiance and color 810lm A60 E27",
+        whiteLabel: [
+            {model: "929003853701", vendor: "Philips", description: "Hue white ambiance and color 806lm A19 E26", fingerprint: [{modelID: "LCA013"}]},
+            {model: "929003853803", vendor: "Philips", description: "Hue white ambiance and color 1100lm A19 E26", fingerprint: [{modelID: "LCA014"}]},
+        ],
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
