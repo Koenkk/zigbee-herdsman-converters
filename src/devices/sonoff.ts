@@ -2322,6 +2322,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart plug",
         whiteLabel: [{vendor: "SONOFF", model: "S60ZBTPG", fingerprint: [{modelID: "S60ZBTPG"}]}],
         fromZigbee: [fzLocal.on_off_clear_electricity, fz.metering],
+        exposes: [e.energy()],
         extend: [
             m.onOff({
                 powerOnBehavior: true,
