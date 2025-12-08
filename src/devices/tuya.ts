@@ -22036,8 +22036,8 @@ export const definitions: DefinitionWithExtend[] = [
                     1,
                     null,
                     {
-                        from: (v) => {
-                            switch (v: number) {
+                        from: (v: number) => {
+                            switch (v) {
                                 case 0:
                                     return {state: "Absence", presence: false};
                                 case 1:
