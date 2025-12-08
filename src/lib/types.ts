@@ -66,7 +66,7 @@ export interface Fingerprint {
     priority?: number;
 }
 export type WhiteLabel =
-    | {vendor: string; model: string; description: string; fingerprint: Fingerprint[]}
+    | {vendor?: string; model: string; description?: string; fingerprint: Fingerprint[]}
     | {vendor: string; model: string; description?: string};
 
 export interface MockProperty {
