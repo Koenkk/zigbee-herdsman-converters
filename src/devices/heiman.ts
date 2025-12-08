@@ -9,7 +9,6 @@ import {
     addCustomClusterHeimanSpecificInfraRedRemote,
     addCustomClusterHeimanSpecificScenes,
 } from "../lib/heiman";
-import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
@@ -19,13 +18,6 @@ import * as utils from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const NS = "zhc:heiman";
-
-// biome-ignore lint/correctness/noUnusedVariables: TODO
-const manufacturerOptions = {
-    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD,
-    disableDefaultResponse: false,
-};
 const defaultResponseOptions = {disableDefaultResponse: false};
 
 interface RadarSensorHeiman {
@@ -296,7 +288,6 @@ const heimanExtend = {
                     let duration = Number(mute_duration);
                     if (Number.isNaN(duration) || duration < 0 || duration > 65535) {
                         duration = 0;
-                        logger.debug(`[Heiman] Invalid mute_duration: ${mute_duration}, fallback to 0`, NS);
                     }
                     duration = Math.floor(duration);
 
