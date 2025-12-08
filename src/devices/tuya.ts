@@ -4430,6 +4430,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "HS09", "Hanging temperature humidity sensor", ["_TZ3000_1twfmkcc"]),
             tuya.whitelabel("Nedis", "ZBSC10WT", "Temperature and humidity sensor", ["_TZ3000_fie1dpkm"]),
             tuya.whitelabel("Tuya", "TH09Z", "Temperature and humidity sensor", ["_TZ3000_isw9u95y", "_TZ3000_yupc0pb7"]),
+            tuya.whitelabel("Tuya", "ZTH05_1", "Temperature and humidity sensor", ["_TZ3000_bgsigers"]),
         ],
     },
     {
@@ -5083,10 +5084,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             tuya.modernExtend.electricityMeasurementPoll({
                 electricalMeasurement: (device) =>
-                    device.manufacturerName === "_TZ3000_x3ewpzyr" ||
+                    (device.manufacturerName === "_TZ3000_x3ewpzyr" && [162, 100].includes(device.applicationVersion)) ||
                     (device.manufacturerName === "_TZ3000_xkap8wtb" && [162, 100].includes(device.applicationVersion)),
                 metering: (device) =>
-                    device.manufacturerName === "_TZ3000_x3ewpzyr" ||
+                    (device.manufacturerName === "_TZ3000_x3ewpzyr" && [162, 100].includes(device.applicationVersion)) ||
                     (device.manufacturerName === "_TZ3000_xkap8wtb" && [162, 100].includes(device.applicationVersion)),
             }),
         ],
@@ -7455,7 +7456,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Thermostatic radiator valve.",
         whiteLabel: [tuya.whitelabel("Moes", "TRV801Z", "Thermostatic radiator valve", ["_TZE204_qyr2m29i", "_TZE284_ltwbm23f"])],
-        extend: [tuyaBase({dp: true, timeStart: "1970"})],
+        // _TZE204_qyr2m29i requires 2000
+        // https://github.com/Koenkk/zigbee2mqtt/issues/30054
+        extend: [tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.battery(),
             e.child_lock(),
@@ -7920,6 +7923,8 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("NEO", "NAS-WR01B", "Smart plug (with electrical measurements)", ["_TZ3000_gjnozsaz"]),
             tuya.whitelabel("GreenSun", "HSC-ZW-EU", "Outdoor Smart Plug (with power monitoring)", ["_TZ3000_cicwjqth"]),
             tuya.whitelabel("Nous", "A10Z", "Smart Zigbee Socket", ["_TZ3210_jlf1nepw"]),
+            tuya.whitelabel("MatSee Plus", "PJ-MINI-ZSW01", "Smart Socket Switch Module (with power monitoring)", ["_TZ3000_cjrngdr3"]),
+            tuya.whitelabel("BlitzWolf", "BW-SHP13", "Smart plug (with power monitoring)", ["_TZ3000_amdymr7l"]),
         ],
         ota: true,
         extend: [
@@ -8026,6 +8031,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "AVATTO", model: "MIUCOT10Z"},
             {vendor: "NEO", model: "PLUG-001SPB2"},
             tuya.whitelabel("BSEED", "TS011F_plug_3_1", "Wall-mounted electrical EU/FR/UK socket with power monitoring", ["_TZ3000_2uollq9d"]),
+            tuya.whitelabel("Nous", "A6Z_polling", "Outdoor smart socket", ["_TZ3000_266azbg3"]),
         ],
         ota: true,
         extend: [
@@ -13329,7 +13335,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.ac_frequency(),
             e
                 .numeric("data_report_duration", ea.SET)
-                .withValueMin(30)
+                .withValueMin(5)
                 .withValueMax(3600)
                 .withDescription(
                     "WARNING: You must update device firmware to V3.2.2 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 30~3600 seconds)",
@@ -13343,7 +13349,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "data_report_duration",
                     {
                         to: (v: number) => {
-                            const value = Math.max(30, Math.min(3600, Math.round(v)));
+                            const value = Math.max(5, Math.min(3600, Math.round(v)));
                             const byte1 = (value >> 8) & 0xff;
                             const byte2 = value & 0xff;
                             return [
@@ -13511,9 +13517,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("update_frequency", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Update frequency")
-                .withValueMin(30)
+                .withValueMin(5)
                 .withValueMax(3600)
-                .withPreset("default", 10, "Default value"),
+                .withPreset("default", 30, "Default value"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -13638,9 +13644,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("update_frequency", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Update frequency")
-                .withValueMin(30)
+                .withValueMin(5)
                 .withValueMax(3600)
-                .withPreset("default", 10, "Default value"),
+                .withPreset("default", 30, "Default value"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -13699,9 +13705,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("update_frequency", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Update frequency")
-                .withValueMin(30)
+                .withValueMin(5)
                 .withValueMax(3600)
-                .withPreset("default", 10, "Default value"),
+                .withPreset("default", 30, "Default value"),
         ],
         meta: {
             tuyaDatapoints: [

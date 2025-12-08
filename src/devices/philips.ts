@@ -162,13 +162,6 @@ const extendLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["929004610602"],
-        model: "929004610602",
-        vendor: "Philips",
-        description: "Hue White and Color Flux Strip Light 5m",
-        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
         zigbeeModel: ["LCX028"],
         model: "929004581901",
         vendor: "Philips",
@@ -296,7 +289,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290038549H",
         vendor: "Philips",
         description: "Hue white ambiance",
-        extend: [philips.m.light({colorTemp: {range: [222, 454]}})],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}})],
     },
     {
         zigbeeModel: ["LTA016"],
@@ -327,10 +320,19 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [154, 455]}, color: true})],
     },
     {
-        zigbeeModel: ["LCA013"],
-        model: "929003853701",
+        zigbeeModel: ["LCA010", "LCA013", "LCA014"],
+        model: "929003853404",
         vendor: "Philips",
-        description: "Hue white ambiance and color 806lm A19 E26",
+        description: "Hue white ambiance and color 810lm A60 E27",
+        whiteLabel: [
+            {model: "929003853701", vendor: "Philips", description: "Hue white ambiance and color 806lm A19 E26", fingerprint: [{modelID: "LCA013"}]},
+            {
+                model: "929003853803",
+                vendor: "Philips",
+                description: "Hue white ambiance and color 1100lm A19 E26",
+                fingerprint: [{modelID: "LCA014"}],
+            },
+        ],
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -4696,5 +4698,38 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue White Ambiance — dimmable white light",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}})],
+    },
+    {
+        zigbeeModel: ["929004610602", "929004610702", "929004610802", "929004610502", "929004610402"],
+        model: "929004610602",
+        vendor: "Philips",
+        description: "Hue White and Color Flux Strip Light 5m",
+        whiteLabel: [
+            {
+                model: "929004610702",
+                vendor: "Philips",
+                description: "Hue White and Color Flux Strip Light 6m",
+                fingerprint: [{modelID: "929004610702"}],
+            },
+            {
+                model: "929004610802",
+                vendor: "Philips",
+                description: "Hue White and Color Flux Strip Light 10m",
+                fingerprint: [{modelID: "929004610802"}],
+            },
+            {
+                model: "929004610502",
+                vendor: "Philips",
+                description: "Hue White and Color Flux Strip Light 4m",
+                fingerprint: [{modelID: "929004610502"}],
+            },
+            {
+                model: "929004610402",
+                vendor: "Philips",
+                description: "Hue White and Color Flux Strip Light 3m",
+                fingerprint: [{modelID: "929004610402"}],
+            },
+        ],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
 ];
