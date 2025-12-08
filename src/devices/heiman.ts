@@ -260,8 +260,8 @@ const heimanExtend = {
     heimanClusterDeviceMuteControl: (): ModernExtend => {
         const clusterName = "heimanClusterSpecial" as const;
         const muteModeMap = {
-            "alarm mute": 0x02,
-            "low battery": 0x08,
+            "alarm_mute": 0x02,
+            "low_battery": 0x08,
         } as const;
         const exposes = utils.exposeEndpoints(
             e
