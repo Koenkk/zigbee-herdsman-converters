@@ -15,7 +15,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZW08",
         vendor: "Lincukoo",
         description: "Smart water leakage/lack alarm sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
             e.enum("mode", ea.STATE_SET, ["leakage", "shortage"]).withDescription("work mode of the alarm"),
@@ -86,7 +86,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZLM04U",
         vendor: "Lincukoo",
         description: "Motion and brightness sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.occupancy(),
             e.illuminance(),
@@ -333,31 +333,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CZB01",
         vendor: "Lincukoo",
         description: "Wireless switch with 1 button",
-        fromZigbee: [
-            fz.command_toggle,
-            fz.command_on,
-            fz.command_off,
-            {
-                cluster: "genOnOff",
-                type: ["commandToggle", "commandOn", "commandOff"],
-                convert: (model, msg, publish, options, meta) => {
-                    const actionMap = {
-                        commandToggle: "single_click",
-                        commandOn: "double_click",
-                        commandOff: "long_press",
-                    };
-
-                    const key = msg.type as keyof typeof actionMap;
-                    if (key in actionMap) {
-                        return {
-                            action: actionMap[key],
-                        };
-                    }
-                },
-            },
-        ],
-        toZigbee: [],
-        exposes: [e.action(["single_click", "double_click", "long_press"])],
+        extend: [m.battery(), m.commandsOnOff()],
     },
 
     {
@@ -375,7 +351,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "W04-Z10T",
         vendor: "Lincukoo",
         description: "Smart water leakage alarm sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: (device) => {
             const exps: Expose[] = [
                 e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
@@ -409,7 +385,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "V04-Z10T",
         vendor: "Lincukoo",
         description: "Smart vibration alarm sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: (device) => {
             const exps: Expose[] = [
                 e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
