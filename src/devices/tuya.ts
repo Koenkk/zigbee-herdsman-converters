@@ -21869,10 +21869,10 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.enum("state", ea.STATE, ["Absence", "Presence", "Disabled"]).withLabel("Status").withCategory("state"),
-            e.presence().withCategory("state"),
-            e.enum("current_status", ea.STATE, ["Approaching", "Departing", "Clear"]).withCategory("state"),
-            e.illuminance().withLabel("Luminance").withCategory("state"),
+            e.enum("state", ea.STATE, ["Absence", "Presence", "Disabled"]).withLabel("Status"),
+            e.presence(),
+            e.enum("current_status", ea.STATE, ["Approaching", "Departing", "Clear"]),
+            e.illuminance().withLabel("Luminance"),
             e
                 .numeric("hold_delay_time", ea.STATE_SET)
                 .withUnit("s")
@@ -21954,11 +21954,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withCategory("config")
                 .withDescription("Interval (minutes) between periodic Absence reports after switching to Absence."),
-            /* // Internal DP; for internal use only, not exposed in UI
-        e.binary('status_flip', ea.STATE_SET, 'ON', 'OFF')
-          .withDescription('Invert reported presence state. When enabled, Presence becomes Absence and vice-versa.')
-          .withCategory('config'),
-        */
+            // Internal DP; for internal use only, not exposed in UI
+            /* 
+            e
+                .binary("status_flip", ea.STATE_SET, "ON", "OFF")
+                .withCategory("config")
+                .withDescription("Invert reported presence state. When enabled, Presence becomes Absence and vice-versa."),
+            */
             e
                 .binary("find_device", ea.STATE_SET, "ON", "OFF")
                 .withCategory("config")
@@ -22035,7 +22037,7 @@ export const definitions: DefinitionWithExtend[] = [
                     null,
                     {
                         from: (v) => {
-                            switch (v) {
+                            switch (v: number) {
                                 case 0:
                                     return {state: "Absence", presence: false};
                                 case 1:
@@ -22047,7 +22049,7 @@ export const definitions: DefinitionWithExtend[] = [
                                     return {state: "Absence", presence: false};
                             }
                         },
-                        to: (value) => {
+                        to: (value: any) => {
                             switch (value.state) {
                                 case "Presence":
                                     return 1;
@@ -22068,7 +22070,7 @@ export const definitions: DefinitionWithExtend[] = [
                     103,
                     "ai_self_learning",
                     {
-                        from: (v) => ({0: "end", 4: "learning"})[v],
+                        from: (v: number) => ({0: "end", 4: "learning"})[v],
                         to: () => 1,
                     },
                 ],
@@ -22077,22 +22079,16 @@ export const definitions: DefinitionWithExtend[] = [
                     "factory_reset",
                     {
                         from: () => "idle",
-                        to: (v) => ({"Factory reset": 1})[v] || 0,
+                        to: (v: string) => ({"Factory reset": 1})[v] || 0,
                     },
                 ],
                 [
                     105,
                     "fast_setting",
                     {
-                        from: (v) => {
-                            const mapping = {1: "Large", 2: "Medium", 3: "Small"};
-                            return mapping[v] ?? "Medium";
-                        },
-                        to: (v) => {
-                            const mapping = {Small: 3, Medium: 2, Large: 1};
-                            return mapping[v] ?? 2;
-                        },
-                    },
+                        from: (v: number) => ({ 1: "Large", 2: "Medium", 3: "Small" }[v] ?? "Medium"),
+                        to: (v: string) => ({ "Small": 3, "Medium": 2, "Large": 1 }[v] ?? 2),
+                    }
                 ],
                 [107, "indicator", tuya.valueConverter.onOff],
                 [106, "hold_delay_time", tuya.valueConverter.raw],
@@ -22124,8 +22120,8 @@ export const definitions: DefinitionWithExtend[] = [
                     116,
                     "sensor_mode",
                     {
-                        from: (v) => ({1: "Presence", 2: "Motion"})[v] ?? "Unknown",
-                        to: (v) => ({Presence: 1, Motion: 2})[v] ?? 1,
+                        from: (v: number) => ({1: "Presence", 2: "Motion"})[v] ?? "Unknown",
+                        to: (v: string) => ({Presence: 1, Motion: 2})[v] ?? 1,
                     },
                 ],
                 [117, "single_mode", tuya.valueConverter.onOff],
@@ -22154,15 +22150,9 @@ export const definitions: DefinitionWithExtend[] = [
                     125,
                     "home_environment",
                     {
-                        from: (v) => {
-                            const mapping = {0: "Normal", 1: "Slight", 2: "Strong", 3: "Severe"};
-                            return mapping[v] ?? "Unknown";
-                        },
-                        to: (v) => {
-                            const mapping = {Normal: 0, Slight: 1, Strong: 2, Severe: 3};
-                            return mapping[v] ?? 0;
-                        },
-                    },
+                        from: (v: number) => ({ 0: "Normal", 1: "Slight", 2: "Strong", 3: "Severe" }[v] ?? "Unknown"),
+                        to: (v: string) => ({ "Normal": 0, "Slight": 1, "Strong": 2, "Severe": 3 }[v] ?? 0),
+                    }
                 ],
             ],
         },
