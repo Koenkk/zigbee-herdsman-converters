@@ -167,6 +167,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: undefined}})],
     },
     {
+        fingerprint: [{modelID: "CCT", manufacturerName: "Paulmann Licht GmbH", dateCode: "20190515"}],
         zigbeeModel: ["500.46"],
         model: "500.46",
         vendor: "Paulmann",

@@ -319,6 +319,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         whiteLabel: [{vendor: "Aqara", model: "RLS-K01D"}],
         description: "Light strip T1",
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
+            await endpoint.read("genLevelCtrl", [0x0012], {});
+            await endpoint.read("genLevelCtrl", [0x0013], {});
+        },
         extend: [
             m.light({effect: false, powerOnBehavior: false, colorTemp: {startup: false, range: [153, 370]}, color: true}),
             lumiPowerOnBehavior(),
@@ -332,26 +339,6 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x051b, type: 0x20},
                 description: "LED strip length",
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
-            m.numeric({
-                name: "min_brightness",
-                valueMin: 0,
-                valueMax: 99,
-                unit: "%",
-                cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0515, type: 0x20},
-                description: "Minimum brightness level",
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
-            m.numeric({
-                name: "max_brightness",
-                valueMin: 1,
-                valueMax: 100,
-                unit: "%",
-                cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0516, type: 0x20},
-                description: "Maximum brightness level",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
@@ -397,6 +384,10 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Effect speed",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+            lumi.lumiModernExtend.lumiDimmingRangeMin(),
+            lumi.lumiModernExtend.lumiDimmingRangeMax(),
+            lumi.lumiModernExtend.lumiOffOnDuration(),
+            lumi.lumiModernExtend.lumiOnOffDuration(),
             lumiZigbeeOTA(),
         ],
     },
@@ -4348,11 +4339,22 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HCXDD12LM",
         vendor: "Aqara",
         description: "Ceiling light T1",
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
+            await endpoint.read("genLevelCtrl", [0x0012], {});
+            await endpoint.read("genLevelCtrl", [0x0013], {});
+        },
         extend: [
             m.deviceEndpoints({endpoints: {white: 1, rgb: 2}}),
             lumiLight({colorTemp: true, powerOutageMemory: "light", endpointNames: ["white"]}),
             lumiLight({colorTemp: true, deviceTemperature: false, powerOutageCount: false, color: {modes: ["xy", "hs"]}, endpointNames: ["rgb"]}),
             lumiZigbeeOTA(),
+            lumi.lumiModernExtend.lumiDimmingRangeMin(),
+            lumi.lumiModernExtend.lumiDimmingRangeMax(),
+            lumi.lumiModernExtend.lumiOffOnDuration(),
+            lumi.lumiModernExtend.lumiOnOffDuration(),
         ],
     },
     {
@@ -4360,19 +4362,30 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CL-L02D",
         vendor: "Aqara",
         description: "Ceiling light T1M",
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
+            await endpoint.read("genLevelCtrl", [0x0012], {});
+            await endpoint.read("genLevelCtrl", [0x0013], {});
+        },
         extend: [
             m.deviceEndpoints({endpoints: {white: 1, rgb: 2}}),
             lumiLight({colorTemp: true, endpointNames: ["white"]}),
             lumiLight({colorTemp: true, deviceTemperature: false, powerOutageCount: false, color: {modes: ["xy", "hs"]}, endpointNames: ["rgb"]}),
             lumiZigbeeOTA(),
             m.enumLookup({
-                name: "power_on_behaviour",
+                name: "power_on_behavior",
                 lookup: {on: 0, previous: 1, off: 2},
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0517, type: 0x20},
                 description: "Controls the behavior when the device is powered on after power loss",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+            lumi.lumiModernExtend.lumiDimmingRangeMin(),
+            lumi.lumiModernExtend.lumiDimmingRangeMax(),
+            lumi.lumiModernExtend.lumiOffOnDuration(),
+            lumi.lumiModernExtend.lumiOnOffDuration(),
         ],
     },
     {
@@ -4441,12 +4454,27 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "lumi.light.agl001"}, {modelID: "lumi.light.agl002"}],
             },
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("manuSpecificLumi", [0x0528], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x052c], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
+            await endpoint.read("genLevelCtrl", [0x0012], {});
+            await endpoint.read("genLevelCtrl", [0x0013], {});
+        },
         extend: [
             lumiLight({colorTemp: true, color: true, colorTempRange: [111, 500]}),
             lumiPowerOnBehavior({lookup: {off: 0, on: 1, reverse: 2, restore: 3}}),
             m.identify(),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
             lumiZigbeeOTA(),
+            lumi.lumiModernExtend.lumiDimmingRangeMin(),
+            lumi.lumiModernExtend.lumiDimmingRangeMax(),
+            lumi.lumiModernExtend.lumiOffOnDuration(),
+            lumi.lumiModernExtend.lumiOnOffDuration(),
+            lumi.lumiModernExtend.lumiTransitionCurveCurvature(),
+            lumi.lumiModernExtend.lumiTransitionInitialBrightness(),
         ],
     },
     {
@@ -4454,12 +4482,27 @@ export const definitions: DefinitionWithExtend[] = [
         model: "T2_E27_CCT",
         vendor: "Aqara",
         description: "E27 led bulb",
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("manuSpecificLumi", [0x0528], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x052c], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
+            await endpoint.read("genLevelCtrl", [0x0012], {});
+            await endpoint.read("genLevelCtrl", [0x0013], {});
+        },
         extend: [
             lumiLight({colorTemp: true, colorTempRange: [153, 370]}),
             lumiPowerOnBehavior({lookup: {off: 0, on: 1, reverse: 2, restore: 3}}),
             m.identify(),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
             lumiZigbeeOTA(),
+            lumi.lumiModernExtend.lumiDimmingRangeMin(),
+            lumi.lumiModernExtend.lumiDimmingRangeMax(),
+            lumi.lumiModernExtend.lumiOffOnDuration(),
+            lumi.lumiModernExtend.lumiOnOffDuration(),
+            lumi.lumiModernExtend.lumiTransitionCurveCurvature(),
+            lumi.lumiModernExtend.lumiTransitionInitialBrightness(),
         ],
     },
     {
@@ -4992,6 +5035,18 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Away preset temperature",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+            m.numeric({
+                name: "position",
+                valueMin: 0,
+                valueMax: 100,
+                scale: 10,
+                unit: "%",
+                access: "STATE_GET",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0360, type: Zcl.DataType.UINT16},
+                description: "Position of the valve, 100% is fully open",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
             m.identify(),
         ],
     },
@@ -5162,7 +5217,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             // Sampling parameters
             m.enumLookup({
-                name: "temp_&_humidity_sampling",
+                name: "temp_and_humidity_sampling",
                 lookup: {off: 0, low: 1, medium: 2, high: 3, custom: 4},
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0170, type: Zcl.DataType.UINT8}, // Attribute: 368
@@ -5171,7 +5226,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
-                name: "temp_&_humidity_sampling_period",
+                name: "temp_and_humidity_sampling_period",
                 valueMin: 0.5, // Min: 500ms
                 valueMax: 3600, // Max: 1h = 3600s
                 valueStep: 0.5, // Step: 500ms
