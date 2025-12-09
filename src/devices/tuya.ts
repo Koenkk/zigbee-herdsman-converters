@@ -12528,12 +12528,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.binary("status_indication", ea.STATE_SET, "ON", "OFF").withDescription("Light switch"),
-            e.numeric('fan_speed', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withDescription('Fan Speed %'),
+            e.numeric("fan_speed", ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withDescription("Fan Speed %"),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],
-                [4, "fan_speed",tuya.valueConverter.raw],
+                [4, "fan_speed", tuya.valueConverter.raw],
                 [5, "status_indication", tuya.valueConverter.onOff],
             ],
         },
