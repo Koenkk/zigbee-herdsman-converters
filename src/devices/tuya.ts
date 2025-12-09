@@ -21829,7 +21829,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_eqpaxqdv"}],
+        fingerprint: [{modelID: "TS0601"(2), manufacturerName: "_TZE200_eqpaxqdv"(11)}],
         zigbeeModel: ["TS0601"],
         model: "TS0601_cover_12",
         vendor: "Tuya",
