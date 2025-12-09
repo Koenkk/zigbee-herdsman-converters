@@ -21890,42 +21890,43 @@ export const definitions: DefinitionWithExtend[] = [
 			    .withDescription("Trigger factory reset"),
 	    ],
 
-	meta: {
-		tuyaDatapoints: [
-			// 1: Control (set and report) -> standard "state" instead of control
-			[1, "state", tuya.valueConverterBasic.lookup({ open: tuya.enum(0), stop: tuya.enum(1), close: tuya.enum(2), lock: tuya.enum(3), unlock: tuya.enum(4) })],
-			// 2: Curtain position setting (set) -> standard `position` instead of percent_control
-			[2, "position", tuya.valueConverter.coverPosition],
-			// 3: Current curtain position (report) -> standard `position` instead of percent_state
-			[3, "position", tuya.valueConverter.coverPositionInverted],// inverted for Home Assistant !
-			// 4: Mode
-			[4, "mode", tuya.valueConverterBasic.lookup({ up: tuya.enum(0), up_delete: tuya.enum(1), remove_up_down: tuya.enum(2) })],
-			// 5: Motor running direction / control_back
-			[5, "control_back", tuya.valueConverterBasic.lookup({ forward: tuya.enum(0), back: tuya.enum(1) })],
-			// 6: Add wireless remote / auto power
-			[6, "auto_power", tuya.valueConverter.raw],
-			// 7: Work state (report only)
-			[7, "work_state", tuya.valueConverterBasic.lookup({ opening: tuya.enum(0), closing: tuya.enum(1), 123: tuya.enum(2) })],
-			// 10: Total time
-			[10, "time_total", tuya.valueConverter.raw],
-			// 11: Situation set
-			[11, "situation_set", tuya.valueConverterBasic.lookup({ fully_open: tuya.enum(0), fully_close: tuya.enum(1) })],
-			// 12: Fault / motor fault
-			[12, "fault", tuya.valueConverter.raw],
-			// 16: Border / lower limit setting
-			[16, "border", tuya.valueConverterBasic.lookup({ down_delete: tuya.enum(0), remove_top_bottom: tuya.enum(1) })],
-			// 19: Best position
-			[19, "position_best", tuya.valueConverter.setLimit],
-			// 21: Angle control / horizontal angle (numeric)
-			[21, "angle_horizontal", tuya.valueConverter.raw],
-			// 101: Travel calibration
-			[101, "cur_calibration", tuya.valueConverterBasic.lookup({ start: tuya.enum(0), end: tuya.enum(1) })],
-			// 102: Quick calibration (seconds)
-			[102, "quick_calibration_1", tuya.valueConverter.raw],
-			// 103: Best position switch (boolean 0/1)
-			[103, "switch", tuya.valueConverter.raw],
-			// 104: Reset
-			[104, "reset", tuya.valueConverterBasic.lookup({ reset: tuya.enum(0) })],
-		],
+		meta: {
+			tuyaDatapoints: [
+				// 1: Control (set and report) -> standard "state" instead of control
+				[1, "state", tuya.valueConverterBasic.lookup({ open: tuya.enum(0), stop: tuya.enum(1), close: tuya.enum(2), lock: tuya.enum(3), unlock: tuya.enum(4) })],
+				// 2: Curtain position setting (set) -> standard `position` instead of percent_control
+				[2, "position", tuya.valueConverter.coverPosition],
+				// 3: Current curtain position (report) -> standard `position` instead of percent_state
+				[3, "position", tuya.valueConverter.coverPositionInverted],// inverted for Home Assistant !
+				// 4: Mode
+				[4, "mode", tuya.valueConverterBasic.lookup({ up: tuya.enum(0), up_delete: tuya.enum(1), remove_up_down: tuya.enum(2) })],
+				// 5: Motor running direction / control_back
+				[5, "control_back", tuya.valueConverterBasic.lookup({ forward: tuya.enum(0), back: tuya.enum(1) })],
+				// 6: Add wireless remote / auto power
+				[6, "auto_power", tuya.valueConverter.raw],
+				// 7: Work state (report only)
+				[7, "work_state", tuya.valueConverterBasic.lookup({ opening: tuya.enum(0), closing: tuya.enum(1), 123: tuya.enum(2) })],
+				// 10: Total time
+				[10, "time_total", tuya.valueConverter.raw],
+				// 11: Situation set
+				[11, "situation_set", tuya.valueConverterBasic.lookup({ fully_open: tuya.enum(0), fully_close: tuya.enum(1) })],
+				// 12: Fault / motor fault
+				[12, "fault", tuya.valueConverter.raw],
+				// 16: Border / lower limit setting
+				[16, "border", tuya.valueConverterBasic.lookup({ down_delete: tuya.enum(0), remove_top_bottom: tuya.enum(1) })],
+				// 19: Best position
+				[19, "position_best", tuya.valueConverter.setLimit],
+				// 21: Angle control / horizontal angle (numeric)
+				[21, "angle_horizontal", tuya.valueConverter.raw],
+				// 101: Travel calibration
+				[101, "cur_calibration", tuya.valueConverterBasic.lookup({ start: tuya.enum(0), end: tuya.enum(1) })],
+				// 102: Quick calibration (seconds)
+				[102, "quick_calibration_1", tuya.valueConverter.raw],
+				// 103: Best position switch (boolean 0/1)
+				[103, "switch", tuya.valueConverter.raw],
+				// 104: Reset
+				[104, "reset", tuya.valueConverterBasic.lookup({ reset: tuya.enum(0) })],
+			],
+		},
 	},
 ];
