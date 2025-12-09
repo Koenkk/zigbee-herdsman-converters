@@ -1296,6 +1296,7 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "CK-TLSR8656-SS5-01(7003)", manufacturerName: "eWeLink"}],
             },
             tuya.whitelabel("Tuya", "WL-19DWZ", "Contact sensor", ["_TZ3000_n2egfsli"]),
+            tuya.whitelabel("zbeacon", "DS01", "Contact sensor", ["zbeacon"]),
         ],
         description: "Contact sensor",
         extend: [ewelinkBattery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]})],
@@ -2320,14 +2321,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SONOFF",
         description: "Zigbee smart plug",
         whiteLabel: [{vendor: "SONOFF", model: "S60ZBTPG", fingerprint: [{modelID: "S60ZBTPG"}]}],
-        fromZigbee: [fzLocal.on_off_clear_electricity],
+        fromZigbee: [fzLocal.on_off_clear_electricity, fz.metering],
+        exposes: [e.energy()],
         extend: [
             m.onOff({
                 powerOnBehavior: true,
                 skipDuplicateTransaction: true,
                 configureReporting: true,
             }),
-            m.electricityMeter({cluster: "metering", power: false}),
             sonoffExtend.addCustomClusterEwelink(),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "current",
@@ -2414,7 +2415,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink", "seMetering"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
             await endpoint.read<"customClusterEwelink", SonoffEwelink>(
                 "customClusterEwelink",
@@ -2426,6 +2427,8 @@ export const definitions: DefinitionWithExtend[] = [
                 {attribute: "energyYesterday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
                 {attribute: "energyToday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
             ]);
+            await endpoint.read("seMetering", ["multiplier", "divisor"]);
+            await reporting.currentSummDelivered(endpoint);
         },
     },
     {

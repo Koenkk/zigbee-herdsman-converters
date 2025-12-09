@@ -771,6 +771,67 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_xvywzhmi"]),
+        model: "ZMS-208US-3",
+        vendor: "Zemismart",
+        description: "Smart screen switch 3 gang",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch(),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e.child_lock(),
+            e.text("name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Switch 1"),
+            e.text("name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Switch 2"),
+            e.text("name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Switch 3"),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l1")
+                .withDescription("Countdown for Switch 1")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l2")
+                .withDescription("Countdown for Switch 2")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l3")
+                .withDescription("Countdown for Switch 3")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, "state_l2", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [3, "state_l3", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [7, "countdown_l1", tuya.valueConverter.raw],
+                [8, "countdown_l2", tuya.valueConverter.raw],
+                [9, "countdown_l3", tuya.valueConverter.raw],
+                [13, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [24, "test_bit", tuya.valueConverter.raw],
+                [101, "child_lock", tuya.valueConverter.lockUnlock],
+                [105, "name_l1", valueConverterLocal.name],
+                [106, "name_l2", valueConverterLocal.name],
+                [107, "name_l3", valueConverterLocal.name],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mpg22jc1"]),
         model: "ZN-USC1U-HT",
         vendor: "Zemismart",
