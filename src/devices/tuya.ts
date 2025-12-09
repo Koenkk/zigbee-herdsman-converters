@@ -10013,7 +10013,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Holidays (2 times `hh:mm/cc.c°C)`"),
             // ============== exposes for found, but not functional datapoints:
             /*
-            e.min_temperature_limit() // dp 16
+            e.min_temperature_limit() 
                 .withValueMin(5)
                 .withValueMax(15)
                 .withValueStep(0.5)
@@ -21849,6 +21849,69 @@ export const definitions: DefinitionWithExtend[] = [
                 [105, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
                 [104, "humidity_calibration", tuya.valueConverter.localTempCalibration2],
                 [107, "illuminance_interval", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_eqpaxqdv"]),
+        model: "PIMS3028",
+        vendor: "KnockautX",
+        description: "Cover plug-in receiver multi STAK 3/STAS 3",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.enum("state", ea.STATE_SET, ["open", "stop", "close", "lock", "unlock"]).withDescription("Control commands"),
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("mode", ea.STATE_SET, ["up", "up_delete", "remove_up_down"]).withDescription("Set mode"),
+            e.enum("control_back", ea.STATE_SET, ["forward", "back"]).withDescription("Set the motor running direction"),
+            e.binary("auto_power", ea.STATE_SET, true, false).withDescription("Add wireless remote"),
+            e.enum("work_state", ea.STATE, ["opening", "closing", "123"]).withDescription("Work state"),
+            e.numeric("time_total", ea.STATE).withValueMin(0).withValueMax(600).withUnit("s").withDescription("Total travel time"),
+            e.enum("situation_set", ea.STATE, ["fully_open", "fully_close"]).withDescription("Situation of the blinds"),
+            e.binary("fault", ea.STATE, true, false).withDescription("Motor fault"),
+            e.enum("border", ea.STATE_SET, ["down_delete", "remove_top_bottom"]).withDescription("Set lower/upper limit"),
+            e.numeric("position_best", ea.STATE_SET).withValueMin(1).withValueMax(100).withDescription("Set the best position"),
+            e
+                .numeric("angle_horizontal", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(25)
+                .withUnit("°")
+                .withDescription("Set the angle"),
+            e.enum("calibration", ea.STATE_SET, ["start", "end"]).withDescription("Calibrate the travel limits"),
+            e.numeric("quick_calibration", ea.STATE_SET).withValueMin(0).withValueMax(900).withUnit("s").withDescription("Set quick calibration"),
+            e.binary("switch", ea.STATE_SET, true, false).withDescription("Trigger best position"),
+            e.enum("reset", ea.STATE_SET, ["reset"]).withDescription("Trigger factory reset"),
+        ],
+
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        open: tuya.enum(0),
+                        stop: tuya.enum(1),
+                        close: tuya.enum(2),
+                        lock: tuya.enum(3),
+                        unlock: tuya.enum(4),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [3, "position", tuya.valueConverter.coverPositionInverted],
+                [4, "mode", tuya.valueConverterBasic.lookup({up: tuya.enum(0), up_delete: tuya.enum(1), remove_up_down: tuya.enum(2)})],
+                [5, "control_back", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [6, "auto_power", tuya.valueConverter.raw],
+                [7, "work_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1), 123: tuya.enum(2)})],
+                [10, "time_total", tuya.valueConverter.raw],
+                [11, "situation_set", tuya.valueConverterBasic.lookup({fully_open: tuya.enum(0), fully_close: tuya.enum(1)})],
+                [12, "fault", tuya.valueConverter.raw],
+                [16, "border", tuya.valueConverterBasic.lookup({down_delete: tuya.enum(0), remove_top_bottom: tuya.enum(1)})],
+                [19, "position_best", tuya.valueConverter.setLimit],
+                [21, "angle_horizontal", tuya.valueConverter.raw],
+                [101, "calibration", tuya.valueConverterBasic.lookup({start: tuya.enum(0), end: tuya.enum(1)})],
+                [102, "quick_calibration", tuya.valueConverter.raw],
+                [103, "switch", tuya.valueConverter.raw],
+                [104, "reset", tuya.valueConverterBasic.lookup({reset: tuya.enum(0)})],
             ],
         },
     },
