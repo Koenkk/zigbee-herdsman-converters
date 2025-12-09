@@ -203,19 +203,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.electricityMeter({endpointNames: ["3"]}),
             m.enumLookup({
-                name: "dev_mode",
-                cluster: "genBasic",
-                attribute: {ID: 0x0001, type: 0x30},
-                lookup: {
-                    curtain: 0,
-                    light: 1,
-                },
-                description: "Set device type (curtain or light)",
-                entityCategory: "config",
-                access: "ALL",
-                zigbeeCommandOptions: {manufacturerCode: 0x1224},
-            }),
-            m.enumLookup({
                 name: "curtain_type",
                 cluster: "closuresWindowCovering",
                 attribute: {ID: 0x1000, type: Zcl.DataType.ENUM8},
@@ -226,7 +213,6 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Configure curtain type",
                 access: "ALL",
                 entityCategory: "config",
-                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
             }),
             sunricher.extend.motorControl(),
             m.identify(),
@@ -1952,14 +1938,20 @@ export const definitions: DefinitionWithExtend[] = [
                 logger.debug("Failed to setup keypadLockout reporting", NS);
             }
 
-            await endpoint.configureReporting("hvacThermostat", [
-                {
-                    attribute: "occupancy",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: null,
-                },
-            ]);
+            try {
+                await endpoint.configureReporting("hvacThermostat", [
+                    {
+                        attribute: "occupancy",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ]);
+            } catch {
+                // Fails for some
+                // https://github.com/Koenkk/zigbee2mqtt/issues/29833
+                logger.debug("Failed to setup occupancy reporting", NS);
+            }
 
             await endpoint.read("haElectricalMeasurement", ["acVoltageMultiplier", "acVoltageDivisor", "acCurrentMultiplier"]);
             await endpoint.read("haElectricalMeasurement", ["acCurrentDivisor"]);

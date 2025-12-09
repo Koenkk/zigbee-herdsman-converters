@@ -167,6 +167,17 @@ const storeLocal = {
                     this[`power_factor_${channel}`] = 100;
                     this.flush(result, channel, options);
                 },
+                // Some times the device sends a single zero value (either power or current).
+                // This is most likely a glitch. We flush all values but set them to null
+                // to indicate that they are not valid.
+                //
+                flushNull: function (result: KeyValueAny, channel: string, options: KeyValue) {
+                    this[`sign_${channel}`] = null;
+                    this[`power_${channel}`] = null;
+                    this[`current_${channel}`] = null;
+                    this[`power_factor_${channel}`] = null;
+                    this.flush(result, channel, options);
+                },
 
                 clear: () => {
                     priv.sign_a = null;
@@ -177,6 +188,11 @@ const storeLocal = {
                     priv.current_b = null;
                     priv.power_factor_a = null;
                     priv.power_factor_b = null;
+                    // Used to detect single zero values
+                    priv.zero_power_a = null;
+                    priv.zero_power_b = null;
+                    priv.zero_current_a = null;
+                    priv.zero_current_b = null;
                 },
             };
             globalStore.putValue(device, "private_state", priv);
@@ -210,8 +226,17 @@ const convLocal = {
                 priv[`power_${channel}`] = v / 10;
                 priv[`timestamp_${channel}`] = new Date().toISOString();
                 if (v === 0) {
-                    priv.flushZero(result, channel, options);
-                    return result;
+                    const singleZeroRemoveKey = "single_zero_remove";
+                    const singleZeroRemove = options[singleZeroRemoveKey] != null ? options[singleZeroRemoveKey] : false;
+                    if (singleZeroRemove && !priv[`zero_power_${channel}`]) {
+                        logger.info("[PJ1203A] power is zero, flushing one time", NS);
+                        priv.flushNull(result, channel, options);
+                    } else {
+                        priv.flushZero(result, channel, options);
+                    }
+                    priv[`zero_power_${channel}`] = true;
+                } else {
+                    priv[`zero_power_${channel}`] = false;
                 }
                 return result;
             },
@@ -225,8 +250,17 @@ const convLocal = {
                 const result = {};
                 priv[`current_${channel}`] = v / 1000;
                 if (v === 0) {
-                    priv.flushZero(result, channel, options);
-                    return result;
+                    const singleZeroRemoveKey = "single_zero_remove";
+                    const singleZeroRemove = options[singleZeroRemoveKey] != null ? options[singleZeroRemoveKey] : false;
+                    if (singleZeroRemove && !priv[`zero_current_${channel}`]) {
+                        logger.info("[PJ1203A] current is zero, flushing one time", NS);
+                        priv.flushNull(result, channel, options);
+                    } else {
+                        priv.flushZero(result, channel, options);
+                    }
+                    priv[`zero_current_${channel}`] = true;
+                } else {
+                    priv[`zero_current_${channel}`] = false;
                 }
                 return result;
             },
@@ -858,7 +892,7 @@ const fzLocal = {
     TS0201_humidity: {
         ...fz.humidity,
         convert: (model, msg, publish, options, meta) => {
-            if (["_TZ3210_ncw88jfq", "_TZ3000_ywagc4rj", "_TZ3000_isw9u95y"].includes(meta.device.manufacturerName)) {
+            if (["_TZ3210_ncw88jfq", "_TZ3000_ywagc4rj", "_TZ3000_isw9u95y", "_TZ3000_yupc0pb7"].includes(meta.device.manufacturerName)) {
                 msg.data.measuredValue *= 10;
             }
             return fz.humidity.convert(model, msg, publish, options, meta);
@@ -4150,7 +4184,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_2imwyigp", "_TZE200_2imwyigp"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_2imwyigp", "_TZE200_2imwyigp", "_TZE200_go3tvswy"]),
         model: "MG-ZG03W",
         vendor: "Tuya",
         description: "3 gang switch",
@@ -4173,7 +4207,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_go3tvswy", "_TZE200_oyti2ums"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_oyti2ums"]),
         model: "MG-GPO04ZSLP",
         vendor: "Tuya",
         description: "2 x socket + 1 x light with master switch and metering",
@@ -4395,7 +4429,8 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Danfoss", "014G2480", "Temperature and humidity sensor", ["_TZ3000_mxzo5rhf"]),
             tuya.whitelabel("Tuya", "HS09", "Hanging temperature humidity sensor", ["_TZ3000_1twfmkcc"]),
             tuya.whitelabel("Nedis", "ZBSC10WT", "Temperature and humidity sensor", ["_TZ3000_fie1dpkm"]),
-            tuya.whitelabel("Tuya", "TH09Z", "Temperature and humidity sensor", ["_TZ3000_isw9u95y"]),
+            tuya.whitelabel("Tuya", "TH09Z", "Temperature and humidity sensor", ["_TZ3000_isw9u95y", "_TZ3000_yupc0pb7"]),
+            tuya.whitelabel("Tuya", "ZTH05_1", "Temperature and humidity sensor", ["_TZ3000_bgsigers"]),
         ],
     },
     {
@@ -5049,10 +5084,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             tuya.modernExtend.electricityMeasurementPoll({
                 electricalMeasurement: (device) =>
-                    device.manufacturerName === "_TZ3000_x3ewpzyr" ||
+                    (device.manufacturerName === "_TZ3000_x3ewpzyr" && [162, 100].includes(device.applicationVersion)) ||
                     (device.manufacturerName === "_TZ3000_xkap8wtb" && [162, 100].includes(device.applicationVersion)),
                 metering: (device) =>
-                    device.manufacturerName === "_TZ3000_x3ewpzyr" ||
+                    (device.manufacturerName === "_TZ3000_x3ewpzyr" && [162, 100].includes(device.applicationVersion)) ||
                     (device.manufacturerName === "_TZ3000_xkap8wtb" && [162, 100].includes(device.applicationVersion)),
             }),
         ],
@@ -7421,7 +7456,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Thermostatic radiator valve.",
         whiteLabel: [tuya.whitelabel("Moes", "TRV801Z", "Thermostatic radiator valve", ["_TZE204_qyr2m29i", "_TZE284_ltwbm23f"])],
-        extend: [tuyaBase({dp: true, timeStart: "1970"})],
+        // _TZE204_qyr2m29i requires 2000
+        // https://github.com/Koenkk/zigbee2mqtt/issues/30054
+        extend: [tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.battery(),
             e.child_lock(),
@@ -7694,35 +7731,45 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery(),
             e.child_lock(),
-            e.window_detection(),
-            e.binary("window", ea.STATE, "OPEN", "CLOSE").withDescription("Window status closed or open "),
-            e.enum("mode", ea.STATE_SET, ["auto", "manual"]).withDescription("Mode"),
-            e.binary("holiday_mode", ea.STATE_SET, "ON", "OFF"),
-            e.binary("heating_stop", ea.STATE_SET, "ON", "OFF"),
+            e.window_detection_bool(),
+            e.window_open(),
             e
                 .climate()
-                .withLocalTemperature(ea.STATE)
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
-                .withLocalTemperatureCalibration(-30, 30, 0.1, ea.STATE_SET),
-            e.comfort_temperature().withValueMin(5).withValueMax(30).withDescription("Comfort mode temperature"),
-            e.eco_temperature().withValueMin(5).withValueMax(30).withDescription("Eco mode temperature"),
-            e.enum("screen_orientation", ea.STATE_SET, ["up", "right", "down", "left"]).withDescription("Screen orientation"),
-            tuya.exposes.frostProtection(),
+                .withLocalTemperature(ea.STATE) // local_temperature
+                .withLocalTemperatureCalibration(-7, 7, 0.5, ea.STATE_SET) // local_temperature_calibration
+                .withSystemMode(["auto", "off"], ea.STATE_SET) // system_mode
+                .withPreset(["schedule", "manual", "holiday"]), //preset
+            e.comfort_temperature().withValueMin(15).withValueMax(35),
+            e.eco_temperature().withValueMin(5).withValueMax(22),
+            e.holiday_temperature().withValueMin(5).withValueMax(35),
+            e.text("holiday_time", ea.STATE_SET).withDescription("Holiday start and end time in format YYYY/MM/DD HH:MM | YYYY/MM/DD HH:MM"),
             e.binary("boost_heating", ea.STATE_SET, "ON", "OFF"),
-            e.numeric("boost_time", ea.STATE_SET).withUnit("min").withDescription("Countdown in minutes").withValueMin(0).withValueMax(1000),
+            e.numeric("boost_time", ea.STATE_SET).withUnit("min").withDescription("Countdown in minutes").withValueMin(0).withValueMax(30),
+            e
+                .binary("frost_protection", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.",
+                ),
+            ...["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) =>
+                e.text(`schedule_${day}`, ea.STATE_SET).withDescription("Schedule in 8 segments format: HH:MM/TT.T HH:MM/TT.T ..."),
+            ),
+            e.enum("screen_orientation", ea.STATE_SET, ["up", "right", "down", "left"]).withDescription("Screen orientation"),
             e.numeric("fault_code", ea.STATE).withDescription("Raw fault code"),
         ],
         meta: {
             tuyaDatapoints: [
                 [
                     2,
-                    "mode",
+                    "preset",
                     tuya.valueConverterBasic.lookup({
-                        auto: tuya.enum(0),
+                        schedule: tuya.enum(0),
+                        holiday: tuya.enum(1), // only possible to set during holiday_time
                         manual: tuya.enum(2),
                     }),
                 ],
-                [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                // when system_mode is 'off', current_heating_setpoint is set to -5000... hence limits
+                [4, "current_heating_setpoint", tuya.valueConverterBasic.divideByWithLimits(10, 0, 35)],
                 [5, "local_temperature", tuya.valueConverter.divideBy10],
                 [6, "battery", tuya.valueConverter.raw],
                 [
@@ -7733,29 +7780,23 @@ export const definitions: DefinitionWithExtend[] = [
                         UNLOCK: false,
                     }),
                 ],
-                [14, "window_detection", tuya.valueConverter.onOff],
-                [
-                    15,
-                    "window",
-                    tuya.valueConverterBasic.lookup({
-                        CLOSE: tuya.enum(0),
-                        OPEN: tuya.enum(1),
-                    }),
-                ],
+                [14, "window_detection", tuya.valueConverter.raw],
+                [15, "window_open", tuya.valueConverter.trueFalseEnum1],
                 [21, "holiday_temperature", tuya.valueConverter.divideBy10],
                 [36, "frost_protection", tuya.valueConverter.onOff],
-                [39, "switch_scale", tuya.valueConverter.raw],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [39, "anti_scale", tuya.valueConverter.raw],
+                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1], // duplicate/legacy
+                [49, "valve_status", tuya.valueConverter.raw],
                 [101, "boost_heating", tuya.valueConverter.onOff],
                 [102, "boost_time", tuya.valueConverter.countdown],
-                [103, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(1)],
-                [104, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(2)],
-                [105, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(3)],
-                [106, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(4)],
-                [107, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(5)],
-                [108, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(6)],
-                [109, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(7)],
-                [110, "holiday_mode", tuya.valueConverter.onOff],
+                [103, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [104, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [105, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [106, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [107, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [108, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [109, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDP_TRV603WZ],
+                [110, "holiday_time", tuya.valueConverter.thermostatHolidayStartStopUnixTS],
                 [
                     111,
                     "screen_orientation",
@@ -7767,7 +7808,14 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [112, "antifrost_temperature", tuya.valueConverter.divideBy10],
-                [113, "heating_stop", tuya.valueConverter.onOff],
+                [
+                    113,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        auto: false,
+                        off: true,
+                    }),
+                ],
                 [114, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
                 [115, "programming_mode", tuya.valueConverter.raw],
                 [116, "eco_temperature", tuya.valueConverter.divideBy10],
@@ -7875,6 +7923,8 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("NEO", "NAS-WR01B", "Smart plug (with electrical measurements)", ["_TZ3000_gjnozsaz"]),
             tuya.whitelabel("GreenSun", "HSC-ZW-EU", "Outdoor Smart Plug (with power monitoring)", ["_TZ3000_cicwjqth"]),
             tuya.whitelabel("Nous", "A10Z", "Smart Zigbee Socket", ["_TZ3210_jlf1nepw"]),
+            tuya.whitelabel("MatSee Plus", "PJ-MINI-ZSW01", "Smart Socket Switch Module (with power monitoring)", ["_TZ3000_cjrngdr3"]),
+            tuya.whitelabel("BlitzWolf", "BW-SHP13", "Smart plug (with power monitoring)", ["_TZ3000_amdymr7l"]),
         ],
         ota: true,
         extend: [
@@ -7981,6 +8031,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "AVATTO", model: "MIUCOT10Z"},
             {vendor: "NEO", model: "PLUG-001SPB2"},
             tuya.whitelabel("BSEED", "TS011F_plug_3_1", "Wall-mounted electrical EU/FR/UK socket with power monitoring", ["_TZ3000_2uollq9d"]),
+            tuya.whitelabel("Nous", "A6Z_polling", "Outdoor smart socket", ["_TZ3000_266azbg3"]),
         ],
         ota: true,
         extend: [
@@ -9390,7 +9441,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_wsspgtcd", "_TZ3000_s678wazd", "_TZ3002_pzao9ls1"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_wsspgtcd", "_TZ3000_s678wazd", "_TZ3002_pzao9ls1", "_TZ3000_kfkqkjqe"]),
         model: "TS0726_4_gang",
         vendor: "Tuya",
         description: "4 gang switch with neutral wire",
@@ -13284,7 +13335,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.ac_frequency(),
             e
                 .numeric("data_report_duration", ea.SET)
-                .withValueMin(30)
+                .withValueMin(5)
                 .withValueMax(3600)
                 .withDescription(
                     "WARNING: You must update device firmware to V3.2.2 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 30~3600 seconds)",
@@ -13298,7 +13349,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "data_report_duration",
                     {
                         to: (v: number) => {
-                            const value = Math.max(30, Math.min(3600, Math.round(v)));
+                            const value = Math.max(5, Math.min(3600, Math.round(v)));
                             const byte1 = (value >> 8) & 0xff;
                             const byte2 = value & 0xff;
                             return [
@@ -13466,9 +13517,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("update_frequency", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Update frequency")
-                .withValueMin(30)
+                .withValueMin(5)
                 .withValueMax(3600)
-                .withPreset("default", 10, "Default value"),
+                .withPreset("default", 30, "Default value"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -13593,9 +13644,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("update_frequency", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Update frequency")
-                .withValueMin(30)
+                .withValueMin(5)
                 .withValueMax(3600)
-                .withPreset("default", 10, "Default value"),
+                .withPreset("default", 30, "Default value"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -13654,9 +13705,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("update_frequency", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Update frequency")
-                .withValueMin(30)
+                .withValueMin(5)
                 .withValueMax(3600)
-                .withPreset("default", 10, "Default value"),
+                .withPreset("default", 30, "Default value"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -13974,7 +14025,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3210_dse8ogfy", "_TZ3210_j4pdtz9v", "_TZ3210_7vgttna6", "_TZ3210_a04acm9s"]),
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3210_dse8ogfy", "_TZ3210_j4pdtz9v", "_TZ3210_7vgttna6", "_TZ3210_a04acm9s", "_TZ3210_cm9mbpr1"]),
         model: "TS0001_fingerbot",
         vendor: "Tuya",
         description: "Zigbee fingerbot plus",
@@ -15213,6 +15264,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Report energy flow direction for channel B using signed power (default false)."),
             e.binary("invert_energy_flow_a", ea.SET, true, false).withDescription("Report energy flow direction inverted for channel A."),
             e.binary("invert_energy_flow_b", ea.SET, true, false).withDescription("Report energy flow direction inverted for channel B."),
+            e
+                .binary("single_zero_remove", ea.SET, true, false)
+                .withDescription("If true then single-zero power or current values will be disgarded. The default is false."),
         ],
         exposes: [
             e.ac_frequency(),
@@ -18148,11 +18202,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(90),
             e.binary("switch_type", ea.STATE_SET, "ON", "OFF").withDescription("Enables/disables valve switch"),
             e
-                .numeric("position", ea.STATE)
+                .numeric("position", ea.STATE_SET)
                 .withUnit("%")
                 .withValueMin(0)
                 .withValueMax(100)
-                .withDescription("Position"), // set actually not working
+                .withDescription("Position. To set the value you need to turn on valve switch"),
             e.enum("screen_orientation", ea.STATE_SET, ["up", "right", "down", "left"]).withDescription("Screen orientation"),
         ],
         meta: {
@@ -21439,7 +21493,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_iwyqtclw"]),
         model: "M9Pro",
         vendor: "Tuya",
-        description: "Smart 4 gang switch, curtain, smart light or scene. 1x thermosat control",
+        description: "Smart 4 gang switch, curtain, smart light or scene. 1x thermostat control",
         exposes: [
             ...[1, 2, 3, 4].map((i) => e.switch().withEndpoint(`l${i}`).setAccess("state", ea.STATE_SET)),
             ...[1, 2, 3].map((i) =>

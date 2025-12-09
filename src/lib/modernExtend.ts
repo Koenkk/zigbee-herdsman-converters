@@ -1021,7 +1021,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
     }
 
     if (ultrasonicConfig) {
-        if (pirConfig.includes("otu_delay")) {
+        if (ultrasonicConfig.includes("otu_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_otu_delay",
@@ -1033,7 +1033,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             );
             attributesForReading.push("ultrasonicOToUDelay");
         }
-        if (pirConfig.includes("uto_delay")) {
+        if (ultrasonicConfig.includes("uto_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_uto_delay",
@@ -1045,7 +1045,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             );
             attributesForReading.push("ultrasonicUToODelay");
         }
-        if (pirConfig.includes("uto_threshold")) {
+        if (ultrasonicConfig.includes("uto_threshold")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_uto_threshold",
@@ -1060,7 +1060,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
     }
 
     if (contactConfig) {
-        if (pirConfig.includes("otu_delay")) {
+        if (contactConfig.includes("otu_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_otu_delay",
@@ -1072,7 +1072,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             );
             attributesForReading.push("contactOToUDelay");
         }
-        if (pirConfig.includes("uto_delay")) {
+        if (contactConfig.includes("uto_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_uto_delay",
@@ -1084,7 +1084,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             );
             attributesForReading.push("contactUToODelay");
         }
-        if (pirConfig.includes("uto_threshold")) {
+        if (contactConfig.includes("uto_threshold")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_uto_threshold",
