@@ -4546,7 +4546,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Smart9", model: "S9TSZGB"},
             {vendor: "Lonsonho", model: "TS0041"},
             {vendor: "Benexmart", model: "ZM-sui1"},
-            tuya.whitelabel("Tuya", "SH-SC07", "Button scene switch", ["_TZ3000_mrpevh8p", "_TZ3000_5bpeda8u"]),
+            tuya.whitelabel("Tuya", "SH-SC07", "Button scene switch", ["_TZ3000_mrpevh8p", "_TZ3000_5bpeda8u", "_TZ3000_b4awzgct"]),
             tuya.whitelabel("Tuya", "MINI-ZSB", "Smart button", ["_TZ3000_qgwcxxws"]),
             tuya.whitelabel("Nous", "LZ4", "Wireless switch button", ["_TZ3000_6km7djcm"]),
             tuya.whitelabel("Marmitek", "Push_LE", "Smart switch", ["_TZ3000_4upl1fcj"]),
@@ -10013,7 +10013,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Holidays (2 times `hh:mm/cc.c°C)`"),
             // ============== exposes for found, but not functional datapoints:
             /*
-            e.min_temperature_limit() // dp 16
+            e.min_temperature_limit() 
                 .withValueMin(5)
                 .withValueMax(15)
                 .withValueStep(0.5)
@@ -12524,6 +12524,24 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
         whiteLabel: [{vendor: "Liwokit", model: "Fan+Light-01"}],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bql5khqx"]),
+        model: "X99-G-kbFan-1g-ZG-LN-11",
+        vendor: "Coswall",
+        description: "Fan & light switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.binary("status_indication", ea.STATE_SET, "ON", "OFF").withDescription("Light switch"),
+            e.numeric("fan_speed", ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withDescription("Fan Speed %"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [4, "fan_speed", tuya.valueConverter.raw],
+                [5, "status_indication", tuya.valueConverter.onOff],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lawxy9e2", "_TZE204_lawxy9e2"]),
@@ -20847,6 +20865,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["ZS-304Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_k7p2q5d9", "_TZE284_65gzcss7", "_TZE284_0ints6wl", "_TZE284_yzr43ayq"]),
         model: "ZS-300Z",
         vendor: "Arteco",
@@ -20854,7 +20873,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [
             tuya.whitelabel("Arteco", "ZS-302Z", "Soil moisture sensor", ["_TZE284_65gzcss7"]),
-            tuya.whitelabel("Arteco", "ZS-304Z", "Soil moisture sensor", ["_TZE284_0ints6wl", "_TZE284_yzr43ayq"]),
+            {model: "ZS-304Z", fingerprint: [{manufacturerName: "_TZE284_0ints6wl"}, {manufacturerName: "_TZE284_yzr43ayq"}, {modelID: "ZS-304Z"}]},
         ],
         exposes: [
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
@@ -21830,6 +21849,69 @@ export const definitions: DefinitionWithExtend[] = [
                 [105, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
                 [104, "humidity_calibration", tuya.valueConverter.localTempCalibration2],
                 [107, "illuminance_interval", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_eqpaxqdv"]),
+        model: "PIMS3028",
+        vendor: "KnockautX",
+        description: "Cover plug-in receiver multi STAK 3/STAS 3",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.enum("state", ea.STATE_SET, ["open", "stop", "close", "lock", "unlock"]).withDescription("Control commands"),
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("mode", ea.STATE_SET, ["up", "up_delete", "remove_up_down"]).withDescription("Set mode"),
+            e.enum("control_back", ea.STATE_SET, ["forward", "back"]).withDescription("Set the motor running direction"),
+            e.binary("auto_power", ea.STATE_SET, true, false).withDescription("Add wireless remote"),
+            e.enum("work_state", ea.STATE, ["opening", "closing", "123"]).withDescription("Work state"),
+            e.numeric("time_total", ea.STATE).withValueMin(0).withValueMax(600).withUnit("s").withDescription("Total travel time"),
+            e.enum("situation_set", ea.STATE, ["fully_open", "fully_close"]).withDescription("Situation of the blinds"),
+            e.binary("fault", ea.STATE, true, false).withDescription("Motor fault"),
+            e.enum("border", ea.STATE_SET, ["down_delete", "remove_top_bottom"]).withDescription("Set lower/upper limit"),
+            e.numeric("position_best", ea.STATE_SET).withValueMin(1).withValueMax(100).withDescription("Set the best position"),
+            e
+                .numeric("angle_horizontal", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(25)
+                .withUnit("°")
+                .withDescription("Set the angle"),
+            e.enum("calibration", ea.STATE_SET, ["start", "end"]).withDescription("Calibrate the travel limits"),
+            e.numeric("quick_calibration", ea.STATE_SET).withValueMin(0).withValueMax(900).withUnit("s").withDescription("Set quick calibration"),
+            e.binary("switch", ea.STATE_SET, true, false).withDescription("Trigger best position"),
+            e.enum("reset", ea.STATE_SET, ["reset"]).withDescription("Trigger factory reset"),
+        ],
+
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        open: tuya.enum(0),
+                        stop: tuya.enum(1),
+                        close: tuya.enum(2),
+                        lock: tuya.enum(3),
+                        unlock: tuya.enum(4),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [3, "position", tuya.valueConverter.coverPositionInverted],
+                [4, "mode", tuya.valueConverterBasic.lookup({up: tuya.enum(0), up_delete: tuya.enum(1), remove_up_down: tuya.enum(2)})],
+                [5, "control_back", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [6, "auto_power", tuya.valueConverter.raw],
+                [7, "work_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1), 123: tuya.enum(2)})],
+                [10, "time_total", tuya.valueConverter.raw],
+                [11, "situation_set", tuya.valueConverterBasic.lookup({fully_open: tuya.enum(0), fully_close: tuya.enum(1)})],
+                [12, "fault", tuya.valueConverter.raw],
+                [16, "border", tuya.valueConverterBasic.lookup({down_delete: tuya.enum(0), remove_top_bottom: tuya.enum(1)})],
+                [19, "position_best", tuya.valueConverter.setLimit],
+                [21, "angle_horizontal", tuya.valueConverter.raw],
+                [101, "calibration", tuya.valueConverterBasic.lookup({start: tuya.enum(0), end: tuya.enum(1)})],
+                [102, "quick_calibration", tuya.valueConverter.raw],
+                [103, "switch", tuya.valueConverter.raw],
+                [104, "reset", tuya.valueConverterBasic.lookup({reset: tuya.enum(0)})],
             ],
         },
     },
