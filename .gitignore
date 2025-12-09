@@ -19,5 +19,3 @@ dist/
 .pnpm-store/
 models-index.json
 /.devcontainer
-/.vscode
-/.vscode
