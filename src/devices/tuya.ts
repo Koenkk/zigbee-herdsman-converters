@@ -20865,6 +20865,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["ZS-304Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_k7p2q5d9", "_TZE284_65gzcss7", "_TZE284_0ints6wl", "_TZE284_yzr43ayq"]),
         model: "ZS-300Z",
         vendor: "Arteco",
@@ -20872,7 +20873,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [
             tuya.whitelabel("Arteco", "ZS-302Z", "Soil moisture sensor", ["_TZE284_65gzcss7"]),
-            tuya.whitelabel("Arteco", "ZS-304Z", "Soil moisture sensor", ["_TZE284_0ints6wl", "_TZE284_yzr43ayq"]),
+            {model: "ZS-304Z", fingerprint: [{manufacturerName: "_TZE284_0ints6wl"}, {manufacturerName: "_TZE284_yzr43ayq"}, {modelID: "ZS-304Z"}]},
         ],
         exposes: [
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
