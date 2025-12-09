@@ -21828,9 +21828,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    expect(definition.model).toStrictEqual("ZY-M100-S_1"),
-    expect(extDefinitionUndef).toStrictEqual(undefined),
-    addExternalDefinition({
+    {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_eqpaxqdv"}],
         zigbeeModel: ["TS0601"],
         model: "TS0601_cover_12",
@@ -21968,5 +21966,5 @@ export const definitions: DefinitionWithExtend[] = [
                 [104, "reset", tuya.valueConverterBasic.lookup({reset: tuya.enum(0)})],
             ],
         },
-    }),
+    },
 ];
