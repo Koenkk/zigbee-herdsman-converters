@@ -21828,7 +21828,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    {
+    addExternalDefinition({
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_eqpaxqdv"}],
         zigbeeModel: ["TS0601"],
         model: "TS0601_cover_12",
@@ -21966,5 +21966,5 @@ export const definitions: DefinitionWithExtend[] = [
                 [104, "reset", tuya.valueConverterBasic.lookup({reset: tuya.enum(0)})],
             ],
         },
-    },
+    }),
 ];
