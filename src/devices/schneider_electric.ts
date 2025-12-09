@@ -1626,6 +1626,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "LK FUGA wiser wireless socket outlet",
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
+        extend: [socketIndicatorMode()],
         exposes: [
             e.switch(),
             e.power(),
