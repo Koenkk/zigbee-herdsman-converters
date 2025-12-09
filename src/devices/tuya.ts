@@ -12521,7 +12521,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Liwokit", model: "Fan+Light-01"}],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bql5khqx"]), --ricardo--
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bql5khqx"]),
         model: "TS0601_fan_dimmer_and_light_switch",
         vendor: "Tuya",
         description: "Fan & light switch",
