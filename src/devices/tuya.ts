@@ -12521,6 +12521,25 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Liwokit", model: "Fan+Light-01"}],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bql5khqx"]), --ricardo--
+        model: "TS0601_fan_dimmer_and_light_switch",
+        vendor: "Tuya",
+        description: "Fan & light switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.binary("status_indication", ea.STATE_SET, "ON", "OFF").withDescription("Light switch"),
+            e.numeric('fan_speed', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withDescription('Fan Speed %'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [4, "fan_speed",tuya.valueConverter.raw],
+                [5, "status_indication", tuya.valueConverter.onOff],
+            ],
+        },
+        whiteLabel: [{vendor: "Coswall", model: "X99-G-kbFan-1g-ZG-LN-11"}],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lawxy9e2", "_TZE204_lawxy9e2"]),
         model: "TS0601_fan_5_levels_and_light_switch",
         vendor: "Tuya",
