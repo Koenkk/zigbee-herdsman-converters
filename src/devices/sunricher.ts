@@ -175,6 +175,22 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: [
+            {modelID: "ON/OFF (2CH)", manufacturerName: "Somfy"},
+            {modelID: "ON/OFF (2CH)", manufacturerName: "Sunricher"},
+        ],
+        model: "SR-ZG9001T2-SW",
+        vendor: "Sunricher",
+        description: "Zigbee 2-gang touch panel",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
+            m.onOff({endpointNames: ["1", "2"]}),
+            m.commandsOnOff({endpointNames: ["1", "2"]}),
+            m.identify(),
+            sunricher.extend.externalSwitchType(),
+        ],
+    },
+    {
         zigbeeModel: ["ZG9041A-2R"],
         model: "SR-ZG9041A-2R",
         vendor: "Sunricher",
