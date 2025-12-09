@@ -9,6 +9,18 @@ const ea = exposes.access;
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["EZMB-RGB-TW-CLB"],
+        model: "EZMB-RGB-TW-CLB",
+        vendor: "AwoX",
+        description: "RGB LED mountable Light with color temperature",
+        extend: [
+            m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}}),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+            m.commandsColorCtrl(),
+        ],
+    },
+    {
+        zigbeeModel: ["EZMB-RGB-TW-CLB"],
         model: "300686",
         vendor: "EGLO",
         description: "MASSIGNANO-Z ceiling light",
@@ -26,6 +38,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "ROVITO-Z ceiling light",
         extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
+
     {
         zigbeeModel: ["ESMLFzm_w6_TW"],
         model: "12242",
