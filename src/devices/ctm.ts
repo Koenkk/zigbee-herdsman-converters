@@ -1033,7 +1033,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["mKomfy 2.0"],
-        model: "mKomfy 2.0",
+        model: "6254380",
         vendor: "CTM Lyng",
         description: "2.0 Stove guard",
         extend: [
