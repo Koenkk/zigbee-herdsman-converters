@@ -179,10 +179,9 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "ON/OFF (2CH)", manufacturerName: "Somfy"},
             {modelID: "ON/OFF (2CH)", manufacturerName: "Sunricher"},
         ],
-        zigbeeModel: ["ON/OFF (2CH)"],
         model: "SR-ZG9001T2-SW",
         vendor: "Sunricher",
-        description: "Zigbee 2-Gang Touch Panel",
+        description: "Zigbee 2-gang touch panel",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
             m.onOff({endpointNames: ["1", "2"]}),
