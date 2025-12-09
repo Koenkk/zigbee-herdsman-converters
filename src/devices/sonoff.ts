@@ -1296,6 +1296,7 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "CK-TLSR8656-SS5-01(7003)", manufacturerName: "eWeLink"}],
             },
             tuya.whitelabel("Tuya", "WL-19DWZ", "Contact sensor", ["_TZ3000_n2egfsli"]),
+            tuya.whitelabel("zbeacon", "DS01", "Contact sensor", ["zbeacon"]),
         ],
         description: "Contact sensor",
         extend: [ewelinkBattery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]})],
@@ -2321,6 +2322,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart plug",
         whiteLabel: [{vendor: "SONOFF", model: "S60ZBTPG", fingerprint: [{modelID: "S60ZBTPG"}]}],
         fromZigbee: [fzLocal.on_off_clear_electricity, fz.metering],
+        exposes: [e.energy()],
         extend: [
             m.onOff({
                 powerOnBehavior: true,
