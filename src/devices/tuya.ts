@@ -12522,8 +12522,8 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bql5khqx"]),
-        model: "TS0601_fan_dimmer_and_light_switch",
-        vendor: "Tuya",
+        model: "X99-G-kbFan-1g-ZG-LN-11",
+        vendor: "Coswall",
         description: "Fan & light switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
@@ -12537,7 +12537,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "status_indication", tuya.valueConverter.onOff],
             ],
         },
-        whiteLabel: [{vendor: "Coswall", model: "X99-G-kbFan-1g-ZG-LN-11"}],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lawxy9e2", "_TZE204_lawxy9e2"]),
