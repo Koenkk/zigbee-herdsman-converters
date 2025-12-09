@@ -687,10 +687,10 @@ export const definitions: DefinitionWithExtend[] = [
                     rotaryRemoteControl: {
                         ID: 0x01,
                         parameters: [
-                            {name: "field1", type: Zcl.DataType.UINT8},
-                            {name: "field2", type: Zcl.DataType.UINT8},
-                            {name: "field3", type: Zcl.DataType.UINT8},
-                            {name: "field4", type: Zcl.DataType.UINT8},
+                            {name: "field1", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "field2", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "field3", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "field4", type: Zcl.DataType.UINT8, max: 0xff},
                         ],
                     },
                 },

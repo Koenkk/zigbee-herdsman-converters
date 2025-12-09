@@ -652,11 +652,11 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0,
                 manufacturerCode: 26214,
                 attributes: {
-                    deviceVersion: {ID: 26113, type: Zcl.DataType.CHAR_STR},
-                    deviceSignature: {ID: 26114, type: Zcl.DataType.CHAR_STR},
-                    deviceBootVersion: {ID: 26115, type: Zcl.DataType.CHAR_STR},
-                    componentVersion: {ID: 26117, type: Zcl.DataType.CHAR_STR},
-                    componentSignature: {ID: 26118, type: Zcl.DataType.CHAR_STR},
+                    deviceVersion: {ID: 26113, type: Zcl.DataType.CHAR_STR, write: true},
+                    deviceSignature: {ID: 26114, type: Zcl.DataType.CHAR_STR, write: true},
+                    deviceBootVersion: {ID: 26115, type: Zcl.DataType.CHAR_STR, write: true},
+                    componentVersion: {ID: 26117, type: Zcl.DataType.CHAR_STR, write: true},
+                    componentSignature: {ID: 26118, type: Zcl.DataType.CHAR_STR, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -665,13 +665,13 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 26112,
                 manufacturerCode: 26214,
                 attributes: {
-                    isConnected: {ID: 26116, type: Zcl.DataType.BOOLEAN},
-                    UartBaudRate: {ID: 26113, type: Zcl.DataType.UINT32},
+                    isConnected: {ID: 26116, type: Zcl.DataType.BOOLEAN, write: true},
+                    UartBaudRate: {ID: 26113, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 },
                 commands: {
                     debug: {
                         ID: 103,
-                        parameters: [{name: "data", type: Zcl.DataType.UINT8}],
+                        parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}],
                     },
                 },
                 commandsResponse: {},

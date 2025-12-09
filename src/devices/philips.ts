@@ -145,9 +145,9 @@ const extendLocal = {
             ID: 0xfc07,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
-                sirenIsMuted: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
-                soundIDPlaying: {ID: 0x0001, type: Zcl.DataType.UINT32},
-                unknownAttr: {ID: 0x0002, type: Zcl.DataType.UINT32},
+                sirenIsMuted: {ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+                soundIDPlaying: {ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                unknownAttr: {ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
             },
             commands: {
                 mute: {ID: 0x00, parameters: []},

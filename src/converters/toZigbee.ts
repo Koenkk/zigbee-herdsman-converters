@@ -1,3 +1,4 @@
+import type {HeimanSpecificInfraRedRemoteCluster} from "src/lib/heiman";
 import {Zcl} from "zigbee-herdsman";
 import type {TClusterCommandPayload} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as libColor from "../lib/color";
@@ -380,7 +381,7 @@ export const lock: Tz.Converter = {
         await entity.command(
             "closuresDoorLock",
             `${state.toLowerCase() as "lock" | "unlock" | "toggle"}Door`,
-            {pincodevalue: pincode},
+            {pincodevalue: Buffer.from(pincode, "ascii")},
             utils.getOptions(meta.mapped, entity),
         );
     },
@@ -2403,7 +2404,7 @@ export const ZigUP_lock: Tz.Converter = {
     key: ["led"],
     convertSet: async (entity, key, value, meta) => {
         const lookup = {off: "lockDoor" as const, on: "unlockDoor" as const, toggle: "toggleDoor" as const};
-        await entity.command("closuresDoorLock", utils.getFromLookup(value, lookup), {pincodevalue: ""});
+        await entity.command("closuresDoorLock", utils.getFromLookup(value, lookup), {pincodevalue: Buffer.alloc(0)});
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -3808,22 +3809,47 @@ export const heiman_ir_remote: Tz.Converter = {
         switch (key) {
             case "send_key":
                 utils.assertObject(value);
-                await entity.command("heimanSpecificInfraRedRemote", "sendKey", {id: value.id, keyCode: value.key_code}, options);
+                await entity.command<"heimanSpecificInfraRedRemote", "sendKey", HeimanSpecificInfraRedRemoteCluster>(
+                    "heimanSpecificInfraRedRemote",
+                    "sendKey",
+                    {id: value.id, keyCode: value.key_code},
+                    options,
+                );
                 break;
             case "create":
                 utils.assertObject(value);
-                await entity.command("heimanSpecificInfraRedRemote", "createId", {modelType: value.model_type}, options);
+                await entity.command<"heimanSpecificInfraRedRemote", "createId", HeimanSpecificInfraRedRemoteCluster>(
+                    "heimanSpecificInfraRedRemote",
+                    "createId",
+                    {modelType: value.model_type},
+                    options,
+                );
                 break;
             case "learn":
                 utils.assertObject(value);
-                await entity.command("heimanSpecificInfraRedRemote", "studyKey", {id: value.id, keyCode: value.key_code}, options);
+                await entity.command<"heimanSpecificInfraRedRemote", "studyKey", HeimanSpecificInfraRedRemoteCluster>(
+                    "heimanSpecificInfraRedRemote",
+                    "studyKey",
+                    {id: value.id, keyCode: value.key_code},
+                    options,
+                );
                 break;
             case "delete":
                 utils.assertObject(value);
-                await entity.command("heimanSpecificInfraRedRemote", "deleteKey", {id: value.id, keyCode: value.key_code}, options);
+                await entity.command<"heimanSpecificInfraRedRemote", "deleteKey", HeimanSpecificInfraRedRemoteCluster>(
+                    "heimanSpecificInfraRedRemote",
+                    "deleteKey",
+                    {id: value.id, keyCode: value.key_code},
+                    options,
+                );
                 break;
             case "get_list":
-                await entity.command("heimanSpecificInfraRedRemote", "getIdAndKeyCodeList", {}, options);
+                await entity.command<"heimanSpecificInfraRedRemote", "getIdAndKeyCodeList", HeimanSpecificInfraRedRemoteCluster>(
+                    "heimanSpecificInfraRedRemote",
+                    "getIdAndKeyCodeList",
+                    {},
+                    options,
+                );
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key ${key}`);
@@ -3873,7 +3899,7 @@ export const scene_recall: Tz.Converter = {
         const groupid = utils.isGroup(entity) ? entity.groupID : 0;
         utils.assertNumber(value);
         const sceneid = value;
-        await entity.command("genScenes", "recall", {groupid, sceneid}, utils.getOptions(meta.mapped, entity));
+        await entity.command("genScenes", "recall", {groupid, sceneid, transitionTime: 0xffff}, utils.getOptions(meta.mapped, entity));
 
         const addColorMode = (newState: KeyValueAny) => {
             if (newState.color_temp !== undefined) {
