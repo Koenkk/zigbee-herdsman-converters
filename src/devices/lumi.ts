@@ -321,8 +321,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Light strip T1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
             await endpoint.read("genLevelCtrl", [0x0012], {});
             await endpoint.read("genLevelCtrl", [0x0013], {});
         },
@@ -4341,8 +4341,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ceiling light T1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
             await endpoint.read("genLevelCtrl", [0x0012], {});
             await endpoint.read("genLevelCtrl", [0x0013], {});
         },
@@ -4364,8 +4364,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ceiling light T1M",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
             await endpoint.read("genLevelCtrl", [0x0012], {});
             await endpoint.read("genLevelCtrl", [0x0013], {});
         },
@@ -4375,7 +4375,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumiLight({colorTemp: true, deviceTemperature: false, powerOutageCount: false, color: {modes: ["xy", "hs"]}, endpointNames: ["rgb"]}),
             lumiZigbeeOTA(),
             m.enumLookup({
-                name: "power_on_behaviour",
+                name: "power_on_behavior",
                 lookup: {on: 0, previous: 1, off: 2},
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0517, type: 0x20},
@@ -4456,10 +4456,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("manuSpecificLumi", [0x0528], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x052c], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0528], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x052c], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
             await endpoint.read("genLevelCtrl", [0x0012], {});
             await endpoint.read("genLevelCtrl", [0x0013], {});
         },
@@ -4484,10 +4484,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "E27 led bulb",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("manuSpecificLumi", [0x0528], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x052c], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0528], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x052c], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
             await endpoint.read("genLevelCtrl", [0x0012], {});
             await endpoint.read("genLevelCtrl", [0x0013], {});
         },
@@ -5033,6 +5033,18 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0279, type: Zcl.DataType.UINT32},
                 description: "Away preset temperature",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "position",
+                valueMin: 0,
+                valueMax: 100,
+                scale: 10,
+                unit: "%",
+                access: "STATE_GET",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0360, type: Zcl.DataType.UINT16},
+                description: "Position of the valve, 100% is fully open",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.identify(),
