@@ -37,7 +37,12 @@ const tzLocal = {
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             // Device doesn't support moveToLevelWithOnOff therefore this converter is needed.
-            await entity.command("genLevelCtrl", "moveToLevel", {level: Number(value), transtime: 0}, {disableDefaultResponse: true});
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level: Number(value), transtime: 0, optionsMask: 0, optionsOverride: 0},
+                {disableDefaultResponse: true},
+            );
             return {state: {brightness: value}};
         },
         convertGet: async (entity, key, meta) => {

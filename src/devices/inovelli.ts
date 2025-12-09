@@ -2033,6 +2033,8 @@ const tzLocal = {
                     {
                         level: FAN_MODES[value],
                         transtime: 0xffff,
+                        optionsMask: 0,
+                        optionsOverride: 0,
                     },
                     utils.getOptions(meta.mapped, entity),
                 );

@@ -93,7 +93,12 @@ export const light_color: Tz.Converter = {
             const colorx = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
             const colory = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
 
-            await entity.command("lightingColorCtrl", "moveToColor", {transtime, colorx, colory}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToColor",
+                {transtime, colorx, colory, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
         } else if (newColor.isHSV()) {
             const hsv = newColor.hsv;
             const hsvCorrected = hsv.colorCorrected(meta);
@@ -104,7 +109,7 @@ export const light_color: Tz.Converter = {
                 await entity.command(
                     "genLevelCtrl",
                     "moveToLevelWithOnOff",
-                    {level: utils.mapNumberRange(hsvCorrected.value, 0, 100, 0, 254), transtime},
+                    {level: utils.mapNumberRange(hsvCorrected.value, 0, 100, 0, 254), transtime, optionsMask: 0, optionsOverride: 0},
                     utils.getOptions(meta.mapped, entity),
                 );
             }
@@ -117,7 +122,7 @@ export const light_color: Tz.Converter = {
                     await entity.command(
                         "lightingColorCtrl",
                         "enhancedMoveToHueAndSaturation",
-                        {transtime, enhancehue, saturation},
+                        {transtime, enhancehue, saturation, optionsMask: 0, optionsOverride: 0},
                         utils.getOptions(meta.mapped, entity),
                     );
                 } else {
@@ -125,7 +130,7 @@ export const light_color: Tz.Converter = {
                     await entity.command(
                         "lightingColorCtrl",
                         "moveToHueAndSaturation",
-                        {transtime, hue, saturation},
+                        {transtime, hue, saturation, optionsMask: 0, optionsOverride: 0},
                         utils.getOptions(meta.mapped, entity),
                     );
                 }
@@ -137,17 +142,27 @@ export const light_color: Tz.Converter = {
                     await entity.command(
                         "lightingColorCtrl",
                         "enhancedMoveToHue",
-                        {transtime, enhancehue, direction},
+                        {transtime, enhancehue, direction, optionsMask: 0, optionsOverride: 0},
                         utils.getOptions(meta.mapped, entity),
                     );
                 } else {
                     const hue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 254);
-                    await entity.command("lightingColorCtrl", "moveToHue", {transtime, hue, direction}, utils.getOptions(meta.mapped, entity));
+                    await entity.command(
+                        "lightingColorCtrl",
+                        "moveToHue",
+                        {transtime, hue, direction, optionsMask: 0, optionsOverride: 0},
+                        utils.getOptions(meta.mapped, entity),
+                    );
                 }
             } else if (hsv.saturation !== null) {
                 const saturation = utils.mapNumberRange(hsvCorrected.saturation, 0, 100, 0, 254);
 
-                await entity.command("lightingColorCtrl", "moveToSaturation", {transtime, saturation}, utils.getOptions(meta.mapped, entity));
+                await entity.command(
+                    "lightingColorCtrl",
+                    "moveToSaturation",
+                    {transtime, saturation, optionsMask: 0, optionsOverride: 0},
+                    utils.getOptions(meta.mapped, entity),
+                );
             }
         } else {
             throw new Error("Invalid color");
@@ -187,8 +202,12 @@ export const light_colortemp: Tz.Converter = {
         // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = light.clampColorTemp(value, colorTempMin, colorTempMax);
 
-        const payload = {colortemp: value as number, transtime: utils.getTransition(entity, key, meta).time};
-        await entity.command("lightingColorCtrl", "moveToColorTemp", payload, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "lightingColorCtrl",
+            "moveToColorTemp",
+            {colortemp: value as number, transtime: utils.getTransition(entity, key, meta).time, optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
         return {
             state: libColor.syncColorState({color_mode: constants.colorModeLookup[2], color_temp: value}, meta.state, entity, meta.options),
         };
@@ -521,7 +540,7 @@ export const cover_via_brightness: Tz.Converter = {
             // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             if (value === "stop") {
-                await entity.command("genLevelCtrl", "stop", {}, utils.getOptions(meta.mapped, entity));
+                await entity.command("genLevelCtrl", "stop", {optionsMask: 0, optionsOverride: 0}, utils.getOptions(meta.mapped, entity));
                 return;
             }
             const lookup = {open: 100, close: 0};
@@ -537,7 +556,7 @@ export const cover_via_brightness: Tz.Converter = {
         await entity.command(
             "genLevelCtrl",
             "moveToLevelWithOnOff",
-            {level: utils.mapNumberRange(Number(position), 0, 100, 0, 255), transtime: 0},
+            {level: utils.mapNumberRange(Number(position), 0, 100, 0, 255), transtime: 0, optionsMask: 0, optionsOverride: 0},
             utils.getOptions(meta.mapped, entity),
         );
 
@@ -915,8 +934,12 @@ export const light_brightness_step: Tz.Converter = {
 
         const mode = value > 0 ? 0 : 1;
         const transition = utils.getTransition(entity, key, meta).time;
-        const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition};
-        await entity.command("genLevelCtrl", command, payload, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "genLevelCtrl",
+            command,
+            {stepmode: mode, stepsize: Math.abs(value), transtime: transition, optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
 
         if (meta.state.brightness !== undefined) {
             utils.assertNumber(meta.state.brightness);
@@ -947,7 +970,7 @@ export const light_brightness_move: Tz.Converter = {
     key: ["brightness_move", "brightness_move_onoff"],
     convertSet: async (entity, key, value, meta) => {
         if (value === "stop" || value === 0) {
-            await entity.command("genLevelCtrl", "stop", {}, utils.getOptions(meta.mapped, entity));
+            await entity.command("genLevelCtrl", "stop", {optionsMask: 0, optionsOverride: 0}, utils.getOptions(meta.mapped, entity));
 
             // As we cannot determine the new brightness state, we read it from the device
             await utils.sleep(500);
@@ -959,9 +982,13 @@ export const light_brightness_move: Tz.Converter = {
         // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
         utils.assertNumber(value, key);
-        const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
         const command = key.endsWith("onoff") ? "moveWithOnOff" : "move";
-        await entity.command("genLevelCtrl", command, payload, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "genLevelCtrl",
+            command,
+            {movemode: value > 0 ? 0 : 1, rate: Math.abs(value), optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
     },
 };
 export const light_colortemp_step: Tz.Converter = {
@@ -974,8 +1001,20 @@ export const light_colortemp_step: Tz.Converter = {
 
         const mode = value > 0 ? 1 : 3;
         const transition = utils.getTransition(entity, key, meta).time;
-        const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition, minimum: 0, maximum: 600};
-        await entity.command("lightingColorCtrl", "stepColorTemp", payload, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "lightingColorCtrl",
+            "stepColorTemp",
+            {
+                stepmode: mode,
+                stepsize: Math.abs(value),
+                transtime: transition,
+                minimum: 0,
+                maximum: 600,
+                optionsMask: 0,
+                optionsOverride: 0,
+            },
+            utils.getOptions(meta.mapped, entity),
+        );
 
         // We cannot determine the color temperature from the current state so we read it, because
         // - We don't know the max/min values
@@ -1072,7 +1111,12 @@ export const light_colortemp_move: Tz.Converter = {
         }
 
         // Send command
-        await entity.command("lightingColorCtrl", "moveColorTemp", {minimum, maximum, rate, movemode}, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "lightingColorCtrl",
+            "moveColorTemp",
+            {minimum, maximum, rate, movemode, optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
 
         // Read current color temperature if stopping
         if (movemode === 0) {
@@ -1094,12 +1138,18 @@ export const light_color_and_colortemp_via_color: Tz.Converter = {
         if (key === "color_temp" || key === "color_temp_percent") {
             utils.assertNumber(value);
             const xy = libColor.ColorXY.fromMireds(value);
-            const payload = {
-                transtime: utils.getTransition(entity, key, meta).time,
-                colorx: utils.mapNumberRange(xy.x, 0, 1, 0, 65535),
-                colory: utils.mapNumberRange(xy.y, 0, 1, 0, 65535),
-            };
-            await entity.command("lightingColorCtrl", "moveToColor", payload, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToColor",
+                {
+                    transtime: utils.getTransition(entity, key, meta).time,
+                    colorx: utils.mapNumberRange(xy.x, 0, 1, 0, 65535),
+                    colory: utils.mapNumberRange(xy.y, 0, 1, 0, 65535),
+                    optionsMask: 0,
+                    optionsOverride: 0,
+                },
+                utils.getOptions(meta.mapped, entity),
+            );
             return {
                 state: libColor.syncColorState({color_mode: constants.colorModeLookup[2], color_temp: value}, meta.state, entity, meta.options),
             };
@@ -1121,8 +1171,12 @@ export const light_hue_saturation_step: Tz.Converter = {
         const attribute = key === "hue_step" ? "currentHue" : "currentSaturation";
         const mode = value > 0 ? 1 : 3;
         const transition = utils.getTransition(entity, key, meta).time;
-        const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition};
-        await entity.command("lightingColorCtrl", command, payload, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "lightingColorCtrl",
+            command,
+            {stepmode: mode, stepsize: Math.abs(value), transtime: transition, optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
 
         // We cannot determine the hue/saturation from the current state so we read it, because
         // - Color mode could have been switched (x/y or colortemp)
@@ -1152,7 +1206,12 @@ export const light_hue_saturation_move: Tz.Converter = {
             movemode = value > 0 ? 1 : 3;
         }
 
-        await entity.command("lightingColorCtrl", command, {rate, movemode}, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "lightingColorCtrl",
+            command,
+            {rate, movemode, optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
 
         // We cannot determine the hue/saturation from the current state so we read it, because
         // - Color mode could have been switched (x/y or colortemp)
@@ -1309,7 +1368,7 @@ export const light_onoff_brightness: Tz.Converter = {
                     await entity.command(
                         "genLevelCtrl",
                         "moveToLevel",
-                        {level: Number(brightness), transtime: transition.time},
+                        {level: Number(brightness), transtime: transition.time, optionsMask: 0, optionsOverride: 0},
                         utils.getOptions(meta.mapped, entity),
                     );
                 }
@@ -1318,7 +1377,7 @@ export const light_onoff_brightness: Tz.Converter = {
                 await entity.command(
                     "genLevelCtrl",
                     "moveToLevel",
-                    {level: Number(brightness), transtime: transition.time},
+                    {level: Number(brightness), transtime: transition.time, optionsMask: 0, optionsOverride: 0},
                     utils.getOptions(meta.mapped, entity),
                 );
             }
@@ -1326,7 +1385,7 @@ export const light_onoff_brightness: Tz.Converter = {
             await entity.command(
                 "genLevelCtrl",
                 state === null ? "moveToLevel" : "moveToLevelWithOnOff",
-                {level: Number(brightness), transtime: transition.time},
+                {level: Number(brightness), transtime: transition.time, optionsMask: 0, optionsOverride: 0},
                 utils.getOptions(meta.mapped, entity),
             );
         }
@@ -1721,7 +1780,12 @@ export const fan_speed: Tz.Converter = {
     key: ["speed"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertNumber(value);
-        await entity.command("genLevelCtrl", "moveToLevel", {level: value, transtime: 0}, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "genLevelCtrl",
+            "moveToLevel",
+            {level: value, transtime: 0, optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
         return {state: {speed: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2158,7 +2222,7 @@ export const livolo_socket_switch_on_off: Tz.Converter = {
         const payloadOnBottomRight = {1: {value: Buffer.from([8, 0, 0, 0, 0, 0, 0, 0]), type: 136}};
         const payloadOffBottomRight = {1: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 136}};
         if (postfix === "left") {
-            await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level: oldstate, transtime: channel});
+            await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level: oldstate, transtime: channel, optionsMask: 0, optionsOverride: 0});
             await entity.write("genPowerCfg", state === "on" ? payloadOn : payloadOff, {
                 manufacturerCode: 0x1ad2,
                 disableDefaultResponse: true,
@@ -2171,7 +2235,7 @@ export const livolo_socket_switch_on_off: Tz.Converter = {
         }
         if (postfix === "right") {
             channel = 2.0;
-            await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level: oldstate, transtime: channel});
+            await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level: oldstate, transtime: channel, optionsMask: 0, optionsOverride: 0});
             await entity.write("genPowerCfg", state === "on" ? payloadOnRight : payloadOffRight, {
                 manufacturerCode: 0x1ad2,
                 disableDefaultResponse: true,
@@ -2226,7 +2290,7 @@ export const livolo_switch_on_off: Tz.Converter = {
             return;
         }
 
-        await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level: state, transtime: channel});
+        await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level: state, transtime: channel, optionsMask: 0, optionsOverride: 0});
         return {state: {state: value.toUpperCase()}};
     },
     convertGet: async (entity, key, meta) => {
@@ -3010,27 +3074,46 @@ export const tuya_led_control: Tz.Converter = {
             meta.message.color == null &&
             meta.message.color_temp == null
         ) {
-            const zclData = {level: Number(value), transtime: 0};
+            const level = Number(value);
 
-            await entity.command("genLevelCtrl", "moveToLevel", zclData, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
 
-            globalStore.putValue(entity, "brightness", zclData.level);
+            globalStore.putValue(entity, "brightness", level);
 
-            return {state: {brightness: zclData.level}};
+            return {state: {brightness: level}};
         }
 
         if (key === "brightness" && utils.isNumber(meta.message.color_temp)) {
-            const zclData = {colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254), transtime: 0};
-            const zclDataBrightness = {level: Number(value), transtime: 0};
+            const level = Number(value);
 
             await entity.command("lightingColorCtrl", "tuyaRgbMode", {enable: 0});
-            await entity.command("lightingColorCtrl", "moveToColorTemp", zclData, utils.getOptions(meta.mapped, entity));
-            await entity.command("genLevelCtrl", "moveToLevel", zclDataBrightness, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToColorTemp",
+                {
+                    colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254),
+                    transtime: 0,
+                    optionsMask: 0,
+                    optionsOverride: 0,
+                },
+                utils.getOptions(meta.mapped, entity),
+            );
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
 
-            globalStore.putValue(entity, "brightness", zclDataBrightness.level);
+            globalStore.putValue(entity, "brightness", level);
 
             const newState = {
-                brightness: zclDataBrightness.level,
+                brightness: level,
                 color_mode: constants.colorModeLookup[2],
                 color_temp: meta.message.color_temp,
             };
@@ -3040,15 +3123,24 @@ export const tuya_led_control: Tz.Converter = {
 
         if (key === "color_temp") {
             utils.assertNumber(value, key);
-            const zclData = {colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0};
-            const zclDataBrightness = {level: globalStore.getValue(entity, "brightness") || 100, transtime: 0};
+            const level = globalStore.getValue(entity, "brightness") || 100;
 
             await entity.command("lightingColorCtrl", "tuyaRgbMode", {enable: 0});
-            await entity.command("lightingColorCtrl", "moveToColorTemp", zclData, utils.getOptions(meta.mapped, entity));
-            await entity.command("genLevelCtrl", "moveToLevel", zclDataBrightness, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToColorTemp",
+                {colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
 
             const newState = {
-                brightness: zclDataBrightness.level,
+                brightness: level,
                 color_mode: constants.colorModeLookup[2],
                 color_temp: value,
             };
@@ -3136,8 +3228,12 @@ export const tuya_led_controller: Tz.Converter = {
             if (value.toLowerCase() === "off") {
                 await entity.command("genOnOff", "offWithEffect", {effectid: 0x01, effectvariant: 0x01}, utils.getOptions(meta.mapped, entity));
             } else {
-                const payload = {level: 255, transtime: 0};
-                await entity.command("genLevelCtrl", "moveToLevelWithOnOff", payload, utils.getOptions(meta.mapped, entity));
+                await entity.command(
+                    "genLevelCtrl",
+                    "moveToLevelWithOnOff",
+                    {level: 255, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                    utils.getOptions(meta.mapped, entity),
+                );
             }
             return {state: {state: value.toUpperCase()}};
         }
@@ -3148,8 +3244,18 @@ export const tuya_led_controller: Tz.Converter = {
             const transtime = 0;
             const direction = 0;
 
-            await entity.command("lightingColorCtrl", "moveToHue", {hue, transtime, direction}, utils.getOptions(meta.mapped, entity));
-            await entity.command("lightingColorCtrl", "moveToSaturation", {saturation, transtime}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToHue",
+                {hue, transtime, direction, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToSaturation",
+                {saturation, transtime, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
         }
     },
     convertGet: async (entity, key, meta) => {

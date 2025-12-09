@@ -139,8 +139,12 @@ const tzLocal = {
     charge_limit: {
         key: ["charge_limit"],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {level: value as number, transtime: 0};
-            await entity.command("genLevelCtrl", "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level: value as number, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
         },
 
         convertGet: async (entity, key, meta) => {
@@ -164,7 +168,12 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const level = value as number;
 
-            await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level, transtime: 0}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevelWithOnOff",
+                {level, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
         },
 
         convertGet: async (entity, key, meta) => {

@@ -282,7 +282,7 @@ const schneiderElectricExtend = {
                             await entity.command(
                                 "genLevelCtrl",
                                 "moveToLevelWithOnOff",
-                                {level: utils.mapNumberRange(Number(value), 0, 100, 0, 255), transtime: 0},
+                                {level: utils.mapNumberRange(Number(value), 0, 100, 0, 255), transtime: 0, optionsMask: 0, optionsOverride: 0},
                                 utils.getOptions(meta.mapped, entity),
                             );
                         }
@@ -296,7 +296,7 @@ const schneiderElectricExtend = {
                         } else if (value === "CLOSE") {
                             await entity.command("genOnOff", "off", {}, utils.getOptions(meta.mapped, entity));
                         } else if (value === "STOP") {
-                            await entity.command("genLevelCtrl", "stop", {}, utils.getOptions(meta.mapped, entity));
+                            await entity.command("genLevelCtrl", "stop", {optionsMask: 0, optionsOverride: 0}, utils.getOptions(meta.mapped, entity));
                         }
                     },
                 },

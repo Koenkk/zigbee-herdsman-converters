@@ -938,7 +938,12 @@ const unfreezeMechanisms: {
     // Color lights:
     //   Do not support this command.
     moveColorTemp: async (entity) => {
-        await entity.command("lightingColorCtrl", "moveColorTemp", {rate: 1, movemode: 0, minimum: 0, maximum: 600}, {});
+        await entity.command(
+            "lightingColorCtrl",
+            "moveColorTemp",
+            {rate: 1, movemode: 0, minimum: 0, maximum: 600, optionsMask: 0, optionsOverride: 0},
+            {},
+        );
     },
 
     // WS lights:
@@ -947,7 +952,7 @@ const unfreezeMechanisms: {
     //   Finishes the color transition instantly: light will instantly
     //   "fast forward" to the final state, post-transition.
     genLevelCtrl: async (entity) => {
-        await entity.command("genLevelCtrl", "stop", {}, {});
+        await entity.command("genLevelCtrl", "stop", {optionsMask: 0, optionsOverride: 0}, {});
     },
 };
 
