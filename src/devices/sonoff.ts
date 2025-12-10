@@ -1657,7 +1657,10 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_temperature_min",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortTemperatureMin",
+<<<<<<< HEAD
+=======
                 entityCategory: "config",
+>>>>>>> dfcd45115d872b89e0fafe1e15f6ef69a2e1447e
                 description:
                     "Minimum temperature that is considered comfortable. The device will display ❄️ when the temperature is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: -10,
@@ -1670,7 +1673,10 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_temperature_max",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortTemperatureMax",
+<<<<<<< HEAD
+=======
                 entityCategory: "config",
+>>>>>>> dfcd45115d872b89e0fafe1e15f6ef69a2e1447e
                 description:
                     "Maximum temperature that is considered comfortable. The device will display 🔥 when the temperature is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: -10,
@@ -1683,7 +1689,10 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_humidity_min",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortHumidityMin",
+<<<<<<< HEAD
+=======
                 entityCategory: "config",
+>>>>>>> dfcd45115d872b89e0fafe1e15f6ef69a2e1447e
                 description:
                     "Minimum relative humidity that is considered comfortable. The device will display ☀️ when the humidity is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
@@ -1696,7 +1705,10 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "comfort_humidity_max",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortHumidityMax",
+<<<<<<< HEAD
+=======
                 entityCategory: "config",
+>>>>>>> dfcd45115d872b89e0fafe1e15f6ef69a2e1447e
                 description:
                     "Maximum relative humidity that is considered comfortable. The device will display 💧 when the humidity is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
@@ -1710,7 +1722,10 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {celsius: 0, fahrenheit: 1},
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "temperatureUnits",
+<<<<<<< HEAD
+=======
                 entityCategory: "config",
+>>>>>>> dfcd45115d872b89e0fafe1e15f6ef69a2e1447e
                 description:
                     "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
             }),
@@ -1718,7 +1733,10 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "temperatureCalibration",
+<<<<<<< HEAD
+=======
                 entityCategory: "config",
+>>>>>>> dfcd45115d872b89e0fafe1e15f6ef69a2e1447e
                 description: "Offset to add/subtract to the reported temperature",
                 valueMin: -50,
                 valueMax: 50,
@@ -1730,7 +1748,10 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "humidity_calibration",
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "humidityCalibration",
+<<<<<<< HEAD
+=======
                 entityCategory: "config",
+>>>>>>> dfcd45115d872b89e0fafe1e15f6ef69a2e1447e
                 description: "Offset to add/subtract to the reported relative humidity",
                 valueMin: -50,
                 valueMax: 50,
@@ -1739,7 +1760,11 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "%",
             }),
         ],
+<<<<<<< HEAD
+        ota:true,
+=======
         ota: true,
+>>>>>>> dfcd45115d872b89e0fafe1e15f6ef69a2e1447e
     },
     {
         fingerprint: [
