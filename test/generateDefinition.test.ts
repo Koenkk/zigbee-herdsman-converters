@@ -109,7 +109,6 @@ export default {
     vendor: 'vendor',
     description: 'Automatically generated definition',
     extend: [m.temperature(), m.onOff({"powerOnBehavior":false})],
-    meta: {},
 };
             `,
         });
@@ -148,7 +147,6 @@ export default {
     vendor: 'vendor',
     description: 'Automatically generated definition',
     extend: [m.temperature(), m.onOff({"powerOnBehavior":false})],
-    meta: {},
 };
             `,
         });
@@ -192,7 +190,6 @@ export default {
     vendor: '',
     description: 'Automatically generated definition',
     extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2}}), m.temperature({"endpointNames":["1","2"]}), m.onOff({"powerOnBehavior":false})],
-    meta: {"multiEndpoint":true},
 };
             `,
         });
@@ -210,7 +207,7 @@ export default {
         await assertGeneratedDefinition({
             device: mockDevice({modelID: "combo", endpoints: [{inputClusters: ["genOnOff", "lightingColorCtrl"], outputClusters: [], attributes}]}),
             meta: {},
-            fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
                 "state",
                 "brightness",
@@ -260,7 +257,6 @@ export default {
     vendor: '',
     description: 'Automatically generated definition',
     extend: [m.light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
-    meta: {},
 };
             `,
         });
@@ -278,7 +274,7 @@ export default {
         await assertGeneratedDefinition({
             device: mockDevice({modelID: "combo", endpoints: [{inputClusters: ["genOnOff", "lightingColorCtrl"], outputClusters: [], attributes}]}),
             meta: {},
-            fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
                 "state",
                 "brightness",
@@ -328,7 +324,6 @@ export default {
     vendor: '',
     description: 'Automatically generated definition',
     extend: [m.light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
-    meta: {},
 };
             `,
         });
@@ -350,7 +345,7 @@ export default {
                 endpoints: [{inputClusters: ["genOnOff", "lightingColorCtrl"], outputClusters: [], attributes}],
             }),
             meta: {supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
-            fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
                 "state",
                 "brightness",
@@ -402,7 +397,6 @@ export default {
     vendor: '',
     description: 'Automatically generated definition',
     extend: [philips.m.light({"colorTemp":{"range":[100,500]},"color":{"enhancedHue":true}})],
-    meta: {},
 };
             `,
         });
@@ -479,7 +473,6 @@ export default {
     vendor: '',
     description: 'Automatically generated definition',
     extend: [m.onOff({"powerOnBehavior":false}), m.electricityMeter()],
-    meta: {},
 };
             `,
         });

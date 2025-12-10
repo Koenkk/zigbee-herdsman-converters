@@ -6,7 +6,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["FLS-PP3", "FLS-PP3\u0000", "FLS-PP3 White\u0000"],
         model: "Mega23M12",
         vendor: "Dresden Elektronik",
-        description: "ZigBee Light Link wireless electronic ballast",
+        description: "Zigbee Light Link wireless electronic ballast",
         ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {rgb: 10, white: 11}}),
@@ -24,7 +24,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["FLS-CT"],
         model: "XVV-Mega23M12",
         vendor: "Dresden Elektronik",
-        description: "ZigBee Light Link wireless electronic ballast color temperature",
+        description: "Zigbee Light Link wireless electronic ballast color temperature",
         extend: [m.light({colorTemp: {range: undefined}})],
     },
     {

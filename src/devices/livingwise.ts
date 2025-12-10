@@ -10,14 +10,14 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["abb71ca5fe1846f185cfbda554046cce"],
         model: "LVS-ZB500D",
         vendor: "LivingWise",
-        description: "ZigBee smart dimmer switch",
+        description: "Zigbee smart dimmer switch",
         extend: [m.light()],
     },
     {
         zigbeeModel: ["545df2981b704114945f6df1c780515a"],
         model: "LVS-ZB15S",
         vendor: "LivingWise",
-        description: "ZigBee smart in-wall switch",
+        description: "Zigbee smart in-wall switch",
         extend: [m.onOff()],
     },
     {

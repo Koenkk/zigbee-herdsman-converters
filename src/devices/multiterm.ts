@@ -28,7 +28,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {state: msg.data.presentValue === 1 ? msg.data.activeText : msg.data.inactiveText};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBinaryOutput", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {

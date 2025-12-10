@@ -7,18 +7,18 @@ const e = exposes.presets;
 function airQuality(): ModernExtend {
     const exposes: Expose[] = [e.temperature(), e.humidity(), e.voc().withUnit("ppb"), e.eco2()];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "msTemperatureMeasurement",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
-                const temperature = Number.parseFloat(msg.data.measuredValue) / 100.0;
-                const humidity = Number.parseFloat(msg.data.minMeasuredValue) / 100.0;
-                const eco2 = Number.parseFloat(msg.data.maxMeasuredValue);
-                const voc = Number.parseFloat(msg.data.tolerance);
+                const temperature = msg.data.measuredValue / 100.0;
+                const humidity = msg.data.minMeasuredValue / 100.0;
+                const eco2 = msg.data.maxMeasuredValue;
+                const voc = msg.data.tolerance;
                 return {temperature, humidity, eco2, voc};
             },
-        },
+        } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};

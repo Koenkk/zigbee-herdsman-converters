@@ -14,7 +14,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZW08",
         vendor: "Lincukoo",
         description: "Smart water leakage/lack alarm sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
             e.enum("mode", ea.STATE_SET, ["leakage", "shortage"]).withDescription("work mode of the alarm"),
@@ -40,7 +40,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZLR08",
         vendor: "Lincukoo",
         description: "24GHz millimeter wave radar",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -85,7 +85,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZLM04U",
         vendor: "Lincukoo",
         description: "Motion and brightness sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.occupancy(),
             e.illuminance(),
@@ -110,7 +110,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZLMR10",
         vendor: "Lincukoo",
         description: "Human Motion & Presence Sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -146,7 +146,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CZF02",
         vendor: "Lincukoo",
         description: "Finger Robot",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch(),
             e.enum("mode", ea.STATE_SET, ["click", "long_press"]).withDescription("work mode of the finger robot"),
@@ -259,7 +259,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZR07",
         vendor: "Lincukoo",
         description: "24GHz millimeter wave radar",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -293,7 +293,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZLR08T",
         vendor: "Lincukoo",
         description: "24GHz millimeter wave radar",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -326,5 +326,12 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "radar_mode", tuya.valueConverterBasic.lookup({people_on: tuya.enum(0), people_off: tuya.enum(1)})],
             ],
         },
+    },
+    {
+        zigbeeModel: ["CZB01"],
+        model: "CZB01",
+        vendor: "Lincukoo",
+        description: "Wireless switch with 1 button",
+        extend: [m.battery(), m.commandsOnOff()],
     },
 ];

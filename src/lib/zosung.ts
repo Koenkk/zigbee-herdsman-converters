@@ -36,8 +36,8 @@ function messagesClear(entity: Zh.Endpoint | Zh.Group, seq: number) {
     globalStore.clearValue(entity, "irMessageInfo");
 }
 
-function calcArrayCrc(values: number[]) {
-    return Array.from(values.values()).reduce((a, b) => a + b, 0) % 0x100;
+function calcArrayCrc(values: Buffer) {
+    return Array.from(values).reduce((a, b) => a + b, 0) % 0x100;
 }
 
 function calcStringCrc(str: string) {
@@ -61,7 +61,7 @@ export const fzZosung = {
                 logger.debug(`IRCode to send: ${JSON.stringify(irMsg)} (seq:${seq})`, NS);
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"zosungIRTransmit", undefined, ["commandZosungSendIRCode01"]>,
     zosung_send_ir_code_02: {
         cluster: "zosungIRTransmit",
         type: ["commandZosungSendIRCode02"],
@@ -88,7 +88,7 @@ export const fzZosung = {
                 logger.debug(`Sent IRCode part: ${part} (sum: ${sum}, seq:${seq})`, NS);
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"zosungIRTransmit", undefined, ["commandZosungSendIRCode02"]>,
     zosung_send_ir_code_04: {
         cluster: "zosungIRTransmit",
         type: ["commandZosungSendIRCode04"],
@@ -107,7 +107,7 @@ export const fzZosung = {
             messagesClear(msg.endpoint, seq);
             logger.debug(`IRCode has been successfully sent. (seq:${seq})`, NS);
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"zosungIRTransmit", undefined, ["commandZosungSendIRCode04"]>,
     zosung_send_ir_code_00: {
         cluster: "zosungIRTransmit",
         type: ["commandZosungSendIRCode00"],
@@ -144,7 +144,7 @@ export const fzZosung = {
             );
             logger.debug(`"IR-Message-Code00" transfer started.`, NS);
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"zosungIRTransmit", undefined, ["commandZosungSendIRCode00"]>,
     zosung_send_ir_code_03: {
         cluster: "zosungIRTransmit",
         type: ["commandZosungSendIRCode03Resp"],
@@ -192,7 +192,7 @@ export const fzZosung = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"zosungIRTransmit", undefined, ["commandZosungSendIRCode03Resp"]>,
     zosung_send_ir_code_05: {
         cluster: "zosungIRTransmit",
         type: ["commandZosungSendIRCode05Resp"],
@@ -217,7 +217,7 @@ export const fzZosung = {
                 };
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"zosungIRTransmit", undefined, ["commandZosungSendIRCode05Resp"]>,
 };
 
 export const tzZosung = {

@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QT-05M",
         vendor: "QOTO",
         description: "Solar powered garden watering timer",
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report, legacy.fromZigbee.watering_timer],
+        fromZigbee: [fz.ignore_tuya_set_time, fz.ignore_onoff_report, legacy.fromZigbee.watering_timer],
         toZigbee: [legacy.tz.valve_state, legacy.tz.shutdown_timer, legacy.tz.valve_state_auto_shutdown],
         exposes: [
             e.numeric("water_flow", ea.STATE).withUnit("%").withValueMin(0).withDescription("Current water flow in %."),

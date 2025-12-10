@@ -16,16 +16,16 @@ const fzLocal = {
                 return {power: msg.data["16392"]};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     energy: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data["16393"] !== undefined) {
-                return {energy: Number.parseFloat(msg.data["16393"]) / 1000};
+                return {energy: Number.parseFloat(msg.data["16393"] as string) / 1000};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -77,5 +77,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Stello",
         description: "Hilo water heater controller",
         extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({cluster: "metering"})],
+        // Missing manufacturer specific FC02 cluster with attributes at
+        // 0002: CCRDureeSalubre (min 1s, max 600s, min change 1)
+        // 0004: CCRSalubre (min 1s, max 300s, min change 1)
+        // 0005: CCRTempEau (min 60s, max 60s, min change 1)
+        // 0006: CCRTempFc (min 5s, max 60s, min change 1)
     },
 ];

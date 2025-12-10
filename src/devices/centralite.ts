@@ -38,7 +38,7 @@ const fzLocal = {
             }
             return fz.thermostat.convert(model, msg, publish, options, meta);
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -217,7 +217,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3157100",
         vendor: "Centralite",
         description: "3-Series pearl touch thermostat",
-        fromZigbee: [fz.battery, fz.thermostat, fz.fan, fz.ignore_time_read],
+        fromZigbee: [fz.battery, fz.thermostat, fz.fan],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_local_temperature_calibration,
@@ -263,7 +263,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3156105",
         vendor: "Centralite",
         description: "HA thermostat",
-        fromZigbee: [fz.battery, fzLocal.thermostat_3156105, fz.fan, fz.ignore_time_read],
+        fromZigbee: [fz.battery, fzLocal.thermostat_3156105, fz.fan],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -347,29 +347,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["3200-fr"],
+        zigbeeModel: ["3200-fr", "3200-de", "3200-gb"],
         model: "3200-fr",
         vendor: "Centralite",
         description: "Smart outlet",
-        fromZigbee: [fz.on_off, fz.electrical_measurement],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.voltage(), e.current()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement"]);
-            await reporting.onOff(endpoint);
-            await endpoint.read("haElectricalMeasurement", ["acCurrentMultiplier", "acCurrentDivisor"]);
-            await endpoint.read("haElectricalMeasurement", ["acPowerMultiplier", "acPowerDivisor"]);
-            await reporting.rmsVoltage(endpoint, {change: 2});
-            await reporting.rmsCurrent(endpoint, {change: 10});
-            await reporting.activePower(endpoint, {change: 2});
-        },
-    },
-    {
-        zigbeeModel: ["3200-de"],
-        model: "3200-de",
-        vendor: "Centralite",
-        description: "Smart outlet",
+        whiteLabel: [
+            {model: "3200-de", fingerprint: [{modelID: "3200-de"}]},
+            {model: "3200-gb", fingerprint: [{modelID: "3200-gb"}]},
+        ],
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.voltage(), e.current()],

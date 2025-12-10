@@ -12,7 +12,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "TECH",
         description: "Smart radiator valve",
         ota: true,
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.child_lock(),
             e.window_detection(),
@@ -102,7 +102,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "TECH",
         description: "Smart radiator valve",
         ota: true,
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.child_lock(),
             e.window_detection(),

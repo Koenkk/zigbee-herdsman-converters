@@ -3,7 +3,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {Configure, DefinitionWithExtend, Fz, OnEvent, Tz, Zh} from "../lib/types";
+import type {Configure, DefinitionWithExtend, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -44,7 +44,7 @@ const disableBatteryRotaryDimmerReporting = async (endpoint: Zh.Endpoint) => {
 };
 
 const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
-    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature] satisfies Fz.Converter[],
+    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
     toZigbee: [] as Tz.Converter[], // TODO: Needs documented reasoning for asserting this as a type it isn't
     exposes: [
         e.battery(),
@@ -276,6 +276,16 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["Smart16ARelay51AU"],
+        model: "AU-A1ZBR16A",
+        vendor: "Aurora Lighting",
+        description: "Aurora Smart Inline Relay",
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
+        endpoint: (device) => {
+            return {default: 2};
+        },
+    },
+    {
         zigbeeModel: ["1GBatteryDimmer50AU"],
         model: "AU-A1ZBR1GW",
         vendor: "Aurora Lighting",
@@ -302,5 +312,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aurora Lighting",
         description: "AOne 1-10V in-line dimmer",
         extend: [m.identify(), m.light({powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ["AU-A1CE14ZCX6"],
+        model: "AU-A1CE14ZCX6",
+        vendor: "Aurora Lighting",
+        description: "AOne smart tuneable candle lamp bulb",
+        extend: [m.light({colorTemp: {range: [200, 454]}})],
     },
 ];

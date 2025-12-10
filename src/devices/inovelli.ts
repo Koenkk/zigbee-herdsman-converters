@@ -5,7 +5,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Expose, Fz, Tz, Zh} from "../lib/types";
+import type {Configure, DefinitionWithExtend, Expose, Fz, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -343,7 +343,7 @@ const inovelliExtend = {
                 },
                 ledEffectComplete: {
                     ID: 0x24,
-                    parameters: [{name: "notificationType", type: Zcl.DataType.UINT8}],
+                    parameters: [{name: "notificationType", type: Zcl.DataType.INT8}],
                 },
             },
             commandsResponse: {},
@@ -384,10 +384,174 @@ const inovelliExtend = {
                 },
             },
         }),
+    inovelliDevice: ({
+        attrs,
+        supportsLedEffects,
+        supportsButtonTaps,
+        splitValuesByEndpoint = false,
+    }: {
+        attrs: Array<{attributes: {[s: string]: Attribute}; clusterName: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME}>;
+        supportsLedEffects?: boolean;
+        supportsButtonTaps: boolean;
+        splitValuesByEndpoint?: boolean;
+    }) => {
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        const fromZigbee: Fz.Converter<any, any, any>[] = [];
+        const toZigbee: Tz.Converter[] = [];
+        const exposes: Expose[] = [];
+
+        if (supportsLedEffects) {
+            fromZigbee.push(fzLocal.led_effect_complete);
+            toZigbee.push(tzLocal.inovelli_led_effect, tzLocal.inovelli_individual_led_effect);
+            exposes.push(exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete());
+        }
+
+        for (const attr of attrs) {
+            fromZigbee.push(fzLocal.inovelli(attr.attributes, attr.clusterName, splitValuesByEndpoint));
+            toZigbee.push(
+                tzLocal.inovelli_parameters(attr.attributes, attr.clusterName),
+                tzLocal.inovelli_parameters_readOnly(attr.attributes, attr.clusterName),
+            );
+            attributesToExposeList(attr.attributes, exposes);
+        }
+
+        if (supportsButtonTaps) {
+            exposes.push(e.action(BUTTON_TAP_SEQUENCES));
+        }
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
+
+                // Bind for Button Event Reporting
+                const endpoint2 = device.getEndpoint(2);
+                await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
+
+                for (const attr of attrs) {
+                    if (!splitValuesByEndpoint) {
+                        await chunkedRead(endpoint, Object.keys(attr.attributes), attr.clusterName);
+                    } else {
+                        await chunkedRead(
+                            endpoint,
+                            Object.keys(attr.attributes).flatMap((key) => {
+                                const keysplit = key.split("_");
+                                if (keysplit.length === 2) {
+                                    if (Number(keysplit[1]) === 1) {
+                                        return [keysplit[0]];
+                                    }
+                                    return [];
+                                }
+                                return [key];
+                            }),
+                            attr.clusterName,
+                        );
+                        await chunkedRead(
+                            endpoint2,
+                            Object.keys(attr.attributes).flatMap((key) => {
+                                const keysplit = key.split("_");
+                                if (keysplit.length === 2) {
+                                    if (Number(keysplit[1]) === 2) {
+                                        return [keysplit[0]];
+                                    }
+                                }
+                                return [];
+                            }),
+                            attr.clusterName,
+                        );
+                    }
+                }
+            },
+        ];
+
+        return {
+            fromZigbee,
+            toZigbee,
+            exposes,
+            configure,
+            isModernExtend: true,
+        } as ModernExtend;
+    },
+    inovelliLight: ({splitValuesByEndpoint = false}: {splitValuesByEndpoint?: boolean} = {}) => {
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        const fromZigbee: Fz.Converter<any, any, any>[] = [];
+        const bindingList = ["genOnOff"];
+
+        if (!splitValuesByEndpoint) {
+            fromZigbee.push(fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior);
+            bindingList.push("genLevelCtrl");
+        }
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, bindingList);
+                await reporting.onOff(endpoint);
+            },
+        ];
+
+        return {
+            fromZigbee,
+            toZigbee: [
+                tzLocal.light_onoff_brightness_inovelli,
+                tz.power_on_behavior,
+                tz.ignore_transition,
+                tz.light_brightness_move,
+                tz.light_brightness_step,
+                tz.level_config,
+            ],
+            exposes: [e.light_brightness()],
+            configure,
+            isModernExtend: true,
+        } as ModernExtend;
+    },
+    inovelliFan: ({endpointId, splitValuesByEndpoint = false}: {endpointId: number; splitValuesByEndpoint?: boolean}) => {
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        const fromZigbee: Fz.Converter<any, any, any>[] = [fzLocal.fan_mode(endpointId), fzLocal.breeze_mode(endpointId)];
+        const toZigbee: Tz.Converter[] = [tzLocal.fan_mode(endpointId), tzLocal.breezeMode(endpointId)];
+        const exposes: Expose[] = [e.fan().withState("fan_state").withModes(Object.keys(FAN_MODES)), exposeBreezeMode()];
+        const bindingList = ["genOnOff"];
+
+        if (!splitValuesByEndpoint) {
+            fromZigbee.push(fzLocal.fan_state);
+            toZigbee.push(tzLocal.fan_state);
+            bindingList.push("genLevelCtrl");
+        }
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, bindingList);
+                await reporting.onOff(endpoint);
+
+                if (splitValuesByEndpoint) {
+                    const endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, bindingList);
+                    await reporting.onOff(endpoint2);
+                }
+            },
+        ];
+        return {
+            fromZigbee,
+            toZigbee,
+            exposes,
+            configure,
+            isModernExtend: true,
+        } as ModernExtend;
+    },
+    inovelliMMWave: () => {
+        return {
+            fromZigbee: [],
+            toZigbee: [tzLocal.inovelli_mmwave_control_commands],
+            exposes: [exposeMMWaveControl()],
+            configure: [],
+            isModernExtend: true,
+        } as ModernExtend;
+    },
 };
 
-const fanModes: {[key: string]: number} = {off: 0, low: 2, smart: 4, medium: 86, high: 170, on: 255};
-const breezemodes: string[] = ["off", "low", "medium", "high"];
+const FAN_MODES: {[key: string]: number} = {off: 0, low: 2, smart: 4, medium: 86, high: 170, on: 255};
+const BREEZE_MODES: string[] = ["off", "low", "medium", "high"];
 const LED_NOTIFICATION_TYPES: {[key: number]: string} = {
     0: "LED_1",
     1: "LED_2",
@@ -397,7 +561,7 @@ const LED_NOTIFICATION_TYPES: {[key: number]: string} = {
     5: "LED_6",
     6: "LED_7",
     16: "ALL_LEDS",
-    255: "CONFIG_BUTTON_DOUBLE_PRESS",
+    "-1": "CONFIG_BUTTON_DOUBLE_PRESS",
 };
 
 const INOVELLI = 0x122f;
@@ -432,13 +596,13 @@ interface BreezeModeValues {
 // Converts brightness level to a fan mode
 const intToFanMode = (value: number) => {
     let selectedMode = "low";
-    if (value >= fanModes.low) {
+    if (value >= FAN_MODES.low) {
         selectedMode = "low";
     }
-    if (value >= fanModes.medium) {
+    if (value >= FAN_MODES.medium) {
         selectedMode = "medium";
     }
-    if (value >= fanModes.high) {
+    if (value >= FAN_MODES.high) {
         selectedMode = "high";
     }
     if (value === 4) {
@@ -1479,7 +1643,7 @@ const VZM32_MMWAVE_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 600,
         readOnly: false,
-        description: "Defines the detection area in front of the switch)",
+        description: "Defines the detection area in front of the switch",
     },
     mmWaveDepthMax: {
         ID: 106,
@@ -1487,7 +1651,7 @@ const VZM32_MMWAVE_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 600,
         readOnly: false,
-        description: "Defines the detection area in front of the switch)",
+        description: "Defines the detection area in front of the switch",
     },
 };
 
@@ -1823,20 +1987,36 @@ const tzLocal = {
     light_onoff_brightness_inovelli: {
         ...tz.light_onoff_brightness,
         convertSet: async (entity, key, value, meta) => {
+            const {message} = meta;
             const transition = utils.getTransition(entity, "brightness", meta);
+            const state = utils.isString(message.state) ? message.state.toLowerCase() : null;
+
+            // If transition is not specified and command is on (with no brightness), off or toggle, use on_off converter
+            let brightness: number;
+            if (message.brightness != null) {
+                brightness = Number(message.brightness);
+            } else if (message.brightness_percent != null) {
+                brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
+            }
+            if ((state === "toggle" || state === "off" || (brightness === undefined && state === "on")) && !transition.specified) {
+                const localMeta = {
+                    ...meta,
+                    converterOptions: {
+                        ctrlbits: 0,
+                        ontime: message.on_time != null ? Math.round((message.on_time as number) * 10) : 0xffff,
+                        offwaittime: message.off_wait_time != null ? Math.round((message.off_wait_time as number) * 10) : 0xffff,
+                    },
+                };
+                return await tz.on_off.convertSet(entity, key, value, localMeta);
+            }
+
             const localMeta = {
                 ...meta,
                 message: {
-                    ...meta.message,
-                    transition: !transition.specified ? 0xffff : transition.time,
-                },
-                converterOptions: {
-                    ctrlbits: 0,
-                    ontime: meta.message.on_time != null ? Math.round((meta.message.on_time as number) * 10) : 0xffff,
-                    offwaittime: meta.message.off_wait_time != null ? Math.round((meta.message.off_wait_time as number) * 10) : 0xffff,
+                    ...message,
+                    transition: (!transition.specified ? 0xffff : transition.time) / 10,
                 },
             };
-
             return await tz.light_onoff_brightness.convertSet(entity, key, value, localMeta);
         },
     } satisfies Tz.Converter,
@@ -1851,7 +2031,7 @@ const tzLocal = {
                     "genLevelCtrl",
                     "moveToLevelWithOnOff",
                     {
-                        level: fanModes[value],
+                        level: FAN_MODES[value],
                         transtime: 0xffff,
                     },
                     utils.getOptions(meta.mapped, entity),
@@ -1999,10 +2179,14 @@ const tzLocal = {
 };
 
 const fzLocal = {
-    inovelli: (attributes: {[s: string]: Attribute}, cluster: string, splitValuesByEndpoint = false) =>
+    inovelli: (
+        attributes: {[s: string]: Attribute},
+        cluster: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME,
+        splitValuesByEndpoint = false,
+    ) =>
         ({
             cluster: cluster,
-            type: ["raw", "readResponse", "commandQueryNextImageRequest"],
+            type: ["raw", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.type === "raw" && msg.endpoint.ID === 2 && msg.data[4] === 0x00) {
                     // Scene Event
@@ -2027,20 +2211,21 @@ const fzLocal = {
                 if (msg.type === "readResponse") {
                     return Object.keys(msg.data).reduce((p, c) => {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
+                        const raw = (msg.data as Record<string | number, unknown>)[c];
                         if (attributes[key] && attributes[key].displayType === "enum") {
                             return {
                                 // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                                 ...p,
-                                [key]: Object.keys(attributes[key].values).find((k) => attributes[key].values[k] === msg.data[c]),
+                                [key]: Object.keys(attributes[key].values).find((k) => attributes[key].values[k] === raw),
                             };
                         }
                         // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
-                        return {...p, [key]: msg.data[c]};
+                        return {...p, [key]: raw};
                     }, {});
                 }
                 return msg.data;
             },
-        }) satisfies Fz.Converter,
+        }) satisfies Fz.Converter<typeof cluster, undefined, ["raw", "readResponse"]>,
     fan_mode: (endpointId: number) =>
         ({
             cluster: "genLevelCtrl",
@@ -2056,7 +2241,7 @@ const fzLocal = {
                 }
                 return msg.data;
             },
-        }) satisfies Fz.Converter,
+        }) satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
     fan_state: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2066,7 +2251,7 @@ const fzLocal = {
             }
             return msg.data;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     brightness: {
         cluster: "genLevelCtrl",
         type: ["attributeReport", "readResponse"],
@@ -2077,7 +2262,7 @@ const fzLocal = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
     /**
      * Decode breeze mode value:
      *
@@ -2096,14 +2281,15 @@ const fzLocal = {
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.endpoint.ID === endpointId) {
-                    if (msg.data.breeze_mode !== undefined) {
+                    // TODO: typo?
+                    if (msg.data.breezeMode !== undefined) {
                         const bitmasks = [3, 60, 192, 3840, 12288, 245760, 786432, 15728640, 50331648, 1006632960];
-                        const raw = msg.data.breeze_mode;
-                        const s1 = breezemodes[raw & bitmasks[0]];
-                        const s2 = breezemodes[(raw & bitmasks[2]) / 64];
-                        const s3 = breezemodes[(raw & bitmasks[4]) / 4096];
-                        const s4 = breezemodes[(raw & bitmasks[6]) / 262144];
-                        const s5 = breezemodes[(raw & bitmasks[8]) / 16777216];
+                        const raw = msg.data.breezeMode;
+                        const s1 = BREEZE_MODES[raw & bitmasks[0]];
+                        const s2 = BREEZE_MODES[(raw & bitmasks[2]) / 64];
+                        const s3 = BREEZE_MODES[(raw & bitmasks[4]) / 4096];
+                        const s4 = BREEZE_MODES[(raw & bitmasks[6]) / 262144];
+                        const s5 = BREEZE_MODES[(raw & bitmasks[8]) / 16777216];
 
                         const d1 = ((raw & bitmasks[1]) / 4) * 5;
                         const d2 = ((raw & bitmasks[3]) / 256) * 5;
@@ -2128,7 +2314,7 @@ const fzLocal = {
                     }
                 }
             },
-        }) satisfies Fz.Converter,
+        }) satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["attributeReport", "readResponse"]>,
     vzm36_fan_light_state: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2145,7 +2331,7 @@ const fzLocal = {
                 return msg.data;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     led_effect_complete: {
         cluster: INOVELLI_CLUSTER_NAME,
         type: ["commandLedEffectComplete"],
@@ -2155,7 +2341,7 @@ const fzLocal = {
             }
             return {notificationComplete: "Unknown"};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["commandLedEffectComplete"]>,
 };
 
 const exposeLedEffects = () => {
@@ -2236,43 +2422,12 @@ const exposeMMWaveControl = () => {
 
 const exposeLedEffectComplete = () => {
     return e
-        .enum("notificationComplete", ea.STATE_GET, Object.values(LED_NOTIFICATION_TYPES))
+        .enum("notificationComplete", ea.STATE, Object.values(LED_NOTIFICATION_TYPES))
         .withDescription("Indication that a specific notification has completed.")
         .withCategory("diagnostic");
 };
 
-const exposesListVZM30: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete()];
-
-const exposesListVZM31: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete()];
-
-const exposesListVZM32: Expose[] = [
-    e.light_brightness(),
-    exposeLedEffects(),
-    exposeIndividualLedEffects(),
-    exposeMMWaveControl(),
-    exposeLedEffectComplete(),
-];
-
-const exposesListVZM35: Expose[] = [
-    e.fan().withState("fan_state").withModes(Object.keys(fanModes)),
-    exposeLedEffects(),
-    exposeIndividualLedEffects(),
-    exposeBreezeMode(),
-    exposeLedEffectComplete(),
-];
-
-const exposesListVZM36: Expose[] = [e.light_brightness(), e.fan().withState("fan_state").withModes(Object.keys(fanModes)), exposeBreezeMode()];
-
-// Populate exposes list from the attributes description
-attributesToExposeList(VZM30_ATTRIBUTES, exposesListVZM30);
-attributesToExposeList(VZM31_ATTRIBUTES, exposesListVZM31);
-attributesToExposeList(VZM32_ATTRIBUTES, exposesListVZM32);
-attributesToExposeList(VZM32_MMWAVE_ATTRIBUTES, exposesListVZM32);
-attributesToExposeList(VZM35_ATTRIBUTES, exposesListVZM35);
-attributesToExposeList(VZM36_ATTRIBUTES, exposesListVZM36);
-
-// Put actions at the bottom of ui
-const buttonTapSequences = [
+const BUTTON_TAP_SEQUENCES = [
     "down_single",
     "up_single",
     "config_single",
@@ -2296,11 +2451,6 @@ const buttonTapSequences = [
     "config_quintuple",
 ];
 
-exposesListVZM30.push(e.action(buttonTapSequences));
-exposesListVZM31.push(e.action(buttonTapSequences));
-exposesListVZM32.push(e.action(buttonTapSequences));
-exposesListVZM35.push(e.action(buttonTapSequences));
-
 /*
  * Inovelli devices have a huge number of attributes. Calling endpoint.read() in a single call
  * for all attributes causes timeouts even with the timeout set to an absurdly high number (2 minutes)
@@ -2319,64 +2469,43 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VZM30-SN",
         vendor: "Inovelli",
         description: "On/off switch",
-        exposes: exposesListVZM30.concat(m.identify().exposes as Expose[]),
         extend: [
             m.deviceEndpoints({
                 endpoints: {"1": 1, "2": 2, "3": 3, "4": 4},
                 multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "temperature", "humidity"],
             }),
+            inovelliExtend.inovelliLight(),
+            inovelliExtend.inovelliDevice({
+                attrs: [{attributes: VZM30_ATTRIBUTES, clusterName: INOVELLI_CLUSTER_NAME}],
+                supportsLedEffects: true,
+                supportsButtonTaps: true,
+            }),
             inovelliExtend.addCustomClusterInovelli(),
+            m.identify(),
             m.temperature(),
             m.humidity(),
-            m.electricityMeter(),
-        ],
-        toZigbee: [
-            tzLocal.light_onoff_brightness_inovelli,
-            tz.power_on_behavior,
-            tz.ignore_transition,
-            tz.identify,
-            tz.light_brightness_move,
-            tz.light_brightness_step,
-            tz.level_config,
-            tzLocal.inovelli_led_effect,
-            tzLocal.inovelli_individual_led_effect,
-            tzLocal.inovelli_parameters(VZM30_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-            tzLocal.inovelli_parameters_readOnly(VZM30_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-        ],
-        fromZigbee: [
-            fz.on_off,
-            fz.brightness,
-            fz.level_config,
-            fz.power_on_behavior,
-            fz.ignore_basic_report,
-            fzLocal.inovelli(VZM30_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-            fzLocal.led_effect_complete,
+            m.electricityMeter({energy: {divisor: 1000}}),
         ],
         ota: true,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
-            await reporting.onOff(endpoint);
-
-            await chunkedRead(endpoint, Object.keys(VZM30_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
-
-            // Bind for Button Event Reporting
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
-        },
     },
     {
         zigbeeModel: ["VZM31-SN"],
         model: "VZM31-SN",
         vendor: "Inovelli",
         description: "2-in-1 switch + dimmer",
-        exposes: exposesListVZM31.concat(m.identify().exposes as Expose[]),
         extend: [
             m.deviceEndpoints({
                 endpoints: {"1": 1, "2": 2, "3": 3},
                 multiEndpointSkip: ["state", "power", "energy", "brightness"],
             }),
+            inovelliExtend.inovelliLight(),
+            inovelliExtend.inovelliDevice({
+                attrs: [{attributes: VZM31_ATTRIBUTES, clusterName: INOVELLI_CLUSTER_NAME}],
+                supportsLedEffects: true,
+                supportsButtonTaps: true,
+            }),
             inovelliExtend.addCustomClusterInovelli(),
+            m.identify(),
             m.electricityMeter({
                 current: false,
                 voltage: false,
@@ -2384,200 +2513,80 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 15, max: 3600, change: 0},
             }),
         ],
-        toZigbee: [
-            tzLocal.light_onoff_brightness_inovelli,
-            tz.power_on_behavior,
-            tz.ignore_transition,
-            tz.identify,
-            tz.light_brightness_move,
-            tz.light_brightness_step,
-            tz.level_config,
-            tzLocal.inovelli_led_effect,
-            tzLocal.inovelli_individual_led_effect,
-            tzLocal.inovelli_parameters(VZM31_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-            tzLocal.inovelli_parameters_readOnly(VZM31_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-        ],
-        fromZigbee: [
-            fz.on_off,
-            fz.brightness,
-            fz.level_config,
-            fz.power_on_behavior,
-            fz.ignore_basic_report,
-            fzLocal.inovelli(VZM31_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-            fzLocal.led_effect_complete,
-        ],
         ota: true,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", INOVELLI_CLUSTER_NAME]);
-            await reporting.onOff(endpoint);
-
-            await chunkedRead(endpoint, Object.keys(VZM31_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
-
-            // Bind for Button Event Reporting
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
-        },
     },
     {
         zigbeeModel: ["VZM32-SN"],
         model: "VZM32-SN",
         vendor: "Inovelli",
         description: "mmWave Zigbee Dimmer",
-        exposes: exposesListVZM32.concat(m.identify().exposes as Expose[]),
         extend: [
             m.deviceEndpoints({
                 endpoints: {"1": 1, "2": 2, "3": 3},
                 multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "illuminance", "occupancy"],
             }),
+            inovelliExtend.inovelliLight(),
+            inovelliExtend.inovelliDevice({
+                attrs: [
+                    {attributes: VZM32_ATTRIBUTES, clusterName: INOVELLI_CLUSTER_NAME},
+                    {attributes: VZM32_MMWAVE_ATTRIBUTES, clusterName: INOVELLI_MMWAVE_CLUSTER_NAME},
+                ],
+                supportsLedEffects: true,
+                supportsButtonTaps: true,
+            }),
+            inovelliExtend.inovelliMMWave(),
             inovelliExtend.addCustomClusterInovelli(),
             inovelliExtend.addCustomMMWaveClusterInovelli(),
-            m.electricityMeter(),
+            m.identify(),
+            m.electricityMeter({
+                // Current and voltage were removed in version 0.8 of the firmware and expected to be restored in the future
+                current: false,
+                voltage: false,
+                energy: {divisor: 1000},
+            }),
             m.illuminance(),
             m.occupancy(),
         ],
-        toZigbee: [
-            tzLocal.light_onoff_brightness_inovelli,
-            tz.power_on_behavior,
-            tz.ignore_transition,
-            tz.identify,
-            tz.light_brightness_move,
-            tz.light_brightness_step,
-            tz.level_config,
-            tzLocal.inovelli_led_effect,
-            tzLocal.inovelli_individual_led_effect,
-            tzLocal.inovelli_mmwave_control_commands,
-            tzLocal.inovelli_parameters(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-            tzLocal.inovelli_parameters_readOnly(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-            tzLocal.inovelli_parameters(VZM32_MMWAVE_ATTRIBUTES, INOVELLI_MMWAVE_CLUSTER_NAME),
-            tzLocal.inovelli_parameters_readOnly(VZM32_MMWAVE_ATTRIBUTES, INOVELLI_MMWAVE_CLUSTER_NAME),
-        ],
-        fromZigbee: [
-            fz.on_off,
-            fz.brightness,
-            fz.level_config,
-            fz.power_on_behavior,
-            fz.ignore_basic_report,
-            fzLocal.inovelli(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-            fzLocal.inovelli(VZM32_MMWAVE_ATTRIBUTES, INOVELLI_MMWAVE_CLUSTER_NAME),
-            fzLocal.led_effect_complete,
-        ],
         ota: true,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", INOVELLI_CLUSTER_NAME]);
-            await reporting.onOff(endpoint);
-
-            await chunkedRead(endpoint, Object.keys(VZM32_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
-            await chunkedRead(endpoint, Object.keys(VZM32_MMWAVE_ATTRIBUTES), INOVELLI_MMWAVE_CLUSTER_NAME);
-
-            // Bind for Button Event Reporting
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
-        },
     },
     {
         zigbeeModel: ["VZM35-SN"],
         model: "VZM35-SN",
         vendor: "Inovelli",
         description: "Fan controller",
-        fromZigbee: [
-            fzLocal.fan_state,
-            fzLocal.fan_mode(1),
-            fzLocal.breeze_mode(1),
-            fzLocal.inovelli(VZM35_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-            fzLocal.led_effect_complete,
+        extend: [
+            inovelliExtend.inovelliFan({endpointId: 1}),
+            inovelliExtend.inovelliDevice({
+                attrs: [{attributes: VZM35_ATTRIBUTES, clusterName: INOVELLI_CLUSTER_NAME}],
+                supportsLedEffects: true,
+                supportsButtonTaps: true,
+            }),
+            inovelliExtend.addCustomClusterInovelli(),
+            m.identify(),
         ],
-        toZigbee: [
-            tz.identify,
-            tzLocal.fan_state,
-            tzLocal.fan_mode(1),
-            tzLocal.inovelli_led_effect,
-            tzLocal.inovelli_individual_led_effect,
-            tzLocal.inovelli_parameters(VZM35_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-            tzLocal.inovelli_parameters_readOnly(VZM35_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-            tzLocal.breezeMode(1),
-        ],
-        exposes: exposesListVZM35.concat(m.identify().exposes as Expose[]),
-        extend: [inovelliExtend.addCustomClusterInovelli()],
         ota: true,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", INOVELLI_CLUSTER_NAME]);
-
-            await chunkedRead(endpoint, Object.keys(VZM35_ATTRIBUTES), INOVELLI_CLUSTER_NAME);
-
-            // Bind for Button Event Reporting
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
-        },
     },
     {
         zigbeeModel: ["VZM36"],
         model: "VZM36",
         vendor: "Inovelli",
         description: "Fan canopy module",
-        fromZigbee: [
-            fzLocal.brightness,
-            fzLocal.vzm36_fan_light_state,
-            fzLocal.fan_mode(2),
-            fzLocal.breeze_mode(2),
-            fzLocal.inovelli(VZM36_ATTRIBUTES, INOVELLI_CLUSTER_NAME, true),
-        ],
+        fromZigbee: [fzLocal.brightness, fzLocal.vzm36_fan_light_state],
         toZigbee: [
-            tz.identify,
             tzLocal.vzm36_fan_on_off, // Need to use VZM36 specific converter
-            tz.light_brightness_move,
-            tz.light_brightness_step,
-            tz.level_config,
-            tzLocal.fan_mode(2),
-            tzLocal.light_onoff_brightness_inovelli,
-            tzLocal.inovelli_parameters(VZM36_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-            tzLocal.inovelli_parameters_readOnly(VZM36_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
-            tzLocal.breezeMode(2),
         ],
-        exposes: exposesListVZM36.concat(m.identify().exposes as Expose[]),
-        extend: [inovelliExtend.addCustomClusterInovelli()],
+        extend: [
+            inovelliExtend.inovelliLight({splitValuesByEndpoint: true}),
+            inovelliExtend.inovelliFan({endpointId: 2, splitValuesByEndpoint: true}),
+            inovelliExtend.inovelliDevice({
+                attrs: [{attributes: VZM36_ATTRIBUTES, clusterName: INOVELLI_CLUSTER_NAME}],
+                supportsLedEffects: false,
+                splitValuesByEndpoint: true,
+                supportsButtonTaps: false,
+            }),
+            inovelliExtend.addCustomClusterInovelli(),
+            m.identify(),
+        ],
         ota: true,
-        // The configure method below is needed to make the device reports on/off state changes
-        // when the device is controlled manually through the button on it.
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint);
-
-            await chunkedRead(
-                endpoint,
-                Object.keys(VZM36_ATTRIBUTES).flatMap((key) => {
-                    const keysplit = key.split("_");
-                    if (keysplit.length === 2) {
-                        if (Number(keysplit[1]) === 1) {
-                            return [keysplit[0]];
-                        }
-                        return [];
-                    }
-                    return [key];
-                }),
-                INOVELLI_CLUSTER_NAME,
-            );
-
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint2);
-
-            await chunkedRead(
-                endpoint2,
-                Object.keys(VZM36_ATTRIBUTES).flatMap((key) => {
-                    const keysplit = key.split("_");
-                    if (keysplit.length === 2) {
-                        if (Number(keysplit[1]) === 2) {
-                            return [keysplit[0]];
-                        }
-                    }
-                    return [];
-                }),
-                INOVELLI_CLUSTER_NAME,
-            );
-        },
     },
 ];

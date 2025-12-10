@@ -3,7 +3,10 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: "ZB-CL01", manufacturerName: "YSRSAI"}],
+        fingerprint: [
+            {modelID: "ZB-CL01", manufacturerName: "YSRSAI"},
+            {modelID: "TS0503B", manufacturerName: "_TZ3210_f0byevky"},
+        ],
         zigbeeModel: ["ZB-CL03", "FB56-ZCW20FB1.2"],
         model: "YSR-MINI-01_rgbcct",
         vendor: "YSRSAI",

@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZWSH16",
         vendor: "AVATTO",
         description: "Smart Temperature and Humidity Detector",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", mcuVersionRequestOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, mcuVersionRequestOnConfigure: true})],
         exposes: [e.battery(), e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(), tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
@@ -26,7 +26,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ybsqljjg", "_TZE200_cxakecfo", "_TZE200_4aijvczq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ybsqljjg", "_TZE200_cxakecfo", "_TZE200_4aijvczq", "_TZE200_r5ksy7qo"]),
         model: "ME168_AVATTO",
         vendor: "AVATTO",
         description: "Thermostatic radiator valve",
@@ -239,9 +239,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZDMS16-US-W2",
         vendor: "AVATTO",
         description: "Zigbee 2 channels dimmer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l1"),
             tuya.exposes.countdown().withEndpoint("l1"),
@@ -274,13 +272,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_5cuocqty", "_TZE204_nqqylykc", "_TZE204_2cyb66xl", "_TZE204_tgdnh7pw"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_5cuocqty", "_TZE204_nqqylykc", "_TZE204_2cyb66xl", "_TZE204_tgdnh7pw", "_TZE284_nqqylykc"]),
         model: "ZDMS16-1",
         vendor: "AVATTO",
         description: "Zigbee Module 1 channel Dimmer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax(),
             tuya.exposes.countdown(),
@@ -300,13 +296,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_o9gyszw2", "_TZE204_jtbgusdc"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_o9gyszw2", "_TZE204_jtbgusdc", "_TZE284_jtbgusdc"]),
         model: "ZDMS16-2",
         vendor: "AVATTO",
         description: "Zigbee Module 2 channels Dimmer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l1"),
             tuya.exposes.countdown().withEndpoint("l1"),

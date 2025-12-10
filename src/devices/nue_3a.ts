@@ -23,7 +23,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     LXN59_cover_state_via_onoff: {
         cluster: "genOnOff",
@@ -33,7 +33,7 @@ const fzLocal = {
                 return {state: msg.data.onOff === 1 ? "CLOSE" : "OPEN"};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
