@@ -33,7 +33,7 @@ const bitron = {
 
                 return result;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     },
     tz: {
         thermostat_hysteresis: {
@@ -248,7 +248,7 @@ export const definitions: DefinitionWithExtend[] = [
                 : null;
             const modes = [];
 
-            if (typeof ctrlSeqeOfOper === "string") ctrlSeqeOfOper = Number.parseInt(ctrlSeqeOfOper) ?? null;
+            if (typeof ctrlSeqeOfOper === "string") ctrlSeqeOfOper = Number.parseInt(ctrlSeqeOfOper, 10) ?? null;
 
             // NOTE: ctrlSeqeOfOper defaults to 2 for this device (according to the manual)
             if (ctrlSeqeOfOper === null || Number.isNaN(ctrlSeqeOfOper)) ctrlSeqeOfOper = 2;

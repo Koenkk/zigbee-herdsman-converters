@@ -88,7 +88,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HOMA1031"],
         model: "HLC821-Z-SC",
         vendor: "Shenzhen Homa",
-        description: "ZigBee AC phase-cut dimmer",
+        description: "Zigbee AC phase-cut dimmer",
         extend: [m.light()],
     },
     {

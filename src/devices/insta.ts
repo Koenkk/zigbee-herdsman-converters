@@ -12,7 +12,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: [" Remote"],
         model: "InstaRemote",
         vendor: "Insta",
-        description: "ZigBee Light Link wall/handheld transmitter",
+        description: "Zigbee Light Link wall/handheld transmitter",
         whiteLabel: [
             {vendor: "Gira", model: "2430-100"},
             {vendor: "Gira", model: "2435-10"},

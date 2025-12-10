@@ -22,7 +22,7 @@ const fzLocal = {
             if (msg.endpoint.ID !== 1) return;
             return {rain: (zoneStatus & 1) > 0};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -37,7 +37,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr"])],
     },
     {
-        zigbeeModel: ["CK-BL702-MSW-01(7010)"],
+        zigbeeModel: ["CK-BL702-MSW-01(7010)", "CK-BL702-MSW-01(7011)-1"],
         model: "CK-BL702-MSW-01(7010)",
         vendor: "eWeLink",
         description: "CMARS Zigbee smart plug",

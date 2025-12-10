@@ -1,4 +1,3 @@
-import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
@@ -14,17 +13,15 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "WETEN",
         description: "1 gang no neutral touch wall switch",
         extend: [m.onOff()],
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_time_read],
+        fromZigbee: [],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_6fk3gewc"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_6fk3gewc", "_TZE284_6fk3gewc"]),
         model: "PCI E",
         vendor: "WETEN",
         description: "Remote Control PCI E Card for PC",
         whiteLabel: [{vendor: "Weten", model: "Tuya PRO"}],
-
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
             e.enum("restart_mode", ea.STATE_SET, ["restart", "force restart", "–"]).withDescription("Restart Mode"),

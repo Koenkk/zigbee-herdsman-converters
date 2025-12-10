@@ -11,9 +11,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "288WZ",
         vendor: "ONENUO",
         description: "Smoke detector",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.smoke(),
             e.battery(),

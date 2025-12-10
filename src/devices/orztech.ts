@@ -19,7 +19,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "_TZE200_b0ihkhxh",
         vendor: "Orztech",
         description: "1 gang touch wall switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("t1").withDescription("Switch"),
             e.switch().withEndpoint("c1").withDescription("Switch all"),
@@ -42,7 +42,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "_TZE200_htj3hcpl",
         vendor: "Orztech",
         description: "2 gang touch wall switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("t1").withDescription("Left"),
             e.switch().withEndpoint("t2").withDescription("Right"),
@@ -69,7 +69,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "_TZE200_pcg0rykt",
         vendor: "Orztech",
         description: "3 gang touch wall switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("t1").withDescription("Left"),
             e.switch().withEndpoint("t2").withDescription("Middle"),
@@ -98,7 +98,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "_TZE200_7a5ob7xq",
         vendor: "Orztech",
         description: "4 gang touch wall switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("t1").withDescription("Top left"),
             e.switch().withEndpoint("t2").withDescription("Top right"),
@@ -129,7 +129,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "_TZE200_xo3vpoah",
         vendor: "Orztech",
         description: "6 gang touch wall switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("t1").withDescription("Top Left"),
             e.switch().withEndpoint("t2").withDescription("Top Middle"),

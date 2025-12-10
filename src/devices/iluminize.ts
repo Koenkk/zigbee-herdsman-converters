@@ -20,7 +20,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["5717"],
         model: "5717",
         vendor: "Iluminize",
-        description: "ZigBee din rail smart dimmer",
+        description: "Zigbee din rail smart dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType(), sunricher.extend.minimumPWM()],
     },
     {
@@ -79,7 +79,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["511.201"],
         model: "511.201",
         vendor: "Iluminize",
-        description: "ZigBee 3.0 dimming actuator mini 1x 230V",
+        description: "Zigbee 3.0 dimming actuator mini 1x 230V",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -93,21 +93,21 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["5120.1100"],
         model: "5120.1100",
         vendor: "Iluminize",
-        description: "ZigBee 3.0 dimming actuator mini 1x 230V",
+        description: "Zigbee 3.0 dimming actuator mini 1x 230V",
         extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ["5120.1110"],
         model: "5120.1110",
         vendor: "Iluminize",
-        description: "ZigBee 3.0 dimming actuator mini 1x 230V",
+        description: "Zigbee 3.0 dimming actuator mini 1x 230V",
         extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ["5120.2110"],
         model: "5120.2110",
         vendor: "Iluminize",
-        description: "ZigBee 3.0 dimming actuator mini 1x 230V",
+        description: "Zigbee 3.0 dimming actuator mini 1x 230V",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -175,14 +175,28 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "511.040"}, {modelID: "RGBW-CCT", manufacturerName: "Iluminize"}],
         model: "511.040",
         vendor: "Iluminize",
-        description: "ZigBee 3.0 LED-controller, 4 channel 5A, RGBW LED",
+        description: "Zigbee 3.0 LED-controller, 4 channel 5A, RGBW LED",
         extend: [m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
-        zigbeeModel: ["HK-ZD-RGB-A", "5110.40"],
+        zigbeeModel: ["HK-ZD-RGB-A", "5110.40", "5110.80", "5112.80"],
         model: "5110.40",
         vendor: "Iluminize",
-        description: "Zigbee 3.0 LED controller multi 5 - 4A,RGB W/CCT LED",
+        description: "Zigbee 3.0 LED controller, 5 Ch (12V - 24V) - 4A, RGB W/CCT LED",
+        whiteLabel: [
+            {
+                model: "5110.80",
+                vendor: "Iluminize",
+                description: "Zigbee 3.0 LED controller, 5 Ch (12V - 48V) - 8A, RGB W/CCT LED",
+                fingerprint: [{modelID: "5110.80"}],
+            },
+            {
+                model: "5112.80",
+                vendor: "Iluminize",
+                description: "Zigbee 3.0 LED controller, 1 Ch (12V - 36V) - 8A, RGB W/CCT LED",
+                fingerprint: [{modelID: "5112.80"}],
+            },
+        ],
         extend: [m.light({colorTemp: {range: [160, 450]}, color: true, configureReporting: true})],
     },
     {
@@ -275,13 +289,6 @@ export const definitions: DefinitionWithExtend[] = [
                 "brightness_stop",
             ]),
         ],
-    },
-    {
-        zigbeeModel: ["5112.80"],
-        model: "5112.80",
-        vendor: "Iluminize",
-        description: "Zigbee 3.0 LED-controller 1x 8A",
-        extend: [m.light()],
     },
     {
         zigbeeModel: ["ZGRC-TEUR-001"],
