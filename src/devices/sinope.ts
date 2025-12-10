@@ -370,7 +370,6 @@ const tzLocal = {
                 return;
             }
             const lookup = {ambiant: 1, floor: 2};
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             // @ts-expect-error ignore
             if (lookup[value] !== undefined) {
@@ -435,7 +434,6 @@ const tzLocal = {
                 return;
             }
             const lookup = {"10k": 0, "12k": 1};
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             // @ts-expect-error ignore
             if (lookup[value] !== undefined) {

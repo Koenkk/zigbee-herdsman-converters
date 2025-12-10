@@ -424,7 +424,6 @@ const tzLocal = {
         ...tz.fan_mode,
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (value.toLowerCase() === "on") value = "low";
             return await tz.fan_mode.convertSet(entity, key, value, meta);
         },
