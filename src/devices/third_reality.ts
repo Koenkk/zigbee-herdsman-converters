@@ -459,7 +459,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["1", "2", "3"],
                 cluster: "genMultistateInput",
                 attribute: "presentValue",
-                actionLookup: {release: 255, single: 1, double: 2, send: 2, hold: 0},
+                actionLookup: {release: 255, single: 1, double: 2, hold: 0},
             }),
             m.battery(),
         ],
