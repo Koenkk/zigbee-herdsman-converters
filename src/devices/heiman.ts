@@ -12,15 +12,13 @@ import {
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, Reporting, Tz, Zh, ModernExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-
 const defaultResponseOptions = {disableDefaultResponse: false};
-
 
 interface RadarSensorHeiman {
     attributes: {
@@ -44,7 +42,6 @@ interface RadarSensorHeiman {
 
 interface RadarSensorHeimanV2 {
     attributes: {
-        // biome-ignore lint/style/useNamingConvention: TODO
         enableIndicator: number;
         sensitivity: number;
         // biome-ignore lint/style/useNamingConvention: TODO
@@ -74,25 +71,22 @@ const heimanExtend = {
             commands: {},
             commandsResponse: {},
         }),
-        
+
     // ModernExtend define
     heimanClusterRadarActiveIndicatorExtend: (): ModernExtend => {
         const clusterName = "heimanClusterRadar" as const;
-        const exposes = utils.exposeEndpoints(
-            e.binary("enable_indicator", ea.ALL, true, false).withDescription("active green indicator"),
-        );
+        const exposes = utils.exposeEndpoints(e.binary("enable_indicator", ea.ALL, true, false).withDescription("active green indicator"));
         const fromZigbee = [
             {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    const data = msg.data as Record<string, any>;
                     if (msg.data.enableIndicator === undefined) {
                         return {enableIndicator: 0};
                     }
 
-                    const state  = data["enableIndicator"] ? true : false;
-                    return { enable_indicator: state };                 
+                    const state = !!msg.data["enableIndicator"];
+                    return {enable_indicator: state};
                 },
             } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanV2, ["attributeReport", "readResponse"]>,
         ];
@@ -100,20 +94,12 @@ const heimanExtend = {
             {
                 key: ["enable_indicator"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, RadarSensorHeimanV2>(
-                        clusterName,
-                        ["enableIndicator"],
-                        defaultResponseOptions
-                    );
+                    await entity.read<typeof clusterName, RadarSensorHeimanV2>(clusterName, ["enableIndicator"], defaultResponseOptions);
                 },
-                convertSet: async (entity, key, value, meta) => {       
+                convertSet: async (entity, key, value, meta) => {
                     // const state = (value as Record<string, unknown>) || {};
-                    const state  = value ? 1 : 0;
-                    await entity.write<typeof clusterName, RadarSensorHeimanV2>(
-                        clusterName,
-                        { enableIndicator: state },
-                        defaultResponseOptions,
-                    );
+                    const state = value ? 1 : 0;
+                    await entity.write<typeof clusterName, RadarSensorHeimanV2>(clusterName, {enableIndicator: state}, defaultResponseOptions);
                 },
             },
         ];
@@ -127,11 +113,12 @@ const heimanExtend = {
     heimanClusterRadarSensitivityExtend: (): ModernExtend => {
         const clusterName = "heimanClusterRadar" as const;
         const exposes = utils.exposeEndpoints(
-            e.numeric("sensitivity", ea.ALL)
-            .withUnit("%")
-            .withValueMin(0)
-            .withValueMax(100)
-            .withDescription("Sensitivity of the radar sensor in range of 0 ~ 100%"),
+            e
+                .numeric("sensitivity", ea.ALL)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription("Sensitivity of the radar sensor in range of 0 ~ 100%"),
         );
         const fromZigbee = [
             {
@@ -139,13 +126,12 @@ const heimanExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     let attrData = null;
-                    const data = msg.data as Record<string, any>;
                     if (msg.data.enableIndicator === undefined) {
                         return {sensitivity: "50"};
                     }
-                    
-                    attrData = data["sensitivity"];
-                    return { sensitivity: attrData };                 
+
+                    attrData = msg.data["sensitivity"];
+                    return {sensitivity: attrData};
                 },
             } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanV2, ["attributeReport", "readResponse"]>,
         ];
@@ -153,19 +139,11 @@ const heimanExtend = {
             {
                 key: ["sensitivity"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, RadarSensorHeimanV2>(
-                        clusterName,
-                        ["sensitivity"],
-                        defaultResponseOptions
-                    );
+                    await entity.read<typeof clusterName, RadarSensorHeimanV2>(clusterName, ["sensitivity"], defaultResponseOptions);
                 },
-                convertSet: async (entity, key, value, meta) => {       
-                    const state  = Number(value);
-                    await entity.write<typeof clusterName, RadarSensorHeimanV2>(
-                        clusterName,
-                        { sensitivity: state },
-                        defaultResponseOptions,
-                    );
+                convertSet: async (entity, key, value, meta) => {
+                    const state = Number(value);
+                    await entity.write<typeof clusterName, RadarSensorHeimanV2>(clusterName, {sensitivity: state}, defaultResponseOptions);
                 },
             },
         ];
@@ -179,11 +157,7 @@ const heimanExtend = {
     heimanClusterLegacyIlluminanceExtend: (): ModernExtend => {
         const clusterName = "msIlluminanceMeasurement" as const;
         const exposes = utils.exposeEndpoints(
-            e.numeric("illuminance", ea.ALL)
-            .withUnit("Lx")
-            .withValueMin(0)
-            .withValueMax(100)
-            .withDescription("ambient illuminance in lux"),
+            e.numeric("illuminance", ea.ALL).withUnit("Lx").withValueMin(0).withValueMax(100).withDescription("ambient illuminance in lux"),
         );
         const fromZigbee = [
             {
@@ -191,13 +165,12 @@ const heimanExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     let attrData = null;
-                    const data = msg.data as Record<string, any>;
                     if (msg.data.measuredValue === undefined) {
                         return {illuminance: "0"};
                     }
-                    
-                    attrData = data["measuredValue"];
-                    return { illuminance: attrData };                 
+
+                    attrData = msg.data["measuredValue"];
+                    return {illuminance: attrData};
                 },
             } satisfies Fz.Converter<typeof clusterName, undefined, ["attributeReport", "readResponse"]>,
         ];
@@ -205,11 +178,7 @@ const heimanExtend = {
             {
                 key: ["illuminance"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, RadarSensorHeimanV2>(
-                        clusterName,
-                        ["measuredValue"],
-                        defaultResponseOptions
-                    );
+                    await entity.read<typeof clusterName, RadarSensorHeimanV2>(clusterName, ["measuredValue"], defaultResponseOptions);
                 },
             },
         ];
@@ -220,7 +189,7 @@ const heimanExtend = {
             isModernExtend: true,
         };
     },
-}
+};
 
 const fzLocal = {
     occupancyRadarHeiman: {
@@ -1427,7 +1396,7 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.heimanClusterRadarActiveIndicatorExtend(),
             heimanExtend.heimanClusterRadarSensitivityExtend(),
             heimanExtend.heimanClusterLegacyIlluminanceExtend(),
-        
+
             m.numeric({
                 name: "radar_delay_time",
                 unit: "s",
@@ -1448,11 +1417,12 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 "msOccupancySensing",
                 "msIlluminanceMeasurement",
-                "RadarSensorHeiman",
+                "heimanClusterRadar",
                 "haDiagnostic",
             ]);
             await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
             await endpoint.read("msOccupancySensing", ["ultrasonicOToUDelay"]);
+            await endpoint.read("heimanClusterRadar", [0xf001, 0xf002], {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD});
         },
         endpoint: (device) => ({default: 1}),
     },
