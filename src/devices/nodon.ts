@@ -228,6 +228,14 @@ const nodonModernExtend = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["FPS-4-1-00"],
+        model: "FPS-4-1-00",
+        vendor: "NodOn",
+        description: "Electrical heating actuator",
+        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), m.temperature(), ...nodonPilotWire(true)],
+        ota: true,
+    },
+    {
         zigbeeModel: ["IRB-4-1-00"],
         model: "IRB-4-1-00",
         vendor: "NodOn",
@@ -257,6 +265,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withFanMode(["off", "low", "medium", "high", "auto"])
                 .withAcLouverPosition(["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"]),
         ],
+        extend: [m.humidity()],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["hvacFanCtrl", "genIdentify", "hvacThermostat"];
@@ -292,7 +301,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SEM-4-1-00",
         vendor: "NodOn",
         description: "Energy monitoring sensor",
-        extend: [m.electricityMeter()],
+        extend: [
+            m.electricityMeter({
+                acFrequency: true,
+                powerFactor: true,
+                producedEnergy: true,
+            }),
+        ],
         ota: true,
     },
     {

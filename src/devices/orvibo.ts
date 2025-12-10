@@ -178,7 +178,7 @@ const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
     );
     const options: Option[] = [composite];
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "genScenes",
             type: "commandRecall",
@@ -219,7 +219,7 @@ const orviboSwitchRewiring = (args: OrviboSwitchRewiringArgs): ModernExtend => {
                 }
                 return payload;
             },
-        },
+        } satisfies Fz.Converter<"genScenes", undefined, "commandRecall">,
     ];
 
     const onEvent: OnEvent.Handler[] = [
@@ -280,7 +280,7 @@ const orviboSwitchPowerOnBehavior = (): ModernExtend => {
     const powerOnLookup: {[k: number]: string} = {1: "off", 2: "previous"};
     const powerOnLookup2: {[k: string]: number} = {off: 1, previous: 2};
     const exposes: Expose[] = [e.power_on_behavior(["off", "previous"])];
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
             cluster: "manuSpecificOrvibo2",
             type: ["readResponse"],
@@ -291,7 +291,7 @@ const orviboSwitchPowerOnBehavior = (): ModernExtend => {
                 }
                 return result;
             },
-        },
+        } satisfies Fz.Converter<"manuSpecificOrvibo2", Orvibo2, ["readResponse"]>,
     ];
     const toZigbee: Tz.Converter[] = [
         {
@@ -501,7 +501,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "W40CZ",
         vendor: "ORVIBO",
         description: "Smart curtain motor",
-        fromZigbee: [fz.curtain_position_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
+        fromZigbee: [fz.curtain_position_analog_output, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
     },
@@ -510,7 +510,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "W45CZ",
         vendor: "ORVIBO",
         description: "Smart curtain motor",
-        fromZigbee: [fz.curtain_position_analog_output, fz.cover_position_tilt, fz.ignore_basic_report],
+        fromZigbee: [fz.curtain_position_analog_output, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position()],
     },

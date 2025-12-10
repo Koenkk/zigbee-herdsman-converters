@@ -23,4 +23,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "LED lamp with adjustable LED color temperature (Tunable White - RGBW) for use in luminaires with E27 lamp base",
         extend: [m.light({colorTemp: {range: [153, 556]}, color: true})],
     },
+    {
+        zigbeeModel: ["BEGA 85000 Garden Spotlight"],
+        model: "85000",
+        vendor: "Bega",
+        description: "Wired Garden LED Spotlight color temperature (Tunable White - RGBW)",
+        extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
 ];

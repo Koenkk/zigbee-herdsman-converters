@@ -34,7 +34,7 @@ const fzLocal = {
                 }
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport"]>,
     DMS300_IN: {
         cluster: "msOccupancySensing",
         type: ["attributeReport", "readResponse"],
@@ -50,7 +50,7 @@ const fzLocal = {
                 occupancy_and: (occupancyAnd & 1) > 0,
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]>,
     DMS300_OUT: {
         cluster: "ssIasZone",
         type: "commandStatusChangeNotification",
@@ -65,7 +65,7 @@ const fzLocal = {
                 occupancy_and: (occupancyAnd & 1) > 0,
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     GCM300Z_valve_status: {
         cluster: "genOnOff",
@@ -77,7 +77,7 @@ const fzLocal = {
                 return {gas_valve_state: msg.data.onOff === 1 ? "OPEN" : "CLOSE"};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ct_direction: {
         cluster: "seMetering",
         type: ["readResponse"],
@@ -88,7 +88,7 @@ const fzLocal = {
                 return {ct_direction: utils.getFromLookup(value, lookup)};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"seMetering", undefined, ["readResponse"]>,
     ias_zone_sensitivity: {
         cluster: "ssIasZone",
         type: ["attributeReport", "readResponse"],
@@ -101,7 +101,7 @@ const fzLocal = {
                 };
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
     smoke_battery: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
@@ -110,7 +110,31 @@ const fzLocal = {
                 return {smoke_battery: utils.batteryVoltageToPercentage(msg.data.batteryVoltage * 100, {min: 2300, max: 3100})};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
+    hqm_system_mode: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.systemMode !== undefined) {
+                const value = msg.data.systemMode;
+                const lookup = {0: "off", 3: "cool", 4: "heat", 10: "away", 11: "schedule"};
+                return {
+                    system_mode: utils.getFromLookup(value, lookup),
+                    preset: utils.getFromLookup(value, lookup),
+                };
+            }
+        },
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    hqm_local_temperature: {
+        cluster: "msTemperatureMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.measuredValue !== undefined) {
+                const temperature = msg.data.measuredValue / 100.0;
+                return {local_temperature: temperature};
+            }
+        },
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -260,6 +284,23 @@ const tzLocal = {
             } else {
                 return {state: {[key]: "OFF"}};
             }
+        },
+    } satisfies Tz.Converter,
+    hqm_system_mode: {
+        key: ["system_mode", "preset"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {off: 0, cool: 3, heat: 4, away: 10, schedule: 11};
+            await entity.write("hvacThermostat", {systemMode: utils.getFromLookup(value, lookup)});
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("hvacThermostat", ["systemMode"]);
+        },
+    } satisfies Tz.Converter,
+    hqm_local_temperature: {
+        key: ["local_temperature"],
+        convertGet: async (entity, key, meta) => {
+            await entity.read("msTemperatureMeasurement", ["measuredValue"]);
         },
     } satisfies Tz.Converter,
 };
@@ -1180,5 +1221,79 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointName: "p4",
             }),
         ],
+    },
+    {
+        zigbeeModel: ["OSM-300Z"],
+        model: "OSM-300ZB",
+        vendor: "ShinaSystem",
+        ota: true,
+        description: "SiHAS Motion Sensor",
+        extend: [
+            m.occupancy(),
+            m.battery({
+                voltageToPercentage: {min: 2100, max: 3000},
+                voltage: true,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["HQM-300Z"],
+        model: "HQM-300Z",
+        vendor: "ShinaSystem",
+        ota: true,
+        description: "SiHAS Zigbee Wireless Round Thermostat",
+        fromZigbee: [fz.thermostat, fzLocal.hqm_system_mode, fzLocal.hqm_local_temperature],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tzLocal.hqm_system_mode,
+            tzLocal.hqm_local_temperature,
+        ],
+        exposes: [
+            e
+                .climate()
+                .withSystemMode(["off", "cool", "heat"])
+                .withPreset(["off", "cool", "heat", "away", "schedule"])
+                .withLocalTemperature()
+                .withSetpoint("occupied_heating_setpoint", 5, 35, 0.5)
+                .withSetpoint("occupied_cooling_setpoint", 5, 35, 0.5),
+        ],
+        extend: [
+            m.binary({
+                name: "valve_status",
+                valueOn: ["open", 1],
+                valueOff: ["close", 0],
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x9003, type: 0x20},
+                description: "Valve status",
+                access: "STATE_GET",
+                reporting: {min: 0, max: "1_HOUR", change: 1},
+            }),
+            m.numeric({
+                name: "schedule_time",
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x9002, type: 0x20},
+                description: "Operating Time (minutes per hour). Only applicable in schedule mode.",
+                valueMin: 10,
+                valueMax: 50,
+                valueStep: 10,
+                unit: "min",
+                reporting: {min: 0, max: "1_HOUR", change: 1},
+            }),
+            m.humidity(),
+            m.battery(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["hvacThermostat", "msTemperatureMeasurement"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint, {min: 0, max: 600});
+            await reporting.temperature(endpoint, {min: 5, max: 300, change: 10});
+            await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint", "occupiedCoolingSetpoint", "systemMode"]);
+        },
     },
 ];

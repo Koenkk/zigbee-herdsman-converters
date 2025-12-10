@@ -12,7 +12,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PSE03-V1.1.0",
         vendor: "EVOLOGY",
         description: "Sound and flash siren",
-        fromZigbee: [fz.ignore_basic_report, fz.ias_wd, fz.ias_enroll, fz.ias_siren],
+        fromZigbee: [fz.ias_wd, fz.ias_enroll, fz.ias_siren],
         toZigbee: [tz.warning],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {

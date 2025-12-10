@@ -21,13 +21,13 @@ const fzLocal = {
         cluster: "ssIasZone",
         type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
             return {
                 water_leak: (zoneStatus & 1) > 0,
                 tamper: (zoneStatus & (1 << 2)) > 0,
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
     thermostat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -108,7 +108,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     tank_level: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -139,7 +139,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
     sinope: {
         cluster: "manuSpecificSinope",
         type: ["attributeReport", "readResponse"],
@@ -244,7 +244,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificSinope", undefined, ["attributeReport", "readResponse"]>,
 };
 const tzLocal = {
     thermostat_occupancy: {
@@ -805,7 +805,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1123ZB-G2",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [m.electricityMeter()],
+        extend: [m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,

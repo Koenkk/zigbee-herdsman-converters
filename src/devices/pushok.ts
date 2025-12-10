@@ -31,7 +31,7 @@ const pushokExtend = {
         }),
     extendedTemperature: (): ModernExtend => {
         const exposes = [presets.numeric("temperature", access.STATE).withUnit("°C").withDescription("Measured temperature value")];
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "msTemperatureMeasurement",
                 type: ["attributeReport", "readResponse"],
@@ -40,13 +40,13 @@ const pushokExtend = {
                         let temperature = msg.data.measuredValue / 100.0;
 
                         if (msg.data[0xf001] !== undefined) {
-                            temperature += msg.data[0xf001] / 10.0;
+                            temperature += (msg.data[0xf001] as number) / 10.0;
                         }
                         return {temperature};
                     }
                     return {};
                 },
-            },
+            } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [];
         return {
