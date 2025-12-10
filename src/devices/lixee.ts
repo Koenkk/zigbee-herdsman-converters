@@ -15,6 +15,15 @@ const e = exposes.presets;
 
 const NS = "zhc:lixee";
 
+interface LiXeePrivate {
+    attributes: {
+        linkyMode: number;
+        currentTarif: string;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const local = {
     modernExtend: {
         readAttributesOnStartup: (): ModernExtend => {
@@ -22,7 +31,7 @@ const local = {
                 if (event.type === "start") {
                     event.data.device
                         .getEndpoint(1)
-                        .read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null})
+                        .read<"liXeePrivate", LiXeePrivate>("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null})
                         .catch((e) => {
                             // https://github.com/Koenkk/zigbee2mqtt/issues/11674
                             logger.warning(`Failed to read Zigbee attributes during startup: ${e}`, NS);
@@ -247,7 +256,8 @@ const fzLocal = {
                     .split(/(?=[A-Z])/)
                     .join("_")
                     .toLowerCase();
-                let val = msg.data[at];
+                // biome-ignore lint/suspicious/noExplicitAny: bad typing
+                let val: any = msg.data[at];
                 if (val != null) {
                     // TODO: this is not possible??
                     if (utils.isObject(val) && "type" in val && "data" in val && val.type === "Buffer") {
@@ -1895,7 +1905,7 @@ export const definitions: DefinitionWithExtend[] = [
                 clustersDef._0xFF66 /* liXeePrivate */,
             ]);
 
-            await endpoint.read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null}).catch((e) => {
+            await endpoint.read<"liXeePrivate", LiXeePrivate>("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null}).catch((e) => {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/11674
                 logger.warning(`Failed to read Zigbee attributes during configure: ${e}`, NS);
             });

@@ -919,6 +919,10 @@ export const numericAttributes2Payload = async (
                 // @ts-expect-error ignore
                 payload.power_outage_count = value[4].elmVal - 1;
                 break;
+            case "65522":
+                // Aqara devices (bulbs, relays, etc.) send telemetry data in this attribute.
+                // Contains runtime statistics and device metadata but meaning is not fully decoded.
+                break;
             case "mode":
                 assertNumber(value);
                 payload.operation_mode = ["command", "event"][value];
