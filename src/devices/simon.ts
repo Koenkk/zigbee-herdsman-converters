@@ -1,13 +1,19 @@
-import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["SM0502"],
-
-export default {
-    zigbeeModel: ['SM0501'],
-    model: 'SM0501',
-    vendor: '_TZ2000_xfsnto6r',
-    description: 'Automatically generated definition',
-    extend: [m.deviceEndpoints({"endpoints":{"1":1,"3":3,"4":4}}), m.light(), m.light(), m.light()],
-};
+        model: "SM0502",
+        vendor: "SIMON",
+        description: "i7 2-gang smart dimming switch",
+        extend: [m.deviceEndpoints({endpoints: {left: 1, right: 2}}), m.light({endpointNames: ["left", "right"]})],
+    },
+    {
+        zigbeeModel: ["SM0501"],
+        model: "SM0501",
+        vendor: "SIMON",
+        description: "3 gang smart dimming switch",
+        extend: [m.deviceEndpoints({endpoints: {left: 1, center: 3, right: 4}}), m.light({endpointNames: ["left", "center", "right"]})],
+    },
+];
