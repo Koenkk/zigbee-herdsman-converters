@@ -454,12 +454,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Scene Button S3",
         ota: true,
         extend: [
-            m.deviceEndpoints({endpoints: {2: 3, 1: 2, 3: 1}}),
+            m.deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3}}),
             m.actionEnumLookup({
                 endpointNames: ["1", "2", "3"],
                 cluster: "genMultistateInput",
                 attribute: "presentValue",
-                actionLookup: {single: 0, double: 1, send: 2},
+                actionLookup: {release: 255, single: 1, double: 2, send: 2, hold: 0},
             }),
             m.battery(),
         ],
