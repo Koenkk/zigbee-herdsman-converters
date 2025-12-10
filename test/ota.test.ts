@@ -201,7 +201,6 @@ describe("OTA", () => {
                     return await Promise.resolve();
                 }
 
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 transactionSequenceNumber = transactionSequenceNumber || ZclTransactionSequenceNumber.next();
 
                 switch (commandKey) {

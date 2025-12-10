@@ -167,23 +167,19 @@ export const light_colortemp: Tz.Converter = {
 
         if (key === "color_temp_percent") {
             utils.assertNumber(value);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = utils
                 .mapNumberRange(value, 0, 100, colorTempMin != null ? colorTempMin : 154, colorTempMax != null ? colorTempMax : 500)
                 .toString();
         }
 
         if (utils.isString(value) && value in preset) {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = utils.getFromLookup(value, preset);
         }
 
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
 
         // ensure value within range
         utils.assertNumber(value);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = light.clampColorTemp(value, colorTempMin, colorTempMax);
 
         const payload = {colortemp: value as number, transtime: utils.getTransition(entity, key, meta).time};
@@ -326,7 +322,6 @@ export const power_on_behavior: Tz.Converter = {
     key: ["power_on_behavior"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertString(value, key);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         const lookup = {off: 0, on: 1, toggle: 2, previous: 255};
         try {
@@ -517,14 +512,12 @@ export const cover_via_brightness: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         if (typeof value !== "number") {
             utils.assertString(value, key);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             if (value === "stop") {
                 await entity.command("genLevelCtrl", "stop", {}, utils.getOptions(meta.mapped, entity));
                 return;
             }
             const lookup = {open: 100, close: 0};
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = utils.getFromLookup(value, lookup);
         }
 
@@ -699,7 +692,6 @@ export const occupancy_timeout: Tz.Converter = {
     key: ["occupancy_timeout"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertNumber(value);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value *= 1;
         await entity.write("msOccupancySensing", {pirOToUDelay: value}, utils.getOptions(meta.mapped, entity));
         return {state: {occupancy_timeout: value}};
@@ -716,7 +708,6 @@ export const level_config: Tz.Converter = {
         // parse payload to grab the keys
         if (typeof value === "string") {
             try {
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = JSON.parse(value);
             } catch {
                 throw new Error("Payload is not valid JSON");
@@ -855,7 +846,6 @@ export const ballast_config: Tz.Converter = {
     // zcl attribute names are camel case, but we want to use snake case in the outside communication
     convertSet: async (entity, key, value, meta) => {
         if (key === "ballast_config") {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = utils.toCamelCase(value);
             for (const [attrName, attrValue] of Object.entries(value)) {
                 const attributes = {[attrName]: attrValue};
@@ -908,7 +898,6 @@ export const light_brightness_step: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         const onOff = key.endsWith("_onoff");
         const command = onOff ? "stepWithOnOff" : "step";
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
         utils.assertNumber(value, key);
 
@@ -955,7 +944,6 @@ export const light_brightness_move: Tz.Converter = {
             const brightness = (await target.read("genLevelCtrl", ["currentLevel"])).currentLevel;
             return {state: {brightness, state: onOff === 1 ? "ON" : "OFF"}};
         }
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
         utils.assertNumber(value, key);
         const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
@@ -967,7 +955,6 @@ export const light_colortemp_step: Tz.Converter = {
     key: ["color_temp_step"],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
         utils.assertNumber(value, key);
 
@@ -1112,7 +1099,6 @@ export const light_hue_saturation_step: Tz.Converter = {
     key: ["hue_step", "saturation_step"],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
         utils.assertNumber(value, key);
 
@@ -1135,7 +1121,6 @@ export const light_hue_saturation_step: Tz.Converter = {
 export const light_hue_saturation_move: Tz.Converter = {
     key: ["hue_move", "saturation_move"],
     convertSet: async (entity, key, value, meta) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value === "stop" ? value : Number(value);
         const command = key === "hue_move" ? "moveHue" : "moveSaturation";
         const attribute = key === "hue_move" ? "currentHue" : "currentSaturation";
@@ -1354,18 +1339,15 @@ export const light_colortemp_startup: Tz.Converter = {
         const preset = {warmest: colorTempMax, warm: 454, neutral: 370, cool: 250, coolest: colorTempMin, previous: 65535};
 
         if (utils.isString(value) && value in preset) {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = utils.getFromLookup(value, preset);
         }
 
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
         utils.assertNumber(value);
 
         // ensure value within range
         // we do allow one exception for 0xffff, which is to restore the previous value
         if (value !== 65535) {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = light.clampColorTemp(value, colorTempMin, colorTempMax);
         }
 
@@ -1415,7 +1397,6 @@ export const effect: Tz.Converter = {
         if (key === "effect") {
             utils.assertString(value, key);
             const lookup = {blink: 0, breathe: 1, okay: 2, channel_change: 11, finish_effect: 254, stop_effect: 255};
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             if (value === "colorloop") {
                 const transition = meta.message.transition ?? 15;
@@ -1434,10 +1415,8 @@ export const effect: Tz.Converter = {
             const lookup = {select: 0x00, lselect: 0x01, none: 0xff};
             if (key === "flash") {
                 if (value === 2) {
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = "select";
                 } else if (value === 10) {
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = "lselect";
                 }
             }
@@ -2236,7 +2215,6 @@ export const livolo_dimmer_level: Tz.Converter = {
     key: ["brightness", "brightness_percent", "level"],
     convertSet: async (entity, key, value, meta) => {
         // upscale to 100
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
         utils.assertNumber(value, key);
         // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
@@ -2438,7 +2416,6 @@ export const tuya_relay_din_led_indicator: Tz.Converter = {
     key: ["indicator_mode"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertString(value, key);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         const lookup = {off: 0x00, on_off: 0x01, off_on: 0x02};
         const payload = utils.getFromLookup(value, lookup);
@@ -2451,7 +2428,6 @@ export const kmpcil_res005_on_off: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         utils.assertString(value, key);
         const options = {disableDefaultResponse: true};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         utils.assertString(value, key);
         utils.validateValue(value, ["toggle", "off", "on"]);
@@ -3213,7 +3189,6 @@ export const eurotronic_host_flags: Tz.Converter = {
         if (meta.state.child_lock === "LOCK") {
             bitValue |= 0x80;
         }
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = bitValue;
         const payload = {16392: {value, type: 0x22}};
         await entity.write("hvacThermostat", payload, manufacturerOptions.eurotronic);
@@ -3286,7 +3261,6 @@ export const eurotronic_child_lock: Tz.Converter = {
             bitValue |= 0x80;
         }
         const origValue = value;
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = bitValue;
         const payload = {16392: {value, type: 0x22}};
         await entity.write("hvacThermostat", payload, manufacturerOptions.eurotronic);
@@ -3316,7 +3290,6 @@ export const eurotronic_mirror_display: Tz.Converter = {
             bitValue |= 0x80;
         }
         const origValue = value;
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = bitValue;
         const payload = {16392: {value, type: 0x22}};
         await entity.write("hvacThermostat", payload, manufacturerOptions.eurotronic);
@@ -3339,18 +3312,15 @@ export const DTB190502A1_LED: Tz.Converter = {
     key: ["LED"],
     convertSet: async (entity, key, value, meta) => {
         if (value === "default") {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = 1;
         }
         const lookup = {
             OFF: 0,
             ON: 1,
         };
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = utils.getFromLookup(value, lookup);
         // Check for valid data
         utils.assertNumber(value, key);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         if ((value >= 0 && value < 2) === false) value = 0;
 
         const payload = {
@@ -3469,7 +3439,6 @@ export const bticino_4027C_cover_state: Tz.Converter = {
             ? {open: "upOpen" as const, close: "downClose" as const, stop: "stop" as const, on: "upOpen" as const, off: "downClose" as const}
             : {open: "downClose" as const, close: "upOpen" as const, stop: "stop" as const, on: "downClose" as const, off: "upOpen" as const};
 
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         utils.validateValue(value, Object.keys(lookup));
 
@@ -3529,7 +3498,6 @@ export const legrand_device_mode: Tz.Converter = {
             pilot_off: 0x0001,
         };
 
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         utils.validateValue(value, Object.keys(lookup));
         const payload = {0: {value: utils.getFromLookup(value, lookup), type: 9}};
@@ -4153,7 +4121,6 @@ export const TS0003_curtain_switch: Tz.Converter = {
         utils.assertString(value, key);
         utils.assertEndpoint(entity);
         const lookup = {close: 1, stop: 2, open: 1};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         utils.validateValue(value, Object.keys(lookup));
         const endpointID = utils.getFromLookup(value, lookup);
@@ -4219,7 +4186,6 @@ export const tuya_cover_calibration: Tz.Converter = {
 
         utils.assertString(value, key);
         const lookup = {ON: 0, OFF: 1};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toUpperCase();
         const calibration = utils.getFromLookup(value, lookup);
         if (key === "calibration" || key === "calibration_to_open") {
@@ -4246,7 +4212,6 @@ export const tuya_cover_reversal: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         utils.assertString(value, key);
         const lookup = {ON: 1, OFF: 0};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toUpperCase();
         const reversal = utils.getFromLookup(value, lookup);
         await entity.write("closuresWindowCovering", {tuyaMotorReversal: reversal});
@@ -4293,7 +4258,6 @@ export const ZM35HQ_attr: Tz.Converter = {
 export const TS0210_sensitivity: Tz.Converter = {
     key: ["sensitivity"],
     convertSet: async (entity, key, value, meta) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = utils.toNumber(value, "sensitivity");
         await entity.write("ssIasZone", {currentZoneSensitivityLevel: value as number});
         return {state: {sensitivity: value}};
@@ -4413,7 +4377,6 @@ export const schneider_pilot_mode: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         utils.assertString(value, key);
         const lookup = {contactor: 1, pilot: 3};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         const mode = utils.getFromLookup(value, lookup);
         await entity.write("schneiderSpecificPilotMode", {pilotMode: mode}, {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
@@ -4511,7 +4474,6 @@ export const wiser_fip_setting: Tz.Converter = {
         const zonemodeNum = utils.getFromLookup(meta.state.zone_mode, zoneLookup);
 
         const fipLookup = {comfort: 0, "comfort_-1": 1, "comfort_-2": 2, energy_saving: 3, frost_protection: 4, off: 5};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         utils.validateValue(value, Object.keys(fipLookup));
         const fipmodeNum = utils.getFromLookup(value, fipLookup);
@@ -4534,7 +4496,6 @@ export const wiser_hact_config: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         utils.assertString(value, key);
         const lookup = {unconfigured: 0x00, setpoint_switch: 0x80, setpoint_fip: 0x82, fip_fip: 0x83};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         const mode = utils.getFromLookup(value, lookup);
         await entity.write("hvacThermostat", {57361: {value: mode, type: 0x18}});
