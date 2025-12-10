@@ -341,7 +341,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Lincukoo",
         description: "Zigbee Router",
         extend: [],
-        meta: {},
         whiteLabel: [{fingerprint: [{modelID: "G94E"}], vendor: "Lincukoo", model: "G94E"}],
     },
 
@@ -365,7 +364,6 @@ export const definitions: DefinitionWithExtend[] = [
             }
             return exps;
         },
-
         meta: {
             // All datapoints go in here
             tuyaDatapoints: [
@@ -390,19 +388,19 @@ export const definitions: DefinitionWithExtend[] = [
                 e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
                 e.enum("sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("Sensitivity of the sensor"),
             ];
-            if (["_TZE284_2qx7sivb"].includes(device.manufacturerName))
+            if (["_TZE284_2qx7sivb"].includes(device.manufacturerName)) {
                 exps.push(e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("battery state of the sensor"));
-            else
+            } else {
                 exps.push(
                     e.enum("disarm", ea.STATE_SET, ["normal"]).withDescription("Disarm the current alarm"),
                     e.binary("silence_mode", ea.STATE_SET, "ON", "OFF").withDescription("enable/disable alarm"),
                     e.battery(),
                 );
+            }
             return exps;
         },
 
         meta: {
-            // All datapoints go in here
             tuyaDatapoints: [
                 [1, "alarm_status", tuya.valueConverterBasic.lookup({normal: 0, alarm: 1})],
                 [3, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
