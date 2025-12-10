@@ -71,6 +71,8 @@ export class Base {
             case "diagnostic":
                 assert(!(this.access & a.SET), "Diagnostic expose must not be settable");
                 break;
+            case undefined:
+                break;
         }
     }
 

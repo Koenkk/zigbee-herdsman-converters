@@ -36,10 +36,10 @@ export const on_off: Tz.Converter = {
             const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
 
             if (typeof onTime !== "number") {
-                throw Error("The on_time value must be a number!");
+                throw new Error("The on_time value must be a number!");
             }
             if (typeof offWaitTime !== "number") {
-                throw Error("The off_wait_time value must be a number!");
+                throw new Error("The off_wait_time value must be a number!");
             }
             const payload = meta.converterOptions
                 ? // TODO: better typing? currently used in a single place??
@@ -3596,7 +3596,7 @@ export const TYZB01_on_off: Tz.Converter = {
         }
         const timeInSeconds = Number(timeInSecondsValue);
         if (!Number.isInteger(timeInSeconds) || timeInSeconds < 0 || timeInSeconds > 0xfffe) {
-            throw Error("The time_in_seconds value must be convertible to an integer in the range: <0x0000, 0xFFFE>");
+            throw new Error("The time_in_seconds value must be convertible to an integer in the range: <0x0000, 0xFFFE>");
         }
         const on = lowerCaseValue === "on";
         await entity.command(
