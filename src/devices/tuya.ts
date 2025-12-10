@@ -5271,7 +5271,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaOnOff({
                 switchType: true,
                 endpoints: ["l1", "l2"],
-                powerOutageMemory: (manufacturerName) => manufacturerName !== "_TZ3000_qaa59zqd",
+                powerOutageMemory: true,
             }),
         ],
         endpoint: (device) => {
