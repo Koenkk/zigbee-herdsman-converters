@@ -21833,8 +21833,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MSA201Z",
         vendor: "Merrytek",
         description: "24 GHz human presence sensor (TS0601, _TZE284_ajuasrmx)",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("state", ea.STATE, ["Absence", "Presence", "Disabled"]).withLabel("Status"),
             e.presence(),
