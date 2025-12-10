@@ -162,8 +162,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Lisa zone thermostat",
         extend: [
             m.thermostat({
-                setpoints: {values: {occupiedHeatingSetpoint: {min: 0, max: 30, step: 0.5}}},
-                systemMode: {values: ["off", "auto"]},
+                setpoints: {
+                    values: {
+                        occupiedCoolingSetpoint: {min: 0, max: 30, step: 0.5}
+                        occupiedHeatingSetpoint: {min: 0, max: 30, step: 0.5}
+                    }
+                },
+                systemMode: {values: ["off", "cool", "heat"]},
             }),
             m.battery(),
         ],
@@ -176,7 +181,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.thermostat({
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 0, max: 30, step: 0.5}}},
-                systemMode: {values: ["off", "auto"]},
+                systemMode: {values: ["off", "heat", "cool"]},
             }),
             m.battery(),
             m.humidity(),
