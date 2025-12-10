@@ -44,16 +44,11 @@ interface RadarSensorHeimanV2 {
     attributes: {
         enableIndicator: number;
         sensitivity: number;
-        // biome-ignore lint/style/useNamingConvention: TODO
-        enable_sub_region_isolation: number;
-        // biome-ignore lint/style/useNamingConvention: TODO
-        installation_method: number;
-        // biome-ignore lint/style/useNamingConvention: TODO
-        cell_mounted_table: Buffer;
-        // biome-ignore lint/style/useNamingConvention: TODO
-        wall_mounted_table: Buffer;
-        // biome-ignore lint/style/useNamingConvention: TODO
-        sub_region_isolation_table: Buffer;
+        enableSubRegionIsolation: number;
+        installationMethod: number;
+        cellMountedTable: Buffer;
+        wallMountedTable: Buffer;
+        subRegionIsolationTable: Buffer;
     };
     commands: never;
     commandResponses: never;
