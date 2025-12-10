@@ -3940,11 +3940,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ['929003807901_01', '929003807901_02', '929003807901_03'],
-        model: '92900336667',
-        vendor: 'Signify Netherlands B.V.',
-        description: 'Hue white ambiance GU10 with Bluetooth',
-        extend: [philips.m.light({"colorTemp":{"range":[153,454]}})],
+        zigbeeModel: ["929003807901_01", "929003807901_02", "929003807901_03"],
+        model: "92900336667",
+        vendor: "Signify Netherlands B.V.",
+        description: "Hue white ambiance GU10 with Bluetooth",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["3417611P6", "3417511P9"],
