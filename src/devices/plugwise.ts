@@ -178,8 +178,8 @@ export const definitions: DefinitionWithExtend[] = [
                 setpoints: {
                     values: {
                         occupiedCoolingSetpoint: {min: 0, max: 30, step: 0.5},
-                        occupiedHeatingSetpoint: {min: 0, max: 30, step: 0.5}
-                    }
+                        occupiedHeatingSetpoint: {min: 0, max: 30, step: 0.5},
+                    },
                 },
                 systemMode: {values: ["off", "heat", "cool"]},
             }),
