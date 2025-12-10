@@ -5708,6 +5708,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE204_bjzrowv2",
                 "_TZE200_axgvo9jh",
                 "_TZE200_gaj531w3",
+                "_TZE284_gaj531w3",
                 "_TZE200_yia0p3tr",
                 "_TZE200_rsj5pu8y",
                 "_TZE200_yrugsphv",
@@ -5733,7 +5734,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Curtain motor/roller blind motor/window pusher/tubular motor",
         whiteLabel: [
             {vendor: "Yushun", model: "YS-MT750"},
-            tuya.whitelabel("Yushun", "YS-MT750L", "Curtain motor", ["_TZE200_bqcqqjpb", "_TZE200_gaj531w3"]),
+            tuya.whitelabel("Yushun", "YS-MT750L", "Curtain motor", ["_TZE200_bqcqqjpb", "_TZE200_gaj531w3", "_TZE284_gaj531w3"]),
             {vendor: "Zemismart", model: "ZM79E-DT"},
             {vendor: "Binthen", model: "BCM100D"},
             {vendor: "Binthen", model: "CV01A"},
