@@ -648,15 +648,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Wirenboard",
         description: "Wall-mounted multi sensor",
         extend: [
-            m.deviceAddCustomCluster("sprutDeviceBase", {
+            m.deviceAddCustomCluster("genBasic", {
                 ID: 0,
-                manufacturerCode: 26214,
                 attributes: {
-                    deviceVersion: {ID: 26113, type: Zcl.DataType.CHAR_STR, write: true},
-                    deviceSignature: {ID: 26114, type: Zcl.DataType.CHAR_STR, write: true},
-                    deviceBootVersion: {ID: 26115, type: Zcl.DataType.CHAR_STR, write: true},
-                    componentVersion: {ID: 26117, type: Zcl.DataType.CHAR_STR, write: true},
-                    componentSignature: {ID: 26118, type: Zcl.DataType.CHAR_STR, write: true},
+                    deviceVersion: {ID: 26113, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    deviceSignature: {ID: 26114, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    deviceBootVersion: {ID: 26115, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    componentVersion: {ID: 26117, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    componentSignature: {ID: 26118, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -676,7 +675,6 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            m.forcePowerSource({powerSource: "Mains (single phase)"}),
             m.deviceEndpoints({
                 endpoints: {default: 1, l1: 2, l2: 3, l3: 4, indicator: 5},
                 multiEndpointSkip: ["occupancy"],

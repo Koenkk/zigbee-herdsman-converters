@@ -611,7 +611,6 @@ const tzLocal = {
                 const lookup: KeyValue = {mute: 0, low: 10, medium: 30, high: 50};
                 utils.assertString(value, "volume");
                 const lookupValue = lookup[value];
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = value.toLowerCase();
                 utils.validateValue(value, Object.keys(lookup));
                 await entity.write("ssIasWd", {2: {value: lookupValue, type: 0x0a}}, utils.getOptions(meta.mapped, entity));
@@ -3068,7 +3067,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         extend: [m.iasZoneAlarm({zoneType: "rain", zoneAttributes: ["alarm_1"]}), m.battery({percentageReporting: true})],
         exposes: [
-            e.illuminance().withUnit("mV"),
+            e.illuminance_raw(),
             e.numeric("illuminance_average_20min", ea.STATE).withUnit("mV").withDescription("Illuminance average for the last 20 minutes"),
             e.numeric("illuminance_maximum_today", ea.STATE).withUnit("mV").withDescription("Illuminance maximum for the last 24 hours"),
             e.binary("cleaning_reminder", ea.STATE, true, false).withDescription("Cleaning reminder"),
@@ -3077,7 +3076,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [4, "battery", tuya.valueConverter.raw],
-                [101, "illuminance", tuya.valueConverter.raw],
+                [101, "illuminance_raw", tuya.valueConverter.raw],
                 [102, "illuminance_average_20min", tuya.valueConverter.raw],
                 [103, "illuminance_maximum_today", tuya.valueConverter.raw],
                 [104, "cleaning_reminder", tuya.valueConverter.trueFalse0],
@@ -5273,7 +5272,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaOnOff({
                 switchType: true,
                 endpoints: ["l1", "l2"],
-                powerOutageMemory: (manufacturerName) => manufacturerName !== "_TZ3000_qaa59zqd",
+                powerOutageMemory: true,
             }),
         ],
         endpoint: (device) => {
@@ -5710,6 +5709,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE204_bjzrowv2",
                 "_TZE200_axgvo9jh",
                 "_TZE200_gaj531w3",
+                "_TZE284_gaj531w3",
                 "_TZE200_yia0p3tr",
                 "_TZE200_rsj5pu8y",
                 "_TZE200_yrugsphv",
@@ -5735,7 +5735,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Curtain motor/roller blind motor/window pusher/tubular motor",
         whiteLabel: [
             {vendor: "Yushun", model: "YS-MT750"},
-            tuya.whitelabel("Yushun", "YS-MT750L", "Curtain motor", ["_TZE200_bqcqqjpb", "_TZE200_gaj531w3"]),
+            tuya.whitelabel("Yushun", "YS-MT750L", "Curtain motor", ["_TZE200_bqcqqjpb", "_TZE200_gaj531w3", "_TZE284_gaj531w3"]),
             {vendor: "Zemismart", model: "ZM79E-DT"},
             {vendor: "Binthen", model: "BCM100D"},
             {vendor: "Binthen", model: "CV01A"},
@@ -21914,6 +21914,301 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "quick_calibration", tuya.valueConverter.raw],
                 [103, "switch", tuya.valueConverter.raw],
                 [104, "reset", tuya.valueConverterBasic.lookup({reset: tuya.enum(0)})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ajuasrmx"]),
+        model: "MSA201Z",
+        vendor: "Merrytek",
+        description: "24 GHz human presence sensor (TS0601, _TZE284_ajuasrmx)",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.enum("state", ea.STATE, ["absence", "presence", "disabled"]).withLabel("Status"),
+            e.presence(),
+            e.enum("current_status", ea.STATE, ["approaching", "departing", "clear"]),
+            e.illuminance().withLabel("Luminance"),
+            e
+                .numeric("hold_delay_time", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(300)
+                .withValueStep(1)
+                .withCategory("config")
+                .withDescription(`Delay (seconds) before switching from Presence to Absence after no motion is detected.
+            Recommended ≥ 15s to avoid premature Absence switching.`),
+            e
+                .enum("sensitivity", ea.STATE_SET, ["low", "medium", "high"])
+                .withCategory("config")
+                .withDescription(`
+            Sensitivity of human presence detection:
+            • High: suitable for environments with minimal motion interference, such as meeting rooms or cloakrooms away from windows.
+            • Medium: suitable for most scenarios, such as living rooms or restaurants.
+            • Low: suitable for environments with some minor motion interference, such as bedrooms.
+          `),
+            e
+                .numeric("trigger_distance", ea.STATE_SET)
+                .withUnit("m")
+                .withValueMin(0.5)
+                .withValueMax(4)
+                .withValueStep(0.5)
+                .withCategory("config")
+                .withDescription("Distance within which the sensor detects motion, adjustable from 0.5m to 4m, in 0.5m steps."),
+            e
+                .numeric("forbidden_area", ea.STATE_SET)
+                .withUnit("m")
+                .withValueMin(0)
+                .withValueMax(1.8)
+                .withValueStep(0.1)
+                .withCategory("config")
+                .withDescription("Distance from the sensor within which motion is ignored to prevent false detection (0-1.8m)."),
+            e
+                .enum("ai_self_learning", ea.SET, ["AI self-learning"])
+                .withLabel("AI environment self-learning")
+                .withCategory("config")
+                .withDescription(`AI self-learning to help the sensor ignore non-human motion in the environment.
+            The learning process takes 1 minute, during which the sensor will blink. Ensure the area is completely empty
+            during this time.`),
+            e
+                .enum("fast_setting", ea.STATE_SET, ["small", "medium", "large"])
+                .withCategory("config")
+                .withDescription(`
+            Fast setting based on the size of the space:
+            • Small: area less than 16m², e.g., tea room, bathroom.
+            • Medium: area 16–25m², e.g., private office, public toilet, kitchen.
+            • Large: area greater than 25m², e.g., open office, large conference room, living room.
+          `),
+            e
+                .binary("indicator", ea.STATE_SET, "ON", "OFF")
+                .withLabel("LED indicator")
+                .withCategory("config")
+                .withDescription("LED indicator providing a visual signal when motion is detected or the sensor changes state."),
+            e
+                .enum("sensor_mode", ea.STATE_SET, ["presence", "motion"])
+                .withCategory("config")
+                .withDescription(`
+            Operating mode of the radar sensor:
+            • Presence: detects micro-movements for continuous occupancy detection.
+            • Motion: detects larger movements while ignoring small activity to reduce false triggers.
+          `),
+            e
+                .binary("single_mode", ea.STATE_SET, "ON", "OFF")
+                .withCategory("config")
+                .withDescription(`Suitable for spaces where only one person is present at a time. The sensor maintains Presence
+            while the person is within range and automatically switches to Absence 15 seconds after they leave.`),
+            e
+                .binary("absence_circling_report", ea.STATE_SET, "ON", "OFF")
+                .withCategory("config")
+                .withDescription(`Periodic reporting of the Absence state after the sensor switches to Absence, it will
+            send regular status updates automatically.`),
+            e
+                .numeric("absence_circling_interval", ea.STATE_SET)
+                .withUnit("min")
+                .withValueMin(2)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withCategory("config")
+                .withDescription("Interval (minutes) between periodic Absence reports after switching to Absence."),
+            // Internal DP; for internal use only, not exposed in UI
+            /*
+            e
+                .binary("status_flip", ea.STATE_SET, "ON", "OFF")
+                .withCategory("config")
+                .withDescription("Invert reported presence state. When enabled, Presence becomes Absence and vice-versa."),
+            */
+            e
+                .binary("find_device", ea.STATE_SET, "ON", "OFF")
+                .withCategory("config")
+                .withDescription("Indicator LED flashes to help locate the sensor."),
+            e.binary("enable_sensor", ea.STATE_SET, "ON", "OFF").withCategory("config").withDescription("Enable or disable the sensor."),
+            e
+                .enum("factory_reset", ea.SET, ["factory reset"])
+                .withCategory("config")
+                .withDescription("Restores factory defaults, removing all customized settings."),
+            e
+                .enum("lux_mode", ea.STATE_SET, ["threshold", "report"])
+                .withCategory("config")
+                .withDescription(`
+            Lux sensor operation mode:
+              • Threshold: triggers based on a fixed daylight level.
+              • Report: periodically reports light levels using time-based or change-based intervals.
+          `),
+            e
+                .numeric("daylight_threshold", ea.STATE_SET)
+                .withUnit("lux")
+                .withValueMin(1)
+                .withValueMax(3000)
+                .withValueStep(1)
+                .withCategory("config")
+                .withDescription(`Lux level defining sufficient natural light (daylight), applicable only when Lux mode is set to
+            Threshold.`),
+            e
+                .enum("lux_report_mode", ea.STATE_SET, ["timed", "difference"])
+                .withCategory("config")
+                .withDescription(`
+            Reporting style when Lux mode is set to Report:
+            • Timed: sends light level updates at fixed intervals.
+            • Difference: (Not implemented on this device) reports only when lux changes exceed a set threshold.
+          `),
+            e
+                .numeric("lux_timed_interval", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withValueStep(5)
+                .withCategory("config")
+                .withDescription("Interval (seconds) for timed lux reports when Lux report mode is set to Timed."),
+            e
+                .numeric("lux_difference_threshold", ea.STATE_SET)
+                .withUnit("lux")
+                .withValueMin(1)
+                .withValueMax(2000)
+                .withValueStep(1)
+                .withCategory("config")
+                .withDescription(`
+            Lux change required to trigger a report when Lux report mode is set to Difference.
+            Note: This device does not support Difference reporting, so this setting has no effect.
+          `),
+            e
+                .numeric("lux_difference_value", ea.STATE)
+                .withCategory("diagnostic")
+                .withDescription(`
+            Reported lux value for Difference mode.
+            Note: This device does not support Difference reporting, so this setting has no effect.
+          `),
+            e
+                .text("interference_positions", ea.STATE)
+                .withCategory("diagnostic")
+                .withDescription("List of distances (m) where non-human interference was detected."),
+            e
+                .enum("home_environment", ea.STATE, ["normal", "slight", "strong", "severe"])
+                .withCategory("diagnostic")
+                .withDescription("Environmental interference level detected by the sensor."),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    null,
+                    {
+                        from: (v: number) => {
+                            switch (v) {
+                                case 0:
+                                    return {state: "absence", presence: false};
+                                case 1:
+                                    return {state: "presence", presence: true};
+                                case 2:
+                                    return {state: "disabled", presence: false};
+                                default:
+                                    console.warn("Unknown DP1 value:", v);
+                                    return {state: "absence", presence: false};
+                            }
+                        },
+                        to: (value: {state: string; presence: boolean}) => {
+                            switch (value.state) {
+                                case "presence":
+                                    return 1;
+                                case "absence":
+                                    return 0;
+                                case "disabled":
+                                    return 2;
+                                default:
+                                    return 0;
+                            }
+                        },
+                    },
+                ],
+                [2, "trigger_distance", tuya.valueConverter.divideBy10],
+                [101, "illuminance", tuya.valueConverter.raw],
+                [102, "lux_difference_value", tuya.valueConverter.raw],
+                [
+                    103,
+                    "ai_self_learning",
+                    {
+                        from: (v: number) => ({0: "end", 4: "learning"})[v],
+                        to: () => 1,
+                    },
+                ],
+                [
+                    104,
+                    "factory_reset",
+                    {
+                        from: () => "idle",
+                        to: (v: string) => ({"factory reset": 1})[v] || 0,
+                    },
+                ],
+                [
+                    105,
+                    "fast_setting",
+                    {
+                        from: (v: number) => ({1: "large", 2: "medium", 3: "small"})[v] ?? "medium",
+                        to: (v: string) => ({Small: 3, Medium: 2, Large: 1})[v] ?? 2,
+                    },
+                ],
+                [107, "indicator", tuya.valueConverter.onOff],
+                [106, "hold_delay_time", tuya.valueConverter.raw],
+                [
+                    108,
+                    "current_status",
+                    tuya.valueConverterBasic.lookup({
+                        approaching: tuya.enum(0),
+                        departing: tuya.enum(1),
+                        clear: tuya.enum(2),
+                    }),
+                ],
+                [109, "enable_sensor", tuya.valueConverter.onOff],
+                [
+                    110,
+                    "sensitivity",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(3),
+                        medium: tuya.enum(2),
+                        high: tuya.enum(1),
+                    }),
+                ],
+                //[111, 'presence', tuya.valueConverter.trueFalse],
+                [112, "status_flip", tuya.valueConverter.onOff],
+                [113, "interference_positions", tuya.valueConverter.raw],
+                [114, "forbidden_area", tuya.valueConverter.divideBy10],
+                [115, "daylight_threshold", tuya.valueConverter.raw],
+                [
+                    116,
+                    "sensor_mode",
+                    {
+                        from: (v: number) => ({1: "presence", 2: "motion"})[v] ?? "unknown",
+                        to: (v: string) => ({presence: 1, motion: 2})[v] ?? 1,
+                    },
+                ],
+                [117, "single_mode", tuya.valueConverter.onOff],
+                [118, "find_device", tuya.valueConverter.onOff],
+                [
+                    119,
+                    "lux_mode",
+                    tuya.valueConverterBasic.lookup({
+                        threshold: tuya.enum(0),
+                        report: tuya.enum(1),
+                    }),
+                ],
+                [
+                    120,
+                    "lux_report_mode",
+                    tuya.valueConverterBasic.lookup({
+                        timed: tuya.enum(0),
+                        difference: tuya.enum(1),
+                    }),
+                ],
+                [121, "lux_difference_threshold", tuya.valueConverter.raw],
+                [122, "lux_timed_interval", tuya.valueConverter.raw],
+                [123, "absence_circling_report", tuya.valueConverter.onOff],
+                [124, "absence_circling_interval", tuya.valueConverter.raw],
+                [
+                    125,
+                    "home_environment",
+                    {
+                        from: (v: number) => ({0: "normal", 1: "slight", 2: "strong", 3: "severe"})[v] ?? "unknown",
+                        to: (v: string) => ({normal: 0, slight: 1, strong: 2, severe: 3})[v] ?? 0,
+                    },
+                ],
             ],
         },
     },
