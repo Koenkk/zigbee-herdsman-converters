@@ -55,7 +55,7 @@ const fzLocal = {
                 result.backlight_auto_dim = utils.getFromLookup(msg.data["1026"], lookup);
             }
             if (msg.data.SinopeBacklight !== undefined) {
-                const lookup = {0: "on_demand", 1: "sensing", 2: "off"};
+                const lookup = {0: "on_demand", 1: "off", 2: "sensing"};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data.SinopeBacklight, lookup);
             }
             if (msg.data["1028"] !== undefined) {
@@ -262,7 +262,7 @@ const tzLocal = {
     backlight_autodim: {
         key: ["backlight_auto_dim"],
         convertSet: async (entity, key, value, meta) => {
-            const sinopeBacklightParam = {0: "on_demand", 1: "sensing", 2: "off"};
+            const sinopeBacklightParam = {0: "on_demand", 1: "off", 2: "sensing"};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value as number, Number);
             await entity.write("hvacThermostat", {SinopeBacklight}, manuSinope);
             return {state: {backlight_auto_dim: value}};
