@@ -3066,7 +3066,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         extend: [m.iasZoneAlarm({zoneType: "rain", zoneAttributes: ["alarm_1"]}), m.battery({percentageReporting: true})],
         exposes: [
-            e.illuminance().withUnit("mV"),
+            e.illuminance_raw(),
             e.numeric("illuminance_average_20min", ea.STATE).withUnit("mV").withDescription("Illuminance average for the last 20 minutes"),
             e.numeric("illuminance_maximum_today", ea.STATE).withUnit("mV").withDescription("Illuminance maximum for the last 24 hours"),
             e.binary("cleaning_reminder", ea.STATE, true, false).withDescription("Cleaning reminder"),
@@ -3075,7 +3075,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [4, "battery", tuya.valueConverter.raw],
-                [101, "illuminance", tuya.valueConverter.raw],
+                [101, "illuminance_raw", tuya.valueConverter.raw],
                 [102, "illuminance_average_20min", tuya.valueConverter.raw],
                 [103, "illuminance_maximum_today", tuya.valueConverter.raw],
                 [104, "cleaning_reminder", tuya.valueConverter.trueFalse0],
