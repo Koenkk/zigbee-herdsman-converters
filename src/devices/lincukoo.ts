@@ -146,7 +146,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CZF02",
         vendor: "Lincukoo",
         description: "Finger Robot",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch(),
             e.enum("mode", ea.STATE_SET, ["click", "long_press"]).withDescription("work mode of the finger robot"),
@@ -336,13 +336,13 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        zigbeeModel: ["G91E-ZH", "G94E-ZH"],
+        zigbeeModel: ["G91E-ZH", "G94E"],
         model: "G91E-ZH",
         vendor: "Lincukoo",
         description: "Zigbee Router",
         extend: [],
         meta: {},
-        whiteLabel: [{fingerprint: [{modelID: "G94E-ZH"}], vendor: "Lincukoo", model: "G94E-ZH"}],
+        whiteLabel: [{fingerprint: [{modelID: "G94E"}], vendor: "Lincukoo", model: "G94E"}],
     },
 
     {
