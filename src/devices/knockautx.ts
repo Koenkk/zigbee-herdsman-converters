@@ -1,12 +1,5 @@
-const fz = require('../converters/fromZigbee');
-const tz = require('../converters/toZigbee');
 const exposes = require('../lib/exposes');
-const reporting = require('../lib/reporting');
-const ota = require('../lib/ota');
 const tuya = require('../lib/tuya');
-const utils = require('../lib/utils');
-const globalStore = require('../lib/store');
-const modernExtend = require('../lib/modernExtend');
 
 const e = exposes.presets;
 const ea = exposes.access;
