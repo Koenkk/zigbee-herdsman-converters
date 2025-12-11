@@ -51,11 +51,21 @@ interface ThirdWaterSensor {
     commandResponses: never;
 }
 
-interface ThirdDualPlug {
+interface ThirdPlug {
     attributes: {
         resetSummationDelivered: number;
         onToOffDelay: number;
         offToOnDelay: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdPlugGen3 {
+    attributes: {
+        btnDisable: number;
+        powerUpValue: number;
+        powerDownValue: number;
     };
     commands: never;
     commandResponses: never;
@@ -601,12 +611,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["3RSP02064Z", "3RSPE02065Z", "3RSPU01080Z"],
-        model: "3RSP02064Z",
+        zigbeeModel: ["3RSPE02065Z", "3RSPU01080Z"],
+        model: "3RSPE02065Z",
         vendor: "Third Reality",
-        description: "Smart Plug Gen3",
+        description: "Smart Plug E3",
         whiteLabel: [
-            {vendor: "Third Reality", model: "3RSPE02065Z", description: "Smart Plug E3", fingerprint: [{modelID: "3RSPE02065Z"}]},
             {vendor: "Third Reality", model: "3RSPU01080Z", description: "Smart Plug UZ1", fingerprint: [{modelID: "3RSPU01080Z"}]},
         ],
         extend: [
@@ -620,11 +629,120 @@ export const definitions: DefinitionWithExtend[] = [
                     onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
                     offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
                     allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
-                    powerUpValue: {ID: 0x0040, type: Zcl.DataType.UINT16},
-                    powerDownValue: {ID: 0x0041, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.enumLookup<"3rPlugSpecialcluster", ThirdPlug>({
+                name: "reset_total_energy",
+                lookup: {Reset: 1},
+                cluster: "3rPlugSpecialcluster",
+                attribute: "resetSummationDelivered",
+                description: "Reset the sum of consumed energy",
+                access: "ALL",
+            }),
+            m.numeric<"3rPlugSpecialcluster", ThirdPlug>({
+                name: "countdown_to_turn_off",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rPlugSpecialcluster",
+                attribute: "onToOffDelay",
+                description: "(ON-OFF)",
+                access: "ALL",
+            }),
+            m.numeric<"3rPlugSpecialcluster", ThirdPlug>({
+                name: "countdown_to_turn_on",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rPlugSpecialcluster",
+                attribute: "offToOnDelay",
+                description: "(OFF-ON)",
+                access: "ALL",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["3RSP02064Z"],
+        model: "3RSP02064Z",
+        vendor: "Third Reality",
+        description: "Smart Plug Gen3",
+        extend: [
+            m.onOff(),
+            m.electricityMeter({acFrequency: true, powerFactor: true}),
+            m.deviceAddCustomCluster("3rPlugSpecialcluster", {
+                ID: 0xff03,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                    powerUpValue: {ID: 0x0040, type: Zcl.DataType.UINT16},
+                    powerDownValue: {ID: 0x0041, type: Zcl.DataType.UINT16},
+                    btnDisable: {ID: 0x0050, type: Zcl.DataType.UINT8},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.enumLookup<"3rPlugSpecialcluster", ThirdPlug>({
+                name: "reset_total_energy",
+                lookup: {Reset: 1},
+                cluster: "3rPlugSpecialcluster",
+                attribute: "resetSummationDelivered",
+                description: "Reset the sum of consumed energy",
+                access: "ALL",
+            }),
+            m.binary<"3rPlugSpecialcluster", ThirdPlugGen3>({
+                name: "metering_only_mode",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3rPlugSpecialcluster",
+                attribute: "btnDisable",
+                description: "When enabled, the device enters metering-only mode and the relay is forced to stay ON.",
+                access: "ALL",
+            }),
+            m.numeric<"3rPlugSpecialcluster", ThirdPlug>({
+                name: "countdown_to_turn_off",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rPlugSpecialcluster",
+                attribute: "onToOffDelay",
+                description: "(ON-OFF)",
+                access: "ALL",
+            }),
+            m.numeric<"3rPlugSpecialcluster", ThirdPlug>({
+                name: "countdown_to_turn_on",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rPlugSpecialcluster",
+                attribute: "offToOnDelay",
+                description: "(OFF-ON)",
+                access: "ALL",
+            }),
+            m.numeric<"3rPlugSpecialcluster", ThirdPlugGen3>({
+                name: "power_rise_threshold",
+                unit: "w",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rPlugSpecialcluster",
+                attribute: "powerRaisedThreshold",
+                description: "Reports sudden power changes. Power rise and fall alerts can be enabled separately. Threshold adjustable.",
+                access: "ALL",
+            }),
+            m.numeric<"3rPlugSpecialcluster", ThirdPlugGen3>({
+                name: "power_drop_threshold",
+                unit: "w",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rPlugSpecialcluster",
+                attribute: "powerFallsThreshold",
+                description: "Reports sudden power changes. Power rise and drop alerts can be enabled separately. Threshold adjustable.",
+                access: "ALL",
             }),
         ],
         ota: true,
@@ -653,7 +771,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.enumLookup<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+            m.enumLookup<"3rDualPlugSpecialcluster", ThirdPlug>({
                 endpointName: "1",
                 name: "reset_total_energy",
                 lookup: {Reset: 1},
@@ -662,7 +780,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Reset the sum of consumed energy",
                 access: "ALL",
             }),
-            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+            m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({
                 name: "countdown_time_on_to_off",
                 endpointNames: ["1"],
                 unit: "s",
@@ -673,7 +791,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "(ON-OFF)",
                 access: "ALL",
             }),
-            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+            m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({
                 name: "countdown_time_off_to_on",
                 endpointNames: ["1"],
                 unit: "s",
@@ -684,7 +802,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "(OFF-ON)",
                 access: "ALL",
             }),
-            m.enumLookup<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+            m.enumLookup<"3rDualPlugSpecialcluster", ThirdPlug>({
                 endpointName: "2",
                 name: "reset_total_energy",
                 lookup: {Reset: 1},
@@ -693,7 +811,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Reset the sum of consumed energy",
                 access: "ALL",
             }),
-            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+            m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({
                 name: "countdown_time_on_to_off",
                 endpointNames: ["2"],
                 unit: "s",
@@ -704,7 +822,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "(ON-OFF)",
                 access: "ALL",
             }),
-            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+            m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({
                 name: "countdown_time_off_to_on",
                 endpointNames: ["2"],
                 unit: "s",
