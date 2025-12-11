@@ -343,4 +343,28 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_xfxpoxe0"]),
+        model: "ZBTS60-01",
+        description: "1 gang switch module with backlight",
+        vendor: "AVATTO",
+        extend: [tuya.modernExtend.tuyaMagicPacket(), m.deviceEndpoints({ endpoints: { l1: 1 } }), tuya.modernExtend.tuyaOnOff({endpoints: ["l1"], powerOutageMemory: true, switchType: true, backlightModeOffOn: true, inchingSwitch: false,}),],
+        meta: { multiEndpoint: true },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_nwidmc4n"]),
+        model: "ZBTS60-03",
+        description: "3 gang switch module with backlight",
+        vendor: "AVATTO",
+        extend: [tuya.modernExtend.tuyaMagicPacket(), m.deviceEndpoints({ endpoints: { l1: 1, l2: 2, l3: 3 } }), tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3"], powerOutageMemory: true, switchType: true, indicatorMode: false, backlightModeOffOn: true, inchingSwitch: false,}),],
+        meta: { multiEndpoint: true },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_r9e2w7dn"]),
+        model: "ZBTS60-04",
+        description: "4 gang switch module with backlight",
+        vendor: "AVATTO",
+        extend: [tuya.modernExtend.tuyaMagicPacket(), m.deviceEndpoints({ endpoints: { l1: 1, l2: 2, l3: 3, l4:4 } }), tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3", "l4"],powerOutageMemory: true, switchType: true, backlightModeOffOn: true, inchingSwitch: false,}),],
+        meta: { multiEndpoint: true },
+    },
 ];
