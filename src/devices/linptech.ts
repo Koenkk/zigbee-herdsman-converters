@@ -14,21 +14,21 @@ const tzLocal = {
             switch (key) {
                 case "motion_detection_distance": {
                     utils.assertNumber(value, "motion_detection_distance");
-                    await entity.write("manuSpecificTuya_2", {57355: {value, type: 0x21}});
+                    await entity.write("manuSpecificTuya2", {57355: {value, type: 0x21}});
                     break;
                 }
                 case "motion_detection_sensitivity": {
                     utils.assertNumber(value, "motion_detection_sensitivity");
-                    await entity.write("manuSpecificTuya_2", {57348: {value, type: 0x20}});
+                    await entity.write("manuSpecificTuya2", {57348: {value, type: 0x20}});
                     break;
                 }
                 case "static_detection_sensitivity": {
                     utils.assertNumber(value, "static_detection_sensitivity");
-                    await entity.write("manuSpecificTuya_2", {57349: {value, type: 0x20}});
+                    await entity.write("manuSpecificTuya2", {57349: {value, type: 0x20}});
                     break;
                 }
                 case "led_indicator": {
-                    await entity.write("manuSpecificTuya_2", {57353: {value: value ? 0x01 : 0x00, type: 0x10}});
+                    await entity.write("manuSpecificTuya2", {57353: {value: value ? 0x01 : 0x00, type: 0x10}});
                     break;
                 }
             }
@@ -46,9 +46,9 @@ const fzLocal = {
             const measuredValue = Number(buffer[7]) * 256 + Number(buffer[6]);
             return {illuminance: measuredValue === 0 ? 0 : Math.round(10 ** ((measuredValue - 1) / 10000))};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msIlluminanceMeasurement", undefined, "raw">,
     TS0225: {
-        cluster: "manuSpecificTuya_2",
+        cluster: "manuSpecificTuya2",
         type: ["attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
@@ -72,7 +72,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -81,9 +81,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ES1ZZ(TY)",
         vendor: "Linptech",
         description: "mmWave Presence sensor",
-        fromZigbee: [fz.ias_occupancy_alarm_1, fzLocal.TS0225, fzLocal.TS0225_illuminance, tuya.fz.datapoints],
-        toZigbee: [tzLocal.TS0225, tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        fromZigbee: [fz.ias_occupancy_alarm_1, fzLocal.TS0225, fzLocal.TS0225_illuminance],
+        toZigbee: [tzLocal.TS0225],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.occupancy().withDescription("Presence state"),
             e.illuminance().withUnit("lx"),

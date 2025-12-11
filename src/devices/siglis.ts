@@ -24,7 +24,7 @@ const actionLookup = {
     3: "hold",
 };
 
-const zifgredFromZigbeeButtonEvent: Fz.Converter = {
+const zifgredFromZigbeeButtonEvent: Fz.Converter<"manuSpecificSiglisZigfred", undefined, ["commandSiglisZigfredButtonEvent"]> = {
     cluster: "manuSpecificSiglisZigfred",
     type: ["commandSiglisZigfredButtonEvent"],
     convert: (model, msg, publish, options, meta) => {
@@ -157,15 +157,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             return expose;
         },
-        fromZigbee: [
-            zifgredFromZigbeeButtonEvent,
-            fz.color_colortemp,
-            fz.on_off,
-            fz.brightness,
-            fz.level_config,
-            fz.power_on_behavior,
-            fz.ignore_basic_report,
-        ],
+        fromZigbee: [zifgredFromZigbeeButtonEvent, fz.color_colortemp, fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior],
         toZigbee: [
             tz.light_onoff_brightness,
             tz.light_color,
@@ -195,7 +187,7 @@ export const definitions: DefinitionWithExtend[] = [
                 const dimmerEp = device.getEndpoint(7);
 
                 // Bind Control EP (LED)
-                setMetaOption(device, "front_surface_enabled", (await controlEp.read("genBasic", ["deviceEnabled"])).deviceEnabled);
+                setMetaOption(device, "front_surface_enabled", (await controlEp.read("genBasic", ["deviceEnabled"])).deviceEnabled === 1);
                 if (checkMetaOption(device, "front_surface_enabled")) {
                     await reporting.bind(controlEp, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "manuSpecificSiglisZigfred"]);
                     await reporting.onOff(controlEp);
@@ -203,14 +195,14 @@ export const definitions: DefinitionWithExtend[] = [
                 }
 
                 // Bind Relay EP
-                setMetaOption(device, "relay_enabled", (await relayEp.read("genBasic", ["deviceEnabled"])).deviceEnabled);
+                setMetaOption(device, "relay_enabled", (await relayEp.read("genBasic", ["deviceEnabled"])).deviceEnabled === 1);
                 if (checkMetaOption(device, "relay_enabled")) {
                     await reporting.bind(relayEp, coordinatorEndpoint, ["genOnOff"]);
                     await reporting.onOff(relayEp);
                 }
 
                 // Bind Dimmer EP
-                setMetaOption(device, "dimmer_enabled", (await dimmerEp.read("genBasic", ["deviceEnabled"])).deviceEnabled);
+                setMetaOption(device, "dimmer_enabled", (await dimmerEp.read("genBasic", ["deviceEnabled"])).deviceEnabled === 1);
                 if (checkMetaOption(device, "dimmer_enabled")) {
                     await reporting.bind(dimmerEp, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
                     await reporting.onOff(dimmerEp);
@@ -334,7 +326,6 @@ export const definitions: DefinitionWithExtend[] = [
             fz.brightness,
             fz.level_config,
             fz.power_on_behavior,
-            fz.ignore_basic_report,
             fz.cover_position_tilt,
         ],
         toZigbee: [
@@ -367,7 +358,7 @@ export const definitions: DefinitionWithExtend[] = [
             if (device != null) {
                 // Bind Control EP (LED)
                 const controlEp = device.getEndpoint(zigfredEndpoint);
-                setMetaOption(device, "front_surface_enabled", (await controlEp.read("genBasic", ["deviceEnabled"])).deviceEnabled);
+                setMetaOption(device, "front_surface_enabled", (await controlEp.read("genBasic", ["deviceEnabled"])).deviceEnabled === 1);
                 if (checkMetaOption(device, "front_surface_enabled")) {
                     await reporting.bind(controlEp, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "manuSpecificSiglisZigfred"]);
                     await reporting.onOff(controlEp);
@@ -376,7 +367,7 @@ export const definitions: DefinitionWithExtend[] = [
 
                 // Bind Dimmer 1 EP
                 const dimmer1Ep = device.getEndpoint(7);
-                setMetaOption(device, "dimmer_1_enabled", (await dimmer1Ep.read("genBasic", ["deviceEnabled"])).deviceEnabled);
+                setMetaOption(device, "dimmer_1_enabled", (await dimmer1Ep.read("genBasic", ["deviceEnabled"])).deviceEnabled === 1);
                 if (checkMetaOption(device, "dimmer_1_enabled")) {
                     await reporting.bind(dimmer1Ep, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
                     await reporting.onOff(dimmer1Ep);
@@ -386,7 +377,7 @@ export const definitions: DefinitionWithExtend[] = [
 
                 // Bind Dimmer 2 EP
                 const dimmer2Ep = device.getEndpoint(8);
-                setMetaOption(device, "dimmer_2_enabled", (await dimmer2Ep.read("genBasic", ["deviceEnabled"])).deviceEnabled);
+                setMetaOption(device, "dimmer_2_enabled", (await dimmer2Ep.read("genBasic", ["deviceEnabled"])).deviceEnabled === 1);
                 if (checkMetaOption(device, "dimmer_2_enabled")) {
                     await reporting.bind(dimmer2Ep, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
                     await reporting.onOff(dimmer2Ep);
@@ -396,7 +387,7 @@ export const definitions: DefinitionWithExtend[] = [
 
                 // Bind Dimmer 3 EP
                 const dimmer3Ep = device.getEndpoint(9);
-                setMetaOption(device, "dimmer_3_enabled", (await dimmer3Ep.read("genBasic", ["deviceEnabled"])).deviceEnabled);
+                setMetaOption(device, "dimmer_3_enabled", (await dimmer3Ep.read("genBasic", ["deviceEnabled"])).deviceEnabled === 1);
                 if (checkMetaOption(device, "dimmer_3_enabled")) {
                     await reporting.bind(dimmer3Ep, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
                     await reporting.onOff(dimmer3Ep);
@@ -406,7 +397,7 @@ export const definitions: DefinitionWithExtend[] = [
 
                 // Bind Dimmer 4 EP
                 const dimmer4Ep = device.getEndpoint(10);
-                setMetaOption(device, "dimmer_4_enabled", (await dimmer4Ep.read("genBasic", ["deviceEnabled"])).deviceEnabled);
+                setMetaOption(device, "dimmer_4_enabled", (await dimmer4Ep.read("genBasic", ["deviceEnabled"])).deviceEnabled === 1);
                 if (checkMetaOption(device, "dimmer_4_enabled")) {
                     await reporting.bind(dimmer4Ep, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
                     await reporting.onOff(dimmer4Ep);
@@ -416,7 +407,7 @@ export const definitions: DefinitionWithExtend[] = [
 
                 // Bind Cover 1 EP
                 const cover1Ep = device.getEndpoint(11);
-                setMetaOption(device, "cover_1_enabled", (await cover1Ep.read("genBasic", ["deviceEnabled"])).deviceEnabled);
+                setMetaOption(device, "cover_1_enabled", (await cover1Ep.read("genBasic", ["deviceEnabled"])).deviceEnabled === 1);
                 if (checkMetaOption(device, "cover_1_enabled")) {
                     await reporting.bind(cover1Ep, coordinatorEndpoint, ["closuresWindowCovering"]);
                     await reporting.currentPositionLiftPercentage(cover1Ep);
@@ -434,7 +425,7 @@ export const definitions: DefinitionWithExtend[] = [
 
                 // Bind Cover 2 EP
                 const cover2Ep = device.getEndpoint(12);
-                setMetaOption(device, "cover_2_enabled", (await cover2Ep.read("genBasic", ["deviceEnabled"])).deviceEnabled);
+                setMetaOption(device, "cover_2_enabled", (await cover2Ep.read("genBasic", ["deviceEnabled"])).deviceEnabled === 1);
                 if (checkMetaOption(device, "cover_2_enabled")) {
                     await reporting.bind(cover2Ep, coordinatorEndpoint, ["closuresWindowCovering"]);
                     await reporting.currentPositionLiftPercentage(cover2Ep);

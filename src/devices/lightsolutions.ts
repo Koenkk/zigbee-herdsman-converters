@@ -30,4 +30,19 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee dimmer for wire",
         extend: [m.light({configureReporting: true})],
     },
+    {
+        zigbeeModel: ["91-943-PRO-SINGLE"],
+        model: "91-943-PRO",
+        vendor: "Light Solutions",
+        description: "LED Controller 12/24v",
+        extend: [m.light()],
+    },
+    {
+        fingerprint: [{modelID: "01F", manufacturerName: "Light"}],
+        zigbeeModel: ["91-943"],
+        model: "91-943",
+        vendor: "Light Solutions",
+        description: "LED Controller 12/24v",
+        extend: [m.light()],
+    },
 ];

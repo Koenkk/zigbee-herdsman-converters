@@ -124,6 +124,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion Sensor",
         fromZigbee: [fz.ias_occupancy_alarm_2, fz.temperature, fz.humidity],
         toZigbee: [],
+        extend: [m.battery({voltage: true, voltageReporting: true, voltageToPercentage: "3V_2100"})],
         exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -137,7 +138,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "27087-03",
         vendor: "Iris",
         description: "Hose faucet water timer",
-        fromZigbee: [fz.on_off, fz.battery, fz.ignore_time_read],
+        fromZigbee: [fz.on_off, fz.battery],
         toZigbee: [tz.on_off],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {

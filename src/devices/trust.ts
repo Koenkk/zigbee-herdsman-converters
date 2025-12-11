@@ -9,6 +9,7 @@ const e = exposes.presets;
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "SmokeSensor-EM", manufacturerName: "Trust"}],
+        zigbeeModel: ["ZSDR-850"],
         model: "ZSDR-850",
         vendor: "Trust",
         description: "Smoke detector",
@@ -26,7 +27,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZWLD-100",
         vendor: "Trust",
         description: "Water leakage detector",
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.ignore_basic_report, fz.battery],
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -112,7 +113,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZPIR-8000",
         vendor: "Trust",
         description: "Motion Sensor",
-        fromZigbee: [fz.ias_occupancy_alarm_2, fz.battery, fz.ignore_basic_report],
+        fromZigbee: [fz.ias_occupancy_alarm_2, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -126,7 +127,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZCTS-808",
         vendor: "Trust",
         description: "Wireless contact sensor",
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ignore_basic_report],
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

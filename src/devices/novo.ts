@@ -1,4 +1,3 @@
-import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as tuya from "../lib/tuya";
@@ -13,7 +12,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "C10-3E-1.2",
         vendor: "Novo",
         description: "Curtain switch",
-        fromZigbee: [legacy.fz.tuya_cover, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.tuya_cover],
         toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options],
         exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
     },

@@ -20,7 +20,7 @@ const fzLocal = {
             };
             return {action: utils.getFromLookup(msg.data.sceneid, payload)};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genScenes", undefined, "commandRecall">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -126,7 +126,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy(), e.battery_voltage(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ["3AFE21100402102A"],
+        zigbeeModel: ["3AFE21100402102A", "3AFE22010402102A", "3AFE12010402102A"],
         model: "KK-WA-J01W",
         vendor: "Konke",
         description: "Water detector",

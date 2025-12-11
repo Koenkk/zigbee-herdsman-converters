@@ -14,7 +14,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZB006-X",
         vendor: "Fantem",
         description: "Smart dimmer module",
-        extend: [m.light({configureReporting: true})],
+        extend: [m.light({configureReporting: true}), tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, legacy.fz.ZB006X_settings],
         toZigbee: [legacy.tz.ZB006X_settings],
         exposes: [
@@ -31,19 +31,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("power_supply_mode", ea.STATE, ["unknown", "no_neutral", "with_neutral"]).withDescription("Power supply mode"),
         ],
         meta: {disableActionGroup: true},
-        onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint) => {
-            // Enables reporting of physical state changes
-            // https://github.com/Koenkk/zigbee2mqtt/issues/9057#issuecomment-1007742130
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-        },
     },
     {
         fingerprint: tuya.fingerprint("TS0202", ["_TZ3210_0aqbrnts", "_TZ3210_rxqls8v0", "_TZ3210_zmy9hjay", "_TZ3210_wuhzzfqg", "_TZ3210_ohvnwamm"]),
         model: "ZB003-X",
         vendor: "Fantem",
         description: "4 in 1 multi sensor",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
+        fromZigbee: [fz.battery, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
         whiteLabel: [tuya.whitelabel("EFK", "is-thpl-zb", "4 in 1 multi sensor", ["_TZ3210_0aqbrnts"])],
         exposes: [

@@ -1,11 +1,10 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -40,6 +39,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.thermostat_weekly_schedule,
             fz.hvac_user_interface,
             fz.danfoss_thermostat,
+            fz.danfoss_hvac_ui,
             fz.danfoss_thermostat_setpoint_scheduled,
         ],
         toZigbee: [
@@ -345,26 +345,19 @@ export const definitions: DefinitionWithExtend[] = [
             // So, we need to write time during configure (same as for HEIMAN devices)
             await setTime(device);
         },
-        onEvent: async (type, data, device) => {
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "interval"));
-                globalStore.clearValue(device, "interval");
-            } else if (["deviceAnnounce", "start"].includes(type)) {
-                // The device might have lost its time, so reset it. It would be more proper to check if
-                // the danfossSystemStatusCode has bit 10 of the SW error code attribute (0x4000) in the
-                // diagnostics cluster (0x0b05) is set to indicate time lost, but setting it once too many
-                // times shouldn't hurt.
-                await setTime(device);
-
-                if (!globalStore.hasValue(device, "interval")) {
-                    // Set up a timer to refresh the time once a week to mitigate timer drift, as described
-                    // in the Danfoss documentation. Be careful to not bump this timer past the signed 32-bit
-                    // integer limit of setInterval, which is roughly 24.8 days.
-                    const interval = setInterval(async () => await setTime(device), 10080000);
-                    globalStore.putValue(device, "interval", interval);
-                }
-            }
-        },
+        extend: [
+            m.poll({
+                key: "time_sync",
+                defaultIntervalSeconds: 60 * 60 * 24,
+                poll: async (device) => {
+                    // The device might have lost its time, so reset it. It would be more proper to check if
+                    // the danfossSystemStatusCode has bit 10 of the SW error code attribute (0x4000) in the
+                    // diagnostics cluster (0x0b05) is set to indicate time lost, but setting it once too many
+                    // times shouldn't hurt.
+                    await setTime(device);
+                },
+            }),
+        ],
     },
     {
         fingerprint: [
@@ -383,6 +376,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.danfoss_icon_battery,
             fz.thermostat,
             fz.danfoss_thermostat,
+            fz.danfoss_hvac_ui,
             fz.danfoss_icon_regulator,
             fz.danfoss_icon_floor_sensor,
             fz.temperature,
@@ -640,6 +634,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.danfoss_icon_battery,
             fz.thermostat,
             fz.danfoss_thermostat,
+            fz.danfoss_hvac_ui,
             fz.danfoss_icon_floor_sensor,
             fz.danfoss_icon_hvac_user_interface,
             fz.temperature,
@@ -657,12 +652,18 @@ export const definitions: DefinitionWithExtend[] = [
             tz.danfoss_floor_sensor_mode,
             tz.danfoss_floor_min_setpoint,
             tz.danfoss_floor_max_setpoint,
+            tz.danfoss_schedule_type_used,
+            tz.danfoss_icon2_pre_heat,
+            tz.danfoss_icon2_pre_heat_status,
             tz.thermostat_keypad_lockout,
             tz.temperature,
             tz.humidity,
             tz.danfoss_system_status_code,
+            tz.danfoss_heat_supply_request,
             tz.danfoss_system_status_water,
             tz.danfoss_multimaster_role,
+            tz.danfoss_icon_application,
+            tz.danfoss_icon_forced_heating_cooling,
         ],
         meta: {multiEndpoint: true, thermostat: {dontMapPIHeatingDemand: true}},
         exposes: [].concat(
@@ -753,6 +754,27 @@ export const definitions: DefinitionWithExtend[] = [
                         );
 
                         features.push(
+                            e
+                                .enum("schedule_type_used", ea.STATE_GET, ["regular_schedule_selected", "vacation_schedule_selected"])
+                                .withEndpoint(epName)
+                                .withDescription("Danfoss schedule mode"),
+                        );
+
+                        features.push(
+                            e
+                                .enum("icon2_pre_heat", ea.STATE_GET, ["disable", "enable"])
+                                .withEndpoint(epName)
+                                .withDescription("Danfoss pre heat control"),
+                        );
+
+                        features.push(
+                            e
+                                .enum("icon2_pre_heat_status", ea.STATE_GET, ["disable", "enable"])
+                                .withEndpoint(epName)
+                                .withDescription("Danfoss pre heat status"),
+                        );
+
+                        features.push(
                             e.numeric("temperature", ea.STATE_GET).withUnit("°C").withEndpoint(epName).withDescription("Floor temperature"),
                         );
 
@@ -777,6 +799,12 @@ export const definitions: DefinitionWithExtend[] = [
                         );
                         features.push(
                             e
+                                .enum("heat_supply_request", ea.STATE_GET, ["none", "heat_supply_request"])
+                                .withEndpoint("232")
+                                .withDescription("Danfoss heat supply request"),
+                        );
+                        features.push(
+                            e
                                 .enum("system_status_water", ea.STATE_GET, ["hot_water_flow_in_pipes", "cool_water_flow_in_pipes"])
                                 .withEndpoint("232")
                                 .withDescription("Main Controller Water Status"),
@@ -786,6 +814,39 @@ export const definitions: DefinitionWithExtend[] = [
                                 .enum("multimaster_role", ea.STATE_GET, ["invalid_unused", "master", "slave_1", "slave_2"])
                                 .withEndpoint("232")
                                 .withDescription("Main Controller Role"),
+                        );
+                        features.push(
+                            e
+                                .enum("icon_application", ea.STATE_GET, [
+                                    "1",
+                                    "2",
+                                    "3",
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "7",
+                                    "8",
+                                    "9",
+                                    "10",
+                                    "11",
+                                    "12",
+                                    "13",
+                                    "14",
+                                    "15",
+                                    "16",
+                                    "17",
+                                    "18",
+                                    "19",
+                                    "20",
+                                ])
+                                .withEndpoint("232")
+                                .withDescription("Main Controller application"),
+                        );
+                        features.push(
+                            e
+                                .enum("icon_forced_heating_cooling", ea.STATE_GET, ["force_heating", "force_cooling", "none"])
+                                .withEndpoint("232")
+                                .withDescription("Main Controller application"),
                         );
                     }
                 }
@@ -861,7 +922,18 @@ export const definitions: DefinitionWithExtend[] = [
 
                 await mainController.read("genBasic", ["modelId", "powerSource", "appVersion", "stackVersion", "hwVersion", "dateCode"]);
 
-                await mainController.read("haDiagnostic", ["danfossSystemStatusCode", "danfossSystemStatusWater", "danfossMultimasterRole"], options);
+                await mainController.read(
+                    "haDiagnostic",
+                    [
+                        "danfossSystemStatusCode",
+                        "danfossHeatSupplyRequest",
+                        "danfossSystemStatusWater",
+                        "danfossMultimasterRole",
+                        "danfossIconApplication",
+                        "danfossIconForcedHeatingCooling",
+                    ],
+                    options,
+                );
             }
         },
     },

@@ -1,9 +1,14 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import {
+    addCustomClusterHeimanSpecificAirQuality,
+    addCustomClusterHeimanSpecificAirQualityShort,
+    addCustomClusterHeimanSpecificInfraRedRemote,
+    addCustomClusterHeimanSpecificScenes,
+} from "../lib/heiman";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
@@ -11,6 +16,26 @@ import type {DefinitionWithExtend, Fz, Reporting, Tz, Zh} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface RadarSensorHeiman {
+    attributes: {
+        // biome-ignore lint/style/useNamingConvention: TODO
+        enable_indicator: number;
+        sensitivity: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        enable_sub_region_isolation: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        installation_method: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        cell_mounted_table: Buffer;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        wall_mounted_table: Buffer;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        sub_region_isolation_table: Buffer;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const fzLocal = {
     occupancyRadarHeiman: {
@@ -31,7 +56,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]>,
     radarSensorHeiman: {
         cluster: "RadarSensorHeiman",
         type: ["attributeReport", "readResponse"],
@@ -49,45 +74,43 @@ const fzLocal = {
 
             for (const key of Object.keys(msg.data)) {
                 if (mapAttributes[key]) {
-                    const value = msg.data[key];
-                    if (value.length >= 5) {
+                    const value = msg.data[key as keyof typeof msg.data & string];
+                    if (Buffer.isBuffer(value) && value.length >= 5) {
                         try {
-                            const buffer = Buffer.from(value, "binary");
-
                             if (key === "cell_mounted_table") {
-                                if (buffer.length !== 10) {
-                                    throw new Error(`Invalid cell_mounted_table data length: expected 10 bytes, got ${buffer.length}.`);
+                                if (value.length !== 10) {
+                                    throw new Error(`Invalid cell_mounted_table data length: expected 10 bytes, got ${value.length}.`);
                                 }
                                 const coordinates = [
-                                    buffer.readInt16LE(0), // x1
-                                    buffer.readInt16LE(2), // y1
-                                    buffer.readInt16LE(4), // x2
-                                    buffer.readInt16LE(6), // y2
-                                    buffer.readInt16LE(8), // height
+                                    value.readInt16LE(0), // x1
+                                    value.readInt16LE(2), // y1
+                                    value.readInt16LE(4), // x2
+                                    value.readInt16LE(6), // y2
+                                    value.readInt16LE(8), // height
                                 ];
                                 result.cell_mounted_table = coordinates.join(",");
                             } else if (key === "wall_mounted_table") {
-                                if (buffer.length !== 8) {
-                                    throw new Error(`Invalid wall_mounted_table data length: expected 8 bytes, got ${buffer.length}.`);
+                                if (value.length !== 8) {
+                                    throw new Error(`Invalid wall_mounted_table data length: expected 8 bytes, got ${value.length}.`);
                                 }
                                 const coordinates = [
-                                    buffer.readInt16LE(0), // x1
-                                    buffer.readInt16LE(2), // y1
-                                    buffer.readInt16LE(4), // x2
-                                    buffer.readInt16LE(6), // height
+                                    value.readInt16LE(0), // x1
+                                    value.readInt16LE(2), // y1
+                                    value.readInt16LE(4), // x2
+                                    value.readInt16LE(6), // height
                                 ];
                                 result.wall_mounted_table = coordinates.join(",");
                             } else if (key === "sub_region_isolation_table") {
-                                if (buffer.length !== 12) {
-                                    throw new Error(`Invalid sub_region_isolation_table data length: expected 12 bytes, got ${buffer.length}.`);
+                                if (value.length !== 12) {
+                                    throw new Error(`Invalid sub_region_isolation_table data length: expected 12 bytes, got ${value.length}.`);
                                 }
                                 const coordinates = [
-                                    buffer.readInt16LE(0), // x1
-                                    buffer.readInt16LE(2), // y1
-                                    buffer.readInt16LE(4), // x2
-                                    buffer.readInt16LE(6), // y2
-                                    buffer.readInt16LE(8), // z1
-                                    buffer.readInt16LE(10), // z2
+                                    value.readInt16LE(0), // x1
+                                    value.readInt16LE(2), // y1
+                                    value.readInt16LE(4), // x2
+                                    value.readInt16LE(6), // y2
+                                    value.readInt16LE(8), // z1
+                                    value.readInt16LE(10), // z2
                                 ];
                                 result.sub_region_isolation_table = coordinates.join(",");
                             }
@@ -101,7 +124,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"RadarSensorHeiman", RadarSensorHeiman, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -314,14 +337,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Heiman",
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        options: [exposes.options.measurement_poll_interval()],
+        extend: [tuya.modernExtend.electricityMeasurementPoll()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement"]);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
         },
-        onEvent: (type, data, device, settings) => tuya.onEventMeasurementPoll(type, data, device, settings),
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
@@ -365,6 +387,20 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
+        zigbeeModel: ["HS2SA-EF-3.0"],
+        model: "HS2SA-EF-3.0",
+        vendor: "Heiman",
+        description: "Smoke detector",
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
+    },
+    {
         zigbeeModel: ["GASSensor-N", "GASSensor-N-3.0", "d90d7c61c44d468a8e906ca0841e0a0c"],
         model: "HS3CG",
         vendor: "Heiman",
@@ -378,6 +414,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS1CG-M",
         vendor: "Heiman",
         description: "Combustible gas sensor",
+        fromZigbee: [fz.ias_gas_alarm_1],
+        toZigbee: [],
+        exposes: [e.gas(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ["HY0022"],
+        model: "HS1CG_H",
+        vendor: "Heiman",
+        description: "Smart combustible gas sensor",
         fromZigbee: [fz.ias_gas_alarm_1],
         toZigbee: [],
         exposes: [e.gas(), e.battery_low(), e.tamper()],
@@ -414,6 +459,20 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
         },
         exposes: [e.contact(), e.battery(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ["HS8DS-EF2-3.0"],
+        model: "HS8DS-EFA",
+        vendor: "Heiman",
+        description: "Door sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]})],
+    },
+    {
+        zigbeeModel: ["D1-EF2-3.0"],
+        model: "D1-EFA",
+        vendor: "Heiman",
+        description: "Door sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
     },
     {
         zigbeeModel: ["DoorSensor-EM", "DoorSensor-EF-3.0"],
@@ -483,13 +542,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
         },
-        onEvent: async (type, data, device) => {
-            // Since arm command has a response zigbee-herdsman doesn't send a default response.
-            // This causes the remote to repeat the arm command, so send a default response here.
-            if (data.type === "commandArm" && data.cluster === "ssIasAce") {
-                await data.endpoint.defaultResponse(0, 0, 1281, data.meta.zclTransactionSequenceNumber);
-            }
-        },
+        extend: [m.iasArmCommandDefaultResponse()],
     },
     {
         fingerprint: [{modelID: "RC-EM", manufacturerName: "HEIMAN"}],
@@ -526,7 +579,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2WD-E",
         vendor: "Heiman",
         description: "Smart siren",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_wd],
+        fromZigbee: [fz.battery, fz.ias_wd],
         toZigbee: [tz.warning, tz.ias_max_duration],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -634,6 +687,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2SS",
         vendor: "Heiman",
         description: "Smart scene switch",
+        extend: [addCustomClusterHeimanSpecificScenes()],
         fromZigbee: [fz.battery, fz.heiman_scenes],
         exposes: [e.battery(), e.action(["cinema", "at_home", "sleep", "go_out", "repast"])],
         toZigbee: [],
@@ -755,33 +809,52 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2AQ-EM",
         vendor: "Heiman",
         description: "Air quality monitor",
+        extend: [addCustomClusterHeimanSpecificAirQuality()],
         fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pm25, fz.heiman_hcho, fz.heiman_air_quality],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const heiman = {
                 configureReporting: {
                     pm25MeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"pm25Measurement">("measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting("pm25Measurement", payload);
                     },
                     formAldehydeMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"msFormaldehyde">("measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting("msFormaldehyde", payload);
                     },
                     batteryState: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("batteryState", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality">("batteryState", 0, constants.repInterval.HOUR, 1, overrides);
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                     pm10measuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("pm10measuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                            "pm10measuredValue",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                     tvocMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("tvocMeasuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                            "tvocMeasuredValue",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                     aqiMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload("aqiMeasuredValue", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                            "aqiMeasuredValue",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                 },
@@ -835,6 +908,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2IRC",
         vendor: "Heiman",
         description: "Smart IR Control",
+        extend: [addCustomClusterHeimanSpecificInfraRedRemote()],
         fromZigbee: [fz.battery, fz.heiman_ir_remote],
         toZigbee: [tz.heiman_ir_remote],
         exposes: [e.battery()],
@@ -853,7 +927,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2SW1A/HS2SW1A-N",
         vendor: "Heiman",
         description: "Smart switch - 1 gang with neutral wire",
-        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
+        fromZigbee: [fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -872,7 +946,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2SW2A/HS2SW2A-N",
         vendor: "Heiman",
         description: "Smart switch - 2 gang with neutral wire",
-        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
+        fromZigbee: [fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {left: 1, right: 2};
@@ -894,7 +968,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2SW3A/HS2SW3A-N",
         vendor: "Heiman",
         description: "Smart switch - 3 gang with neutral wire",
-        fromZigbee: [fz.ignore_basic_report, fz.on_off, fz.device_temperature],
+        fromZigbee: [fz.on_off, fz.device_temperature],
         toZigbee: [tz.on_off],
         endpoint: (device) => {
             return {left: 1, center: 2, right: 3};
@@ -914,6 +988,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Heiman",
         description: "LED 9W CCT E27",
         extend: [m.light({colorTemp: {range: [153, 370]}})],
+    },
+    {
+        zigbeeModel: ["ColorLight"],
+        model: "HS1RGB",
+        vendor: "Heiman",
+        description: "Bulb E26/E27, RGB+WW 2700K, globe, opal, 400lm",
+        extend: [m.light({colorTemp: {range: [275, 295]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        meta: {applyRedFix: true, turnsOffAtBrightness1: true},
     },
     {
         zigbeeModel: ["CurtainMo-EF-3.0", "CurtainMo-EF"],
@@ -952,7 +1034,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2DB",
         vendor: "Heiman",
         description: "Smart doorbell button",
-        fromZigbee: [fz.battery, fz.heiman_doorbell_button, fz.ignore_basic_report],
+        fromZigbee: [fz.battery, fz.heiman_doorbell_button],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -966,7 +1048,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2SS-E_V03",
         vendor: "Heiman",
         description: "Smart doorbell button",
-        fromZigbee: [fz.battery, fz.heiman_doorbell_button, fz.ignore_basic_report],
+        fromZigbee: [fz.battery, fz.heiman_doorbell_button],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1028,7 +1110,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["HS2FD-EF1-3.0"],
         model: "HS2FD-EF1-3.0",
-        vendor: "HEIMAN",
+        vendor: "Heiman",
         description: "Fall Detection Sensor",
         extend: [
             m.deviceAddCustomCluster("RadarSensorHeiman", {
@@ -1087,8 +1169,108 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msOccupancySensing", "RadarSensorHeiman"]);
             await reporting.occupancy(endpoint);
-            await endpoint.read("RadarSensorHeiman", ["cell_mounted_table", "wall_mounted_table", "sub_region_isolation_table"]);
+            await endpoint.read<"RadarSensorHeiman", RadarSensorHeiman>("RadarSensorHeiman", [
+                "cell_mounted_table",
+                "wall_mounted_table",
+                "sub_region_isolation_table",
+            ]);
         },
         endpoint: (device) => ({default: 1}),
+    },
+    {
+        fingerprint: [{modelID: "HS2AQ-EF-3.0", manufacturerName: "HEIMAN"}],
+        model: "HS2AQ-EF-3.0",
+        vendor: "Heiman",
+        description: "Air quality monitor",
+        extend: [
+            addCustomClusterHeimanSpecificAirQualityShort(),
+            m.battery(),
+            m.humidity(),
+            m.enumLookup({
+                name: "charging_status",
+                lookup: {NotCharged: 0, Charging: 1, FullyCharged: 2},
+                cluster: "heimanSpecificAirQuality",
+                attribute: "batteryState",
+                description: "Current charging status",
+                access: "STATE_GET",
+            }),
+        ],
+        fromZigbee: [fz.temperature, fz.pm25, fz.heiman_hcho, fz.heiman_air_quality],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+
+            const heiman = {
+                configureReporting: {
+                    pm25MeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+                        const payload = reporting.payload({ID: 0x0000, type: Zcl.DataType.UINT16}, 0, constants.repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting("pm25Measurement", payload);
+                    },
+
+                    formAldehydeMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+                        const payload = reporting.payload({ID: 0x0000, type: Zcl.DataType.UINT16}, 0, constants.repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting("msFormaldehyde", payload);
+                    },
+
+                    batteryState: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+                        const payload = reporting.payload<"heimanSpecificAirQuality">("batteryState", 0, constants.repInterval.HOUR, 1, overrides);
+                        await endpoint.configureReporting("heimanSpecificAirQuality", payload);
+                    },
+
+                    pm10measuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                            "pm10measuredValue",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
+                        await endpoint.configureReporting("heimanSpecificAirQuality", payload);
+                    },
+
+                    aqiMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                            "aqiMeasuredValue",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
+                        await endpoint.configureReporting("heimanSpecificAirQuality", payload);
+                    },
+                },
+            };
+
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                "genTime",
+                "msTemperatureMeasurement",
+                "pm25Measurement",
+                "msFormaldehyde",
+                "heimanSpecificAirQuality",
+            ]);
+
+            await reporting.temperature(endpoint);
+
+            await heiman.configureReporting.pm25MeasuredValue(endpoint);
+            await heiman.configureReporting.formAldehydeMeasuredValue(endpoint);
+            await heiman.configureReporting.batteryState(endpoint);
+            await heiman.configureReporting.pm10measuredValue(endpoint);
+            await heiman.configureReporting.aqiMeasuredValue(endpoint);
+
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("pm25Measurement", ["measuredValue"]);
+            await endpoint.read("msFormaldehyde", ["measuredValue"]);
+            await endpoint.read("heimanSpecificAirQuality", ["batteryState", "pm10measuredValue", "aqiMeasuredValue"]);
+
+            // Bug Heiman
+            const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
+
+            await endpoint.write("genTime", {
+                timeStatus: 3,
+                time,
+                timeZone: new Date().getTimezoneOffset() * -1 * 60,
+            });
+        },
+        exposes: [e.temperature(), e.pm25(), e.hcho(), e.aqi(), e.pm10()],
     },
 ];

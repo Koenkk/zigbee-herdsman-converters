@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import {existsSync, readFileSync} from "node:fs";
 import path from "node:path";
 import {EventEmitter} from "node:stream";
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
 import {Zcl} from "zigbee-herdsman";
 import ZclTransactionSequenceNumber from "zigbee-herdsman/dist/controller/helpers/zclTransactionSequenceNumber";
 import {Waitress} from "zigbee-herdsman/dist/utils/waitress";
@@ -73,6 +74,7 @@ const LIXEE_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/L
 const SALUS_CONTROLS_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/SalusControls/WindowSensor_20240103.ota";
 const SECURIFI_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Tuya/ZPS_CS5490_039.ota";
 const UBISYS_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Ubisys/10F2-7B3A-0000-0005-02500447-m7b-r0.ota.zigbee";
+const TELINK_BASE_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Sonoff/SN-TLSR8656-02LWD-01-v1.1.0.ota";
 
 const INOVELLI_PREV_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/Inovelli/VZM31-SN_2.15-Production.ota";
 const XYZROE_PREV_URL = "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/xyzroe/ZigUSB_C6.ota";
@@ -199,7 +201,6 @@ describe("OTA", () => {
                     return await Promise.resolve();
                 }
 
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 transactionSequenceNumber = transactionSequenceNumber || ZclTransactionSequenceNumber.next();
 
                 switch (commandKey) {
@@ -501,10 +502,61 @@ describe("OTA", () => {
         }
     });
 
-    it("fails when parsing invalid OTA file", () => {
-        expect(() => {
-            parseImage(Buffer.alloc(128, 0xff));
-        }).toThrow("Not a valid OTA file");
+    describe("parseImage", () => {
+        async function getOtaImageBuffer(baseUrl: string): Promise<Buffer> {
+            const imageRsp = fetchOverride(baseUrl);
+            return await imageRsp.arrayBuffer();
+        }
+
+        it("parses standard OTA file", async () => {
+            const image = parseImage(await getOtaImageBuffer(IKEA_BASE_URL));
+
+            // Validate parsing results
+            expect(image.header).toStrictEqual({
+                fileVersion: 33816645,
+                imageType: 40766,
+                manufacturerCode: 4476,
+                otaHeaderFieldControl: 0,
+                otaHeaderLength: 56,
+                otaHeaderString: "GBL inspelning_smart_plug_soc   ",
+                otaHeaderVersion: 256,
+                otaUpgradeFileIdentifier: Buffer.from([30, 241, 238, 11]),
+                totalImageSize: 294530,
+                zigbeeStackVersion: 2,
+            });
+            expect(image.elements).toStrictEqual([{data: expect.any(Buffer), tagID: 0, length: 294468}]);
+            expect(image.elements[0].data.subarray(0, 5)).toStrictEqual(Buffer.from([235, 23, 166, 3, 8]));
+            expect(image.elements[0].data.subarray(-5)).toStrictEqual(Buffer.from([0, 142, 158, 67, 83]));
+            expect(image.raw.length).toBe(294530);
+        });
+
+        it("parses OTA file with Telink encryption", async () => {
+            const image = parseImage(await getOtaImageBuffer(TELINK_BASE_URL), false, "telinkEncrypted");
+
+            // Validate parsing results
+            expect(image.header).toStrictEqual({
+                fileVersion: 4352,
+                imageType: 2061,
+                manufacturerCode: 4742,
+                otaHeaderFieldControl: 0,
+                otaHeaderLength: 56,
+                otaHeaderString: "Telink OTA Sample Usage         ",
+                otaHeaderVersion: 256,
+                otaUpgradeFileIdentifier: Buffer.from([30, 241, 238, 11]),
+                totalImageSize: 167744,
+                zigbeeStackVersion: 2,
+            });
+            expect(image.elements).toStrictEqual([{data: expect.any(Buffer), tagID: 61440, length: 167680}]);
+            expect(image.elements[0].data.subarray(0, 5)).toStrictEqual(Buffer.from([244, 255, 67, 150, 128]));
+            expect(image.elements[0].data.subarray(-5)).toStrictEqual(Buffer.from([20, 232, 187, 227, 237]));
+            expect(image.raw.length).toBe(167744);
+        });
+
+        it("fails when parsing invalid OTA file", () => {
+            expect(() => {
+                parseImage(Buffer.alloc(128, 0xff));
+            }).toThrow("Not a valid OTA file");
+        });
     });
 
     describe("Checking", () => {
@@ -971,36 +1023,38 @@ describe("OTA", () => {
             expect(mockEndpointWrite).toHaveBeenCalledWith("genScenes", {currentGroup: 49502});
         });
 
-        it.each(["lumi.airrtc.agl001", "lumi.curtain.acn003", "lumi.curtain.agl001"])(
-            "executes workaround for modelIDs=%s to correct fileVersion",
-            async (modelID) => {
-                // doesn't matter, forcing the trigger
-                const [device, image] = await getBoschDevice(-1);
-                device.modelID = modelID;
-                const lumiFileVersion = image.header.fileVersion + 123;
-                device.meta = {lumiFileVersion};
+        it.each([
+            "lumi.airrtc.agl001",
+            "lumi.curtain.acn003",
+            "lumi.curtain.agl001",
+        ])("executes workaround for modelIDs=%s to correct fileVersion", async (modelID) => {
+            // doesn't matter, forcing the trigger
+            const [device, image] = await getBoschDevice(-1);
+            device.modelID = modelID;
+            const lumiFileVersion = image.header.fileVersion + 123;
+            device.meta = {lumiFileVersion};
 
-                const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image), false);
+            const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image), false);
 
-                // otaFileVersion set to current of device when not found
-                expectAvailableResult(result, false, lumiFileVersion, image.header.fileVersion);
-            },
-        );
+            // otaFileVersion set to current of device when not found
+            expectAvailableResult(result, false, lumiFileVersion, image.header.fileVersion);
+        });
 
-        it.each(["lumi.airrtc.agl001", "lumi.curtain.acn003", "lumi.curtain.agl001"])(
-            "does not execute workaround for modelIDs=%s to correct fileVersion if not needed",
-            async (modelID) => {
-                // doesn't matter, forcing the trigger
-                const [device, image] = await getBoschDevice(-1);
-                device.modelID = modelID;
-                // const lumiFileVersion = image.header.fileVersion + 123; // no meta, no need to trigger
+        it.each([
+            "lumi.airrtc.agl001",
+            "lumi.curtain.acn003",
+            "lumi.curtain.agl001",
+        ])("does not execute workaround for modelIDs=%s to correct fileVersion if not needed", async (modelID) => {
+            // doesn't matter, forcing the trigger
+            const [device, image] = await getBoschDevice(-1);
+            device.modelID = modelID;
+            // const lumiFileVersion = image.header.fileVersion + 123; // no meta, no need to trigger
 
-                const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image), false);
+            const result = await isUpdateAvailable(device as unknown as Zh.Device, {}, getRequestPayloadFromImage(image), false);
 
-                // otaFileVersion set to current of device when not found
-                expectAvailableResult(result, false, image.header.fileVersion, image.header.fileVersion);
-            },
-        );
+            // otaFileVersion set to current of device when not found
+            expectAvailableResult(result, false, image.header.fileVersion, image.header.fileVersion);
+        });
 
         describe("with local override index", () => {
             it("matches from override first using local file", async () => {

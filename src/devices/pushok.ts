@@ -3,7 +3,7 @@ import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
 
 const pushokExtend = {
-    valveStatus: (args?: Partial<m.EnumLookupArgs>) =>
+    valveStatus: (args?: Partial<m.EnumLookupArgs<"genMultistateInput">>) =>
         m.enumLookup({
             name: "status",
             lookup: {OFF: 0, ON: 1, MOVING: 2, STUCK: 3},
@@ -15,7 +15,7 @@ const pushokExtend = {
             reporting: null,
             ...args,
         }),
-    stallTime: (args?: Partial<m.NumericArgs>) =>
+    stallTime: (args?: Partial<m.NumericArgs<"genMultistateValue">>) =>
         m.numeric({
             name: "stall_time",
             cluster: "genMultistateValue",
@@ -31,7 +31,7 @@ const pushokExtend = {
         }),
     extendedTemperature: (): ModernExtend => {
         const exposes = [presets.numeric("temperature", access.STATE).withUnit("°C").withDescription("Measured temperature value")];
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "msTemperatureMeasurement",
                 type: ["attributeReport", "readResponse"],
@@ -40,13 +40,13 @@ const pushokExtend = {
                         let temperature = msg.data.measuredValue / 100.0;
 
                         if (msg.data[0xf001] !== undefined) {
-                            temperature += msg.data[0xf001] / 10.0;
+                            temperature += (msg.data[0xf001] as number) / 10.0;
                         }
                         return {temperature};
                     }
                     return {};
                 },
-            },
+            } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [];
         return {
@@ -300,6 +300,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: null,
             }),
             m.temperature({reporting: null}),
+            m.humidity({reporting: null, access: "STATE"}),
             m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
         ],
         ota: true,

@@ -27,7 +27,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "JS-MC-SENSOR-ZB",
         vendor: "JAVIS",
         description: "Microwave sensor",
-        fromZigbee: [legacy.fz.javis_microwave_sensor, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.javis_microwave_sensor],
         toZigbee: [legacy.tz.javis_microwave_sensor],
         exposes: [
             e.occupancy(),

@@ -1,3 +1,4 @@
+import {describe, expect, test} from "vitest";
 import {Color, ColorHSV, ColorRGB, ColorXY} from "../src/lib/color";
 
 describe("lib/color", () => {

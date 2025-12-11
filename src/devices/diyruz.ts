@@ -99,13 +99,13 @@ export const definitions: DefinitionWithExtend[] = [
                 // Legacy PM2 firmwares
                 const payload = [
                     {
-                        attribute: "batteryPercentageRemaining",
+                        attribute: "batteryPercentageRemaining" as const,
                         minimumReportInterval: 0,
                         maximumReportInterval: 3600,
                         reportableChange: 0,
                     },
                     {
-                        attribute: "batteryVoltage",
+                        attribute: "batteryVoltage" as const,
                         minimumReportInterval: 0,
                         maximumReportInterval: 3600,
                         reportableChange: 0,
@@ -169,13 +169,13 @@ export const definitions: DefinitionWithExtend[] = [
                 // Legacy PM2 firmwares
                 const payload = [
                     {
-                        attribute: "batteryPercentageRemaining",
+                        attribute: "batteryPercentageRemaining" as const,
                         minimumReportInterval: 0,
                         maximumReportInterval: 3600,
                         reportableChange: 0,
                     },
                     {
-                        attribute: "batteryVoltage",
+                        attribute: "batteryVoltage" as const,
                         minimumReportInterval: 0,
                         maximumReportInterval: 3600,
                         reportableChange: 0,
@@ -237,7 +237,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DIYRuZ_R8_8",
         vendor: "DIYRuZ",
         description: "DiY 8 Relays + 8 switches",
-        fromZigbee: [fz.ptvo_multistate_action, fz.ignore_basic_report],
+        fromZigbee: [fz.ptvo_multistate_action],
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8}}),
             m.onOff({endpointNames: ["l1", "l2", "l3", "l4", "l5", "l6", "l7", "l8"]}),
@@ -312,7 +312,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.diyruz_airsense_config],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const clusters = ["msTemperatureMeasurement", "msRelativeHumidity", "msPressureMeasurement", "msCO2"];
+            const clusters = ["msTemperatureMeasurement", "msRelativeHumidity", "msPressureMeasurement", "msCO2"] as const;
             await reporting.bind(endpoint, coordinatorEndpoint, clusters);
             for (const cluster of clusters) {
                 await endpoint.configureReporting(cluster, [
@@ -346,8 +346,8 @@ export const definitions: DefinitionWithExtend[] = [
             const firstEndpoint = device.getEndpoint(1);
             await reporting.bind(firstEndpoint, coordinatorEndpoint, ["closuresDoorLock", "genPowerCfg"]);
             const payload1 = [
-                {attribute: "batteryPercentageRemaining", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
-                {attribute: "batteryVoltage", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+                {attribute: "batteryPercentageRemaining" as const, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+                {attribute: "batteryVoltage" as const, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
             ];
             await firstEndpoint.configureReporting("genPowerCfg", payload1);
             const payload2 = [{attribute: {ID: 0x0050, type: 0x30}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];

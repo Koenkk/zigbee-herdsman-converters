@@ -1,3 +1,4 @@
+import {describe, expect, it} from "vitest";
 import {fromZigbee} from "../src/index";
 
 describe("converters/fromZigbee", () => {

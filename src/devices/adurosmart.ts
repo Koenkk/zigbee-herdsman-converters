@@ -20,6 +20,13 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(["toggle", "recall_253", "recall_254", "recall_255"])],
     },
     {
+        zigbeeModel: ["AD-RGBWH3001"],
+        model: "AD-RGBWH3001",
+        vendor: "AduroSmart",
+        description: "ERIA Colors and White A19 Dimmable LED bulb",
+        extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["AD-SmartPlug3001"],
         model: "81848",
         vendor: "AduroSmart",
@@ -115,6 +122,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "AduroSmart",
         description: "Eria tunable white A19/BR30 smart bulb",
         extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"]}})],
+    },
+    {
+        zigbeeModel: ["AD-E1XCTW3001"],
+        model: "E1XCTW3001",
+        vendor: "AduroSmart",
+        description: "ERIA tunable-white candle bulb (E12)",
+        extend: [m.light({colorTemp: {range: [153, 500]}})],
     },
     {
         zigbeeModel: ["ONOFFRELAY"],

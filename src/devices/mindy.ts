@@ -3,7 +3,6 @@ import {Zcl} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
-import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -71,7 +70,7 @@ const tzLocal = {
                 }
             };
 
-            retryRead(3);
+            void retryRead(3);
         },
     } satisfies Tz.Converter,
 };
@@ -92,7 +91,7 @@ const fzLocal = {
                 return {last_boot: boot_date_time};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genTime", undefined, ["readResponse"]>,
     wifi: {
         cluster: "genBasic",
         type: ["readResponse"],
@@ -104,16 +103,7 @@ const fzLocal = {
                 return {ip_address: data.locationDesc.trim(), wifi: wifi};
             }
         },
-    } satisfies Fz.Converter,
-};
-
-const optionsLocal = {
-    last_boot_update: () => {
-        return e
-            .numeric("last_boot_update", ea.STATE_SET)
-            .withValueMin(10)
-            .withDescription("Interval for request boot datetime from device. (default 60 seconds)");
-    },
+    } satisfies Fz.Converter<"genBasic", undefined, ["readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -125,15 +115,6 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fzLocal.last_boot, fzLocal.wifi],
         toZigbee: [tzLocal.last_boot, tzLocal.wifi],
-        options: [optionsLocal.last_boot_update()],
-        onEvent: (type, data, device, options) => {
-            const endpoint = device.getEndpoint(1);
-            const poll = async () => {
-                await endpoint.read("genTime", ["lastSetTime"]);
-                await endpoint.read("genBasic", ["locationDesc"]);
-            };
-            utils.onEventPoll(type, data, device, options, "last_boot_update", 60, poll);
-        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
@@ -144,6 +125,19 @@ export const definitions: DefinitionWithExtend[] = [
             }
         },
         extend: [
+            m.poll({
+                key: "last_boot_update",
+                option: e
+                    .numeric("last_boot_update_poll_interval", ea.STATE_SET)
+                    .withValueMin(10)
+                    .withDescription("Interval for request boot datetime from device. (default 60 seconds)"),
+                defaultIntervalSeconds: 60,
+                poll: async (device) => {
+                    const endpoint = device.getEndpoint(1);
+                    await endpoint.read("genTime", ["lastSetTime"]);
+                    await endpoint.read("genBasic", ["locationDesc"]);
+                },
+            }),
             m.temperature(),
             m.humidity(),
             m.pressure(),
