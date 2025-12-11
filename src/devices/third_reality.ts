@@ -64,8 +64,8 @@ interface ThirdPlug {
 interface ThirdPlugGen3 {
     attributes: {
         btnDisable: number;
-        powerUpValue: number;
-        powerDownValue: number;
+        powerRaisedThreshold: number;
+        powerFallsThreshold: number;
     };
     commands: never;
     commandResponses: never;
