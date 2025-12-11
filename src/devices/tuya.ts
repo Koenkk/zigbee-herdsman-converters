@@ -22237,7 +22237,7 @@ export const definitions: DefinitionWithExtend[] = [
              .withDescription("Soil fertility calibration"),
             tuya.exposes.humidityCalibration(),
             e.numeric("illuminance_calibration", ea.STATE_SET)
-              .withValueMin(-1000)
+              .withValueMin(-15)
               .withValueMax(1000)
               .withValueStep(1)
               .withUnit("lux")
@@ -22245,8 +22245,8 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.temperatureCalibration(),
             tuya.exposes.soilWarning(),
             e.numeric("soil_fertility_warning_setting",ea.STATE_SET)
-             .withValueMin(5)
-             .withValueMax(80)
+             .withValueMin(100)
+             .withValueMax(1800)
              .withValueStep(1)
              .withUnit('μS/cm')
              .withDescription("When the soil fertility value is lower than what threshold should a warning be issued"),
