@@ -18346,4 +18346,67 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: [{modelID: "Arteco", manufacturerName: "A89G12C"}],
+        model: "ZS-SF00",
+        vendor: "Arteco",
+        description: "Soil Fertility Sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
+            e.enum("soil_fertility_warning", ea.STATE, ["none", "alarm"]).withDescription("Soil fertility warning"),
+            e.numeric('battery_value',ea.STATE).withUnit('%').withDescription('battery value in %'),
+            e.soil_moisture(),
+            e.numeric("soil_fertility", ea.STATE).withUnit('μS/cm').withDescription("Soil fertility value,between 0-2000"),
+            e.temperature(),
+            e.humidity(),
+            e.illuminance(),
+            tuya.exposes.soilSampling(),
+            tuya.exposes.soilCalibration(),
+            e.numeric("soil_fertility_calibration", ea.STATE_SET)
+             .withValueMin(-15)
+             .withValueMax(30)
+             .withValueStep(1)
+             .withUnit("%")
+             .withDescription("Soil fertility calibration"),
+            tuya.exposes.humidityCalibration(),
+            e.numeric("illuminance_calibration", ea.STATE_SET)
+              .withValueMin(-1000)
+              .withValueMax(1000)
+              .withValueStep(1)
+              .withUnit("lux")
+              .withDescription("Illuminance calibration"),
+            tuya.exposes.temperatureCalibration(),
+            tuya.exposes.soilWarning(),
+            e.numeric("soil_fertility_warning_setting",ea.STATE_SET)
+             .withValueMin(5)
+             .withValueMax(80)
+             .withValueStep(1)
+             .withUnit('μS/cm')
+             .withDescription("When the soil fertility value is lower than what threshold should a warning be issued"),
+            
+        ],
+        meta: {
+            tuyaDatapoints: [
+              [3,'soil_moisture',tuya.valueConverter.raw],
+              [5,'temperature',tuya.valueConverter.divideBy10],
+              [14,'battery_value',tuya.valueConverter.raw],
+              [101,'humidity',tuya.valueConverter.raw],
+              [102,'illuminance',tuya.valueConverter.raw],
+              [103, "soil_sampling", tuya.valueConverter.raw],
+              [104,'soil_calibration',tuya.valueConverter.raw],
+              [105,'humidity_calibration',tuya.valueConverter.raw],
+              [106,"illuminance_calibration",tuya.valueConverter.raw],
+              [107,'temperature_calibration',tuya.valueConverter.divideBy10],
+              [110,"soil_warning", tuya.valueConverter.raw],
+              [111,"water_warning",tuya.valueConverterBasic.lookup({'none': tuya.enum(0),'alarm':tuya.enum(1)})],
+              [112,"soil_fertility",tuya.valueConverter.raw],
+              [113,"soil_fertility_calibration",tuya.valueConverter.raw],
+              [114,"soil_fertility_warning_setting",tuya.valueConverter.raw],
+              [115,"soil_fertility_warning",tuya.valueConverterBasic.lookup({'none': tuya.enum(0),'alarm':tuya.enum(1)})]
+            ],
+        },
+    }
 ];
