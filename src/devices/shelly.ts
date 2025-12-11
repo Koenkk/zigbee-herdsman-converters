@@ -725,4 +725,16 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        fingerprint: [{modelID: "Dimmer", manufacturerName: "Shelly"}],
+        model: "S4DM-0A101WWL",
+        vendor: "Shelly",
+        description: "Dimmer Gen4",
+        extend: [
+            m.light({configureReporting: true}),
+            m.electricityMeter(),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyWiFiSetup(),
+        ],
+    },
 ];
