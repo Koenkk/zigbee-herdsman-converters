@@ -615,9 +615,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSPE02065Z",
         vendor: "Third Reality",
         description: "Smart Plug E3",
-        whiteLabel: [
-            {vendor: "Third Reality", model: "3RSPU01080Z", description: "Smart Plug UZ1", fingerprint: [{modelID: "3RSPU01080Z"}]},
-        ],
+        whiteLabel: [{vendor: "Third Reality", model: "3RSPU01080Z", description: "Smart Plug UZ1", fingerprint: [{modelID: "3RSPU01080Z"}]}],
         extend: [
             m.onOff(),
             m.electricityMeter({acFrequency: true, powerFactor: true}),
