@@ -2,8 +2,10 @@ const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
 const tz = require('zigbee-herdsman-converters/converters/toZigbee');
 const exposes = require('zigbee-herdsman-converters/lib/exposes');
 const reporting = require('zigbee-herdsman-converters/lib/reporting');
+const extend = require('zigbee-herdsman-converters/lib/extend');
 const e = exposes.presets;
 const ea = exposes.access;
+const m = exposes.mappings;
 
 const definition = {
     zigbeeModel: ['eTH700'],
@@ -12,7 +14,8 @@ const definition = {
     description: 'Thermostatic radiator valve',
     fromZigbee: [fz.battery, fz.thermostat],
     toZigbee: [tz.thermostat_weekly_schedule, tz.thermostat_local_temperature, tz.thermostat_system_mode,
-                tz.thermostat_running_state, tz.thermostat_occupied_heating_setpoint],
+               tz.thermostat_running_state, tz.thermostat_occupied_heating_setpoint],
+    meta: { thermostat: m.thermostat },
     configure: async (device, coordinatorEndpoint, logger) => {
         const endpoint = device.getEndpoint(1);
         await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'haDiagnostic', 'seMetering', 'thermostat']);
@@ -23,4 +26,5 @@ const definition = {
 };
 
 module.exports = definition;
+
 
