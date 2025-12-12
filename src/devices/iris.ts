@@ -124,6 +124,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion Sensor",
         fromZigbee: [fz.ias_occupancy_alarm_2, fz.temperature, fz.humidity],
         toZigbee: [],
+        extend: [m.battery({voltage: true, voltageReporting: true, voltageToPercentage: "3V_2100"})],
         exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

@@ -1,6 +1,6 @@
 import type {Models as ZHModels} from "zigbee-herdsman";
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterCommandKeys} from "zigbee-herdsman/dist/controller/tstype";
+import type {ClusterCommandKeys, ClusterOrRawAttributeKeys, ClusterOrRawPayload, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import {access as ea} from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
@@ -8,8 +8,8 @@ import type {Configure, DefinitionWithExtend, ModernExtend, OnEvent, Tz} from ".
 import {determineEndpoint, getFromLookup, isString} from "../lib/utils";
 
 const NS = "zhc:yandex";
-const manufacturerCode = 0x140a;
-
+const manufacturerCodeOld = 0x140a;
+const manufacturerCodeNew = 0x132f;
 interface Yandex {
     attributes: {
         switchMode: number;
@@ -18,6 +18,11 @@ interface Yandex {
         ledIndicator: number;
         interlock: number;
         buttonMode: number;
+        displayFlip: boolean;
+        windowDetection: boolean;
+        frostProtection: boolean;
+        scaleProtection: boolean;
+        autoCalibration: boolean;
     };
     commands: {
         switchMode: {value: number};
@@ -26,6 +31,7 @@ interface Yandex {
         ledIndicator: {value: number};
         interlock: {value: number};
         buttonMode: {value: number};
+        displayFlip: {value: boolean};
     };
     commandResponses: never;
 }
@@ -70,16 +76,19 @@ function enumLookupWithSetCommand(args: EnumLookupWithSetCommandArgs): ModernExt
     return {...mExtend, toZigbee};
 }
 
-interface BinaryWithSetCommandArgs extends m.BinaryArgs<"manuSpecificYandex", Yandex> {
-    setCommand: ClusterCommandKeys<"manuSpecificYandex", Yandex>[number];
+interface BinaryWithSetCommandArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
+    extends m.BinaryArgs<Cl, Custom> {
+    setCommand: ClusterCommandKeys<Cl, Custom>[number];
 }
 
-function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
-    const {name, valueOn, valueOff, cluster, attribute, zigbeeCommandOptions, setCommand} = args;
-    const attributeKey = isString(attribute) ? attribute : attribute.ID;
+function binaryWithSetCommand<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    args: BinaryWithSetCommandArgs<Cl, Custom>,
+): ModernExtend {
+    const {name, cluster, attribute, valueOn, valueOff, zigbeeCommandOptions, setCommand} = args;
+
     const access = ea[args.access ?? "ALL"];
 
-    const mExtend = m.binary<"manuSpecificYandex", Yandex>(args);
+    const mExtend = m.binary<Cl, Custom>(args);
 
     const toZigbee: Tz.Converter[] = [
         {
@@ -88,20 +97,28 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
                           const payloadValue = value === valueOn[0] ? valueOn[1] : valueOff[1];
-                          await determineEndpoint(entity, meta, cluster).command<typeof cluster, typeof setCommand, Yandex>(
+                          await determineEndpoint(entity, meta, cluster).command<Cl, typeof setCommand, Custom>(
                               cluster,
                               setCommand,
-                              {value: payloadValue},
+                              {value: payloadValue} as ClusterOrRawPayload<Cl, typeof setCommand, Custom>,
                               zigbeeCommandOptions,
                           );
-                          await determineEndpoint(entity, meta, cluster).read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read<Cl, Custom>(
+                              cluster,
+                              [attribute] as ClusterOrRawAttributeKeys<Cl, Custom>,
+                              zigbeeCommandOptions,
+                          );
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await determineEndpoint(entity, meta, cluster).read<typeof cluster, Yandex>(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read<Cl, Custom>(
+                              cluster,
+                              [attribute] as ClusterOrRawAttributeKeys<Cl, Custom>,
+                              zigbeeCommandOptions,
+                          );
                       }
                     : undefined,
         },
@@ -110,10 +127,10 @@ function binaryWithSetCommand(args: BinaryWithSetCommandArgs): ModernExtend {
     return {...mExtend, toZigbee};
 }
 
-function YandexCluster(): ModernExtend {
+function YandexCluster(manufacturerCode: number): ModernExtend {
     return m.deviceAddCustomCluster("manuSpecificYandex", {
         ID: 0xfc03,
-        manufacturerCode,
+        manufacturerCode: manufacturerCode,
         attributes: {
             switchMode: {ID: 0x0001, type: Zcl.DataType.ENUM8},
             switchType: {ID: 0x0002, type: Zcl.DataType.ENUM8},
@@ -121,6 +138,11 @@ function YandexCluster(): ModernExtend {
             ledIndicator: {ID: 0x0005, type: Zcl.DataType.BOOLEAN},
             interlock: {ID: 0x0007, type: Zcl.DataType.BOOLEAN},
             buttonMode: {ID: 0x0008, type: Zcl.DataType.ENUM8},
+            displayFlip: {ID: 0x0009, type: Zcl.DataType.BOOLEAN},
+            windowDetection: {ID: 0x000a, type: Zcl.DataType.BOOLEAN},
+            frostProtection: {ID: 0x000d, type: Zcl.DataType.BOOLEAN},
+            scaleProtection: {ID: 0x000e, type: Zcl.DataType.BOOLEAN},
+            autoCalibration: {ID: 0x000f, type: Zcl.DataType.BOOLEAN},
         },
         commands: {
             switchMode: {
@@ -145,6 +167,40 @@ function YandexCluster(): ModernExtend {
             },
             buttonMode: {
                 ID: 0x08,
+                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+            },
+            displayFlip: {
+                ID: 0x09,
+                parameters: [{name: "value", type: Zcl.DataType.BOOLEAN}],
+            },
+        },
+        commandsResponse: {},
+    });
+}
+
+interface YandexThermostat {
+    attributes: {
+        calibrated: boolean;
+    };
+    commands: {
+        calibrate: {value: boolean};
+    };
+    commandResponses: never;
+}
+
+function YandexThermostatCluster(manufacturerCode: number): ModernExtend {
+    return m.deviceAddCustomCluster("hvacThermostat", {
+        ID: Zcl.Clusters.hvacThermostat.ID,
+        attributes: {
+            calibrated: {
+                ID: 0xf000,
+                type: Zcl.DataType.BOOLEAN,
+                manufacturerCode: manufacturerCode,
+            },
+        },
+        commands: {
+            calibrate: {
+                ID: 0x00,
                 parameters: [{name: "value", type: Zcl.DataType.UINT8}],
             },
         },
@@ -193,7 +249,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Single relay",
         extend: [
             reinterview(),
-            YandexCluster(),
+            YandexCluster(manufacturerCodeOld),
             m.deviceEndpoints({
                 endpoints: {"1": 1, "": 2},
             }),
@@ -205,7 +261,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificYandex",
                 attribute: "powerType",
                 setCommand: "powerType",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Power supply type",
                 lookup: {
                     full: 0x03,
@@ -220,7 +276,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificYandex",
                 attribute: "switchType",
                 setCommand: "switchType",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 endpointName: "1",
                 description: "External switch type 1",
                 lookup: {
@@ -240,7 +296,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Double relay",
         extend: [
             reinterview(),
-            YandexCluster(),
+            YandexCluster(manufacturerCodeOld),
             m.deviceEndpoints({
                 endpoints: {"1": 1, "2": 2, b1: 3, b2: 4},
             }),
@@ -252,7 +308,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificYandex",
                 attribute: "powerType",
                 setCommand: "powerType",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Power supply type",
                 lookup: {
                     full: 0x03,
@@ -262,14 +318,14 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 entityCategory: "config",
             }),
-            binaryWithSetCommand({
+            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
                 name: "interlock",
                 cluster: "manuSpecificYandex",
                 attribute: "interlock",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 setCommand: "interlock",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Interlock",
                 entityCategory: "config",
             }),
@@ -278,7 +334,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificYandex",
                 attribute: "switchType",
                 setCommand: "switchType",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 endpointName: "1",
                 description: "External switch type 1",
                 lookup: {
@@ -293,7 +349,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificYandex",
                 attribute: "switchType",
                 setCommand: "switchType",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 endpointName: "2",
                 description: "External switch type 2",
                 lookup: {
@@ -312,7 +368,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Yandex",
         description: "Single gang wireless switch",
         extend: [
-            YandexCluster(),
+            YandexCluster(manufacturerCodeOld),
             m.deviceEndpoints({
                 endpoints: {down: 1, up: 2},
             }),
@@ -326,7 +382,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Yandex",
         description: "Double gang wireless switch",
         extend: [
-            YandexCluster(),
+            YandexCluster(manufacturerCodeOld),
             m.deviceEndpoints({
                 endpoints: {b1_down: 1, b2_down: 2, b1_up: 3, b2_up: 4},
             }),
@@ -341,7 +397,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Single gang switch",
         extend: [
             reinterview(),
-            YandexCluster(),
+            YandexCluster(manufacturerCodeOld),
             m.deviceEndpoints({
                 endpoints: {"1": 1, down: 2, up: 3},
             }),
@@ -353,7 +409,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificYandex",
                 attribute: "powerType",
                 setCommand: "powerType",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Power supply type",
                 lookup: {
                     full: 0x03,
@@ -369,7 +425,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificYandex",
                 attribute: "switchMode",
                 setCommand: "switchMode",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Switch mode (control_relay - the button control the relay, decoupled - button send events when pressed)",
                 lookup: {
                     control_relay: 0x00,
@@ -380,14 +436,14 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 endpointName: "1",
             }),
-            binaryWithSetCommand({
+            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
                 name: "led_indicator",
                 cluster: "manuSpecificYandex",
                 attribute: "ledIndicator",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 setCommand: "ledIndicator",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Led indicator",
                 entityCategory: "config",
             }),
@@ -400,7 +456,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Double gang switch",
         extend: [
             reinterview(),
-            YandexCluster(),
+            YandexCluster(manufacturerCodeOld),
             m.deviceEndpoints({
                 endpoints: {"1": 1, "2": 2, b1_down: 3, b2_down: 4, b1_up: 5, b2_up: 6},
             }),
@@ -412,7 +468,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificYandex",
                 attribute: "powerType",
                 setCommand: "powerType",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Power supply type",
                 lookup: {
                     full: 0x03,
@@ -428,7 +484,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificYandex",
                 attribute: "switchMode",
                 setCommand: "switchMode",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Switch mode (control_relay - the button control the relay, decoupled - button send events when pressed)",
                 lookup: {
                     control_relay: 0x00,
@@ -444,7 +500,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificYandex",
                 attribute: "switchMode",
                 setCommand: "switchMode",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Switch mode (control_relay - the buttons control the relay, decoupled - buttons send events when pressed)",
                 lookup: {
                     control_relay: 0x00,
@@ -455,14 +511,14 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 endpointName: "2",
             }),
-            binaryWithSetCommand({
+            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
                 name: "led_indicator",
                 cluster: "manuSpecificYandex",
                 attribute: "ledIndicator",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 setCommand: "ledIndicator",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Led indicator",
                 entityCategory: "config",
             }),
@@ -474,7 +530,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Yandex",
         description: "Dimmer",
         extend: [
-            YandexCluster(),
+            YandexCluster(manufacturerCodeOld),
             m.light({
                 effect: true,
                 powerOnBehavior: true,
@@ -482,14 +538,14 @@ export const definitions: DefinitionWithExtend[] = [
                 levelReportingConfig: {min: "MIN", max: "MAX", change: 1},
             }),
             m.lightingBallast(),
-            binaryWithSetCommand({
+            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
                 name: "led_indicator",
                 cluster: "manuSpecificYandex",
                 attribute: "ledIndicator",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 setCommand: "ledIndicator",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Led indicator",
                 entityCategory: "config",
             }),
@@ -498,13 +554,111 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificYandex",
                 attribute: "buttonMode",
                 setCommand: "buttonMode",
-                zigbeeCommandOptions: {manufacturerCode},
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Dimmer button mode",
                 lookup: {
                     general: 0x00,
                     alternative: 0x01,
                 },
                 entityCategory: "config",
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["YNDX-00518"],
+        model: "YNDX-00518",
+        vendor: "Yandex",
+        description: "Thermostatic radiator valve",
+        extend: [
+            YandexCluster(manufacturerCodeNew),
+            YandexThermostatCluster(manufacturerCodeNew),
+            m.onOff({
+                powerOnBehavior: false,
+            }),
+            m.thermostat({
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                setpoints: {
+                    values: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: true,
+                },
+            }),
+            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
+                name: "display_flip",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "manuSpecificYandex",
+                attribute: "displayFlip",
+                setCommand: "displayFlip",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeNew},
+                description: "Flip display orientation",
+                entityCategory: "config",
+            }),
+            m.binary({
+                name: "child_lock",
+                valueOn: ["LOCK", 1],
+                valueOff: ["UNLOCK", 0],
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Enables/disables physical input on the device",
+                access: "ALL",
+                reporting: {min: 0, max: 3600, change: 0},
+            }),
+            m.binary<"manuSpecificYandex", Yandex>({
+                name: "frost_protection",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "manuSpecificYandex",
+                attribute: "frostProtection",
+                description: "Enables/disables antifreeze function",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeNew},
+            }),
+            m.binary<"manuSpecificYandex", Yandex>({
+                name: "window_detection",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "manuSpecificYandex",
+                attribute: "windowDetection",
+                description: "Enables/disables window detection on the device",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeNew},
+            }),
+            m.binary<"manuSpecificYandex", Yandex>({
+                name: "scale_protection",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "manuSpecificYandex",
+                attribute: "scaleProtection",
+                description: "Enables/disables anti-scale protection",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeNew},
+            }),
+            m.binary<"manuSpecificYandex", Yandex>({
+                name: "auto_calibration",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "manuSpecificYandex",
+                attribute: "autoCalibration",
+                description: "Enables/disables auto calibration",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeNew},
+            }),
+            binaryWithSetCommand<"hvacThermostat", YandexThermostat>({
+                name: "calibrated",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "hvacThermostat",
+                attribute: "calibrated",
+                setCommand: "calibrate",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeNew},
+                description: "OFF if calibration needs to be performed",
+                entityCategory: "config",
+                reporting: {min: 0, max: 3600, change: 0},
             }),
         ],
     },

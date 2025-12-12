@@ -359,7 +359,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_move_to_saturation,
         ],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}, multiEndpoint: true},
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);

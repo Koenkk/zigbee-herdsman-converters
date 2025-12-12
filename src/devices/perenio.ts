@@ -230,10 +230,10 @@ const tzPerenio = {
                 const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== "number") {
-                    throw Error("The on_time value must be a number!");
+                    throw new Error("The on_time value must be a number!");
                 }
                 if (typeof offWaitTime !== "number") {
-                    throw Error("The off_wait_time value must be a number!");
+                    throw new Error("The off_wait_time value must be a number!");
                 }
 
                 const payload = {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
@@ -411,7 +411,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("default_on_off_state", ea.ALL, defaultOnOffStateValues),
             e.numeric("rms_voltage", ea.STATE).withUnit("V").withDescription("RMS voltage"),
             e.numeric("active_power", ea.STATE).withUnit("W").withDescription("Active power"),
-            e.numeric("consumed_energy", ea.STATE).withUnit("W*h").withDescription("Consumed energy"),
+            e.numeric("consumed_energy", ea.STATE).withUnit("Wh").withDescription("Consumed energy"),
             e
                 .binary("alarm_voltage_min", ea.ALL, true, false)
                 .withDescription("Indicates if the alarm is triggered on the voltage drop below the limit, allows to reset alarms"),

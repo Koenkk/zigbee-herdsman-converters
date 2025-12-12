@@ -379,7 +379,6 @@ const sdevices = {
                     off: "downClose" as const,
                 };
                 utils.assertString(value, key);
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = value.toLowerCase();
                 await entity.command("closuresWindowCovering", utils.getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
             },
@@ -399,7 +398,6 @@ const sdevices = {
                 }
                 if (key === "buttons_mode") {
                     utils.assertString(value, key);
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value.toLowerCase();
                     const lookup = {normal: 0, inverted: 1};
                     await entity.write<"closuresWindowCovering", SberClosures>(

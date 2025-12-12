@@ -98,7 +98,7 @@ const extend = {
         description: "Configure sensor measurement interval (default 10 seconds).",
         unit: "s",
         valueMin: 3,
-        valueMax: 30,
+        valueMax: 255,
     }),
 };
 

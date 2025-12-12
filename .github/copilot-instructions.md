@@ -172,7 +172,7 @@ describe("Feature Name", () => {
 - `noUnusedImports`: error (automatically removed)
 - `noUnusedFunctionParameters`: off (parameters may be required by interface)
 - `useLiteralKeys`: off
-- `noParameterAssign`: error (use separate variable for modifications)
+- `noParameterAssign`: off
 - `useAsConstAssertion`: error (use `as const` where appropriate)
 - `useDefaultParameterLast`: error
 - `useEnumInitializers`: error

@@ -129,10 +129,8 @@ const ubisys = {
                     converterFunc?: (v: unknown) => unknown,
                     delaySecondsAfter?: number,
                 ) => {
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     if (!jsonAttr) jsonAttr = attr;
                     if (jsonAttr.startsWith("ubisys")) {
-                        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                         jsonAttr = jsonAttr.substring(6, 1).toLowerCase + jsonAttr.substring(7);
                     }
                     if (value[jsonAttr] !== undefined) {

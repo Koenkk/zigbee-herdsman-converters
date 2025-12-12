@@ -3,6 +3,7 @@ import {Zcl} from "zigbee-herdsman";
 import {repInterval} from "../lib/constants";
 import {
     addCustomClusterManuSpecificIkeaAirPurifier,
+    addCustomClusterManuSpecificIkeaSmartPlug,
     addCustomClusterManuSpecificIkeaUnknown,
     addCustomClusterManuSpecificIkeaVocIndexMeasurement,
     ikeaAirPurifier,
@@ -14,6 +15,7 @@ import {
     ikeaDotsClick,
     ikeaLight,
     ikeaMediaCommands,
+    ikeaModernExtend,
     ikeaVoc,
     styrbarCommandOn,
     tradfriCommandsLevelCtrl,
@@ -633,7 +635,14 @@ export const definitions: DefinitionWithExtend[] = [
             {model: "E2204", vendor: "IKEA", description: "E2204 (EU)"},
             {model: "E2214", vendor: "IKEA", description: "E2214 (CH)"},
         ],
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), m.onOff(), m.identify()],
+        extend: [
+            addCustomClusterManuSpecificIkeaSmartPlug(),
+            addCustomClusterManuSpecificIkeaUnknown(),
+            m.onOff(),
+            ikeaModernExtend.smartPlugChildLock(),
+            ikeaModernExtend.smartPlugLedEnable(),
+            m.identify(),
+        ],
         ota: true,
     },
     {
@@ -641,8 +650,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E2206",
         vendor: "IKEA",
         description: "INSPELNING smart plug",
-        whiteLabel: [{model: "E2220", vendor: "IKEA", description: "INSPELNING smart plug (US)"}],
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), m.onOff(), m.identify(), m.electricityMeter()],
+        whiteLabel: [
+            {model: "E2220", vendor: "IKEA", description: "INSPELNING smart plug (US)"},
+            {model: "E2224", vendor: "IKEA", description: "INSPELNING smart plug (CH)"},
+        ],
+        extend: [
+            addCustomClusterManuSpecificIkeaSmartPlug(),
+            addCustomClusterManuSpecificIkeaUnknown(),
+            m.onOff(),
+            ikeaModernExtend.smartPlugChildLock(),
+            ikeaModernExtend.smartPlugLedEnable(),
+            m.identify(),
+            m.electricityMeter(),
+        ],
         ota: true,
         configure: async (device) => {
             const endpoint = device.getEndpoint(1);

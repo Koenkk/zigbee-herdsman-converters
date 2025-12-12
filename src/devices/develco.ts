@@ -238,10 +238,16 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
             m.electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
-            m.onOff({powerOnBehavior: false}),
+            m.onOff({powerOnBehavior: false, configureReporting: false}),
         ],
         endpoint: (device) => {
             return {default: 2};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            // Device also has genOnOff on endpoint 1, but that fails to setup, disable configureReporting in m.onOff above
+            // and configure it for endpoint 2 here instead.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/29548
+            await reporting.onOff(device.getEndpoint(2));
         },
     },
     {

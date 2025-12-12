@@ -1032,6 +1032,17 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.temperature()],
     },
     {
+        zigbeeModel: ["mKomfy 2.0"],
+        model: "6254380",
+        vendor: "CTM Lyng",
+        description: "2.0 Stove guard",
+        extend: [
+            m.deviceTemperature(),
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
+            m.electricityMeter({cluster: "metering"}),
+        ],
+    },
+    {
         zigbeeModel: ["mKomfy"],
         model: "mKomfy_Sensor",
         vendor: "CTM Lyng",

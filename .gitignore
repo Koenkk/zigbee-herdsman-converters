@@ -18,3 +18,4 @@ coverage/
 dist/
 .pnpm-store/
 models-index.json
+/.devcontainer

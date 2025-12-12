@@ -424,7 +424,6 @@ const tzLocal = {
         ...tz.fan_mode,
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (value.toLowerCase() === "on") value = "low";
             return await tz.fan_mode.convertSet(entity, key, value, meta);
         },
@@ -852,33 +851,23 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002386",
         vendor: "Schneider Electric",
         description: "Push button dimmer",
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
-        extend: [indicatorMode("smart"), m.identify()],
-        exposes: [
-            e.light_brightness().withLevelConfig(),
-            e
-                .numeric("ballast_minimum_level", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription("Specifies the minimum light output of the ballast"),
-            e
-                .numeric("ballast_maximum_level", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription("Specifies the maximum light output of the ballast"),
-            e
-                .enum("dimmer_mode", ea.ALL, ["auto", "rl_led"])
-                .withDescription("Sets dimming mode to autodetect or fixed RL_LED mode (max load is reduced in RL_LED)"),
+        extend: [
+            m.light({
+                effect: false,
+                powerOnBehavior: true,
+                configureReporting: true,
+                levelConfig: {features: ["on_level", "current_level_startup"]},
+            }),
+            m.lightingBallast(),
+            m.identify(),
+            schneiderElectricExtend.dimmingMode(),
+            indicatorMode(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingBallastCfg"]);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
-        },
-        endpoint: (device) => {
-            return {smart: 21};
         },
     },
     {
@@ -1182,6 +1171,16 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, s1: 21, s2: 22, s3: 23, s4: 24};
         },
+        extend: [
+            indicatorMode("s1"),
+            indicatorMode("s2"),
+            indicatorMode("s3"),
+            indicatorMode("s4"),
+            switchActions("s1"),
+            switchActions("s2"),
+            switchActions("s3"),
+            switchActions("s4"),
+        ],
         exposes: [e.switch().withEndpoint("l1"), e.switch().withEndpoint("l2"), e.action(["on_s*", "off_s*"])],
         configure: (device, coordinatorEndpoint) => {
             device.endpoints.forEach(async (ep) => {
@@ -1616,6 +1615,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "LK FUGA wiser wireless socket outlet",
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
+        extend: [socketIndicatorMode()],
         exposes: [
             e.switch(),
             e.power(),
