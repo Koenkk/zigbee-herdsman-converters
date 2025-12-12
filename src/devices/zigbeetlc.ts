@@ -98,7 +98,7 @@ const extend = {
         description: "Configure sensor measurement interval (default 10 seconds).",
         unit: "s",
         valueMin: 3,
-        valueMax: 30,
+        valueMax: 255,
     }),
 };
 
@@ -312,6 +312,23 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.temperature(),
             m.humidity(),
+            extend.temperatureCalibration,
+            extend.humidityCalibration,
+            extend.measurementInterval,
+            m.battery({
+                voltage: true,
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["MC-z"],
+        model: "MC-z",
+        vendor: "ZBeacon",
+        description: "Temperature & Humidity Sensor (pvxx/ZigbeeTLc)",
+        extend: [
+            m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
+            m.humidity({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 50}}),
             extend.temperatureCalibration,
             extend.humidityCalibration,
             extend.measurementInterval,

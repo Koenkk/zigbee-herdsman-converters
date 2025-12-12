@@ -48,6 +48,19 @@ export function addCustomClusterHeimanSpecificAirQuality(): ModernExtend {
     });
 }
 
+export function addCustomClusterHeimanSpecificAirQualityShort(): ModernExtend {
+    return m.deviceAddCustomCluster("heimanSpecificAirQuality", {
+        ID: 0xfc81,
+        attributes: {
+            batteryState: {ID: 0xf002, type: Zcl.DataType.UINT8},
+            pm10measuredValue: {ID: 0xf003, type: Zcl.DataType.UINT16},
+            aqiMeasuredValue: {ID: 0xf005, type: Zcl.DataType.UINT16},
+        },
+        commands: {},
+        commandsResponse: {},
+    });
+}
+
 export function addCustomClusterHeimanSpecificScenes(): ModernExtend {
     return m.deviceAddCustomCluster("heimanSpecificScenes", {
         ...manufacturerOptions,

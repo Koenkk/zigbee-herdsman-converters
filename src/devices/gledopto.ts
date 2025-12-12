@@ -319,7 +319,6 @@ const tzLocal = {
 };
 
 function gledoptoLight(args?: m.LightArgs) {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {powerOnBehavior: false, ...args};
     if (args.color) args.color = {modes: ["xy", "hs"], ...(utils.isObject(args.color) ? args.color : {})};
     const result = m.light(args);
@@ -650,7 +649,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({color: {modes: ["xy", "hs"], enhancedHue: true}}), m.identify(), gledoptoConfigureReadModelID()],
     },
     {
-        zigbeeModel: ["GL-C-008P"],
+        zigbeeModel: ["GL-C-008P", "C-ZB-LC20v2-RGBCCT"],
         model: "GL-C-008P",
         vendor: "Gledopto",
         ota: true,
@@ -914,6 +913,13 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: "Zigbee 12W E26/E27 Bulb RGB+CCT (pro)",
         extend: [gledoptoLight({colorTemp: {range: undefined}, color: true})],
+    },
+    {
+        zigbeeModel: ["GL-D-001P"],
+        model: "GL-D-001P",
+        vendor: "Gledopto",
+        description: "Zigbee 9W Downlight RGB+CCT 350-450 lm",
+        extend: [gledoptoLight({colorTemp: {range: [158, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["GL-D-002P"],

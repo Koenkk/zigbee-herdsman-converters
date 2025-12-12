@@ -37,6 +37,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
     },
     {
+        zigbeeModel: ["Roll Up 24 WF Li-ion Roller"],
+        model: "1246037",
+        vendor: "SOMFY",
+        description: "Blinds",
+        extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
+    },
+    {
         zigbeeModel: ["Sonesse 30 DC 24V Roller"],
         model: "1241970",
         vendor: "SOMFY",
@@ -61,6 +68,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff({endpointNames: ["1", "2", "3", "4", "5"]}),
             m.commandsWindowCovering({endpointNames: ["1", "2", "3", "4", "5"]}),
         ],
+    },
+    {
+        zigbeeModel: ["Ysia 1 Zigbee Europe"],
+        model: "1871157",
+        vendor: "SOMFY",
+        description: "Ysia 1 channel blinds remote",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsWindowCovering()],
     },
     {
         zigbeeModel: ["1822647"],
