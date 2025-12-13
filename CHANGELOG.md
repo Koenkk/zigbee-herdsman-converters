@@ -1,5 +1,22 @@
 # Changelog
 
+## [25.88.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.87.0...v25.88.0) (2025-12-13)
+
+
+### Features
+
+* **add:** S4DM-0A101WWL ([#11012](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11012)) ([95d8d19](https://github.com/Koenkk/zigbee-herdsman-converters/commit/95d8d1904fec481a55b002173d8e36e08e53a33a))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_clm4gdw4` as Tuya TS0601_cover_10 https://github.com/Koenkk/zigbee2mqtt/issues/30179 ([d116ae4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d116ae49db13f8f9fc9c01f8a9625db1df1ea8b2))
+* Eurotronic SPZB0001: fix setting of setpoint  ([#10996](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10996)) ([6ad4ef9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6ad4ef975085b82d3f2c6e925f1d1148bfb7bdc4))
+* Moes BHT-002: change max temperature limit to 80 https://github.com/Koenkk/zigbee2mqtt/discussions/30147 ([58547bf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/58547bf74d2ff6583baeb78a8e7beed5424c4dc0))
+* Nous E9: fix integration https://github.com/Koenkk/zigbee2mqtt/issues/30052 ([07119de](https://github.com/Koenkk/zigbee-herdsman-converters/commit/07119de2ae7d31dffc36ad07e32ca9341444acc0))
+* Tuya TS011F_wall_outlet: expose child lock https://github.com/Koenkk/zigbee2mqtt/issues/30160 ([7a26de2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7a26de269a7df4a6300c4deef9ca848e2cb68498))
+* Tuya TS0601_water_valve: rework integration ([#10636](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10636)) ([d0cb0d7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d0cb0d736c7cfd864318e3d166241d1d346b8069))
+
 ## [25.87.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.86.0...v25.87.0) (2025-12-13)
 
 
