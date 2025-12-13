@@ -1304,45 +1304,86 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ultrasonic water meter valve",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            // Main valve switch
-            e
-                .switch()
-                .setAccess("state", ea.STATE_SET),
-
-            // Water consumption sensor
-            e
-                .numeric("water_consumed", ea.STATE)
-                .withUnit("m³")
-                .withDescription("Total water consumption")
-                .withValueMin(0)
-                .withValueStep(0.001),
-
+            e.switch().setAccess("state", ea.STATE_SET),
+            e.numeric("water_consumed", ea.STATE).withUnit("L").withDescription("Total water consumption").withValueMin(0).withValueStep(0.001),
+            e.numeric("month_consumption", ea.STATE).withUnit("L").withDescription("month consumption").withValueMin(0).withValueStep(0.001),
+            e.numeric("daily_consumption", ea.STATE).withUnit("L").withDescription("daily consumption").withValueMin(0).withValueStep(0.001),
+            // //  I can't seem to get this to work - when i try to change the value i get an error in zigbee2mqtt, stuck on 1 Hour
+            // e
+            //     .enum("report_period", ea.STATE_SET, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"])
+            //     .withDescription("Report period"),
             // Flow rate sensor
             e
                 .numeric("flow_rate", ea.STATE)
-                .withUnit("m³/h")
-                .withDescription("Instantaneous water flow rate")
-                .withValueMin(0)
-                .withValueStep(0.001),
-
-            // Temperature sensor
+                .withUnit("L/h")
+                .withDescription("Instantaneous water flow rate"),
+            e.binary("auto_clean", ea.STATE_SET, "ON", "OFF").withDescription("Auto clean"),
             e.temperature(),
-
-            // Voltage monitoring
-            e.voltage(),
-            // Auto clean mode toggle
-            e
-                .binary("auto_clean", ea.STATE_SET, true, false)
-                .withDescription("Auto clean mode"),
+            e.battery_voltage(),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "water_consumed", tuya.valueConverter.divideBy1000],
+                [1, "water_consumed", tuya.valueConverter.raw],
+                [
+                    2,
+                    "month_consumption",
+                    {
+                        from: (v) => {
+                            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
+                            if (buf.length >= 8) {
+                                const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
+                                return value;
+                            }
+                            return 0;
+                        },
+                    },
+                ],
+                [
+                    3,
+                    "daily_consumption",
+                    {
+                        from: (v) => {
+                            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
+                            if (buf.length >= 8) {
+                                const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
+                                return value;
+                            }
+                            return 0;
+                        },
+                    },
+                ],
+                [
+                    4,
+                    "report_period",
+                    tuya.valueConverterBasic.lookup({
+                        "1h": tuya.enum(0),
+                        "2h": tuya.enum(1),
+                        "3h": tuya.enum(2),
+                        "4h": tuya.enum(3),
+                        "6h": tuya.enum(4),
+                        "8h": tuya.enum(5),
+                        "12h": tuya.enum(6),
+                        "24h": tuya.enum(7),
+                    }),
+                ],
                 [13, "state", tuya.valueConverter.onOffNotStrict],
-                [14, "auto_clean", tuya.valueConverter.raw],
-                [21, "flow_rate", tuya.valueConverter.divideBy1000],
+                [14, "auto_clean", tuya.valueConverter.onOff],
+                [
+                    21,
+                    "flow_rate",
+                    {
+                        from: (v) => {
+                            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
+                            if (buf.length >= 4) {
+                                const value = buf.readUInt32BE(0);
+                                return value;
+                            }
+                            return 0;
+                        },
+                    },
+                ],
                 [22, "temperature", tuya.valueConverter.divideBy100],
-                [26, "voltage", tuya.valueConverter.divideBy100],
+                [26, "battery_voltage", tuya.valueConverter.divideBy100],
             ],
         },
         // Optional: Add device-specific options
