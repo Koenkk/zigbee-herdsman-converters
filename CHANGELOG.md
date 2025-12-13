@@ -1,5 +1,13 @@
 # Changelog
 
+## [25.87.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.87.0...v25.87.1) (2025-12-13)
+
+
+### Bug Fixes
+
+* Eurotronic SPZB0001: fix setting of setpoint  ([#10996](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10996)) ([6ad4ef9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6ad4ef975085b82d3f2c6e925f1d1148bfb7bdc4))
+* Moes BHT-002: change max temperature limit to 80 https://github.com/Koenkk/zigbee2mqtt/discussions/30147 ([58547bf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/58547bf74d2ff6583baeb78a8e7beed5424c4dc0))
+
 ## [25.87.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.86.0...v25.87.0) (2025-12-13)
 
 
