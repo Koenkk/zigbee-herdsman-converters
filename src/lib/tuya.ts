@@ -3042,9 +3042,9 @@ const tuyaClusters = {
         modernExtend.deviceAddCustomCluster("manuSpecificTuya4", {
             ID: 0xe000,
             attributes: {
-                random_timing: {ID: 0xd001, type: Zcl.DataType.CHAR_STR},
-                cycle_timing: {ID: 0xd002, type: Zcl.DataType.CHAR_STR},
-                inching: {ID: 0xd003, type: Zcl.DataType.CHAR_STR},
+                random_timing: {ID: 0xd001, type: Zcl.DataType.CHAR_STR, write: true},
+                cycle_timing: {ID: 0xd002, type: Zcl.DataType.CHAR_STR, write: true},
+                inching: {ID: 0xd003, type: Zcl.DataType.CHAR_STR, write: true},
             },
             commands: {
                 setRandomTiming: {
