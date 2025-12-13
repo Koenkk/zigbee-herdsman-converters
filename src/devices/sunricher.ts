@@ -616,10 +616,10 @@ export const definitions: DefinitionWithExtend[] = [
                     press: {
                         ID: 0x01,
                         parameters: [
-                            {name: "messageType", type: Zcl.DataType.UINT8},
-                            {name: "button2", type: Zcl.DataType.UINT8},
-                            {name: "button1", type: Zcl.DataType.UINT8},
-                            {name: "pressType", type: Zcl.DataType.UINT8},
+                            {name: "messageType", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "button2", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "button1", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "pressType", type: Zcl.DataType.UINT8, max: 0xff},
                         ],
                     },
                 },
@@ -641,46 +641,72 @@ export const definitions: DefinitionWithExtend[] = [
                         ID: 0x100d,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     antiFreezingTemp: {
                         ID: 0x1005,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     temperatureDisplayMode: {
                         ID: 0x1008,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     windowOpenCheck: {
                         ID: 0x1009,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     hysteresis: {
                         ID: 0x100a,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     windowOpenFlag: {
                         ID: 0x100b,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     forcedHeatingTime: {
                         ID: 0x100e,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     errorCode: {
                         ID: 0x2003,
                         type: Zcl.DataType.BITMAP8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
                     },
                     awayOrBoostMode: {
                         ID: 0x2002,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -924,9 +950,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfc8b,
                 manufacturerCode: 0x120b,
                 attributes: {
-                    indicatorLight: {ID: 0xf001, type: Zcl.DataType.UINT8},
-                    detectionArea: {ID: 0xf002, type: Zcl.DataType.UINT8},
-                    illuminanceThreshold: {ID: 0xf004, type: Zcl.DataType.UINT8},
+                    indicatorLight: {ID: 0xf001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    detectionArea: {ID: 0xf002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    illuminanceThreshold: {ID: 0xf004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},

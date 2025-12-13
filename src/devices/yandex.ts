@@ -132,30 +132,30 @@ function YandexCluster(manufacturerCode: number): ModernExtend {
         ID: 0xfc03,
         manufacturerCode: manufacturerCode,
         attributes: {
-            switchMode: {ID: 0x0001, type: Zcl.DataType.ENUM8},
-            switchType: {ID: 0x0002, type: Zcl.DataType.ENUM8},
-            powerType: {ID: 0x0003, type: Zcl.DataType.ENUM8},
-            ledIndicator: {ID: 0x0005, type: Zcl.DataType.BOOLEAN},
-            interlock: {ID: 0x0007, type: Zcl.DataType.BOOLEAN},
-            buttonMode: {ID: 0x0008, type: Zcl.DataType.ENUM8},
-            displayFlip: {ID: 0x0009, type: Zcl.DataType.BOOLEAN},
-            windowDetection: {ID: 0x000a, type: Zcl.DataType.BOOLEAN},
-            frostProtection: {ID: 0x000d, type: Zcl.DataType.BOOLEAN},
-            scaleProtection: {ID: 0x000e, type: Zcl.DataType.BOOLEAN},
-            autoCalibration: {ID: 0x000f, type: Zcl.DataType.BOOLEAN},
+            switchMode: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            switchType: {ID: 0x0002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            powerType: {ID: 0x0003, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            ledIndicator: {ID: 0x0005, type: Zcl.DataType.BOOLEAN, write: true},
+            interlock: {ID: 0x0007, type: Zcl.DataType.BOOLEAN, write: true},
+            buttonMode: {ID: 0x0008, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            displayFlip: {ID: 0x0009, type: Zcl.DataType.BOOLEAN, write: true},
+            windowDetection: {ID: 0x000a, type: Zcl.DataType.BOOLEAN, write: true},
+            frostProtection: {ID: 0x000d, type: Zcl.DataType.BOOLEAN, write: true},
+            scaleProtection: {ID: 0x000e, type: Zcl.DataType.BOOLEAN, write: true},
+            autoCalibration: {ID: 0x000f, type: Zcl.DataType.BOOLEAN, write: true},
         },
         commands: {
             switchMode: {
                 ID: 0x01,
-                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+                parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             switchType: {
                 ID: 0x02,
-                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+                parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             powerType: {
                 ID: 0x03,
-                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+                parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             ledIndicator: {
                 ID: 0x05,
@@ -163,11 +163,11 @@ function YandexCluster(manufacturerCode: number): ModernExtend {
             },
             interlock: {
                 ID: 0x07,
-                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+                parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             buttonMode: {
                 ID: 0x08,
-                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+                parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             displayFlip: {
                 ID: 0x09,
@@ -196,12 +196,14 @@ function YandexThermostatCluster(manufacturerCode: number): ModernExtend {
                 ID: 0xf000,
                 type: Zcl.DataType.BOOLEAN,
                 manufacturerCode: manufacturerCode,
+
+                write: true,
             },
         },
         commands: {
             calibrate: {
                 ID: 0x00,
-                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+                parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
         },
         commandsResponse: {},

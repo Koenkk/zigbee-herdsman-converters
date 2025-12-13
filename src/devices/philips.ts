@@ -145,9 +145,9 @@ const extendLocal = {
             ID: 0xfc07,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
-                sirenIsMuted: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
-                soundIDPlaying: {ID: 0x0001, type: Zcl.DataType.UINT32},
-                unknownAttr: {ID: 0x0002, type: Zcl.DataType.UINT32},
+                sirenIsMuted: {ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+                soundIDPlaying: {ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                unknownAttr: {ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
             },
             commands: {
                 mute: {ID: 0x00, parameters: []},
@@ -3935,6 +3935,13 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["929003045001_01", "929003045001_02", "929003045001_03"],
         model: "9290019533",
+        vendor: "Philips",
+        description: "Hue white ambiance GU10 with Bluetooth",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["929003807901_01", "929003807901_02", "929003807901_03"],
+        model: "92900336667",
         vendor: "Philips",
         description: "Hue white ambiance GU10 with Bluetooth",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],

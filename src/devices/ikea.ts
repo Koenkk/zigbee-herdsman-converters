@@ -946,7 +946,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("pm25Measurement", {
                 ID: 0x042a,
                 attributes: {
-                    measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC},
+                    measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
                 },
                 commands: {},
                 commandsResponse: {},

@@ -253,7 +253,6 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {CLOSE: "off"}; // open is not supported.
             const state = utils.getFromLookup(value, lookup);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (state !== "off") value = "CLOSE";
             else await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
             return {state: {[key]: value}};

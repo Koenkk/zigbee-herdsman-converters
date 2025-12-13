@@ -55,7 +55,7 @@ const fzLocal = {
                 result.backlight_auto_dim = utils.getFromLookup(msg.data["1026"], lookup);
             }
             if (msg.data.SinopeBacklight !== undefined) {
-                const lookup = {0: "on_demand", 1: "sensing", 2: "off"};
+                const lookup = {0: "on_demand", 1: "off", 2: "sensing"};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data.SinopeBacklight, lookup);
             }
             if (msg.data["1028"] !== undefined) {
@@ -242,6 +242,9 @@ const fzLocal = {
             if (msg.data.drConfigWaterTempMin !== undefined) {
                 result.low_water_temp_protection = msg.data.drConfigWaterTempMin;
             }
+            if (msg.data.ecoMode !== undefined) {
+                result.eco_mode = msg.data.ecoMode;
+            }
             return result;
         },
     } satisfies Fz.Converter<"manuSpecificSinope", undefined, ["attributeReport", "readResponse"]>,
@@ -262,7 +265,7 @@ const tzLocal = {
     backlight_autodim: {
         key: ["backlight_auto_dim"],
         convertSet: async (entity, key, value, meta) => {
-            const sinopeBacklightParam = {0: "on_demand", 1: "sensing", 2: "off"};
+            const sinopeBacklightParam = {0: "on_demand", 1: "off", 2: "sensing"};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value as number, Number);
             await entity.write("hvacThermostat", {SinopeBacklight}, manuSinope);
             return {state: {backlight_auto_dim: value}};
@@ -370,7 +373,6 @@ const tzLocal = {
                 return;
             }
             const lookup = {ambiant: 1, floor: 2};
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             // @ts-expect-error ignore
             if (lookup[value] !== undefined) {
@@ -435,7 +437,6 @@ const tzLocal = {
                 return;
             }
             const lookup = {"10k": 0, "12k": 1};
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             // @ts-expect-error ignore
             if (lookup[value] !== undefined) {
@@ -598,6 +599,16 @@ const tzLocal = {
             await entity.read("manuSpecificSinope", ["drConfigWaterTempMin"]);
         },
     } satisfies Tz.Converter,
+    eco_mode: {
+        key: ["eco_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("manuSpecificSinope", {ecoMode: value as number});
+            return {state: {eco_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("manuSpecificSinope", ["ecoMode"]);
+        },
+    } satisfies Tz.Converter,
 };
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -623,6 +634,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
+            tzLocal.eco_mode,
         ],
         exposes: [
             e
@@ -666,6 +678,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
             e.enum("main_cycle_output", ea.ALL, ["15_sec", "15_min"]).withDescription("The length of the control cycle: 15_sec=normal 15_min=fan"),
+            e
+                .numeric("eco_mode", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(-128)
+                .withValueMax(100)
+                .withDescription("Adjust temperature setpoint to fulfill demand response"),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -723,6 +741,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
+            tzLocal.eco_mode,
         ],
         exposes: [
             e
@@ -766,6 +785,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
             e.enum("main_cycle_output", ea.ALL, ["15_sec", "15_min"]).withDescription("The length of the control cycle: 15_sec=normal 15_min=fan"),
+            e
+                .numeric("eco_mode", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(-128)
+                .withValueMax(100)
+                .withDescription("Adjust temperature setpoint to fulfill demand response"),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -823,6 +848,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
+            tzLocal.eco_mode,
         ],
         exposes: [
             e
@@ -866,6 +892,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing", "off"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
             e.enum("main_cycle_output", ea.ALL, ["15_sec", "15_min"]).withDescription("The length of the control cycle: 15_sec=normal 15_min=fan"),
+            e
+                .numeric("eco_mode", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(-128)
+                .withValueMax(100)
+                .withDescription("Adjust temperature setpoint to fulfill demand response"),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -934,6 +966,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
+            tzLocal.eco_mode,
         ],
         exposes: [
             e
@@ -977,6 +1010,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing", "off"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
             e.enum("main_cycle_output", ea.ALL, ["15_sec", "15_min"]).withDescription("The length of the control cycle: 15_sec=normal 15_min=fan"),
+            e
+                .numeric("eco_mode", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(-128)
+                .withValueMax(100)
+                .withDescription("Adjust temperature setpoint to fulfill demand response"),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
