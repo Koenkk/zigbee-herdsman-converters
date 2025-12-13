@@ -16,7 +16,7 @@ const NS = "zhc:gmmts";
 const ea = exposes.access;
 const e = exposes.presets;
 
-const METER_ID_CLUSTER = "haMeterIdentification"; // 0x0B01
+const METER_ID_CLUSTER = "seMeterIdentification"; // 0x0B01
 const CLUSTER_ELE = "haElectricalMeasurement"; // 0x0B04
 const CLUSTER_MET = "seMetering"; // 0x0702
 const CLUSTER_TIC = "manuSpecificGmmts"; // 0xFF42

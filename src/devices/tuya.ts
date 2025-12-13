@@ -482,7 +482,7 @@ const tzLocal = {
                     await entity.command(
                         "genLevelCtrl",
                         "moveToLevel",
-                        {level: Number(meta.message.brightness), transtime},
+                        {level: Number(meta.message.brightness), transtime, optionsMask: 0, optionsOverride: 0},
                         utils.getOptions(meta.mapped, entity),
                     );
                     newState.brightness = meta.message.brightness;
@@ -495,6 +495,8 @@ const tzLocal = {
                         {
                             colortemp: meta.message.color_temp as number,
                             transtime: transtime,
+                            optionsMask: 0,
+                            optionsOverride: 0,
                         },
                         utils.getOptions(meta.mapped, entity),
                     );
@@ -21747,7 +21749,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(["on_1", "off_1", "on_2", "off_2"])],
     },
     {
-        fingerprint: tuya.fingerprint("ZP-301Z", ["_TZE284_d4h8j2n6"]),
+        fingerprint: tuya.fingerprint("ZP-301Z", ["_TZE284_d4h8j2n6","B3876M9"]),
         model: "ZP-301Z",
         vendor: "Arteco",
         description: "PIR motion sensor light with night light function",
