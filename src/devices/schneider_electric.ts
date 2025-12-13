@@ -157,17 +157,17 @@ const schneiderElectricExtend = {
             ID: 0xfc04,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
-                indicatorLuminanceLevel: {ID: 0x0000, type: enumDataType},
-                indicatorColor: {ID: 0x0001, type: enumDataType},
-                indicatorMode: {ID: 0x0002, type: enumDataType},
-                motorTypeChannel1: {ID: 0x0003, type: Zcl.DataType.UINT8},
-                motorTypeChannel2: {ID: 0x0004, type: Zcl.DataType.UINT8},
-                curtainStatusChannel1: {ID: 0x0005, type: Zcl.DataType.UINT8},
-                curtainStatusChannel2: {ID: 0x0006, type: Zcl.DataType.UINT8},
-                key1EventNotification: {ID: 0x0020, type: Zcl.DataType.UINT8},
-                key2EventNotification: {ID: 0x0021, type: Zcl.DataType.UINT8},
-                key3EventNotification: {ID: 0x0022, type: Zcl.DataType.UINT8},
-                key4EventNotification: {ID: 0x0023, type: Zcl.DataType.UINT8},
+                indicatorLuminanceLevel: {ID: 0x0000, type: enumDataType, write: true},
+                indicatorColor: {ID: 0x0001, type: enumDataType, write: true},
+                indicatorMode: {ID: 0x0002, type: enumDataType, write: true},
+                motorTypeChannel1: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                motorTypeChannel2: {ID: 0x0004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                curtainStatusChannel1: {ID: 0x0005, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                curtainStatusChannel2: {ID: 0x0006, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key1EventNotification: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key2EventNotification: {ID: 0x0021, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key3EventNotification: {ID: 0x0022, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key4EventNotification: {ID: 0x0023, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
@@ -282,7 +282,7 @@ const schneiderElectricExtend = {
                             await entity.command(
                                 "genLevelCtrl",
                                 "moveToLevelWithOnOff",
-                                {level: utils.mapNumberRange(Number(value), 0, 100, 0, 255), transtime: 0},
+                                {level: utils.mapNumberRange(Number(value), 0, 100, 0, 255), transtime: 0, optionsMask: 0, optionsOverride: 0},
                                 utils.getOptions(meta.mapped, entity),
                             );
                         }
@@ -296,7 +296,7 @@ const schneiderElectricExtend = {
                         } else if (value === "CLOSE") {
                             await entity.command("genOnOff", "off", {}, utils.getOptions(meta.mapped, entity));
                         } else if (value === "STOP") {
-                            await entity.command("genLevelCtrl", "stop", {}, utils.getOptions(meta.mapped, entity));
+                            await entity.command("genLevelCtrl", "stop", {optionsMask: 0, optionsOverride: 0}, utils.getOptions(meta.mapped, entity));
                         }
                     },
                 },
@@ -356,10 +356,10 @@ const schneiderElectricExtend = {
             ID: 0xff19,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
-                ambienceLightThreshold: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                occupancyActions: {ID: 0x0001, type: Zcl.DataType.ENUM8},
-                unoccupiedLevelDflt: {ID: 0x0002, type: Zcl.DataType.UINT8},
-                unoccupiedLevel: {ID: 0x0003, type: Zcl.DataType.UINT8},
+                ambienceLightThreshold: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                occupancyActions: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                unoccupiedLevelDflt: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                unoccupiedLevel: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
