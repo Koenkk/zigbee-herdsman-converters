@@ -12,7 +12,8 @@
         "bracketSpacing": false
     },
     "files": {
-        "includes": ["**", "!package.json", "!!**/dist", "!!**/coverage"]
+        "includes": ["**", "!package.json", "!!**/dist", "!!**/coverage"],
+        "maxSize": 10485760
     },
     "linter": {
         "rules": {
