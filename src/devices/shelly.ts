@@ -742,10 +742,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBHT-203C",
         vendor: "Shelly",
         description: "Humidity & Temperature",
-        extend: [
-            m.battery(),
-            m.temperature(),
-            m.humidity(),
-        ],
+        extend: [m.battery(), m.temperature(), m.humidity()],
     },
 ];
