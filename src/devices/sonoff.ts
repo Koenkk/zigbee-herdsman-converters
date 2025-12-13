@@ -1404,10 +1404,10 @@ export const definitions: DefinitionWithExtend[] = [
                 const endpoint = device.getEndpoint(1);
                 const bindClusters = ["msTemperatureMeasurement", "msRelativeHumidity", "genPowerCfg"];
                 await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-                await reporting.temperature(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 20});
-                await reporting.humidity(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 100});
-                await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
-                await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
+                await reporting.temperature(endpoint, {min: 30, max: 3600, change: 20});
+                await reporting.humidity(endpoint, {min: 30, max: constants.repInterval.HOUR, change: 100});
+                await reporting.batteryVoltage(endpoint, {min: 3600, max: constants.repInterval.MAX});
+                await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 65000});
             } catch (e) {
                 /* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
                 logger.error(`Configure failed: ${e}`, NS);
