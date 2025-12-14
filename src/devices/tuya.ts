@@ -2087,13 +2087,13 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueStep(1)
                     .withDescription("Sensitivity of humidity"),
             ];
-            
+
             if (device && device.manufacturerName === "_TZE284_cwyqwqbf") {
                 exps.push(tuya.exposes.batteryState());
             } else {
                 exps.push(e.battery());
             }
-            
+
             return exps;
         },
         meta: {
