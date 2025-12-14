@@ -741,7 +741,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "BLU H&T ZB", manufacturerName: "Shelly"}],
         model: "SBHT-203C",
         vendor: "Shelly",
-        description: "Humidity & Temperature",
+        description: "Humidity & temperature sensor",
         extend: [m.battery(), m.temperature(), m.humidity()],
     },
 ];
