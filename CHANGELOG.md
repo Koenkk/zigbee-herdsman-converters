@@ -1,5 +1,20 @@
 # Changelog
 
+## [25.89.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.88.0...v25.89.0) (2025-12-14)
+
+
+### Features
+
+* **add:** SBHT-203C ([#11013](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11013)) ([b369486](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b3694860b41244ad2b371dbc2d8f5e1639a96bbd))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3210_sw9uxoea` as LUUMR 10010128 ([#11016](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11016)) ([ccbfc32](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ccbfc32a26209cfeb3f061c8243115ed9736a7ab))
+* **detect:** Detect `_TZE200_dcnsggv` as Tuya TS0601_dimmer_5 https://github.com/Koenkk/zigbee2mqtt/discussions/30198 ([fc4fe86](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc4fe86c62ee3ad606a3063470413e847022c565))
+* **ignore:** Sinope thermostats (TH1123ZB(-G2)/TH1124ZB(-G2)) exposes better ecoMode ([#11014](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11014)) ([8c9535f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8c9535f96144c732bd396510d6cb50d8303c9dea))
+* Tuya `_TZE284_cwyqwqbf`: expose battery state ([#11009](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11009)) ([1fe7c16](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1fe7c1636b80083c8236dd336f4ef26631e21e53))
+
 ## [25.88.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.87.0...v25.88.0) (2025-12-13)
 
 
