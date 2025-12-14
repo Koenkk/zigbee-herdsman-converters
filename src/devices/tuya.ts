@@ -2082,58 +2082,68 @@ export const definitions: DefinitionWithExtend[] = [
                 timeStart: "1970",
             }),
         ],
-        exposes: [
-            e.temperature(),
-            e.humidity(),
-            e.battery(),
-            e.enum("temperature_unit", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Temperature unit"),
-            e
-                .numeric("max_temperature_alarm", ea.STATE_SET)
-                .withUnit("°C")
-                .withValueMin(-20)
-                .withValueMax(60)
-                .withDescription("Alarm temperature max"),
-            e
-                .numeric("min_temperature_alarm", ea.STATE_SET)
-                .withUnit("°C")
-                .withValueMin(-20)
-                .withValueMax(60)
-                .withDescription("Alarm temperature min"),
-            e.numeric("max_humidity_alarm", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Alarm humidity max"),
-            e.numeric("min_humidity_alarm", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Alarm humidity min"),
-            e.enum("temperature_alarm", ea.STATE, ["lower_alarm", "upper_alarm", "cancel"]).withDescription("Temperature alarm"),
-            e.enum("humidity_alarm", ea.STATE, ["lower_alarm", "upper_alarm", "cancel"]).withDescription("Humidity alarm"),
-            e
-                .numeric("temperature_periodic_report", ea.STATE_SET)
-                .withUnit("min")
-                .withValueMin(1)
-                .withValueMax(120)
-                .withDescription("Temp periodic report"),
-            e
-                .numeric("humidity_periodic_report", ea.STATE_SET)
-                .withUnit("min")
-                .withValueMin(1)
-                .withValueMax(120)
-                .withDescription("Humidity periodic report"),
-            e
-                .numeric("temperature_sensitivity", ea.STATE_SET)
-                .withUnit("°C")
-                .withValueMin(0.3)
-                .withValueMax(1)
-                .withValueStep(0.1)
-                .withDescription("Sensitivity of temperature"),
-            e
-                .numeric("humidity_sensitivity", ea.STATE_SET)
-                .withUnit("%")
-                .withValueMin(3)
-                .withValueMax(10)
-                .withValueStep(1)
-                .withDescription("Sensitivity of humidity"),
-        ],
+        exposes: (device, options) => {
+            const exps: Expose[] = [
+                e.temperature(),
+                e.humidity(),
+                e.enum("temperature_unit", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Temperature unit"),
+                e
+                    .numeric("max_temperature_alarm", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withValueMin(-20)
+                    .withValueMax(60)
+                    .withDescription("Alarm temperature max"),
+                e
+                    .numeric("min_temperature_alarm", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withValueMin(-20)
+                    .withValueMax(60)
+                    .withDescription("Alarm temperature min"),
+                e.numeric("max_humidity_alarm", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Alarm humidity max"),
+                e.numeric("min_humidity_alarm", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Alarm humidity min"),
+                e.enum("temperature_alarm", ea.STATE, ["lower_alarm", "upper_alarm", "cancel"]).withDescription("Temperature alarm"),
+                e.enum("humidity_alarm", ea.STATE, ["lower_alarm", "upper_alarm", "cancel"]).withDescription("Humidity alarm"),
+                e
+                    .numeric("temperature_periodic_report", ea.STATE_SET)
+                    .withUnit("min")
+                    .withValueMin(1)
+                    .withValueMax(120)
+                    .withDescription("Temp periodic report"),
+                e
+                    .numeric("humidity_periodic_report", ea.STATE_SET)
+                    .withUnit("min")
+                    .withValueMin(1)
+                    .withValueMax(120)
+                    .withDescription("Humidity periodic report"),
+                e
+                    .numeric("temperature_sensitivity", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withValueMin(0.3)
+                    .withValueMax(1)
+                    .withValueStep(0.1)
+                    .withDescription("Sensitivity of temperature"),
+                e
+                    .numeric("humidity_sensitivity", ea.STATE_SET)
+                    .withUnit("%")
+                    .withValueMin(3)
+                    .withValueMax(10)
+                    .withValueStep(1)
+                    .withDescription("Sensitivity of humidity"),
+            ];
+
+            if (device && device.manufacturerName === "_TZE284_cwyqwqbf") {
+                exps.push(tuya.exposes.batteryState());
+            } else {
+                exps.push(e.battery());
+            }
+
+            return exps;
+        },
         meta: {
             tuyaDatapoints: [
                 [1, "temperature", tuya.valueConverter.divideBy10],
                 [2, "humidity", tuya.valueConverter.raw],
+                [3, "battery_state", tuya.valueConverter.batteryState],
                 [4, "battery", tuya.valueConverter.raw],
                 [9, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
                 [10, "max_temperature_alarm", tuya.valueConverter.divideBy10],
