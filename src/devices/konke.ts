@@ -7,6 +7,12 @@ import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 
+function voltageToPercentage(voltage, min, max) {
+    if (voltage <= min) return 0;
+    if (voltage >= max) return 100;
+    return Math.round(((voltage - min) / (max - min)) * 100);
+}
+
 const fzLocal = {
     command_recall_konke: {
         cluster: "genScenes",
@@ -21,6 +27,77 @@ const fzLocal = {
             return {action: utils.getFromLookup(msg.data.sceneid, payload)};
         },
     } satisfies Fz.Converter<"genScenes", undefined, "commandRecall">,
+    battery_debug: {
+        cluster: 'genPowerCfg',
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {};
+            
+            // 配置电压范围 (mV)
+            const minVoltage = 2500;  // 空电电压
+            const maxVoltage = 3300;  // 满电电压
+            
+            // 调试：打印所有接收到的数据
+            console.log(`[KK-WA-J01W DEBUG] 收到 genPowerCfg 数据:`, JSON.stringify(msg.data));
+            
+            // 处理电池电压 (标准 ZCL 属性 0x0020, 单位 100mV)
+            if (msg.data.batteryVoltage !== undefined) {
+                const rawVoltage = msg.data.batteryVoltage;
+                console.log(`[KK-WA-J01W DEBUG] batteryVoltage 原始值: ${rawVoltage}`);
+                
+                if (rawVoltage < 255) {
+                    // 标准 ZCL: batteryVoltage 是以 100mV 为单位
+                    // 如果原始值 < 50，说明是以 100mV 为单位 (例如 33 = 3300mV)
+                    // 如果原始值 > 100，可能设备直接上报 mV 值
+                    let voltage;
+                    if (rawVoltage > 100) {
+                        // 设备可能直接上报 mV
+                        voltage = rawVoltage;
+                        console.log(`[KK-WA-J01W DEBUG] 检测到设备直接上报 mV: ${voltage}mV`);
+                    } else {
+                        // 标准 ZCL 格式，乘以 100 转换为 mV
+                        voltage = rawVoltage * 100;
+                        console.log(`[KK-WA-J01W DEBUG] 标准 ZCL 格式，转换后: ${voltage}mV`);
+                    }
+                    
+                    payload.voltage = voltage;
+                    payload.battery = voltageToPercentage(voltage, minVoltage, maxVoltage);
+                    console.log(`[KK-WA-J01W DEBUG] 最终电压: ${voltage}mV, 电量: ${payload.battery}%`);
+                }
+            }
+            
+            // 处理电池百分比 (标准 ZCL 属性 0x0021)
+            if (msg.data.batteryPercentageRemaining !== undefined) {
+                const rawPercentage = msg.data.batteryPercentageRemaining;
+                console.log(`[KK-WA-J01W DEBUG] batteryPercentageRemaining 原始值: ${rawPercentage}`);
+                
+                // 有些设备上报 0-100，有些上报 0-200 (需要除以2)
+                // 如果已经从电压计算了百分比，则忽略设备上报的百分比
+                if (payload.battery === undefined && rawPercentage < 255) {
+                    // 检测是否需要除以2
+                    if (rawPercentage > 100) {
+                        payload.battery = Math.round(rawPercentage / 2);
+                    } else {
+                        payload.battery = rawPercentage;
+                    }
+                    console.log(`[KK-WA-J01W DEBUG] 使用设备上报的百分比: ${payload.battery}%`);
+                }
+            }
+            
+            // 处理电池报警状态
+            if (msg.data.batteryAlarmState !== undefined) {
+                console.log(`[KK-WA-J01W DEBUG] batteryAlarmState: ${msg.data.batteryAlarmState}`);
+                const battery1Low = (msg.data.batteryAlarmState & (1 << 0) ||
+                    msg.data.batteryAlarmState & (1 << 1) ||
+                    msg.data.batteryAlarmState & (1 << 2) ||
+                    msg.data.batteryAlarmState & (1 << 3)) > 0;
+                payload.battery_low = battery1Low;
+            }
+            
+            console.log(`[KK-WA-J01W DEBUG] 最终 payload:`, JSON.stringify(payload));
+            return payload;
+        },
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -126,12 +203,21 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy(), e.battery_voltage(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ["3AFE21100402102A", "3AFE22010402102A", "3AFE12010402102A"],
+        zigbeeModel: ["3AFE21100402102A", "3AFE22010402102A"],
         model: "KK-WA-J01W",
         vendor: "Konke",
         description: "Water detector",
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
+    },
+	{
+	    zigbeeModel: ["3AFE12010402102A"],
+		model: 'KK-WA-J01W',
+		vendor: 'Konke',
+		description: "Water detector(Old versions of water sensors:KK-WA-J01W with custom battery converter)",
+		fromZigbee: [fz.ias_water_leak_alarm_1, fzLocal.battery_debug],
+		toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
     },
     {
