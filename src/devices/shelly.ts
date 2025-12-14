@@ -737,4 +737,11 @@ export const definitions: DefinitionWithExtend[] = [
             shellyModernExtend.shellyWiFiSetup(),
         ],
     },
+    {
+        fingerprint: [{modelID: "BLU H&T ZB", manufacturerName: "Shelly"}],
+        model: "SBHT-203C",
+        vendor: "Shelly",
+        description: "Humidity & temperature sensor",
+        extend: [m.battery(), m.temperature(), m.humidity()],
+    },
 ];
