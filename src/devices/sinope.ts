@@ -243,7 +243,7 @@ const fzLocal = {
                 result.low_water_temp_protection = msg.data.drConfigWaterTempMin;
             }
             if (msg.data.ecoMode !== undefined) {
-                result.eco_mode = msg.data.ecoMode;
+                result.eco_mode = (msg.data.ecoMode ?? -128) / 10;
             }
             return result;
         },
@@ -603,7 +603,7 @@ const tzLocal = {
         key: ["eco_mode"],
         convertSet: async (entity, key, value, meta) => {
             await entity.write("manuSpecificSinope", {ecoMode: value as number});
-            return {state: {eco_mode: value}};
+            return {state: {eco_mode: ((value as number | null) ?? -128) / 10}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("manuSpecificSinope", ["ecoMode"]);
@@ -681,9 +681,11 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("eco_mode", ea.ALL)
                 .withUnit("°C")
-                .withValueMin(-128)
-                .withValueMax(100)
-                .withDescription("Adjust temperature setpoint to fulfill demand response"),
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.5)
+                .withDescription("Adjusts temperature setpoint to fulfill demand response")
+                .withPreset("disabled", -12.8, "Disables the eco mode"),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -788,9 +790,11 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("eco_mode", ea.ALL)
                 .withUnit("°C")
-                .withValueMin(-128)
-                .withValueMax(100)
-                .withDescription("Adjust temperature setpoint to fulfill demand response"),
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.5)
+                .withDescription("Adjusts temperature setpoint to fulfill demand response")
+                .withPreset("disabled", -12.8, "Disables the eco mode"),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -895,9 +899,11 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("eco_mode", ea.ALL)
                 .withUnit("°C")
-                .withValueMin(-128)
-                .withValueMax(100)
-                .withDescription("Adjust temperature setpoint to fulfill demand response"),
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.5)
+                .withDescription("Adjusts temperature setpoint to fulfill demand response")
+                .withPreset("disabled", -12.8, "Disables the eco mode"),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -1013,9 +1019,11 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("eco_mode", ea.ALL)
                 .withUnit("°C")
-                .withValueMin(-128)
-                .withValueMax(100)
-                .withDescription("Adjust temperature setpoint to fulfill demand response"),
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.5)
+                .withDescription("Adjusts temperature setpoint to fulfill demand response")
+                .withPreset("disabled", -12.8, "Disables the eco mode"),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
