@@ -1,6 +1,6 @@
 import * as m from "../lib/modernExtend";
-import {nodonPilotWire} from "../lib/nodon";
 import type {DefinitionWithExtend} from "../lib/types";
+import {vavPilotWire} from "../lib/vav";
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -8,7 +8,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VAV-256215-MOD1",
         vendor: "VAV",
         description: "Pilot wire heating module",
-        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), ...nodonPilotWire(true)],
+        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), ...vavPilotWire(true)],
         ota: true,
     },
     {
