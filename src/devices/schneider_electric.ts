@@ -1326,7 +1326,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.currentSummDelivered(endpoint2, {min: 0, max: 60, change: 1});
         },
     },
-   {
+    {
         fingerprint: [{modelID: "CCTFR6710", manufacturerName: "Schneider Electric"}],
         model: "CCTFR6710",
         vendor: "Schneider Electric",
