@@ -1,15 +1,12 @@
-import * as m from '../lib/modernExtend';
-import {DefinitionWithExtend} from '../lib/types';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['DM A60F'],
-        model: 'DM A60F',
-        vendor: 'CY-LIGHTING',
-        description: '6W smart dimmable E27 lamp 2700K',
+        zigbeeModel: ["DM A60F"],
+        model: "DM A60F",
+        vendor: "CY-LIGHTING",
+        description: "6W smart dimmable E27 lamp 2700K",
         extend: [m.light()],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

@@ -1,11 +1,23 @@
 {
     "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
 
-    "postCreateCommand": "pnpm config set store-dir /home/node/.local/share/pnpm/store && pnpm i --frozen-lockfile",
+    "postCreateCommand": "pnpm config set store-dir /home/node/.local/share/pnpm/store && pnpm install --frozen-lockfile",
 
     "customizations": {
         "vscode": {
-            "extensions": ["dbaeumer.vscode-eslint"]
+            "settings": {
+                "workbench.colorTheme": "Default Dark Modern",
+                "window.menuBarVisibility": "classic",
+                "editor.defaultFormatter": "biomejs.biome",
+                "notebook.defaultFormatter": "biomejs.biome",
+                "editor.formatOnPaste": true,
+                "editor.formatOnSave": true,
+                "editor.tabSize": 4,
+                "editor.insertSpaces": true,
+                "files.defaultLanguage": "typescript",
+                "files.eol": "\n"
+            },
+            "extensions": ["biomejs.biome", "vitest.explorer"]
         }
     }
 }

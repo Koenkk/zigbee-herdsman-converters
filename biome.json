@@ -1,0 +1,72 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
+    "formatter": {
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 150,
+        "bracketSpacing": false
+    },
+    "files": {
+        "includes": ["**", "!package.json", "!!**/dist", "!!**/coverage"],
+        "maxSize": 10485760
+    },
+    "linter": {
+        "rules": {
+            "correctness": {
+                "noUnusedImports": "error",
+                "noUnusedFunctionParameters": "off"
+            },
+            "style": {
+                "noParameterAssign": "off",
+                "useThrowNewError": "error",
+                "useThrowOnlyError": "error",
+                "useNamingConvention": {
+                    "level": "error",
+                    "options": {
+                        "strictCase": false,
+                        "conventions": [
+                            {
+                                "selector": {
+                                    "kind": "objectLiteralProperty"
+                                },
+                                "formats": ["snake_case", "camelCase", "CONSTANT_CASE", "PascalCase"]
+                            },
+                            {
+                                "selector": {
+                                    "kind": "const"
+                                },
+                                "formats": ["snake_case", "camelCase", "CONSTANT_CASE", "PascalCase"]
+                            }
+                        ]
+                    }
+                },
+                "useAsConstAssertion": "error",
+                "useDefaultParameterLast": "error",
+                "useEnumInitializers": "error",
+                "useSelfClosingElements": "error",
+                "useSingleVarDeclarator": "error",
+                "noUnusedTemplateLiteral": "error",
+                "useNumberNamespace": "error",
+                "noInferrableTypes": "error",
+                "noUselessElse": "error"
+            },
+            "suspicious": {
+                "noConstEnum": "off",
+                "useAwait": "error"
+            },
+            "complexity": {
+                "useLiteralKeys": "off"
+            },
+            "nursery": {
+                "useExhaustiveSwitchCases": "error",
+                "noFloatingPromises": "error",
+                "noMisusedPromises": "error"
+            }
+        }
+    }
+}

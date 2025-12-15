@@ -1,10 +1,15 @@
-/* eslint-disable @typescript-eslint/no-namespace */
-
-import type {Models as ZHModels} from 'zigbee-herdsman';
-import type {Header as ZHZclHeader} from 'zigbee-herdsman/dist/zspec/zcl';
-import type {FrameControl} from 'zigbee-herdsman/dist/zspec/zcl/definition/tstype';
-
-import * as exposes from './exposes';
+import type {Models as ZHModels} from "zigbee-herdsman";
+import type {
+    ClusterCommandKeys,
+    ClusterCommandResponseKeys,
+    ClusterOrRawAttributeKeys,
+    TCustomCluster,
+    TCustomClusterPayload,
+} from "zigbee-herdsman/dist/controller/tstype";
+import type {Header as ZHZclHeader} from "zigbee-herdsman/dist/zspec/zcl";
+import type {TClusterAttributeKeys, TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
+import type {FrameControl} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
+import type * as exposes from "./exposes";
 
 export interface Logger {
     debug: (messageOrLambda: string | (() => string), namespace: string) => void;
@@ -24,19 +29,10 @@ export interface KeyValueNumberString {
     [s: number]: string;
 }
 export interface KeyValueAny {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
     [s: string]: any;
 }
 export type Publish = (payload: KeyValue) => void;
-export type OnEventType =
-    | 'start'
-    | 'stop'
-    | 'message'
-    | 'deviceJoined'
-    | 'deviceInterview'
-    | 'deviceAnnounce'
-    | 'deviceNetworkAddressChanged'
-    | 'deviceOptionsChanged';
 export type Access = 0b001 | 0b010 | 0b100 | 0b011 | 0b101 | 0b111;
 export type Expose =
     | exposes.Numeric
@@ -55,21 +51,22 @@ export type Option = exposes.Numeric | exposes.Binary | exposes.Composite | expo
 export interface Fingerprint {
     applicationVersion?: number;
     manufacturerID?: number;
-    type?: 'EndDevice' | 'Router';
+    type?: "EndDevice" | "Router";
     dateCode?: string;
     hardwareVersion?: number;
     manufacturerName?: string;
     modelID?: string;
-    powerSource?: 'Battery' | 'Mains (single phase)';
+    powerSource?: "Battery" | "Mains (single phase)";
     softwareBuildID?: string;
     stackVersion?: number;
     zclVersion?: number;
     ieeeAddr?: RegExp;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     endpoints?: {ID?: number; profileID?: number; deviceID?: number; inputClusters?: number[]; outputClusters?: number[]}[];
     priority?: number;
 }
 export type WhiteLabel =
-    | {vendor: string; model: string; description: string; fingerprint: Fingerprint[]}
+    | {vendor?: string; model: string; description?: string; fingerprint: Fingerprint[]}
     | {vendor: string; model: string; description?: string};
 
 export interface MockProperty {
@@ -80,7 +77,9 @@ export interface MockProperty {
 export interface DiscoveryEntry {
     mockProperties: MockProperty[];
     type: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     object_id: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     discovery_payload: KeyValue;
 }
 
@@ -90,7 +89,7 @@ export type BatteryLinearVoltage = {
     vOffset?: number;
 };
 
-export type BatteryNonLinearVoltage = '3V_2100' | '3V_1500_2800';
+export type BatteryNonLinearVoltage = "3V_2100" | "3V_1500_2800";
 
 export interface DefinitionMeta {
     separateWhite?: boolean;
@@ -134,7 +133,7 @@ export interface DefinitionMeta {
      * @defaultValue 10000
      */
     timeout?: number;
-    tuyaSendCommand?: 'sendData' | 'dataRequest';
+    tuyaSendCommand?: "sendData" | "dataRequest";
     /**
      * Set cover state based on tilt
      */
@@ -181,6 +180,7 @@ export interface DefinitionMeta {
      * @defaultValue false
      */
     turnsOffAtBrightness1?: boolean;
+    moveToLevelWithOnOffDisable?: boolean;
     tuyaThermostatPreset?: {[s: number]: string};
     /** Tuya specific thermostat options */
     tuyaThermostatSystemMode?: {[s: number]: string};
@@ -220,42 +220,40 @@ export interface DefinitionMeta {
     noOffTransitionWhenOff?: boolean | ((entity: Zh.Endpoint) => boolean);
 }
 
-export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void>;
+export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void> | void;
 
-export interface OnEventMeta {
-    deviceExposesChanged: () => void;
+export namespace OnEvent {
+    export type BaseData = {device: Zh.Device; deviceExposesChanged: () => void; state: KeyValue; options: KeyValue};
+    export type Event =
+        | {type: "stop"; data: {ieeeAddr: string}}
+        | {type: "deviceNetworkAddressChanged" | "deviceAnnounce" | "deviceJoined" | "start"; data: BaseData}
+        | {type: "deviceOptionsChanged"; data: BaseData & {from: KeyValue; to: KeyValue}}
+        | {type: "deviceInterview"; data: BaseData & {status: "started" | "successful" | "failed"}};
+
+    export type Handler = (event: Event) => Promise<void> | void;
 }
 
-export type OnEvent = (
-    type: OnEventType,
-    data: OnEventData,
-    device: Zh.Device,
-    settings: KeyValue,
-    state: KeyValue,
-    meta?: OnEventMeta,
-) => Promise<void>;
-
 export interface ModernExtend {
-    fromZigbee?: Definition['fromZigbee'];
-    toZigbee?: Definition['toZigbee'];
+    fromZigbee?: Definition["fromZigbee"];
+    toZigbee?: Definition["toZigbee"];
     exposes?: (Expose | DefinitionExposesFunction)[];
-    configure?: Definition['configure'][];
-    meta?: Definition['meta'];
-    ota?: Definition['ota'];
-    onEvent?: Definition['onEvent'];
-    endpoint?: Definition['endpoint'];
+    configure?: Definition["configure"][];
+    meta?: Definition["meta"];
+    ota?: Definition["ota"];
+    options?: Option[];
+    onEvent?: Definition["onEvent"][];
+    endpoint?: Definition["endpoint"];
     isModernExtend: true;
 }
 
-export interface OnEventData {
-    endpoint?: Zh.Endpoint;
-    meta?: {zclTransactionSequenceNumber?: number; manufacturerCode?: number};
-    cluster?: string;
-    type?: string;
-    data?: KeyValueAny;
-}
+// Special type for the zigbee2mqtt.io device page docgen
+export type DummyDevice = {
+    manufacturerName?: string;
+    isDummyDevice: true;
+    applicationVersion?: number;
+};
 
-export type DefinitionExposesFunction = (device: Zh.Device | undefined, options: KeyValue | undefined) => Expose[];
+export type DefinitionExposesFunction = (device: Zh.Device | DummyDevice, options: KeyValue) => Expose[];
 
 export type DefinitionExposes = Expose[] | DefinitionExposesFunction;
 
@@ -266,50 +264,137 @@ type DefinitionBase = {
     vendor: string;
     description: string;
     whiteLabel?: WhiteLabel[];
-    endpoint?: (device: Zh.Device) => {[s: string]: number};
-    configure?: Configure;
-    options?: Option[];
-    meta?: DefinitionMeta;
-    onEvent?: OnEvent;
-    ota?: true | Ota.ExtraMetas;
     generated?: true;
     externalConverterName?: string;
 };
 
+type DefinitionConfig = {
+    endpoint?: (device: Zh.Device) => {[s: string]: number};
+    configure?: Configure;
+    options?: Option[];
+    meta?: DefinitionMeta;
+    onEvent?: OnEvent.Handler;
+    ota?: boolean | Ota.ExtraMetas;
+};
+
 type DefinitionFeatures = {
-    fromZigbee: Fz.Converter[];
+    // biome-ignore lint/suspicious/noExplicitAny: generic
+    fromZigbee: Fz.Converter<any, any, any>[];
     toZigbee: Tz.Converter[];
     exposes: DefinitionExposes;
 };
 
-export type Definition = DefinitionMatcher & DefinitionBase & DefinitionFeatures;
+export type Definition = DefinitionMatcher & DefinitionBase & DefinitionConfig & DefinitionFeatures;
 
 export type DefinitionWithExtend = DefinitionMatcher &
     DefinitionBase &
+    DefinitionConfig &
     (({extend: ModernExtend[]} & Partial<DefinitionFeatures>) | DefinitionFeatures);
 
+export type ExternalDefinitionWithExtend = DefinitionWithExtend & {externalConverterName: string};
+
+export type ElementOf<T> = T extends readonly (infer U)[] ? U : T;
+
+/** TFoundationRepetitive from ZSpec Zcl mapped to names used by ZHC (TODO: refactor names to match ZSpec Zcl directly / breaking ext. conv) */
+export type TFoundationRepetitiveMapped =
+    | "read"
+    | "readResponse" // "readRsp"
+    | "write"
+    | "attributeReport"; // "report"
+
 export namespace Fz {
-    export interface Message {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        data: any;
+    export type ConverterTypeCmd<Cl extends number | string, Custom extends TCustomCluster | undefined = undefined> =
+        | `command${Capitalize<ClusterCommandKeys<Cl, Custom>[number] & string>}` // exclude `number` with `& string`
+        | `command${Capitalize<ClusterCommandResponseKeys<Cl, Custom>[number] & string>}`; // exclude `number` with `& string`
+
+    type ConverterType<Cl extends number | string, Custom extends TCustomCluster | undefined = undefined> =
+        | "raw"
+        | TFoundationRepetitiveMapped
+        | ClusterOrRawAttributeKeys<Cl, Custom>[number]
+        | ConverterTypeCmd<Cl, Custom>;
+
+    type ConverterTypeStringOrArray<Cl extends number | string, Custom extends TCustomCluster | undefined = undefined> =
+        | ConverterType<Cl, Custom>
+        | readonly ConverterType<Cl, Custom>[];
+
+    type MessageTypeDataMap<Cl extends string | number> = {
+        raw: Buffer;
+        read: (TClusterAttributeKeys<Cl>[number] | number)[];
+        readResponse: TPartialClusterAttributes<Cl>;
+        write: TPartialClusterAttributes<Cl>;
+        attributeReport: TPartialClusterAttributes<Cl>;
+    };
+    type MessageTypeCustomDataMap<Custom extends TCustomCluster> = {
+        raw: Buffer;
+        read: (keyof Custom["attributes"] | number)[];
+        readResponse: Partial<Custom["attributes"]>;
+        write: Partial<Custom["attributes"]>;
+        attributeReport: Partial<Custom["attributes"]>;
+    };
+
+    export interface Message<
+        Cl extends number | string,
+        Custom extends TCustomCluster | undefined = undefined,
+        Ty extends ConverterTypeStringOrArray<Cl, Custom> = ConverterTypeStringOrArray<Cl, Custom>,
+    > {
+        data: (ElementOf<Ty> extends infer Single
+            ? Custom extends undefined
+                ? Single extends keyof MessageTypeDataMap<Cl>
+                    ? MessageTypeDataMap<Cl>[Single]
+                    : Single extends string | number
+                      ? Single extends `command${infer Co}`
+                          ? TClusterPayload<Cl, Uncapitalize<Co>>
+                          : TClusterPayload<Cl, Single>
+                      : never
+                : Custom extends TCustomCluster
+                  ? Single extends keyof MessageTypeCustomDataMap<Custom>
+                      ? MessageTypeDataMap<Cl>[Single] extends never
+                          ? MessageTypeCustomDataMap<Custom>[Single] extends never
+                              ? Record<number, unknown>
+                              : MessageTypeCustomDataMap<Custom>[Single]
+                          : MessageTypeDataMap<Cl>[Single] & MessageTypeCustomDataMap<Custom>[Single]
+                      : Single extends string | number
+                        ? Single extends `command${infer Co}`
+                            ? TClusterPayload<Cl, Uncapitalize<Co>> extends never
+                                ? TCustomClusterPayload<Custom, Uncapitalize<Co>>
+                                : TClusterPayload<Cl, Uncapitalize<Co>> & TCustomClusterPayload<Custom, Uncapitalize<Co>>
+                            : TClusterPayload<Cl, Single> extends never
+                              ? TCustomClusterPayload<Custom, Single>
+                              : TClusterPayload<Cl, Single> & TCustomClusterPayload<Custom, Single>
+                        : never
+                  : never
+            : never) &
+            Record<number, unknown> /* XXX: too many customs not to have this as fallback */;
         endpoint: Zh.Endpoint;
         device: Zh.Device;
-        meta: {zclTransactionSequenceNumber?: number; manufacturerCode?: number; frameControl?: FrameControl};
+        meta: {zclTransactionSequenceNumber?: number; manufacturerCode?: number; frameControl?: FrameControl; rawData: Buffer};
         groupID: number;
-        type: string;
+        type: ElementOf<Ty>;
         cluster: string | number;
         linkquality: number;
     }
+
     export interface Meta {
         state: KeyValue;
         device: Zh.Device;
         deviceExposesChanged: () => void;
     }
-    export interface Converter {
-        cluster: string | number;
-        type: string[] | string;
+
+    export interface Converter<
+        Cl extends number | string,
+        Custom extends TCustomCluster | undefined = undefined,
+        Ty extends ConverterTypeStringOrArray<Cl, Custom> = ConverterTypeStringOrArray<Cl, Custom>,
+    > {
+        cluster: Cl;
+        type: Ty;
         options?: Option[] | ((definition: Definition) => Option[]);
-        convert: (model: Definition, msg: Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => KeyValueAny | void | Promise<void>;
+        convert: (
+            model: Definition,
+            msg: Message<Cl, Custom, Ty>,
+            publish: Publish,
+            options: KeyValue,
+            meta: Fz.Meta,
+        ) => KeyValueAny | void | Promise<void>;
     }
 }
 
@@ -320,15 +405,19 @@ export namespace Tz {
         mapped: Definition | Definition[];
         options: KeyValue;
         state: KeyValue;
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
         endpoint_name: string | undefined;
         membersState?: {[s: string]: KeyValue};
+        publish: Publish;
+        converterOptions?: KeyValue;
     }
+    // biome-ignore lint/suspicious/noConfusingVoidType: ignored using `--suppress`
     export type ConvertSetResult = {state?: KeyValue; membersState?: {[s: string]: KeyValue}} | void;
     export interface Converter {
         key?: string[];
         options?: Option[] | ((definition: Definition) => Option[]);
         endpoints?: string[];
-        convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult>;
+        convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult> | ConvertSetResult;
         convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<void>;
     }
 }
@@ -344,32 +433,32 @@ export namespace Tuya {
     export interface DpValue {
         dp: number;
         datatype: number;
-        data: Buffer | number[];
+        data: Buffer;
     }
     export interface ValueConverterSingle {
-        to?: (value: unknown, meta?: Tz.Meta) => unknown;
+        // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
+        to?: (value: any, meta?: Tz.Meta) => unknown;
         from?: (
-            value: unknown,
+            // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
+            value: any,
             meta?: Fz.Meta,
             options?: KeyValue,
             publish?: Publish,
-            msg?: Fz.Message,
+            // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
+            msg?: Fz.Message<any>,
         ) => number | string | boolean | KeyValue | null;
-    }
-    export interface ValueConverterMulti {
-        to?: (value: unknown, meta?: Tz.Meta) => unknown;
-        from?: (value: unknown, meta?: Fz.Meta, options?: KeyValue, publish?: Publish, msg?: Fz.Message) => KeyValue;
     }
     export interface MetaTuyaDataPointsMeta {
         skip?: (meta: Tz.Meta) => boolean;
         optimistic?: boolean;
     }
-    export type MetaTuyaDataPointsSingle = [number, string, Tuya.ValueConverterSingle, MetaTuyaDataPointsMeta?];
+    export type MetaTuyaDataPointsSingle = [number, string, ValueConverterSingle, MetaTuyaDataPointsMeta?];
     export type MetaTuyaDataPoints = MetaTuyaDataPointsSingle[];
 }
 
 export namespace Ota {
     export type OnProgress = (progress: number, remaining?: number) => void;
+    export type CustomParseLogic = undefined | "telinkEncrypted";
 
     export interface Settings {
         dataDir: string;
@@ -415,34 +504,37 @@ export namespace Ota {
         raw: Buffer;
     }
     export interface ImageInfo {
-        imageType: ImageHeader['imageType'];
-        fileVersion: ImageHeader['fileVersion'];
-        manufacturerCode: ImageHeader['manufacturerCode'];
+        imageType: ImageHeader["imageType"];
+        fileVersion: ImageHeader["fileVersion"];
+        manufacturerCode: ImageHeader["manufacturerCode"];
+        hardwareVersion?: number;
     }
     export interface ImageMeta {
-        fileVersion: ImageHeader['fileVersion'];
-        fileSize?: ImageHeader['totalImageSize'];
+        fileVersion: ImageHeader["fileVersion"];
+        fileSize?: ImageHeader["totalImageSize"];
         url: string;
         force?: boolean;
         sha512?: string;
-        otaHeaderString?: ImageHeader['otaHeaderString'];
-        hardwareVersionMin?: ImageHeader['minimumHardwareVersion'];
-        hardwareVersionMax?: ImageHeader['maximumHardwareVersion'];
+        otaHeaderString?: ImageHeader["otaHeaderString"];
+        hardwareVersionMin?: ImageHeader["minimumHardwareVersion"];
+        hardwareVersionMax?: ImageHeader["maximumHardwareVersion"];
     }
     export interface ZigbeeOTAImageMeta extends ImageInfo, ImageMeta {
         fileName: string;
         modelId?: string;
         manufacturerName?: string[];
-        minFileVersion?: ImageHeader['fileVersion'];
-        maxFileVersion?: ImageHeader['fileVersion'];
+        minFileVersion?: ImageHeader["fileVersion"];
+        maxFileVersion?: ImageHeader["fileVersion"];
         originalUrl?: string;
         releaseNotes?: string;
+        customParseLogic?: CustomParseLogic;
     }
-    export type ExtraMetas = Pick<ZigbeeOTAImageMeta, 'modelId' | 'otaHeaderString' | 'hardwareVersionMin' | 'hardwareVersionMax'> & {
+    export type ExtraMetas = Pick<ZigbeeOTAImageMeta, "modelId" | "otaHeaderString" | "hardwareVersionMin" | "hardwareVersionMax"> & {
         manufacturerName?: string;
         suppressElementImageParseFailure?: boolean;
     };
 }
+
 export namespace Reporting {
     export interface Override {
         min?: number;
@@ -450,3 +542,12 @@ export namespace Reporting {
         change?: number;
     }
 }
+
+export type LevelConfigFeatures = (
+    | "on_off_transition_time"
+    | "on_transition_time"
+    | "off_transition_time"
+    | "execute_if_off"
+    | "on_level"
+    | "current_level_startup"
+)[];
