@@ -886,7 +886,7 @@ export const definitions: DefinitionWithExtend[] = [
             return [
                 e.child_lock(),
                 e.deadzone_temperature(),
-                e.max_temperature_limit().withValueMax(45),
+                e.max_temperature_limit().withValueMax(80),
                 e.min_temperature_limit(),
                 e
                     .climate()

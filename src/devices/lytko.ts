@@ -791,11 +791,17 @@ export const definitions: DefinitionWithExtend[] = [
                     occupiedSetback: {
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -883,11 +889,17 @@ export const definitions: DefinitionWithExtend[] = [
                     occupiedSetback: {
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -995,16 +1007,24 @@ export const definitions: DefinitionWithExtend[] = [
                     occupiedSetback: {
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoTargetFirst: {
                         ID: 0xff01,
                         type: Zcl.DataType.BOOLEAN,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
                     },
                 },
                 commands: {},
@@ -1017,11 +1037,17 @@ export const definitions: DefinitionWithExtend[] = [
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     brignessStandby: {
                         ID: 0xff01,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -1147,11 +1173,17 @@ export const definitions: DefinitionWithExtend[] = [
                     occupiedSetback: {
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -1286,11 +1318,17 @@ export const definitions: DefinitionWithExtend[] = [
                     occupiedSetback: {
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -1445,16 +1483,24 @@ export const definitions: DefinitionWithExtend[] = [
                     occupiedSetback: {
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoTargetFirst: {
                         ID: 0xff01,
                         type: Zcl.DataType.BOOLEAN,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
                     },
                 },
                 commands: {},
@@ -1467,11 +1513,17 @@ export const definitions: DefinitionWithExtend[] = [
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     brignessStandby: {
                         ID: 0xff01,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -1644,16 +1696,24 @@ export const definitions: DefinitionWithExtend[] = [
                     occupiedSetback: {
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoTargetFirst: {
                         ID: 0xff01,
                         type: Zcl.DataType.BOOLEAN,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
                     },
                 },
                 commands: {},
@@ -1666,11 +1726,17 @@ export const definitions: DefinitionWithExtend[] = [
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     brignessStandby: {
                         ID: 0xff01,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
