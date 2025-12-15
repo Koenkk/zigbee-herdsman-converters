@@ -15,8 +15,8 @@ importers:
         specifier: ^7.7.3
         version: 7.7.3
       zigbee-herdsman:
-        specifier: ^7.0.4
-        version: 7.0.4
+        specifier: ^8.0.0
+        version: 8.0.0
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.3.8
@@ -1043,8 +1043,8 @@ packages:
     resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
     engines: {node: '>=12'}
 
-  zigbee-herdsman@7.0.4:
-    resolution: {integrity: sha512-/MXhrBKfrbpdr/ODetZZpPdXVCovBEmVEoXt5EXJFwrnzx16IrlUiE96Pgf4uLwmoZNJcixQxVq+mAsf/2SCwQ==}
+  zigbee-herdsman@8.0.0:
+    resolution: {integrity: sha512-OH0Gsm92Ch3H48ThbvbovwYDir2R1feVLxx91MEPfdjxCvjtqumMPEDBSITUzcjkrN7HLeqIwJcxzhJzdlxEXA==}
 
   zigbee-on-host@0.2.4:
     resolution: {integrity: sha512-NIG6CWp+Yfn7PjqEIRvenHqpwT1U7rSkyimnFOUIFpnmxQOJKrmcwWDfn6WjbU/YIYYWSQPlj+g13icu1xwlyg==}
@@ -1918,7 +1918,7 @@ snapshots:
       string-width: 5.1.2
       strip-ansi: 7.1.2
 
-  zigbee-herdsman@7.0.4:
+  zigbee-herdsman@8.0.0:
     dependencies:
       '@date-fns/tz': 1.4.1
       '@serialport/bindings-cpp': 13.0.1

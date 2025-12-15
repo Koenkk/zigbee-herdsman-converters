@@ -157,17 +157,17 @@ const schneiderElectricExtend = {
             ID: 0xfc04,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
-                indicatorLuminanceLevel: {ID: 0x0000, type: enumDataType},
-                indicatorColor: {ID: 0x0001, type: enumDataType},
-                indicatorMode: {ID: 0x0002, type: enumDataType},
-                motorTypeChannel1: {ID: 0x0003, type: Zcl.DataType.UINT8},
-                motorTypeChannel2: {ID: 0x0004, type: Zcl.DataType.UINT8},
-                curtainStatusChannel1: {ID: 0x0005, type: Zcl.DataType.UINT8},
-                curtainStatusChannel2: {ID: 0x0006, type: Zcl.DataType.UINT8},
-                key1EventNotification: {ID: 0x0020, type: Zcl.DataType.UINT8},
-                key2EventNotification: {ID: 0x0021, type: Zcl.DataType.UINT8},
-                key3EventNotification: {ID: 0x0022, type: Zcl.DataType.UINT8},
-                key4EventNotification: {ID: 0x0023, type: Zcl.DataType.UINT8},
+                indicatorLuminanceLevel: {ID: 0x0000, type: enumDataType, write: true},
+                indicatorColor: {ID: 0x0001, type: enumDataType, write: true},
+                indicatorMode: {ID: 0x0002, type: enumDataType, write: true},
+                motorTypeChannel1: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                motorTypeChannel2: {ID: 0x0004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                curtainStatusChannel1: {ID: 0x0005, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                curtainStatusChannel2: {ID: 0x0006, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key1EventNotification: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key2EventNotification: {ID: 0x0021, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key3EventNotification: {ID: 0x0022, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key4EventNotification: {ID: 0x0023, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
@@ -282,7 +282,7 @@ const schneiderElectricExtend = {
                             await entity.command(
                                 "genLevelCtrl",
                                 "moveToLevelWithOnOff",
-                                {level: utils.mapNumberRange(Number(value), 0, 100, 0, 255), transtime: 0},
+                                {level: utils.mapNumberRange(Number(value), 0, 100, 0, 255), transtime: 0, optionsMask: 0, optionsOverride: 0},
                                 utils.getOptions(meta.mapped, entity),
                             );
                         }
@@ -296,7 +296,7 @@ const schneiderElectricExtend = {
                         } else if (value === "CLOSE") {
                             await entity.command("genOnOff", "off", {}, utils.getOptions(meta.mapped, entity));
                         } else if (value === "STOP") {
-                            await entity.command("genLevelCtrl", "stop", {}, utils.getOptions(meta.mapped, entity));
+                            await entity.command("genLevelCtrl", "stop", {optionsMask: 0, optionsOverride: 0}, utils.getOptions(meta.mapped, entity));
                         }
                     },
                 },
@@ -356,10 +356,10 @@ const schneiderElectricExtend = {
             ID: 0xff19,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
-                ambienceLightThreshold: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                occupancyActions: {ID: 0x0001, type: Zcl.DataType.ENUM8},
-                unoccupiedLevelDflt: {ID: 0x0002, type: Zcl.DataType.UINT8},
-                unoccupiedLevel: {ID: 0x0003, type: Zcl.DataType.UINT8},
+                ambienceLightThreshold: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                occupancyActions: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                unoccupiedLevelDflt: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                unoccupiedLevel: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
@@ -424,7 +424,6 @@ const tzLocal = {
         ...tz.fan_mode,
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (value.toLowerCase() === "on") value = "low";
             return await tz.fan_mode.convertSet(entity, key, value, meta);
         },
@@ -852,33 +851,23 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002386",
         vendor: "Schneider Electric",
         description: "Push button dimmer",
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
-        extend: [indicatorMode("smart"), m.identify()],
-        exposes: [
-            e.light_brightness().withLevelConfig(),
-            e
-                .numeric("ballast_minimum_level", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription("Specifies the minimum light output of the ballast"),
-            e
-                .numeric("ballast_maximum_level", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription("Specifies the maximum light output of the ballast"),
-            e
-                .enum("dimmer_mode", ea.ALL, ["auto", "rl_led"])
-                .withDescription("Sets dimming mode to autodetect or fixed RL_LED mode (max load is reduced in RL_LED)"),
+        extend: [
+            m.light({
+                effect: false,
+                powerOnBehavior: true,
+                configureReporting: true,
+                levelConfig: {features: ["on_level", "current_level_startup"]},
+            }),
+            m.lightingBallast(),
+            m.identify(),
+            schneiderElectricExtend.dimmingMode(),
+            indicatorMode(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingBallastCfg"]);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
-        },
-        endpoint: (device) => {
-            return {smart: 21};
         },
     },
     {
@@ -1182,6 +1171,16 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, s1: 21, s2: 22, s3: 23, s4: 24};
         },
+        extend: [
+            indicatorMode("s1"),
+            indicatorMode("s2"),
+            indicatorMode("s3"),
+            indicatorMode("s4"),
+            switchActions("s1"),
+            switchActions("s2"),
+            switchActions("s3"),
+            switchActions("s4"),
+        ],
         exposes: [e.switch().withEndpoint("l1"), e.switch().withEndpoint("l2"), e.action(["on_s*", "off_s*"])],
         configure: (device, coordinatorEndpoint) => {
             device.endpoints.forEach(async (ep) => {
@@ -1616,6 +1615,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "LK FUGA wiser wireless socket outlet",
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
+        extend: [socketIndicatorMode()],
         exposes: [
             e.switch(),
             e.power(),
