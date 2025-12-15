@@ -4853,7 +4853,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
     fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dzuqwsyg", "_TZE204_dzuqwsyg"]),
-    model: "BAC-002-ALZB",
+    model: "BAC-002",
     vendor: "Tuya",
     description: "FCU thermostat with unified schedule text (final full version)",
     extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
