@@ -139,8 +139,12 @@ const tzLocal = {
     charge_limit: {
         key: ["charge_limit"],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {level: value as number, transtime: 0};
-            await entity.command("genLevelCtrl", "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level: value as number, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
         },
 
         convertGet: async (entity, key, meta) => {
@@ -164,7 +168,12 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const level = value as number;
 
-            await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level, transtime: 0}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevelWithOnOff",
+                {level, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
         },
 
         convertGet: async (entity, key, meta) => {
@@ -201,16 +210,16 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: aminaControlAttributes.cluster,
                 manufacturerCode: manufacturerOptions.manufacturerCode,
                 attributes: {
-                    alarms: {ID: aminaControlAttributes.alarms, type: Zcl.DataType.BITMAP16},
-                    evStatus: {ID: aminaControlAttributes.ev_status, type: Zcl.DataType.BITMAP16},
-                    connectStatus: {ID: aminaControlAttributes.connect_status, type: Zcl.DataType.BITMAP16},
-                    singlePhase: {ID: aminaControlAttributes.single_phase, type: Zcl.DataType.UINT8},
-                    offlineCurrent: {ID: aminaControlAttributes.offline_current, type: Zcl.DataType.UINT8},
-                    offlineSinglePhase: {ID: aminaControlAttributes.offline_single_phase, type: Zcl.DataType.UINT8},
-                    timeToOffline: {ID: aminaControlAttributes.time_to_offline, type: Zcl.DataType.UINT16},
-                    enableOffline: {ID: aminaControlAttributes.enable_offline, type: Zcl.DataType.UINT8},
-                    totalActiveEnergy: {ID: aminaControlAttributes.total_active_energy, type: Zcl.DataType.UINT32},
-                    lastSessionEnergy: {ID: aminaControlAttributes.last_session_energy, type: Zcl.DataType.UINT32},
+                    alarms: {ID: aminaControlAttributes.alarms, type: Zcl.DataType.BITMAP16, write: true},
+                    evStatus: {ID: aminaControlAttributes.ev_status, type: Zcl.DataType.BITMAP16, write: true},
+                    connectStatus: {ID: aminaControlAttributes.connect_status, type: Zcl.DataType.BITMAP16, write: true},
+                    singlePhase: {ID: aminaControlAttributes.single_phase, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    offlineCurrent: {ID: aminaControlAttributes.offline_current, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    offlineSinglePhase: {ID: aminaControlAttributes.offline_single_phase, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    timeToOffline: {ID: aminaControlAttributes.time_to_offline, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    enableOffline: {ID: aminaControlAttributes.enable_offline, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    totalActiveEnergy: {ID: aminaControlAttributes.total_active_energy, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    lastSessionEnergy: {ID: aminaControlAttributes.last_session_energy, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 },
                 commands: {},
                 commandsResponse: {},
