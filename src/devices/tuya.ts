@@ -5014,9 +5014,9 @@ Ensure all 12 segments are defined and separated by spaces.`,
 
                         const result: number[] = [];
                         for (const m of matches) {
-                            result.push(Number(m.groups!.h));
-                            result.push(Number(m.groups!.m));
-                            result.push(Number(m.groups!.t) * 2);
+                            result.push(Number(m.groups?.h));
+                            result.push(Number(m.groups?.m));
+                            result.push(Number(m.groups?.t) * 2);
                         }
 
                         await tuya.sendDataPointRaw(meta.device.endpoints[0], 101, Buffer.from(result));
