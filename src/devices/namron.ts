@@ -119,11 +119,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
-
-    namron_thermostat2: {
-        cluster: "hvacThermostat",
-        ...
-
     namron_thermostat2: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
