@@ -1785,7 +1785,6 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0xf007, type: Zcl.DataType.UINT8},
                 description: "0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45°",
                 access: "ALL",
-
             }),
         ],
         fromZigbee: [fz.identify],
