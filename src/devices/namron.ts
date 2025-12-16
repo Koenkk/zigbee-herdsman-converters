@@ -1374,7 +1374,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["Panel Heater"],
+        zigbeeModel: ["Panel Heater PRO"],
         model: "4512776",
         vendor: "Namron",
         description: "Zigbee panelovn PRO 16A hvit (4512776) 400W/600W/800W/1000w/1500w",
