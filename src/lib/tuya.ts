@@ -150,7 +150,6 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
 // Return `seq` - transaction ID for handling concrete response
 async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
     if (seq === undefined) {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         seq = globalStore.getValue(entity, "sequence", 0);
         globalStore.putValue(entity, "sequence", (seq + 1) % 0xffff);
     }
@@ -798,7 +797,6 @@ export const valueConverter = {
     lockUnlock: valueConverterBasic.lookup({LOCK: true, UNLOCK: false}),
     localTempCalibration1: {
         from: (v: number) => {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (v > 55) v -= 0x100000000;
             return v / 10;
         },
@@ -817,7 +815,6 @@ export const valueConverter = {
     },
     localTempCalibration3: {
         from: (v: number) => {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (v > 0x7fffffff) v -= 0x100000000;
             return v / 10;
         },
@@ -2628,7 +2625,6 @@ const tuyaModernExtend = {
             colorPowerOnBehavior?: boolean;
         },
     ): ModernExtend {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {minBrightness: "none", powerOnBehavior: false, switchType: false, doNotDisturb: true, colorPowerOnBehavior: true, ...args};
         if (args.colorTemp) {
             args.colorTemp = {startup: false, ...args.colorTemp};
@@ -3046,9 +3042,9 @@ const tuyaClusters = {
         modernExtend.deviceAddCustomCluster("manuSpecificTuya4", {
             ID: 0xe000,
             attributes: {
-                random_timing: {ID: 0xd001, type: Zcl.DataType.CHAR_STR},
-                cycle_timing: {ID: 0xd002, type: Zcl.DataType.CHAR_STR},
-                inching: {ID: 0xd003, type: Zcl.DataType.CHAR_STR},
+                random_timing: {ID: 0xd001, type: Zcl.DataType.CHAR_STR, write: true},
+                cycle_timing: {ID: 0xd002, type: Zcl.DataType.CHAR_STR, write: true},
+                inching: {ID: 0xd003, type: Zcl.DataType.CHAR_STR, write: true},
             },
             commands: {
                 setRandomTiming: {

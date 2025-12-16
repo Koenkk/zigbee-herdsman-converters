@@ -8,6 +8,7 @@ import {
     addCustomClusterHeimanSpecificAirQualityShort,
     addCustomClusterHeimanSpecificInfraRedRemote,
     addCustomClusterHeimanSpecificScenes,
+    type HeimanSpecificAirQualityCluster,
 } from "../lib/heiman";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
@@ -1466,11 +1467,17 @@ export const definitions: DefinitionWithExtend[] = [
                         await endpoint.configureReporting("msFormaldehyde", payload);
                     },
                     batteryState: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload<"heimanSpecificAirQuality">("batteryState", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality", HeimanSpecificAirQualityCluster>(
+                            "batteryState",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                     pm10measuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                        const payload = reporting.payload<"heimanSpecificAirQuality", HeimanSpecificAirQualityCluster>(
                             "pm10measuredValue",
                             0,
                             constants.repInterval.HOUR,
@@ -1480,7 +1487,7 @@ export const definitions: DefinitionWithExtend[] = [
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                     tvocMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                        const payload = reporting.payload<"heimanSpecificAirQuality", HeimanSpecificAirQualityCluster>(
                             "tvocMeasuredValue",
                             0,
                             constants.repInterval.HOUR,
@@ -1490,7 +1497,7 @@ export const definitions: DefinitionWithExtend[] = [
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
                     aqiMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                        const payload = reporting.payload<"heimanSpecificAirQuality", HeimanSpecificAirQualityCluster>(
                             "aqiMeasuredValue",
                             0,
                             constants.repInterval.HOUR,
@@ -1778,6 +1785,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0xf007, type: Zcl.DataType.UINT8},
                 description: "0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45°",
                 access: "ALL",
+
             }),
         ],
         fromZigbee: [fz.identify],
@@ -1845,7 +1853,7 @@ export const definitions: DefinitionWithExtend[] = [
             addCustomClusterHeimanSpecificAirQualityShort(),
             m.battery(),
             m.humidity(),
-            m.enumLookup({
+            m.enumLookup<"heimanSpecificAirQuality", HeimanSpecificAirQualityCluster>({
                 name: "charging_status",
                 lookup: {NotCharged: 0, Charging: 1, FullyCharged: 2},
                 cluster: "heimanSpecificAirQuality",
@@ -1872,12 +1880,18 @@ export const definitions: DefinitionWithExtend[] = [
                     },
 
                     batteryState: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload<"heimanSpecificAirQuality">("batteryState", 0, constants.repInterval.HOUR, 1, overrides);
+                        const payload = reporting.payload<"heimanSpecificAirQuality", HeimanSpecificAirQualityCluster>(
+                            "batteryState",
+                            0,
+                            constants.repInterval.HOUR,
+                            1,
+                            overrides,
+                        );
                         await endpoint.configureReporting("heimanSpecificAirQuality", payload);
                     },
 
                     pm10measuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                        const payload = reporting.payload<"heimanSpecificAirQuality", HeimanSpecificAirQualityCluster>(
                             "pm10measuredValue",
                             0,
                             constants.repInterval.HOUR,
@@ -1888,7 +1902,7 @@ export const definitions: DefinitionWithExtend[] = [
                     },
 
                     aqiMeasuredValue: async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
-                        const payload = reporting.payload<"heimanSpecificAirQuality">(
+                        const payload = reporting.payload<"heimanSpecificAirQuality", HeimanSpecificAirQualityCluster>(
                             "aqiMeasuredValue",
                             0,
                             constants.repInterval.HOUR,
@@ -1919,7 +1933,11 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
             await endpoint.read("pm25Measurement", ["measuredValue"]);
             await endpoint.read("msFormaldehyde", ["measuredValue"]);
-            await endpoint.read("heimanSpecificAirQuality", ["batteryState", "pm10measuredValue", "aqiMeasuredValue"]);
+            await endpoint.read<"heimanSpecificAirQuality", HeimanSpecificAirQualityCluster>("heimanSpecificAirQuality", [
+                "batteryState",
+                "pm10measuredValue",
+                "aqiMeasuredValue",
+            ]);
 
             // Bug Heiman
             const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);

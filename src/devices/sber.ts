@@ -379,7 +379,6 @@ const sdevices = {
                     off: "downClose" as const,
                 };
                 utils.assertString(value, key);
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = value.toLowerCase();
                 await entity.command("closuresWindowCovering", utils.getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
             },
@@ -399,7 +398,6 @@ const sdevices = {
                 }
                 if (key === "buttons_mode") {
                     utils.assertString(value, key);
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value.toLowerCase();
                     const lookup = {normal: 0, inverted: 1};
                     await entity.write<"closuresWindowCovering", SberClosures>(
@@ -578,12 +576,48 @@ const sdevicesExtend = {
         m.deviceAddCustomCluster("haDiagnostic", {
             ID: Zcl.Clusters.haDiagnostic.ID,
             attributes: {
-                sdevicesUptimeS: {ID: 0x1001, type: Zcl.DataType.UINT32, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesButton1Clicks: {ID: 0x1002, type: Zcl.DataType.UINT32, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesButton2Clicks: {ID: 0x1003, type: Zcl.DataType.UINT32, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesButton3Clicks: {ID: 0x1004, type: Zcl.DataType.UINT32, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesRelay1Switches: {ID: 0x1005, type: Zcl.DataType.UINT32, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesRelay2Switches: {ID: 0x1006, type: Zcl.DataType.UINT32, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesUptimeS: {
+                    ID: 0x1001,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xffffffff,
+                },
+                sdevicesButton1Clicks: {
+                    ID: 0x1002,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xffffffff,
+                },
+                sdevicesButton2Clicks: {
+                    ID: 0x1003,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xffffffff,
+                },
+                sdevicesButton3Clicks: {
+                    ID: 0x1004,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xffffffff,
+                },
+                sdevicesRelay1Switches: {
+                    ID: 0x1005,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xffffffff,
+                },
+                sdevicesRelay2Switches: {
+                    ID: 0x1006,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xffffffff,
+                },
             },
             commands: {},
             commandsResponse: {},
@@ -592,9 +626,27 @@ const sdevicesExtend = {
         m.deviceAddCustomCluster("closuresWindowCovering", {
             ID: Zcl.Clusters.closuresWindowCovering.ID,
             attributes: {
-                sdevicesCalibrationTime: {ID: 0x1001, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesButtonsMode: {ID: 0x1002, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesMotorTimeout: {ID: 0x1003, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesCalibrationTime: {
+                    ID: 0x1001,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xffff,
+                },
+                sdevicesButtonsMode: {
+                    ID: 0x1002,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xff,
+                },
+                sdevicesMotorTimeout: {
+                    ID: 0x1003,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xffff,
+                },
             },
             commands: {},
             commandsResponse: {},
@@ -603,17 +655,71 @@ const sdevicesExtend = {
         m.deviceAddCustomCluster("hvacThermostat", {
             ID: Zcl.Clusters.hvacThermostat.ID,
             attributes: {
-                sdevicesRemoteTemperature: {ID: 0x4001, type: Zcl.DataType.INT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesRemoteTemperatureCalibration: {ID: 0x4002, type: Zcl.DataType.INT8, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesSensorMode: {ID: 0x4003, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesHeatingHysteresis: {ID: 0x4019, type: Zcl.DataType.INT8, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesMinLocalTemperatureLimit: {ID: 0x40f0, type: Zcl.DataType.INT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesMaxLocalTemperatureLimit: {ID: 0x40f1, type: Zcl.DataType.INT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesOutputMode: {ID: 0x4100, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesLocalSensorType: {ID: 0x4101, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesSensorError: {ID: 0x4102, type: Zcl.DataType.BITMAP16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesEventStatus: {ID: 0x4103, type: Zcl.DataType.BITMAP16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesRemoteSensorTimeout: {ID: 0x4203, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesRemoteTemperature: {
+                    ID: 0x4001,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    min: -32768,
+                },
+                sdevicesRemoteTemperatureCalibration: {
+                    ID: 0x4002,
+                    type: Zcl.DataType.INT8,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    min: -128,
+                },
+                sdevicesSensorMode: {
+                    ID: 0x4003,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xff,
+                },
+                sdevicesHeatingHysteresis: {
+                    ID: 0x4019,
+                    type: Zcl.DataType.INT8,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    min: -128,
+                },
+                sdevicesMinLocalTemperatureLimit: {
+                    ID: 0x40f0,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    min: -32768,
+                },
+                sdevicesMaxLocalTemperatureLimit: {
+                    ID: 0x40f1,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    min: -32768,
+                },
+                sdevicesOutputMode: {
+                    ID: 0x4100,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xff,
+                },
+                sdevicesLocalSensorType: {
+                    ID: 0x4101,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xff,
+                },
+                sdevicesSensorError: {ID: 0x4102, type: Zcl.DataType.BITMAP16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD, write: true},
+                sdevicesEventStatus: {ID: 0x4103, type: Zcl.DataType.BITMAP16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD, write: true},
+                sdevicesRemoteSensorTimeout: {
+                    ID: 0x4203,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xffff,
+                },
             },
             commands: {},
             commandsResponse: {},
@@ -622,8 +728,20 @@ const sdevicesExtend = {
         m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
             ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
             attributes: {
-                sdevicesBrightnessOperationsMode: {ID: 0x2001, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
-                sdevicesBrightnessSteadyMode: {ID: 0x2002, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesBrightnessOperationsMode: {
+                    ID: 0x2001,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xffff,
+                },
+                sdevicesBrightnessSteadyMode: {
+                    ID: 0x2002,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
+                    write: true,
+                    max: 0xffff,
+                },
             },
             commands: {},
             commandsResponse: {},
@@ -632,7 +750,7 @@ const sdevicesExtend = {
         m.deviceAddCustomCluster("genOnOff", {
             ID: Zcl.Clusters.genOnOff.ID,
             attributes: {
-                sdevicesRelayDecouple: {ID: 0x10dc, type: Zcl.DataType.BOOLEAN, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesRelayDecouple: {ID: 0x10dc, type: Zcl.DataType.BOOLEAN, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD, write: true},
             },
             commands: {},
             commandsResponse: {},

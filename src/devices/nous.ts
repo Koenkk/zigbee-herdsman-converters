@@ -184,17 +184,17 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee gas sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.binary("gas", ea.STATE, "ON", "OFF").withDescription("Gas detection state (ON = Gas detected)"),
-            e.binary("preheat", ea.STATE, "ON", "OFF").withDescription("Sensor is preheating"),
-            e.binary("fault_alarm", ea.STATE, "ON", "OFF").withDescription("Sensor fault detected"),
-            e.numeric("lifecycle", ea.STATE).withUnit("%").withDescription("Sensor life remaining"),
+            e.gas(),
+            e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
+            tuya.exposes.faultAlarm(),
+            e.binary("lifecycle", ea.STATE, true, false).withDescription("Sensor lifetime limit"),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "gas", tuya.valueConverter.trueFalse0],
-                [10, "preheat", tuya.valueConverter.trueFalse0],
+                [10, "preheat", tuya.valueConverter.raw],
                 [11, "fault_alarm", tuya.valueConverter.trueFalse1],
-                [12, "lifecycle", tuya.valueConverter.raw],
+                [12, "lifecycle", tuya.valueConverter.trueFalse0],
             ],
         },
     },
