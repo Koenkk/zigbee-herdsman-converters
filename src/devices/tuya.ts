@@ -22223,9 +22223,17 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
             e.enum("soil_fertility_warning", ea.STATE, ["none", "alarm"]).withDescription("Soil fertility warning"),
-            e.numeric("battery_value", ea.STATE).withUnit("%").withDescription("battery value in %"),
+            e.numeric("battery_value", ea.STATE)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription("battery value in %"),
             e.soil_moisture(),
-            e.numeric("soil_fertility", ea.STATE).withUnit("μS/cm").withDescription("Soil fertility value,between 0-2000"),
+            e.numeric("soil_fertility", ea.STATE)
+                .withUnit("μS/cm")
+                .withValueMin(0)
+                .withValueMax(5000)
+                .withDescription("Soil fertility value,between 0-5000"),
             e.temperature(),
             e.humidity(),
             e.illuminance(),
@@ -22253,7 +22261,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [3, "soil_moisture", tuya.valueConverter.raw],
                 [5, "temperature", tuya.valueConverter.divideBy10],
-                [14, "battery_value", tuya.valueConverter.raw],
+                [14, "battery_value", tuya.valueConverter.raw],D
                 [101, "humidity", tuya.valueConverter.raw],
                 [102, "illuminance", tuya.valueConverter.raw],
                 [103, "soil_sampling", tuya.valueConverter.raw],
