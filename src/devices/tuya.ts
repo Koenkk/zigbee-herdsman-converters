@@ -22223,13 +22223,10 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
             e.enum("soil_fertility_warning", ea.STATE, ["none", "alarm"]).withDescription("Soil fertility warning"),
-            e.numeric("battery_value", ea.STATE)
-                .withUnit("%")
-                .withValueMin(0)
-                .withValueMax(100)
-                .withDescription("battery value in %"),
+            e.numeric("battery_value", ea.STATE).withUnit("%").withValueMin(0).withValueMax(100).withDescription("battery value in %"),
             e.soil_moisture(),
-            e.numeric("soil_fertility", ea.STATE)
+            e
+                .numeric("soil_fertility", ea.STATE)
                 .withUnit("μS/cm")
                 .withValueMin(0)
                 .withValueMax(5000)
