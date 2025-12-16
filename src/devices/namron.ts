@@ -444,9 +444,6 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
 };
-
-};
-
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["3308431"],
