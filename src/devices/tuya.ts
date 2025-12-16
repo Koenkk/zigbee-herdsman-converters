@@ -1304,45 +1304,86 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ultrasonic water meter valve",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            // Main valve switch
-            e
-                .switch()
-                .setAccess("state", ea.STATE_SET),
-
-            // Water consumption sensor
-            e
-                .numeric("water_consumed", ea.STATE)
-                .withUnit("m³")
-                .withDescription("Total water consumption")
-                .withValueMin(0)
-                .withValueStep(0.001),
-
+            e.switch().setAccess("state", ea.STATE_SET),
+            e.numeric("water_consumed", ea.STATE).withUnit("L").withDescription("Total water consumption").withValueMin(0).withValueStep(0.001),
+            e.numeric("month_consumption", ea.STATE).withUnit("L").withDescription("month consumption").withValueMin(0).withValueStep(0.001),
+            e.numeric("daily_consumption", ea.STATE).withUnit("L").withDescription("daily consumption").withValueMin(0).withValueStep(0.001),
+            // //  I can't seem to get this to work - when i try to change the value i get an error in zigbee2mqtt, stuck on 1 Hour
+            // e
+            //     .enum("report_period", ea.STATE_SET, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"])
+            //     .withDescription("Report period"),
             // Flow rate sensor
             e
                 .numeric("flow_rate", ea.STATE)
-                .withUnit("m³/h")
-                .withDescription("Instantaneous water flow rate")
-                .withValueMin(0)
-                .withValueStep(0.001),
-
-            // Temperature sensor
+                .withUnit("L/h")
+                .withDescription("Instantaneous water flow rate"),
+            e.binary("auto_clean", ea.STATE_SET, "ON", "OFF").withDescription("Auto clean"),
             e.temperature(),
-
-            // Voltage monitoring
-            e.voltage(),
-            // Auto clean mode toggle
-            e
-                .binary("auto_clean", ea.STATE_SET, true, false)
-                .withDescription("Auto clean mode"),
+            e.battery_voltage(),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "water_consumed", tuya.valueConverter.divideBy1000],
+                [1, "water_consumed", tuya.valueConverter.raw],
+                [
+                    2,
+                    "month_consumption",
+                    {
+                        from: (v) => {
+                            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
+                            if (buf.length >= 8) {
+                                const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
+                                return value;
+                            }
+                            return 0;
+                        },
+                    },
+                ],
+                [
+                    3,
+                    "daily_consumption",
+                    {
+                        from: (v) => {
+                            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
+                            if (buf.length >= 8) {
+                                const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
+                                return value;
+                            }
+                            return 0;
+                        },
+                    },
+                ],
+                [
+                    4,
+                    "report_period",
+                    tuya.valueConverterBasic.lookup({
+                        "1h": tuya.enum(0),
+                        "2h": tuya.enum(1),
+                        "3h": tuya.enum(2),
+                        "4h": tuya.enum(3),
+                        "6h": tuya.enum(4),
+                        "8h": tuya.enum(5),
+                        "12h": tuya.enum(6),
+                        "24h": tuya.enum(7),
+                    }),
+                ],
                 [13, "state", tuya.valueConverter.onOffNotStrict],
-                [14, "auto_clean", tuya.valueConverter.raw],
-                [21, "flow_rate", tuya.valueConverter.divideBy1000],
+                [14, "auto_clean", tuya.valueConverter.onOff],
+                [
+                    21,
+                    "flow_rate",
+                    {
+                        from: (v) => {
+                            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
+                            if (buf.length >= 4) {
+                                const value = buf.readUInt32BE(0);
+                                return value;
+                            }
+                            return 0;
+                        },
+                    },
+                ],
                 [22, "temperature", tuya.valueConverter.divideBy100],
-                [26, "voltage", tuya.valueConverter.divideBy100],
+                [26, "battery_voltage", tuya.valueConverter.divideBy100],
             ],
         },
         // Optional: Add device-specific options
@@ -2041,58 +2082,68 @@ export const definitions: DefinitionWithExtend[] = [
                 timeStart: "1970",
             }),
         ],
-        exposes: [
-            e.temperature(),
-            e.humidity(),
-            e.battery(),
-            e.enum("temperature_unit", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Temperature unit"),
-            e
-                .numeric("max_temperature_alarm", ea.STATE_SET)
-                .withUnit("°C")
-                .withValueMin(-20)
-                .withValueMax(60)
-                .withDescription("Alarm temperature max"),
-            e
-                .numeric("min_temperature_alarm", ea.STATE_SET)
-                .withUnit("°C")
-                .withValueMin(-20)
-                .withValueMax(60)
-                .withDescription("Alarm temperature min"),
-            e.numeric("max_humidity_alarm", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Alarm humidity max"),
-            e.numeric("min_humidity_alarm", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Alarm humidity min"),
-            e.enum("temperature_alarm", ea.STATE, ["lower_alarm", "upper_alarm", "cancel"]).withDescription("Temperature alarm"),
-            e.enum("humidity_alarm", ea.STATE, ["lower_alarm", "upper_alarm", "cancel"]).withDescription("Humidity alarm"),
-            e
-                .numeric("temperature_periodic_report", ea.STATE_SET)
-                .withUnit("min")
-                .withValueMin(1)
-                .withValueMax(120)
-                .withDescription("Temp periodic report"),
-            e
-                .numeric("humidity_periodic_report", ea.STATE_SET)
-                .withUnit("min")
-                .withValueMin(1)
-                .withValueMax(120)
-                .withDescription("Humidity periodic report"),
-            e
-                .numeric("temperature_sensitivity", ea.STATE_SET)
-                .withUnit("°C")
-                .withValueMin(0.3)
-                .withValueMax(1)
-                .withValueStep(0.1)
-                .withDescription("Sensitivity of temperature"),
-            e
-                .numeric("humidity_sensitivity", ea.STATE_SET)
-                .withUnit("%")
-                .withValueMin(3)
-                .withValueMax(10)
-                .withValueStep(1)
-                .withDescription("Sensitivity of humidity"),
-        ],
+        exposes: (device, options) => {
+            const exps: Expose[] = [
+                e.temperature(),
+                e.humidity(),
+                e.enum("temperature_unit", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Temperature unit"),
+                e
+                    .numeric("max_temperature_alarm", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withValueMin(-20)
+                    .withValueMax(60)
+                    .withDescription("Alarm temperature max"),
+                e
+                    .numeric("min_temperature_alarm", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withValueMin(-20)
+                    .withValueMax(60)
+                    .withDescription("Alarm temperature min"),
+                e.numeric("max_humidity_alarm", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Alarm humidity max"),
+                e.numeric("min_humidity_alarm", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Alarm humidity min"),
+                e.enum("temperature_alarm", ea.STATE, ["lower_alarm", "upper_alarm", "cancel"]).withDescription("Temperature alarm"),
+                e.enum("humidity_alarm", ea.STATE, ["lower_alarm", "upper_alarm", "cancel"]).withDescription("Humidity alarm"),
+                e
+                    .numeric("temperature_periodic_report", ea.STATE_SET)
+                    .withUnit("min")
+                    .withValueMin(1)
+                    .withValueMax(120)
+                    .withDescription("Temp periodic report"),
+                e
+                    .numeric("humidity_periodic_report", ea.STATE_SET)
+                    .withUnit("min")
+                    .withValueMin(1)
+                    .withValueMax(120)
+                    .withDescription("Humidity periodic report"),
+                e
+                    .numeric("temperature_sensitivity", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withValueMin(0.3)
+                    .withValueMax(1)
+                    .withValueStep(0.1)
+                    .withDescription("Sensitivity of temperature"),
+                e
+                    .numeric("humidity_sensitivity", ea.STATE_SET)
+                    .withUnit("%")
+                    .withValueMin(3)
+                    .withValueMax(10)
+                    .withValueStep(1)
+                    .withDescription("Sensitivity of humidity"),
+            ];
+
+            if (device && device.manufacturerName === "_TZE284_cwyqwqbf") {
+                exps.push(tuya.exposes.batteryState());
+            } else {
+                exps.push(e.battery());
+            }
+
+            return exps;
+        },
         meta: {
             tuyaDatapoints: [
                 [1, "temperature", tuya.valueConverter.divideBy10],
                 [2, "humidity", tuya.valueConverter.raw],
+                [3, "battery_state", tuya.valueConverter.batteryState],
                 [4, "battery", tuya.valueConverter.raw],
                 [9, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
                 [10, "max_temperature_alarm", tuya.valueConverter.divideBy10],
@@ -2678,6 +2729,7 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
             tuya.whitelabel("MiBoxer", "FUTC11ZR", "Outdoor light", ["_TZB210_zmppwawa"]),
             tuya.whitelabel("TechToy", "_TZ3210_iw0zkcu8", "Smart bulb RGB 9W E27", ["_TZ3210_iw0zkcu8"]),
+            tuya.whitelabel("LUUMR", "10010128", "Smart LED, GU10, 4,7W, RGBW, CCT, Tuya, WLAN, mat", ["_TZ3210_sw9uxoea"]),
         ],
         extend: [
             tuya.modernExtend.tuyaLight({
@@ -3599,7 +3651,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dcnsggvz"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dcnsggvz", "_TZE200_dcnsggv"]),
         model: "TS0601_dimmer_5",
         vendor: "Tuya",
         description: "1 gang smart dimmer module",
@@ -3697,7 +3749,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS011F_wall_outlet",
         vendor: "Tuya",
         description: "In-wall outlet",
-        extend: [tuya.modernExtend.tuyaOnOff()],
+        extend: [tuya.modernExtend.tuyaOnOff({childLock: true})],
         whiteLabel: [
             {vendor: "Teekar", model: "SWP86-01OG"},
             tuya.whitelabel("ClickSmart+", "CMA30035", "1 gang socket outlet", ["_TYZB01_mtunwanm"]),
@@ -6040,7 +6092,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_clm4gdw4", "_TZE200_2vfxweng", "_TZE200_gnw1rril", "_TZE204_ycke4deo", "_TZE284_koxaopnk"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_clm4gdw4",
+            "_TZE200_2vfxweng",
+            "_TZE200_gnw1rril",
+            "_TZE204_ycke4deo",
+            "_TZE284_koxaopnk",
+            "_TZE284_clm4gdw4",
+        ]),
         model: "TS0601_cover_10",
         vendor: "Tuya",
         description: "Cover motor",
