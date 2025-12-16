@@ -22261,7 +22261,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [3, "soil_moisture", tuya.valueConverter.raw],
                 [5, "temperature", tuya.valueConverter.divideBy10],
-                [14, "battery_value", tuya.valueConverter.raw],D
+                [14, "battery_value", tuya.valueConverter.raw],
                 [101, "humidity", tuya.valueConverter.raw],
                 [102, "illuminance", tuya.valueConverter.raw],
                 [103, "soil_sampling", tuya.valueConverter.raw],
