@@ -274,7 +274,7 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
- // Panel Heater PRO
+    // Panel Heater PRO
     namron_panel_heater_pro: {
         key: [
             "state",
@@ -306,10 +306,7 @@ const tzLocal = {
                     if (s._prev_system_mode === undefined && s.system_mode !== undefined) {
                         s._prev_system_mode = s.system_mode;
                     }
-                    if (
-                        s._prev_occupied_heating_setpoint === undefined &&
-                        s.occupied_heating_setpoint !== undefined
-                    ) {
+                    if (s._prev_occupied_heating_setpoint === undefined && s.occupied_heating_setpoint !== undefined) {
                         s._prev_occupied_heating_setpoint = s.occupied_heating_setpoint;
                     }
 
@@ -397,7 +394,7 @@ const tzLocal = {
             if (key === "control_method") {
                 const v = String(value).toLowerCase();
                 const raw = v === "pid" || v === "0" ? 0 : 1;
-                const payload = {0x2009: {value: raw, type: Zcl.DataType.ENUM8}};
+                const payload = {8201: {value: raw, type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
                 return {state: {control_method: raw === 0 ? "pid" : "hysteresis"}};
             }
@@ -405,7 +402,7 @@ const tzLocal = {
             // Adaptive function (0x100C)
             if (key === "adaptive_function") {
                 const enable = value === true || String(value).toUpperCase() === "ON";
-                const payload = {0x100c: {value: enable ? 0 : 1, type: Zcl.DataType.ENUM8}};
+                const payload = {4108: {value: enable ? 0 : 1, type: Zcl.DataType.ENUM8}};
                 await entity.write("hvacThermostat", payload, sunricherManufacturer);
                 return {state: {adaptive_function: enable}};
             }
@@ -1380,24 +1377,16 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["Panel Heater"],
         model: "4512776",
         vendor: "Namron",
-        description:
-            "Zigbee panelovn PRO 16A hvit (4512776) 400W/600W/800W/1000w/1500w",
+        description: "Zigbee panelovn PRO 16A hvit (4512776) 400W/600W/800W/1000w/1500w",
         whiteLabel: [
             {
                 vendor: "Namron",
                 model: "4512777",
-                description:
-                    "Zigbee panelovn PRO 16A sort (4512777) – 400W/600W/800W/1000w/1500w",
+                description: "Zigbee panelovn PRO 16A sort (4512777) – 400W/600W/800W/1000w/1500w",
             },
         ],
         ota: true,
-        fromZigbee: [
-            fz.thermostat,
-            fz.metering,
-            fz.electrical_measurement,
-            fzLocal.namron_panel_heater_pro,
-            fz.namron_hvac_user_interface,
-        ],
+        fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fzLocal.namron_panel_heater_pro, fz.namron_hvac_user_interface],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
@@ -1418,9 +1407,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSystemMode(["off", "heat", "auto"])
                 .withRunningState(["idle", "heat"]),
             e.binary("state", ea.ALL, "ON", "OFF").withDescription("Virtuell av/på (map til systemMode)"),
-            e
-                .binary("frost_mode", ea.ALL, true, false)
-                .withDescription("Frostsikring: 7°C, gjenoppretter tidligere modus og setpunkt"),
+            e.binary("frost_mode", ea.ALL, true, false).withDescription("Frostsikring: 7°C, gjenoppretter tidligere modus og setpunkt"),
             e
                 .numeric("hysteresis", ea.ALL)
                 .withUnit("°C")
@@ -1428,43 +1415,20 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(5.0)
                 .withValueStep(0.1)
                 .withDescription("Hysteresis (0.5–5.0°C) for on/off-kontroll"),
-            e
-                .binary("window_open_detection", ea.ALL, true, false)
-                .withDescription("Vindu-åpen deteksjon (on = aktiv)"),
-            e
-                .binary("window_open", ea.STATE, true, false)
-                .withDescription("Om ovnen rapporterer at vindu er åpent"),
-            e
-                .numeric("pid_kp", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(1)
-                .withValueStep(0.01)
-                .withDescription("PID Kp"),
-            e
-                .numeric("pid_ki", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(1)
-                .withValueStep(0.01)
-                .withDescription("PID Ki"),
-            e
-                .numeric("pid_kd", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(1)
-                .withValueStep(0.01)
-                .withDescription("PID Kd"),
+            e.binary("window_open_detection", ea.ALL, true, false).withDescription("Vindu-åpen deteksjon (on = aktiv)"),
+            e.binary("window_open", ea.STATE, true, false).withDescription("Om ovnen rapporterer at vindu er åpent"),
+            e.numeric("pid_kp", ea.ALL).withValueMin(0).withValueMax(1).withValueStep(0.01).withDescription("PID Kp"),
+            e.numeric("pid_ki", ea.ALL).withValueMin(0).withValueMax(1).withValueStep(0.01).withDescription("PID Ki"),
+            e.numeric("pid_kd", ea.ALL).withValueMin(0).withValueMax(1).withValueStep(0.01).withDescription("PID Kd"),
             e.enum("control_method", ea.ALL, ["pid", "hysteresis"]).withDescription("Control method (PID / hysterese)"),
-            e
-                .binary("adaptive_function", ea.ALL, true, false)
-                .withDescription("AS: Adaptive preheat-funksjon (på/av)"),
+            e.binary("adaptive_function", ea.ALL, true, false).withDescription("AS: Adaptive preheat-funksjon (på/av)"),
             e
                 .numeric("display_brightness", ea.STATE)
                 .withValueMin(1)
                 .withValueMax(7)
                 .withValueStep(1)
                 .withDescription("Display brightness (read-only, settes på ovnen)"),
-            e
-                .binary("display_auto_off", ea.ALL, true, false)
-                .withDescription("Display auto off etter inaktivitet"),
+            e.binary("display_auto_off", ea.ALL, true, false).withDescription("Display auto off etter inaktivitet"),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
