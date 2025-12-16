@@ -14,38 +14,18 @@ import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
-import {logger} from "../lib/logger";
-import { Console } from "node:console";
 
+// import {logger} from "../lib/logger";
+// import {Console} from "node:console";
 
-const NS = "zhc:heiman";
+const _NS = "zhc:heiman";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
 const defaultResponseOptions = {disableDefaultResponse: false};
 
-interface RadarSensorHeiman {
-    attributes: {
-        // biome-ignore lint/style/useNamingConvention: TODO
-        enable_indicator: number;
-        sensitivity: number;
-        // biome-ignore lint/style/useNamingConvention: TODO
-        enable_sub_region_isolation: number;
-        // biome-ignore lint/style/useNamingConvention: TODO
-        installation_method: number;
-        // biome-ignore lint/style/useNamingConvention: TODO
-        cell_mounted_table: Buffer;
-        // biome-ignore lint/style/useNamingConvention: TODO
-        wall_mounted_table: Buffer;
-        // biome-ignore lint/style/useNamingConvention: TODO
-        sub_region_isolation_table: Buffer;
-    };
-    commands: never;
-    commandResponses: never;
-}
-
-interface RadarSensorHeimanV2 {
+interface RadarSensorHeimanZcl {
     attributes: {
         enableIndicator: number;
         sensitivity: number;
@@ -58,7 +38,6 @@ interface RadarSensorHeimanV2 {
     commands: never;
     commandResponses: never;
 }
-
 
 interface HeimanPrivateCluster {
     attributes: {
@@ -119,7 +98,7 @@ const heimanExtend = {
             commandsResponse: {},
         }),
 
-        heimanClusterSpecial: () =>
+    heimanClusterSpecial: () =>
         m.deviceAddCustomCluster("heimanClusterSpecial", {
             ID: 0xfc90,
             manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
@@ -145,8 +124,7 @@ const heimanExtend = {
                 smokeSensorData: {ID: 0x0011, type: Zcl.DataType.ARRAY},
                 deviceCascadeState: {ID: 0x0012, type: Zcl.DataType.ENUM8},
                 sensorPrealarmState: {ID: 0x0013, type: Zcl.DataType.ENUM8},
-                
-                
+
                 // Light/Switch 0x1000~0x1FFF
                 indicatorLightControl: {ID: 0x1000, type: Zcl.DataType.BITMAP8},
                 indicatorLightNotDisturbStartTime: {ID: 0x1001, type: Zcl.DataType.UINT16},
@@ -161,7 +139,7 @@ const heimanExtend = {
             commandsResponse: {},
         }),
 
-        heimanClusterIasZone: () =>
+    heimanClusterIasZone: () =>
         m.deviceAddCustomCluster("ssIasZone", {
             ID: Zcl.Clusters.ssIasZone.ID,
             attributes: {},
@@ -192,18 +170,18 @@ const heimanExtend = {
                     const state = !!msg.data["enableIndicator"];
                     return {enable_indicator: state};
                 },
-            } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanV2, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanZcl, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["enable_indicator"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, RadarSensorHeimanV2>(clusterName, ["enableIndicator"], defaultResponseOptions);
+                    await entity.read<typeof clusterName, RadarSensorHeimanZcl>(clusterName, ["enableIndicator"], defaultResponseOptions);
                 },
                 convertSet: async (entity, key, value, meta) => {
                     // const state = (value as Record<string, unknown>) || {};
                     const state = value ? 1 : 0;
-                    await entity.write<typeof clusterName, RadarSensorHeimanV2>(clusterName, {enableIndicator: state}, defaultResponseOptions);
+                    await entity.write<typeof clusterName, RadarSensorHeimanZcl>(clusterName, {enableIndicator: state}, defaultResponseOptions);
                 },
             },
         ];
@@ -229,18 +207,22 @@ const heimanExtend = {
                     const state = !!msg.data["enableSubRegionIsolation"];
                     return {enable_sub_region_isolation: state};
                 },
-            } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanV2, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanZcl, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["enable_sub_region_isolation"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, RadarSensorHeimanV2>(clusterName, ["enableSubRegionIsolation"], defaultResponseOptions);
+                    await entity.read<typeof clusterName, RadarSensorHeimanZcl>(clusterName, ["enableSubRegionIsolation"], defaultResponseOptions);
                 },
                 convertSet: async (entity, key, value, meta) => {
                     // const state = (value as Record<string, unknown>) || {};
                     const state = value ? 1 : 0;
-                    await entity.write<typeof clusterName, RadarSensorHeimanV2>(clusterName, {enableSubRegionIsolation: state}, defaultResponseOptions);
+                    await entity.write<typeof clusterName, RadarSensorHeimanZcl>(
+                        clusterName,
+                        {enableSubRegionIsolation: state},
+                        defaultResponseOptions,
+                    );
                 },
             },
         ];
@@ -273,17 +255,17 @@ const heimanExtend = {
                     attrData = msg.data["sensitivity"];
                     return {sensitivity: attrData};
                 },
-            } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanV2, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanZcl, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["sensitivity"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, RadarSensorHeimanV2>(clusterName, ["sensitivity"], defaultResponseOptions);
+                    await entity.read<typeof clusterName, RadarSensorHeimanZcl>(clusterName, ["sensitivity"], defaultResponseOptions);
                 },
                 convertSet: async (entity, key, value, meta) => {
                     const state = Number(value);
-                    await entity.write<typeof clusterName, RadarSensorHeimanV2>(clusterName, {sensitivity: state}, defaultResponseOptions);
+                    await entity.write<typeof clusterName, RadarSensorHeimanZcl>(clusterName, {sensitivity: state}, defaultResponseOptions);
                 },
             },
         ];
@@ -298,10 +280,10 @@ const heimanExtend = {
         const clusterName = "heimanClusterRadar" as const;
         const exposes = utils.exposeEndpoints(
             e
-            .text("cell_mounted_table", ea.ALL)
-            .withDescription(
-                "Ceiling installation area coordinate table. Format: 'X1,X2,Y1,Y2,height'. Value range: -2000≤X1≤0, 0≤X2≤2000 -2500≤Y1≤0, 0≤Y2≤2500 2300≤height≤3000 Unit:mm",
-            ),
+                .text("cell_mounted_table", ea.ALL)
+                .withDescription(
+                    "Ceiling installation area coordinate table. Format: 'X1,X2,Y1,Y2,height'. Value range: -2000≤X1≤0, 0≤X2≤2000 -2500≤Y1≤0, 0≤Y2≤2500 2300≤height≤3000 Unit:mm",
+                ),
         );
         const fromZigbee = [
             {
@@ -324,13 +306,13 @@ const heimanExtend = {
                         result.cell_mounted_table = coordinates.join(",");
                     }
                 },
-            } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanV2, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanZcl, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["cell_mounted_table"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, RadarSensorHeimanV2>(clusterName, ["cellMountedTable"], defaultResponseOptions);
+                    await entity.read<typeof clusterName, RadarSensorHeimanZcl>(clusterName, ["cellMountedTable"], defaultResponseOptions);
                 },
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "cell_mounted_table" && value !== "") {
@@ -338,7 +320,7 @@ const heimanExtend = {
                         if (coordinates.length !== 5) {
                             throw new Error("cell_mounted_table must be a string with 5 comma-separated values (e.g., '-2000,2000,-2500,2500,2300')");
                         }
-        
+
                         // Range check
                         if (
                             coordinates[0] < -2000 ||
@@ -354,14 +336,14 @@ const heimanExtend = {
                         ) {
                             throw new Error("Values out of range for Cell Mounted Table.");
                         }
-        
+
                         const buffer = Buffer.alloc(10); // 10 bytes + 1 byte
                         buffer.writeInt16LE(coordinates[0], 0); // x1
                         buffer.writeInt16LE(coordinates[1], 2); // x2
                         buffer.writeInt16LE(coordinates[2], 4); // y1
                         buffer.writeInt16LE(coordinates[3], 6); // y2
                         buffer.writeInt16LE(coordinates[4], 8); // height
-                        await entity.write<typeof clusterName, RadarSensorHeimanV2>(clusterName, {cellMountedTable: buffer}, defaultResponseOptions);
+                        await entity.write<typeof clusterName, RadarSensorHeimanZcl>(clusterName, {cellMountedTable: buffer}, defaultResponseOptions);
                     }
                     // await entity.write(cluster, {[id]: {value: payloadValue, type}}, {manufacturerCode: 0x120b});
                 },
@@ -378,10 +360,10 @@ const heimanExtend = {
         const clusterName = "heimanClusterRadar" as const;
         const exposes = utils.exposeEndpoints(
             e
-            .text("wall_mounted_table", ea.ALL)
-            .withDescription(
-                "Wall-mounted installation area coordinate table. Format: 'X1,X2,Y2,height' Value range: -2000≤X1≤0, 0≤X2≤2000 200≤Y2≤4000 1500≤height≤1600  Unit:mm.",
-            ),
+                .text("wall_mounted_table", ea.ALL)
+                .withDescription(
+                    "Wall-mounted installation area coordinate table. Format: 'X1,X2,Y2,height' Value range: -2000≤X1≤0, 0≤X2≤2000 200≤Y2≤4000 1500≤height≤1600  Unit:mm.",
+                ),
         );
         const fromZigbee = [
             {
@@ -403,13 +385,13 @@ const heimanExtend = {
                         result.wall_mounted_table = coordinates.join(",");
                     }
                 },
-            } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanV2, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanZcl, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["wall_mounted_table"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, RadarSensorHeimanV2>(clusterName, ["cellMountedTable"], defaultResponseOptions);
+                    await entity.read<typeof clusterName, RadarSensorHeimanZcl>(clusterName, ["cellMountedTable"], defaultResponseOptions);
                 },
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "wall_mounted_table" && value !== "") {
@@ -417,7 +399,7 @@ const heimanExtend = {
                         if (coordinates.length !== 4) {
                             throw new Error("wall_mounted_table must be a string with 4 comma-separated values (e.g., '-2000,2000,4000,1600')");
                         }
-        
+
                         if (
                             coordinates[0] < -2000 ||
                             coordinates[0] > 0 || // X1
@@ -430,13 +412,13 @@ const heimanExtend = {
                         ) {
                             throw new Error("Values out of range for Wall Mounted Table.");
                         }
-        
+
                         const buffer = Buffer.alloc(8); // 8 bytes + 1 byte
                         buffer.writeInt16LE(coordinates[0], 0); // x1
                         buffer.writeInt16LE(coordinates[1], 2); // x2
                         buffer.writeInt16LE(coordinates[2], 4); // y2
                         buffer.writeInt16LE(coordinates[3], 6); // height
-                        await entity.write<typeof clusterName, RadarSensorHeimanV2>(clusterName, {wallMountedTable: buffer}, defaultResponseOptions);
+                        await entity.write<typeof clusterName, RadarSensorHeimanZcl>(clusterName, {wallMountedTable: buffer}, defaultResponseOptions);
                     }
                 },
             },
@@ -479,13 +461,13 @@ const heimanExtend = {
                         result.sub_region_isolation_table = coordinates.join(",");
                     }
                 },
-            } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanV2, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanZcl, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["sub_region_isolation_table"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, RadarSensorHeimanV2>(clusterName, ["subRegionIsolationTable"], defaultResponseOptions);
+                    await entity.read<typeof clusterName, RadarSensorHeimanZcl>(clusterName, ["subRegionIsolationTable"], defaultResponseOptions);
                 },
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "sub_region_isolation_table" && value !== "") {
@@ -495,7 +477,7 @@ const heimanExtend = {
                                 "sub_region_isolation_table must be a string with 6 comma-separated values (e.g., '-2000,2000,-2500,2500,2300,3000')",
                             );
                         }
-        
+
                         if (
                             coordinates[0] < -2000 ||
                             coordinates[0] > 2000 || // X1
@@ -504,7 +486,7 @@ const heimanExtend = {
                         ) {
                             throw new Error("Values out of range for Sub-Region Isolation Table.");
                         }
-        
+
                         const buffer = Buffer.alloc(12); // 12 bytes + 1 byte
                         buffer.writeInt16LE(coordinates[0], 0); // x1
                         buffer.writeInt16LE(coordinates[1], 2); // x2
@@ -512,7 +494,11 @@ const heimanExtend = {
                         buffer.writeInt16LE(coordinates[3], 6); // y2
                         buffer.writeInt16LE(coordinates[4], 8); // z1
                         buffer.writeInt16LE(coordinates[5], 10); // z2
-                        await entity.write<typeof clusterName, RadarSensorHeimanV2>(clusterName, {subRegionIsolationTable: buffer}, defaultResponseOptions);
+                        await entity.write<typeof clusterName, RadarSensorHeimanZcl>(
+                            clusterName,
+                            {subRegionIsolationTable: buffer},
+                            defaultResponseOptions,
+                        );
                     }
                 },
             },
@@ -562,9 +548,7 @@ const heimanExtend = {
     },
     heimanClusterLegacyIlluminanceExtend: (): ModernExtend => {
         const clusterName = "msIlluminanceMeasurement" as const;
-        const exposes = utils.exposeEndpoints(
-            e.numeric("ambient_light", ea.STATE_GET).withUnit("Lx").withDescription("ambient illuminance in lux"),
-        );
+        const exposes = utils.exposeEndpoints(e.numeric("ambient_light", ea.STATE_GET).withUnit("Lx").withDescription("ambient illuminance in lux"));
         const fromZigbee = [
             {
                 cluster: clusterName,
@@ -584,7 +568,7 @@ const heimanExtend = {
             {
                 key: ["ambient_light"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, RadarSensorHeimanV2>(clusterName, ["measuredValue"], defaultResponseOptions);
+                    await entity.read<typeof clusterName, RadarSensorHeimanZcl>(clusterName, ["measuredValue"], defaultResponseOptions);
                 },
             },
         ];
@@ -598,14 +582,12 @@ const heimanExtend = {
     heimanClusterSensorFaultState: (): ModernExtend => {
         const clusterName = "heimanClusterSpecial" as const;
         const faultStateBitMap = {
-            0: "fault",                         // bit0：传感器故障（不区分类型）
-            1: "sensor open circuit fault",     // bit1：传感器开路故障
-            2: "sensor short circuit fault",    // bit2：传感器短路故障
-            3: "sensor pollution fault"         // bit3：传感器污染故障
+            0: "fault", // bit0：传感器故障（不区分类型）
+            1: "sensor open circuit fault", // bit1：传感器开路故障
+            2: "sensor short circuit fault", // bit2：传感器短路故障
+            3: "sensor pollution fault", // bit3：传感器污染故障
         };
-        const exposes = utils.exposeEndpoints(
-            e.text("fault_state", ea.STATE_GET).withDescription("Device fault status (normal or fault types).")
-        );
+        const exposes = utils.exposeEndpoints(e.text("fault_state", ea.STATE_GET).withDescription("Device fault status (normal or fault types)."));
         const fromZigbee = [
             {
                 cluster: clusterName,
@@ -616,7 +598,7 @@ const heimanExtend = {
                     if (msg.data.sensorFaultState === undefined) {
                         return {fault_state: "normal"};
                     }
-                    
+
                     attrData = msg.data["sensorFaultState"];
                     attrValue = Number(attrData);
                     const activeFaults: string[] = [];
@@ -628,7 +610,7 @@ const heimanExtend = {
                         }
                     }
                     const faultResult = activeFaults.length > 0 ? activeFaults.join(" | ") : "normal";
-                    return { fault_state: faultResult };                 
+                    return {fault_state: faultResult};
                 },
             } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
         ];
@@ -636,11 +618,7 @@ const heimanExtend = {
             {
                 key: ["fault_state"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, HeimanPrivateCluster>(
-                        clusterName,
-                        ["sensorFaultState"],
-                        defaultResponseOptions
-                    );
+                    await entity.read<typeof clusterName, HeimanPrivateCluster>(clusterName, ["sensorFaultState"], defaultResponseOptions);
                 },
             },
         ];
@@ -652,16 +630,14 @@ const heimanExtend = {
         };
     },
     heimanClusterDeviceMuteState: (): ModernExtend => {
-        const clusterName = "heimanClusterSpecial" as const;   
+        const clusterName = "heimanClusterSpecial" as const;
         const muteStateBitMap = {
-            0: "mute",              // bit0：静音（不区分静音类型）
-            1: "alarm mute",        // bit1：报警静音
-            2: "fault mute",        // bit2：故障静音
-            3: "low battery mute"   // bit3：低压静音
+            0: "mute", // bit0：静音（不区分静音类型）
+            1: "alarm mute", // bit1：报警静音
+            2: "fault mute", // bit2：故障静音
+            3: "low battery mute", // bit3：低压静音
         };
-        const exposes = utils.exposeEndpoints(
-            e.text("Muted", ea.STATE_GET).withDescription("Device mute status (normal or mute types).")
-        );
+        const exposes = utils.exposeEndpoints(e.text("Muted", ea.STATE_GET).withDescription("Device mute status (normal or mute types)."));
         const fromZigbee = [
             {
                 cluster: clusterName,
@@ -686,7 +662,7 @@ const heimanExtend = {
                         }
                     }
                     const muteResult = activeMutes.length > 0 ? activeMutes.join(" | ") : "normal";
-                    return { Muted: muteResult };                    
+                    return {Muted: muteResult};
                 },
             } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
         ];
@@ -694,11 +670,7 @@ const heimanExtend = {
             {
                 key: ["Muted"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, HeimanPrivateCluster>(
-                        clusterName,
-                        ["deviceMuteState"],
-                        defaultResponseOptions
-                    );
+                    await entity.read<typeof clusterName, HeimanPrivateCluster>(clusterName, ["deviceMuteState"], defaultResponseOptions);
                 },
             },
         ];
@@ -710,74 +682,84 @@ const heimanExtend = {
         };
     },
     heimanClusterIndicatorLight: (): ModernExtend => {
-            const clusterName = "heimanClusterSpecial" as const;
-            const exposes = utils.exposeEndpoints(e.binary("enable_indicator", ea.ALL, true, false).withDescription("active green indicator"));
-            const fromZigbee = [
-                {
-                    cluster: clusterName,
-                    type: ["attributeReport", "readResponse"],
-                    convert: (model, msg, publish, options, meta) => {
-                        if (msg.data.indicatorLightLevelControlOf1 === undefined) {
-                            return {indicatorLightLevelControlOf1: 0};
-                        }
-    
-                        const state = !!msg.data["indicatorLightLevelControlOf1"];
-                        return {enable_indicator: state};
-                    },
-                } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
-            ];
-            const toZigbee: Tz.Converter[] = [
-                {
-                    key: ["enable_indicator"],
-                    convertGet: async (entity, key, meta) => {
-                        await entity.read<typeof clusterName, HeimanPrivateCluster>(clusterName, ["indicatorLightLevelControlOf1"], defaultResponseOptions);
-                    },
-                    convertSet: async (entity, key, value, meta) => {
-                        // const state = (value as Record<string, unknown>) || {};
-                        const state = value ? 1 : 0;
-                        await entity.write<typeof clusterName, HeimanPrivateCluster>(clusterName, {indicatorLightLevelControlOf1: state}, defaultResponseOptions);
-                    },
+        const clusterName = "heimanClusterSpecial" as const;
+        const exposes = utils.exposeEndpoints(e.binary("enable_indicator", ea.ALL, true, false).withDescription("active green indicator"));
+        const fromZigbee = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.indicatorLightLevelControlOf1 === undefined) {
+                        return {indicatorLightLevelControlOf1: 0};
+                    }
+
+                    const state = !!msg.data["indicatorLightLevelControlOf1"];
+                    return {enable_indicator: state};
                 },
-            ];
-            return {
-                exposes: exposes,
-                fromZigbee,
-                toZigbee,
-                isModernExtend: true,
-            };
-        },
+            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["enable_indicator"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<typeof clusterName, HeimanPrivateCluster>(
+                        clusterName,
+                        ["indicatorLightLevelControlOf1"],
+                        defaultResponseOptions,
+                    );
+                },
+                convertSet: async (entity, key, value, meta) => {
+                    // const state = (value as Record<string, unknown>) || {};
+                    const state = value ? 1 : 0;
+                    await entity.write<typeof clusterName, HeimanPrivateCluster>(
+                        clusterName,
+                        {indicatorLightLevelControlOf1: state},
+                        defaultResponseOptions,
+                    );
+                },
+            },
+        ];
+        return {
+            exposes: exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
     heimanClusterSensorInterconnectable: (): ModernExtend => {
-            const clusterName = "heimanClusterSpecial" as const;
-            const exposes = utils.exposeEndpoints(e.binary("interconnectable", ea.STATE_GET, true, false).withDescription("used for interconnection automation."));
-            const fromZigbee = [
-                {
-                    cluster: clusterName,
-                    type: ["attributeReport", "readResponse"],
-                    convert: (model, msg, publish, options, meta) => {
-                        if (msg.data.interconnectable === undefined) {
-                            return {interconnectable: 0};
-                        }
-    
-                        const state = !!msg.data["interconnectable"];
-                        return {interconnectable: state};
-                    },
-                } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
-            ];
-            const toZigbee: Tz.Converter[] = [
-                {
-                    key: ["interconnectable"],
-                    convertGet: async (entity, key, meta) => {
-                        await entity.read<typeof clusterName, HeimanPrivateCluster>(clusterName, ["interconnectable"], defaultResponseOptions);
-                    },
+        const clusterName = "heimanClusterSpecial" as const;
+        const exposes = utils.exposeEndpoints(
+            e.binary("interconnectable", ea.STATE_GET, true, false).withDescription("used for interconnection automation."),
+        );
+        const fromZigbee = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.interconnectable === undefined) {
+                        return {interconnectable: 0};
+                    }
+
+                    const state = !!msg.data["interconnectable"];
+                    return {interconnectable: state};
                 },
-            ];
-            return {
-                exposes: exposes,
-                fromZigbee,
-                toZigbee,
-                isModernExtend: true,
-            };
-        },
+            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["interconnectable"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<typeof clusterName, HeimanPrivateCluster>(clusterName, ["interconnectable"], defaultResponseOptions);
+                },
+            },
+        ];
+        return {
+            exposes: exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
     iasZoneInitiateTestMode: (): ModernExtend => {
         const exposes = utils.exposeEndpoints(e.enum("trigger_selftest", ea.SET, ["test"]).withDescription("Trigger smoke alarm self-check test."));
         const toZigbee: Tz.Converter[] = [
@@ -873,8 +855,7 @@ const heimanExtend = {
     },
     iasWarningDeviceMute: (): ModernExtend => {
         const exposes = utils.exposeEndpoints(
-            e.enum("temporary_mute", ea.SET, ["mute"])
-                .withDescription("temporarily mute smoke alarm but please ensure there is no real fire."),
+            e.enum("temporary_mute", ea.SET, ["mute"]).withDescription("temporarily mute smoke alarm but please ensure there is no real fire."),
         );
         const toZigbee: Tz.Converter[] = [
             {
@@ -914,7 +895,6 @@ const heimanExtend = {
         };
     },
 };
-
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -1776,32 +1756,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Heiman",
         description: "Fall Detection Sensor",
         extend: [
-            m.deviceAddCustomCluster("RadarSensorHeiman", {
-                ID: 0xfc8b,
-                manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
-                attributes: {
-                    enable_indicator: {ID: 0xf001, type: Zcl.DataType.UINT8}, // 0: off, 1: enable
-                    sensitivity: {ID: 0xf002, type: Zcl.DataType.UINT8}, // 0: Off, 1: Low sensitivity, 2: High sensitivity
-                    enable_sub_region_isolation: {ID: 0xf006, type: Zcl.DataType.UINT8}, // 0: Disable, 1: Enable
-                    installation_method: {ID: 0xf007, type: Zcl.DataType.UINT8}, // 0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45°
-                    cell_mounted_table: {
-                        ID: 0xf008,
-                        type: Zcl.DataType.OCTET_STR,
-                    },
-                    wall_mounted_table: {
-                        ID: 0xf009,
-                        type: Zcl.DataType.OCTET_STR,
-                    },
-                    sub_region_isolation_table: {
-                        ID: 0xf00a,
-                        type: Zcl.DataType.OCTET_STR,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
-
-            m.occupancy(),
+            // m.occupancy(),
             heimanExtend.heimanClusterRadar(),
             heimanExtend.heimanClusterRadarActiveIndicatorExtend(),
             heimanExtend.heimanClusterRadarSubRegionEnableExtend(),
@@ -1809,7 +1764,7 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.heimanClusterRadarCellMountedTableExtend(),
             heimanExtend.heimanClusterRadarWallMountedTableExtend(),
             heimanExtend.heimanClusterRadarSubRegionIsolationTableExtend(),
-            
+
             m.enumLookup({
                 name: "sensitivity",
                 lookup: {Off: 0, LowSensitivity: 1, HighSensitivity: 2},
@@ -1820,7 +1775,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "installation_method",
-                lookup: {WallMounted: 0, Ceiling: 1, Rotate_Ceiling_45: 2},
+                lookup: {WallMounted: 0, Ceiling: 1, RotateCeiling45: 2},
                 cluster: "radarSensorHeiman",
                 attribute: {ID: 0xf007, type: Zcl.DataType.UINT8},
                 description: "0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45°",
@@ -1835,10 +1790,10 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msOccupancySensing", "RadarSensorHeiman"]);
             await reporting.occupancy(endpoint);
-            await endpoint.read<"RadarSensorHeiman", RadarSensorHeiman>("RadarSensorHeiman", [
-                "cell_mounted_table",
-                "wall_mounted_table",
-                "sub_region_isolation_table",
+            await endpoint.read<"RadarSensorHeiman", RadarSensorHeimanZcl>("RadarSensorHeiman", [
+                "cellMountedTable",
+                "wallMountedTable",
+                "subRegionIsolationTable",
             ]);
         },
         endpoint: (device) => ({default: 1}),
