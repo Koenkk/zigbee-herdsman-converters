@@ -22271,4 +22271,235 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-];
+{
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rlytpmij"]),
+        model: "ZHT-S01",
+        vendor: "Moes",
+        description: 'Zigbee wall thermostat',
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                timeStart: "1970",
+            }),
+        ],
+            exposes: [
+                e
+                    .climate()
+                    .withSystemMode(["off", "heat"], ea.STATE)
+                    .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                    .withLocalTemperature(ea.STATE)
+            ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
+                [111, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [117, "local_temperature", tuya.valueConverter.divideBy10],
+            ],
+        }
+    }
+
+const exposesLocal = {
+    hour: (name) => exposes.numeric(name, ea.STATE_SET).withValueMin(0).withValueMax(23),
+    minute: (name) => exposes.numeric(name, ea.STATE_SET).withValueMin(0).withValueMax(59),
+    program_temperature: (name) => exposes.numeric(name, ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(35),
+};
+
+const weeklyProgramExpose = exposes.composite('weekly_programming', 'weekly_programming', ea.STATE_SET)
+    .withDescription('Time of day and setpoint in weekly programming mode');
+
+for (let i = 1; i <= 6; i++) {
+    weeklyProgramExpose
+        .withFeature(exposesLocal.hour(`weekdays_program_${i}_hour`))
+        .withFeature(exposesLocal.minute(`weekdays_program_${i}_minute`))
+        .withFeature(exposesLocal.program_temperature(`weekdays_program_${i}_temperature`));
+}
+
+for (let i = 1; i <= 2; i++) {
+    weeklyProgramExpose
+        .withFeature(exposesLocal.hour(`weekend_program_${i}_hour`))
+        .withFeature(exposesLocal.minute(`weekend_program_${i}_minute`))
+        .withFeature(exposesLocal.program_temperature(`weekend_program_${i}_temperature`));
+}
+
+const decodeSchedule = (rawValue) => {
+    const arr = Array.isArray(rawValue) ? rawValue : Array.from(rawValue);
+    const result = {};
+
+    for (let i = 0; i < 6; i++) {
+        result[`weekdays_program_${i+1}_hour`] = arr[i*3 + 0];
+        result[`weekdays_program_${i+1}_minute`] = arr[i*3 + 1];
+        result[`weekdays_program_${i+1}_temperature`] = arr[i*3 + 2];
+    }
+
+    for (let i = 0; i < 2; i++) {
+        result[`weekend_program_${i+1}_hour`] = arr[18 + i*3 + 0];
+        result[`weekend_program_${i+1}_minute`] = arr[18 + i*3 + 1];
+        result[`weekend_program_${i+1}_temperature`] = arr[18 + i*3 + 2];
+    }
+
+    return result;
+};
+
+const encodeSchedule = (obj) => {
+    const arr = [];
+
+    for (let i = 1; i <= 6; i++) {
+        arr.push(obj[`weekdays_program_${i}_hour`] ?? 0);
+        arr.push(obj[`weekdays_program_${i}_minute`] ?? 0);
+        arr.push(obj[`weekdays_program_${i}_temperature`] ?? 16);
+    }
+
+    for (let i = 1; i <= 2; i++) {
+        arr.push(obj[`weekend_program_${i}_hour`] ?? 0);
+        arr.push(obj[`weekend_program_${i}_minute`] ?? 0);
+        arr.push(obj[`weekend_program_${i}_temperature`] ?? 16);
+    }
+
+    return arr;
+};
+
+export default {
+    fingerprint: [
+        {
+            modelID: 'TS0601',
+            manufacturerName: '_TZE284_rlytpmij',
+        },
+    ],
+    model: 'TS0601 Moes ZHT-S01',
+    vendor: 'Moes',
+    description: 'Moes ZHT-S01 Thermostat (custom integration)',
+
+    extend: [
+        tuya.modernExtend.tuyaBase({
+            dp: true,
+        }),
+    ],
+
+    exposes: [
+		weeklyProgramExpose,
+	
+        e.child_lock(),
+
+		e.enum('system_mode', ea.STATE_SET, ['off', 'heat'])
+			.withDescription('Thermostat system mode (device enabled/disabled)'),
+			
+        e.enum('preset', ea.STATE_SET, ['manual', 'auto', 'eco'])
+            .withDescription('Thermostat preset mode'),
+
+        e.numeric('eco_temperature', ea.STATE_SET)
+            .withUnit('°C')
+            .withDescription('Eco mode temperature'),
+
+        e.numeric('deadzone_temperature', ea.STATE_SET)
+            .withUnit('°C')
+            .withValueMin(0.5).withValueMax(5).withValueStep(0.5)
+            .withDescription('Temperature deadzone'),
+
+		e.enum('backlight_brightness', ea.STATE_SET, ['Off','20%','50%','100%'])
+			.withDescription('Backlight brightness'),
+
+        e.numeric('max_temperature_limit', ea.STATE_SET)
+            .withUnit('°C')
+            .withDescription('Floor maximal temperature limit')
+            .withValueMin(20).withValueMax(45),
+
+        e.numeric('min_temperature_limit', ea.STATE_SET)
+            .withUnit('°C')
+            .withDescription('Floor minimal temperature limit')
+            .withValueMin(1).withValueMax(10),
+
+        e.enum('sensor', ea.STATE_SET, ['IN', 'OUT', 'BOTH'])
+            .withDescription('Temperature sensor selection'),
+
+        e.enum('temperature_scale', ea.STATE_SET, ['celsius', 'fahrenheit'])
+			.withDescription('Temperature scale selection (Do not switch to Fahrenheit - converter is prepared only for Celsius data points)'),
+			
+		e.binary('antifreeze', ea.STATE_SET, 'off', 'on')
+			.withDescription('Antifreeze function'),
+
+        e.climate()
+            .withSystemMode(['off', 'heat'], ea.STATE)
+            .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
+            .withLocalTemperature(ea.STATE)
+            .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+            .withPreset(['manual', 'auto', 'eco'], ea.STATE)
+            .withRunningState(['idle', 'heat'], ea.STATE),
+
+        e.numeric('floor_temperature', ea.STATE)
+            .withUnit('°C')
+			.withDescription('Temperature from floor sensor'),
+
+		e.enum('program_mode', ea.STATE_SET, ['off', 'single_break', 'weekend', 'no_day_off'])
+			.withDescription('Program mode type selection'),
+
+//      e.enum('fault_alarm', ea.STATE, ['OK', 'FAULT'])
+//          .withDescription('Fault alarm indicator'),
+    ],
+
+    meta: {
+        tuyaDatapoints: [
+            [1, 'system_mode', {
+                from: (value) => (value === true ? 'heat' : 'off'),
+                to:   (value) => value === 'heat',
+            }],
+            [2, 'preset', tuya.valueConverterBasic.lookup({
+                auto: tuya.enum(0),
+                manual: tuya.enum(1),
+                eco: tuya.enum(2),
+            })],
+			[3, 'backlight_brightness', tuya.valueConverterBasic.lookup({
+				'Off': tuya.enum(0),
+				'20%': tuya.enum(1),
+				'50%': tuya.enum(2),
+				'100%': tuya.enum(3),
+			})],			
+            [19, 'local_temperature_calibration', tuya.valueConverter.localTemperatureCalibration],
+
+//          [20, 'fault_alarm', tuya.valueConverterBasic.lookup({OK: 0, FAULT: 1})],
+//          [28, 'factory_reset', tuya.valueConverter.raw],
+
+            [32, 'sensor', tuya.valueConverterBasic.lookup({
+                IN: tuya.enum(0),
+                OUT: tuya.enum(1),
+                BOTH: tuya.enum(2),
+            })],
+            [39, 'child_lock', tuya.valueConverter.lockUnlock],
+            [46, 'temperature_scale', tuya.valueConverterBasic.lookup({
+                celsius: tuya.enum(0),
+                fahrenheit: tuya.enum(1),
+            })],
+			[47, "running_state", tuya.valueConverterBasic.lookup({
+                heat: tuya.enum(0),
+                idle: tuya.enum(1),
+            })],
+
+            [101, 'floor_temperature', tuya.valueConverter.divideBy10],
+			
+            [103, 'antifreeze', {
+                from: (value) => (value === true ? 'on' : 'off'),
+                to:   (value) => value === 'on',
+            }],
+
+			[104, 'program_mode', tuya.valueConverterBasic.lookup({
+				off: tuya.enum(0),
+				single_break: tuya.enum(1),
+				weekend: tuya.enum(2),
+				no_day_off: tuya.enum(3),
+			})],
+
+            [106, 'deadzone_temperature', tuya.valueConverter.divideBy10],
+            [107, 'eco_temperature', tuya.valueConverter.raw],
+
+            [108, 'weekly_programming', {
+                from: (value, meta, options) => decodeSchedule(value),
+                to: (entityValue, meta, options) => encodeSchedule(entityValue),
+            }],
+
+            [111, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
+            [114, 'max_temperature_limit', tuya.valueConverter.divideBy10],
+            [116, 'min_temperature_limit', tuya.valueConverter.divideBy10],
+
+            [117, 'local_temperature', tuya.valueConverter.divideBy10],
+        ],
+    },
+};
