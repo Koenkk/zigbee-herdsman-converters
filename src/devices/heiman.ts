@@ -18,8 +18,6 @@ import * as utils from "../lib/utils";
 // import {logger} from "../lib/logger";
 // import {Console} from "node:console";
 
-const _NS = "zhc:heiman";
-
 const e = exposes.presets;
 const ea = exposes.access;
 
