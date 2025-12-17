@@ -3751,7 +3751,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929002966501"],
+        zigbeeModel: ["929002966501", "929002966502"],
         model: "929002966501",
         vendor: "Philips",
         description: "Hue White and Color Ambiance Surimu rectangle panel",
