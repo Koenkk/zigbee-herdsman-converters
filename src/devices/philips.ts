@@ -162,6 +162,13 @@ const extendLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["LWA036"],
+        model: "929003856401",
+        vendor: "Philips",
+        description: "Hue White 75W A19- E26 smart bulb (1100lm)",
+        extend: [philips.m.light()],
+    },
+    {
         zigbeeModel: ["LCX028"],
         model: "929004581901",
         vendor: "Philips",
