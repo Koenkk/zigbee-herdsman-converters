@@ -1,5 +1,5 @@
-import type {DefinitionWithExtend} from "../lib/types";
 import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -7,6 +7,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Roller Shutter with RU motor",
         vendor: "Bubendorff",
         description: "Bubendorff Roller Shutter with RU motor",
-        extend: [m.windowCovering({"controls":["lift","tilt"]})]
+        extend: [m.windowCovering({controls: ["lift", "tilt"]})],
     },
 ];
