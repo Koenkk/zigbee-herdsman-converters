@@ -726,7 +726,7 @@ const heimanExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data.interconnectable === undefined) {
-                        return
+                        return;
                     }
 
                     const state = !!msg.data["interconnectable"];
