@@ -22275,14 +22275,12 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "Arteco", manufacturerName: "A89G12C"}],
         model: "ZS-SF00",
         vendor: "Arteco",
-        description: "Soil Fertility Sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        description: "Soil fertility sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
             e.enum("soil_fertility_warning", ea.STATE, ["none", "alarm"]).withDescription("Soil fertility warning"),
-            e.numeric("battery_value", ea.STATE).withUnit("%").withValueMin(0).withValueMax(100).withDescription("battery value in %"),
+            e.battery(),
             e.soil_moisture(),
             e
                 .numeric("soil_fertility", ea.STATE)
@@ -22317,7 +22315,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [3, "soil_moisture", tuya.valueConverter.raw],
                 [5, "temperature", tuya.valueConverter.divideBy10],
-                [14, "battery_value", tuya.valueConverter.raw],
+                [14, "battery", tuya.valueConverter.raw],
                 [101, "humidity", tuya.valueConverter.raw],
                 [102, "illuminance", tuya.valueConverter.raw],
                 [103, "soil_sampling", tuya.valueConverter.raw],
