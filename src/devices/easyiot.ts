@@ -1,4 +1,4 @@
-import * as iconv from "iconv-lite";
+import iconv from "iconv-lite";
 
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
