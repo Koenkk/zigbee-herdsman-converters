@@ -1289,10 +1289,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "CCTFR6700", manufacturerName: "Schneider Electric"}],
+        fingerprint: [
+            {modelID: "CCTFR6700", manufacturerName: "Schneider Electric"},
+            {modelID: "CCTFR6710", manufacturerName: "Schneider Electric"},
+        ],
         model: "CCTFR6700",
         vendor: "Schneider Electric",
         description: "Heating thermostat",
+        whiteLabel: [{model: "CCTFR6710", fingerprint: [{modelID: "CCTFR6710"}]}],
         fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode],
         toZigbee: [
             tz.schneider_temperature_measured_value,
