@@ -6590,6 +6590,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_ejh6owwz",
             "_TZE200_ba69l9ol",
             "_TZE200_68nvbi09",
+            "_TZE200_vexa5o82",
         ]),
         model: "TS0601_cover_3",
         vendor: "Tuya",
@@ -6609,6 +6610,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Zemismart", "ZM25EL", "Cover motor", ["_TZE200_pw7mji0l"]),
             tuya.whitelabel("Zemismart", "ZM85EL-2Z", "Roman Rod I type U curtains track", ["_TZE200_cf1sl3tj", "_TZE200_nw1r9hp6"]),
             tuya.whitelabel("Hiladuo", "B09M3R35GC", "Motorized roller shade", ["_TZE200_9p5xmj5r"]),
+            tuya.whitelabel("Tuya", "MYQ-RM25-1.3/25-BZ", "Tubular roller blind motor", ["_TZE200_vexa5o82"]),
         ],
         meta: {
             // All datapoints go in here
