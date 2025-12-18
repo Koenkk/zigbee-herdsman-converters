@@ -1289,10 +1289,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "CCTFR6700", manufacturerName: "Schneider Electric"}],
+        fingerprint: [
+            {modelID: "CCTFR6700", manufacturerName: "Schneider Electric"},
+            {modelID: "CCTFR6710", manufacturerName: "Schneider Electric"},
+        ],
         model: "CCTFR6700",
         vendor: "Schneider Electric",
         description: "Heating thermostat",
+        whiteLabel: [{model: "CCTFR6710", fingerprint: [{modelID: "CCTFR6710"}]}],
         fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode],
         toZigbee: [
             tz.schneider_temperature_measured_value,
@@ -1308,44 +1312,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.power(),
             e.energy(),
             e.enum("schneider_pilot_mode", ea.ALL, ["contactor", "pilot"]).withDescription("Controls piloting mode"),
-            e
-                .climate()
-                .withSetpoint("occupied_heating_setpoint", 4, 30, 0.5)
-                .withLocalTemperature()
-                .withSystemMode(["off", "auto", "heat"])
-                .withPiHeatingDemand(),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat"]);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
-            await reporting.thermostatPIHeatingDemand(endpoint1);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["seMetering"]);
-            await reporting.instantaneousDemand(endpoint2, {min: 0, max: 60, change: 1});
-            await reporting.currentSummDelivered(endpoint2, {min: 0, max: 60, change: 1});
-        },
-    },
-    {
-        fingerprint: [{modelID: "CCTFR6710", manufacturerName: "Schneider Electric"}],
-        model: "CCTFR6710",
-        vendor: "Schneider Electric",
-        description: "Heating thermostat",
-        fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode],
-        toZigbee: [
-            tz.schneider_temperature_measured_value,
-            tz.thermostat_system_mode,
-            tz.thermostat_running_state,
-            tz.thermostat_local_temperature,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_control_sequence_of_operation,
-            tz.schneider_pilot_mode,
-            tz.schneider_temperature_measured_value,
-        ],
-        exposes: [
-            e.power(),
-            e.energy(),
-            e.enum("schneider_pilot_mode", ea.ALL, ["pilot"]).withDescription("Controls piloting mode"),
             e
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 4, 30, 0.5)
