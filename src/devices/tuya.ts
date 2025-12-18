@@ -5435,17 +5435,17 @@ Ensure all 12 segments are defined and separated by spaces.`,
         vendor: "Tuya",
         description: "3-Gang switch with backlight",
         extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.modernExtend.tuyaOnOff({
-                powerOnBehavior2: true,
-                indicatorMode: true,
+                powerOnBehavior2: (m) => m !== "_TZ3000_nwidmc4n",
+                indicatorMode: (m) => m !== "_TZ3000_nwidmc4n",
                 backlightModeOffOn: true,
                 endpoints: ["l1", "l2", "l3"],
+                powerOutageMemory: (m) => m === "_TZ3000_nwidmc4n",
+                switchType: (m) => m === "_TZ3000_nwidmc4n",
             }),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3};
-        },
-        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -5457,6 +5457,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
             tuya.whitelabel("Zemismart", "ZM-L03E-Z", "3 gang switch with neutral", ["_TZ3000_empogkya", "_TZ3000_lsunm46z"]),
             tuya.whitelabel("Zemismart", "KES-606US-L3", "3 gang switch with neutral", ["_TZ3000_uilitwsy"]),
             tuya.whitelabel("AVATTO", "ZWOT16-W2", "2 gang switch and 1 socket", ["_TZ3000_66fekqhh"]),
+            tuya.whitelabel("AVATTO", "ZBTS60-03", "3 gang switch module with backlight", ["_TZ3000_nwidmc4n"]),
             tuya.whitelabel("Tuya", "M10Z", "2 gang switch with 20A power socket", ["_TZ3000_lubfc1t5"]),
             tuya.whitelabel("Zemismart", "ZMO-606-S2", "Smart 2 gangs switch with outlet", ["_TZ3000_aknpkt02"]),
         ],
@@ -5651,8 +5652,18 @@ Ensure all 12 segments are defined and separated by spaces.`,
             {vendor: "OXT", model: "SWTZ21"},
             {vendor: "Moes", model: "ZM-104-M"},
             tuya.whitelabel("AVATTO", "ZWSM16-1-Zigbee", "1 gang switch module", ["_TZ3000_4rbqgcuv"]),
+            tuya.whitelabel("AVATTO", "ZBTS60-01", "1 gang switch module with backlight", ["_TZ3000_xfxpoxe0"]),
         ],
-        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true, indicatorMode: true})],
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                onOffCountdown: (m) => m !== "_TZ3000_xfxpoxe0",
+                indicatorMode: (m) => m !== "_TZ3000_xfxpoxe0",
+                powerOutageMemory: (m) => m === "_TZ3000_xfxpoxe0",
+                backlightModeOffOn: (m) => m === "_TZ3000_xfxpoxe0",
+            }),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -9302,22 +9313,22 @@ Ensure all 12 segments are defined and separated by spaces.`,
         vendor: "Tuya",
         description: "Smart light switch - 4 gang with neutral wire",
         extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
             tuya.modernExtend.tuyaOnOff({
-                powerOnBehavior2: true,
+                powerOnBehavior2: (m) => m !== "_TZ3000_r9e2w7dn",
                 backlightModeOffOn: true,
                 endpoints: ["l1", "l2", "l3", "l4"],
+                powerOutageMemory: (m) => m === "_TZ3000_r9e2w7dn",
+                switchType: (m) => m === "_TZ3000_r9e2w7dn",
             }),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3, l4: 4};
-        },
         whiteLabel: [
             tuya.whitelabel("Tuya", "DS-111", "Smart light switch - 4 gang with neutral wire", ["_TZ3000_mdj7kra9"]),
             tuya.whitelabel("MHCOZY", "TYWB 4ch-RF", "4 channel relay", ["_TZ3000_u3oupgdy", "_TZ3000_imaccztn"]),
             tuya.whitelabel("AVATTO", "TS0004_1", "Smart light switch - 4 gang with neutral wire", ["_TZ3000_nivavasg", "_TZ3000_gexniqbq"]),
             tuya.whitelabel("Nova Digital", "SA-4", "Safira smart light switch - 4 gang", ["_TZ3000_iymfxdis"]),
+            tuya.whitelabel("AVATTO", "ZBTS60-04", "4 gang switch module with backlight", ["_TZ3000_r9e2w7dn"]),
         ],
-        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
