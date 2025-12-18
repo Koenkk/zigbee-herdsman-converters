@@ -4855,7 +4855,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dzuqwsyg", "_TZE204_dzuqwsyg"]),
         model: "BAC-002",
         vendor: "Tuya",
-        description: "FCU thermostat with unified schedule text (final full version)",
+        description: "FCU thermostat temperature controller",
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
 
         options: [
@@ -5024,10 +5024,8 @@ Ensure all 12 segments are defined and separated by spaces.`,
                 ],
             ],
         },
-
         whiteLabel: [tuya.whitelabel("Tuya", "BAC-002-ALZB", "FCU thermostat temperature controller", ["_TZE200_dzuqwsyg"])],
     },
-
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_qq9mpfhw"]),
         model: "TS0601_water_sensor",
