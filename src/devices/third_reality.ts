@@ -527,12 +527,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSM0347Z",
         vendor: "Third Reality",
         description: "Smart Soil Moisture Sensor Gen2",
-        extend: [
-            m.temperature(),
-            m.humidity(),
-            m.soilMoisture(),
-            m.battery(),
-        ],
+        extend: [m.temperature(), m.humidity(), m.soilMoisture(), m.battery()],
         ota: true,
     },
     {
