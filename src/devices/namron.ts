@@ -274,8 +274,8 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+};    
 // --- Namron Panel Heater PRO (4512776 / 4512777) -----------------------------
-
 const namronPanelHeaterProExtend = () => {
     const fzPro: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
         cluster: "hvacThermostat",
@@ -532,9 +532,9 @@ const namronPanelHeaterProExtend = () => {
 
             device.powerSource = "Mains (single phase)";
             device.save();
-        },
+        };
     };
-},
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
