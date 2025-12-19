@@ -4436,7 +4436,15 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["lumi.light.agl003", "lumi.light.agl005", "lumi.light.agl006", "lumi.light.agl001", "lumi.light.agl002"],
+        zigbeeModel: [
+            "lumi.light.agl003",
+            "lumi.light.agl005",
+            "lumi.light.agl006",
+            "lumi.light.agl001",
+            "lumi.light.agl002",
+            "lumi.light.agl007",
+            "lumi.light.agl008",
+        ],
         model: "T2_E27",
         vendor: "Aqara",
         description: "E27 led bulb",
