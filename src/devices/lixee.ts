@@ -15,6 +15,15 @@ const e = exposes.presets;
 
 const NS = "zhc:lixee";
 
+interface LiXeePrivate {
+    attributes: {
+        linkyMode: number;
+        currentTarif: string;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const local = {
     modernExtend: {
         readAttributesOnStartup: (): ModernExtend => {
@@ -22,7 +31,7 @@ const local = {
                 if (event.type === "start") {
                     event.data.device
                         .getEndpoint(1)
-                        .read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null})
+                        .read<"liXeePrivate", LiXeePrivate>("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null})
                         .catch((e) => {
                             // https://github.com/Koenkk/zigbee2mqtt/issues/11674
                             logger.warning(`Failed to read Zigbee attributes during startup: ${e}`, NS);
@@ -36,46 +45,46 @@ const local = {
                 ID: 0xff66,
                 manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS,
                 attributes: {
-                    currentTarif: {ID: 0x0000, type: Zcl.DataType.CHAR_STR},
-                    tomorrowColor: {ID: 0x0001, type: Zcl.DataType.CHAR_STR},
-                    scheduleHPHC: {ID: 0x0002, type: Zcl.DataType.UINT8},
-                    presencePotential: {ID: 0x0003, type: Zcl.DataType.UINT8},
-                    startNoticeEJP: {ID: 0x0004, type: Zcl.DataType.UINT8},
-                    warnDPS: {ID: 0x0005, type: Zcl.DataType.UINT16},
-                    warnDIR1: {ID: 0x0006, type: Zcl.DataType.UINT16},
-                    warnDIR2: {ID: 0x0007, type: Zcl.DataType.UINT16},
-                    warnDIR3: {ID: 0x0008, type: Zcl.DataType.UINT16},
-                    motDEtat: {ID: 0x0009, type: Zcl.DataType.CHAR_STR},
-                    currentPrice: {ID: 0x0200, type: Zcl.DataType.CHAR_STR},
-                    currentIndexTarif: {ID: 0x0201, type: Zcl.DataType.UINT8},
-                    currentDate: {ID: 0x0202, type: Zcl.DataType.CHAR_STR},
-                    activeEnergyOutD01: {ID: 0x0203, type: Zcl.DataType.UINT32},
-                    activeEnergyOutD02: {ID: 0x0204, type: Zcl.DataType.UINT32},
-                    activeEnergyOutD03: {ID: 0x0205, type: Zcl.DataType.UINT32},
-                    activeEnergyOutD04: {ID: 0x0206, type: Zcl.DataType.UINT32},
-                    injectedVA: {ID: 0x0207, type: Zcl.DataType.UINT16},
-                    injectedVAMaxN: {ID: 0x0208, type: Zcl.DataType.INT16},
-                    injectedVAMaxN1: {ID: 0x0209, type: Zcl.DataType.INT16},
-                    injectedActiveLoadN: {ID: 0x0210, type: Zcl.DataType.INT16},
-                    injectedActiveLoadN1: {ID: 0x0211, type: Zcl.DataType.INT16},
-                    drawnVAMaxN1: {ID: 0x0212, type: Zcl.DataType.INT16},
-                    drawnVAMaxN1P2: {ID: 0x0213, type: Zcl.DataType.INT16},
-                    drawnVAMaxN1P3: {ID: 0x0214, type: Zcl.DataType.INT16},
-                    message1: {ID: 0x0215, type: Zcl.DataType.CHAR_STR},
-                    message2: {ID: 0x0216, type: Zcl.DataType.CHAR_STR},
-                    statusRegister: {ID: 0x0217, type: Zcl.DataType.OCTET_STR},
-                    startMobilePoint1: {ID: 0x0218, type: Zcl.DataType.UINT8},
-                    stopMobilePoint1: {ID: 0x0219, type: Zcl.DataType.UINT8},
-                    startMobilePoint2: {ID: 0x0220, type: Zcl.DataType.UINT8},
-                    stopMobilePoint2: {ID: 0x0221, type: Zcl.DataType.UINT8},
-                    startMobilePoint3: {ID: 0x0222, type: Zcl.DataType.UINT8},
-                    stopMobilePoint3: {ID: 0x0223, type: Zcl.DataType.UINT8},
-                    relais: {ID: 0x0224, type: Zcl.DataType.UINT16},
-                    daysNumberCurrentCalendar: {ID: 0x0225, type: Zcl.DataType.UINT8},
-                    daysNumberNextCalendar: {ID: 0x0226, type: Zcl.DataType.UINT8},
-                    daysProfileCurrentCalendar: {ID: 0x0227, type: Zcl.DataType.LONG_OCTET_STR},
-                    daysProfileNextCalendar: {ID: 0x0228, type: Zcl.DataType.LONG_OCTET_STR},
-                    linkyMode: {ID: 0x0300, type: Zcl.DataType.UINT8},
+                    currentTarif: {ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
+                    tomorrowColor: {ID: 0x0001, type: Zcl.DataType.CHAR_STR, write: true},
+                    scheduleHPHC: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    presencePotential: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    startNoticeEJP: {ID: 0x0004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    warnDPS: {ID: 0x0005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    warnDIR1: {ID: 0x0006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    warnDIR2: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    warnDIR3: {ID: 0x0008, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    motDEtat: {ID: 0x0009, type: Zcl.DataType.CHAR_STR, write: true},
+                    currentPrice: {ID: 0x0200, type: Zcl.DataType.CHAR_STR, write: true},
+                    currentIndexTarif: {ID: 0x0201, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    currentDate: {ID: 0x0202, type: Zcl.DataType.CHAR_STR, write: true},
+                    activeEnergyOutD01: {ID: 0x0203, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    activeEnergyOutD02: {ID: 0x0204, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    activeEnergyOutD03: {ID: 0x0205, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    activeEnergyOutD04: {ID: 0x0206, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    injectedVA: {ID: 0x0207, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    injectedVAMaxN: {ID: 0x0208, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    injectedVAMaxN1: {ID: 0x0209, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    injectedActiveLoadN: {ID: 0x0210, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    injectedActiveLoadN1: {ID: 0x0211, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    drawnVAMaxN1: {ID: 0x0212, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    drawnVAMaxN1P2: {ID: 0x0213, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    drawnVAMaxN1P3: {ID: 0x0214, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    message1: {ID: 0x0215, type: Zcl.DataType.CHAR_STR, write: true},
+                    message2: {ID: 0x0216, type: Zcl.DataType.CHAR_STR, write: true},
+                    statusRegister: {ID: 0x0217, type: Zcl.DataType.OCTET_STR, write: true},
+                    startMobilePoint1: {ID: 0x0218, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    stopMobilePoint1: {ID: 0x0219, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    startMobilePoint2: {ID: 0x0220, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    stopMobilePoint2: {ID: 0x0221, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    startMobilePoint3: {ID: 0x0222, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    stopMobilePoint3: {ID: 0x0223, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    relais: {ID: 0x0224, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    daysNumberCurrentCalendar: {ID: 0x0225, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    daysNumberNextCalendar: {ID: 0x0226, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    daysProfileCurrentCalendar: {ID: 0x0227, type: Zcl.DataType.LONG_OCTET_STR, write: true},
+                    daysProfileNextCalendar: {ID: 0x0228, type: Zcl.DataType.LONG_OCTET_STR, write: true},
+                    linkyMode: {ID: 0x0300, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -247,7 +256,8 @@ const fzLocal = {
                     .split(/(?=[A-Z])/)
                     .join("_")
                     .toLowerCase();
-                let val = msg.data[at];
+                // biome-ignore lint/suspicious/noExplicitAny: bad typing
+                let val: any = msg.data[at];
                 if (val != null) {
                     // TODO: this is not possible??
                     if (utils.isObject(val) && "type" in val && "data" in val && val.type === "Buffer") {
@@ -747,7 +757,7 @@ const clustersDef = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     _0x0702: "seMetering", // 0x0702
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    _0x0B01: "haMeterIdentification", // 0x0B01
+    _0x0B01: "seMeterIdentification", // 0x0B01
 };
 
 // full list available on https://github.com/fairecasoimeme/Zlinky_TIC/blob/master/README.md
@@ -1890,12 +1900,12 @@ export const definitions: DefinitionWithExtend[] = [
 
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 clustersDef._0x0702 /* seMetering */,
-                clustersDef._0x0B01 /* haMeterIdentification */,
+                clustersDef._0x0B01 /* seMeterIdentification */,
                 clustersDef._0x0B04 /* haElectricalMeasurement */,
                 clustersDef._0xFF66 /* liXeePrivate */,
             ]);
 
-            await endpoint.read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null}).catch((e) => {
+            await endpoint.read<"liXeePrivate", LiXeePrivate>("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null}).catch((e) => {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/11674
                 logger.warning(`Failed to read Zigbee attributes during configure: ${e}`, NS);
             });

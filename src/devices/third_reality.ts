@@ -51,11 +51,21 @@ interface ThirdWaterSensor {
     commandResponses: never;
 }
 
-interface ThirdDualPlug {
+interface ThirdPlug {
     attributes: {
         resetSummationDelivered: number;
         onToOffDelay: number;
         offToOnDelay: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdPlugGen3 {
+    attributes: {
+        btnDisable: number;
+        powerRaisedThreshold: number;
+        powerFallsThreshold: number;
     };
     commands: never;
     commandResponses: never;
@@ -104,8 +114,8 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff02,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -155,8 +165,8 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    sirenOnOff: {ID: 0x0010, type: Zcl.DataType.UINT8},
-                    sirenMinutes: {ID: 0x0011, type: Zcl.DataType.UINT8},
+                    sirenOnOff: {ID: 0x0010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    sirenMinutes: {ID: 0x0011, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -215,7 +225,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    coolDownTime: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    coolDownTime: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -235,7 +245,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    coolDownTime: {ID: 0x0001, type: Zcl.DataType.UINT16},
+                    coolDownTime: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -262,7 +272,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    delayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                    delayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -282,8 +292,8 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    delayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                    zclCabrationAttrId: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                    delayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    zclCabrationAttrId: {ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -302,9 +312,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
-                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -337,8 +347,8 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    infraredOff: {ID: 0x0000, type: Zcl.DataType.UINT8},
-                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                    infraredOff: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -368,11 +378,11 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    infraredEnable: {ID: 0x0000, type: Zcl.DataType.UINT8},
-                    compensationSpeed: {ID: 0x0001, type: Zcl.DataType.INT8},
-                    limitPosition: {ID: 0x0002, type: Zcl.DataType.UINT16},
-                    totalCycleTimes: {ID: 0x0003, type: Zcl.DataType.UINT16},
-                    lastRemainingBatteryPercentage: {ID: 0x0004, type: Zcl.DataType.UINT8},
+                    infraredEnable: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    compensationSpeed: {ID: 0x0001, type: Zcl.DataType.INT8, write: true, min: -128},
+                    limitPosition: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    totalCycleTimes: {ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    lastRemainingBatteryPercentage: {ID: 0x0004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -440,7 +450,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    cancelDoubleClick: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    cancelDoubleClick: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -454,12 +464,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Scene Button S3",
         ota: true,
         extend: [
-            m.deviceEndpoints({endpoints: {2: 3, 1: 2, 3: 1}}),
+            m.deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3}}),
             m.actionEnumLookup({
                 endpointNames: ["1", "2", "3"],
                 cluster: "genMultistateInput",
                 attribute: "presentValue",
-                actionLookup: {single: 0, double: 1, send: 2},
+                actionLookup: {release: 255, single: 1, double: 2, hold: 0},
             }),
             m.battery(),
         ],
@@ -478,9 +488,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16},
-                    humidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16},
-                    fahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16},
+                    celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    fahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -502,9 +512,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16},
-                    humidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16},
-                    fahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16},
+                    celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    fahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -525,9 +535,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16},
-                    humidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16},
-                    fahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16},
+                    celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    fahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -547,8 +557,8 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfff2,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    wateringTimes: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                    intervalDay: {ID: 0x0001, type: Zcl.DataType.UINT8},
+                    wateringTimes: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    intervalDay: {ID: 0x0001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -590,10 +600,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
-                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
-                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -601,14 +611,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["3RSP02064Z", "3RSPE02065Z", "3RSPU01080Z"],
-        model: "3RSP02064Z",
+        zigbeeModel: ["3RSPE02065Z", "3RSPU01080Z"],
+        model: "3RSPE02065Z",
         vendor: "Third Reality",
-        description: "Smart Plug Gen3",
-        whiteLabel: [
-            {vendor: "Third Reality", model: "3RSPE02065Z", description: "Smart Plug E3", fingerprint: [{modelID: "3RSPE02065Z"}]},
-            {vendor: "Third Reality", model: "3RSPU01080Z", description: "Smart Plug UZ1", fingerprint: [{modelID: "3RSPU01080Z"}]},
-        ],
+        description: "Smart Plug E3",
+        whiteLabel: [{vendor: "Third Reality", model: "3RSPU01080Z", description: "Smart Plug UZ1", fingerprint: [{modelID: "3RSPU01080Z"}]}],
         extend: [
             m.onOff(),
             m.electricityMeter({acFrequency: true, powerFactor: true}),
@@ -616,15 +623,124 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff03,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
-                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
-                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
-                    powerUpValue: {ID: 0x0040, type: Zcl.DataType.UINT16},
-                    powerDownValue: {ID: 0x0041, type: Zcl.DataType.UINT16},
+                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.enumLookup<"3rPlugSpecialcluster", ThirdPlug>({
+                name: "reset_total_energy",
+                lookup: {Reset: 1},
+                cluster: "3rPlugSpecialcluster",
+                attribute: "resetSummationDelivered",
+                description: "Reset the sum of consumed energy",
+                access: "ALL",
+            }),
+            m.numeric<"3rPlugSpecialcluster", ThirdPlug>({
+                name: "countdown_to_turn_off",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rPlugSpecialcluster",
+                attribute: "onToOffDelay",
+                description: "(ON-OFF)",
+                access: "ALL",
+            }),
+            m.numeric<"3rPlugSpecialcluster", ThirdPlug>({
+                name: "countdown_to_turn_on",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rPlugSpecialcluster",
+                attribute: "offToOnDelay",
+                description: "(OFF-ON)",
+                access: "ALL",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["3RSP02064Z"],
+        model: "3RSP02064Z",
+        vendor: "Third Reality",
+        description: "Smart Plug Gen3",
+        extend: [
+            m.onOff(),
+            m.electricityMeter({acFrequency: true, powerFactor: true}),
+            m.deviceAddCustomCluster("3rPlugSpecialcluster", {
+                ID: 0xff03,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    powerUpValue: {ID: 0x0040, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    powerDownValue: {ID: 0x0041, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    btnDisable: {ID: 0x0050, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.enumLookup<"3rPlugSpecialcluster", ThirdPlug>({
+                name: "reset_total_energy",
+                lookup: {Reset: 1},
+                cluster: "3rPlugSpecialcluster",
+                attribute: "resetSummationDelivered",
+                description: "Reset the sum of consumed energy",
+                access: "ALL",
+            }),
+            m.binary<"3rPlugSpecialcluster", ThirdPlugGen3>({
+                name: "metering_only_mode",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3rPlugSpecialcluster",
+                attribute: "btnDisable",
+                description: "When enabled, the device enters metering-only mode and the relay is forced to stay ON.",
+                access: "ALL",
+            }),
+            m.numeric<"3rPlugSpecialcluster", ThirdPlug>({
+                name: "countdown_to_turn_off",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rPlugSpecialcluster",
+                attribute: "onToOffDelay",
+                description: "(ON-OFF)",
+                access: "ALL",
+            }),
+            m.numeric<"3rPlugSpecialcluster", ThirdPlug>({
+                name: "countdown_to_turn_on",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rPlugSpecialcluster",
+                attribute: "offToOnDelay",
+                description: "(OFF-ON)",
+                access: "ALL",
+            }),
+            m.numeric<"3rPlugSpecialcluster", ThirdPlugGen3>({
+                name: "power_rise_threshold",
+                unit: "w",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rPlugSpecialcluster",
+                attribute: "powerRaisedThreshold",
+                description: "Reports sudden power changes. Power rise and fall alerts can be enabled separately. Threshold adjustable.",
+                access: "ALL",
+            }),
+            m.numeric<"3rPlugSpecialcluster", ThirdPlugGen3>({
+                name: "power_drop_threshold",
+                unit: "w",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rPlugSpecialcluster",
+                attribute: "powerFallsThreshold",
+                description: "Reports sudden power changes. Power rise and drop alerts can be enabled separately. Threshold adjustable.",
+                access: "ALL",
             }),
         ],
         ota: true,
@@ -646,14 +762,14 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff03,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
-                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
+                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
-            m.enumLookup<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+            m.enumLookup<"3rDualPlugSpecialcluster", ThirdPlug>({
                 endpointName: "1",
                 name: "reset_total_energy",
                 lookup: {Reset: 1},
@@ -662,7 +778,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Reset the sum of consumed energy",
                 access: "ALL",
             }),
-            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+            m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({
                 name: "countdown_time_on_to_off",
                 endpointNames: ["1"],
                 unit: "s",
@@ -673,7 +789,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "(ON-OFF)",
                 access: "ALL",
             }),
-            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+            m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({
                 name: "countdown_time_off_to_on",
                 endpointNames: ["1"],
                 unit: "s",
@@ -684,7 +800,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "(OFF-ON)",
                 access: "ALL",
             }),
-            m.enumLookup<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+            m.enumLookup<"3rDualPlugSpecialcluster", ThirdPlug>({
                 endpointName: "2",
                 name: "reset_total_energy",
                 lookup: {Reset: 1},
@@ -693,7 +809,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Reset the sum of consumed energy",
                 access: "ALL",
             }),
-            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+            m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({
                 name: "countdown_time_on_to_off",
                 endpointNames: ["2"],
                 unit: "s",
@@ -704,7 +820,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "(ON-OFF)",
                 access: "ALL",
             }),
-            m.numeric<"3rDualPlugSpecialcluster", ThirdDualPlug>({
+            m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({
                 name: "countdown_time_off_to_on",
                 endpointNames: ["2"],
                 unit: "s",
@@ -737,10 +853,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    coolDownTime: {ID: 0x0004, type: Zcl.DataType.UINT16},
-                    xAxis: {ID: 0x0001, type: Zcl.DataType.INT16},
-                    yAxis: {ID: 0x0002, type: Zcl.DataType.INT16},
-                    zAxis: {ID: 0x0003, type: Zcl.DataType.INT16},
+                    coolDownTime: {ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    xAxis: {ID: 0x0001, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    yAxis: {ID: 0x0002, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    zAxis: {ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -759,9 +875,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfc00,
                 manufacturerCode: 0x130d,
                 attributes: {
-                    coldDownTime: {ID: 0x0003, type: Zcl.DataType.UINT16},
-                    localRoutinTime: {ID: 0x0004, type: Zcl.DataType.UINT16},
-                    luxThreshold: {ID: 0x0005, type: Zcl.DataType.UINT16},
+                    coldDownTime: {ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    localRoutinTime: {ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    luxThreshold: {ID: 0x0005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -785,7 +901,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff04,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -826,10 +942,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8},
-                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16},
-                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8},
+                    resetSummationDelivered: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},

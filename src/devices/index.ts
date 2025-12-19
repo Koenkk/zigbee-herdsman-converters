@@ -36,6 +36,7 @@ import {definitions as brimate} from "./brimate";
 import {definitions as brunHolding} from "./brun_holding";
 import {definitions as bseed} from "./bseed";
 import {definitions as bticino} from "./bticino";
+import {definitions as bubendorff} from "./bubendorff";
 import {definitions as buschJaeger} from "./busch_jaeger";
 import {definitions as byun} from "./byun";
 import {definitions as calex} from "./calex";
@@ -308,6 +309,7 @@ import {definitions as swann} from "./swann";
 import {definitions as sylvania} from "./sylvania";
 import {definitions as tapestry} from "./tapestry";
 import {definitions as tci} from "./tci";
+import {definitions as tcl} from "./tcl";
 import {definitions as tech} from "./tech";
 import {definitions as technicolor} from "./technicolor";
 import {definitions as terncy} from "./terncy";
@@ -394,6 +396,7 @@ const definitions: DefinitionWithExtend[] = [
     ...brunHolding,
     ...bseed,
     ...bticino,
+    ...bubendorff,
     ...buschJaeger,
     ...byun,
     ...calex,
@@ -664,6 +667,7 @@ const definitions: DefinitionWithExtend[] = [
     ...sylvania,
     ...tapestry,
     ...tci,
+    ...tcl,
     ...tech,
     ...technicolor,
     ...terncy,

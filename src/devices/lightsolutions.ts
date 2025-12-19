@@ -43,6 +43,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "91-943",
         vendor: "Light Solutions",
         description: "LED Controller 12/24v",
-        extend: [m.light()],
+        extend: [m.light({color: true, colorTemp: {range: [160, 450]}})],
     },
 ];

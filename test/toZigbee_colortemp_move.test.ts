@@ -36,7 +36,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 1, rate: 30, minimum: 0, maximum: 600},
+            {movemode: 1, rate: 30, minimum: 0, maximum: 600, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -48,7 +48,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 3, rate: 40, minimum: 0, maximum: 600},
+            {movemode: 3, rate: 40, minimum: 0, maximum: 600, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -60,7 +60,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 0, rate: 1, minimum: 0, maximum: 600},
+            {movemode: 0, rate: 1, minimum: 0, maximum: 600, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -72,7 +72,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 0, rate: 1, minimum: 153, maximum: 370},
+            {movemode: 0, rate: 1, minimum: 153, maximum: 370, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -84,7 +84,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 0, rate: 1, minimum: 153, maximum: 370},
+            {movemode: 0, rate: 1, minimum: 153, maximum: 370, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -96,7 +96,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 0, rate: 1, minimum: 153, maximum: 370},
+            {movemode: 0, rate: 1, minimum: 153, maximum: 370, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -108,7 +108,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 1, rate: 55, minimum: 153, maximum: 370},
+            {movemode: 1, rate: 55, minimum: 153, maximum: 370, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -120,7 +120,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 1, rate: 55, minimum: 153, maximum: 370},
+            {movemode: 1, rate: 55, minimum: 153, maximum: 370, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -132,7 +132,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 3, rate: 55, minimum: 153, maximum: 370},
+            {movemode: 3, rate: 55, minimum: 153, maximum: 370, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -145,7 +145,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 1, rate: 75, minimum: 153, maximum: 370},
+            {movemode: 1, rate: 75, minimum: 153, maximum: 370, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -158,7 +158,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 3, rate: 100, minimum: 153, maximum: 370},
+            {movemode: 3, rate: 100, minimum: 153, maximum: 370, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -187,7 +187,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 1, rate: 30, minimum: 150, maximum: 500},
+            {movemode: 1, rate: 30, minimum: 150, maximum: 500, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -208,7 +208,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 3, rate: 25, minimum: 250, maximum: 454},
+            {movemode: 3, rate: 25, minimum: 250, maximum: 454, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -229,7 +229,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 0, rate: 1, minimum: 200, maximum: 400},
+            {movemode: 0, rate: 1, minimum: 200, maximum: 400, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -248,7 +248,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 1, rate: 15, minimum: 0, maximum: 600},
+            {movemode: 1, rate: 15, minimum: 0, maximum: 600, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -268,7 +268,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 1, rate: 20, minimum: 100, maximum: 600},
+            {movemode: 1, rate: 20, minimum: 100, maximum: 600, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -288,7 +288,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 1, rate: 35, minimum: 0, maximum: 450},
+            {movemode: 1, rate: 35, minimum: 0, maximum: 450, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });
@@ -358,7 +358,7 @@ describe("light_colortemp_move converter", () => {
         expect(device.endpoints[0].command).toHaveBeenCalledWith(
             "lightingColorCtrl",
             "moveColorTemp",
-            {movemode: 1, rate: 25, minimum: 0, maximum: 600},
+            {movemode: 1, rate: 25, minimum: 0, maximum: 600, optionsMask: 0, optionsOverride: 0},
             {},
         );
     });

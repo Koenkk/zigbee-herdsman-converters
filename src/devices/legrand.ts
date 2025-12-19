@@ -724,4 +724,18 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Triple light switch",
         extend: [m.deviceEndpoints({endpoints: {right: 1, center: 2, left: 3}}), m.onOff({endpointNames: ["right", "center", "left"]})],
     },
+    {
+        zigbeeModel: [" Wireless Color Dimmer\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"],
+        model: "067767",
+        vendor: " Legrand",
+        description: "Wireless Color Ambiance Switch 067767/68/69 - 077710L",
+        ota: true,
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        fromZigbee: [fz.battery, fz.legrand_scenes],
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genOnOff", "genLevelCtrl", "genScenes"]);
+        },
+    },
 ];

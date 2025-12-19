@@ -54,6 +54,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPM01-U01",
         vendor: "BITUO TECHNIK",
         description: "Smart energy monitor for 1P+N system",
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);

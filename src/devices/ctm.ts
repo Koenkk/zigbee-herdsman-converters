@@ -428,7 +428,12 @@ const tzLocal = {
     ctm_mbd_brightness: {
         key: ["brightness"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command("genLevelCtrl", "moveToLevel", {level: value as number, transtime: 1}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level: value as number, transtime: 1, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genLevelCtrl", ["currentLevel"]);
@@ -1030,6 +1035,17 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "CTM Lyng",
         description: "Temperature sensor",
         extend: [m.battery(), m.temperature()],
+    },
+    {
+        zigbeeModel: ["mKomfy 2.0"],
+        model: "6254380",
+        vendor: "CTM Lyng",
+        description: "2.0 Stove guard",
+        extend: [
+            m.deviceTemperature(),
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
+            m.electricityMeter({cluster: "metering"}),
+        ],
     },
     {
         zigbeeModel: ["mKomfy"],

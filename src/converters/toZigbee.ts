@@ -1,3 +1,4 @@
+import type {HeimanSpecificInfraRedRemoteCluster} from "src/lib/heiman";
 import {Zcl} from "zigbee-herdsman";
 import type {TClusterCommandPayload} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as libColor from "../lib/color";
@@ -36,10 +37,10 @@ export const on_off: Tz.Converter = {
             const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
 
             if (typeof onTime !== "number") {
-                throw Error("The on_time value must be a number!");
+                throw new Error("The on_time value must be a number!");
             }
             if (typeof offWaitTime !== "number") {
-                throw Error("The off_wait_time value must be a number!");
+                throw new Error("The off_wait_time value must be a number!");
             }
             const payload = meta.converterOptions
                 ? // TODO: better typing? currently used in a single place??
@@ -92,7 +93,12 @@ export const light_color: Tz.Converter = {
             const colorx = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
             const colory = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
 
-            await entity.command("lightingColorCtrl", "moveToColor", {transtime, colorx, colory}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToColor",
+                {transtime, colorx, colory, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
         } else if (newColor.isHSV()) {
             const hsv = newColor.hsv;
             const hsvCorrected = hsv.colorCorrected(meta);
@@ -103,7 +109,7 @@ export const light_color: Tz.Converter = {
                 await entity.command(
                     "genLevelCtrl",
                     "moveToLevelWithOnOff",
-                    {level: utils.mapNumberRange(hsvCorrected.value, 0, 100, 0, 254), transtime},
+                    {level: utils.mapNumberRange(hsvCorrected.value, 0, 100, 0, 254), transtime, optionsMask: 0, optionsOverride: 0},
                     utils.getOptions(meta.mapped, entity),
                 );
             }
@@ -116,7 +122,7 @@ export const light_color: Tz.Converter = {
                     await entity.command(
                         "lightingColorCtrl",
                         "enhancedMoveToHueAndSaturation",
-                        {transtime, enhancehue, saturation},
+                        {transtime, enhancehue, saturation, optionsMask: 0, optionsOverride: 0},
                         utils.getOptions(meta.mapped, entity),
                     );
                 } else {
@@ -124,7 +130,7 @@ export const light_color: Tz.Converter = {
                     await entity.command(
                         "lightingColorCtrl",
                         "moveToHueAndSaturation",
-                        {transtime, hue, saturation},
+                        {transtime, hue, saturation, optionsMask: 0, optionsOverride: 0},
                         utils.getOptions(meta.mapped, entity),
                     );
                 }
@@ -136,17 +142,27 @@ export const light_color: Tz.Converter = {
                     await entity.command(
                         "lightingColorCtrl",
                         "enhancedMoveToHue",
-                        {transtime, enhancehue, direction},
+                        {transtime, enhancehue, direction, optionsMask: 0, optionsOverride: 0},
                         utils.getOptions(meta.mapped, entity),
                     );
                 } else {
                     const hue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 254);
-                    await entity.command("lightingColorCtrl", "moveToHue", {transtime, hue, direction}, utils.getOptions(meta.mapped, entity));
+                    await entity.command(
+                        "lightingColorCtrl",
+                        "moveToHue",
+                        {transtime, hue, direction, optionsMask: 0, optionsOverride: 0},
+                        utils.getOptions(meta.mapped, entity),
+                    );
                 }
             } else if (hsv.saturation !== null) {
                 const saturation = utils.mapNumberRange(hsvCorrected.saturation, 0, 100, 0, 254);
 
-                await entity.command("lightingColorCtrl", "moveToSaturation", {transtime, saturation}, utils.getOptions(meta.mapped, entity));
+                await entity.command(
+                    "lightingColorCtrl",
+                    "moveToSaturation",
+                    {transtime, saturation, optionsMask: 0, optionsOverride: 0},
+                    utils.getOptions(meta.mapped, entity),
+                );
             }
         } else {
             throw new Error("Invalid color");
@@ -167,27 +183,27 @@ export const light_colortemp: Tz.Converter = {
 
         if (key === "color_temp_percent") {
             utils.assertNumber(value);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = utils
                 .mapNumberRange(value, 0, 100, colorTempMin != null ? colorTempMin : 154, colorTempMax != null ? colorTempMax : 500)
                 .toString();
         }
 
         if (utils.isString(value) && value in preset) {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = utils.getFromLookup(value, preset);
         }
 
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
 
         // ensure value within range
         utils.assertNumber(value);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = light.clampColorTemp(value, colorTempMin, colorTempMax);
 
-        const payload = {colortemp: value as number, transtime: utils.getTransition(entity, key, meta).time};
-        await entity.command("lightingColorCtrl", "moveToColorTemp", payload, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "lightingColorCtrl",
+            "moveToColorTemp",
+            {colortemp: value as number, transtime: utils.getTransition(entity, key, meta).time, optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
         return {
             state: libColor.syncColorState({color_mode: constants.colorModeLookup[2], color_temp: value}, meta.state, entity, meta.options),
         };
@@ -326,7 +342,6 @@ export const power_on_behavior: Tz.Converter = {
     key: ["power_on_behavior"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertString(value, key);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         const lookup = {off: 0, on: 1, toggle: 2, previous: 255};
         try {
@@ -380,7 +395,7 @@ export const lock: Tz.Converter = {
         await entity.command(
             "closuresDoorLock",
             `${state.toLowerCase() as "lock" | "unlock" | "toggle"}Door`,
-            {pincodevalue: pincode},
+            {pincodevalue: Buffer.from(pincode, "ascii")},
             utils.getOptions(meta.mapped, entity),
         );
     },
@@ -517,14 +532,12 @@ export const cover_via_brightness: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         if (typeof value !== "number") {
             utils.assertString(value, key);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             if (value === "stop") {
-                await entity.command("genLevelCtrl", "stop", {}, utils.getOptions(meta.mapped, entity));
+                await entity.command("genLevelCtrl", "stop", {optionsMask: 0, optionsOverride: 0}, utils.getOptions(meta.mapped, entity));
                 return;
             }
             const lookup = {open: 100, close: 0};
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = utils.getFromLookup(value, lookup);
         }
 
@@ -536,7 +549,7 @@ export const cover_via_brightness: Tz.Converter = {
         await entity.command(
             "genLevelCtrl",
             "moveToLevelWithOnOff",
-            {level: utils.mapNumberRange(Number(position), 0, 100, 0, 255), transtime: 0},
+            {level: utils.mapNumberRange(Number(position), 0, 100, 0, 255), transtime: 0, optionsMask: 0, optionsOverride: 0},
             utils.getOptions(meta.mapped, entity),
         );
 
@@ -572,7 +585,7 @@ export const warning: Tz.Converter = {
         let info;
         // https://github.com/Koenkk/zigbee2mqtt/issues/8310 some devices require the info to be reversed.
         if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
-        if (["SIRZB-110", "SRAC-23B-ZBSR", "AV2010/29A", "AV2010/24A"].includes(meta.mapped.model)) {
+        if (["SIRZB-110", "SIRZB-111", "SRAC-23B-ZBSR", "AV2010/29A", "AV2010/24A"].includes(meta.mapped.model)) {
             info = utils.getFromLookup(values.mode, mode) + ((values.strobe ? 1 : 0) << 4) + (utils.getFromLookup(values.level, level) << 6);
         } else {
             info = (utils.getFromLookup(values.mode, mode) << 4) + ((values.strobe ? 1 : 0) << 2) + utils.getFromLookup(values.level, level);
@@ -699,7 +712,6 @@ export const occupancy_timeout: Tz.Converter = {
     key: ["occupancy_timeout"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertNumber(value);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value *= 1;
         await entity.write("msOccupancySensing", {pirOToUDelay: value}, utils.getOptions(meta.mapped, entity));
         return {state: {occupancy_timeout: value}};
@@ -716,7 +728,6 @@ export const level_config: Tz.Converter = {
         // parse payload to grab the keys
         if (typeof value === "string") {
             try {
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = JSON.parse(value);
             } catch {
                 throw new Error("Payload is not valid JSON");
@@ -855,7 +866,6 @@ export const ballast_config: Tz.Converter = {
     // zcl attribute names are camel case, but we want to use snake case in the outside communication
     convertSet: async (entity, key, value, meta) => {
         if (key === "ballast_config") {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = utils.toCamelCase(value);
             for (const [attrName, attrValue] of Object.entries(value)) {
                 const attributes = {[attrName]: attrValue};
@@ -908,14 +918,17 @@ export const light_brightness_step: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         const onOff = key.endsWith("_onoff");
         const command = onOff ? "stepWithOnOff" : "step";
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
         utils.assertNumber(value, key);
 
         const mode = value > 0 ? 0 : 1;
         const transition = utils.getTransition(entity, key, meta).time;
-        const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition};
-        await entity.command("genLevelCtrl", command, payload, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "genLevelCtrl",
+            command,
+            {stepmode: mode, stepsize: Math.abs(value), transtime: transition, optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
 
         if (meta.state.brightness !== undefined) {
             utils.assertNumber(meta.state.brightness);
@@ -946,7 +959,7 @@ export const light_brightness_move: Tz.Converter = {
     key: ["brightness_move", "brightness_move_onoff"],
     convertSet: async (entity, key, value, meta) => {
         if (value === "stop" || value === 0) {
-            await entity.command("genLevelCtrl", "stop", {}, utils.getOptions(meta.mapped, entity));
+            await entity.command("genLevelCtrl", "stop", {optionsMask: 0, optionsOverride: 0}, utils.getOptions(meta.mapped, entity));
 
             // As we cannot determine the new brightness state, we read it from the device
             await utils.sleep(500);
@@ -955,26 +968,40 @@ export const light_brightness_move: Tz.Converter = {
             const brightness = (await target.read("genLevelCtrl", ["currentLevel"])).currentLevel;
             return {state: {brightness, state: onOff === 1 ? "ON" : "OFF"}};
         }
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
         utils.assertNumber(value, key);
-        const payload = {movemode: value > 0 ? 0 : 1, rate: Math.abs(value)};
         const command = key.endsWith("onoff") ? "moveWithOnOff" : "move";
-        await entity.command("genLevelCtrl", command, payload, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "genLevelCtrl",
+            command,
+            {movemode: value > 0 ? 0 : 1, rate: Math.abs(value), optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
     },
 };
 export const light_colortemp_step: Tz.Converter = {
     key: ["color_temp_step"],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
         utils.assertNumber(value, key);
 
         const mode = value > 0 ? 1 : 3;
         const transition = utils.getTransition(entity, key, meta).time;
-        const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition, minimum: 0, maximum: 600};
-        await entity.command("lightingColorCtrl", "stepColorTemp", payload, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "lightingColorCtrl",
+            "stepColorTemp",
+            {
+                stepmode: mode,
+                stepsize: Math.abs(value),
+                transtime: transition,
+                minimum: 0,
+                maximum: 600,
+                optionsMask: 0,
+                optionsOverride: 0,
+            },
+            utils.getOptions(meta.mapped, entity),
+        );
 
         // We cannot determine the color temperature from the current state so we read it, because
         // - We don't know the max/min values
@@ -1071,7 +1098,12 @@ export const light_colortemp_move: Tz.Converter = {
         }
 
         // Send command
-        await entity.command("lightingColorCtrl", "moveColorTemp", {minimum, maximum, rate, movemode}, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "lightingColorCtrl",
+            "moveColorTemp",
+            {minimum, maximum, rate, movemode, optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
 
         // Read current color temperature if stopping
         if (movemode === 0) {
@@ -1093,12 +1125,18 @@ export const light_color_and_colortemp_via_color: Tz.Converter = {
         if (key === "color_temp" || key === "color_temp_percent") {
             utils.assertNumber(value);
             const xy = libColor.ColorXY.fromMireds(value);
-            const payload = {
-                transtime: utils.getTransition(entity, key, meta).time,
-                colorx: utils.mapNumberRange(xy.x, 0, 1, 0, 65535),
-                colory: utils.mapNumberRange(xy.y, 0, 1, 0, 65535),
-            };
-            await entity.command("lightingColorCtrl", "moveToColor", payload, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToColor",
+                {
+                    transtime: utils.getTransition(entity, key, meta).time,
+                    colorx: utils.mapNumberRange(xy.x, 0, 1, 0, 65535),
+                    colory: utils.mapNumberRange(xy.y, 0, 1, 0, 65535),
+                    optionsMask: 0,
+                    optionsOverride: 0,
+                },
+                utils.getOptions(meta.mapped, entity),
+            );
             return {
                 state: libColor.syncColorState({color_mode: constants.colorModeLookup[2], color_temp: value}, meta.state, entity, meta.options),
             };
@@ -1112,7 +1150,6 @@ export const light_hue_saturation_step: Tz.Converter = {
     key: ["hue_step", "saturation_step"],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
         utils.assertNumber(value, key);
 
@@ -1120,8 +1157,12 @@ export const light_hue_saturation_step: Tz.Converter = {
         const attribute = key === "hue_step" ? "currentHue" : "currentSaturation";
         const mode = value > 0 ? 1 : 3;
         const transition = utils.getTransition(entity, key, meta).time;
-        const payload = {stepmode: mode, stepsize: Math.abs(value), transtime: transition};
-        await entity.command("lightingColorCtrl", command, payload, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "lightingColorCtrl",
+            command,
+            {stepmode: mode, stepsize: Math.abs(value), transtime: transition, optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
 
         // We cannot determine the hue/saturation from the current state so we read it, because
         // - Color mode could have been switched (x/y or colortemp)
@@ -1135,7 +1176,6 @@ export const light_hue_saturation_step: Tz.Converter = {
 export const light_hue_saturation_move: Tz.Converter = {
     key: ["hue_move", "saturation_move"],
     convertSet: async (entity, key, value, meta) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value === "stop" ? value : Number(value);
         const command = key === "hue_move" ? "moveHue" : "moveSaturation";
         const attribute = key === "hue_move" ? "currentHue" : "currentSaturation";
@@ -1151,7 +1191,12 @@ export const light_hue_saturation_move: Tz.Converter = {
             movemode = value > 0 ? 1 : 3;
         }
 
-        await entity.command("lightingColorCtrl", command, {rate, movemode}, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "lightingColorCtrl",
+            command,
+            {rate, movemode, optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
 
         // We cannot determine the hue/saturation from the current state so we read it, because
         // - Color mode could have been switched (x/y or colortemp)
@@ -1308,7 +1353,7 @@ export const light_onoff_brightness: Tz.Converter = {
                     await entity.command(
                         "genLevelCtrl",
                         "moveToLevel",
-                        {level: Number(brightness), transtime: transition.time},
+                        {level: Number(brightness), transtime: transition.time, optionsMask: 0, optionsOverride: 0},
                         utils.getOptions(meta.mapped, entity),
                     );
                 }
@@ -1317,7 +1362,7 @@ export const light_onoff_brightness: Tz.Converter = {
                 await entity.command(
                     "genLevelCtrl",
                     "moveToLevel",
-                    {level: Number(brightness), transtime: transition.time},
+                    {level: Number(brightness), transtime: transition.time, optionsMask: 0, optionsOverride: 0},
                     utils.getOptions(meta.mapped, entity),
                 );
             }
@@ -1325,7 +1370,7 @@ export const light_onoff_brightness: Tz.Converter = {
             await entity.command(
                 "genLevelCtrl",
                 state === null ? "moveToLevel" : "moveToLevelWithOnOff",
-                {level: Number(brightness), transtime: transition.time},
+                {level: Number(brightness), transtime: transition.time, optionsMask: 0, optionsOverride: 0},
                 utils.getOptions(meta.mapped, entity),
             );
         }
@@ -1354,18 +1399,15 @@ export const light_colortemp_startup: Tz.Converter = {
         const preset = {warmest: colorTempMax, warm: 454, neutral: 370, cool: 250, coolest: colorTempMin, previous: 65535};
 
         if (utils.isString(value) && value in preset) {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = utils.getFromLookup(value, preset);
         }
 
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
         utils.assertNumber(value);
 
         // ensure value within range
         // we do allow one exception for 0xffff, which is to restore the previous value
         if (value !== 65535) {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = light.clampColorTemp(value, colorTempMin, colorTempMax);
         }
 
@@ -1415,7 +1457,6 @@ export const effect: Tz.Converter = {
         if (key === "effect") {
             utils.assertString(value, key);
             const lookup = {blink: 0, breathe: 1, okay: 2, channel_change: 11, finish_effect: 254, stop_effect: 255};
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             if (value === "colorloop") {
                 const transition = meta.message.transition ?? 15;
@@ -1434,10 +1475,8 @@ export const effect: Tz.Converter = {
             const lookup = {select: 0x00, lselect: 0x01, none: 0xff};
             if (key === "flash") {
                 if (value === 2) {
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = "select";
                 } else if (value === 10) {
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = "lselect";
                 }
             }
@@ -1720,7 +1759,12 @@ export const fan_speed: Tz.Converter = {
     key: ["speed"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertNumber(value);
-        await entity.command("genLevelCtrl", "moveToLevel", {level: value, transtime: 0}, utils.getOptions(meta.mapped, entity));
+        await entity.command(
+            "genLevelCtrl",
+            "moveToLevel",
+            {level: value, transtime: 0, optionsMask: 0, optionsOverride: 0},
+            utils.getOptions(meta.mapped, entity),
+        );
         return {state: {speed: value}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2157,7 +2201,7 @@ export const livolo_socket_switch_on_off: Tz.Converter = {
         const payloadOnBottomRight = {1: {value: Buffer.from([8, 0, 0, 0, 0, 0, 0, 0]), type: 136}};
         const payloadOffBottomRight = {1: {value: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]), type: 136}};
         if (postfix === "left") {
-            await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level: oldstate, transtime: channel});
+            await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level: oldstate, transtime: channel, optionsMask: 0, optionsOverride: 0});
             await entity.write("genPowerCfg", state === "on" ? payloadOn : payloadOff, {
                 manufacturerCode: 0x1ad2,
                 disableDefaultResponse: true,
@@ -2170,7 +2214,7 @@ export const livolo_socket_switch_on_off: Tz.Converter = {
         }
         if (postfix === "right") {
             channel = 2.0;
-            await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level: oldstate, transtime: channel});
+            await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level: oldstate, transtime: channel, optionsMask: 0, optionsOverride: 0});
             await entity.write("genPowerCfg", state === "on" ? payloadOnRight : payloadOffRight, {
                 manufacturerCode: 0x1ad2,
                 disableDefaultResponse: true,
@@ -2225,7 +2269,7 @@ export const livolo_switch_on_off: Tz.Converter = {
             return;
         }
 
-        await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level: state, transtime: channel});
+        await entity.command("genLevelCtrl", "moveToLevelWithOnOff", {level: state, transtime: channel, optionsMask: 0, optionsOverride: 0});
         return {state: {state: value.toUpperCase()}};
     },
     convertGet: async (entity, key, meta) => {
@@ -2236,7 +2280,6 @@ export const livolo_dimmer_level: Tz.Converter = {
     key: ["brightness", "brightness_percent", "level"],
     convertSet: async (entity, key, value, meta) => {
         // upscale to 100
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = Number(value);
         utils.assertNumber(value, key);
         // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
@@ -2403,7 +2446,7 @@ export const ZigUP_lock: Tz.Converter = {
     key: ["led"],
     convertSet: async (entity, key, value, meta) => {
         const lookup = {off: "lockDoor" as const, on: "unlockDoor" as const, toggle: "toggleDoor" as const};
-        await entity.command("closuresDoorLock", utils.getFromLookup(value, lookup), {pincodevalue: ""});
+        await entity.command("closuresDoorLock", utils.getFromLookup(value, lookup), {pincodevalue: Buffer.alloc(0)});
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -2438,7 +2481,6 @@ export const tuya_relay_din_led_indicator: Tz.Converter = {
     key: ["indicator_mode"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertString(value, key);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         const lookup = {off: 0x00, on_off: 0x01, off_on: 0x02};
         const payload = utils.getFromLookup(value, lookup);
@@ -2451,7 +2493,6 @@ export const kmpcil_res005_on_off: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         utils.assertString(value, key);
         const options = {disableDefaultResponse: true};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         utils.assertString(value, key);
         utils.validateValue(value, ["toggle", "off", "on"]);
@@ -3009,27 +3050,46 @@ export const tuya_led_control: Tz.Converter = {
             meta.message.color == null &&
             meta.message.color_temp == null
         ) {
-            const zclData = {level: Number(value), transtime: 0};
+            const level = Number(value);
 
-            await entity.command("genLevelCtrl", "moveToLevel", zclData, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
 
-            globalStore.putValue(entity, "brightness", zclData.level);
+            globalStore.putValue(entity, "brightness", level);
 
-            return {state: {brightness: zclData.level}};
+            return {state: {brightness: level}};
         }
 
         if (key === "brightness" && utils.isNumber(meta.message.color_temp)) {
-            const zclData = {colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254), transtime: 0};
-            const zclDataBrightness = {level: Number(value), transtime: 0};
+            const level = Number(value);
 
             await entity.command("lightingColorCtrl", "tuyaRgbMode", {enable: 0});
-            await entity.command("lightingColorCtrl", "moveToColorTemp", zclData, utils.getOptions(meta.mapped, entity));
-            await entity.command("genLevelCtrl", "moveToLevel", zclDataBrightness, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToColorTemp",
+                {
+                    colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254),
+                    transtime: 0,
+                    optionsMask: 0,
+                    optionsOverride: 0,
+                },
+                utils.getOptions(meta.mapped, entity),
+            );
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
 
-            globalStore.putValue(entity, "brightness", zclDataBrightness.level);
+            globalStore.putValue(entity, "brightness", level);
 
             const newState = {
-                brightness: zclDataBrightness.level,
+                brightness: level,
                 color_mode: constants.colorModeLookup[2],
                 color_temp: meta.message.color_temp,
             };
@@ -3039,15 +3099,24 @@ export const tuya_led_control: Tz.Converter = {
 
         if (key === "color_temp") {
             utils.assertNumber(value, key);
-            const zclData = {colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0};
-            const zclDataBrightness = {level: globalStore.getValue(entity, "brightness") || 100, transtime: 0};
+            const level = globalStore.getValue(entity, "brightness") || 100;
 
             await entity.command("lightingColorCtrl", "tuyaRgbMode", {enable: 0});
-            await entity.command("lightingColorCtrl", "moveToColorTemp", zclData, utils.getOptions(meta.mapped, entity));
-            await entity.command("genLevelCtrl", "moveToLevel", zclDataBrightness, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToColorTemp",
+                {colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
 
             const newState = {
-                brightness: zclDataBrightness.level,
+                brightness: level,
                 color_mode: constants.colorModeLookup[2],
                 color_temp: value,
             };
@@ -3135,8 +3204,12 @@ export const tuya_led_controller: Tz.Converter = {
             if (value.toLowerCase() === "off") {
                 await entity.command("genOnOff", "offWithEffect", {effectid: 0x01, effectvariant: 0x01}, utils.getOptions(meta.mapped, entity));
             } else {
-                const payload = {level: 255, transtime: 0};
-                await entity.command("genLevelCtrl", "moveToLevelWithOnOff", payload, utils.getOptions(meta.mapped, entity));
+                await entity.command(
+                    "genLevelCtrl",
+                    "moveToLevelWithOnOff",
+                    {level: 255, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                    utils.getOptions(meta.mapped, entity),
+                );
             }
             return {state: {state: value.toUpperCase()}};
         }
@@ -3147,8 +3220,18 @@ export const tuya_led_controller: Tz.Converter = {
             const transtime = 0;
             const direction = 0;
 
-            await entity.command("lightingColorCtrl", "moveToHue", {hue, transtime, direction}, utils.getOptions(meta.mapped, entity));
-            await entity.command("lightingColorCtrl", "moveToSaturation", {saturation, transtime}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToHue",
+                {hue, transtime, direction, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToSaturation",
+                {saturation, transtime, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
         }
     },
     convertGet: async (entity, key, meta) => {
@@ -3213,7 +3296,6 @@ export const eurotronic_host_flags: Tz.Converter = {
         if (meta.state.child_lock === "LOCK") {
             bitValue |= 0x80;
         }
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = bitValue;
         const payload = {16392: {value, type: 0x22}};
         await entity.write("hvacThermostat", payload, manufacturerOptions.eurotronic);
@@ -3286,7 +3368,6 @@ export const eurotronic_child_lock: Tz.Converter = {
             bitValue |= 0x80;
         }
         const origValue = value;
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = bitValue;
         const payload = {16392: {value, type: 0x22}};
         await entity.write("hvacThermostat", payload, manufacturerOptions.eurotronic);
@@ -3316,7 +3397,6 @@ export const eurotronic_mirror_display: Tz.Converter = {
             bitValue |= 0x80;
         }
         const origValue = value;
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = bitValue;
         const payload = {16392: {value, type: 0x22}};
         await entity.write("hvacThermostat", payload, manufacturerOptions.eurotronic);
@@ -3339,18 +3419,15 @@ export const DTB190502A1_LED: Tz.Converter = {
     key: ["LED"],
     convertSet: async (entity, key, value, meta) => {
         if (value === "default") {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = 1;
         }
         const lookup = {
             OFF: 0,
             ON: 1,
         };
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = utils.getFromLookup(value, lookup);
         // Check for valid data
         utils.assertNumber(value, key);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         if ((value >= 0 && value < 2) === false) value = 0;
 
         const payload = {
@@ -3469,7 +3546,6 @@ export const bticino_4027C_cover_state: Tz.Converter = {
             ? {open: "upOpen" as const, close: "downClose" as const, stop: "stop" as const, on: "upOpen" as const, off: "downClose" as const}
             : {open: "downClose" as const, close: "upOpen" as const, stop: "stop" as const, on: "downClose" as const, off: "upOpen" as const};
 
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         utils.validateValue(value, Object.keys(lookup));
 
@@ -3529,7 +3605,6 @@ export const legrand_device_mode: Tz.Converter = {
             pilot_off: 0x0001,
         };
 
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         utils.validateValue(value, Object.keys(lookup));
         const payload = {0: {value: utils.getFromLookup(value, lookup), type: 9}};
@@ -3628,7 +3703,7 @@ export const TYZB01_on_off: Tz.Converter = {
         }
         const timeInSeconds = Number(timeInSecondsValue);
         if (!Number.isInteger(timeInSeconds) || timeInSeconds < 0 || timeInSeconds > 0xfffe) {
-            throw Error("The time_in_seconds value must be convertible to an integer in the range: <0x0000, 0xFFFE>");
+            throw new Error("The time_in_seconds value must be convertible to an integer in the range: <0x0000, 0xFFFE>");
         }
         const on = lowerCaseValue === "on";
         await entity.command(
@@ -3808,22 +3883,47 @@ export const heiman_ir_remote: Tz.Converter = {
         switch (key) {
             case "send_key":
                 utils.assertObject(value);
-                await entity.command("heimanSpecificInfraRedRemote", "sendKey", {id: value.id, keyCode: value.key_code}, options);
+                await entity.command<"heimanSpecificInfraRedRemote", "sendKey", HeimanSpecificInfraRedRemoteCluster>(
+                    "heimanSpecificInfraRedRemote",
+                    "sendKey",
+                    {id: value.id, keyCode: value.key_code},
+                    options,
+                );
                 break;
             case "create":
                 utils.assertObject(value);
-                await entity.command("heimanSpecificInfraRedRemote", "createId", {modelType: value.model_type}, options);
+                await entity.command<"heimanSpecificInfraRedRemote", "createId", HeimanSpecificInfraRedRemoteCluster>(
+                    "heimanSpecificInfraRedRemote",
+                    "createId",
+                    {modelType: value.model_type},
+                    options,
+                );
                 break;
             case "learn":
                 utils.assertObject(value);
-                await entity.command("heimanSpecificInfraRedRemote", "studyKey", {id: value.id, keyCode: value.key_code}, options);
+                await entity.command<"heimanSpecificInfraRedRemote", "studyKey", HeimanSpecificInfraRedRemoteCluster>(
+                    "heimanSpecificInfraRedRemote",
+                    "studyKey",
+                    {id: value.id, keyCode: value.key_code},
+                    options,
+                );
                 break;
             case "delete":
                 utils.assertObject(value);
-                await entity.command("heimanSpecificInfraRedRemote", "deleteKey", {id: value.id, keyCode: value.key_code}, options);
+                await entity.command<"heimanSpecificInfraRedRemote", "deleteKey", HeimanSpecificInfraRedRemoteCluster>(
+                    "heimanSpecificInfraRedRemote",
+                    "deleteKey",
+                    {id: value.id, keyCode: value.key_code},
+                    options,
+                );
                 break;
             case "get_list":
-                await entity.command("heimanSpecificInfraRedRemote", "getIdAndKeyCodeList", {}, options);
+                await entity.command<"heimanSpecificInfraRedRemote", "getIdAndKeyCodeList", HeimanSpecificInfraRedRemoteCluster>(
+                    "heimanSpecificInfraRedRemote",
+                    "getIdAndKeyCodeList",
+                    {},
+                    options,
+                );
                 break;
             default: // Unknown key
                 throw new Error(`Unhandled key ${key}`);
@@ -3873,7 +3973,7 @@ export const scene_recall: Tz.Converter = {
         const groupid = utils.isGroup(entity) ? entity.groupID : 0;
         utils.assertNumber(value);
         const sceneid = value;
-        await entity.command("genScenes", "recall", {groupid, sceneid}, utils.getOptions(meta.mapped, entity));
+        await entity.command("genScenes", "recall", {groupid, sceneid, transitionTime: 0xffff}, utils.getOptions(meta.mapped, entity));
 
         const addColorMode = (newState: KeyValueAny) => {
             if (newState.color_temp !== undefined) {
@@ -4153,7 +4253,6 @@ export const TS0003_curtain_switch: Tz.Converter = {
         utils.assertString(value, key);
         utils.assertEndpoint(entity);
         const lookup = {close: 1, stop: 2, open: 1};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         utils.validateValue(value, Object.keys(lookup));
         const endpointID = utils.getFromLookup(value, lookup);
@@ -4219,7 +4318,6 @@ export const tuya_cover_calibration: Tz.Converter = {
 
         utils.assertString(value, key);
         const lookup = {ON: 0, OFF: 1};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toUpperCase();
         const calibration = utils.getFromLookup(value, lookup);
         if (key === "calibration" || key === "calibration_to_open") {
@@ -4246,7 +4344,6 @@ export const tuya_cover_reversal: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         utils.assertString(value, key);
         const lookup = {ON: 1, OFF: 0};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toUpperCase();
         const reversal = utils.getFromLookup(value, lookup);
         await entity.write("closuresWindowCovering", {tuyaMotorReversal: reversal});
@@ -4293,7 +4390,6 @@ export const ZM35HQ_attr: Tz.Converter = {
 export const TS0210_sensitivity: Tz.Converter = {
     key: ["sensitivity"],
     convertSet: async (entity, key, value, meta) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = utils.toNumber(value, "sensitivity");
         await entity.write("ssIasZone", {currentZoneSensitivityLevel: value as number});
         return {state: {sensitivity: value}};
@@ -4413,7 +4509,6 @@ export const schneider_pilot_mode: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         utils.assertString(value, key);
         const lookup = {contactor: 1, pilot: 3};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         const mode = utils.getFromLookup(value, lookup);
         await entity.write("schneiderSpecificPilotMode", {pilotMode: mode}, {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
@@ -4511,7 +4606,6 @@ export const wiser_fip_setting: Tz.Converter = {
         const zonemodeNum = utils.getFromLookup(meta.state.zone_mode, zoneLookup);
 
         const fipLookup = {comfort: 0, "comfort_-1": 1, "comfort_-2": 2, energy_saving: 3, frost_protection: 4, off: 5};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         utils.validateValue(value, Object.keys(fipLookup));
         const fipmodeNum = utils.getFromLookup(value, fipLookup);
@@ -4534,7 +4628,6 @@ export const wiser_hact_config: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         utils.assertString(value, key);
         const lookup = {unconfigured: 0x00, setpoint_switch: 0x80, setpoint_fip: 0x82, fip_fip: 0x83};
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = value.toLowerCase();
         const mode = utils.getFromLookup(value, lookup);
         await entity.write("hvacThermostat", {57361: {value: mode, type: 0x18}});

@@ -2,6 +2,7 @@ import assert from "node:assert";
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import type {HeimanSpecificAirQualityCluster, HeimanSpecificInfraRedRemoteCluster, HeimanSpecificScenesCluster} from "../lib/heiman";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
 import type {Fz, KeyValue, KeyValueAny, KeyValueNumberString} from "../lib/types";
@@ -749,8 +750,8 @@ export const color_colortemp: Fz.Converter<"lightingColorCtrl", undefined, ["att
         return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
     },
 };
-export const meter_identification: Fz.Converter<"haMeterIdentification", undefined, ["readResponse"]> = {
-    cluster: "haMeterIdentification",
+export const meter_identification: Fz.Converter<"seMeterIdentification", undefined, ["readResponse"]> = {
+    cluster: "seMeterIdentification",
     type: ["readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValueAny = {};
@@ -2892,7 +2893,7 @@ export const plaid_battery: Fz.Converter<"genPowerCfg", undefined, ["readRespons
 };
 export const heiman_ir_remote: Fz.Converter<
     "heimanSpecificInfraRedRemote",
-    undefined,
+    HeimanSpecificInfraRedRemoteCluster,
     ["commandStudyKeyRsp", "commandCreateIdRsp", "commandGetIdAndKeyCodeListRsp"]
 > = {
     cluster: "heimanSpecificInfraRedRemote",
@@ -2909,6 +2910,7 @@ export const heiman_ir_remote: Fz.Converter<
                     action_id: msg.data.result === 1 ? msg.data.id : undefined,
                 };
             case "commandCreateIdRsp":
+                assert("id" in msg.data);
                 assert("modelType" in msg.data);
                 return {
                     action: "create",
@@ -3688,7 +3690,15 @@ export const legrand_scenes: Fz.Converter<"genScenes", undefined, "commandRecall
     cluster: "genScenes",
     type: "commandRecall",
     convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {65527: "enter", 65526: "leave", 65524: "sleep", 65525: "wakeup"};
+        const lookup: KeyValueAny = {
+            65527: "enter",
+            65526: "leave",
+            65524: "sleep",
+            65525: "wakeup",
+            65518: "ambiance_I",
+            65519: "ambiance_II",
+            65520: "ambiance_III",
+        };
         return {action: lookup[msg.data.groupid] ? lookup[msg.data.groupid] : "default"};
     },
 };
@@ -3876,7 +3886,7 @@ export const heiman_hcho: Fz.Converter<"msFormaldehyde", undefined, ["attributeR
         }
     },
 };
-export const heiman_air_quality: Fz.Converter<"heimanSpecificAirQuality", undefined, ["attributeReport", "readResponse"]> = {
+export const heiman_air_quality: Fz.Converter<"heimanSpecificAirQuality", HeimanSpecificAirQualityCluster, ["attributeReport", "readResponse"]> = {
     cluster: "heimanSpecificAirQuality",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -4084,7 +4094,7 @@ export const STS_PRS_251_presence: Fz.Converter<"genBinaryInput", undefined, ["a
 };
 export const heiman_scenes: Fz.Converter<
     "heimanSpecificScenes",
-    undefined,
+    HeimanSpecificScenesCluster,
     ["commandAtHome", "commandGoOut", "commandCinema", "commandRepast", "commandSleep"]
 > = {
     cluster: "heimanSpecificScenes",
