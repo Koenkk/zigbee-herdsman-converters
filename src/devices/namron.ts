@@ -534,7 +534,7 @@ const namronPanelHeaterProExtend = () => {
             device.save();
         };
     };
-};
+},
 
 export const definitions: DefinitionWithExtend[] = [
     {
