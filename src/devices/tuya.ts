@@ -3971,52 +3971,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.windowCovering({controls: ["lift"]})],
         whiteLabel: [tuya.whitelabel("Yookee", "D10110_1", "Smart blind", ["_TZE200_9caxna4s"])],
     },
-        fingerprint: tuya.fingerprint("TS0301", [
-        "_TZE210_m6lwazh9",
-    ]),
-    model: 'TS0301_a_ok',
-    vendor: 'Tuya',
-    description: 'A-OK AM25 Blind motor',
-    options: [exposes.options.invert_cover()],
-    extend: [
-        tuya.modernExtend.tuyaBase({
-            dp: true,
-            // Enable this line in case the device has a clock, if time is incorrect with
-            // `1970`, try with `2000`.
-            // timeStart: "1970",
-        }),
-    ],
-    exposes: [
-        e.battery(),
-        e.cover_position().setAccess("position", ea.STATE_SET),
-        e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
-    ],
-    meta: {
-        // All datapoints go in here
-        tuyaDatapoints: [
-            [
-                1,
-                "state",
-                tuya.valueConverterBasic.lookup({
-                    OPEN: tuya.enum(0),
-                    STOP: tuya.enum(1),
-                    CLOSE: tuya.enum(2),
-                }),
-            ],
-            [2, "position", tuya.valueConverter.coverPosition],
-            [3, "position", tuya.valueConverter.coverPosition],
-            [
-                5,
-                "reverse_direction",
-                tuya.valueConverterBasic.lookup({
-                    forward: tuya.enum(0),
-                    back: tuya.enum(1),
-                }),
-            ],
-            [12, "motor_fault", tuya.valueConverter.trueFalse1],
-            [13, "battery", tuya.valueConverter.raw],
-        ],
-    },
     {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_aqnazj70",
@@ -6638,6 +6592,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
             "_TZE200_ba69l9ol",
             "_TZE200_68nvbi09",
             "_TZE200_vexa5o82",
+            "_TZE210_m6lwazh9",
         ]),
         model: "TS0601_cover_3",
         vendor: "Tuya",
