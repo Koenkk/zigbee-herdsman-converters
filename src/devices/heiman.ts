@@ -16,9 +16,6 @@ import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
-// import {logger} from "../lib/logger";
-// import {Console} from "node:console";
-
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -85,13 +82,13 @@ const heimanExtend = {
             ID: 0xfc8b,
             manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
             attributes: {
-                enableIndicator: {ID: 0xf001, type: Zcl.DataType.UINT8}, // 0: off, 1: enable
-                sensitivity: {ID: 0xf002, type: Zcl.DataType.UINT8},
-                enableSubRegionIsolation: {ID: 0xf006, type: Zcl.DataType.UINT8},
-                installationMethod: {ID: 0xf007, type: Zcl.DataType.UINT8},
-                cellMountedTable: {ID: 0xf008, type: Zcl.DataType.OCTET_STR}, // string
-                wallMountedTable: {ID: 0xf009, type: Zcl.DataType.OCTET_STR}, // string
-                subRegionIsolationTable: {ID: 0xf00a, type: Zcl.DataType.OCTET_STR}, // string
+                enableIndicator: {ID: 0xf001, type: Zcl.DataType.UINT8, write: true}, // 0: off, 1: enable
+                sensitivity: {ID: 0xf002, type: Zcl.DataType.UINT8, write: true},
+                enableSubRegionIsolation: {ID: 0xf006, type: Zcl.DataType.UINT8, write: true},
+                installationMethod: {ID: 0xf007, type: Zcl.DataType.UINT8, write: true},
+                cellMountedTable: {ID: 0xf008, type: Zcl.DataType.OCTET_STR, write: true}, // string
+                wallMountedTable: {ID: 0xf009, type: Zcl.DataType.OCTET_STR, write: true}, // string
+                subRegionIsolationTable: {ID: 0xf00a, type: Zcl.DataType.OCTET_STR, write: true}, // string
             },
             commands: {},
             commandsResponse: {},
@@ -103,36 +100,36 @@ const heimanExtend = {
             manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
             attributes: {
                 // Sensor 0x0000~0x0FFF
-                sensorPreheatingState: {ID: 0x0000, type: Zcl.DataType.ENUM8},
-                sensorSelfCheckState: {ID: 0x0001, type: Zcl.DataType.ENUM8},
-                sensorFaultState: {ID: 0x0002, type: Zcl.DataType.BITMAP16},
-                sensorPollutionLevel: {ID: 0x0003, type: Zcl.DataType.UINT8},
-                sensorSensitivityLevel: {ID: 0x0004, type: Zcl.DataType.ENUM8},
-                sensorPrealarmThreshold: {ID: 0x0005, type: Zcl.DataType.ENUM8},
-                sensorLifeState: {ID: 0x0006, type: Zcl.DataType.ENUM8},
-                sensorLifeTime: {ID: 0x0007, type: Zcl.DataType.UINT16},
-                deviceMuteControl: {ID: 0x0008, type: Zcl.DataType.BITMAP32},
-                deviceMuteState: {ID: 0x0009, type: Zcl.DataType.BITMAP16},
-                deviceCascadeControlEnable: {ID: 0x000a, type: Zcl.DataType.BITMAP8},
-                deviceSoundToneType: {ID: 0x000b, type: Zcl.DataType.ENUM8},
-                deviceSoundControl: {ID: 0x000c, type: Zcl.DataType.ARRAY},
-                deviceBlinkControl: {ID: 0x000d, type: Zcl.DataType.ARRAY},
-                smokeAdValue: {ID: 0x000e, type: Zcl.DataType.UINT16},
-                smokeAlarmType: {ID: 0x000f, type: Zcl.DataType.ENUM8},
-                smokeWaterMistState: {ID: 0x0010, type: Zcl.DataType.ENUM8},
-                smokeSensorData: {ID: 0x0011, type: Zcl.DataType.ARRAY},
-                deviceCascadeState: {ID: 0x0012, type: Zcl.DataType.ENUM8},
-                sensorPrealarmState: {ID: 0x0013, type: Zcl.DataType.ENUM8},
+                sensorPreheatingState: {ID: 0x0000, type: Zcl.DataType.ENUM8, write: true},
+                sensorSelfCheckState: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true},
+                sensorFaultState: {ID: 0x0002, type: Zcl.DataType.BITMAP16, write: true},
+                sensorPollutionLevel: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true},
+                sensorSensitivityLevel: {ID: 0x0004, type: Zcl.DataType.ENUM8, write: true},
+                sensorPrealarmThreshold: {ID: 0x0005, type: Zcl.DataType.ENUM8, write: true},
+                sensorLifeState: {ID: 0x0006, type: Zcl.DataType.ENUM8, write: true},
+                sensorLifeTime: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true},
+                deviceMuteControl: {ID: 0x0008, type: Zcl.DataType.BITMAP32, write: true},
+                deviceMuteState: {ID: 0x0009, type: Zcl.DataType.BITMAP16, write: true},
+                deviceCascadeControlEnable: {ID: 0x000a, type: Zcl.DataType.BITMAP8, write: true},
+                deviceSoundToneType: {ID: 0x000b, type: Zcl.DataType.ENUM8, write: true},
+                deviceSoundControl: {ID: 0x000c, type: Zcl.DataType.ARRAY, write: true},
+                deviceBlinkControl: {ID: 0x000d, type: Zcl.DataType.ARRAY, write: true},
+                smokeAdValue: {ID: 0x000e, type: Zcl.DataType.UINT16, write: true},
+                smokeAlarmType: {ID: 0x000f, type: Zcl.DataType.ENUM8, write: true},
+                smokeWaterMistState: {ID: 0x0010, type: Zcl.DataType.ENUM8, write: true},
+                smokeSensorData: {ID: 0x0011, type: Zcl.DataType.ARRAY, write: true},
+                deviceCascadeState: {ID: 0x0012, type: Zcl.DataType.ENUM8, write: true},
+                sensorPrealarmState: {ID: 0x0013, type: Zcl.DataType.ENUM8, write: true},
 
                 // Light/Switch 0x1000~0x1FFF
-                indicatorLightControl: {ID: 0x1000, type: Zcl.DataType.BITMAP8},
-                indicatorLightNotDisturbStartTime: {ID: 0x1001, type: Zcl.DataType.UINT16},
-                indicatorLightNotDisturbEndTime: {ID: 0x1002, type: Zcl.DataType.UINT16},
-                indicatorLightNotDisturbEnable: {ID: 0x1003, type: Zcl.DataType.UINT8},
-                indicatorLightLevelControlOf1: {ID: 0x1004, type: Zcl.DataType.UINT8},
-                indicatorLightLevelControlOf2: {ID: 0x1005, type: Zcl.DataType.UINT8},
-                indicatorLightLevelControlOf3: {ID: 0x1006, type: Zcl.DataType.UINT8},
-                interconnectable: {ID: 0x1007, type: Zcl.DataType.UINT8},
+                indicatorLightControl: {ID: 0x1000, type: Zcl.DataType.BITMAP8, write: true},
+                indicatorLightNotDisturbStartTime: {ID: 0x1001, type: Zcl.DataType.UINT16, write: true},
+                indicatorLightNotDisturbEndTime: {ID: 0x1002, type: Zcl.DataType.UINT16, write: true},
+                indicatorLightNotDisturbEnable: {ID: 0x1003, type: Zcl.DataType.UINT8, write: true},
+                indicatorLightLevelControlOf1: {ID: 0x1004, type: Zcl.DataType.UINT8, write: true},
+                indicatorLightLevelControlOf2: {ID: 0x1005, type: Zcl.DataType.UINT8, write: true},
+                indicatorLightLevelControlOf3: {ID: 0x1006, type: Zcl.DataType.UINT8, write: true},
+                interconnectable: {ID: 0x1007, type: Zcl.DataType.UINT8, write: true},
             },
             commands: {},
             commandsResponse: {},
@@ -163,7 +160,7 @@ const heimanExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data.enableIndicator === undefined) {
-                        return {enableIndicator: 0};
+                        return;
                     }
 
                     const state = !!msg.data["enableIndicator"];
@@ -184,12 +181,7 @@ const heimanExtend = {
                 },
             },
         ];
-        return {
-            exposes: exposes,
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
+        return {exposes: exposes, fromZigbee, toZigbee, isModernExtend: true};
     },
     heimanClusterRadarSubRegionEnableExtend: (): ModernExtend => {
         const clusterName = "heimanClusterRadar" as const;
@@ -200,7 +192,7 @@ const heimanExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data.enableSubRegionIsolation === undefined) {
-                        return {enableSubRegionIsolation: 0};
+                        return;
                     }
 
                     const state = !!msg.data["enableSubRegionIsolation"];
@@ -215,7 +207,6 @@ const heimanExtend = {
                     await entity.read<typeof clusterName, RadarSensorHeimanZcl>(clusterName, ["enableSubRegionIsolation"], defaultResponseOptions);
                 },
                 convertSet: async (entity, key, value, meta) => {
-                    // const state = (value as Record<string, unknown>) || {};
                     const state = value ? 1 : 0;
                     await entity.write<typeof clusterName, RadarSensorHeimanZcl>(
                         clusterName,
@@ -249,7 +240,7 @@ const heimanExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     let attrData = null;
                     if (msg.data.sensitivity === undefined) {
-                        return {sensitivity: "50"};
+                        return;
                     }
                     attrData = msg.data["sensitivity"];
                     return {sensitivity: attrData};
@@ -344,7 +335,6 @@ const heimanExtend = {
                         buffer.writeInt16LE(coordinates[4], 8); // height
                         await entity.write<typeof clusterName, RadarSensorHeimanZcl>(clusterName, {cellMountedTable: buffer}, defaultResponseOptions);
                     }
-                    // await entity.write(cluster, {[id]: {value: payloadValue, type}}, {manufacturerCode: 0x120b});
                 },
             },
         ];
@@ -555,7 +545,7 @@ const heimanExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     let attrData = null;
                     if (msg.data.measuredValue === undefined) {
-                        return {ambient_light: "0"};
+                        return;
                     }
 
                     attrData = msg.data["measuredValue"];
@@ -581,10 +571,10 @@ const heimanExtend = {
     heimanClusterSensorFaultState: (): ModernExtend => {
         const clusterName = "heimanClusterSpecial" as const;
         const faultStateBitMap = {
-            0: "fault", // bit0：传感器故障（不区分类型）
-            1: "sensor open circuit fault", // bit1：传感器开路故障
-            2: "sensor short circuit fault", // bit2：传感器短路故障
-            3: "sensor pollution fault", // bit3：传感器污染故障
+            0: "fault", // bit0
+            1: "sensor_open_circuit_fault", // bit1
+            2: "sensor_short_circuit_fault", // bit2
+            3: "sensor_pollution_fault", // bit3
         };
         const exposes = utils.exposeEndpoints(e.text("fault_state", ea.STATE_GET).withDescription("Device fault status (normal or fault types)."));
         const fromZigbee = [
@@ -595,7 +585,7 @@ const heimanExtend = {
                     let attrData = null;
                     let attrValue = 0;
                     if (msg.data.sensorFaultState === undefined) {
-                        return {fault_state: "normal"};
+                        return;
                     }
 
                     attrData = msg.data["sensorFaultState"];
@@ -631,10 +621,10 @@ const heimanExtend = {
     heimanClusterDeviceMuteState: (): ModernExtend => {
         const clusterName = "heimanClusterSpecial" as const;
         const muteStateBitMap = {
-            0: "mute", // bit0：静音（不区分静音类型）
-            1: "alarm mute", // bit1：报警静音
-            2: "fault mute", // bit2：故障静音
-            3: "low battery mute", // bit3：低压静音
+            0: "mute", // bit0
+            1: "alarm_mute", // bit1
+            2: "fault_mute", // bit2
+            3: "low_battery_mute", // bit3
         };
         const exposes = utils.exposeEndpoints(e.text("Muted", ea.STATE_GET).withDescription("Device mute status (normal or mute types)."));
         const fromZigbee = [
@@ -646,7 +636,7 @@ const heimanExtend = {
                     let attrValue = 0;
 
                     if (msg.data.deviceMuteState === undefined) {
-                        return {fault_state: "normal"};
+                        return;
                     }
 
                     attrData = msg.data["deviceMuteState"];
@@ -667,7 +657,7 @@ const heimanExtend = {
         ];
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["Muted"],
+                key: ["muted"],
                 convertGet: async (entity, key, meta) => {
                     await entity.read<typeof clusterName, HeimanPrivateCluster>(clusterName, ["deviceMuteState"], defaultResponseOptions);
                 },
@@ -736,7 +726,7 @@ const heimanExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data.interconnectable === undefined) {
-                        return {interconnectable: 0};
+                        return;
                     }
 
                     const state = !!msg.data["interconnectable"];

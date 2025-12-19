@@ -232,6 +232,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["RB 256 C"],
+        model: "RB 256 C",
+        vendor: "Innr",
+        description: "Smart Mini Bulb Colour E14",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["RB 262"],
         model: "RB 262",
         vendor: "Innr",

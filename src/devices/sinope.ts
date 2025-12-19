@@ -602,8 +602,9 @@ const tzLocal = {
     eco_mode: {
         key: ["eco_mode"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("manuSpecificSinope", {ecoMode: value as number});
-            return {state: {eco_mode: ((value as number | null) ?? -128) / 10}};
+            const defaultedValue: number = (value as number | null) ?? -12.8;
+            await entity.write("manuSpecificSinope", {ecoMode: defaultedValue * 10});
+            return {state: {eco_mode: defaultedValue}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("manuSpecificSinope", ["ecoMode"]);
