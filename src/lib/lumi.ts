@@ -1660,6 +1660,90 @@ export const lumiModernExtend = {
             entityCategory: "config",
             ...args,
         }),
+    lumiRGBEffect: (lookup: KeyValue, args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>): ModernExtend => {
+        return modernExtend.enumLookup({
+            name: "effect",
+            lookup: lookup,
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x051f, type: 0x23},
+            description: "RGB dynamic effect type",
+            zigbeeCommandOptions: {manufacturerCode},
+            ...args,
+        });
+    },
+    lumiRGBEffectSpeed: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>): ModernExtend => {
+        return modernExtend.numeric({
+            name: "effect_speed",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x0520, type: 0x20},
+            description: "RGB dynamic effect speed (1-100%)",
+            zigbeeCommandOptions: {manufacturerCode},
+            unit: "%",
+            valueMin: 1,
+            valueMax: 100,
+            valueStep: 1,
+            ...args,
+        });
+    },
+    lumiRGBEffectColors: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            toZigbee: [
+                {
+                    key: ["effect_colors"],
+                    convertSet: async (entity, key, value, meta) => {
+                        const colors = value ||
+                            meta.state.effect_colors || [
+                                {r: 255, g: 0, b: 0},
+                                {r: 0, g: 255, b: 0},
+                                {r: 0, g: 0, b: 255},
+                            ];
+
+                        if (!Array.isArray(colors) || colors.length < 1 || colors.length > 8) {
+                            throw new Error("Must provide array of 1-8 RGB color objects");
+                        }
+
+                        const colorBytes: number[] = [];
+                        for (const color of colors) {
+                            const encoded = lumiEncodeRgbColor(color);
+                            colorBytes.push(...encoded);
+                        }
+
+                        const packet = Buffer.from([0x00, colors.length, ...colorBytes]);
+                        const targetEndpoint = meta.device.getEndpoint(1);
+
+                        await targetEndpoint.write(
+                            "manuSpecificLumi",
+                            {1315: {value: packet, type: 0x41}},
+                            {manufacturerCode, disableDefaultResponse: false},
+                        );
+
+                        return {
+                            state: {
+                                effect_colors: colors,
+                            },
+                        };
+                    },
+                },
+            ],
+            exposes: [
+                exposes
+                    .list(
+                        "effect_colors",
+                        ea.SET,
+                        exposes
+                            .composite("color", "color", ea.SET)
+                            .withFeature(exposes.numeric("r", ea.SET).withValueMin(0).withValueMax(255).withDescription("Red (0-255)"))
+                            .withFeature(exposes.numeric("g", ea.SET).withValueMin(0).withValueMax(255).withDescription("Green (0-255)"))
+                            .withFeature(exposes.numeric("b", ea.SET).withValueMin(0).withValueMax(255).withDescription("Blue (0-255)")),
+                    )
+                    .withDescription("Array of RGB color objects for dynamic effects (1-8 colors).")
+                    .withLengthMin(1)
+                    .withLengthMax(8)
+                    .withCategory("config"),
+            ],
+        };
+    },
     lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean; powerOutageMemory?: "binary" | "enum"; lockRelay?: boolean}) => {
         args = {operationMode: false, lockRelay: false, ...args};
         const result = modernExtend.onOff({powerOnBehavior: false, ...args});
