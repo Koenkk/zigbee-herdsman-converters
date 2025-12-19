@@ -9,11 +9,11 @@ const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['Tilt Only 50 WF TiltOnly'],
-        model: 'Tilt Only 50 WF TiltOnly',
-        vendor: 'Somfy',
-        description: 'Somfy Tilt Only 50 WF (tilt only)',
-        extend: [m.windowCovering({controls: ['tilt'],}), m.battery(),],
+        zigbeeModel: ["Tilt Only 50 WF TiltOnly"],
+        model: "Tilt Only 50 WF TiltOnly",
+        vendor: "Somfy",
+        description: "Somfy Tilt Only 50 WF (tilt only)",
+        extend: [m.windowCovering({controls: ["tilt"]}), m.battery()],
     },
     {
         zigbeeModel: ["Sonesse 28 WF Li-Ion Roller", "Sonesse 28 WF Roller"],
