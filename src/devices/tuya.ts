@@ -11563,7 +11563,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
             ]),
             tuya.whitelabel("Zemismart", "ZM-18-USB", "Universal smart IR remote control", ["_TZ3290_uc8lwbi2"]),
             tuya.whitelabel("Zemismart", "ZXMIR-02", "Universal smart IR remote control", ["_TZ3290_8xzb2ghn"]),
-            tuya.whitelabel("Ekaza", "EKAT-T304Z", "Controle remoto universal", ["_TZ3290_s6ezpa3j"]),
+            tuya.whitelabel("Ekaza", "EKAT-T304Z", "Universal smart IR remote control", ["_TZ3290_s6ezpa3j"]),
         ],
     },
     {
