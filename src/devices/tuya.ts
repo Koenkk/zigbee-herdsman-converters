@@ -9521,7 +9521,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_iedhxgyi"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_iedhxgyi", "_TZ3000_lcjsewlo"]),
         model: "TS0726_3_gang",
         vendor: "Tuya",
         description: "3 gang switch with neutral wire",
