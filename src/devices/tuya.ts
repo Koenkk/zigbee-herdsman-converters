@@ -3971,6 +3971,42 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Yookee", "D10110_1", "Smart blind", ["_TZE200_9caxna4s"])],
     },
     {
+        fingerprint: tuya.fingerprint("TS0301", ["_TZE210_m6lwazh9"]),
+        model: "TS0301_cover_1",
+        vendor: "Tuya",
+        description: "Cover motor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            e.battery(),
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [3, "position", tuya.valueConverter.coverPosition],
+                [
+                    5,
+                    "reverse_direction",
+                    tuya.valueConverterBasic.lookup({
+                        forward: tuya.enum(0),
+                        back: tuya.enum(1),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_aqnazj70",
             "_TZE200_di3tfv5b",
@@ -6591,7 +6627,6 @@ Ensure all 12 segments are defined and separated by spaces.`,
             "_TZE200_ba69l9ol",
             "_TZE200_68nvbi09",
             "_TZE200_vexa5o82",
-            "_TZE210_m6lwazh9",
         ]),
         model: "TS0601_cover_3",
         vendor: "Tuya",
