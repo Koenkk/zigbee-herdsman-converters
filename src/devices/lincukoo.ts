@@ -43,6 +43,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
+            e
+                .numeric("detection_distance", ea.STATE)
+                .withValueMin(0)
+                .withValueMax(1000)
+                .withValueStep(1)
+                .withDescription("Distance of detected person")
+                .withUnit("cm"),
             e.illuminance(),
             e
                 .numeric("installation_height", ea.STATE_SET)
@@ -70,6 +77,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [20, "illuminance", tuya.valueConverter.raw],
                 [13, "installation_height", tuya.valueConverter.divideBy100],
                 [16, "radar_sensitivity", tuya.valueConverter.raw],
+                [19, "detection_distance", tuya.valueConverter.raw],
                 [103, "fading_time", tuya.valueConverter.raw],
                 [101, "indicator", tuya.valueConverter.onOff],
                 [104, "relay_switch", tuya.valueConverter.onOff],
