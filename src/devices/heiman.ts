@@ -62,7 +62,7 @@ interface HeimanPrivateCluster {
         smokeConcentrationLevel: number;
         smokeChamberContaminationLevel: number;
         smokeConcentationUnit: number;
-        
+
         // Light/Switch 0x1000~0x1FFF
         indicatorLightControl: number;
         indicatorLightNotDisturbStartTime: number;
