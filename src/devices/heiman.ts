@@ -958,7 +958,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
     },
     {
-        fingerprint: [{modelID: "SmartPlug-N", manufacturerName: "Heiman"}],
+        fingerprint: [{modelID: "SmartPlug-N", manufacturerName: "HEIMAN"}],
         model: "HS2SK_nxp",
         description: "Smart metering plug",
         vendor: "Heiman",
@@ -1157,7 +1157,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "RC-N", manufacturerName: "Heiman"}],
+        fingerprint: [{modelID: "RC-N", manufacturerName: "HEIMAN"}],
         model: "HS1RC-N",
         vendor: "Heiman",
         description: "Smart remote controller",
@@ -1172,7 +1172,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "RC-EF-3.0", manufacturerName: "Heiman"}],
+        fingerprint: [{modelID: "RC-EF-3.0", manufacturerName: "HEIMAN"}],
         model: "HM1RC-2-E",
         vendor: "Heiman",
         description: "Smart remote controller",
@@ -1188,7 +1188,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.iasArmCommandDefaultResponse()],
     },
     {
-        fingerprint: [{modelID: "RC-EM", manufacturerName: "Heiman"}],
+        fingerprint: [{modelID: "RC-EM", manufacturerName: "HEIMAN"}],
         model: "HS1RC-EM",
         vendor: "Heiman",
         description: "Smart remote controller",
@@ -1309,8 +1309,8 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
-            {modelID: "SOS-EM", manufacturerName: "Heiman"},
-            {modelID: "SOS-EF-3.0", manufacturerName: "Heiman"},
+            {modelID: "SOS-EM", manufacturerName: "HEIMAN"},
+            {modelID: "SOS-EF-3.0", manufacturerName: "HEIMAN"},
         ],
         model: "HS1EB/HS1EB-E",
         vendor: "Heiman",
@@ -1326,7 +1326,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "SceneSwitch-EM-3.0", manufacturerName: "Heiman"}],
+        fingerprint: [{modelID: "SceneSwitch-EM-3.0", manufacturerName: "HEIMAN"}],
         model: "HS2SS",
         vendor: "Heiman",
         description: "Smart scene switch",
@@ -1363,7 +1363,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "ColorDimmerSw-EM-3.0", manufacturerName: "Heiman"}],
+        fingerprint: [{modelID: "ColorDimmerSw-EM-3.0", manufacturerName: "HEIMAN"}],
         model: "HS2WDSR-E",
         vendor: "Heiman",
         description: "Remote dimmer and color control",
@@ -1415,7 +1415,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.gas(), e.battery_low(), e.tamper()],
     },
     {
-        fingerprint: [{modelID: "Vibration-N", manufacturerName: "Heiman"}],
+        fingerprint: [{modelID: "Vibration-N", manufacturerName: "HEIMAN"}],
         model: "HS1VS-N",
         vendor: "Heiman",
         description: "Vibration sensor",
@@ -1431,8 +1431,8 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
-            {modelID: "Vibration-EF_3.0", manufacturerName: "Heiman"},
-            {modelID: "Vibration-EF-3.0", manufacturerName: "Heiman"},
+            {modelID: "Vibration-EF_3.0", manufacturerName: "HEIMAN"},
+            {modelID: "Vibration-EF-3.0", manufacturerName: "HEIMAN"},
         ],
         model: "HS1VS-EF",
         vendor: "Heiman",
@@ -1448,7 +1448,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        fingerprint: [{modelID: "HS2AQ-EM", manufacturerName: "Heiman"}],
+        fingerprint: [{modelID: "HS2AQ-EM", manufacturerName: "HEIMAN"}],
         model: "HS2AQ-EM",
         vendor: "Heiman",
         description: "Air quality monitor",
@@ -1553,7 +1553,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: "IRControl-EM", manufacturerName: "Heiman"}],
+        fingerprint: [{modelID: "IRControl-EM", manufacturerName: "HEIMAN"}],
         model: "HS2IRC",
         vendor: "Heiman",
         description: "Smart IR Control",
@@ -1570,8 +1570,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["HS2SW1L-EF-3.0", "HS2SW1L-EFR-3.0", "HS2SW1A-N"],
         fingerprint: [
-            {modelID: "HS2SW1A-EF-3.0", manufacturerName: "Heiman"},
-            {modelID: "HS2SW1A-EFR-3.0", manufacturerName: "Heiman"},
+            {modelID: "HS2SW1A-EF-3.0", manufacturerName: "HEIMAN"},
+            {modelID: "HS2SW1A-EFR-3.0", manufacturerName: "HEIMAN"},
         ],
         model: "HS2SW1A/HS2SW1A-N",
         vendor: "Heiman",
@@ -1589,8 +1589,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["HS2SW2L-EF-3.0", "HS2SW2L-EFR-3.0", "HS2SW2A-N"],
         fingerprint: [
-            {modelID: "HS2SW2A-EF-3.0", manufacturerName: "Heiman"},
-            {modelID: "HS2SW2A-EFR-3.0", manufacturerName: "Heiman"},
+            {modelID: "HS2SW2A-EF-3.0", manufacturerName: "HEIMAN"},
+            {modelID: "HS2SW2A-EFR-3.0", manufacturerName: "HEIMAN"},
         ],
         model: "HS2SW2A/HS2SW2A-N",
         vendor: "Heiman",
@@ -1611,8 +1611,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["HS2SW3L-EF-3.0", "HS2SW3L-EFR-3.0", "HS2SW3A-N"],
         fingerprint: [
-            {modelID: "HS2SW3A-EF-3.0", manufacturerName: "Heiman"},
-            {modelID: "HS2SW3A-EFR-3.0", manufacturerName: "Heiman"},
+            {modelID: "HS2SW3A-EF-3.0", manufacturerName: "HEIMAN"},
+            {modelID: "HS2SW3A-EFR-3.0", manufacturerName: "HEIMAN"},
         ],
         model: "HS2SW3A/HS2SW3A-N",
         vendor: "Heiman",
@@ -1679,7 +1679,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
-        fingerprint: [{modelID: "DoorBell-EM", manufacturerName: "Heiman"}],
+        fingerprint: [{modelID: "DoorBell-EM", manufacturerName: "HEIMAN"}],
         model: "HS2DB",
         vendor: "Heiman",
         description: "Smart doorbell button",
@@ -1693,7 +1693,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(["pressed"]), e.battery_low(), e.tamper()],
     },
     {
-        fingerprint: [{modelID: "DoorBell-EF-3.0", manufacturerName: "Heiman"}],
+        fingerprint: [{modelID: "DoorBell-EF-3.0", manufacturerName: "HEIMAN"}],
         model: "HS2SS-E_V03",
         vendor: "Heiman",
         description: "Smart doorbell button",
@@ -1785,7 +1785,6 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0xf007, type: Zcl.DataType.UINT8},
                 description: "0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45°",
                 access: "ALL",
-
             }),
         ],
         fromZigbee: [fz.identify],
