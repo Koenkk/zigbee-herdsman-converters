@@ -2623,6 +2623,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.power_on_behavior(["off", "on", "toggle", "previous"])],
         meta: {
             moveToLevelWithOnOffDisable: true,
+            noOffTransitionWhenOff: true,
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
