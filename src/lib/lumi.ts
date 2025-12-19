@@ -1480,6 +1480,59 @@ export const trv = {
     },
 };
 
+/**
+ * Converts RGB (0-255) to CIE xy color space
+ * Used for Aqara RGB devices that require xy format
+ */
+function lumiRgbToXY(r: number, g: number, b: number): {x: number; y: number} {
+    let red = r / 255.0;
+    let green = g / 255.0;
+    let blue = b / 255.0;
+
+    red = red > 0.04045 ? ((red + 0.055) / 1.055) ** 2.4 : red / 12.92;
+    green = green > 0.04045 ? ((green + 0.055) / 1.055) ** 2.4 : green / 12.92;
+    blue = blue > 0.04045 ? ((blue + 0.055) / 1.055) ** 2.4 : blue / 12.92;
+
+    const X = red * 0.4124564 + green * 0.3575761 + blue * 0.1804375;
+    const Y = red * 0.2126729 + green * 0.7151522 + blue * 0.0721750;
+    const Z = red * 0.0193339 + green * 0.1191920 + blue * 0.9503041;
+
+    const sum = X + Y + Z;
+    if (sum === 0) {
+        return {x: 0, y: 0};
+    }
+
+    return {
+        x: X / sum,
+        y: Y / sum,
+    };
+}
+
+/**
+ * Encodes RGB color to Aqara's 4-byte xy format
+ * Returns [xHi, xLo, yHi, yLo]
+ */
+function lumiEncodeRgbColor(color: {r: number; g: number; b: number}): number[] {
+    if (typeof color !== "object" || color.r === undefined || color.g === undefined || color.b === undefined) {
+        throw new Error(`Invalid color format. Expected {r: 0-255, g: 0-255, b: 0-255}, got: ${JSON.stringify(color)}`);
+    }
+
+    const r = Number(color.r);
+    const g = Number(color.g);
+    const b = Number(color.b);
+
+    if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
+        throw new Error(`RGB values must be between 0-255. Got r:${r}, g:${g}, b:${b}`);
+    }
+
+    const xy = lumiRgbToXY(r, g, b);
+
+    const xScaled = Math.round(xy.x * 65535);
+    const yScaled = Math.round(xy.y * 65535);
+
+    return [(xScaled >>> 8) & 0xff, xScaled & 0xff, (yScaled >>> 8) & 0xff, yScaled & 0xff];
+}
+
 export const manufacturerCode = 0x115f; // TODO: from Zcl
 const manufacturerOptions = {
     lumi: {manufacturerCode: manufacturerCode, disableDefaultResponse: true},
