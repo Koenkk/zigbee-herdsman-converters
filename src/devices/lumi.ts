@@ -4490,13 +4490,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "E27 CCT led bulb",
         whiteLabel: [
             {
-                model: "T2_GU10",
+                model: "T2_GU10_CCT",
                 vendor: "Aqara",
                 description: "GU10 CCT led bulb",
                 fingerprint: [{modelID: "lumi.light.agl006"}, {modelID: "lumi.light.agl008"}],
             },
             {
-                model: "T2_E26",
+                model: "T2_E26_CCT",
                 vendor: "Aqara",
                 description: "E26 CCT led bulb",
                 fingerprint: [{modelID: "lumi.light.agl002"}],
