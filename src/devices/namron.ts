@@ -11,6 +11,7 @@ import * as store from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+import * as Zh from "../lib/zh";
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -532,9 +533,9 @@ const namronPanelHeaterProExtend = () => {
 
             device.powerSource = "Mains (single phase)";
             device.save();
-        };
+        },
     };
-},
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
