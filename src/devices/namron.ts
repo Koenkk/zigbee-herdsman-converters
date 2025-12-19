@@ -55,7 +55,7 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
-
+},
     // Panel Heater PRO
     namron_panel_heater_pro: {
         cluster: "hvacThermostat",
@@ -536,7 +536,6 @@ const namronPanelHeaterProExtend = () => {
     };
 };
 
-},
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["3308431"],
