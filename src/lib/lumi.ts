@@ -1494,8 +1494,8 @@ function lumiRgbToXY(r: number, g: number, b: number): {x: number; y: number} {
     blue = blue > 0.04045 ? ((blue + 0.055) / 1.055) ** 2.4 : blue / 12.92;
 
     const X = red * 0.4124564 + green * 0.3575761 + blue * 0.1804375;
-    const Y = red * 0.2126729 + green * 0.7151522 + blue * 0.0721750;
-    const Z = red * 0.0193339 + green * 0.1191920 + blue * 0.9503041;
+    const Y = red * 0.2126729 + green * 0.7151522 + blue * 0.072175;
+    const Z = red * 0.0193339 + green * 0.119192 + blue * 0.9503041;
 
     const sum = X + Y + Z;
     if (sum === 0) {
