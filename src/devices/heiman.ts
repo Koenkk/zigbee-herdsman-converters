@@ -59,7 +59,10 @@ interface HeimanPrivateCluster {
         smokeSensorData: number[];
         deviceCascadeState: number;
         sensorPrealarmState: number;
-
+        smokeConcentrationLevel: number;
+        smokeChamberContaminationLevel: number;
+        smokeConcentationUnit: number;
+        
         // Light/Switch 0x1000~0x1FFF
         indicatorLightControl: number;
         indicatorLightNotDisturbStartTime: number;
@@ -120,6 +123,9 @@ const heimanExtend = {
                 smokeSensorData: {ID: 0x0011, type: Zcl.DataType.ARRAY, write: true},
                 deviceCascadeState: {ID: 0x0012, type: Zcl.DataType.ENUM8, write: true},
                 sensorPrealarmState: {ID: 0x0013, type: Zcl.DataType.ENUM8, write: true},
+                smokeConcentrationLevel: {ID: 0x0016, type: Zcl.DataType.UINT8},
+                smokeChamberContaminationLevel: {ID: 0x0017, type: Zcl.DataType.UINT8},
+                smokeConcentationUnit: {ID: 0x0018, type: Zcl.DataType.UINT8},
 
                 // Light/Switch 0x1000~0x1FFF
                 indicatorLightControl: {ID: 0x1000, type: Zcl.DataType.BITMAP8, write: true},
@@ -1963,9 +1969,35 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.iasWarningDeviceMute(),
             heimanExtend.heimanClusterIndicatorLight(),
             heimanExtend.heimanClusterSensorInterconnectable(),
-            // heimanExtend.heimanClusterSirenMode(),
+            m.numeric({
+                name: "smoke_level",
+                unit: "",
+                scale: 0.1,
+                valueMin: 0,
+                valueMax: 20,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0016, type: Zcl.DataType.UINT8},
+                description: "smoke level",
+                access: "STATE_GET",
+            }),
             m.enumLookup({
-                name: "Siren",
+                name: "smoke_unit",
+                lookup: {"db/m": 0, "%FT": 1},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0018, type: Zcl.DataType.UINT8},
+                description: "smoke level unit",
+                access: "STATE_GET",
+            }),
+            m.enumLookup({
+                name: "chamber_contamination",
+                lookup: {normal: 0, light_contamination: 1, medium_contamication: 2, critical_contamication: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0017, type: Zcl.DataType.UINT8},
+                description: "it indicates that how serious the smoke chamber get contaminated.",
+                access: "STATE_GET",
+            }),
+            m.enumLookup({
+                name: "siren",
                 lookup: {stop: 0, smoke_siren: 1, co_siren: 2},
                 cluster: "heimanClusterSpecial",
                 attribute: {ID: 0x0012, type: Zcl.DataType.UINT8},
