@@ -62,7 +62,7 @@ interface HeimanPrivateCluster {
         smokeConcentrationLevel: number;
         smokeChamberContaminationLevel: number;
         smokeConcentationUnit: number;
-        
+
         // Light/Switch 0x1000~0x1FFF
         indicatorLightControl: number;
         indicatorLightNotDisturbStartTime: number;
@@ -1982,7 +1982,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "smoke_unit",
-                lookup: {"db/m": 0, "%FT": 1},
+                lookup: {"dB/m": 0, "%ft OBS": 1},
                 cluster: "heimanClusterSpecial",
                 attribute: {ID: 0x0018, type: Zcl.DataType.UINT8},
                 description: "smoke level unit",
