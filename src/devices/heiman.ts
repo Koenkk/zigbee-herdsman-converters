@@ -626,7 +626,7 @@ const heimanExtend = {
             2: "fault_mute", // bit2
             3: "low_battery_mute", // bit3
         };
-        const exposes = utils.exposeEndpoints(e.text("Muted", ea.STATE_GET).withDescription("Device mute status (normal or mute types)."));
+        const exposes = utils.exposeEndpoints(e.text("muted", ea.STATE_GET).withDescription("Device mute status (normal or mute types)."));
         const fromZigbee = [
             {
                 cluster: clusterName,
