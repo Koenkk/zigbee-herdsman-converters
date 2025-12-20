@@ -22402,25 +22402,24 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE284_8se38w3c'}],
-        model: 'TZ-ZT01_GA4',
-        vendor: 'Tuya',
-        description: 'Temperature & Humidity Sensor with external Probe',
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_8se38w3c"}],
+        model: "TZ-ZT01_GA4",
+        vendor: "Tuya",
+        description: "Temperature & Humidity Sensor with external Probe",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-	        e.numeric("temperature_Env", ea.STATE).withUnit("°C").withDescription("Environment temperature"),
-		    e.numeric("temperature_Probe", ea.STATE).withUnit("°C").withDescription("Probe temperature"),
+            e.numeric("temperature_Env", ea.STATE).withUnit("°C").withDescription("Environment temperature"),
+            e.numeric("temperature_Probe", ea.STATE).withUnit("°C").withDescription("Probe temperature"),
             e.humidity().withDescription("Environment humidity"),
-            tuya.exposes.batteryState()
+            tuya.exposes.batteryState(),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "temperature_Env", tuya.valueConverter.divideBy10],
                 [2, "humidity", tuya.valueConverter.raw],
-                [3, 'battery_state', tuya.valueConverter.batteryState],
-				[38,"temperature_Probe", tuya.valueConverter.divideBy10]
+                [3, "battery_state", tuya.valueConverter.batteryState],
+                [38, "temperature_Probe", tuya.valueConverter.divideBy10],
             ],
         },
     },
-    
 ];
