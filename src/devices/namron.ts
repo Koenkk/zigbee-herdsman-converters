@@ -1377,8 +1377,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
     },
-    }
-        zigbeeModel: ["Panel Heater"],
+    {
+        zigbeeModel: ["Panel Heater PRO"],
         model: "4512776",
         vendor: "Namron",
         description: "Namron Zigbee panelovn PRO hvit (4512776)",
@@ -1387,8 +1387,9 @@ export const definitions: DefinitionWithExtend[] = [
         m.electricityMeter({voltage: false, current: false}),
         namronPanelHeaterProExtend(),  
         ],
+        
     },   
-    }
+    {
         zigbeeModel: ["4512749"],
         model: "4512749",
         vendor: "Namron",
