@@ -1,4 +1,4 @@
-import {Zcl} from "zigbee-herdsman";
+import {Zcl, type Device, type Endpoint} from "zigbee-herdsman";
 
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -213,7 +213,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 // --- Namron Panel Heater PRO (4512776 / 4512777) -----------------------------
-const namronPanelHeaterProExtend = (): m.ModernExtend => {
+const namronPanelHeaterProExtend = () => {
     const fzPro: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -418,7 +418,7 @@ const namronPanelHeaterProExtend = (): m.ModernExtend => {
             e.numeric("display_brightness", ea.STATE).withValueMin(1).withValueMax(7).withValueStep(1),
         ],
 
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device: Device, coordinatorEndpoint: Endpoint) => {
             const endpoint = device.getEndpoint(1);
 
             await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "seMetering", "haElectricalMeasurement"]);
