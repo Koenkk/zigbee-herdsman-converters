@@ -1,4 +1,4 @@
-import {Zcl, type Device, type Endpoint} from "zigbee-herdsman";
+import {type Device, type Endpoint, Zcl} from "zigbee-herdsman";
 
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
