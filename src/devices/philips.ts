@@ -209,8 +209,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue White and Color Ambiance GU10 (Centura - Black)",
         whiteLabel: [
-            {model: "929003809201", vendor: "Philips", description: "Hue White and Color Ambiance GU10 (Centura - Silver)", fingerprint: [{modelID: "929003809201"}]},
-            ],
+            {
+                model: "929003809201",
+                vendor: "Philips",
+                description: "Hue White and Color Ambiance GU10 (Centura - Silver)",
+                fingerprint: [{modelID: "929003809201"}],
+            },
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
