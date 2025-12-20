@@ -11,7 +11,6 @@ import * as store from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
-import type * as Zh from "../lib/zh";
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -277,7 +276,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 // --- Namron Panel Heater PRO (4512776 / 4512777) -----------------------------
-const namronPanelHeaterProExtend = () => {
+const namronPanelHeaterProExtend = (): m.ModernExtend => {
     const fzPro: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -285,27 +284,14 @@ const namronPanelHeaterProExtend = () => {
             const result: KeyValue = {};
             const data = msg.data;
 
-            // Read-only brightness (device rejects writes on tested firmware)
             if (data[0x1000] !== undefined) result.display_brightness = data[0x1000] as number;
-
             if (data[0x1001] !== undefined) result.display_auto_off = (data[0x1001] as number) === 1;
-
-            // 0x1009: 0=enable,1=disable  (as per your working setup)
             if (data[0x1009] !== undefined) result.window_open_detection = (data[0x1009] as number) === 0;
-
-            // 0x100B: window open status
             if (data[0x100b] !== undefined) result.window_open = (data[0x100b] as number) === 1;
-
-            // 0x100A: hysteresis stored as 0.1°C steps
             if (data[0x100a] !== undefined) result.hysteresis = (data[0x100a] as number) / 10;
-
-            // 0x100C: 0=enable,1=disable
             if (data[0x100c] !== undefined) result.adaptive_function = (data[0x100c] as number) === 0;
 
-            // 0x2009: 0=PID,1=Hysteresis
             if (data[0x2009] !== undefined) result.control_method = (data[0x2009] as number) === 0 ? "pid" : "hysteresis";
-
-            // PID: stored as x1000
             if (data[0x2006] !== undefined) result.pid_kp = (data[0x2006] as number) / 1000;
             if (data[0x2008] !== undefined) result.pid_ki = (data[0x2008] as number) / 1000;
             if (data[0x2007] !== undefined) result.pid_kd = (data[0x2007] as number) / 1000;
@@ -328,7 +314,6 @@ const namronPanelHeaterProExtend = () => {
             "adaptive_function",
         ],
         convertSet: async (entity, key, value, meta) => {
-            // Virtual ON/OFF via systemMode
             if (key === "state") {
                 const v = String(value).toUpperCase();
                 const isOn = v === "ON";
@@ -336,16 +321,15 @@ const namronPanelHeaterProExtend = () => {
                 return {state: {state: isOn ? "ON" : "OFF"}};
             }
 
-            // Frost-mode (7°C) with restore
             if (key === "frost_mode") {
                 const enable = value === true || String(value).toUpperCase() === "ON";
                 const s = (meta.state || {}) as KeyValue;
 
                 if (enable) {
                     if (s._prev_system_mode === undefined && s.system_mode !== undefined) s._prev_system_mode = s.system_mode;
-                    if (s._prev_occupied_heating_setpoint === undefined && s.occupied_heating_setpoint !== undefined)
+                    if (s._prev_occupied_heating_setpoint === undefined && s.occupied_heating_setpoint !== undefined) {
                         s._prev_occupied_heating_setpoint = s.occupied_heating_setpoint;
-
+                    }
                     await entity.write("hvacThermostat", {systemMode: 0x04, occupiedHeatingSetpoint: 700});
                 } else {
                     const payload: {systemMode?: number; occupiedHeatingSetpoint?: number} = {};
@@ -385,7 +369,6 @@ const namronPanelHeaterProExtend = () => {
                 return {state: {frost_mode: enable}};
             }
 
-            // Manufacturer-specific writes (typed payload)
             const payload: Record<number, {value: number; type: number}> = {};
 
             if (key === "hysteresis") {
@@ -458,7 +441,8 @@ const namronPanelHeaterProExtend = () => {
     };
 
     return {
-        // Core thermostat + metering
+        isModernExtend: true,
+
         fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fzPro],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -468,8 +452,6 @@ const namronPanelHeaterProExtend = () => {
             tz.thermostat_running_state,
             tzPro,
         ],
-        // modernExtend for metering exposures (we’ll disable voltage/current there)
-        extend: [m.electricityMeter({voltage: false, current: false})],
 
         exposes: [
             e.power(),
@@ -482,15 +464,9 @@ const namronPanelHeaterProExtend = () => {
                 .withLocalTemperatureCalibration(-5, 5, 0.1)
                 .withRunningState(["idle", "heat"]),
 
-            // Virtual on/off in HA (mapped to systemMode)
-            e
-                .switch()
-                .withDescription("Virtual ON/OFF mapped to thermostat system mode"),
+            e.switch().withDescription("Virtual ON/OFF mapped to thermostat system mode"),
 
-            // PRO extras
-            e
-                .binary("frost_mode", ea.ALL, "ON", "OFF")
-                .withDescription("Frost protection mode (sets 7°C)"),
+            e.binary("frost_mode", ea.ALL, "ON", "OFF").withDescription("Frost protection mode (sets 7°C)"),
             e.numeric("hysteresis", ea.ALL).withUnit("°C").withValueMin(0.5).withValueMax(5).withValueStep(0.1),
             e.binary("window_open_detection", ea.ALL, "ON", "OFF").withDescription("Open window detection"),
             e.binary("window_open", ea.STATE, "ON", "OFF").withDescription("Window currently detected as open"),
@@ -502,32 +478,23 @@ const namronPanelHeaterProExtend = () => {
             e.numeric("pid_ki", ea.ALL).withValueMin(0).withValueMax(1).withValueStep(0.01),
             e.numeric("pid_kd", ea.ALL).withValueMin(0).withValueMax(1).withValueStep(0.01),
 
-            // Read-only brightness (writes rejected by device)
-            e
-                .numeric("display_brightness", ea.STATE)
-                .withValueMin(1)
-                .withValueMax(7)
-                .withValueStep(1),
+            e.numeric("display_brightness", ea.STATE).withValueMin(1).withValueMax(7).withValueStep(1),
         ],
 
-        configure: async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
             await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "seMetering", "haElectricalMeasurement"]);
 
-            // Thermostat reporting
             await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, change: 50});
 
-            // Metering multipliers
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
 
-            // Power + energy reporting
             await reporting.activePower(endpoint, {min: 10, change: 10});
             await reporting.currentSummDelivered(endpoint, {min: 300});
 
-            // Initial reads
             await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint"]);
             await endpoint.read(
                 "hvacThermostat",
@@ -540,6 +507,7 @@ const namronPanelHeaterProExtend = () => {
         },
     };
 };
+
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -1475,16 +1443,15 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Panel Heater"],
-        fingerprint: [
-            {manufacturerName: "NAMRON AS", modelID: "4512776"},
-            {manufacturerName: "NAMRON AS", modelID: "4512777"},
-        ],
-        model: "4512776/4512777",
+        model: "4512776",
         vendor: "Namron",
-        description: "Namron Zigbee panelovn PRO (4512776 white / 4512777 black)",
-        whiteLabel: [{vendor: "Namron", model: "4512777", description: "Namron Zigbee panelovn PRO black"}],
-        ota: true,
-        extend: [namronPanelHeaterProExtend()],
+        description: "Namron Zigbee panelovn PRO hvit (4512776)",
+        whiteLabel: [{vendor: "Namron", model: "4512777", description: "Namron Zigbee panelovn PRO sort (4512777)"}],
+        extend: [
+            m.electricityMeter({voltage: false, current: false}),
+            namronPanelHeaterProExtend(),
+    ],
+    }
     },
     {
         zigbeeModel: ["3802968"],
