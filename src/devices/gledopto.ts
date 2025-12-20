@@ -1241,7 +1241,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff()],
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_gt5al3bl"}, { modelID: "TS0601", manufacturerName: "_TZE204_8fffc3kb" }],
+        fingerprint: [
+            {modelID: "TS0601", manufacturerName: "_TZE284_gt5al3bl"},
+            {modelID: "TS0601", manufacturerName: "_TZE204_8fffc3kb"},
+        ],
         model: "GL-SPI-206P",
         vendor: "Gledopto",
         description: "SPI pixel controller RGBCCT/RGBW/RGB",
