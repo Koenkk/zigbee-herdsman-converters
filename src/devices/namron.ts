@@ -1377,7 +1377,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
         },
     },
-    {
+    }
         zigbeeModel: ["Panel Heater"],
         model: "4512776",
         vendor: "Namron",
@@ -1385,8 +1385,8 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Namron", model: "4512777", description: "Namron Zigbee panelovn PRO sort (4512777)"}],
         extend: [
         m.electricityMeter({voltage: false, current: false}),
-        namronPanelHeaterProExtend(),
-    ],
+        namronPanelHeaterProExtend(),  
+        ],
     },   
     }
         zigbeeModel: ["4512749"],
