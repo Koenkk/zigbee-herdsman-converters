@@ -55,70 +55,7 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
-
-    // Panel Heater PRO
-    namron_panel_heater_pro: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data;
-            const result: KeyValue = {};
-
-            // Hysterese (0x100A) – 0.1°C
-            if (data[0x100a] !== undefined) {
-                result.hysteresis = (data[0x100a] as number) / 10;
-            }
-
-            // Window open detection (0x1009) 0=enable,1=disable
-            if (data[0x1009] !== undefined) {
-                result.window_open_detection = data[0x1009] === 0;
-            }
-
-            // Window open flag (0x100B)
-            if (data[0x100b] !== undefined) {
-                result.window_open = data[0x100b] === 1;
-            }
-
-            // Display brightness (0x1000) – read-only
-            if (data[0x1000] !== undefined) {
-                result.display_brightness = data[0x1000];
-            }
-
-            // Display auto off (0x1001), 0=off,1=on
-            if (data[0x1001] !== undefined) {
-                result.display_auto_off = data[0x1001] === 1;
-            }
-
-            // Adaptive function (0x100C): 0=Enable,1=Disable
-            if (data[0x100c] !== undefined) {
-                result.adaptive_function = data[0x100c] === 0;
-            }
-
-            // Control method (0x2009): 0=PID,1=Hysteresis
-            if (data[0x2009] !== undefined) {
-                result.control_method = data[0x2009] === 0 ? "pid" : "hysteresis";
-            }
-
-            // PID Kp/Ki/Kd
-            if (data[0x2006] !== undefined) {
-                result.pid_kp = (data[0x2006] as number) / 1000;
-            }
-            if (data[0x2008] !== undefined) {
-                result.pid_ki = (data[0x2008] as number) / 1000;
-            }
-            if (data[0x2007] !== undefined) {
-                result.pid_kd = (data[0x2007] as number) / 1000;
-            }
-
-            // Virtuell state fra systemMode
-            if (data.systemMode !== undefined) {
-                const sm = data.systemMode as number;
-                result.state = sm === 0 ? "OFF" : "ON";
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    
     namron_thermostat2: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -507,7 +444,6 @@ const namronPanelHeaterProExtend = (): m.ModernExtend => {
         },
     };
 };
-
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -1448,19 +1384,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Namron Zigbee panelovn PRO hvit (4512776)",
         whiteLabel: [{vendor: "Namron", model: "4512777", description: "Namron Zigbee panelovn PRO sort (4512777)"}],
         extend: [
-            m.electricityMeter({voltage: false, current: false}),
-            namronPanelHeaterProExtend(),
+        m.electricityMeter({voltage: false, current: false}),
+        namronPanelHeaterProExtend(),
     ],
+    },   
     }
-    },
-    {
-        zigbeeModel: ["3802968"],
-        model: "3802968",
-        vendor: "Namron",
-        description: "LED Filament Flex 5W CCT E27 Clear",
-        extend: [m.light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
-    },
-    {
         zigbeeModel: ["4512749"],
         model: "4512749",
         vendor: "Namron",
