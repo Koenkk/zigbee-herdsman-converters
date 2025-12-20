@@ -55,7 +55,7 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
-    
+
     namron_thermostat2: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -1383,12 +1383,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "Namron Zigbee panelovn PRO hvit (4512776)",
         whiteLabel: [{vendor: "Namron", model: "4512777", description: "Namron Zigbee panelovn PRO sort (4512777)"}],
-        extend: [
-        m.electricityMeter({voltage: false, current: false}),
-        namronPanelHeaterProExtend(),  
-        ],
-        
-    },   
+        extend: [m.electricityMeter({voltage: false, current: false}), namronPanelHeaterProExtend()],
+    },
     {
         zigbeeModel: ["4512749"],
         model: "4512749",
