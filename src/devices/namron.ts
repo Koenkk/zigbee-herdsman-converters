@@ -873,7 +873,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3802968",
         vendor: "Namron",
         description: "LED Filament Flex 5w CCT E27 Clear",
-        extend: [m.light({colorTemp: {range: [153, 555]}, turnsOffAtBrigthness1: true})],
+        extend: [m.light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["89665"],
