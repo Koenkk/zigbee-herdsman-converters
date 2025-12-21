@@ -4177,7 +4177,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_gbagoilo"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_gbagoilo", "_TZE284_xnwxmj8z"]),
         model: "MG-ZG01W",
         vendor: "Tuya",
         description: "1 gang switch with power meter",
