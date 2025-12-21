@@ -420,33 +420,33 @@ const namronPanelHeaterProExtend = (): ModernExtend => {
             e.numeric("display_brightness", ea.STATE).withValueMin(1).withValueMax(7).withValueStep(1),
         ],
 
-        configure: [
-            async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
-            const endpoint = device.getEndpoint(1);
+            configure: [
+                async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+                const endpoint = device.getEndpoint(1);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "seMetering", "haElectricalMeasurement"]);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "seMetering", "haElectricalMeasurement"]);
 
-            await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, change: 50});
+                await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
+                await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, change: 50});
 
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+                await reporting.readMeteringMultiplierDivisor(endpoint);
+                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
 
-            await reporting.activePower(endpoint, {min: 10, change: 10});
-            await reporting.currentSummDelivered(endpoint, {min: 300});
+                await reporting.activePower(endpoint, {min: 10, change: 10});
+                await reporting.currentSummDelivered(endpoint, {min: 300});
 
-            await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint"]);
-            await endpoint.read(
-                "hvacThermostat",
-                [0x1000, 0x1001, 0x1009, 0x100a, 0x100b, 0x100c, 0x2006, 0x2007, 0x2008, 0x2009],
-                sunricherManufacturer,
-            );
+                await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint"]);
+                await endpoint.read(
+                    "hvacThermostat",
+                    [0x1000, 0x1001, 0x1009, 0x100a, 0x100b, 0x100c, 0x2006, 0x2007, 0x2008, 0x2009],
+                    sunricherManufacturer,
+                );
 
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
-    ],
-},
+                device.powerSource = "Mains (single phase)";
+                device.save();
+            },
+        ],
+    };
 };
 
 export const definitions: DefinitionWithExtend[] = [
