@@ -1241,7 +1241,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff()],
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_gt5al3bl"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_8fffc3kb", "_TZE284_gt5al3bl"]),
         model: "GL-SPI-206P",
         vendor: "Gledopto",
         description: "SPI pixel controller RGBCCT/RGBW/RGB",
