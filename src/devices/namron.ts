@@ -444,9 +444,8 @@ const namronPanelHeaterProExtend = (): ModernExtend => {
 
             device.powerSource = "Mains (single phase)";
             device.save();
-        ],
-       }, 
-    };
+        },
+    ],
 };
 
 export const definitions: DefinitionWithExtend[] = [
