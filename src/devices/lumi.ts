@@ -4362,8 +4362,8 @@ export const definitions: DefinitionWithExtend[] = [
 
         extend: [
             m.deviceEndpoints({endpoints: {white: 1, rgb: 2}}),
-            lumi.lumiModernExtend.lumiLight({colorTemp: true, endpointNames: ["white"]}),
-            lumi.lumiModernExtend.lumiLight({
+            lumiLight({colorTemp: true, endpointNames: ["white"]}),
+            lumiLight({
                 colorTemp: true,
                 deviceTemperature: false,
                 powerOutageCount: false,
@@ -4371,8 +4371,8 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointNames: ["rgb"],
             }),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
-            lumi.lumiModernExtend.lumiPowerOnBehavior({lookup: {on: 0, previous: 1, off: 2}}),
-            lumi.lumiModernExtend.lumiZigbeeOTA(),
+            lumiPowerOnBehavior({lookup: {on: 0, previous: 1, off: 2}}),
+            lumiZigbeeOTA(),
             lumi.lumiModernExtend.lumiDimmingRangeMin(),
             lumi.lumiModernExtend.lumiDimmingRangeMax(),
             lumi.lumiModernExtend.lumiOnOffDuration(),
