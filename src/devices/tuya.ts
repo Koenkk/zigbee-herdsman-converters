@@ -1261,7 +1261,7 @@ const fzLocal = {
 
             return {action_group: groupId, brightness: level};
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevelWithOnOff", "commandMoveToLevel"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0601_smart_scene_knob_light_colortemp: {
         // Direction: higher mired = warmer = down, lower mired = cooler = up
@@ -1311,7 +1311,7 @@ const fzLocal = {
 
             return {action_group: groupId, color_temp: colortemp};
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["commandMoveToColorTemp"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0601_smart_scene_knob_curtain_command: {
         // DP 1: 0=start, 2=stop (1=init rotation, ignored)
@@ -1384,7 +1384,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataRequest"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
