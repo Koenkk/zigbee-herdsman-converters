@@ -403,6 +403,44 @@ const convLocal = {
     },
 };
 
+// TS0601_smart_scene_knob constants and helpers //
+// 4 physical buttons with knob rotation, 3 modes: Scene (DP 1-4), Light (ZCL), Curtain (DP broadcast)
+// Mode switch: hold button 2 or 4 for 5 seconds (only cycles through bound modes)
+// Group ID pattern: base + (button-1) * 20, detected from first button press
+const MODE_SCENE = 0x01;
+const MODE_LIGHT = 0x03;
+const MODE_CURTAIN = 0x04;
+const GROUP_ID_OFFSET = 20;
+
+const STATUS_UNASSIGNED = 'unassigned';
+const STATUS_WAITING = 'waiting_button_1';
+const STATUS_READY = 'ready';
+
+const getButtonFromGroupId = (groupId: number, baseGroupId: number): number | null => {
+    if (!baseGroupId || !groupId) return null;
+    const offset = groupId - baseGroupId;
+    if (offset >= 0 && offset % GROUP_ID_OFFSET === 0) {
+        const button = Math.floor(offset / GROUP_ID_OFFSET) + 1;
+        if (button >= 1 && button <= 4) return button;
+    }
+    return null;
+};
+// DP 102 payload: [0x01, 0x01, mode, ...name(12 bytes), ...suffix(4 bytes)]
+// Suffix: slot number at position (slot-1), rest 0xff
+const bindSlotTS0601SmartSceneKnob = async (entity: Zh.Endpoint, slot: number, mode: number): Promise<void> => {
+    const modeNames: {[key: number]: string} = {[MODE_SCENE]: 'Scene', [MODE_LIGHT]: 'Light', [MODE_CURTAIN]: 'Curtain'};
+    const slotName = `${modeNames[mode] || 'Scene'} ${slot}`;
+
+    const nameBuffer = Buffer.alloc(12, 0);
+    nameBuffer.write(slotName, 'utf8');
+
+    const suffix = Buffer.from([0xff, 0xff, 0xff, 0xff]);
+    suffix[slot - 1] = slot;
+
+    const payload = Buffer.concat([Buffer.from([0x01, 0x01, mode]), nameBuffer, suffix]);
+    await tuya.sendDataPointRaw(entity, 102, payload, 'dataRequest', 0x10 + (slot - 1));
+};
+
 const tzLocal = {
     ts0049_countdown: {
         key: ["water_countdown"],
@@ -822,6 +860,58 @@ const tzLocal = {
             return {state: {backlight_mode: value}};
         },
     } satisfies Tz.Converter,
+    // TS0601_smart_scene_knob //
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_smart_scene_knob_bind_all: {
+        key: ['bind_all_scene', 'bind_all_light', 'bind_all_curtain'],
+        convertSet: async (entity, key, value, meta) => {
+            const modes: {[key: string]: number} = {
+                bind_all_scene: MODE_SCENE,
+                bind_all_light: MODE_LIGHT,
+                bind_all_curtain: MODE_CURTAIN,
+            };
+            const mode = modes[key];
+
+            for (let slot = 1; slot <= 4; slot++) {
+                await bindSlotTS0601SmartSceneKnob(entity, slot, mode);
+                if (slot < 4) await new Promise((resolve) => setTimeout(resolve, 500));
+            }
+
+            // Scene mode doesn't use Group ID
+            if (key === 'bind_all_scene') {
+                return {};
+            }
+
+            const currentStatus = meta.state?.assignment_status as string | undefined;
+            const baseGroupId = meta.state?.base_group_id as number | undefined;
+
+            if (currentStatus !== STATUS_READY || !baseGroupId) {
+                return {state: {assignment_status: STATUS_WAITING}};
+            }
+            return {};
+        },
+    } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_smart_scene_knob_assign_button_1: {
+        key: ['assign_button_1'],
+        convertSet: async (entity, key, value, meta) => {
+            return {state: {assignment_status: STATUS_WAITING}};
+        },
+    } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_smart_scene_knob_set_base_group_id: {
+        key: ['set_base_group_id'],
+        convertSet: async (entity, key, value, meta) => {
+            const baseGroupId = parseInt(value as string, 10);
+            if (isNaN(baseGroupId) || baseGroupId < 1 || baseGroupId > 65000) return {};
+            return {
+                state: {
+                    base_group_id: baseGroupId,
+                    assignment_status: STATUS_READY,
+                },
+            };
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -1087,6 +1177,214 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    // TS0601_smart_scene_knob //
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_smart_scene_knob_light_onoff: {
+        cluster: 'genOnOff',
+        type: ['commandOn', 'commandOff'],
+        convert: (model, msg, publish, options, meta): KeyValue | undefined => {
+            const groupId = msg.groupID;
+            if (!groupId) return;
+
+            const baseGroupId = meta.state?.base_group_id as number | undefined;
+            const status = (meta.state?.assignment_status as string) || STATUS_UNASSIGNED;
+            const command = msg.type === 'commandOn' ? 'on' : 'off';
+
+            if (status === STATUS_WAITING) {
+                return {
+                    base_group_id: groupId,
+                    assignment_status: STATUS_READY,
+                    action: `light_1_${command}`,
+                    action_group: groupId,
+                    action_button: 1,
+                };
+            }
+
+            if (status === STATUS_READY && baseGroupId) {
+                const button = getButtonFromGroupId(groupId, baseGroupId);
+                if (!button) return;
+                return {
+                    action: `light_${button}_${command}`,
+                    action_group: groupId,
+                    action_button: button,
+                };
+            }
+
+            return {action_group: groupId, assignment_status: STATUS_UNASSIGNED};
+        },
+    } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_smart_scene_knob_light_brightness: {
+        cluster: 'genLevelCtrl',
+        type: ['commandMoveToLevelWithOnOff', 'commandMoveToLevel'],
+        convert: (model, msg, publish, options, meta): KeyValue | undefined => {
+            const groupId = msg.groupID;
+            if (!groupId) return;
+
+            const baseGroupId = meta.state?.base_group_id as number | undefined;
+            const status = (meta.state?.assignment_status as string) || STATUS_UNASSIGNED;
+            const level = msg.data.level as number;
+
+            const prevBrightness = meta.state?.brightness as number | undefined;
+            const prevDirection = meta.state?.brightness_direction as string | undefined;
+            let direction = '';
+
+            if (prevBrightness !== undefined) {
+                if (level > prevBrightness) direction = '_up';
+                else if (level < prevBrightness) direction = '_down';
+                else direction = prevDirection || '';
+            }
+
+            if (status === STATUS_WAITING) {
+                return {
+                    base_group_id: groupId,
+                    assignment_status: STATUS_READY,
+                    action: `light_1_brightness${direction}`,
+                    action_group: groupId,
+                    action_button: 1,
+                    brightness: level,
+                    brightness_direction: direction,
+                };
+            }
+
+            if (status === STATUS_READY && baseGroupId) {
+                const button = getButtonFromGroupId(groupId, baseGroupId);
+                if (!button) return;
+                return {
+                    action: `light_${button}_brightness${direction}`,
+                    action_group: groupId,
+                    action_button: button,
+                    brightness: level,
+                    brightness_direction: direction,
+                };
+            }
+
+            return {action_group: groupId, brightness: level};
+        },
+    } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    // Direction: higher mired = warmer = down, lower mired = cooler = up
+    TS0601_smart_scene_knob_light_colortemp: {
+        cluster: 'lightingColorCtrl',
+        type: ['commandMoveToColorTemp'],
+        convert: (model, msg, publish, options, meta): KeyValue | undefined => {
+            const groupId = msg.groupID;
+            if (!groupId) return;
+
+            const baseGroupId = meta.state?.base_group_id as number | undefined;
+            const status = (meta.state?.assignment_status as string) || STATUS_UNASSIGNED;
+            const colortemp = msg.data.colortemp as number;
+
+            const prevColortemp = meta.state?.color_temp as number | undefined;
+            const prevDirection = meta.state?.color_temp_direction as string | undefined;
+            let direction = '';
+
+            if (prevColortemp !== undefined) {
+                if (colortemp > prevColortemp) direction = '_down';
+                else if (colortemp < prevColortemp) direction = '_up';
+                else direction = prevDirection || '';
+            }
+
+            if (status === STATUS_WAITING) {
+                return {
+                    base_group_id: groupId,
+                    assignment_status: STATUS_READY,
+                    action: `light_1_colortemp${direction}`,
+                    action_group: groupId,
+                    action_button: 1,
+                    color_temp: colortemp,
+                    color_temp_direction: direction,
+                };
+            }
+
+            if (status === STATUS_READY && baseGroupId) {
+                const button = getButtonFromGroupId(groupId, baseGroupId);
+                if (!button) return;
+                return {
+                    action: `light_${button}_colortemp${direction}`,
+                    action_group: groupId,
+                    action_button: button,
+                    color_temp: colortemp,
+                    color_temp_direction: direction,
+                };
+            }
+
+            return {action_group: groupId, color_temp: colortemp};
+        },
+    } satisfies Fz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    // DP 1: 0=start, 2=stop (1=init rotation, ignored)
+    // DP 2: 4-byte big-endian position 0-100%
+    TS0601_smart_scene_knob_curtain_command: {
+        cluster: 'manuSpecificTuya',
+        type: ['commandDataRequest'],
+        convert: (model, msg, publish, options, meta): KeyValue | undefined => {
+            const groupId = msg.groupID;
+            if (!groupId) return;
+
+            const baseGroupId = meta.state?.base_group_id as number | undefined;
+            const status = (meta.state?.assignment_status as string) || STATUS_UNASSIGNED;
+
+            const dpValues = msg.data.dpValues as Array<{dp: number; data: Buffer}>;
+            if (!dpValues || dpValues.length === 0) return;
+
+            const dp = dpValues[0].dp;
+            const data = dpValues[0].data;
+
+            let action: string | null = null;
+            let position: number | null = null;
+
+            if (dp === 1) {
+                const commands: {[key: number]: string} = {0: 'start', 2: 'stop'};
+                action = commands[data[0]] || null;
+            } else if (dp === 2) {
+                position = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+
+                const prevPosition = meta.state?.curtain_position as number | undefined;
+                const prevDirection = meta.state?.curtain_position_direction as string | undefined;
+
+                if (prevPosition !== undefined) {
+                    if (position > prevPosition) action = 'position_open';
+                    else if (position < prevPosition) action = 'position_close';
+                    else action = prevDirection ? `position${prevDirection}` : 'position';
+                } else {
+                    action = 'position';
+                }
+            }
+
+            if (!action) return;
+
+            const result: KeyValue = {action_group: groupId};
+
+            if (position !== null) {
+                result.curtain_position = position;
+                if (action.includes('_open')) result.curtain_position_direction = '_open';
+                else if (action.includes('_close')) result.curtain_position_direction = '_close';
+            }
+
+            if (status === STATUS_WAITING) {
+                return {
+                    ...result,
+                    base_group_id: groupId,
+                    assignment_status: STATUS_READY,
+                    action: `curtain_1_${action}`,
+                    action_button: 1,
+                };
+            }
+
+            if (status === STATUS_READY && baseGroupId) {
+                const button = getButtonFromGroupId(groupId, baseGroupId);
+                if (!button) return;
+                return {
+                    ...result,
+                    action: `curtain_${button}_${action}`,
+                    action_button: button,
+                };
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -20293,6 +20591,80 @@ Ensure all 12 segments are defined and separated by spaces.`,
             l1: 1,
             l2: 1,
         }),
+    },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_nj7sfid2']),
+        model: 'TS0601_smart_scene_knob',
+        vendor: 'Tuya',
+        description: 'Smart scene knob controller with 4 buttons',
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        fromZigbee: [
+            fzLocal.TS0601_smart_scene_knob_light_onoff,
+            fzLocal.TS0601_smart_scene_knob_light_brightness,
+            fzLocal.TS0601_smart_scene_knob_light_colortemp,
+            fzLocal.TS0601_smart_scene_knob_curtain_command,
+        ],
+        toZigbee: [
+            tzLocal.TS0601_smart_scene_knob_bind_all,
+            tzLocal.TS0601_smart_scene_knob_assign_button_1,
+            tzLocal.TS0601_smart_scene_knob_set_base_group_id,
+        ],
+        exposes: [
+            e.action([
+                'scene_1', 'scene_2', 'scene_3', 'scene_4',
+                'light_1_on', 'light_1_off', 'light_1_brightness_up', 'light_1_brightness_down', 'light_1_colortemp_up', 'light_1_colortemp_down',
+                'light_2_on', 'light_2_off', 'light_2_brightness_up', 'light_2_brightness_down', 'light_2_colortemp_up', 'light_2_colortemp_down',
+                'light_3_on', 'light_3_off', 'light_3_brightness_up', 'light_3_brightness_down', 'light_3_colortemp_up', 'light_3_colortemp_down',
+                'light_4_on', 'light_4_off', 'light_4_brightness_up', 'light_4_brightness_down', 'light_4_colortemp_up', 'light_4_colortemp_down',
+                'curtain_1_start', 'curtain_1_stop', 'curtain_1_position_open', 'curtain_1_position_close',
+                'curtain_2_start', 'curtain_2_stop', 'curtain_2_position_open', 'curtain_2_position_close',
+                'curtain_3_start', 'curtain_3_stop', 'curtain_3_position_open', 'curtain_3_position_close',
+                'curtain_4_start', 'curtain_4_stop', 'curtain_4_position_open', 'curtain_4_position_close',
+            ]).withDescription('Triggered action from scene button, light knob, or curtain control'),
+            e.numeric('brightness', ea.STATE).withValueMin(0).withValueMax(254)
+                .withDescription('Brightness level from light mode (0-254)'),
+            e.numeric('color_temp', ea.STATE).withValueMin(150).withValueMax(500)
+                .withDescription('Color temperature from light mode (mired)'),
+            e.numeric('curtain_position', ea.STATE).withValueMin(0).withValueMax(100).withUnit('%')
+                .withDescription('Curtain position from curtain mode (0-100%)'),
+            e.enum('assignment_status', ea.STATE, [STATUS_UNASSIGNED, STATUS_WAITING, STATUS_READY])
+                .withCategory('diagnostic')
+                .withDescription('Button assignment status'),
+            e.numeric('base_group_id', ea.STATE)
+                .withCategory('diagnostic')
+                .withDescription('Base Group ID for button 1 (buttons 2-4 are +20, +40, +60)'),
+            e.numeric('action_button', ea.STATE).withValueMin(1).withValueMax(4)
+                .withCategory('diagnostic')
+                .withDescription('Button number from last action'),
+            e.numeric('action_group', ea.STATE)
+                .withCategory('diagnostic')
+                .withDescription('Group ID from last action'),
+            e.enum('bind_all_scene', ea.SET, ['bind'])
+                .withCategory('config')
+                .withDescription('Bind all buttons to Scene mode (red LED)'),
+            e.enum('bind_all_light', ea.SET, ['bind'])
+                .withCategory('config')
+                .withDescription('Bind all buttons to Light mode (green LED)'),
+            e.enum('bind_all_curtain', ea.SET, ['bind'])
+                .withCategory('config')
+                .withDescription('Bind all buttons to Curtain mode (blue LED)'),
+            e.enum('assign_button_1', ea.SET, ['assign'])
+                .withCategory('config')
+                .withDescription('Start assignment: press button 1 after clicking'),
+            e.numeric('set_base_group_id', ea.SET).withValueMin(1).withValueMax(65000)
+                .withCategory('config')
+                .withDescription('Manually set base Group ID (advanced)'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'action', tuya.valueConverter.static('scene_1')],
+                [2, 'action', tuya.valueConverter.static('scene_2')],
+                [3, 'action', tuya.valueConverter.static('scene_3')],
+                [4, 'action', tuya.valueConverter.static('scene_4')],
+                [52, 'binding_confirmation', tuya.valueConverter.raw],
+                [102, 'binding_config', tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_khah2lkr"}],
