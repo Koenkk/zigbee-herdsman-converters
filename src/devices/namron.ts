@@ -420,7 +420,8 @@ const namronPanelHeaterProExtend = (): ModernExtend => {
             e.numeric("display_brightness", ea.STATE).withValueMin(1).withValueMax(7).withValueStep(1),
         ],
 
-        configure: async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+        configure: [
+            async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
             const endpoint = device.getEndpoint(1);
 
             await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "seMetering", "haElectricalMeasurement"]);
@@ -443,7 +444,7 @@ const namronPanelHeaterProExtend = (): ModernExtend => {
 
             device.powerSource = "Mains (single phase)";
             device.save();
-        },
+        ],
     };
 };
 
@@ -865,6 +866,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "LED 4.8W CCT GU10",
         extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["3802968"],
+        model: "3802968",
+        vendor: "Namron",
+        description: "LED Filament Flex 5w CCT E27 Clear",
+        extend: [m.light({colorTemp: {range: [153, 555]}, turnsOffAtBrigthness1: true})],
     },
     {
         zigbeeModel: ["89665"],
