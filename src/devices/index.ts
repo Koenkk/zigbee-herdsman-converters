@@ -36,6 +36,7 @@ import {definitions as brimate} from "./brimate";
 import {definitions as brunHolding} from "./brun_holding";
 import {definitions as bseed} from "./bseed";
 import {definitions as bticino} from "./bticino";
+import {definitions as bubendorff} from "./bubendorff";
 import {definitions as buschJaeger} from "./busch_jaeger";
 import {definitions as byun} from "./byun";
 import {definitions as calex} from "./calex";
@@ -395,6 +396,7 @@ const definitions: DefinitionWithExtend[] = [
     ...brunHolding,
     ...bseed,
     ...bticino,
+    ...bubendorff,
     ...buschJaeger,
     ...byun,
     ...calex,

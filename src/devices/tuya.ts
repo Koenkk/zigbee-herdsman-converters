@@ -2623,6 +2623,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.power_on_behavior(["off", "on", "toggle", "previous"])],
         meta: {
             moveToLevelWithOnOffDisable: true,
+            noOffTransitionWhenOff: true,
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -3971,6 +3972,42 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Yookee", "D10110_1", "Smart blind", ["_TZE200_9caxna4s"])],
     },
     {
+        fingerprint: tuya.fingerprint("TS0301", ["_TZE210_m6lwazh9"]),
+        model: "TS0301_cover_1",
+        vendor: "Tuya",
+        description: "Cover motor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            e.battery(),
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [3, "position", tuya.valueConverter.coverPosition],
+                [
+                    5,
+                    "reverse_direction",
+                    tuya.valueConverterBasic.lookup({
+                        forward: tuya.enum(0),
+                        back: tuya.enum(1),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_aqnazj70",
             "_TZE200_di3tfv5b",
@@ -4864,62 +4901,44 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dzuqwsyg", "_TZE204_dzuqwsyg"]),
-        model: "BAC-003",
+        model: "BAC-002",
         vendor: "Tuya",
         description: "FCU thermostat temperature controller",
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+
         options: [
-            e
-                .enum("control_sequence_of_operation", ea.SET, ["cooling_only", "cooling_and_heating_4-pipes"])
-                .withDescription("Operating environment of the thermostat"),
-            e.binary("expose_device_state", ea.SET, true, false).withDescription("Expose device power state as a separate property when enabled."),
+            e.enum("control_sequence_of_operation", ea.SET, ["cooling_only", "cooling_and_heating_4-pipes"]),
+            e.binary("expose_device_state", ea.SET, true, false),
         ],
-        exposes: (device, options) => {
-            const system_modes = ["off", "cool", "heat", "fan_only"];
 
-            // Device can operate either in 2-pipe or 4-pipe configuration
-            // For 2-pipe configurations remove 'heat' mode
-            switch (options?.control_sequence_of_operation) {
-                case "cooling_only":
-                    system_modes.splice(2, 1);
-                    break;
-            }
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(["off", "cool", "heat", "fan_only"], ea.STATE_SET)
+                .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 5, 35, 1, ea.STATE_SET)
+                .withPreset(["auto", "manual"])
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
 
-            const exposes = [
-                e
-                    .climate()
-                    .withLocalTemperature(ea.STATE)
-                    .withSystemMode(system_modes, ea.STATE_SET)
-                    .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
-                    .withSetpoint("current_heating_setpoint", 5, 35, 1, ea.STATE_SET)
-                    .withPreset(["auto", "manual"])
-                    .withLocalTemperatureCalibration(-3, 3, 1, ea.STATE_SET),
-                e.child_lock(),
-                e
-                    .composite("schedule", "schedule", ea.STATE_SET)
-                    .withFeature(e.text("weekdays", ea.SET).withDescription('Schedule (1-5), 4 periods in format "hh:mm/tt".'))
-                    .withFeature(e.text("saturday", ea.SET).withDescription('Schedule (6), 4 periods in format "hh:mm/tt".'))
-                    .withFeature(e.text("sunday", ea.SET).withDescription('Schedule (7), 4 periods in format "hh:mm/tt".'))
-                    .withDescription('Auto-mode schedule, 4 periods each per category. Example: "06:00/20 11:30/21 13:30/22 17:30/23.5".'),
-                e.max_temperature().withValueMin(35).withValueMax(45).withPreset("default", 35, "Default value"),
-                e
-                    .numeric("deadzone_temperature", ea.STATE_SET)
-                    .withUnit("°C")
-                    .withValueMax(5)
-                    .withValueMin(1)
-                    .withValueStep(1)
-                    .withPreset("default", 1, "Default value")
-                    .withDescription("The delta between local_temperature and current_heating_setpoint to trigger activity"),
-            ];
+            e.child_lock(),
+            e.max_temperature().withValueMin(35).withValueMax(45),
+            e.numeric("deadzone_temperature", ea.STATE_SET).withUnit("°C").withValueMax(5).withValueMin(1),
 
-            if (options?.expose_device_state === true) {
-                exposes.unshift(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON or OFF"));
-            }
+            e.text("schedule_text", ea.STATE_SET).withDescription(
+                `Weekly schedule in the format "HH:MM/TT HH:MM/TT ...".
+Example for 12 segments:
+"06:00/20 11:30/21 13:30/22 17:30/23 06:00/24 12:00/23 14:30/22 17:30/21 06:00/19 12:30/20 14:30/21 18:30/20".
+Each segment contains:
+- HH:MM: Time in 24-hour format.
+- TT: Temperature in °C.
+Ensure all 12 segments are defined and separated by spaces.`,
+            ),
+        ],
 
-            return exposes;
-        },
         meta: {
             publishDuplicateTransaction: true,
+
             tuyaDatapoints: [
                 [
                     1,
@@ -4938,35 +4957,32 @@ export const definitions: DefinitionWithExtend[] = [
                         },
                         from: (v: boolean, meta: Fz.Meta, options?: KeyValue) => {
                             meta.state.system_mode = v === true ? (meta.state.system_mode_device ?? "cool") : "off";
-
-                            if (options?.expose_device_state === true) {
-                                return v === true ? "ON" : "OFF";
-                            }
-
+                            if (options?.expose_device_state === true) return v === true ? "ON" : "OFF";
                             delete meta.state.state;
                         },
                     },
                 ],
+
                 [
                     2,
                     "system_mode",
                     {
-                        // Extend system_mode to support 'off' in addition to 'cool', 'heat' and 'fan_only'
                         to: async (v: string, meta: Tz.Meta) => {
-                            const entity = meta.device.endpoints[0];
-                            // Power State
-                            await tuya.sendDataPointBool(entity, 1, v !== "off", "dataRequest", 1);
-                            switch (v) {
-                                case "cool":
-                                    await tuya.sendDataPointEnum(entity, 2, 0, "dataRequest", 1);
-                                    break;
-                                case "heat":
-                                    await tuya.sendDataPointEnum(entity, 2, 1, "dataRequest", 1);
-                                    break;
-                                case "fan_only":
-                                    await tuya.sendDataPointEnum(entity, 2, 2, "dataRequest", 1);
-                                    break;
+                            const ep = meta.device.endpoints[0];
+
+                            if (v === "off") {
+                                await tuya.sendDataPointBool(ep, 1, true, "dataRequest", 1);
+                                await new Promise((r) => setTimeout(r, 120));
+                                await tuya.sendDataPointBool(ep, 1, false, "dataRequest", 1);
+                                await tuya.sendDataPointEnum(ep, 2, 0, "dataRequest", 1);
+                                return;
                             }
+
+                            await tuya.sendDataPointBool(ep, 1, true, "dataRequest", 1);
+
+                            if (v === "cool") await tuya.sendDataPointEnum(ep, 2, 0, "dataRequest", 1);
+                            if (v === "heat") await tuya.sendDataPointEnum(ep, 2, 1, "dataRequest", 1);
+                            if (v === "fan_only") await tuya.sendDataPointEnum(ep, 2, 2, "dataRequest", 1);
                         },
                         from: (v: number, meta: Fz.Meta) => {
                             const modes = ["cool", "heat", "fan_only"];
@@ -4975,12 +4991,29 @@ export const definitions: DefinitionWithExtend[] = [
                         },
                     },
                 ],
-                [4, "preset", tuya.valueConverterBasic.lookup({manual: true, auto: false})],
+
+                [
+                    4,
+                    "preset",
+                    {
+                        to: async (v: string, meta: Tz.Meta) => {
+                            const ep = meta.device.endpoints[0];
+                            await tuya.sendDataPointBool(ep, 4, v === "manual");
+                        },
+                        from: (v: boolean, meta: Fz.Meta) => {
+                            const preset = v ? "manual" : "auto";
+                            meta.state.preset = preset;
+                            return preset;
+                        },
+                    },
+                ],
+
                 [16, "current_heating_setpoint", tuya.valueConverter.raw],
                 [19, "max_temperature", tuya.valueConverter.raw],
                 [24, "local_temperature", tuya.valueConverter.divideBy10],
                 [26, "deadzone_temperature", tuya.valueConverter.raw],
                 [27, "local_temperature_calibration", tuya.valueConverter.localTemperatureCalibration],
+
                 [
                     28,
                     "fan_mode",
@@ -4991,56 +5024,49 @@ export const definitions: DefinitionWithExtend[] = [
                         auto: tuya.enum(3),
                     }),
                 ],
+
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
+
                 [
                     101,
                     "schedule",
                     {
-                        to: (v: {weekdays: string; saturday: string; sunday: string}, meta: Tz.Meta) => {
-                            const periods = (value: string) => {
-                                const regex = /((?<h>[01][0-9]|2[0-3]):(?<m>[0-5][0-9])\/(?<t>[0-3][0-9](\.[0,5]|)))/gm;
-                                const matches = [...value.matchAll(regex)];
-
-                                if (matches.length === 4) {
-                                    return matches.reduce((arr, m) => {
-                                        arr.push(Number.parseInt(m.groups.h, 10));
-                                        arr.push(Number.parseInt(m.groups.m, 10));
-                                        arr.push(Number.parseFloat(m.groups.t) * 2);
-                                        return arr;
-                                    }, []);
-                                }
-
-                                logger.warning("Ignoring invalid or incomplete schedule", NS);
-                            };
-
-                            const schedule = [...periods(v.weekdays), ...periods(v.saturday), ...periods(v.sunday)];
-
-                            return schedule;
-                        },
                         from: (v: number[], meta: Fz.Meta) => {
-                            const format = (data: number[]) => {
-                                return data.reduce((a, v, i) => {
-                                    switch (i % 3) {
-                                        // Hour
-                                        case 0:
-                                            return `${a}${i > 0 ? " " : ""}${v.toString().padStart(2, "0")}`;
-                                        // Minute
-                                        case 1:
-                                            return `${a}:${v.toString().padStart(2, "0")}`;
-                                        // Setpoint
-                                        case 2:
-                                            return `${a}/${v / 2}`;
-                                        default:
-                                            throw new Error(`Unexpected index ${i} in schedule data`);
-                                    }
+                            const format = (data: number[]) =>
+                                data.reduce((txt: string, val: number, i: number) => {
+                                    if (i % 3 === 0) return `${txt}${i > 0 ? " " : ""}${val.toString().padStart(2, "0")}`;
+                                    if (i % 3 === 1) return `${txt}:${val.toString().padStart(2, "0")}`;
+                                    return `${txt}/${val / 2}`;
                                 }, "");
-                            };
 
-                            return {
-                                weekdays: format(v.slice(0, 12)),
-                                saturday: format(v.slice(1 * 12, 2 * 12)),
-                                sunday: format(v.slice(2 * 12, 3 * 12)),
-                            };
+                            const weekdays = format(v.slice(0, 12));
+                            const saturday = format(v.slice(12, 24));
+                            const sunday = format(v.slice(24, 36));
+
+                            const full = `${weekdays} ${saturday} ${sunday}`.trim();
+                            meta.state.schedule_text = full;
+                            return full;
+                        },
+                    },
+                ],
+
+                [
+                    202,
+                    "schedule_text",
+                    {
+                        to: async (v: string, meta: Tz.Meta) => {
+                            const regex = /((?<h>[01][0-9]|2[0-3]):(?<m>[0-5][0-9])\/(?<t>[0-3]?[0-9](\.[0,5])?))/gm;
+                            const matches = [...v.matchAll(regex)];
+                            if (matches.length !== 12) return;
+
+                            const result: number[] = [];
+                            for (const m of matches) {
+                                result.push(Number(m.groups?.h));
+                                result.push(Number(m.groups?.m));
+                                result.push(Number(m.groups?.t) * 2);
+                            }
+
+                            await tuya.sendDataPointRaw(meta.device.endpoints[0], 101, Buffer.from(result));
                         },
                     },
                 ],
@@ -5446,17 +5472,17 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "3-Gang switch with backlight",
         extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.modernExtend.tuyaOnOff({
-                powerOnBehavior2: true,
-                indicatorMode: true,
+                powerOnBehavior2: (m) => m !== "_TZ3000_nwidmc4n",
+                indicatorMode: (m) => m !== "_TZ3000_nwidmc4n",
                 backlightModeOffOn: true,
                 endpoints: ["l1", "l2", "l3"],
+                powerOutageMemory: (m) => m === "_TZ3000_nwidmc4n",
+                switchType: (m) => m === "_TZ3000_nwidmc4n",
             }),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3};
-        },
-        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -5468,6 +5494,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Zemismart", "ZM-L03E-Z", "3 gang switch with neutral", ["_TZ3000_empogkya", "_TZ3000_lsunm46z"]),
             tuya.whitelabel("Zemismart", "KES-606US-L3", "3 gang switch with neutral", ["_TZ3000_uilitwsy"]),
             tuya.whitelabel("AVATTO", "ZWOT16-W2", "2 gang switch and 1 socket", ["_TZ3000_66fekqhh"]),
+            tuya.whitelabel("AVATTO", "ZBTS60-03", "3 gang switch module with backlight", ["_TZ3000_nwidmc4n"]),
             tuya.whitelabel("Tuya", "M10Z", "2 gang switch with 20A power socket", ["_TZ3000_lubfc1t5"]),
             tuya.whitelabel("Zemismart", "ZMO-606-S2", "Smart 2 gangs switch with outlet", ["_TZ3000_aknpkt02"]),
         ],
@@ -5662,8 +5689,18 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "OXT", model: "SWTZ21"},
             {vendor: "Moes", model: "ZM-104-M"},
             tuya.whitelabel("AVATTO", "ZWSM16-1-Zigbee", "1 gang switch module", ["_TZ3000_4rbqgcuv"]),
+            tuya.whitelabel("AVATTO", "ZBTS60-01", "1 gang switch module with backlight", ["_TZ3000_xfxpoxe0"]),
         ],
-        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true, indicatorMode: true})],
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                onOffCountdown: (m) => m !== "_TZ3000_xfxpoxe0",
+                indicatorMode: (m) => m !== "_TZ3000_xfxpoxe0",
+                powerOutageMemory: (m) => m === "_TZ3000_xfxpoxe0",
+                backlightModeOffOn: (m) => m === "_TZ3000_xfxpoxe0",
+            }),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -6590,6 +6627,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_ejh6owwz",
             "_TZE200_ba69l9ol",
             "_TZE200_68nvbi09",
+            "_TZE200_vexa5o82",
         ]),
         model: "TS0601_cover_3",
         vendor: "Tuya",
@@ -6609,6 +6647,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Zemismart", "ZM25EL", "Cover motor", ["_TZE200_pw7mji0l"]),
             tuya.whitelabel("Zemismart", "ZM85EL-2Z", "Roman Rod I type U curtains track", ["_TZE200_cf1sl3tj", "_TZE200_nw1r9hp6"]),
             tuya.whitelabel("Hiladuo", "B09M3R35GC", "Motorized roller shade", ["_TZE200_9p5xmj5r"]),
+            tuya.whitelabel("Tuya", "MYQ-RM25-1.3/25-BZ", "Tubular roller blind motor", ["_TZE200_vexa5o82"]),
         ],
         meta: {
             // All datapoints go in here
@@ -9311,22 +9350,22 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Smart light switch - 4 gang with neutral wire",
         extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
             tuya.modernExtend.tuyaOnOff({
-                powerOnBehavior2: true,
+                powerOnBehavior2: (m) => m !== "_TZ3000_r9e2w7dn",
                 backlightModeOffOn: true,
                 endpoints: ["l1", "l2", "l3", "l4"],
+                powerOutageMemory: (m) => m === "_TZ3000_r9e2w7dn",
+                switchType: (m) => m === "_TZ3000_r9e2w7dn",
             }),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3, l4: 4};
-        },
         whiteLabel: [
             tuya.whitelabel("Tuya", "DS-111", "Smart light switch - 4 gang with neutral wire", ["_TZ3000_mdj7kra9"]),
             tuya.whitelabel("MHCOZY", "TYWB 4ch-RF", "4 channel relay", ["_TZ3000_u3oupgdy", "_TZ3000_imaccztn"]),
             tuya.whitelabel("AVATTO", "TS0004_1", "Smart light switch - 4 gang with neutral wire", ["_TZ3000_nivavasg", "_TZ3000_gexniqbq"]),
             tuya.whitelabel("Nova Digital", "SA-4", "Safira smart light switch - 4 gang", ["_TZ3000_iymfxdis"]),
+            tuya.whitelabel("AVATTO", "ZBTS60-04", "4 gang switch module with backlight", ["_TZ3000_r9e2w7dn"]),
         ],
-        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -9483,7 +9522,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_iedhxgyi"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_iedhxgyi", "_TZ3000_lcjsewlo"]),
         model: "TS0726_3_gang",
         vendor: "Tuya",
         description: "3 gang switch with neutral wire",
@@ -11536,6 +11575,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3290_uc8lwbi2",
             "_TZ3290_nba3knpsarkawgnt",
             "_TZ3290_8xzb2ghn",
+            "_TZ3290_s6ezpa3j",
         ]),
         model: "ZS06",
         vendor: "Tuya",
@@ -11559,6 +11599,7 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
             tuya.whitelabel("Zemismart", "ZM-18-USB", "Universal smart IR remote control", ["_TZ3290_uc8lwbi2"]),
             tuya.whitelabel("Zemismart", "ZXMIR-02", "Universal smart IR remote control", ["_TZ3290_8xzb2ghn"]),
+            tuya.whitelabel("Ekaza", "EKAT-T304Z", "Universal smart IR remote control", ["_TZ3290_s6ezpa3j"]),
         ],
     },
     {
@@ -19548,7 +19589,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_ezqbvrqz", "_TZ3002_ymv5vytn", "_TZ3002_6ahhkwyh", "_TZ3002_zjuvw9zf"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_ezqbvrqz", "_TZ3002_ymv5vytn", "_TZ3002_6ahhkwyh", "_TZ3002_zjuvw9zf", "_TZ3002_a4kvf6zd"]),
         model: "TS0726_2_gang_scene_switch",
         vendor: "Tuya",
         description: "2 gang switch with scene and backlight",
@@ -19577,7 +19618,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_noru9tix", "_TZ3002_rbnycsav", "_TZ3002_kq3kqwjt"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_noru9tix", "_TZ3002_rbnycsav", "_TZ3002_kq3kqwjt", "_TZ3002_ybtqbyk3"]),
         model: "TS0726_3_gang_scene_switch",
         vendor: "Tuya",
         description: "3 gang switch with scene and backlight",
@@ -19605,7 +19646,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_rsylfthg", "_TZ3002_umdkr64x"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_rsylfthg", "_TZ3002_umdkr64x", "_TZ3002_hkaktryd"]),
         model: "TS0726_4_gang_scene_switch",
         vendor: "Tuya",
         description: "4 gang switch with scene and backlight",
@@ -20922,6 +20963,35 @@ export const definitions: DefinitionWithExtend[] = [
                 [104, "dot_mode", tuya.valueConverterBasic.lookup({single: tuya.enum(0), multi: tuya.enum(1)})],
                 [11, "direction", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), reversed: tuya.enum(1)})],
                 [16, "border", tuya.valueConverterBasic.lookup({Up: tuya.enum(0), Down: tuya.enum(1), Delete: tuya.enum(2)})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_mlglxwp3"]),
+        model: "TS0601_cover_12",
+        vendor: "Tuya",
+        description: "Curtain motor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            e.enum("work_state", ea.STATE, ["opening", "closing"]).withDescription("Current work state"),
+            e.numeric("total_time", ea.STATE).withUnit("ms").withDescription("Total running time in milliseconds"),
+            e.enum("situation_set", ea.STATE_SET, ["fully_close", "fully_open"]).withDescription("Set fully open or fully close position"),
+            e.text("fault", ea.STATE).withDescription("Fault details"),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [3, "position", tuya.valueConverter.coverPosition],
+                [5, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [7, "work_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
+                [10, "total_time", tuya.valueConverter.raw],
+                [11, "situation_set", tuya.valueConverterBasic.lookup({fully_close: tuya.enum(0), fully_open: tuya.enum(1)})],
+                [12, "fault", tuya.valueConverter.raw],
+                [103, "battery", tuya.valueConverter.raw],
             ],
         },
     },
@@ -22268,6 +22338,66 @@ export const definitions: DefinitionWithExtend[] = [
                         to: (v: string) => ({normal: 0, slight: 1, strong: 2, severe: 3})[v] ?? 0,
                     },
                 ],
+            ],
+        },
+    },
+    {
+        fingerprint: [{modelID: "Arteco", manufacturerName: "A89G12C"}],
+        model: "ZS-SF00",
+        vendor: "Arteco",
+        description: "Soil fertility sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
+            e.enum("soil_fertility_warning", ea.STATE, ["none", "alarm"]).withDescription("Soil fertility warning"),
+            e.battery(),
+            e.soil_moisture(),
+            e
+                .numeric("soil_fertility", ea.STATE)
+                .withUnit("μS/cm")
+                .withValueMin(0)
+                .withValueMax(5000)
+                .withDescription("Soil fertility value,between 0-5000"),
+            e.temperature(),
+            e.humidity(),
+            e.illuminance(),
+            tuya.exposes.soilSampling(),
+            tuya.exposes.soilCalibration(),
+            tuya.exposes.humidityCalibration(),
+            e
+                .numeric("illuminance_calibration", ea.STATE_SET)
+                .withValueMin(-15)
+                .withValueMax(1000)
+                .withValueStep(1)
+                .withUnit("lux")
+                .withDescription("Illuminance calibration"),
+            tuya.exposes.temperatureCalibration(),
+            tuya.exposes.soilWarning(),
+            e
+                .numeric("soil_fertility_warning_setting", ea.STATE_SET)
+                .withValueMin(100)
+                .withValueMax(1800)
+                .withValueStep(1)
+                .withUnit("μS/cm")
+                .withDescription("When the soil fertility value is lower than what threshold should a warning be issued"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [3, "soil_moisture", tuya.valueConverter.raw],
+                [5, "temperature", tuya.valueConverter.divideBy10],
+                [14, "battery", tuya.valueConverter.raw],
+                [101, "humidity", tuya.valueConverter.raw],
+                [102, "illuminance", tuya.valueConverter.raw],
+                [103, "soil_sampling", tuya.valueConverter.raw],
+                [104, "soil_calibration", tuya.valueConverter.raw],
+                [105, "humidity_calibration", tuya.valueConverter.raw],
+                [106, "illuminance_calibration", tuya.valueConverter.raw],
+                [107, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [110, "soil_warning", tuya.valueConverter.raw],
+                [111, "water_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), alarm: tuya.enum(1)})],
+                [112, "soil_fertility", tuya.valueConverter.raw],
+                [114, "soil_fertility_warning_setting", tuya.valueConverter.raw],
+                [115, "soil_fertility_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), alarm: tuya.enum(1)})],
             ],
         },
     },

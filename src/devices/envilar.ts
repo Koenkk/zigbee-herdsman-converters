@@ -87,4 +87,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Dimmable driver",
         extend: [m.light({colorTemp: {range: [160, 450]}})],
     },
+    {
+        zigbeeModel: ["7859"],
+        model: "7859",
+        vendor: "ENVILAR",
+        description: "ZigBee DIN Rail Smart Dimmer",
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
+    },
 ];

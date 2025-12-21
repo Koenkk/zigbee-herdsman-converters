@@ -1480,6 +1480,59 @@ export const trv = {
     },
 };
 
+/**
+ * Converts RGB (0-255) to CIE xy color space
+ * Used for Aqara RGB devices that require xy format
+ */
+function lumiRgbToXY(r: number, g: number, b: number): {x: number; y: number} {
+    let red = r / 255.0;
+    let green = g / 255.0;
+    let blue = b / 255.0;
+
+    red = red > 0.04045 ? ((red + 0.055) / 1.055) ** 2.4 : red / 12.92;
+    green = green > 0.04045 ? ((green + 0.055) / 1.055) ** 2.4 : green / 12.92;
+    blue = blue > 0.04045 ? ((blue + 0.055) / 1.055) ** 2.4 : blue / 12.92;
+
+    const X = red * 0.4124564 + green * 0.3575761 + blue * 0.1804375;
+    const Y = red * 0.2126729 + green * 0.7151522 + blue * 0.072175;
+    const Z = red * 0.0193339 + green * 0.119192 + blue * 0.9503041;
+
+    const sum = X + Y + Z;
+    if (sum === 0) {
+        return {x: 0, y: 0};
+    }
+
+    return {
+        x: X / sum,
+        y: Y / sum,
+    };
+}
+
+/**
+ * Encodes RGB color to Aqara's 4-byte xy format
+ * Returns [xHi, xLo, yHi, yLo]
+ */
+function lumiEncodeRgbColor(color: {r: number; g: number; b: number}): number[] {
+    if (typeof color !== "object" || color.r === undefined || color.g === undefined || color.b === undefined) {
+        throw new Error(`Invalid color format. Expected {r: 0-255, g: 0-255, b: 0-255}, got: ${JSON.stringify(color)}`);
+    }
+
+    const r = Number(color.r);
+    const g = Number(color.g);
+    const b = Number(color.b);
+
+    if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
+        throw new Error(`RGB values must be between 0-255. Got r:${r}, g:${g}, b:${b}`);
+    }
+
+    const xy = lumiRgbToXY(r, g, b);
+
+    const xScaled = Math.round(xy.x * 65535);
+    const yScaled = Math.round(xy.y * 65535);
+
+    return [(xScaled >>> 8) & 0xff, xScaled & 0xff, (yScaled >>> 8) & 0xff, yScaled & 0xff];
+}
+
 export const manufacturerCode = 0x115f; // TODO: from Zcl
 const manufacturerOptions = {
     lumi: {manufacturerCode: manufacturerCode, disableDefaultResponse: true},
@@ -1607,6 +1660,90 @@ export const lumiModernExtend = {
             entityCategory: "config",
             ...args,
         }),
+    lumiRGBEffect: (lookup: KeyValue, args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>): ModernExtend => {
+        return modernExtend.enumLookup({
+            name: "effect",
+            lookup: lookup,
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x051f, type: 0x23},
+            description: "RGB dynamic effect type",
+            zigbeeCommandOptions: {manufacturerCode},
+            ...args,
+        });
+    },
+    lumiRGBEffectSpeed: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>): ModernExtend => {
+        return modernExtend.numeric({
+            name: "effect_speed",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x0520, type: 0x20},
+            description: "RGB dynamic effect speed (1-100%)",
+            zigbeeCommandOptions: {manufacturerCode},
+            unit: "%",
+            valueMin: 1,
+            valueMax: 100,
+            valueStep: 1,
+            ...args,
+        });
+    },
+    lumiRGBEffectColors: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            toZigbee: [
+                {
+                    key: ["effect_colors"],
+                    convertSet: async (entity, key, value, meta) => {
+                        const colors = value ||
+                            meta.state.effect_colors || [
+                                {r: 255, g: 0, b: 0},
+                                {r: 0, g: 255, b: 0},
+                                {r: 0, g: 0, b: 255},
+                            ];
+
+                        if (!Array.isArray(colors) || colors.length < 1 || colors.length > 8) {
+                            throw new Error("Must provide array of 1-8 RGB color objects");
+                        }
+
+                        const colorBytes: number[] = [];
+                        for (const color of colors) {
+                            const encoded = lumiEncodeRgbColor(color);
+                            colorBytes.push(...encoded);
+                        }
+
+                        const packet = Buffer.from([0x00, colors.length, ...colorBytes]);
+                        const targetEndpoint = meta.device.getEndpoint(1);
+
+                        await targetEndpoint.write(
+                            "manuSpecificLumi",
+                            {1315: {value: packet, type: 0x41}},
+                            {manufacturerCode, disableDefaultResponse: false},
+                        );
+
+                        return {
+                            state: {
+                                effect_colors: colors,
+                            },
+                        };
+                    },
+                },
+            ],
+            exposes: [
+                exposes
+                    .list(
+                        "effect_colors",
+                        ea.SET,
+                        exposes
+                            .composite("color", "color", ea.SET)
+                            .withFeature(exposes.numeric("r", ea.SET).withValueMin(0).withValueMax(255).withDescription("Red (0-255)"))
+                            .withFeature(exposes.numeric("g", ea.SET).withValueMin(0).withValueMax(255).withDescription("Green (0-255)"))
+                            .withFeature(exposes.numeric("b", ea.SET).withValueMin(0).withValueMax(255).withDescription("Blue (0-255)")),
+                    )
+                    .withDescription("Array of RGB color objects for dynamic effects (1-8 colors).")
+                    .withLengthMin(1)
+                    .withLengthMax(8)
+                    .withCategory("config"),
+            ],
+        };
+    },
     lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean; powerOutageMemory?: "binary" | "enum"; lockRelay?: boolean}) => {
         args = {operationMode: false, lockRelay: false, ...args};
         const result = modernExtend.onOff({powerOnBehavior: false, ...args});
