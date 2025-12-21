@@ -22404,4 +22404,25 @@ Ensure all 12 segments are defined and separated by spaces.`,
             ],
         },
     },
+    {
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_8se38w3c"}],
+        model: "TZ-ZT01_GA4",
+        vendor: "Tuya",
+        description: "Temperature & humidity Sensor with external probe",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.temperature(),
+            e.numeric("temperature_probe", ea.STATE).withUnit("°C").withDescription("Probe temperature"),
+            e.humidity(),
+            tuya.exposes.batteryState(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "temperature", tuya.valueConverter.divideBy10],
+                [2, "humidity", tuya.valueConverter.raw],
+                [3, "battery_state", tuya.valueConverter.batteryState],
+                [38, "temperature_probe", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
 ];
