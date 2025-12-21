@@ -345,23 +345,16 @@ const sonoffExtend = {
         };
     },
     weeklySchedule: (): ModernExtend => {
-        const exposes = e
-            .composite("schedule", "weekly_schedule", ea.STATE_SET)
-            .withCategory("config")
-            .withDescription(
-                'The preset heating schedule to use when the system mode is set to "auto" (indicated with ⏲ on the TRV). ' +
-                    "Up to 6 transitions can be defined per day, where a transition is expressed in the format 'HH:mm/temperature', each " +
-                    "separated by a space. The first transition for each day must start at 00:00 and the valid temperature range is 4-35°C " +
-                    "(in 0.5°C steps). The temperature will be set at the time of the first transition until the time of the next transition, " +
-                    "e.g. '04:00/20 10:00/25' will result in the temperature being set to 20°C at 04:00 until 10:00, when it will change to 25°C.",
-            )
-            .withFeature(e.text("sunday", ea.STATE_SET))
-            .withFeature(e.text("monday", ea.STATE_SET))
-            .withFeature(e.text("tuesday", ea.STATE_SET))
-            .withFeature(e.text("wednesday", ea.STATE_SET))
-            .withFeature(e.text("thursday", ea.STATE_SET))
-            .withFeature(e.text("friday", ea.STATE_SET))
-            .withFeature(e.text("saturday", ea.STATE_SET));
+        const scheduleDescription =
+            'The preset heating schedule to use when the system mode is set to "auto" (indicated with ⏲ on the TRV). ' +
+            "Up to 6 transitions can be defined per day, where a transition is expressed in the format 'HH:mm/temperature', each " +
+            "separated by a space. The first transition for each day must start at 00:00 and the valid temperature range is 4-35°C " +
+            "(in 0.5°C steps). The temperature will be set at the time of the first transition until the time of the next transition, " +
+            "e.g. '04:00/20 10:00/25' will result in the temperature being set to 20°C at 04:00 until 10:00, when it will change to 25°C.";
+
+        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
+
+        const exposes = days.map((day) => e.text(`weekly_schedule_${day}`, ea.STATE_SET).withCategory("config").withDescription(scheduleDescription));
 
         const fromZigbee = [
             {
@@ -387,10 +380,7 @@ const sonoffExtend = {
                         .join(" ");
 
                     return {
-                        weekly_schedule: {
-                            ...(meta.state.weekly_schedule as Record<string, string>[]),
-                            [day]: transitions,
-                        },
+                        [`weekly_schedule_${day}`]: transitions,
                     };
                 },
             } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
@@ -398,75 +388,75 @@ const sonoffExtend = {
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["weekly_schedule"],
+                key: days.map((day) => `weekly_schedule_${day}`),
                 convertSet: async (entity, key, value, meta) => {
                     // Transition format: HH:mm/temperature
                     const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.5)?)$/;
 
-                    utils.assertObject(value, key);
+                    utils.assertString(value, key);
 
-                    for (const dayOfWeekName of Object.keys(value)) {
-                        const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayOfWeekName.toLowerCase(), null);
+                    // Extract day name from key (e.g., "weekly_schedule_monday" -> "monday")
+                    const dayOfWeekName = key.replace("weekly_schedule_", "");
+                    const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayOfWeekName, null);
 
-                        if (dayKey === null) {
-                            throw new Error(`Invalid schedule: invalid day name, found: ${dayOfWeekName}`);
-                        }
-
-                        const dayOfWeekBit = Number(dayKey);
-
-                        const rawTransitions = value[dayOfWeekName].split(" ").sort();
-
-                        if (rawTransitions.length > 6) {
-                            throw new Error("Invalid schedule: days must have no more than 6 transitions");
-                        }
-
-                        const transitions = [];
-
-                        for (const transition of rawTransitions) {
-                            const matches = transition.match(transitionRegex);
-
-                            if (!matches) {
-                                throw new Error(
-                                    `Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
-                                );
-                            }
-
-                            const hour = Number.parseInt(matches[1], 10);
-                            const mins = Number.parseInt(matches[2], 10);
-                            const temp = Number.parseFloat(matches[3]);
-
-                            if (temp < 4 || temp > 35) {
-                                throw new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temp}`);
-                            }
-
-                            transitions.push({
-                                transitionTime: hour * 60 + mins,
-                                heatSetpoint: Math.round(temp * 100),
-                            });
-                        }
-
-                        if (transitions[0].transitionTime !== 0) {
-                            throw new Error("Invalid schedule: the first transition of each day should start at 00:00");
-                        }
-
-                        await entity.command(
-                            "hvacThermostat",
-                            "setWeeklySchedule",
-                            {
-                                dayofweek: 1 << Number(dayOfWeekBit),
-                                numoftrans: rawTransitions.length,
-                                mode: 1 << 0, // heat
-                                transitions,
-                            },
-                            utils.getOptions(meta.mapped, entity),
-                        );
+                    if (dayKey === null) {
+                        throw new Error(`Invalid schedule: invalid day name, found: ${dayOfWeekName}`);
                     }
+
+                    const dayOfWeekBit = Number(dayKey);
+
+                    const rawTransitions = value.split(" ").sort();
+
+                    if (rawTransitions.length > 6) {
+                        throw new Error("Invalid schedule: days must have no more than 6 transitions");
+                    }
+
+                    const transitions = [];
+
+                    for (const transition of rawTransitions) {
+                        const matches = transition.match(transitionRegex);
+
+                        if (!matches) {
+                            throw new Error(
+                                `Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
+                            );
+                        }
+
+                        const hour = Number.parseInt(matches[1], 10);
+                        const mins = Number.parseInt(matches[2], 10);
+                        const temp = Number.parseFloat(matches[3]);
+
+                        if (temp < 4 || temp > 35) {
+                            throw new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temp}`);
+                        }
+
+                        transitions.push({
+                            transitionTime: hour * 60 + mins,
+                            heatSetpoint: Math.round(temp * 100),
+                        });
+                    }
+
+                    if (transitions[0].transitionTime !== 0) {
+                        throw new Error("Invalid schedule: the first transition of each day should start at 00:00");
+                    }
+
+                    await entity.command(
+                        "hvacThermostat",
+                        "setWeeklySchedule",
+                        {
+                            dayofweek: 1 << Number(dayOfWeekBit),
+                            numoftrans: rawTransitions.length,
+                            mode: 1 << 0, // heat
+                            transitions,
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
                 },
             },
         ];
 
         return {
-            exposes: [exposes],
+            exposes,
             fromZigbee,
             toZigbee,
             isModernExtend: true,
