@@ -420,8 +420,8 @@ const namronPanelHeaterProExtend = (): ModernExtend => {
             e.numeric("display_brightness", ea.STATE).withValueMin(1).withValueMax(7).withValueStep(1),
         ],
 
-            configure: [
-                async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+        configure: [
+            async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
                 const endpoint = device.getEndpoint(1);
 
                 await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "seMetering", "haElectricalMeasurement"]);
