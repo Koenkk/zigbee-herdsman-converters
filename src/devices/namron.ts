@@ -393,8 +393,6 @@ const namronPanelHeaterProExtend = (): ModernExtend => {
         ],
 
         exposes: [
-            e.power(),
-            e.energy(),
             e
                 .climate()
                 .withLocalTemperature()
