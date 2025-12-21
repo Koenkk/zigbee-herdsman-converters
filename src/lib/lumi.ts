@@ -1533,6 +1533,49 @@ function lumiEncodeRgbColor(color: {r: number; g: number; b: number}): number[] 
     return [(xScaled >>> 8) & 0xff, xScaled & 0xff, (yScaled >>> 8) & 0xff, yScaled & 0xff];
 }
 
+/**
+ * Generates segment bitmask for T1M and T1 Strip devices
+ */
+function lumiGenerateSegmentMask(segments: number[], deviceType: "t1m" | "strip", maxSegments: number): number[] {
+    const maskSize = deviceType === "t1m" ? 4 : 8;
+    const mask = new Array(maskSize).fill(0);
+
+    for (const seg of segments) {
+        if (seg < 1 || seg > maxSegments) {
+            throw new Error(`Invalid segment: ${seg}. Must be 1-${maxSegments}`);
+        }
+
+        const bitPos = seg - 1;
+        const byteIndex = Math.floor(bitPos / 8);
+        const bitIndex = 7 - (bitPos % 8);
+
+        mask[byteIndex] |= 1 << bitIndex;
+    }
+
+    return mask;
+}
+
+/**
+ * Builds packet for T1M and T1 Strip segment color control
+ */
+function lumiBuildSegmentPacket(
+    segments: number[],
+    color: {r: number; g: number; b: number},
+    deviceType: "t1m" | "strip",
+    maxSegments: number,
+    brightness = 254,
+): number[] {
+    const segmentMask = lumiGenerateSegmentMask(segments, deviceType, maxSegments);
+    const colorBytes = lumiEncodeRgbColor(color);
+
+    if (deviceType === "t1m") {
+        return [...segmentMask, 0x00, 0x00, 0x00, 0x00, ...colorBytes];
+    }
+
+    const brightnessByte = Math.max(0, Math.min(254, Math.round(brightness)));
+    return [0x01, 0x01, 0x01, 0x0f, brightnessByte, ...segmentMask, ...colorBytes, 0x00, 0x14];
+}
+
 export const manufacturerCode = 0x115f; // TODO: from Zcl
 const manufacturerOptions = {
     lumi: {manufacturerCode: manufacturerCode, disableDefaultResponse: true},
@@ -1740,6 +1783,144 @@ export const lumiModernExtend = {
                     .withDescription("Array of RGB color objects for dynamic effects (1-8 colors).")
                     .withLengthMin(1)
                     .withLengthMax(8)
+                    .withCategory("config"),
+            ],
+        };
+    },
+    lumiT1MEffect: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            toZigbee: [
+                {
+                    key: ["effect"],
+                    convertSet: async (entity, key, value, meta) => {
+                        assertString(value);
+                        const lookup = {flow1: 0, flow2: 1, fading: 2, hopping: 3, breathing: 4, rolling: 5};
+
+                        if (!(value in lookup)) {
+                            throw new Error(`Invalid effect: ${value}. Must be one of: ${Object.keys(lookup).join(", ")}`);
+                        }
+
+                        const effectValue = lookup[value as keyof typeof lookup];
+                        const endpoint = meta.device.getEndpoint(1);
+
+                        await endpoint.write(
+                            "manuSpecificLumi",
+                            {1311: {value: effectValue, type: 0x23}},
+                            {manufacturerCode, disableDefaultResponse: false},
+                        );
+
+                        return {state: {effect: value}};
+                    },
+                },
+            ],
+            exposes: [
+                exposes
+                    .enum("effect", ea.SET, ["flow1", "flow2", "fading", "hopping", "breathing", "rolling"])
+                    .withDescription("RGB dynamic effect type")
+                    .withCategory("config"),
+            ],
+        };
+    },
+    lumiSegmentColors: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            toZigbee: [
+                {
+                    key: ["segment_colors"],
+                    convertSet: async (entity, key, value, meta) => {
+                        if (!Array.isArray(value) || value.length === 0) {
+                            throw new Error("segment_colors must be a non-empty array");
+                        }
+
+                        const model = meta.device.modelID;
+                        const deviceType = model === "lumi.light.acn132" ? "strip" : "t1m";
+
+                        let maxSegments: number;
+                        if (model === "lumi.light.acn031") {
+                            maxSegments = 20;
+                        } else if (model === "lumi.light.acn032") {
+                            maxSegments = 26;
+                        } else if (model === "lumi.light.acn132") {
+                            maxSegments = Math.round((meta.state.length !== undefined ? Number(meta.state.length) : 2) * 5);
+                        } else {
+                            maxSegments = 26;
+                        }
+
+                        const brightness = meta.state && meta.state.brightness !== undefined ? Number(meta.state.brightness) : 254;
+
+                        const colorGroups: {[key: string]: {color: {r: number; g: number; b: number}; segments: number[]}} = {};
+
+                        for (const item of value) {
+                            if (!item.segment || !item.color) {
+                                throw new Error(`Each segment must have "segment" (1-${maxSegments}) and "color" {r, g, b} fields`);
+                            }
+
+                            const segment = Number(item.segment);
+                            const color = item.color;
+
+                            if (segment < 1 || segment > maxSegments) {
+                                throw new Error(`Invalid segment: ${segment}. Must be 1-${maxSegments}`);
+                            }
+
+                            if (typeof color !== "object" || color.r === undefined || color.g === undefined || color.b === undefined) {
+                                throw new Error(`Invalid color for segment ${segment}. Expected {r, g, b}`);
+                            }
+
+                            const colorKey = JSON.stringify({r: color.r, g: color.g, b: color.b});
+
+                            if (!colorGroups[colorKey]) {
+                                colorGroups[colorKey] = {
+                                    color: color,
+                                    segments: [],
+                                };
+                            }
+                            colorGroups[colorKey].segments.push(segment);
+                        }
+
+                        const groups = Object.values(colorGroups);
+                        const ATTR_SEGMENT_CONTROL = deviceType === "t1m" ? 1314 : 1319;
+
+                        for (let i = 0; i < groups.length; i++) {
+                            const group = groups[i] as {color: {r: number; g: number; b: number}; segments: number[]};
+                            const packet = lumiBuildSegmentPacket(group.segments, group.color, deviceType, maxSegments, brightness);
+
+                            await entity.write(
+                                "manuSpecificLumi",
+                                {[ATTR_SEGMENT_CONTROL]: {value: Buffer.from(packet), type: 0x41}},
+                                {manufacturerCode, disableDefaultResponse: false},
+                            );
+
+                            if (i < groups.length - 1) {
+                                await sleep(50);
+                            }
+                        }
+
+                        if (deviceType === "strip") {
+                            return {state: {segment_colors: value, state: "ON"}};
+                        }
+                        return {state: {segment_colors: value}};
+                    },
+                },
+            ],
+            exposes: [
+                exposes
+                    .list(
+                        "segment_colors",
+                        ea.SET,
+                        exposes
+                            .composite("segment_color", "segment_color", ea.SET)
+                            .withFeature(exposes.numeric("segment", ea.SET).withDescription("Segment number"))
+                            .withFeature(
+                                exposes
+                                    .composite("color", "color", ea.SET)
+                                    .withFeature(exposes.numeric("r", ea.SET).withValueMin(0).withValueMax(255).withDescription("Red (0-255)"))
+                                    .withFeature(exposes.numeric("g", ea.SET).withValueMin(0).withValueMax(255).withDescription("Green (0-255)"))
+                                    .withFeature(exposes.numeric("b", ea.SET).withValueMin(0).withValueMax(255).withDescription("Blue (0-255)"))
+                                    .withDescription("RGB color object"),
+                            ),
+                    )
+                    .withDescription("Set individual segment colors.")
                     .withCategory("config"),
             ],
         };
