@@ -992,7 +992,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 130,
         dataType: Zcl.DataType.UINT8,
         displayType: "enum",
-        values: {Disabled: 0, "Multi Tap": 1, Cycle: 2},
+        values: {Disabled: 0, "Multi Tap": 1, Cycle: 2, Toggle: 3},
         description: "Which mode to use when binding EP3 (config button) to another device (like a fan module).",
     },
     lowLevelForFanControlMode: {
