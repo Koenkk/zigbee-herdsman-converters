@@ -427,7 +427,7 @@ const getButtonFromGroupId = (groupId: number, baseGroupId: number): number | nu
 };
 // DP 102 payload: [0x01, 0x01, mode, ...name(12 bytes), ...suffix(4 bytes)]
 // Suffix: slot number at position (slot-1), rest 0xff
-const bindSlotTS0601SmartSceneKnob = async (entity: Zh.Endpoint, slot: number, mode: number): Promise<void> => {
+const bindSlotTS0601SmartSceneKnob = async (entity: Zh.Endpoint | Zh.Group, slot: number, mode: number): Promise<void> => {
     const modeNames: {[key: number]: string} = {[MODE_SCENE]: 'Scene', [MODE_LIGHT]: 'Light', [MODE_CURTAIN]: 'Curtain'};
     const slotName = `${modeNames[mode] || 'Scene'} ${slot}`;
 
@@ -438,7 +438,7 @@ const bindSlotTS0601SmartSceneKnob = async (entity: Zh.Endpoint, slot: number, m
     suffix[slot - 1] = slot;
 
     const payload = Buffer.concat([Buffer.from([0x01, 0x01, mode]), nameBuffer, suffix]);
-    await tuya.sendDataPointRaw(entity, 102, payload, 'dataRequest', 0x10 + (slot - 1));
+    await tuya.sendDataPointRaw(entity as Zh.Endpoint, 102, payload, 'dataRequest', 0x10 + (slot - 1));
 };
 
 const tzLocal = {
@@ -894,16 +894,16 @@ const tzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0601_smart_scene_knob_assign_button_1: {
         key: ['assign_button_1'],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: (entity, key, value, meta) => {
             return {state: {assignment_status: STATUS_WAITING}};
         },
     } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0601_smart_scene_knob_set_base_group_id: {
         key: ['set_base_group_id'],
-        convertSet: async (entity, key, value, meta) => {
-            const baseGroupId = parseInt(value as string, 10);
-            if (isNaN(baseGroupId) || baseGroupId < 1 || baseGroupId > 65000) return {};
+        convertSet: (entity, key, value, meta) => {
+            const baseGroupId = Number.parseInt(value as string, 10);
+            if (Number.isNaN(baseGroupId) || baseGroupId < 1 || baseGroupId > 65000) return {};
             return {
                 state: {
                     base_group_id: baseGroupId,
@@ -1212,7 +1212,7 @@ const fzLocal = {
 
             return {action_group: groupId, assignment_status: STATUS_UNASSIGNED};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0601_smart_scene_knob_light_brightness: {
         cluster: 'genLevelCtrl',
@@ -1261,10 +1261,10 @@ const fzLocal = {
 
             return {action_group: groupId, brightness: level};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    // Direction: higher mired = warmer = down, lower mired = cooler = up
     TS0601_smart_scene_knob_light_colortemp: {
+    // Direction: higher mired = warmer = down, lower mired = cooler = up
         cluster: 'lightingColorCtrl',
         type: ['commandMoveToColorTemp'],
         convert: (model, msg, publish, options, meta): KeyValue | undefined => {
@@ -1311,11 +1311,11 @@ const fzLocal = {
 
             return {action_group: groupId, color_temp: colortemp};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_smart_scene_knob_curtain_command: {
     // DP 1: 0=start, 2=stop (1=init rotation, ignored)
     // DP 2: 4-byte big-endian position 0-100%
-    TS0601_smart_scene_knob_curtain_command: {
         cluster: 'manuSpecificTuya',
         type: ['commandDataRequest'],
         convert: (model, msg, publish, options, meta): KeyValue | undefined => {
@@ -1384,7 +1384,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
