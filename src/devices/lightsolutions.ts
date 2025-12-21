@@ -10,6 +10,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
+        zigbeeModel: ["91-947-micro"],
+        model: "91-947-micro",
+        vendor: "Light Solutions",
+        description: "Micro dimmer 200W",
+        extend: [m.light({configureReporting: true})],
+    },
+    {
         zigbeeModel: ["91-948"],
         model: "200106V3",
         vendor: "Light Solutions",
