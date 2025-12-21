@@ -4335,57 +4335,53 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["lumi.light.acn031"],
-        model: "HCXDD12LM",
-        vendor: "Aqara",
-        description: "Ceiling light T1",
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
-            await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
-            await endpoint.read("genLevelCtrl", [0x0012], {});
-            await endpoint.read("genLevelCtrl", [0x0013], {});
-        },
-        extend: [
-            m.deviceEndpoints({endpoints: {white: 1, rgb: 2}}),
-            lumiLight({colorTemp: true, powerOutageMemory: "light", endpointNames: ["white"]}),
-            lumiLight({colorTemp: true, deviceTemperature: false, powerOutageCount: false, color: {modes: ["xy", "hs"]}, endpointNames: ["rgb"]}),
-            lumiZigbeeOTA(),
-            lumi.lumiModernExtend.lumiDimmingRangeMin(),
-            lumi.lumiModernExtend.lumiDimmingRangeMax(),
-            lumi.lumiModernExtend.lumiOffOnDuration(),
-            lumi.lumiModernExtend.lumiOnOffDuration(),
-        ],
-    },
-    {
-        zigbeeModel: ["lumi.light.acn032"],
+        zigbeeModel: ["lumi.light.acn032", "lumi.light.acn031"],
         model: "CL-L02D",
         vendor: "Aqara",
         description: "Ceiling light T1M",
+        whiteLabel: [
+            {
+                model: "HCXDD12LM",
+                vendor: "Aqara",
+                description: "Ceiling light T1",
+                fingerprint: [{modelID: "lumi.light.acn031"}],
+            },
+        ],
+
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
             await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x051f], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0520], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0522], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0523], {manufacturerCode: manufacturerCode});
             await endpoint.read("genLevelCtrl", [0x0012], {});
             await endpoint.read("genLevelCtrl", [0x0013], {});
         },
+
         extend: [
             m.deviceEndpoints({endpoints: {white: 1, rgb: 2}}),
             lumiLight({colorTemp: true, endpointNames: ["white"]}),
-            lumiLight({colorTemp: true, deviceTemperature: false, powerOutageCount: false, color: {modes: ["xy", "hs"]}, endpointNames: ["rgb"]}),
-            lumiZigbeeOTA(),
-            m.enumLookup({
-                name: "power_on_behavior",
-                lookup: {on: 0, previous: 1, off: 2},
-                cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0517, type: 0x20},
-                description: "Controls the behavior when the device is powered on after power loss",
-                zigbeeCommandOptions: {manufacturerCode},
+            lumiLight({
+                colorTemp: true,
+                deviceTemperature: false,
+                powerOutageCount: false,
+                color: {modes: ["xy"]},
+                endpointNames: ["rgb"],
             }),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            lumiPowerOnBehavior({lookup: {on: 0, previous: 1, off: 2}}),
+            m.identify(),
+            lumiZigbeeOTA(),
             lumi.lumiModernExtend.lumiDimmingRangeMin(),
             lumi.lumiModernExtend.lumiDimmingRangeMax(),
-            lumi.lumiModernExtend.lumiOffOnDuration(),
             lumi.lumiModernExtend.lumiOnOffDuration(),
+            lumi.lumiModernExtend.lumiOffOnDuration(),
+            lumi.lumiModernExtend.lumiT1MEffect(),
+            lumi.lumiModernExtend.lumiRGBEffectSpeed(),
+            lumi.lumiModernExtend.lumiRGBEffectColors(),
+            lumi.lumiModernExtend.lumiSegmentColors(),
         ],
     },
     {
