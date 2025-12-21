@@ -4372,6 +4372,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
             lumiPowerOnBehavior({lookup: {on: 0, previous: 1, off: 2}}),
+            m.identify(),
             lumiZigbeeOTA(),
             lumi.lumiModernExtend.lumiDimmingRangeMin(),
             lumi.lumiModernExtend.lumiDimmingRangeMax(),
