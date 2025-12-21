@@ -9,7 +9,7 @@ import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
 import * as store from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz, Zh, Modernextend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, Tz, Zh, ModernExtend} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const ea = exposes.access;
