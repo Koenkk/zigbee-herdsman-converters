@@ -272,22 +272,21 @@ const namronPanelHeaterProExtend = (): ModernExtend => {
                     const payload: {systemMode?: number; occupiedHeatingSetpoint?: number} = {};
 
                     if (s._prev_system_mode !== undefined) {
-                const smAny = s._prev_system_mode as unknown;
-                    let smVal: number | undefined;
+                        const smAny = s._prev_system_mode as unknown;
+                        let smVal: number | undefined;
 
-            if (typeof smAny === "number") {
-                smVal = smAny;
-        } else if (typeof smAny === "string") {
-            const sm = smAny.toLowerCase();
-            if (sm === "off") smVal = 0x00;
-            else if (sm === "auto") smVal = 0x01;
-            else if (sm === "heat") smVal = 0x04;
-            else if (sm === "sleep") smVal = 0x09;
-    }
+                        if (typeof smAny === "number") {
+                            smVal = smAny;
+                        } else if (typeof smAny === "string") {
+                            const sm = smAny.toLowerCase();
+                            if (sm === "off") smVal = 0x00;
+                            else if (sm === "auto") smVal = 0x01;
+                            else if (sm === "heat") smVal = 0x04;
+                            else if (sm === "sleep") smVal = 0x09;
+                        }
 
-    if (smVal !== undefined) payload.systemMode = smVal;
-}
-
+                        if (smVal !== undefined) payload.systemMode = smVal;
+                    }
 
                     if (s._prev_occupied_heating_setpoint !== undefined) {
                         let sp = s._prev_occupied_heating_setpoint as number;
