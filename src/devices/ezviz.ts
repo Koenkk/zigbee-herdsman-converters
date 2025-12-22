@@ -6,11 +6,10 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["CS-T2C-A0-BG"],
         model: "CS-T2C",
         vendor: "EZVIZ",
-        description: "Open/Close Sensor",
+        description: "Open/close sensor",
         extend: [
-            m.deviceEndpoints({endpoints: {"0": 0, "1": 1}}),
             m.battery(),
-            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
         ],
     },
 ];
