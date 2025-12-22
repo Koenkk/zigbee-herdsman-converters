@@ -685,7 +685,7 @@ const heimanExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data.indicatorLightLevelControlOf1 === undefined) {
-                        return ;
+                        return;
                     }
 
                     const state = !!msg.data["indicatorLightLevelControlOf1"];
@@ -1957,7 +1957,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", 0xfc90]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
-            await endpoint.read("heimanClusterSpecial", [0x0002, 0x009, 0x1004, 0x1007, 0x0016, 0x0017, 0x0018, 0x0019, 0x001a, 0x001b], {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD});
+            await endpoint.read("heimanClusterSpecial", [0x0002, 0x009, 0x1004, 0x1007, 0x0016, 0x0017, 0x0018, 0x0019, 0x001a, 0x001b], {
+                manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+            });
         },
         exposes: [],
         extend: [
@@ -1987,7 +1989,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {"dB/m": 0, "%ft OBS": 1},
                 cluster: "heimanClusterSpecial",
                 attribute: {ID: 0x0018, type: Zcl.DataType.UINT8},
-                description: "smoke level unit", 
+                description: "smoke level unit",
                 access: "STATE_GET",
             }),
             m.enumLookup({
@@ -2012,7 +2014,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 60000,
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x001B, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x001b, type: Zcl.DataType.UINT8},
                 description: "for diagnostic purpose, how many zigbee packages has the reported in a day.",
                 access: "STATE_GET",
             }),
@@ -2022,7 +2024,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 60000,
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x001A, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x001a, type: Zcl.DataType.UINT8},
                 description: "for diagnostic purpose, how many times has the product rejoined to zigbee network.",
                 access: "STATE_GET",
             }),
