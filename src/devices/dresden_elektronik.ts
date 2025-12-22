@@ -22,10 +22,11 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["FLS-CT"],
-        model: "XVV-Mega23M12",
+        model: "FLS-CT",
         vendor: "Dresden Elektronik",
         description: "Zigbee Light Link wireless electronic ballast color temperature",
-        extend: [m.light({colorTemp: {range: undefined}})],
+        ota: true,
+        extend: [m.light({colorTemp: {range: [153, 500]}})],
     },
     {
         zigbeeModel: ["Kobold"],
