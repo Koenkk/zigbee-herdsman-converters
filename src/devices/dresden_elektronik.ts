@@ -51,4 +51,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.deviceEndpoints({endpoints: {l1: 11, l2: 12, l3: 13, l4: 14}}), m.light({endpointNames: ["l1", "l2", "l3", "l4"]})],
         meta: {disableDefaultResponse: true},
     },
+    {
+        zigbeeModel: ["Scene Switch"],
+        model: "Scene Switch",
+        vendor: "Dresden Elektronik",
+        description: "3 part zigbee powered scene switch",
+        ota: true,
+        extend: [
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+            m.commandsColorCtrl(),
+            m.commandsScenes(),
+            m.battery()
+        ],
+    },
 ];
