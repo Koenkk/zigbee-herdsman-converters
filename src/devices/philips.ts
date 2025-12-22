@@ -4369,7 +4369,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Devote Ceiling Hanging Light White Ambiance",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
-        whiteLabel: [{model: "929003055701", fingerprint: [{modelID: "929003055701"}]}],
     },
     {
         zigbeeModel: ["929004297401", "929004297402", "929004297501"],
