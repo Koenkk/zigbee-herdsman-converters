@@ -45,10 +45,11 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["FLS-A lp (1-10V)"],
-        model: "BN-600078",
+        model: "FLS-A",
         vendor: "Dresden Elektronik",
         description: "Zigbee controller for 1-10V/PWM",
-        extend: [m.deviceEndpoints({endpoints: {l1: 11, l2: 12, l3: 13, l4: 14}}), m.light({endpointNames: ["l1", "l2", "l3", "l4"]})],
         meta: {disableDefaultResponse: true},
+        ota: true,
+        extend: [m.deviceEndpoints({endpoints: {l1: 11, l2: 12, l3: 13, l4: 14}}), m.light({endpointNames: ["l1", "l2", "l3", "l4"]})],
     },
 ];
