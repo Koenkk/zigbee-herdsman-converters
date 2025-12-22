@@ -7,9 +7,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CS-T2C",
         vendor: "EZVIZ",
         description: "Open/close sensor",
-        extend: [
-            m.battery(),
-            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
-        ],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
     },
 ];
