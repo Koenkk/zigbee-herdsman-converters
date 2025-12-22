@@ -71,12 +71,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Dresden Elektronik",
         description: "3 part zigbee powered scene switch",
         ota: true,
-        extend: [
-            m.commandsOnOff(),
-            m.commandsLevelCtrl(),
-            m.commandsColorCtrl(),
-            m.commandsScenes(),
-            m.battery()
-        ],
+        extend: [m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl(), m.commandsScenes(), m.battery()],
     },
 ];
