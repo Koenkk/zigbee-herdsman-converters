@@ -346,9 +346,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4058075729285",
         vendor: "LEDVANCE",
         description: "SMART+ Plug UK",
-        whiteLabel: [
-            {model: "4058075729261", vendor: "LEDVANCE", description: "SMART+ Plug EU", fingerprint: [{modelID: "PLUG EU T"}]},
-        ],
+        whiteLabel: [{model: "4058075729261", vendor: "LEDVANCE", description: "SMART+ Plug EU", fingerprint: [{modelID: "PLUG EU T"}]}],
         extend: [ledvanceOnOff({powerOnBehavior: false})],
     },
     {
