@@ -4369,9 +4369,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Devote Ceiling Hanging Light White Ambiance",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
-        whiteLabel: [
-            {model: "929003055701", fingerprint: [{modelID: "929003055701"}]},
-        ],
+        whiteLabel: [{model: "929003055701", fingerprint: [{modelID: "929003055701"}]}],
     },
     {
         zigbeeModel: ["929004297401", "929004297402", "929004297501"],
@@ -4380,8 +4378,18 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Hue Devote S Ceiling Light Panel White & Color Ambiance (White)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
         whiteLabel: [
-            {model: "929004297402", vendor: "Philips", description: "Hue Devote S Ceiling Light White & Color Ambiance (White)", fingerprint: [{modelID: "929004297402"}]},
-            {model: "929004297501", vendor: "Philips", description: "Hue Devote M Ceiling Light White & Color Ambiance (White)", fingerprint: [{modelID: "929004297501"}]},
+            {
+                model: "929004297402",
+                vendor: "Philips",
+                description: "Hue Devote S Ceiling Light White & Color Ambiance (White)",
+                fingerprint: [{modelID: "929004297402"}],
+            },
+            {
+                model: "929004297501",
+                vendor: "Philips",
+                description: "Hue Devote M Ceiling Light White & Color Ambiance (White)",
+                fingerprint: [{modelID: "929004297501"}],
+            },
         ],
     },
     {
