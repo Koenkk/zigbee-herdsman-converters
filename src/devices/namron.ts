@@ -1145,6 +1145,62 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["Panel Heater", "4512776", "4512777"],
+        model: "Panel Heater",
+        vendor: "Namron",
+        description: "Panel heater PRO 400/600/800/1000/1500/2000 W control module",
+        // ota: true,
+        fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.thermostat_local_temperature,
+            tz.namron_thermostat_child_lock,
+        ],
+        exposes: [
+            e.power(),
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 5, 35, 0.5)
+                .withLocalTemperature()
+                // Unit also supports Auto, but i haven't added support the scheduler yet
+                // so the function is not listed for now, as this doesn´t allow you the set the temperature
+                .withSystemMode(["off", "heat"])
+                .withLocalTemperatureCalibration(-3, 3, 0.1)
+                .withRunningState(["idle", "heat"]),
+            // Namron proprietary stuff
+            e
+                .binary("child_lock", ea.ALL, "LOCK", "UNLOCK")
+                .withDescription("Enables/disables physical input on the device"),
+            e
+                .numeric("hysterersis", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueMax(2)
+                .withValueStep(0.1)
+                .withDescription("Hysteresis setting, default: 0.5"),
+            e
+                .numeric("display_brightnesss", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(7)
+                .withValueStep(1)
+                .withDescription("Adjust brightness of display values 1(Low)-7(High)"),
+            e.enum("display_auto_off", ea.ALL, ["deactivated", "activated"]).withDescription("Enable / Disable display auto off"),
+            e
+                .enum("power_up_status", ea.ALL, ["manual", "last_state"])
+                .withDescription("The mode after a power reset.  Default: Previous Mode. See instructions for information about manual"),
+            e.window_detection_bool(),
+            e.window_open(ea.STATE_GET),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["genBasic", "genIdentify", "hvacThermostat", "seMetering", "genAlarms", "genTime", "hvacUserInterfaceCfg"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+        },
+    },
+    {
         zigbeeModel: ["3802968"],
         model: "3802968",
         vendor: "Namron",
