@@ -72,6 +72,10 @@ interface HeimanPrivateCluster {
         indicatorLightLevelControlOf2: number;
         indicatorLightLevelControlOf3: number;
         interconnectable: number;
+        smokeUnit: number;
+        rebootedCount: number;
+        rejoinedCount: number;
+        reportedPackages: number;
     };
     commands: never;
     commandResponses: never;
@@ -136,6 +140,10 @@ const heimanExtend = {
                 indicatorLightLevelControlOf2: {ID: 0x1005, type: Zcl.DataType.UINT8, write: true},
                 indicatorLightLevelControlOf3: {ID: 0x1006, type: Zcl.DataType.UINT8, write: true},
                 interconnectable: {ID: 0x1007, type: Zcl.DataType.UINT8, write: true},
+                smokeUnit: {ID: 0x1008, type: Zcl.DataType.UINT8},
+                rebootedCount: {ID: 0x1009, type: Zcl.DataType.UINT8},
+                rejoinedCount: {ID: 0x100a, type: Zcl.DataType.UINT8},
+                reportedPackages: {ID: 0x100b, type: Zcl.DataType.UINT8},
             },
             commands: {},
             commandsResponse: {},
@@ -289,6 +297,7 @@ const heimanExtend = {
                     const result: Record<string, unknown> = {};
                     const value = msg.data["cellMountedTable"];
                     if (Buffer.isBuffer(value) && value.length >= 5) {
+                        console.log(value);
                         if (value.length !== 10) {
                             throw new Error(`Invalid cell_mounted_table data length: expected 10 bytes, got ${value.length}.`);
                         }
@@ -300,7 +309,9 @@ const heimanExtend = {
                             value.readInt16LE(8), // height
                         ];
                         result.cell_mounted_table = coordinates.join(",");
+                        console.log(result);
                     }
+                    return result;
                 },
             } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanZcl, ["attributeReport", "readResponse"]>,
         ];
@@ -379,6 +390,7 @@ const heimanExtend = {
                         ];
                         result.wall_mounted_table = coordinates.join(",");
                     }
+                    return result;
                 },
             } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanZcl, ["attributeReport", "readResponse"]>,
         ];
@@ -386,7 +398,7 @@ const heimanExtend = {
             {
                 key: ["wall_mounted_table"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, RadarSensorHeimanZcl>(clusterName, ["cellMountedTable"], defaultResponseOptions);
+                    await entity.read<typeof clusterName, RadarSensorHeimanZcl>(clusterName, ["wallMountedTable"], defaultResponseOptions);
                 },
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "wall_mounted_table" && value !== "") {
@@ -455,6 +467,7 @@ const heimanExtend = {
                         ];
                         result.sub_region_isolation_table = coordinates.join(",");
                     }
+                    return result;
                 },
             } satisfies Fz.Converter<typeof clusterName, RadarSensorHeimanZcl, ["attributeReport", "readResponse"]>,
         ];
@@ -685,7 +698,7 @@ const heimanExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data.indicatorLightLevelControlOf1 === undefined) {
-                        return ;
+                        return;
                     }
 
                     const state = !!msg.data["indicatorLightLevelControlOf1"];
@@ -1769,7 +1782,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup({
                 name: "sensitivity",
                 lookup: {Off: 0, LowSensitivity: 1, HighSensitivity: 2},
-                cluster: "radarSensorHeiman",
+                cluster: "heimanClusterRadar",
                 attribute: {ID: 0xf002, type: Zcl.DataType.UINT8},
                 description: "0: Off, 1: Low sensitivity, 2: High sensitivity",
                 access: "ALL",
@@ -1777,7 +1790,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup({
                 name: "installation_method",
                 lookup: {WallMounted: 0, Ceiling: 1, RotateCeiling45: 2},
-                cluster: "radarSensorHeiman",
+                cluster: "heimanClusterRadar",
                 attribute: {ID: 0xf007, type: Zcl.DataType.UINT8},
                 description: "0: Wall-mounted, 1: Ceiling, 2: Rotate ceiling 45°",
                 access: "ALL",
@@ -1789,9 +1802,9 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["msOccupancySensing", "RadarSensorHeiman"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msOccupancySensing", "heimanClusterRadar"]);
             await reporting.occupancy(endpoint);
-            await endpoint.read<"RadarSensorHeiman", RadarSensorHeimanZcl>("RadarSensorHeiman", [
+            await endpoint.read<"heimanClusterRadar", RadarSensorHeimanZcl>("heimanClusterRadar", [
                 "cellMountedTable",
                 "wallMountedTable",
                 "subRegionIsolationTable",
@@ -1957,7 +1970,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", 0xfc90]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
-            await endpoint.read("heimanClusterSpecial", [0x0002, 0x009, 0x1004, 0x1007, 0x0016, 0x0017, 0x0018, 0x0019, 0x001a, 0x001b], {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD});
+            await endpoint.read("heimanClusterSpecial", [0x0002, 0x009, 0x1004, 0x1007, 0x0016, 0x0017, 0x0018, 0x0019, 0x001a, 0x001b], {
+                manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+            });
         },
         exposes: [],
         extend: [
@@ -1987,7 +2002,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {"dB/m": 0, "%ft OBS": 1},
                 cluster: "heimanClusterSpecial",
                 attribute: {ID: 0x0018, type: Zcl.DataType.UINT8},
-                description: "smoke level unit", 
+                description: "smoke level unit",
                 access: "STATE_GET",
             }),
             m.enumLookup({
@@ -2012,7 +2027,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 60000,
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x001B, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x001b, type: Zcl.DataType.UINT8},
                 description: "for diagnostic purpose, how many zigbee packages has the reported in a day.",
                 access: "STATE_GET",
             }),
@@ -2022,7 +2037,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 60000,
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x001A, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x001a, type: Zcl.DataType.UINT8},
                 description: "for diagnostic purpose, how many times has the product rejoined to zigbee network.",
                 access: "STATE_GET",
             }),
