@@ -51,4 +51,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.deviceEndpoints({endpoints: {l1: 11, l2: 12, l3: 13, l4: 14}}), m.light({endpointNames: ["l1", "l2", "l3", "l4"]})],
         meta: {disableDefaultResponse: true},
     },
+    {
+        zigbeeModel: ["FLS-H3"],
+        model: "FLS-H",
+        vendor: "Dresden Elektronik",
+        description: "Zigbee Light Link wireless electronic ballast",
+        ota: true,
+        extend: [m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
 ];
