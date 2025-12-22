@@ -458,6 +458,7 @@ const definitions: DefinitionWithExtend[] = [
     ...evvr,
     ...ewelink,
     ...ezex,
+    ...ezviz,
     ...fantem,
     ...feibit,
     ...fireangel,
