@@ -39,17 +39,17 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
-        zigbeeModel: ["PLUG EU EM T"],
+        zigbeeModel: ["PLUG EU EM T", "PLUG EU EM T, black"],
         model: "4099854295232",
         vendor: "LEDVANCE",
-        description: "SMART+ indoor plug EU with energy meter ",
-        extend: [ledvanceOnOff(), m.electricityMeter()],
-    },
-    {
-        zigbeeModel: ["PLUG EU EM T, black"],
-        model: "4099854295256",
-        vendor: "LEDVANCE",
-        description: "SMART+ indoor plug EU with energy meter - black",
+        description: "SMART+ Plug indoor EU with energy meter ",
+        whiteLabel: [
+            {
+                model: "4099854295256",
+                description: "SMART+ Plug indoor EU with energy meter (Black)",
+                fingerprint: [{modelID: "PLUG EU EM T, black"}],
+            },
+        ],
         extend: [ledvanceOnOff(), m.electricityMeter()],
     },
     {
@@ -334,31 +334,25 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [ledvanceLight({})],
     },
     {
-        zigbeeModel: ["PLUG COMPACT EU T", "Plug Value"],
+        zigbeeModel: ["PLUG COMPACT EU T"],
         model: "4058075729322",
         vendor: "LEDVANCE",
         description: "SMART+ Compact Outdoor Plug EU",
         extend: [ledvanceOnOff()],
     },
     {
-        zigbeeModel: ["PLUG UK T"],
+        zigbeeModel: ["PLUG UK T", "PLUG EU T"],
         model: "4058075729285",
         vendor: "LEDVANCE",
         description: "SMART+ Plug UK",
+        whiteLabel: [{model: "4058075729261", vendor: "LEDVANCE", description: "SMART+ Plug EU", fingerprint: [{modelID: "PLUG EU T"}]}],
         extend: [ledvanceOnOff({powerOnBehavior: false})],
     },
     {
-        zigbeeModel: ["PLUG EU T"],
-        model: "4058075729261",
-        vendor: "LEDVANCE",
-        description: "SMART+ Plug EU",
-        extend: [ledvanceOnOff({powerOnBehavior: false})],
-    },
-    {
-        zigbeeModel: ["PLUG OUTDOOR EU T"],
+        zigbeeModel: ["PLUG OUTDOOR EU T", "Plug Value"],
         model: "4058075729308",
         vendor: "LEDVANCE",
-        description: "SMART+ Outdoor Plug EU",
+        description: "SMART+ Plug EU (Outdoor)",
         extend: [ledvanceOnOff({powerOnBehavior: false})],
     },
     {
