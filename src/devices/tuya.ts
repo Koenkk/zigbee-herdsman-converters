@@ -202,18 +202,17 @@ const storeLocal = {
 };
 
 const convLocal = {
-
-    scaleTo1000:() => {
+    scaleTo1000: () => {
         return {
             from: (v) => {
-                return Math.round(v * 255.0 / 1000.0);
+                return Math.round((v * 255.0) / 1000.0);
             },
             to: (v) => {
-                return Math.round(v * 1000.0 / 255.0);
-            }
-        }
+                return Math.round((v * 1000.0) / 255.0);
+            },
+        };
     },
-    
+
     energyFlowPJ1203A: (channel: string) => {
         return {
             from: (v: number, meta: Fz.Meta, options: KeyValue) => {
@@ -12338,25 +12337,22 @@ Ensure all 12 segments are defined and separated by spaces.`,
     },
     {
         fingerprint: tuya.fingerprint("TS110E", ["_TZE200_ubgdwsnr"]),
-        model: 'EKAC-T3096Z',
-        vendor: 'Ekaza',
-        description: '2 channels dimmer',
-        fromZigbee: [tuya.fz.datapoints], 
+        model: "EKAC-T3096Z",
+        vendor: "Ekaza",
+        description: "2 channels dimmer",
+        fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
-        exposes: [
-            e.light_brightness().withEndpoint('l1'),
-            e.light_brightness().withEndpoint('l2'),
-        ],
+        exposes: [e.light_brightness().withEndpoint("l1"), e.light_brightness().withEndpoint("l2")],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
-                [1, 'state_l1', tuya.valueConverter.onOff],
-                [2, 'brightness_l1', convLocal.scaleTo1000()],
-                [7, 'state_l2', tuya.valueConverter.onOff],
-                [8, 'brightness_l2', convLocal.scaleTo1000()],
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "brightness_l1", convLocal.scaleTo1000()],
+                [7, "state_l2", tuya.valueConverter.onOff],
+                [8, "brightness_l2", convLocal.scaleTo1000()],
             ],
         },
         endpoint: (device) => {
