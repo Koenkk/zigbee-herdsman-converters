@@ -46,7 +46,6 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {
                 model: "4099854295256",
-                vendor: "LEDVANCE",
                 description: "SMART+ Plug indoor EU with energy meter (Black)",
                 fingerprint: [{modelID: "PLUG EU EM T, black"}],
             },
