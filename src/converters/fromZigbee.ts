@@ -2387,12 +2387,12 @@ export const tuya_cover_options: Fz.Converter<"closuresWindowCovering", undefine
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "raw"> = {
+export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "attributeReport"> = {
     cluster: 65029,
-    type: "raw",
+    type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
         const clickMapping: KeyValueNumberString = {0: "release", 1: "single", 2: "double", 3: "hold"};
-        return {action: `${clickMapping[msg.data[6]]}`};
+        return {action: `${clickMapping[msg.data[1]]}`};
     },
 };
 export const tuya_switch_scene: Fz.Converter<"genOnOff", undefined, "commandTuyaAction"> = {
