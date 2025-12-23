@@ -303,7 +303,6 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{manufacturerName: "MLI", modelID: "Garden light"}],
-        zigbeeModel: ["Garden light"],
         model: "MDGARD401",
         vendor: "Müller Licht",
         description: "tint Flores Gen2 garden light",
