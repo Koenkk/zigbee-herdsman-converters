@@ -1735,13 +1735,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_pfc7i3kt']),
-        model: 'MS-104CZ',
-        vendor: 'Moes',
-        description: '3 gang switch module',
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_pfc7i3kt"]),
+        model: "MS-104CZ",
+        vendor: "Moes",
+        description: "3 gang switch module",
         extend: [
             tuya.modernExtend.tuyaOnOff({
-                endpoints: ['l1', 'l2', 'l3'],
+                endpoints: ["l1", "l2", "l3"],
 
                 onOffCountdown: true,
                 powerOnBehavior2: true,
@@ -1757,13 +1757,13 @@ export const definitions: DefinitionWithExtend[] = [
             l2: 2,
             l3: 3,
         }),
-        meta: { multiEndpoint: true },
+        meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             for (const ep of [1, 2, 3]) {
                 const endpoint = device.getEndpoint(ep);
                 if (endpoint) {
-                    await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
                     await reporting.onOff(endpoint);
                 }
             }
@@ -1774,56 +1774,54 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZT-B-EU1",
         vendor: "Moes",
         description: "Scene remote with 1 key",
-        fromZigbee: [
-            tuya.fz.on_off_action,
-            fz.battery,
-            tuya.fz.datapoints,
-        ],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
-        exposes: [
-            e.battery(),
-            e.action(["1_single", "1_double", "1_hold"]),
-        ],
+        exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold"])],
         meta: {
             tuyaDatapoints: [
-                [1, "action", tuya.valueConverterBasic.lookup({
-                    "1_single": 0,
-                    "1_double": 1,
-                    "1_hold": 2,
-                })],
+                [
+                    1,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "1_single": 0,
+                        "1_double": 1,
+                        "1_hold": 2,
+                    }),
+                ],
             ],
         },
         endpoint: () => ({}),
     },
     {
-        fingerprint: tuya.fingerprint('TS0042', ['_TZ3000_5e235jpa']),
-        model: 'ZT-B-EU2',
-        vendor: 'Moes',
-        description: 'Scene remote with 2 keys',
-        fromZigbee: [
-            tuya.fz.on_off_action,
-            fz.battery,
-            tuya.fz.datapoints,
-        ],
+        fingerprint: tuya.fingerprint("TS0042", ["_TZ3000_5e235jpa"]),
+        model: "ZT-B-EU2",
+        vendor: "Moes",
+        description: "Scene remote with 2 keys",
+        fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
-        exposes: [
-            e.battery(),
-            e.action(['1_single', '1_double', '1_hold', '2_single', '2_double', '2_hold']),
-        ],
+        exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold", "2_single", "2_double", "2_hold"])],
         meta: {
             tuyaDatapoints: [
-                [1, 'action', tuya.valueConverterBasic.lookup({
-                    '1_single': 0,
-                    '1_double': 1,
-                    '1_hold': 2,
-                })],
-                [2, 'action', tuya.valueConverterBasic.lookup({
-                    '2_single': 0,
-                    '2_double': 1,
-                    '2_hold': 2,
-                })],
+                [
+                    1,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "1_single": 0,
+                        "1_double": 1,
+                        "1_hold": 2,
+                    }),
+                ],
+                [
+                    2,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "2_single": 0,
+                        "2_double": 1,
+                        "2_hold": 2,
+                    }),
+                ],
             ],
         },
         endpoint: () => ({}),
@@ -1833,32 +1831,39 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZT-B-EU3",
         vendor: "Moes",
         description: "Scene remote with 3 keys",
-        fromZigbee: [
-            tuya.fz.on_off_action,
-            fz.battery,
-            tuya.fz.datapoints,
-        ],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
-        exposes: [
-            e.battery(),
-            e.action([
-                "1_single", "1_double", "1_hold",
-                "2_single", "2_double", "2_hold",
-                "3_single", "3_double", "3_hold",
-            ]),
-        ],
+        exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold", "2_single", "2_double", "2_hold", "3_single", "3_double", "3_hold"])],
         meta: {
             tuyaDatapoints: [
-                [1, "action", tuya.valueConverterBasic.lookup({
-                    "1_single": 0, "1_double": 1, "1_hold": 2,
-                })],
-                [2, "action", tuya.valueConverterBasic.lookup({
-                    "2_single": 0, "2_double": 1, "2_hold": 2,
-                })],
-                [3, "action", tuya.valueConverterBasic.lookup({
-                    "3_single": 0, "3_double": 1, "3_hold": 2,
-                })],
+                [
+                    1,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "1_single": 0,
+                        "1_double": 1,
+                        "1_hold": 2,
+                    }),
+                ],
+                [
+                    2,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "2_single": 0,
+                        "2_double": 1,
+                        "2_hold": 2,
+                    }),
+                ],
+                [
+                    3,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "3_single": 0,
+                        "3_double": 1,
+                        "3_hold": 2,
+                    }),
+                ],
             ],
         },
         endpoint: () => ({}),
