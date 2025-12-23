@@ -310,4 +310,3 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"]}, effect: false, powerOnBehavior: false})],
     },
 ];
-
