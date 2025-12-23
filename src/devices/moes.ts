@@ -1735,41 +1735,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_pfc7i3kt"]),
-        model: "MS-104CZ",
-        vendor: "Moes",
-        description: "3 gang switch module",
-        extend: [
-            tuya.modernExtend.tuyaOnOff({
-                endpoints: ["l1", "l2", "l3"],
-
-                onOffCountdown: true,
-                powerOnBehavior2: true,
-                inchingSwitch: true,
-                switchType: true,
-                indicatorMode: false,
-                backlightModeOffOn: false,
-                powerOutageMemory: false,
-            }),
-        ],
-        endpoint: (device) => ({
-            l1: 1,
-            l2: 2,
-            l3: 3,
-        }),
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            for (const ep of [1, 2, 3]) {
-                const endpoint = device.getEndpoint(ep);
-                if (endpoint) {
-                    await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-                    await reporting.onOff(endpoint);
-                }
-            }
-        },
-    },
-    {
         fingerprint: tuya.fingerprint("TS0041", ["_TZ3000_axpdxqgu"]),
         model: "ZT-B-EU1",
         vendor: "Moes",
@@ -1866,6 +1831,5 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             ],
         },
-        endpoint: () => ({}),
     },
 ];
