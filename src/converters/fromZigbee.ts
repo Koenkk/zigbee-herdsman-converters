@@ -900,13 +900,13 @@ export const gas_metering: Fz.Converter<"seMetering", undefined, ["attributeRepo
 
         if (msg.data.instantaneousDemand !== undefined) {
             const power = msg.data.instantaneousDemand;
-            const property = utils.postfixWithEndpointName("power", msg, model, meta);
+            const property = utils.postfixWithEndpointName("volume_flow_rate", msg, model, meta);
             payload[property] = utils.precisionRound(power * (factor ?? 1), 2);
         }
 
         if (msg.data.currentSummDelivered !== undefined) {
             const value = msg.data.currentSummDelivered;
-            const property = utils.postfixWithEndpointName("energy", msg, model, meta);
+            const property = utils.postfixWithEndpointName("gas", msg, model, meta);
             payload[property] = utils.precisionRound(value * (factor ?? 1), 2);
         }
 
