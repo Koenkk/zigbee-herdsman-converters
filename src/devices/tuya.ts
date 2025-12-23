@@ -12325,6 +12325,22 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS110E", ["_TZE200_ubgdwsnr"]),
+        model: "EKAC-T3096Z",
+        vendor: "Ekaza",
+        description: "2 channel dimmer",
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 2}})],
+        exposes: [e.light_brightness().withEndpoint("l1"), e.light_brightness().withEndpoint("l2")],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "brightness_l1", tuya.valueConverter.scale0_254to0_1000],
+                [7, "state_l2", tuya.valueConverter.onOff],
+                [8, "brightness_l2", tuya.valueConverter.scale0_254to0_1000],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS110E", ["_TZ3210_wdexaypg"]),
         model: "TS110E_2gang_1",
         vendor: "Tuya",
