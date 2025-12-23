@@ -1037,24 +1037,25 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceTemperature(),
             m.iasZoneAlarm({
-                "zoneType":"generic",
-                "manufacturerZoneAttributes":[
+                zoneType: "generic",
+                manufacturerZoneAttributes: [
                     {
-                        "bit":0,
-                        "name":"high_temperature",
-                        "valueOn":true,
-                        "valueOff":false,
-                        "description":"Stove guard detected high hemperature"
+                        bit: 0,
+                        name: "high_temperature",
+                        valueOn: true,
+                        valueOff: false,
+                        description: "Stove guard detected high hemperature",
                     },
                     {
-                        "bit":1,
-                        "name":"power_cut_off",
-                        "valueOn":true,
-                        "valueOff":false,
-                        "description":"Power to stove disconnected"
-                    }
+                        bit: 1,
+                        name: "power_cut_off",
+                        valueOn: true,
+                        valueOff: false,
+                        description: "Power to stove disconnected",
+                    },
                 ],
-                "zoneAttributes":["tamper","battery_low"]}),
+                zoneAttributes: ["tamper", "battery_low"],
+            }),
             m.electricityMeter({cluster: "metering"}),
         ],
     },
@@ -1064,26 +1065,27 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "CTM Lyng",
         description: "2.5 Stove guard",
         extend: [
-            m.onOff({"powerOnBehavior":false}),
+            m.onOff({powerOnBehavior: false}),
             m.iasZoneAlarm({
-                "zoneType":"generic",
-                "manufacturerZoneAttributes":[
+                zoneType: "generic",
+                manufacturerZoneAttributes: [
                     {
-                        "bit":0,
-                        "name":"high_temperature",
-                        "valueOn":true,
-                        "valueOff":false,
-                        "description":"Stove guard detected high hemperature"
+                        bit: 0,
+                        name: "high_temperature",
+                        valueOn: true,
+                        valueOff: false,
+                        description: "Stove guard detected high hemperature",
                     },
                     {
-                        "bit":1,
-                        "name":"power_cut_off",
-                        "valueOn":true,
-                        "valueOff":false,
-                        "description":"Power to stove disconnected"
-                    }
+                        bit: 1,
+                        name: "power_cut_off",
+                        valueOn: true,
+                        valueOff: false,
+                        description: "Power to stove disconnected",
+                    },
                 ],
-                "zoneAttributes":["tamper","battery_low"]}),
+                zoneAttributes: ["tamper", "battery_low"],
+            }),
             m.electricityMeter({cluster: "metering"}),
         ],
     },
