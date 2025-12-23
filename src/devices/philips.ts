@@ -4364,14 +4364,31 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["929003055701", "929004297402", "929004297501"],
+        zigbeeModel: ["929003055701"],
         model: "929003055701",
         vendor: "Philips",
-        description: "Hue White Ambiance Devote",
+        description: "Hue Devote Ceiling Hanging Light White Ambiance",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ["929004297401", "929004297402", "929004297501"],
+        model: "929004297401",
+        vendor: "Philips",
+        description: "Hue Devote S Ceiling Light Panel White & Color Ambiance (White)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
         whiteLabel: [
-            {model: "929004297402", fingerprint: [{modelID: "929004297402"}]},
-            {model: "929004297501", fingerprint: [{modelID: "929004297501"}]},
+            {
+                model: "929004297402",
+                vendor: "Philips",
+                description: "Hue Devote S Ceiling Light White & Color Ambiance (White)",
+                fingerprint: [{modelID: "929004297402"}],
+            },
+            {
+                model: "929004297501",
+                vendor: "Philips",
+                description: "Hue Devote M Ceiling Light White & Color Ambiance (White)",
+                fingerprint: [{modelID: "929004297501"}],
+            },
         ],
     },
     {
@@ -4577,13 +4594,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "046677577490",
         vendor: "Philips",
         description: "Hue Lightguide E26/E27 Triangle 500lm",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
-        zigbeeModel: ["929004297401"],
-        model: "929004297401",
-        vendor: "Philips",
-        description: "Hue Devote Slim ceiling light",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
