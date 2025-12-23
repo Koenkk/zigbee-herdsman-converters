@@ -407,20 +407,20 @@ const convLocal = {
 // 4 physical buttons with knob rotation, 3 modes: Scene (DP 1-4), Light (ZCL), Curtain (DP broadcast)
 // Mode switch: hold button 2 or 4 for 5 seconds (only cycles through bound modes)
 // Group ID pattern: base + (button-1) * 20, detected from first button press
-const MODE_SCENE = 0x01;
-const MODE_LIGHT = 0x03;
-const MODE_CURTAIN = 0x04;
-const GROUP_ID_OFFSET = 20;
+const modeScene = 0x01;
+const modeLight = 0x03;
+const modeCurtain = 0x04;
+const groupIdOffset = 20;
 
-const STATUS_UNASSIGNED = "unassigned";
-const STATUS_WAITING = "waiting_button_1";
-const STATUS_READY = "ready";
+const statusUnassigned = "unassigned";
+const statusWaiting = "waiting_button_1";
+const statusReady = "ready";
 
 const getButtonFromGroupId = (groupId: number, baseGroupId: number): number | null => {
     if (!baseGroupId || !groupId) return null;
     const offset = groupId - baseGroupId;
-    if (offset >= 0 && offset % GROUP_ID_OFFSET === 0) {
-        const button = Math.floor(offset / GROUP_ID_OFFSET) + 1;
+    if (offset >= 0 && offset % groupIdOffset === 0) {
+        const button = Math.floor(offset / groupIdOffset) + 1;
         if (button >= 1 && button <= 4) return button;
     }
     return null;
@@ -428,7 +428,7 @@ const getButtonFromGroupId = (groupId: number, baseGroupId: number): number | nu
 // DP 102 payload: [0x01, 0x01, mode, ...name(12 bytes), ...suffix(4 bytes)]
 // Suffix: slot number at position (slot-1), rest 0xff
 const bindSlotTS0601SmartSceneKnob = async (entity: Zh.Endpoint | Zh.Group, slot: number, mode: number): Promise<void> => {
-    const modeNames: {[key: number]: string} = {[MODE_SCENE]: "Scene", [MODE_LIGHT]: "Light", [MODE_CURTAIN]: "Curtain"};
+    const modeNames: {[key: number]: string} = {[modeScene]: "Scene", [modeLight]: "Light", [modeCurtain]: "Curtain"};
     const slotName = `${modeNames[mode] || "Scene"} ${slot}`;
 
     const nameBuffer = Buffer.alloc(12, 0);
@@ -866,9 +866,9 @@ const tzLocal = {
         key: ["bind_all_scene", "bind_all_light", "bind_all_curtain"],
         convertSet: async (entity, key, value, meta) => {
             const modes: {[key: string]: number} = {
-                bind_all_scene: MODE_SCENE,
-                bind_all_light: MODE_LIGHT,
-                bind_all_curtain: MODE_CURTAIN,
+                bind_all_scene: modeScene,
+                bind_all_light: modeLight,
+                bind_all_curtain: modeCurtain,
             };
             const mode = modes[key];
 
@@ -885,8 +885,8 @@ const tzLocal = {
             const currentStatus = meta.state?.assignment_status as string | undefined;
             const baseGroupId = meta.state?.base_group_id as number | undefined;
 
-            if (currentStatus !== STATUS_READY || !baseGroupId) {
-                return {state: {assignment_status: STATUS_WAITING}};
+            if (currentStatus !== statusReady || !baseGroupId) {
+                return {state: {assignment_status: statusWaiting}};
             }
             return {};
         },
@@ -895,7 +895,7 @@ const tzLocal = {
     TS0601_smart_scene_knob_assign_button_1: {
         key: ["assign_button_1"],
         convertSet: (entity, key, value, meta) => {
-            return {state: {assignment_status: STATUS_WAITING}};
+            return {state: {assignment_status: statusWaiting}};
         },
     } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -907,7 +907,7 @@ const tzLocal = {
             return {
                 state: {
                     base_group_id: baseGroupId,
-                    assignment_status: STATUS_READY,
+                    assignment_status: statusReady,
                 },
             };
         },
@@ -1187,20 +1187,20 @@ const fzLocal = {
             if (!groupId) return;
 
             const baseGroupId = meta.state?.base_group_id as number | undefined;
-            const status = (meta.state?.assignment_status as string) || STATUS_UNASSIGNED;
+            const status = (meta.state?.assignment_status as string) || statusUnassigned;
             const command = msg.type === "commandOn" ? "on" : "off";
 
-            if (status === STATUS_WAITING) {
+            if (status === statusWaiting) {
                 return {
                     base_group_id: groupId,
-                    assignment_status: STATUS_READY,
+                    assignment_status: statusReady,
                     action: `light_1_${command}`,
                     action_group: groupId,
                     action_button: 1,
                 };
             }
 
-            if (status === STATUS_READY && baseGroupId) {
+            if (status === statusReady && baseGroupId) {
                 const button = getButtonFromGroupId(groupId, baseGroupId);
                 if (!button) return;
                 return {
@@ -1210,7 +1210,7 @@ const fzLocal = {
                 };
             }
 
-            return {action_group: groupId, assignment_status: STATUS_UNASSIGNED};
+            return {action_group: groupId, assignment_status: statusUnassigned};
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -1222,7 +1222,7 @@ const fzLocal = {
             if (!groupId) return;
 
             const baseGroupId = meta.state?.base_group_id as number | undefined;
-            const status = (meta.state?.assignment_status as string) || STATUS_UNASSIGNED;
+            const status = (meta.state?.assignment_status as string) || statusUnassigned;
             const level = msg.data.level as number;
 
             const prevBrightness = meta.state?.brightness as number | undefined;
@@ -1235,10 +1235,10 @@ const fzLocal = {
                 else direction = prevDirection || "";
             }
 
-            if (status === STATUS_WAITING) {
+            if (status === statusWaiting) {
                 return {
                     base_group_id: groupId,
-                    assignment_status: STATUS_READY,
+                    assignment_status: statusReady,
                     action: `light_1_brightness${direction}`,
                     action_group: groupId,
                     action_button: 1,
@@ -1247,7 +1247,7 @@ const fzLocal = {
                 };
             }
 
-            if (status === STATUS_READY && baseGroupId) {
+            if (status === statusReady && baseGroupId) {
                 const button = getButtonFromGroupId(groupId, baseGroupId);
                 if (!button) return;
                 return {
@@ -1272,7 +1272,7 @@ const fzLocal = {
             if (!groupId) return;
 
             const baseGroupId = meta.state?.base_group_id as number | undefined;
-            const status = (meta.state?.assignment_status as string) || STATUS_UNASSIGNED;
+            const status = (meta.state?.assignment_status as string) || statusUnassigned;
             const colortemp = msg.data.colortemp as number;
 
             const prevColortemp = meta.state?.color_temp as number | undefined;
@@ -1285,10 +1285,10 @@ const fzLocal = {
                 else direction = prevDirection || "";
             }
 
-            if (status === STATUS_WAITING) {
+            if (status === statusWaiting) {
                 return {
                     base_group_id: groupId,
-                    assignment_status: STATUS_READY,
+                    assignment_status: statusReady,
                     action: `light_1_colortemp${direction}`,
                     action_group: groupId,
                     action_button: 1,
@@ -1297,7 +1297,7 @@ const fzLocal = {
                 };
             }
 
-            if (status === STATUS_READY && baseGroupId) {
+            if (status === statusReady && baseGroupId) {
                 const button = getButtonFromGroupId(groupId, baseGroupId);
                 if (!button) return;
                 return {
@@ -1323,7 +1323,7 @@ const fzLocal = {
             if (!groupId) return;
 
             const baseGroupId = meta.state?.base_group_id as number | undefined;
-            const status = (meta.state?.assignment_status as string) || STATUS_UNASSIGNED;
+            const status = (meta.state?.assignment_status as string) || statusUnassigned;
 
             const dpValues = msg.data.dpValues as Array<{dp: number; data: Buffer}>;
             if (!dpValues || dpValues.length === 0) return;
@@ -1362,17 +1362,17 @@ const fzLocal = {
                 else if (action.includes("_close")) result.curtain_position_direction = "_close";
             }
 
-            if (status === STATUS_WAITING) {
+            if (status === statusWaiting) {
                 return {
                     ...result,
                     base_group_id: groupId,
-                    assignment_status: STATUS_READY,
+                    assignment_status: statusReady,
                     action: `curtain_1_${action}`,
                     action_button: 1,
                 };
             }
 
-            if (status === STATUS_READY && baseGroupId) {
+            if (status === statusReady && baseGroupId) {
                 const button = getButtonFromGroupId(groupId, baseGroupId);
                 if (!button) return;
                 return {
@@ -20690,7 +20690,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
                 .withUnit("%")
                 .withDescription("Curtain position from curtain mode (0-100%)"),
             e
-                .enum("assignment_status", ea.STATE, [STATUS_UNASSIGNED, STATUS_WAITING, STATUS_READY])
+                .enum("assignment_status", ea.STATE, [statusUnassigned, statusWaiting, statusReady])
                 .withCategory("diagnostic")
                 .withDescription("Button assignment status"),
             e
