@@ -881,6 +881,18 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["RB 256 C"],
+        model: "RB 256 C",
+        vendor: "Innr",
+        description: 'E14 mini bulb RGBW 510lm',
+        extend: [
+            m.light({
+                colorTemp: {range: [153,556]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["OFL 122 C"],
         model: "OFL 122 C",
         vendor: "Innr",
