@@ -12,7 +12,6 @@ import * as sunricher from "../lib/sunricher";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
-
 const NS = "zhc:sunricher";
 const e = exposes.presets;
 const ea = exposes.access;
