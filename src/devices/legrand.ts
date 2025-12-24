@@ -719,11 +719,41 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["NLIS - Triple light switch"],
-        model: "281506",
-        vendor: "Legrand",
-        description: "Triple light switch",
-        extend: [m.deviceEndpoints({endpoints: {right: 1, center: 2, left: 3}}), m.onOff({endpointNames: ["right", "center", "left"]})],
-    },
+    model: "281506",
+    vendor: "Legrand",
+    description: "Triple light switch",
+    ota: true,
+
+    fromZigbee: [
+        fz.identify,
+        fz.legrand_binary_input_on_off,
+        fzLegrand.cluster_fc01,
+    ],
+
+    toZigbee: [
+        tzLegrand.identify,
+        tzLegrand.led_mode,
+    ],
+
+    exposes: [
+        eLegrand.ledInDark(),
+        eLegrand.ledIfOn(),
+    ],
+
+    extend: [
+        modernExtend.deviceEndpoints({
+            endpoints: {
+                right: 1,
+                center: 2,
+                left: 3,
+            },
+        }),
+        modernExtend.onOff({
+            configureReporting: true,
+            endpointNames: ["right", "center", "left"],
+        }),
+    ],
+};
     {
         zigbeeModel: [" Wireless Color Dimmer\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"],
         model: "067767",
