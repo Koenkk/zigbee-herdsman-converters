@@ -1223,7 +1223,12 @@ const fzLocal = {
 
             const baseGroupId = meta.state?.base_group_id as number | undefined;
             const status = (meta.state?.assignment_status as string) || statusUnassigned;
-            const level = msg.data.level as number;
+            // Device sends 0xFF at max brightness, which zigbee-herdsman parses as NaN
+            // Clamp to 254 (max valid ZCL level per Zigbee spec)
+            let level = msg.data.level as number;
+            if (Number.isNaN(level)) {
+                level = 254;
+            }
 
             const prevBrightness = meta.state?.brightness as number | undefined;
             const prevDirection = meta.state?.brightness_direction as string | undefined;
@@ -20703,7 +20708,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
                     "curtain_4_position_close",
                 ])
                 .withDescription("Triggered action from scene button, light knob, or curtain control"),
-            e.numeric("brightness", ea.STATE).withValueMin(0).withValueMax(254).withDescription("Brightness level from light mode (0-254)"),
+            e.numeric("brightness", ea.STATE).withValueMin(0).withValueMax(254).withDescription("Brightness level from light mode (1-254)"),
             e.numeric("color_temp", ea.STATE).withValueMin(150).withValueMax(500).withDescription("Color temperature from light mode (mired)"),
             e
                 .numeric("curtain_position", ea.STATE)
