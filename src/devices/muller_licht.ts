@@ -301,4 +301,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Tint smart ceiling light Cano black/silver, white+color (1800-6500K+RGB), 21w",
         extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
+    {
+        fingerprint: [{manufacturerName: "MLI", modelID: "Garden light"}],
+        model: "MDGARD401",
+        vendor: "Müller Licht",
+        description: "tint Flores Gen2 garden light",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"]}, effect: false, powerOnBehavior: false})],
+    },
 ];

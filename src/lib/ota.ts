@@ -157,7 +157,6 @@ async function getJson<T>(pageUrl: string): Promise<T> {
 function readLocalFile(fileName: string): Buffer {
     // If the file name is not a full path, then treat it as a relative to the data directory
     if (!path.isAbsolute(fileName) && dataDir) {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         fileName = path.join(dataDir, fileName);
     }
 
@@ -612,7 +611,6 @@ async function isImageAvailable(
         // https://github.com/Koenkk/zigbee2mqtt/issues/16345 doesn't seem to be needed for all
         // https://github.com/Koenkk/zigbee2mqtt/issues/15745
         if (device.meta.lumiFileVersion) {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             current = {...current, fileVersion: device.meta.lumiFileVersion};
         }
     }
@@ -739,7 +737,6 @@ export async function isUpdateAvailable(
 
         logger.debug(() => `${deviceLogString(device)} Got request '${JSON.stringify(payload)}'`, NS);
 
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         requestPayload = payload;
     }
 
@@ -832,7 +829,6 @@ export async function update(
     }
 
     if (!requestPayload) {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         [reqTransNum, requestPayload] = await requestOTA(endpoint);
 
         logger.debug(() => `${deviceLogString(device)} Got request payload '${JSON.stringify(requestPayload)}'`, NS);
@@ -898,7 +894,6 @@ export async function update(
                 imageBlockRequest.header.transactionSequenceNumber,
             );
 
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             pageOffset += blockPayload.dataSize;
         } catch (error) {
             // Shit happens, device will probably do a new imageBlockRequest so don't care.

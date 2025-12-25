@@ -1480,6 +1480,102 @@ export const trv = {
     },
 };
 
+/**
+ * Converts RGB (0-255) to CIE xy color space
+ * Used for Aqara RGB devices that require xy format
+ */
+function lumiRgbToXY(r: number, g: number, b: number): {x: number; y: number} {
+    let red = r / 255.0;
+    let green = g / 255.0;
+    let blue = b / 255.0;
+
+    red = red > 0.04045 ? ((red + 0.055) / 1.055) ** 2.4 : red / 12.92;
+    green = green > 0.04045 ? ((green + 0.055) / 1.055) ** 2.4 : green / 12.92;
+    blue = blue > 0.04045 ? ((blue + 0.055) / 1.055) ** 2.4 : blue / 12.92;
+
+    const X = red * 0.4124564 + green * 0.3575761 + blue * 0.1804375;
+    const Y = red * 0.2126729 + green * 0.7151522 + blue * 0.072175;
+    const Z = red * 0.0193339 + green * 0.119192 + blue * 0.9503041;
+
+    const sum = X + Y + Z;
+    if (sum === 0) {
+        return {x: 0, y: 0};
+    }
+
+    return {
+        x: X / sum,
+        y: Y / sum,
+    };
+}
+
+/**
+ * Encodes RGB color to Aqara's 4-byte xy format
+ * Returns [xHi, xLo, yHi, yLo]
+ */
+function lumiEncodeRgbColor(color: {r: number; g: number; b: number}): number[] {
+    if (typeof color !== "object" || color.r === undefined || color.g === undefined || color.b === undefined) {
+        throw new Error(`Invalid color format. Expected {r: 0-255, g: 0-255, b: 0-255}, got: ${JSON.stringify(color)}`);
+    }
+
+    const r = Number(color.r);
+    const g = Number(color.g);
+    const b = Number(color.b);
+
+    if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
+        throw new Error(`RGB values must be between 0-255. Got r:${r}, g:${g}, b:${b}`);
+    }
+
+    const xy = lumiRgbToXY(r, g, b);
+
+    const xScaled = Math.round(xy.x * 65535);
+    const yScaled = Math.round(xy.y * 65535);
+
+    return [(xScaled >>> 8) & 0xff, xScaled & 0xff, (yScaled >>> 8) & 0xff, yScaled & 0xff];
+}
+
+/**
+ * Generates segment bitmask for T1M and T1 Strip devices
+ */
+function lumiGenerateSegmentMask(segments: number[], deviceType: "t1m" | "strip", maxSegments: number): number[] {
+    const maskSize = deviceType === "t1m" ? 4 : 8;
+    const mask = new Array(maskSize).fill(0);
+
+    for (const seg of segments) {
+        if (seg < 1 || seg > maxSegments) {
+            throw new Error(`Invalid segment: ${seg}. Must be 1-${maxSegments}`);
+        }
+
+        const bitPos = seg - 1;
+        const byteIndex = Math.floor(bitPos / 8);
+        const bitIndex = 7 - (bitPos % 8);
+
+        mask[byteIndex] |= 1 << bitIndex;
+    }
+
+    return mask;
+}
+
+/**
+ * Builds packet for T1M and T1 Strip segment color control
+ */
+function lumiBuildSegmentPacket(
+    segments: number[],
+    color: {r: number; g: number; b: number},
+    deviceType: "t1m" | "strip",
+    maxSegments: number,
+    brightness = 254,
+): number[] {
+    const segmentMask = lumiGenerateSegmentMask(segments, deviceType, maxSegments);
+    const colorBytes = lumiEncodeRgbColor(color);
+
+    if (deviceType === "t1m") {
+        return [...segmentMask, 0x00, 0x00, 0x00, 0x00, ...colorBytes];
+    }
+
+    const brightnessByte = Math.max(0, Math.min(254, Math.round(brightness)));
+    return [0x01, 0x01, 0x01, 0x0f, brightnessByte, ...segmentMask, ...colorBytes, 0x00, 0x14];
+}
+
 export const manufacturerCode = 0x115f; // TODO: from Zcl
 const manufacturerOptions = {
     lumi: {manufacturerCode: manufacturerCode, disableDefaultResponse: true},
@@ -1495,7 +1591,6 @@ export const lumiModernExtend = {
             powerOutageCount?: boolean;
         },
     ) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {powerOutageCount: true, deviceTemperature: true, ...args};
         const colorTemp: {range: Range; startup: boolean} = args.colorTemp ? {startup: false, range: args.colorTempRange ?? [153, 370]} : undefined;
         const result = modernExtend.light({effect: false, powerOnBehavior: false, ...args, colorTemp});
@@ -1608,8 +1703,229 @@ export const lumiModernExtend = {
             entityCategory: "config",
             ...args,
         }),
+    lumiRGBEffect: (lookup: KeyValue, args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>): ModernExtend => {
+        return modernExtend.enumLookup({
+            name: "effect",
+            lookup: lookup,
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x051f, type: 0x23},
+            description: "RGB dynamic effect type",
+            zigbeeCommandOptions: {manufacturerCode},
+            ...args,
+        });
+    },
+    lumiRGBEffectSpeed: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>): ModernExtend => {
+        return modernExtend.numeric({
+            name: "effect_speed",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x0520, type: 0x20},
+            description: "RGB dynamic effect speed (1-100%)",
+            zigbeeCommandOptions: {manufacturerCode},
+            unit: "%",
+            valueMin: 1,
+            valueMax: 100,
+            valueStep: 1,
+            ...args,
+        });
+    },
+    lumiRGBEffectColors: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            toZigbee: [
+                {
+                    key: ["effect_colors"],
+                    convertSet: async (entity, key, value, meta) => {
+                        const colors = value ||
+                            meta.state.effect_colors || [
+                                {r: 255, g: 0, b: 0},
+                                {r: 0, g: 255, b: 0},
+                                {r: 0, g: 0, b: 255},
+                            ];
+
+                        if (!Array.isArray(colors) || colors.length < 1 || colors.length > 8) {
+                            throw new Error("Must provide array of 1-8 RGB color objects");
+                        }
+
+                        const colorBytes: number[] = [];
+                        for (const color of colors) {
+                            const encoded = lumiEncodeRgbColor(color);
+                            colorBytes.push(...encoded);
+                        }
+
+                        const packet = Buffer.from([0x00, colors.length, ...colorBytes]);
+                        const targetEndpoint = meta.device.getEndpoint(1);
+
+                        await targetEndpoint.write(
+                            "manuSpecificLumi",
+                            {1315: {value: packet, type: 0x41}},
+                            {manufacturerCode, disableDefaultResponse: false},
+                        );
+
+                        return {
+                            state: {
+                                effect_colors: colors,
+                            },
+                        };
+                    },
+                },
+            ],
+            exposes: [
+                exposes
+                    .list(
+                        "effect_colors",
+                        ea.SET,
+                        exposes
+                            .composite("color", "color", ea.SET)
+                            .withFeature(exposes.numeric("r", ea.SET).withValueMin(0).withValueMax(255).withDescription("Red (0-255)"))
+                            .withFeature(exposes.numeric("g", ea.SET).withValueMin(0).withValueMax(255).withDescription("Green (0-255)"))
+                            .withFeature(exposes.numeric("b", ea.SET).withValueMin(0).withValueMax(255).withDescription("Blue (0-255)")),
+                    )
+                    .withDescription("Array of RGB color objects for dynamic effects (1-8 colors).")
+                    .withLengthMin(1)
+                    .withLengthMax(8)
+                    .withCategory("config"),
+            ],
+        };
+    },
+    lumiT1MEffect: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            toZigbee: [
+                {
+                    key: ["effect"],
+                    convertSet: async (entity, key, value, meta) => {
+                        assertString(value);
+                        const lookup = {flow1: 0, flow2: 1, fading: 2, hopping: 3, breathing: 4, rolling: 5};
+
+                        if (!(value in lookup)) {
+                            throw new Error(`Invalid effect: ${value}. Must be one of: ${Object.keys(lookup).join(", ")}`);
+                        }
+
+                        const effectValue = lookup[value as keyof typeof lookup];
+                        const endpoint = meta.device.getEndpoint(1);
+
+                        await endpoint.write(
+                            "manuSpecificLumi",
+                            {1311: {value: effectValue, type: 0x23}},
+                            {manufacturerCode, disableDefaultResponse: false},
+                        );
+
+                        return {state: {effect: value}};
+                    },
+                },
+            ],
+            exposes: [
+                exposes
+                    .enum("effect", ea.SET, ["flow1", "flow2", "fading", "hopping", "breathing", "rolling"])
+                    .withDescription("RGB dynamic effect type")
+                    .withCategory("config"),
+            ],
+        };
+    },
+    lumiSegmentColors: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            toZigbee: [
+                {
+                    key: ["segment_colors"],
+                    convertSet: async (entity, key, value, meta) => {
+                        if (!Array.isArray(value) || value.length === 0) {
+                            throw new Error("segment_colors must be a non-empty array");
+                        }
+
+                        const model = meta.device.modelID;
+                        const deviceType = model === "lumi.light.acn132" ? "strip" : "t1m";
+
+                        let maxSegments: number;
+                        if (model === "lumi.light.acn031") {
+                            maxSegments = 20;
+                        } else if (model === "lumi.light.acn032") {
+                            maxSegments = 26;
+                        } else if (model === "lumi.light.acn132") {
+                            maxSegments = Math.round((meta.state.length !== undefined ? Number(meta.state.length) : 2) * 5);
+                        } else {
+                            maxSegments = 26;
+                        }
+
+                        const brightness = meta.state && meta.state.brightness !== undefined ? Number(meta.state.brightness) : 254;
+
+                        const colorGroups: {[key: string]: {color: {r: number; g: number; b: number}; segments: number[]}} = {};
+
+                        for (const item of value) {
+                            if (!item.segment || !item.color) {
+                                throw new Error(`Each segment must have "segment" (1-${maxSegments}) and "color" {r, g, b} fields`);
+                            }
+
+                            const segment = Number(item.segment);
+                            const color = item.color;
+
+                            if (segment < 1 || segment > maxSegments) {
+                                throw new Error(`Invalid segment: ${segment}. Must be 1-${maxSegments}`);
+                            }
+
+                            if (typeof color !== "object" || color.r === undefined || color.g === undefined || color.b === undefined) {
+                                throw new Error(`Invalid color for segment ${segment}. Expected {r, g, b}`);
+                            }
+
+                            const colorKey = JSON.stringify({r: color.r, g: color.g, b: color.b});
+
+                            if (!colorGroups[colorKey]) {
+                                colorGroups[colorKey] = {
+                                    color: color,
+                                    segments: [],
+                                };
+                            }
+                            colorGroups[colorKey].segments.push(segment);
+                        }
+
+                        const groups = Object.values(colorGroups);
+                        const ATTR_SEGMENT_CONTROL = deviceType === "t1m" ? 1314 : 1319;
+
+                        for (let i = 0; i < groups.length; i++) {
+                            const group = groups[i] as {color: {r: number; g: number; b: number}; segments: number[]};
+                            const packet = lumiBuildSegmentPacket(group.segments, group.color, deviceType, maxSegments, brightness);
+
+                            await entity.write(
+                                "manuSpecificLumi",
+                                {[ATTR_SEGMENT_CONTROL]: {value: Buffer.from(packet), type: 0x41}},
+                                {manufacturerCode, disableDefaultResponse: false},
+                            );
+
+                            if (i < groups.length - 1) {
+                                await sleep(50);
+                            }
+                        }
+
+                        if (deviceType === "strip") {
+                            return {state: {segment_colors: value, state: "ON"}};
+                        }
+                        return {state: {segment_colors: value}};
+                    },
+                },
+            ],
+            exposes: [
+                exposes
+                    .list(
+                        "segment_colors",
+                        ea.SET,
+                        exposes
+                            .composite("segment_color", "segment_color", ea.SET)
+                            .withFeature(exposes.numeric("segment", ea.SET).withDescription("Segment number"))
+                            .withFeature(
+                                exposes
+                                    .composite("color", "color", ea.SET)
+                                    .withFeature(exposes.numeric("r", ea.SET).withValueMin(0).withValueMax(255).withDescription("Red (0-255)"))
+                                    .withFeature(exposes.numeric("g", ea.SET).withValueMin(0).withValueMax(255).withDescription("Green (0-255)"))
+                                    .withFeature(exposes.numeric("b", ea.SET).withValueMin(0).withValueMax(255).withDescription("Blue (0-255)"))
+                                    .withDescription("RGB color object"),
+                            ),
+                    )
+                    .withDescription("Set individual segment colors.")
+                    .withCategory("config"),
+            ],
+        };
+    },
     lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean; powerOutageMemory?: "binary" | "enum"; lockRelay?: boolean}) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {operationMode: false, lockRelay: false, ...args};
         const result = modernExtend.onOff({powerOnBehavior: false, ...args});
         result.fromZigbee.push(fromZigbee.lumi_specific);
@@ -2327,7 +2643,6 @@ export const lumiModernExtend = {
         powerOutageCountAttribute?: number;
         resetsWhenPairing?: boolean;
     }): ModernExtend => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {cluster: "manuSpecificLumi", deviceTemperatureAttribute: 3, powerOutageCountAttribute: 5, resetsWhenPairing: false, ...args};
         const exposes: Expose[] = [e.device_temperature(), e.power_outage_count(args.resetsWhenPairing)];
 
@@ -2398,7 +2713,6 @@ export const lumiModernExtend = {
         return {exposes, fromZigbee, isModernExtend: true};
     },
     lumiCommandMode: (args?: {setEventMode: boolean}): ModernExtend => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {setEventMode: true, ...args};
         const exposes: Expose[] = [
             e
@@ -2443,7 +2757,6 @@ export const lumiModernExtend = {
         percentageAtrribute?: number;
         voltageAttribute?: number;
     }): ModernExtend => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {
             cluster: "manuSpecificLumi",
             percentageAtrribute: 1,
@@ -2491,7 +2804,6 @@ export const lumiModernExtend = {
         });
     },
     fp300DetectionRange: (args?: {rangeOffset: number; rangesCount: number}): ModernExtend => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {
             rangeOffset: 0.25,
             rangesCount: 24,
@@ -4853,7 +5165,6 @@ export const toZigbee = {
         key: ["detection_distance"],
         convertSet: async (entity, key, value, meta) => {
             assertString(value, "detection_distance");
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             const lookup = {"10mm": 1, "20mm": 2, "30mm": 3};
             await entity.write("manuSpecificLumi", {268: {value: getFromLookup(value, lookup), type: 0x20}}, {manufacturerCode});
@@ -5283,7 +5594,6 @@ export const toZigbee = {
         key: ["detection_interval"],
         convertSet: async (entity, key, value, meta) => {
             assertNumber(value, key);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value *= 1;
             await entity.write("manuSpecificLumi", {258: {value: [value], type: 0x20}}, manufacturerOptions.lumi);
             return {state: {detection_interval: value}};
@@ -5296,7 +5606,6 @@ export const toZigbee = {
         key: ["overload_protection"],
         convertSet: async (entity, key, value, meta) => {
             assertNumber(value, key);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value *= 1;
             await entity.write("manuSpecificLumi", {523: {value: [value], type: 0x39}}, manufacturerOptions.lumi);
             return {state: {overload_protection: value}};
@@ -5343,7 +5652,6 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {rgbw: 3, dual_ct: 1};
             assertString(value, key);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             // @ts-expect-error ignore
             if (["rgbw"].includes(value)) {
@@ -5372,7 +5680,6 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {toggle: 1, momentary: 2};
             assertString(value, key);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             await entity.write("manuSpecificLumi", {10: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {switch_type: value}};
@@ -5576,7 +5883,6 @@ export const toZigbee = {
         key: ["detection_period"],
         convertSet: async (entity, key, value, meta) => {
             assertNumber(value, key);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value *= 1;
             await entity.write("manuSpecificLumi", {0: {value: [value], type: 0x21}}, manufacturerOptions.lumi);
             return {state: {detection_period: value}};
@@ -5590,7 +5896,6 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {low: 1, medium: 2, high: 3};
             assertString(value, key);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             await entity.write("manuSpecificLumi", {268: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
             return {state: {motion_sensitivity: value}};
@@ -5609,7 +5914,6 @@ export const toZigbee = {
         key: ["monitoring_mode"],
         convertSet: async (entity, key, value, meta) => {
             assertString(value, key);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             const lookup = {undirected: 0, left_right: 1};
             await entity.write("manuSpecificLumi", {324: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
@@ -5623,7 +5927,6 @@ export const toZigbee = {
         key: ["approach_distance"],
         convertSet: async (entity, key, value, meta) => {
             assertString(value, key);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             const lookup = {far: 0, medium: 1, near: 2};
             await entity.write("manuSpecificLumi", {326: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);
@@ -5702,7 +6005,6 @@ export const toZigbee = {
         key: ["sensitivity"],
         convertSet: async (entity, key, value, meta) => {
             if (isString(value)) {
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = getFromLookup(value, {low: 0x15, medium: 0x0b, high: 0x01});
             }
             assertNumber(value);
@@ -5804,14 +6106,11 @@ export const toZigbee = {
             } else {
                 const lookup = {open: 100, close: 0, on: 100, off: 0};
 
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = typeof value === "string" ? value.toLowerCase() : value;
                 if (isString(value)) {
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = getFromLookup(value, lookup);
                 }
                 assertNumber(value);
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = meta.options.invert_cover ? 100 - value : value;
 
                 if (["ZNCLBL01LM"].includes(meta.mapped.model)) {
@@ -6031,10 +6330,8 @@ export const toZigbee = {
             assertString(value, key);
             if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
             const attribute = ["JY-GZ-01AQ"].includes(meta.mapped.model) ? 0x013e : 0x013f;
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase() === "alarm" ? 15361 : 15360;
             await entity.write("manuSpecificLumi", {[`${attribute}`]: {value: [`${value}`], type: 0x23}}, manufacturerOptions.lumi);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value === 15361 ? 0 : 1;
             await entity.write("manuSpecificLumi", {294: {value: [`${value}`], type: 0x20}}, manufacturerOptions.lumi);
         },
@@ -6104,7 +6401,6 @@ export const toZigbee = {
         key: ["sensitivity"],
         convertSet: async (entity, key, value, meta) => {
             assertString(value, key);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             const lookup = {low: 0x04010000, medium: 0x04020000, high: 0x04030000};
 
@@ -6118,7 +6414,6 @@ export const toZigbee = {
         key: ["gas_sensitivity"],
         convertSet: async (entity, key, value, meta) => {
             assertString(value, key);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toUpperCase();
             const lookup = {"15%LEL": 1, "10%LEL": 2};
             await entity.write("manuSpecificLumi", {268: {value: getFromLookup(value, lookup), type: 0x20}}, manufacturerOptions.lumi);

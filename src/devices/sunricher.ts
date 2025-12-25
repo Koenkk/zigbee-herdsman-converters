@@ -175,6 +175,22 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: [
+            {modelID: "ON/OFF (2CH)", manufacturerName: "Somfy"},
+            {modelID: "ON/OFF (2CH)", manufacturerName: "Sunricher"},
+        ],
+        model: "SR-ZG9001T2-SW",
+        vendor: "Sunricher",
+        description: "Zigbee 2-gang touch panel",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
+            m.onOff({endpointNames: ["1", "2"]}),
+            m.commandsOnOff({endpointNames: ["1", "2"]}),
+            m.identify(),
+            sunricher.extend.externalSwitchType(),
+        ],
+    },
+    {
         zigbeeModel: ["ZG9041A-2R"],
         model: "SR-ZG9041A-2R",
         vendor: "Sunricher",
@@ -600,10 +616,10 @@ export const definitions: DefinitionWithExtend[] = [
                     press: {
                         ID: 0x01,
                         parameters: [
-                            {name: "messageType", type: Zcl.DataType.UINT8},
-                            {name: "button2", type: Zcl.DataType.UINT8},
-                            {name: "button1", type: Zcl.DataType.UINT8},
-                            {name: "pressType", type: Zcl.DataType.UINT8},
+                            {name: "messageType", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "button2", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "button1", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "pressType", type: Zcl.DataType.UINT8, max: 0xff},
                         ],
                     },
                 },
@@ -625,46 +641,72 @@ export const definitions: DefinitionWithExtend[] = [
                         ID: 0x100d,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     antiFreezingTemp: {
                         ID: 0x1005,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     temperatureDisplayMode: {
                         ID: 0x1008,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     windowOpenCheck: {
                         ID: 0x1009,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     hysteresis: {
                         ID: 0x100a,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     windowOpenFlag: {
                         ID: 0x100b,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     forcedHeatingTime: {
                         ID: 0x100e,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     errorCode: {
                         ID: 0x2003,
                         type: Zcl.DataType.BITMAP8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
                     },
                     awayOrBoostMode: {
                         ID: 0x2002,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -908,9 +950,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfc8b,
                 manufacturerCode: 0x120b,
                 attributes: {
-                    indicatorLight: {ID: 0xf001, type: Zcl.DataType.UINT8},
-                    detectionArea: {ID: 0xf002, type: Zcl.DataType.UINT8},
-                    illuminanceThreshold: {ID: 0xf004, type: Zcl.DataType.UINT8},
+                    indicatorLight: {ID: 0xf001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    detectionArea: {ID: 0xf002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    illuminanceThreshold: {ID: 0xf004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1630,6 +1672,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sunricher",
         description: "Constant Current Zigbee LED dimmable driver",
         extend: [m.light({configureReporting: true}), sunricher.extend.externalSwitchType()],
+    },
+    {
+        zigbeeModel: ["3986"],
+        model: "SRP-ZG9105-CV",
+        vendor: "Sunricher",
+        description: "Constant voltage Zigbee LED driver",
+        extend: [m.light({colorTemp: {range: [160, 450]}, color: false, configureReporting: true})],
+        whiteLabel: [{vendor: "LongLife LED", model: "3986"}],
     },
     {
         fingerprint: [{modelID: "HK-ZD-DIM-A", softwareBuildID: "2.9.2_r72"}],

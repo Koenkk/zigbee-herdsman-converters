@@ -57,13 +57,11 @@ export const ledvanceTz = {
 // https://github.com/Koenkk/zigbee2mqtt/issues/16900
 
 export function ledvanceOnOff(args?: modernExtend.OnOffArgs) {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {ota: {suppressElementImageParseFailure: true}, configureReporting: true, ...args};
     return modernExtend.onOff(args);
 }
 
 export function ledvanceLight(args?: modernExtend.LightArgs) {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {powerOnBehavior: false, ota: {suppressElementImageParseFailure: true}, ...args};
     if (args.colorTemp) args.colorTemp.startup = false;
     if (args.color) args.color = {modes: ["xy", "hs"], ...(isObject(args.color) ? args.color : {})};

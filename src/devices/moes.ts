@@ -886,7 +886,7 @@ export const definitions: DefinitionWithExtend[] = [
             return [
                 e.child_lock(),
                 e.deadzone_temperature(),
-                e.max_temperature_limit().withValueMax(45),
+                e.max_temperature_limit().withValueMax(80),
                 e.min_temperature_limit(),
                 e
                     .climate()
@@ -1732,6 +1732,104 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0041", ["_TZ3000_axpdxqgu"]),
+        model: "ZT-B-EU1",
+        vendor: "Moes",
+        description: "Scene remote with 1 key",
+        fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold"])],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "1_single": 0,
+                        "1_double": 1,
+                        "1_hold": 2,
+                    }),
+                ],
+            ],
+        },
+        endpoint: () => ({}),
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0042", ["_TZ3000_5e235jpa"]),
+        model: "ZT-B-EU2",
+        vendor: "Moes",
+        description: "Scene remote with 2 keys",
+        fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold", "2_single", "2_double", "2_hold"])],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "1_single": 0,
+                        "1_double": 1,
+                        "1_hold": 2,
+                    }),
+                ],
+                [
+                    2,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "2_single": 0,
+                        "2_double": 1,
+                        "2_hold": 2,
+                    }),
+                ],
+            ],
+        },
+        endpoint: () => ({}),
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0043", ["_TZ3000_gbm10jnj"]),
+        model: "ZT-B-EU3",
+        vendor: "Moes",
+        description: "Scene remote with 3 keys",
+        fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold", "2_single", "2_double", "2_hold", "3_single", "3_double", "3_hold"])],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "1_single": 0,
+                        "1_double": 1,
+                        "1_hold": 2,
+                    }),
+                ],
+                [
+                    2,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "2_single": 0,
+                        "2_double": 1,
+                        "2_hold": 2,
+                    }),
+                ],
+                [
+                    3,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "3_single": 0,
+                        "3_double": 1,
+                        "3_hold": 2,
+                    }),
+                ],
+            ],
         },
     },
 ];
