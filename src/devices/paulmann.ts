@@ -31,6 +31,13 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["94842"],
+        model: "94842",
+        vendor: "Paulmann",
+        description: "Outdoor lighting Zigbee motion detector",
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
+    },
+    {
         zigbeeModel: ["501.37"],
         model: "501.37",
         vendor: "Paulmann",
