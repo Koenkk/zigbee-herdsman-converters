@@ -14447,7 +14447,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         whiteLabel: [tuya.whitelabel("Nous", "A4Z", "2 gang outdoor plug", ["_TZ3000_rqbjepe8", "_TZ3000_uwkja6z1"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_cfnprab5", "_TZ3000_o005nuxx", "_TZ3000_gdyjfvgm"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_cfnprab5", "_TZ3000_o005nuxx", "_TZ3000_gdyjfvgm", "_TZ3000_pl5v1yyy"]),
         model: "TS011F_5",
         description: "Power strip 5 gang",
         vendor: "Tuya",
