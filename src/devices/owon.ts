@@ -33,13 +33,8 @@ const owonExtendChecks = {
             throw new Error(`Invalid value for one_key_pairing: expected "start"/"on"/"true" or "end"/"off"/"false", got "${input}"`);
         }
 
-        return {
-            payload: {
-                oneKeyPairingStart: startParam,
-            },
-        };
+        return {payload: {oneKeyPairingStart: startParam}};
     },
-
     parsePairingCodeInput: (input: unknown) => {
         if (input === undefined || input === null) {
             throw new Error("pairing_code is required");
@@ -57,11 +52,7 @@ const owonExtendChecks = {
             throw new Error(`Invalid pairing_code "${codeStr}", must be between 0 and 65535`);
         }
 
-        return {
-            payload: {
-                pairingCode: codeNum,
-            },
-        };
+        return {payload: {pairingCode: codeNum}};
     },
 };
 
@@ -279,7 +270,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"fallDetectionOwon", OwonFallDetection, ["attributeReport", "readResponse"]>,
-
     cb432Metering: {
         cluster: "seMetering",
         type: ["attributeReport", "readResponse"],
@@ -302,7 +292,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"seMetering", OwonFallDetection, ["attributeReport", "readResponse"]>,
-
     owonCb432Alarms: {
         cluster: "haElectricalMeasurement",
         type: ["attributeReport", "readResponse"],
@@ -320,7 +309,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
-
     owonCb432ThresholdRead: {
         cluster: "haElectricalMeasurement",
         type: ["attributeReport", "readResponse"],
