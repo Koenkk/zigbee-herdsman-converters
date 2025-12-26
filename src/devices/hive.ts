@@ -3,7 +3,6 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
@@ -18,18 +17,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light()],
     },
     {
+        zigbeeModel: ["FWGU10Bulb03UK"],
+        model: "FWGU10Bulb03UK",
+        vendor: "Hive",
+        description: "GU10 warm white",
+        extend: [m.light()],
+    },
+    {
         zigbeeModel: ["MOT003"],
         model: "MOT003",
         vendor: "Hive",
         description: "Motion sensor",
-        fromZigbee: [
-            fz.temperature,
-            fz.ias_occupancy_alarm_1_with_timeout,
-            fz.battery,
-            fz.ignore_basic_report,
-            fz.ignore_iaszone_statuschange,
-            fz.ignore_iaszone_attreport,
-        ],
+        fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_1_with_timeout, fz.battery, fz.ignore_iaszone_statuschange, fz.ignore_iaszone_attreport],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(6);
@@ -159,22 +158,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("action_zone", ea.STATE).withDescription("Alarm zone. Default value 23"),
             e.action(["panic", "disarm", "arm_day_zones", "arm_all_zones", "exit_delay", "entry_delay"]),
         ],
+        extend: [m.iasGetPanelStatusResponse()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const clusters = ["genPowerCfg", "ssIasZone", "ssIasAce", "genIdentify"];
             await reporting.bind(endpoint, coordinatorEndpoint, clusters);
             await reporting.batteryVoltage(endpoint);
-        },
-        onEvent: async (type, data, device) => {
-            if (data.type === "commandGetPanelStatus" && data.cluster === "ssIasAce") {
-                const payload = {
-                    panelstatus: globalStore.getValue(data.endpoint, "panelStatus"),
-                    secondsremain: 0x00,
-                    audiblenotif: 0x00,
-                    alarmstatus: 0x00,
-                };
-                await data.endpoint.commandResponse("ssIasAce", "getPanelStatusRsp", payload, {}, data.meta.zclTransactionSequenceNumber);
-            }
         },
     },
     {
@@ -264,7 +253,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(65535)
                 .withDescription(
-                    "Period in minutes for which the setpoint hold will be active. 65535 = attribute not" +
+                    "Period in minutes for which the setpoint hold will be active. null = attribute not" +
                         " used. 0 to 360 to match the remote display",
                 ),
         ],
@@ -372,6 +361,58 @@ export const definitions: DefinitionWithExtend[] = [
                         " used. 0 to 360 to match the remote display",
                 ),
         ],
+    },
+    {
+        zigbeeModel: ["OTR1"],
+        model: "OTR1",
+        vendor: "Hive",
+        description: "Single channel heating receiver",
+        fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_control_sequence_of_operation,
+            tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule,
+            tz.thermostat_temperature_setpoint_hold,
+            tz.thermostat_temperature_setpoint_hold_duration,
+        ],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 5, 32, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(["off", "auto", "heat"])
+                .withRunningState(["idle", "heat"]),
+            e
+                .binary("temperature_setpoint_hold", ea.ALL, true, false)
+                .withDescription(
+                    "Prevent changes. `false` = run normally. `true` = prevent from making changes." +
+                        " Must be set to `false` when system_mode = off or `true` for heat",
+                ),
+            e
+                .numeric("temperature_setpoint_hold_duration", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(65535)
+                .withDescription(
+                    "Period in minutes for which the setpoint hold will be active. 65535 = attribute not" +
+                        " used. 0 to 360 to match the remote display",
+                ),
+        ],
+        meta: {disableDefaultResponse: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(5);
+            const binds = ["genBasic", "genIdentify", "genAlarms", "genTime", "hvacThermostat"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatRunningState(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatTemperatureSetpointHold(endpoint);
+            await reporting.thermostatTemperatureSetpointHoldDuration(endpoint);
+        },
     },
     {
         zigbeeModel: ["SLR2"],
@@ -552,10 +593,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["SLR2c"],
+        zigbeeModel: ["SLR2c", "SLR2d"],
         model: "SLR2c",
         vendor: "Hive",
         description: "Dual channel heating and hot water thermostat",
+        whiteLabel: [{vendor: "Hive", model: "SLR2d", fingerprint: [{modelID: "SLR2d"}]}],
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -732,24 +774,14 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Signal booster",
         toZigbee: [],
         fromZigbee: [fz.linkquality_from_basic],
-        onEvent: (type, data, device) => {
-            if (type === "stop") {
-                clearInterval(globalStore.getValue(device, "interval"));
-                globalStore.clearValue(device, "interval");
-            } else if (!globalStore.hasValue(device, "interval")) {
-                const interval = setInterval(
-                    async () => {
-                        try {
-                            await device.endpoints[0].read("genBasic", ["zclVersion"]);
-                        } catch {
-                            // Do nothing
-                        }
-                    },
-                    1000 * 60 * 30,
-                ); // Every 30 minutes
-                globalStore.putValue(device, "interval", interval);
-            }
-        },
+        extend: [
+            m.poll({
+                key: "interval",
+                defaultIntervalSeconds: 60 * 30,
+                // For linkquality updates
+                poll: async (device) => await device.endpoints[0].read("genBasic", ["zclVersion"]),
+            }),
+        ],
         exposes: [],
     },
     {
@@ -765,5 +797,12 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+    },
+    {
+        zigbeeModel: ["SLT6b"],
+        model: "SLT6b",
+        vendor: "Hive",
+        description: "Heating thermostat remote control",
+        extend: [m.battery(), m.temperature()],
     },
 ];

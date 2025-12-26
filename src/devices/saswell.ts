@@ -1,7 +1,6 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
-import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 
@@ -24,10 +23,12 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_9gvruqf5",
                 "_TZE200_zr9c0day",
                 "_TZE200_0dvm9mva",
+                "_TZE284_0dvm9mva",
                 "_TZE200_h4cgnbzg",
                 "_TZE200_gd4rvykv",
                 "_TZE200_exfrnlow",
                 "_TZE200_9m4kmbfu",
+                "_TZE284_9m4kmbfu",
                 "_TZE200_3yp57tby",
                 "_TZE200_7p8ugv8d",
                 "_TZE284_3yp57tby",
@@ -45,7 +46,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "SETTI+", model: "TRV001"},
             {vendor: "Royal Thermo", model: "RTE 77.001B"},
         ],
-        fromZigbee: [legacy.fz.saswell_thermostat, fz.ignore_tuya_set_time, fz.ignore_basic_report, legacy.fz.tuya_thermostat_weekly_schedule_2],
+        fromZigbee: [legacy.fz.saswell_thermostat, fz.ignore_tuya_set_time, legacy.fz.tuya_thermostat_weekly_schedule_2],
         toZigbee: [
             legacy.tz.saswell_thermostat_current_heating_setpoint,
             legacy.tz.saswell_thermostat_mode,
@@ -57,17 +58,13 @@ export const definitions: DefinitionWithExtend[] = [
             legacy.tz.saswell_thermostat_anti_scaling,
             legacy.tz.tuya_thermostat_weekly_schedule,
         ],
-        onEvent: (type, data, device) => !["_TZE200_c88teujp"].includes(device.manufacturerName) && tuya.onEventSetTime(type, data, device),
+        extend: [tuya.modernExtend.tuyaBase({bindBasicOnConfigure: true, timeStart: "1970"})],
         meta: {
             thermostat: {
                 weeklyScheduleMaxTransitions: 4,
                 weeklyScheduleSupportedModes: [1], // bits: 0-heat present, 1-cool present (dec: 1-heat,2-cool,3-heat+cool)
                 weeklyScheduleConversion: "saswell",
             },
-        },
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
         },
         exposes: [
             e.battery_low(),

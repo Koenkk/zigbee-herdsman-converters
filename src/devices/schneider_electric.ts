@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {GpdAttributeReport} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -12,6 +12,35 @@ import {postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface SchneiderOccupancyConfig {
+    attributes: {
+        ambienceLightThreshold: number;
+        occupancyActions: number;
+        unoccupiedLevelDflt: number;
+        unoccupiedLevel: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SchneiderVisaConfig {
+    attributes: {
+        indicatorLuminanceLevel: number;
+        indicatorColor: number;
+        indicatorMode: number;
+        motorTypeChannel1: number;
+        motorTypeChannel2: number;
+        curtainStatusChannel1: number;
+        curtainStatusChannel2: number;
+        key1EventNotification: number;
+        key2EventNotification: number;
+        key3EventNotification: number;
+        key4EventNotification: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 function indicatorMode(endpoint?: string) {
     let description = "Set Indicator Mode.";
@@ -41,6 +70,19 @@ function socketIndicatorMode() {
             consistent_with_load: 1,
             always_off: 2,
             always_on: 3,
+        },
+        cluster: "manuSpecificSchneiderFanSwitchConfiguration",
+        attribute: "ledIndication",
+        description: "Set indicator mode",
+    });
+}
+
+function evlinkIndicatorMode() {
+    return m.enumLookup({
+        name: "indicator_mode",
+        lookup: {
+            default: 1,
+            temporary: 5,
         },
         cluster: "manuSpecificSchneiderFanSwitchConfiguration",
         attribute: "ledIndication",
@@ -115,23 +157,23 @@ const schneiderElectricExtend = {
             ID: 0xfc04,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
-                indicatorLuminanceLevel: {ID: 0x0000, type: enumDataType},
-                indicatorColor: {ID: 0x0001, type: enumDataType},
-                indicatorMode: {ID: 0x0002, type: enumDataType},
-                motorTypeChannel1: {ID: 0x0003, type: Zcl.DataType.UINT8},
-                motorTypeChannel2: {ID: 0x0004, type: Zcl.DataType.UINT8},
-                curtainStatusChannel1: {ID: 0x0005, type: Zcl.DataType.UINT8},
-                curtainStatusChannel2: {ID: 0x0006, type: Zcl.DataType.UINT8},
-                key1EventNotification: {ID: 0x0020, type: Zcl.DataType.UINT8},
-                key2EventNotification: {ID: 0x0021, type: Zcl.DataType.UINT8},
-                key3EventNotification: {ID: 0x0022, type: Zcl.DataType.UINT8},
-                key4EventNotification: {ID: 0x0023, type: Zcl.DataType.UINT8},
+                indicatorLuminanceLevel: {ID: 0x0000, type: enumDataType, write: true},
+                indicatorColor: {ID: 0x0001, type: enumDataType, write: true},
+                indicatorMode: {ID: 0x0002, type: enumDataType, write: true},
+                motorTypeChannel1: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                motorTypeChannel2: {ID: 0x0004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                curtainStatusChannel1: {ID: 0x0005, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                curtainStatusChannel2: {ID: 0x0006, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key1EventNotification: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key2EventNotification: {ID: 0x0021, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key3EventNotification: {ID: 0x0022, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key4EventNotification: {ID: 0x0023, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
         }),
     visaConfigIndicatorLuminanceLevel: (): ModernExtend => {
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: "indicator_luminance_level",
             lookup: {
                 "100": 0,
@@ -147,7 +189,7 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigIndicatorColor: (): ModernExtend => {
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: "indicator_color",
             lookup: {
                 white: 0,
@@ -159,7 +201,7 @@ const schneiderElectricExtend = {
         });
     },
     visaIndicatorMode: ([reverseWithLoad, consistentWithLoad, alwaysOff, alwaysOn]: number[]): ModernExtend => {
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: "indicator_mode",
             lookup: {
                 reverse_with_load: reverseWithLoad,
@@ -173,10 +215,11 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigMotorType: (channel?: number): ModernExtend => {
-        const attribute = `motorTypeChannel${channel || ""}`;
+        // TODO: was defaulting `motorTypeChannel` which is not part of the custom cluster
+        const attribute = `motorTypeChannel${channel as 1 | 2}` as const;
         const description = `Set motor type for channel ${channel || ""}`;
 
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             name: `motor_type${channel ? `_${channel}` : ""}`,
             lookup: {
                 ac_motor: 0,
@@ -188,10 +231,11 @@ const schneiderElectricExtend = {
         });
     },
     visaConfigCurtainStatus: (channel?: number): ModernExtend => {
-        const attribute = `curtainStatusChannel${channel || ""}`;
+        // TODO: was defaulting `motorTypeChannel` which is not part of the custom cluster
+        const attribute = `curtainStatusChannel${channel as 1 | 2}` as const;
         const description = `Set curtain status for channel ${channel}`;
 
-        return m.enumLookup({
+        return m.enumLookup<"visaConfiguration", SchneiderVisaConfig>({
             access: "STATE",
             name: `curtain_status${channel ? `_${channel}` : ""}`,
             lookup: {
@@ -238,7 +282,7 @@ const schneiderElectricExtend = {
                             await entity.command(
                                 "genLevelCtrl",
                                 "moveToLevelWithOnOff",
-                                {level: utils.mapNumberRange(Number(value), 0, 100, 0, 255), transtime: 0},
+                                {level: utils.mapNumberRange(Number(value), 0, 100, 0, 255), transtime: 0, optionsMask: 0, optionsOverride: 0},
                                 utils.getOptions(meta.mapped, entity),
                             );
                         }
@@ -252,24 +296,13 @@ const schneiderElectricExtend = {
                         } else if (value === "CLOSE") {
                             await entity.command("genOnOff", "off", {}, utils.getOptions(meta.mapped, entity));
                         } else if (value === "STOP") {
-                            await entity.command("genLevelCtrl", "stop", {}, utils.getOptions(meta.mapped, entity));
+                            await entity.command("genLevelCtrl", "stop", {optionsMask: 0, optionsOverride: 0}, utils.getOptions(meta.mapped, entity));
                         }
                     },
                 },
             ],
             exposes: [
-                ...endpointNames.map((endpointName) =>
-                    e.enum("state", ea.SET, ["OPEN", "CLOSE", "STOP"]).withDescription("State of the curtain").withEndpoint(endpointName),
-                ),
-                ...endpointNames.map((endpointName) =>
-                    e
-                        .numeric("position", ea.ALL)
-                        .withValueMin(0)
-                        .withValueMax(100)
-                        .withUnit("%")
-                        .withDescription("Position of the curtain")
-                        .withEndpoint(endpointName),
-                ),
+                ...endpointNames.map((endpointName) => e.cover_position().withDescription("State of the curtain").withEndpoint(endpointName)),
                 ...endpointNames.map((endpointName) =>
                     e
                         .numeric("transition", ea.ALL)
@@ -290,9 +323,12 @@ const schneiderElectricExtend = {
                     cluster: "visaConfiguration",
                     type: ["attributeReport"],
                     convert: (model, msg, publish, options, meta) => {
-                        return {
-                            [`key${key}_event_notification`]: msg.data[`key${key}EventNotification`],
-                        };
+                        for (const key of ["1", "2", "3", "4"]) {
+                            const zigbeeKey = `key${key}EventNotification`;
+                            if (Object.hasOwn(msg.data, zigbeeKey)) {
+                                return {action: `scene_${key}`};
+                            }
+                        }
                     },
                 },
             ],
@@ -320,10 +356,10 @@ const schneiderElectricExtend = {
             ID: 0xff19,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
-                ambienceLightThreshold: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                occupancyActions: {ID: 0x0001, type: Zcl.DataType.ENUM8},
-                unoccupiedLevelDflt: {ID: 0x0002, type: Zcl.DataType.UINT8},
-                unoccupiedLevel: {ID: 0x0003, type: Zcl.DataType.UINT8},
+                ambienceLightThreshold: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                occupancyActions: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                unoccupiedLevelDflt: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                unoccupiedLevel: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
@@ -353,7 +389,7 @@ const schneiderElectricExtend = {
             return Math.round(10000 * Math.log10(value) + 1);
         };
 
-        const luxThresholdExtend = m.numeric({
+        const luxThresholdExtend = m.numeric<"occupancyConfiguration", SchneiderOccupancyConfig>({
             name: "ambience_light_threshold",
             cluster: "occupancyConfiguration",
             attribute: "ambienceLightThreshold",
@@ -368,7 +404,9 @@ const schneiderElectricExtend = {
         extend.fromZigbee.push(...luxThresholdExtend.fromZigbee);
         extend.toZigbee.push(...luxThresholdExtend.toZigbee);
         extend.exposes.push(...luxThresholdExtend.exposes);
-        extend.configure.push(m.setupConfigureForReading("occupancyConfiguration", ["ambienceLightThreshold"]));
+        extend.configure.push(
+            m.setupConfigureForReading<"occupancyConfiguration", SchneiderOccupancyConfig>("occupancyConfiguration", ["ambienceLightThreshold"]),
+        );
 
         return extend;
     },
@@ -386,7 +424,6 @@ const tzLocal = {
         ...tz.fan_mode,
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (value.toLowerCase() === "on") value = "low";
             return await tz.fan_mode.convertSet(entity, key, value, meta);
         },
@@ -410,99 +447,99 @@ const fzLocal = {
 
             switch (commandID) {
                 case 0xa1: {
-                    const attr = msg.data.commandFrame.attributes;
-                    const clusterID = msg.data.commandFrame.clusterID;
+                    const attr = (msg.data.commandFrame as GpdAttributeReport).attributes;
+                    const clusterID = (msg.data.commandFrame as GpdAttributeReport).clusterID;
 
                     switch (clusterID) {
                         case 2820: {
                             // haElectricalMeasurement
-                            const acCurrentDivisor = attr.acCurrentDivisor;
-                            const acVoltageDivisor = attr.acVoltageDivisor;
-                            const acFrequencyDivisor = attr.acFrequencyDivisor;
-                            const powerDivisor = attr.powerDivisor;
+                            const acCurrentDivisor = attr.acCurrentDivisor as number;
+                            const acVoltageDivisor = attr.acVoltageDivisor as number;
+                            const acFrequencyDivisor = attr.acFrequencyDivisor as number;
+                            const powerDivisor = attr.powerDivisor as number;
 
                             if (attr.rmsVoltage !== undefined) {
-                                ret.voltage_phase_a = attr.rmsVoltage / acVoltageDivisor;
+                                ret.voltage_phase_a = (attr.rmsVoltage as number) / acVoltageDivisor;
                             }
 
                             if (attr.rmsVoltagePhB !== undefined) {
-                                ret.voltage_phase_b = attr.rmsVoltagePhB / acVoltageDivisor;
+                                ret.voltage_phase_b = (attr.rmsVoltagePhB as number) / acVoltageDivisor;
                             }
 
                             if (attr.rmsVoltagePhC !== undefined) {
-                                ret.voltage_phase_c = attr.rmsVoltagePhC / acVoltageDivisor;
+                                ret.voltage_phase_c = (attr.rmsVoltagePhC as number) / acVoltageDivisor;
                             }
 
                             if (attr["19200"] !== undefined) {
-                                ret.voltage_phase_ab = attr["19200"] / acVoltageDivisor;
+                                ret.voltage_phase_ab = (attr["19200"] as number) / acVoltageDivisor;
                             }
 
                             if (attr["19456"] !== undefined) {
-                                ret.voltage_phase_bc = attr["19456"] / acVoltageDivisor;
+                                ret.voltage_phase_bc = (attr["19456"] as number) / acVoltageDivisor;
                             }
 
                             if (attr["19712"] !== undefined) {
-                                ret.voltage_phase_ca = attr["19712"] / acVoltageDivisor;
+                                ret.voltage_phase_ca = (attr["19712"] as number) / acVoltageDivisor;
                             }
 
                             if (attr.rmsCurrent !== undefined) {
-                                ret.current_phase_a = attr.rmsCurrent / acCurrentDivisor;
+                                ret.current_phase_a = (attr.rmsCurrent as number) / acCurrentDivisor;
                             }
 
                             if (attr.rmsCurrentPhB !== undefined) {
-                                ret.current_phase_b = attr.rmsCurrentPhB / acCurrentDivisor;
+                                ret.current_phase_b = (attr.rmsCurrentPhB as number) / acCurrentDivisor;
                             }
 
                             if (attr.rmsCurrentPhC !== undefined) {
-                                ret.current_phase_c = attr.rmsCurrentPhC / acCurrentDivisor;
+                                ret.current_phase_c = (attr.rmsCurrentPhC as number) / acCurrentDivisor;
                             }
 
                             if (attr.totalActivePower !== undefined) {
-                                ret.power = (attr.totalActivePower * 1000) / powerDivisor;
+                                ret.power = ((attr.totalActivePower as number) * 1000) / powerDivisor;
                             }
 
                             if (attr.totalApparentPower !== undefined) {
-                                ret.power_apparent = (attr.totalApparentPower * 1000) / powerDivisor;
+                                ret.power_apparent = ((attr.totalApparentPower as number) * 1000) / powerDivisor;
                             }
 
                             if (attr.acFrequency !== undefined) {
-                                ret.ac_frequency = attr.acFrequency / acFrequencyDivisor;
+                                ret.ac_frequency = (attr.acFrequency as number) / acFrequencyDivisor;
                             }
 
                             if (attr.activePower !== undefined) {
-                                ret.power_phase_a = (attr.activePower * 1000) / powerDivisor;
+                                ret.power_phase_a = ((attr.activePower as number) * 1000) / powerDivisor;
                             }
 
                             if (attr.activePowerPhB !== undefined) {
-                                ret.power_phase_b = (attr.activePowerPhB * 1000) / powerDivisor;
+                                ret.power_phase_b = ((attr.activePowerPhB as number) * 1000) / powerDivisor;
                             }
 
                             if (attr.activePowerPhC !== undefined) {
-                                ret.power_phase_c = (attr.activePowerPhC * 1000) / powerDivisor;
+                                ret.power_phase_c = ((attr.activePowerPhC as number) * 1000) / powerDivisor;
                             }
                             break;
                         }
                         case 1794: {
                             // seMetering
-                            const divisor = attr.divisor;
+                            const divisor = attr.divisor as number;
 
                             if (attr.currentSummDelivered !== undefined) {
-                                const val = attr.currentSummDelivered;
+                                const val = attr.currentSummDelivered as number;
                                 ret.energy = val / divisor;
                             }
 
                             if (attr["16652"] !== undefined) {
-                                const val = attr["16652"];
+                                const val = attr["16652"] as number;
                                 ret.energy_phase_a = val / divisor;
                             }
 
                             if (attr["16908"] !== undefined) {
-                                const val = attr["16908"];
+                                const val = attr["16908"] as number;
                                 ret.energy_phase_b = val / divisor;
                             }
 
                             if (attr["17164"] !== undefined) {
-                                const val = attr["17164"];
+                                const val = attr["17164"] as number;
                                 ret.energy_phase_c = val / divisor;
                             }
 
@@ -525,27 +562,31 @@ const fzLocal = {
                 // Send Schneider specific ACK to make PowerTag happy
                 // @ts-expect-error ignore
                 const networkParameters = await msg.device.constructor.adapter.getNetworkParameters();
-                const payload = {
-                    options: 0b000,
-                    tempMaster: msg.data.gppNwkAddr,
-                    tempMasterTx: networkParameters.channel - 11,
-                    srcID: msg.data.srcID,
-                    gpdCmd: 0xfe,
-                    gpdPayload: {
-                        commandID: 0xfe,
-                        buffer: Buffer.alloc(1), // I hope it's zero initialised
-                    },
-                };
 
-                await msg.endpoint.commandResponse("greenPower", "response", payload, {
-                    srcEndpoint: 242,
-                    disableDefaultResponse: true,
-                });
+                await msg.endpoint.commandResponse(
+                    "greenPower",
+                    "response",
+                    {
+                        options: 0b000,
+                        tempMaster: msg.data.gppNwkAddr,
+                        tempMasterTx: networkParameters.channel - 11,
+                        srcID: msg.data.srcID,
+                        gpdCmd: 0xfe,
+                        gpdPayload: {
+                            commandID: 0xfe,
+                            buffer: Buffer.alloc(1),
+                        },
+                    },
+                    {
+                        srcEndpoint: 242,
+                        disableDefaultResponse: true,
+                    },
+                );
             }
 
             return ret;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -590,16 +631,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WV704R0A0902",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat",
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_haDiagnostic,
-            fz.ignore_genOta,
-            fz.ignore_zclversion_read,
-            fz.thermostat,
-            fz.battery,
-            fz.hvac_user_interface,
-            fz.wiser_device_info,
-        ],
+        fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fz.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
         exposes: [
@@ -645,7 +677,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Micro module dimmer",
         ota: true,
-        extend: [m.light({configureReporting: true, levelConfig: {}})],
+        extend: [m.light({powerOnBehavior: false, configureReporting: true, levelConfig: {}})],
         fromZigbee: [fz.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
         exposes: [
@@ -819,20 +851,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002386",
         vendor: "Schneider Electric",
         description: "Push button dimmer",
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
-        exposes: [
-            e.light_brightness().withLevelConfig(),
-            e
-                .numeric("ballast_minimum_level", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription("Specifies the minimum light output of the ballast"),
-            e
-                .numeric("ballast_maximum_level", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription("Specifies the maximum light output of the ballast"),
+        extend: [
+            m.light({
+                effect: false,
+                powerOnBehavior: true,
+                configureReporting: true,
+                levelConfig: {features: ["on_level", "current_level_startup"]},
+            }),
+            m.lightingBallast(),
+            m.identify(),
+            schneiderElectricExtend.dimmingMode(),
+            indicatorMode(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
@@ -967,16 +996,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6100Z3",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat",
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_haDiagnostic,
-            fz.ignore_genOta,
-            fz.ignore_zclversion_read,
-            fz.thermostat,
-            fz.battery,
-            fz.hvac_user_interface,
-            fz.wiser_device_info,
-        ],
+        fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fz.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         exposes: [
             e
@@ -1010,7 +1030,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S520530W",
         vendor: "Schneider Electric",
         description: "Odace connectable relay switch 10A",
-        extend: [m.onOff({powerOnBehavior: false})],
+        extend: [m.onOff({powerOnBehavior: false}), m.commandsOnOff()],
     },
     {
         zigbeeModel: ["U202SRY2KWZB"],
@@ -1151,6 +1171,16 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, s1: 21, s2: 22, s3: 23, s4: 24};
         },
+        extend: [
+            indicatorMode("s1"),
+            indicatorMode("s2"),
+            indicatorMode("s3"),
+            indicatorMode("s4"),
+            switchActions("s1"),
+            switchActions("s2"),
+            switchActions("s3"),
+            switchActions("s4"),
+        ],
         exposes: [e.switch().withEndpoint("l1"), e.switch().withEndpoint("l2"), e.action(["on_s*", "off_s*"])],
         configure: (device, coordinatorEndpoint) => {
             device.endpoints.forEach(async (ep) => {
@@ -1204,11 +1234,11 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             });
         },
-        onEvent: (type, data, device) => {
+        onEvent: (event) => {
             // Record the factory default bindings for easy removal/change after deviceInterview
-            if (type === "deviceInterview") {
-                const dimmer = device.getEndpoint(3);
-                device.endpoints.forEach((ep) => {
+            if (event.type === "deviceInterview") {
+                const dimmer = event.data.device.getEndpoint(3);
+                event.data.device.endpoints.forEach((ep) => {
                     if (21 <= ep.ID && ep.ID <= 22) {
                         ep.addBinding("genOnOff", dimmer);
                         ep.addBinding("genLevelCtrl", dimmer);
@@ -1259,10 +1289,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "CCTFR6700", manufacturerName: "Schneider Electric"}],
+        fingerprint: [
+            {modelID: "CCTFR6700", manufacturerName: "Schneider Electric"},
+            {modelID: "CCTFR6710", manufacturerName: "Schneider Electric"},
+        ],
         model: "CCTFR6700",
         vendor: "Schneider Electric",
         description: "Heating thermostat",
+        whiteLabel: [{model: "CCTFR6710", fingerprint: [{modelID: "CCTFR6710"}]}],
         fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode],
         toZigbee: [
             tz.schneider_temperature_measured_value,
@@ -1376,9 +1410,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat (VACT)",
         fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_genOta,
-            fz.ignore_zclversion_read,
             fz.battery,
             fz.hvac_user_interface,
             fz.wiser_smart_thermostat,
@@ -1436,9 +1467,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser thermostat (RTS)",
         fromZigbee: [
-            fz.ignore_basic_report,
-            fz.ignore_genOta,
-            fz.ignore_zclversion_read,
             fz.battery,
             fz.hvac_user_interface,
             fz.wiser_smart_thermostat_client,
@@ -1489,7 +1517,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EER50000",
         vendor: "Schneider Electric",
         description: "Wiser H-Relay (HACT)",
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_genOta, fz.ignore_zclversion_read, fz.wiser_smart_thermostat, fz.metering, fz.identify],
+        fromZigbee: [fz.wiser_smart_thermostat, fz.metering, fz.identify],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -1591,6 +1619,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "LK FUGA wiser wireless socket outlet",
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
+        extend: [socketIndicatorMode()],
         exposes: [
             e.switch(),
             e.power(),
@@ -1614,7 +1643,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MUR36014",
         vendor: "Schneider Electric",
         description: "Mureva EVlink Smart socket outlet",
-        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter()],
+        extend: [
+            m.onOff(),
+            m.electricityMeter({
+                // Unit supports acVoltage and acCurrent, but only acCurrent divisor/multiplier can be read
+                voltage: {multiplier: 1, divisor: 1},
+                // power is provided by 'seMetering' instead of "haElectricalMeasurement"
+                power: {cluster: "metering"},
+            }),
+            evlinkIndicatorMode(),
+        ],
     },
     {
         zigbeeModel: ["NHMOTION/SWITCH/1"],
@@ -1773,7 +1811,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("The temperature format displayed on the thermostat screen"),
             e
                 .climate()
-                .withSetpoint("occupied_heating_setpoint", 4, 30, 0.5)
+                .withSetpoint("occupied_heating_setpoint", 0, 40, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat"])
                 .withRunningState(["idle", "heat"])
@@ -1907,6 +1945,86 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
             m.onOff({powerOnBehavior: false}),
             m.commandsOnOff({endpointNames: ["switch_sw"]}),
+        ],
+    },
+    {
+        zigbeeModel: ["MEG5779"],
+        model: "MEG5779",
+        vendor: "Schneider Electric",
+        description: "Merten Connected Room Temperature Controller",
+        extend: [
+            m.thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 4, max: 30, step: 0.5},
+                        unoccupiedHeatingSetpoint: {min: 4, max: 30, step: 0.5},
+                        occupiedCoolingSetpoint: {min: 4, max: 30, step: 0.5},
+                        unoccupiedCoolingSetpoint: {min: 4, max: 30, step: 0.5},
+                    },
+                },
+                setpointsLimit: {
+                    maxHeatSetpointLimit: {min: 4, max: 30, step: 0.5},
+                    minHeatSetpointLimit: {min: 4, max: 30, step: 0.5},
+                    maxCoolSetpointLimit: {min: 4, max: 30, step: 0.5},
+                    minCoolSetpointLimit: {min: 4, max: 30, step: 0.5},
+                },
+                systemMode: {
+                    values: ["off", "heat", "cool"],
+                },
+                piHeatingDemand: {
+                    values: ea.ALL,
+                },
+            }),
+            m.numeric({
+                name: "display_brightness_active",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe000, type: Zcl.DataType.UINT8},
+                description: "Sets brightness of the temperature display during active state",
+                entityCategory: "config",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric({
+                name: "display_brightness_inactive",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe001, type: Zcl.DataType.UINT8},
+                description: "Sets brightness of the temperature display during inactive state",
+                entityCategory: "config",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric({
+                name: "display_active_timeout",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe002, type: Zcl.DataType.UINT16},
+                description: "Sets timeout of the temperature display active state",
+                entityCategory: "config",
+                unit: "seconds",
+                valueMin: 5,
+                valueMax: 600,
+                valueStep: 5,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                lookup: {celsius: 0, fahrenheit: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "tempDisplayMode",
+                description: "The unit of the temperature displayed on the device screen.",
+            }),
+            m.enumLookup({
+                name: "keypadLockout",
+                lookup: {unlock: 0, lock1: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Enables/disables physical input on the device.",
+            }),
         ],
     },
     {
@@ -2052,6 +2170,7 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.visaKeyEventNotification("3"),
             schneiderElectricExtend.visaKeyEventNotification("4"),
         ],
+        exposes: [e.action(["key1", "key2", "key3", "key4"]).withDescription("Last Visa key pressed")],
     },
     {
         zigbeeModel: ["NHMOTION/DIMMER/1"],
@@ -2131,12 +2250,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_system_mode,
             tz.thermostat_local_temperature,
             tz.thermostat_control_sequence_of_operation,
             tz.schneider_pilot_mode,
             tz.schneider_thermostat_keypad_lockout,
             tz.thermostat_temperature_display_mode,
+            tz.thermostat_running_state,
         ],
         exposes: [
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
@@ -2147,9 +2268,12 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 4, 30, 0.5)
+                .withSetpoint("occupied_cooling_setpoint", 4, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat", "cool"])
-                .withPiHeatingDemand(),
+                .withRunningState(["idle", "heat", "cool"])
+                .withPiHeatingDemand()
+                .withPiCoolingDemand(),
             e.temperature(),
             e.occupancy(),
         ],
@@ -2159,19 +2283,54 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint4 = device.getEndpoint(4);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatPIHeatingDemand(endpoint1);
+            await reporting.thermostatPICoolingDemand(endpoint1);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint1);
             await reporting.temperature(endpoint2);
             await endpoint1.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
             await reporting.bind(endpoint4, coordinatorEndpoint, ["msOccupancySensing"]);
-            await reporting.thermostatOccupancy(endpoint4);
+            await utils.ignoreUnsupportedAttribute(async () => await reporting.thermostatOccupancy(endpoint4), "thermostatOccupancy");
         },
-        options: [exposes.options.measurement_poll_interval()],
-        onEvent: (type, data, device, options) => {
-            const endpoint = device.getEndpoint(1);
-            const poll = async () => {
-                await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-            };
-            utils.onEventPoll(type, data, device, options, "measurement", 20, poll);
-        },
+        extend: [
+            m.poll({
+                key: "measurement",
+                option: exposes.options.measurement_poll_interval().withDescription("Polling interval of the occupied heating/cooling setpoint"),
+                defaultIntervalSeconds: 20,
+                poll: async (device) => {
+                    const endpoint = device.getEndpoint(1);
+                    await endpoint.read("hvacThermostat", ["occupiedHeatingSetpoint", "occupiedCoolingSetpoint"]);
+                },
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["E8332RWMZB"],
+        model: "E8332RWMZB",
+        vendor: "Schneider Electric",
+        description: "Wiser AvatarOn 2K Freelocate",
+        extend: [
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaKeyEventNotification("1"),
+            schneiderElectricExtend.visaKeyEventNotification("2"),
+        ],
+        exposes: [e.action(["key1", "key2"]).withDescription("Last Visa key pressed")],
+    },
+    {
+        zigbeeModel: ["E8331SCN200ZB"],
+        model: "E8331SCN200ZB",
+        vendor: "Schneider Electric",
+        description: "Wiser AvatarOn 1G curtain switch",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 10}}),
+            schneiderElectricExtend.addVisaConfigurationCluster(Zcl.DataType.UINT8),
+            schneiderElectricExtend.visaConfigIndicatorLuminanceLevel(),
+            schneiderElectricExtend.visaConfigIndicatorColor(),
+            schneiderElectricExtend.visaIndicatorMode([0, 1, 2, 3]),
+            schneiderElectricExtend.visaWiserCurtain(["l1"]),
+            schneiderElectricExtend.visaConfigMotorType(1),
+            schneiderElectricExtend.visaConfigCurtainStatus(1),
+        ],
     },
 ];

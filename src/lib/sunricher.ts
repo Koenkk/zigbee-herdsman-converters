@@ -1,5 +1,5 @@
 import type {Endpoint, Group} from "zigbee-herdsman/dist/controller/model";
-
+import type {SunricherHvacThermostat, SunricherRemote} from "../devices/sunricher";
 import * as constants from "./constants";
 import {repInterval} from "./constants";
 import * as exposes from "./exposes";
@@ -21,7 +21,7 @@ const tz = {
     setModel: {
         key: ["model"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("genBasic", {modelId: value});
+            await entity.write("genBasic", {modelId: value as string});
             return {state: {model: value}};
         },
     } satisfies Tz.Converter,
@@ -59,13 +59,13 @@ const extend = {
             three_way: 2,
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.hasOwn(msg.data, attribute)) {
-                        const value = msg.data[attribute];
+                        const value = msg.data[attribute] as number;
                         return {
                             external_switch_type: value_map[value] || "unknown",
                             external_switch_type_numeric: value,
@@ -73,7 +73,7 @@ const extend = {
                     }
                     return undefined;
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -127,21 +127,21 @@ const extend = {
         const attribute = 0x7809;
         const data_type = 0x20;
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "genBasic",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.hasOwn(msg.data, attribute)) {
                         console.log("from ", msg.data[attribute]);
-                        const value = Math.round(msg.data[attribute] / 5.1);
+                        const value = Math.round((msg.data[attribute] as number) / 5.1);
                         return {
                             minimum_pwm: value,
                         };
                     }
                     return undefined;
                 },
-            },
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -149,7 +149,7 @@ const extend = {
                 key: ["minimum_pwm"],
                 convertSet: async (entity, key, value, meta) => {
                     console.log("to ", value);
-                    const numValue = typeof value === "string" ? Number.parseInt(value) : value;
+                    const numValue = typeof value === "string" ? Number.parseInt(value, 10) : value;
                     utils.assertNumber(numValue);
                     const zgValue = Math.round(numValue * 5.1);
                     await entity.write("genBasic", {[attribute]: {value: zgValue, type: data_type}}, {manufacturerCode: sunricherManufacturerCode});
@@ -199,7 +199,7 @@ const extend = {
     SRZG9002KR12Pro: (): ModernExtend => {
         const cluster = 0xff03;
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: 0xff03,
                 type: ["raw"],
@@ -252,7 +252,7 @@ const extend = {
 
                     return {action};
                 },
-            },
+            } satisfies Fz.Converter<0xff03, undefined, ["raw"]>,
         ];
 
         const exposes: Expose[] = [
@@ -277,7 +277,7 @@ const extend = {
     SRZG2836D5Pro: (): ModernExtend => {
         const cluster = 0xff03;
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: 0xff03,
                 type: ["raw"],
@@ -331,7 +331,7 @@ const extend = {
 
                     return {action};
                 },
-            },
+            } satisfies Fz.Converter<0xff03, undefined, ["raw"]>,
         ];
 
         const exposes: Expose[] = [
@@ -356,7 +356,7 @@ const extend = {
     SRZG9002K16Pro: (): ModernExtend => {
         const cluster = 0xff03;
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster,
                 type: ["raw"],
@@ -393,7 +393,7 @@ const extend = {
                     }
                     return {action};
                 },
-            },
+            } satisfies Fz.Converter<typeof cluster, undefined, ["raw"]>,
         ];
 
         const exposes: Expose[] = [e.action(["short_press", "double_press", "hold", "hold_released"])];
@@ -423,7 +423,7 @@ const extend = {
             e.enum("indicator_light", ea.ALL, ["on", "off"]).withDescription("Enable/disable the LED indicator").withCategory("config"),
         ];
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster,
                 type: ["attributeReport", "readResponse"],
@@ -433,7 +433,7 @@ const extend = {
                     const firstBit = indicatorLight & 0x01;
                     return {indicator_light: firstBit === 1 ? "on" : "off"};
                 },
-            } satisfies Fz.Converter,
+            } satisfies Fz.Converter<typeof cluster, undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -443,8 +443,7 @@ const extend = {
                     const attributeRead = await entity.read(cluster, [attribute]);
                     if (attributeRead === undefined) return;
 
-                    // @ts-expect-error ignore
-                    const currentValue = attributeRead[attribute];
+                    const currentValue = attributeRead[attribute] as number;
                     const newValue = value === "on" ? currentValue | 0x01 : currentValue & ~0x01;
 
                     await entity.write(cluster, {[attribute]: {value: newValue, type: data_type}}, {manufacturerCode});
@@ -482,7 +481,7 @@ const extend = {
                 .withCategory("config"),
         );
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "hvacThermostat",
                 type: ["commandGetWeeklyScheduleRsp"],
@@ -490,7 +489,8 @@ const extend = {
                     const day = Object.entries(constants.thermostatDayOfWeek).find((d) => msg.data.dayofweek & (1 << +d[0]))[1];
 
                     const transitions = msg.data.transitions
-                        .map((t: {heatSetpoint: number; transitionTime: number}) => {
+                        // TODO heatSetpoint is optional, affects return
+                        .map((t: {heatSetpoint?: number; transitionTime: number}) => {
                             const hours = Math.floor(t.transitionTime / 60);
                             const minutes = t.transitionTime % 60;
                             return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}/${t.heatSetpoint / 100}`;
@@ -503,7 +503,7 @@ const extend = {
                         [`schedule_${day}`]: transitions,
                     };
                 },
-            },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -549,7 +549,7 @@ const extend = {
                             }
 
                             return {
-                                transitionTime: Number.parseInt(hours) * 60 + Number.parseInt(minutes),
+                                transitionTime: Number.parseInt(hours, 10) * 60 + Number.parseInt(minutes, 10),
                                 heatSetpoint: Math.round(temperature * 100),
                             };
                         }),
@@ -589,7 +589,7 @@ const extend = {
     thermostatChildLock: (): ModernExtend => {
         const exposes = [e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device")];
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "hvacUserInterfaceCfg",
                 type: ["attributeReport", "readResponse"],
@@ -601,7 +601,7 @@ const extend = {
                     }
                     return {};
                 },
-            },
+            } satisfies Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -645,7 +645,7 @@ const extend = {
 
         const awayOrBoostModeLookup = {0: "normal", 1: "away", 2: "forced"};
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
@@ -676,7 +676,7 @@ const extend = {
 
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"hvacThermostat", SunricherHvacThermostat, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -689,7 +689,7 @@ const extend = {
                         if (value === "away") {
                             await entity.read("hvacThermostat", ["unoccupiedHeatingSetpoint"]);
                         }
-                        await entity.write("hvacThermostat", {awayOrBoostMode});
+                        await entity.write<"hvacThermostat", SunricherHvacThermostat>("hvacThermostat", {awayOrBoostMode});
                         return {state: {preset: value, away_or_boost_mode: value}};
                     }
                     globalStore.putValue(entity, "awayOrBoostMode", 0);
@@ -733,11 +733,14 @@ const extend = {
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
                 await endpoint.read("hvacThermostat", ["systemMode"]);
-                await endpoint.read("hvacThermostat", ["awayOrBoostMode"]);
+                await endpoint.read<"hvacThermostat", SunricherHvacThermostat>("hvacThermostat", ["awayOrBoostMode"]);
 
                 await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
                 await reporting.thermostatSystemMode(endpoint);
-                await endpoint.configureReporting("hvacThermostat", payload("awayOrBoostMode", 10, repInterval.HOUR, null));
+                await endpoint.configureReporting<"hvacThermostat", SunricherHvacThermostat>(
+                    "hvacThermostat",
+                    payload<"hvacThermostat", SunricherHvacThermostat>("awayOrBoostMode", 10, repInterval.HOUR, null),
+                );
             },
         ];
 
@@ -748,15 +751,14 @@ const extend = {
         const getAwayOrBoostMode = async (entity: Endpoint | Group) => {
             let result = globalStore.getValue(entity, "awayOrBoostMode");
             if (result === undefined) {
-                const attributeRead = await entity.read("hvacThermostat", ["awayOrBoostMode"]);
-                // @ts-expect-error ignore
+                const attributeRead = await entity.read<"hvacThermostat", SunricherHvacThermostat>("hvacThermostat", ["awayOrBoostMode"]);
                 result = attributeRead.awayOrBoostMode;
                 globalStore.putValue(entity, "awayOrBoostMode", result);
             }
             return result;
         };
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
@@ -785,7 +787,7 @@ const extend = {
 
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"hvacThermostat", SunricherHvacThermostat, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -802,8 +804,11 @@ const extend = {
                         convertedValue = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
                     }
 
-                    const attribute = awayOrBoostMode === 1 ? "unoccupiedHeatingSetpoint" : "occupiedHeatingSetpoint";
-                    await entity.write("hvacThermostat", {[attribute]: convertedValue});
+                    if (awayOrBoostMode === 1) {
+                        await entity.write("hvacThermostat", {unoccupiedHeatingSetpoint: convertedValue});
+                    } else {
+                        await entity.write("hvacThermostat", {occupiedHeatingSetpoint: convertedValue});
+                    }
                     return {state: {current_heating_setpoint: value}};
                 },
                 convertGet: async (entity, key, meta) => {
@@ -826,7 +831,7 @@ const extend = {
     },
 
     SRZG2856Pro: (): ModernExtend => {
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: "sunricherRemote",
                 type: ["commandPress"],
@@ -854,7 +859,7 @@ const extend = {
                     }
                     return {action};
                 },
-            },
+            } satisfies Fz.Converter<"sunricherRemote", SunricherRemote, ["commandPress"]>,
         ];
 
         const exposes: Expose[] = [e.action(["short_press", "double_press", "hold", "hold_released"])];
@@ -875,71 +880,35 @@ const extend = {
     },
 
     motorControl: (): ModernExtend => {
-        const fromZigbee: Fz.Converter[] = [
-            {
-                cluster: "closuresWindowCovering",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValueAny = {};
-                    if (Object.hasOwn(msg.data, 0x0017)) {
-                        const value = msg.data[0x0017];
-                        result.motor_direction_reversed = (value & 0x01) > 0;
-                        result.calibration_mode = (value & 0x02) > 0;
-                    }
-                    return result;
-                },
-            },
-        ];
-
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["motor_direction_reversed", "calibration_mode"],
+                key: ["calibrate"],
                 convertSet: async (entity, key, value, meta) => {
-                    // First read current value to preserve other bits
-                    const current = await entity.read("closuresWindowCovering", [0x0017]);
-                    let currentValue = (current as KeyValueAny)?.[0x0017] || 0;
+                    if (value === "calibrate") {
+                        // Read current value to preserve other bits
+                        const current = await entity.read("closuresWindowCovering", [0x0017]);
+                        let currentValue = (current as KeyValueAny)?.[0x0017] || 0;
 
-                    if (key === "motor_direction_reversed") {
-                        if (value) {
-                            currentValue |= 0x01;
-                        } else {
-                            currentValue &= ~0x01;
-                        }
-                    } else if (key === "calibration_mode") {
-                        if (value) {
-                            currentValue |= 0x02;
-                        } else {
-                            currentValue &= ~0x02;
-                        }
+                        // Set only the calibration bit (bit 1 = 0x02)
+                        currentValue |= 0x02;
+
+                        await entity.write("closuresWindowCovering", {
+                            [0x0017]: {value: currentValue, type: 0x18}, // BITMAP8
+                        });
                     }
-
-                    await entity.write("closuresWindowCovering", {
-                        [0x0017]: {value: currentValue, type: 0x18}, // BITMAP8
-                    });
-
-                    return {state: {[key]: value}};
-                },
-                convertGet: async (entity, key, meta) => {
-                    await entity.read("closuresWindowCovering", [0x0017]);
+                    return {};
                 },
             },
         ];
 
         const exposes: Expose[] = [
             e
-                .binary("motor_direction_reversed", ea.ALL, true, false)
-                .withDescription(
-                    "Reverse motor direction (if motor runs in the wrong direction after installation, use this and recalibration is required)",
-                )
-                .withCategory("config"),
-            e
-                .binary("calibration_mode", ea.ALL, true, false)
-                .withDescription("Trigger curtain calibration (motor will learn travel limits automatically)")
+                .enum("calibrate", ea.SET, ["calibrate"])
+                .withDescription("Calibrate curtain (motor will learn travel limits automatically)")
                 .withCategory("config"),
         ];
 
         return {
-            fromZigbee,
             toZigbee,
             exposes,
             isModernExtend: true,

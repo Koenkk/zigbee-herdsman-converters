@@ -25,7 +25,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ctm_device_mode: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -39,7 +39,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ctm_device_enabled: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -52,7 +52,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ctm_child_lock: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -65,7 +65,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ctm_current_flag: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -78,7 +78,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ctm_relay_state: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -91,7 +91,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     ctm_thermostat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -166,7 +166,7 @@ const fzLocal = {
             }
             if (data[0x0409] !== undefined) {
                 // Floor temp
-                result.floor_temp = utils.precisionRound(data[0x0409], 2) / 100;
+                result.floor_temp = utils.precisionRound(data[0x0409] as number, 2) / 100;
             }
             if (data.elkoExternalTemp !== undefined) {
                 // External temp (floor)
@@ -242,7 +242,7 @@ const fzLocal = {
             }
             if (data[0x0426] !== undefined) {
                 // External temperature
-                result.external_temp = utils.precisionRound(data[0x0426], 2) / 100;
+                result.external_temp = utils.precisionRound(data[0x0426] as number, 2) / 100;
             }
             if (data[0x0428] !== undefined) {
                 // External sensor source
@@ -250,7 +250,7 @@ const fzLocal = {
             }
             if (data[0x0429] !== undefined) {
                 // Current air temperature
-                result.air_temp = utils.precisionRound(data[0x0429], 2) / 100;
+                result.air_temp = utils.precisionRound(data[0x0429] as number, 2) / 100;
             }
             if (data[0x0424] !== undefined) {
                 // Floor Sensor Error
@@ -263,7 +263,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     ctm_group_config: {
         cluster: "65191", // 0xFEA7 ctmGroupConfig
         type: ["attributeReport", "readResponse"],
@@ -276,7 +276,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"65191", undefined, ["attributeReport", "readResponse"]>,
     ctm_sove_guard: {
         cluster: "65481", // 0xFFC9 ctmSoveGuard
         type: ["attributeReport", "readResponse"],
@@ -399,19 +399,19 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"65481", undefined, ["attributeReport", "readResponse"]>,
     ctm_water_leak_alarm: {
         cluster: "ssIasZone",
         type: ["commandStatusChangeNotification", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zonestatus;
+            const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
             return {
                 active_water_leak: (zoneStatus & 1) > 0,
                 water_leak: (zoneStatus & (1 << 1)) > 0,
                 battery_low: (zoneStatus & (1 << 3)) > 0,
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport"]>,
 };
 
 const tzLocal = {
@@ -419,7 +419,7 @@ const tzLocal = {
         key: ["device_enabled"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, "device_enabled");
-            await entity.command("genOnOff", value.toLowerCase(), {}, utils.getOptions(meta.mapped, entity));
+            await entity.command("genOnOff", value.toLowerCase() as "off" | "on", {}, utils.getOptions(meta.mapped, entity));
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genOnOff", ["onOff"]);
@@ -428,7 +428,12 @@ const tzLocal = {
     ctm_mbd_brightness: {
         key: ["brightness"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command("genLevelCtrl", "moveToLevel", {level: value, transtime: 1}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level: value as number, transtime: 1, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genLevelCtrl", ["currentLevel"]);
@@ -1025,14 +1030,67 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.energy()],
     },
     {
-        zigbeeModel: ["mKomfy Tak"],
-        model: "mKomfy_Tak",
+        zigbeeModel: ["mKomfy 2.0"],
+        model: "6254380",
         vendor: "CTM Lyng",
-        description: "Temperature sensor",
-        extend: [m.battery(), m.temperature()],
+        description: "2.0 Stove guard",
+        extend: [
+            m.deviceTemperature(),
+            m.iasZoneAlarm({
+                zoneType: "generic",
+                manufacturerZoneAttributes: [
+                    {
+                        bit: 0,
+                        name: "high_temperature",
+                        valueOn: true,
+                        valueOff: false,
+                        description: "Stove guard detected high hemperature",
+                    },
+                    {
+                        bit: 1,
+                        name: "power_cut_off",
+                        valueOn: true,
+                        valueOff: false,
+                        description: "Power to stove disconnected",
+                    },
+                ],
+                zoneAttributes: ["tamper", "battery_low"],
+            }),
+            m.electricityMeter({cluster: "metering"}),
+        ],
     },
     {
-        zigbeeModel: ["mKomfy"],
+        zigbeeModel: ["mKomfy 2.5"],
+        model: "mkomfy25",
+        vendor: "CTM Lyng",
+        description: "2.5 Stove guard",
+        extend: [
+            m.onOff({powerOnBehavior: false}),
+            m.iasZoneAlarm({
+                zoneType: "generic",
+                manufacturerZoneAttributes: [
+                    {
+                        bit: 0,
+                        name: "high_temperature",
+                        valueOn: true,
+                        valueOff: false,
+                        description: "Stove guard detected high hemperature",
+                    },
+                    {
+                        bit: 1,
+                        name: "power_cut_off",
+                        valueOn: true,
+                        valueOff: false,
+                        description: "Power to stove disconnected",
+                    },
+                ],
+                zoneAttributes: ["tamper", "battery_low"],
+            }),
+            m.electricityMeter({cluster: "metering"}),
+        ],
+    },
+    {
+        zigbeeModel: ["mKomfy", "mKomfy Tak"],
         model: "mKomfy_Sensor",
         vendor: "CTM Lyng",
         description: "mKomfy, stove guard",

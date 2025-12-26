@@ -84,7 +84,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             // These devices only have a very limited amount of memory available. Possibly depending on network size (?)
             // they only support around 5 bindings so we need to be very careful about the binding setup. We intentionally
-            // skip binding the endpoint 18 (light endpoint) to the coordinator. The device does not support ZigBee
+            // skip binding the endpoint 18 (light endpoint) to the coordinator. The device does not support Zigbee
             // reporting anyways and we poll the device's state instead, so this does not cause any loss of functionality.
             const endpoint18 = device.getEndpoint(0x12);
             if (endpoint18 == null) {
@@ -109,39 +109,29 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(endpoint13, coordinatorEndpoint, ["genLevelCtrl"]);
             }
         },
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.on_off,
-            fz.brightness,
-            fz.command_on,
-            fz.command_off,
-            fz.command_step,
-            fz.command_stop,
-            fz.command_recall,
-        ],
-        options: [
-            e
-                .numeric("state_poll_interval", ea.SET)
-                .withValueMin(-1)
-                .withDescription(
-                    "This device does not support state reporting so it is polled instead. The default poll interval is 60 seconds, set to -1 to disable.",
-                ),
-        ],
+        fromZigbee: [fz.on_off, fz.brightness, fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.command_recall],
         toZigbee: [tz.light_onoff_brightness, tz.light_brightness_step, tz.light_brightness_move],
-        onEvent: (type, data, device, options) => {
-            const switchEndpoint = device.getEndpoint(0x12);
-            if (switchEndpoint == null) {
-                return;
-            }
-            // This device doesn't support reporting.
-            // Therefore we read the on/off state every 60 seconds.
-            // This is the same way as the Hue bridge does it.
-            const poll = async () => {
-                await switchEndpoint.read("genOnOff", ["onOff"]);
-                await switchEndpoint.read("genLevelCtrl", ["currentLevel"]);
-            };
-
-            utils.onEventPoll(type, data, device, options, "state", 60, poll);
-        },
+        extend: [
+            // This device doesn't support reporting. Therefore we read the on/off state every 60 seconds.
+            // This is the same was as the Hue bridge does it.
+            m.poll({
+                key: "state",
+                option: e
+                    .numeric("state_poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription(
+                        "This device does not support state reporting so it is polled instead. The default poll interval is 60 seconds, set to -1 to disable.",
+                    ),
+                defaultIntervalSeconds: 60,
+                poll: async (device) => {
+                    const switchEndpoint = device.getEndpoint(0x12);
+                    if (switchEndpoint == null) {
+                        return;
+                    }
+                    await switchEndpoint.read("genOnOff", ["onOff"]);
+                    await switchEndpoint.read("genLevelCtrl", ["currentLevel"]);
+                },
+            }),
+        ],
     },
 ];

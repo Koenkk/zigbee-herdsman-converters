@@ -40,6 +40,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
+                .withSetpoint("current_heating_setpoint", 5, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "auto", "heat"])
                 .withRunningState(["idle", "heat"])
@@ -94,13 +95,16 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 86400, change: 1});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: constants.repInterval.MAX, change: 1});
         },
     },
     {
         fingerprint: [
             {modelID: "SPZB0001", manufacturerName: "Eurotronic", dateCode: "20221110"},
             {modelID: "SPZB0001", manufacturerName: "Eurotronic", dateCode: "20240821"},
+            {modelID: "SPZB0001", manufacturerName: "Eurotronic", dateCode: "20241105"},
+            {modelID: "SPZB0001", manufacturerName: "Eurotronic", dateCode: "20240315"},
+            {modelID: "SPZB0001", manufacturerName: "Eurotronic", dateCode: "20231019"},
         ],
         model: "COZB0001",
         vendor: "Eurotronic",
@@ -184,7 +188,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 86400, change: 1});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: constants.repInterval.MAX, change: 1});
         },
     },
     {
@@ -215,7 +219,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.child_lock(),
             e
                 .climate()
-                .withSetpoint("occupied_heating_setpoint", 8, 28, 0.5)
+                .withSetpoint("current_heating_setpoint", 5, 30, 0.5)
+                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "auto", "heat"])
                 .withRunningState(["idle", "heat"])
@@ -270,7 +275,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 86400, change: 1});
+            await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: constants.repInterval.MAX, change: 1});
         },
     },
 ];

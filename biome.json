@@ -1,5 +1,5 @@
 {
-    "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
     "vcs": {
         "enabled": true,
         "clientKind": "git",
@@ -12,21 +12,19 @@
         "bracketSpacing": false
     },
     "files": {
-        "includes": ["**", "!package.json"]
+        "includes": ["**", "!package.json", "!!**/dist", "!!**/coverage"],
+        "maxSize": 10485760
     },
     "linter": {
         "rules": {
-            "suspicious": {
-                "useAwait": "error"
-            },
             "correctness": {
                 "noUnusedImports": "error",
                 "noUnusedFunctionParameters": "off"
             },
-            "complexity": {
-                "useLiteralKeys": "off"
-            },
             "style": {
+                "noParameterAssign": "off",
+                "useThrowNewError": "error",
+                "useThrowOnlyError": "error",
                 "useNamingConvention": {
                     "level": "error",
                     "options": {
@@ -47,7 +45,6 @@
                         ]
                     }
                 },
-                "noParameterAssign": "error",
                 "useAsConstAssertion": "error",
                 "useDefaultParameterLast": "error",
                 "useEnumInitializers": "error",
@@ -57,6 +54,18 @@
                 "useNumberNamespace": "error",
                 "noInferrableTypes": "error",
                 "noUselessElse": "error"
+            },
+            "suspicious": {
+                "noConstEnum": "off",
+                "useAwait": "error"
+            },
+            "complexity": {
+                "useLiteralKeys": "off"
+            },
+            "nursery": {
+                "useExhaustiveSwitchCases": "error",
+                "noFloatingPromises": "error",
+                "noMisusedPromises": "error"
             }
         }
     }

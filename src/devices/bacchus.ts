@@ -1,14 +1,15 @@
+import type {RawClusterAttributes} from "zigbee-herdsman/dist/controller/tstype";
+import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import {access as ea} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {Configure, DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
-
-import {assertNumber, getEndpointName, isString, precisionRound, validateValue} from "../lib/utils";
+import {assertNumber, determineEndpoint, getEndpointName, isString, precisionRound, validateValue} from "../lib/utils";
 
 const defaultReporting = {min: 0, max: 3600, change: 0};
 const electicityReporting = {min: 0, max: 30, change: 1};
-const defaultReportingOnOff = {min: 0, max: 3600, change: 0, attribute: "onOff"};
-const defaultReportingOOS = {min: 0, max: 3600, change: 0, attribute: "outOfService"};
+const defaultReportingOnOff = {min: 0, max: 3600, change: 0, attribute: "onOff" as const};
+const defaultReportingOOS = {min: 0, max: 3600, change: 0, attribute: "outOfService" as const};
 
 const time_to_str_min = (time: number) => {
     const date = new Date(null);
@@ -20,22 +21,22 @@ const str_min_to_time = (strMin: string) => {
     return Number(strMin.substring(0, 2)) * 60 * 60 + Number(strMin.substring(3, 5)) * 60;
 };
 
-function timeHHMM(args: m.TextArgs): ModernExtend {
+function timeHHMM(args: m.TextArgs<"genTime">): ModernExtend {
     const {name, cluster, attribute, zigbeeCommandOptions, endpointName} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
     const mExtend = m.text(args);
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
-            cluster: cluster.toString(),
+            cluster: "genTime",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
-                    return {[name]: time_to_str_min(msg.data[attributeKey])};
+                    return {[name]: time_to_str_min(msg.data[attributeKey] as number)};
                 }
             },
-        },
+        } satisfies Fz.Converter<"genTime", undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -45,15 +46,17 @@ function timeHHMM(args: m.TextArgs): ModernExtend {
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
                           const value_str = str_min_to_time(value.toString());
-                          const payload = isString(attribute) ? {[attribute]: value_str} : {[attribute.ID]: {value_str, type: attribute.type}};
-                          await m.determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          const payload: TPartialClusterAttributes<"genTime"> | RawClusterAttributes = isString(attribute)
+                              ? {[attribute]: value_str}
+                              : {[attribute.ID]: {value: value_str, type: attribute.type}};
+                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
@@ -65,11 +68,10 @@ function timeHHMM(args: m.TextArgs): ModernExtend {
     return {...mExtend, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
-function binaryWithOnOffCommand(args: m.BinaryArgs): ModernExtend {
+function binaryWithOnOffCommand(args: m.BinaryArgs<"genOnOff", undefined>): ModernExtend {
     const {name, cluster, attribute, zigbeeCommandOptions, endpointName, reporting} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
-
     const mExtend = m.binary(args);
 
     const toZigbee: Tz.Converter[] = [
@@ -80,15 +82,15 @@ function binaryWithOnOffCommand(args: m.BinaryArgs): ModernExtend {
                     ? async (entity, key, value, meta) => {
                           const state = isString(meta.message[key]) ? meta.message[key].toLowerCase() : null;
                           validateValue(state, ["toggle", "off", "on"]);
-                          await m.determineEndpoint(entity, meta, cluster).command(cluster, state, {}, zigbeeCommandOptions);
-                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).command(cluster, state as "toggle" | "off" | "on", {}, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },
@@ -102,19 +104,19 @@ function binaryWithOnOffCommand(args: m.BinaryArgs): ModernExtend {
     return {...mExtend, toZigbee, configure, isModernExtend: true};
 }
 
-function energy(args: m.NumericArgs): ModernExtend {
+function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
     const {name, cluster, attribute, zigbeeCommandOptions, reporting, scale, precision, endpointNames} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
     const mExtend = m.numeric(args);
 
-    const fromZigbee: Fz.Converter[] = [
+    const fromZigbee = [
         {
-            cluster: cluster.toString(),
+            cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (attributeKey in msg.data) {
-                    let value = msg.data[attributeKey] & 0xffffffff;
+                    let value = (msg.data[attributeKey] as number) & 0xffffffff;
                     assertNumber(value);
 
                     if (scale !== undefined) {
@@ -126,7 +128,7 @@ function energy(args: m.NumericArgs): ModernExtend {
                     return {[name]: value};
                 }
             },
-        },
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
@@ -142,17 +144,17 @@ function energy(args: m.NumericArgs): ModernExtend {
                           }
                           assertNumber(payloadValue);
                           if (precision != null) payloadValue = precisionRound(payloadValue, precision);
-                          const payload = isString(attribute)
+                          const payload: TPartialClusterAttributes<"genTime"> | RawClusterAttributes = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
-                          await m.determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).write(cluster, payload, zigbeeCommandOptions);
                           return {state: {[key]: value}};
                       }
                     : undefined,
             convertGet:
                 access & ea.GET
                     ? async (entity, key, meta) => {
-                          await m.determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
+                          await determineEndpoint(entity, meta, cluster).read(cluster, [attributeKey], zigbeeCommandOptions);
                       }
                     : undefined,
         },

@@ -3,6 +3,7 @@ import {Zcl} from "zigbee-herdsman";
 import {repInterval} from "../lib/constants";
 import {
     addCustomClusterManuSpecificIkeaAirPurifier,
+    addCustomClusterManuSpecificIkeaSmartPlug,
     addCustomClusterManuSpecificIkeaUnknown,
     addCustomClusterManuSpecificIkeaVocIndexMeasurement,
     ikeaAirPurifier,
@@ -14,6 +15,7 @@ import {
     ikeaDotsClick,
     ikeaLight,
     ikeaMediaCommands,
+    ikeaModernExtend,
     ikeaVoc,
     styrbarCommandOn,
     tradfriCommandsLevelCtrl,
@@ -22,7 +24,21 @@ import {
     tradfriRequestedBrightness,
 } from "../lib/ikea";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
+
+const fzLocal = {
+    // Raw data decoding for older Parasoll firmware build (20230406).
+    // only handles contact state
+    ikeaParasollRawConverter: {
+        cluster: 65365, // integer cluster IDs
+        type: "raw",
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data; // e.g., [21,104,17,62,240,110,111,116,105,102,121,0,0,0]
+            const contactState = data[data.length - 1]; // last number
+            return {contact: contactState === 0};
+        },
+    } satisfies Fz.Converter<65365, undefined, "raw">,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     // #region light
@@ -130,6 +146,7 @@ export const definitions: DefinitionWithExtend[] = [
             "TRADFRIbulbT120E27WSopal470lm",
             "TRADFRIbulbT120E26WSopal450lm",
             "TRADFRIbulbT120E26WSopal470lm",
+            "TRADFRI bulb E26 WS opal 440lm",
         ],
         model: "LED1937T5",
         vendor: "IKEA",
@@ -438,14 +455,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
     },
     {
-        zigbeeModel: ["JETSTROM 6060", "JETSTROM 6060 JP"],
+        zigbeeModel: ["JETSTROM 6060", "JETSTROM 6060 JP", "JETSTROM 6060 NA"],
         model: "L2207",
         vendor: "IKEA",
         description: "JETSTROM ceiling light panel, white spectrum, 60x60 cm",
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
     },
     {
-        zigbeeModel: ["JETSTROM 3030 wall"],
+        zigbeeModel: ["JETSTROM 3030 wall", "JETSTROM 3030 NA wall"],
         model: "L2205",
         vendor: "IKEA",
         description: "JETSTROM wall light panel, color/white spectrum, 30x30 cm",
@@ -618,7 +635,14 @@ export const definitions: DefinitionWithExtend[] = [
             {model: "E2204", vendor: "IKEA", description: "E2204 (EU)"},
             {model: "E2214", vendor: "IKEA", description: "E2214 (CH)"},
         ],
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), m.onOff(), m.identify()],
+        extend: [
+            addCustomClusterManuSpecificIkeaSmartPlug(),
+            addCustomClusterManuSpecificIkeaUnknown(),
+            m.onOff(),
+            ikeaModernExtend.smartPlugChildLock(),
+            ikeaModernExtend.smartPlugLedEnable(),
+            m.identify(),
+        ],
         ota: true,
     },
     {
@@ -626,7 +650,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E2206",
         vendor: "IKEA",
         description: "INSPELNING smart plug",
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), m.onOff(), m.identify(), m.electricityMeter()],
+        whiteLabel: [
+            {model: "E2220", vendor: "IKEA", description: "INSPELNING smart plug (US)"},
+            {model: "E2224", vendor: "IKEA", description: "INSPELNING smart plug (CH)"},
+        ],
+        extend: [
+            addCustomClusterManuSpecificIkeaSmartPlug(),
+            addCustomClusterManuSpecificIkeaUnknown(),
+            m.onOff(),
+            ikeaModernExtend.smartPlugChildLock(),
+            ikeaModernExtend.smartPlugLedEnable(),
+            m.identify(),
+            m.electricityMeter(),
+        ],
         ota: true,
         configure: async (device) => {
             const endpoint = device.getEndpoint(1);
@@ -744,7 +780,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify({isSleepy: true}),
             tradfriCommandsOnOff(),
             tradfriCommandsLevelCtrl(),
-            ikeaArrowClick(),
+            // No genScenes cluster
+            // https://github.com/Koenkk/zigbee2mqtt/issues/28161
+            ikeaArrowClick({bind: false}),
             ikeaBattery(),
         ],
         ota: true,
@@ -908,7 +946,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("pm25Measurement", {
                 ID: 0x042a,
                 attributes: {
-                    measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC},
+                    measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -940,6 +978,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E2013",
         vendor: "IKEA",
         description: "PARASOLL door/window sensor",
+        fromZigbee: [fzLocal.ikeaParasollRawConverter],
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),

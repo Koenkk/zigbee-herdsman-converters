@@ -12,10 +12,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "TECH",
         description: "Smart radiator valve",
         ota: true,
-        onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.child_lock(),
             e.window_detection(),
@@ -105,10 +102,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "TECH",
         description: "Smart radiator valve",
         ota: true,
-        onEvent: tuya.onEventSetLocalTime,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.child_lock(),
             e.window_detection(),

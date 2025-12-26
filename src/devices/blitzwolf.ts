@@ -33,4 +33,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ["l1", "l2"]})],
         toZigbee: [tz.TYZB01_on_off],
     },
+    {
+        fingerprint: tuya.fingerprint("TS0207", ["_TZ3000_eit7p838 "]),
+        model: "BW-IS9",
+        vendor: "BlitzWolf",
+        description: "ZigBee Water Leak Sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
+    },
 ];

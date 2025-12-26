@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as exposes from "./exposes";
 import {logger} from "./logger";
 import {deviceAddCustomCluster} from "./modernExtend";
@@ -13,16 +12,26 @@ const NS = "zhc:nodon";
 const PILOT_WIRE_CLUSTER = "customClusterNodOnPilotWire";
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.NODON};
 
+interface NodonPilotWire {
+    attributes: {
+        mode: number;
+    };
+    commands: {
+        setMode: {mode: number};
+    };
+    commandResponses: never;
+}
+
 const pilotWireCluster = deviceAddCustomCluster(PILOT_WIRE_CLUSTER, {
     ID: 0xfc00,
     manufacturerCode: Zcl.ManufacturerCode.NODON,
     attributes: {
-        mode: {ID: 0x0000, type: Zcl.DataType.UINT8},
+        mode: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
     },
     commands: {
         setMode: {
             ID: 0x0000,
-            parameters: [{name: "mode", type: Zcl.DataType.UINT8}],
+            parameters: [{name: "mode", type: Zcl.DataType.UINT8, max: 0xff}],
         },
     },
     commandsResponse: {},
@@ -66,11 +75,11 @@ const pilotWireConfig = (configureReporting: boolean): ModernExtend => {
                         "comfort_-2": 0x05,
                     });
                     const payload = {mode: mode};
-                    await entity.command(PILOT_WIRE_CLUSTER, "setMode", payload);
+                    await entity.command<typeof PILOT_WIRE_CLUSTER, "setMode", NodonPilotWire>(PILOT_WIRE_CLUSTER, "setMode", payload);
                     return {state: {pilot_wire_mode: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read(PILOT_WIRE_CLUSTER, [0x0000], manufacturerOptions);
+                    await entity.read<typeof PILOT_WIRE_CLUSTER, NodonPilotWire>(PILOT_WIRE_CLUSTER, [0x0000], manufacturerOptions);
                 },
             },
         ],
@@ -79,10 +88,10 @@ const pilotWireConfig = (configureReporting: boolean): ModernExtend => {
                 const ep = device.getEndpoint(1);
                 await reporting.bind(ep, coordinatorEndpoint, [PILOT_WIRE_CLUSTER]);
                 if (configureReporting) {
-                    const p = reporting.payload("mode", 0, 120, 0, {min: 1, max: 3600, change: 0});
+                    const p = reporting.payload<typeof PILOT_WIRE_CLUSTER, NodonPilotWire>("mode", 0, 120, 0, {min: 1, max: 3600, change: 0});
                     await ep.configureReporting(PILOT_WIRE_CLUSTER, p);
                 } else {
-                    await ep.read(PILOT_WIRE_CLUSTER, ["mode"]);
+                    await ep.read<typeof PILOT_WIRE_CLUSTER, NodonPilotWire>(PILOT_WIRE_CLUSTER, ["mode"]);
                 }
             },
         ],

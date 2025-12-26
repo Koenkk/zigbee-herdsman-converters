@@ -1,3 +1,4 @@
+import {describe, expect, it} from "vitest";
 import {fromZigbee, type TrvScheduleConfig, trv} from "../src/lib/lumi";
 
 describe("lib/lumi", () => {
@@ -242,9 +243,7 @@ describe("lib/lumi", () => {
             });
 
             it("handles invalid time pattern", () => {
-                expect(() => trv.parseSchedule("mon,tue,wed,thu,fri|8-00,24.0|18:00,17.0|23:00,22.0|8:00,22.0")).toThrowError(
-                    /Cannot parse time string/,
-                );
+                expect(() => trv.parseSchedule("mon,tue,wed,thu,fri|8-00,24.0|18:00,17.0|23:00,22.0|8:00,22.0")).toThrowError(/Invalid time format/);
             });
         });
 

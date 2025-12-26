@@ -264,7 +264,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AC01353010G",
         vendor: "OSRAM",
         description: "SMART+ Motion Sensor",
-        fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.ignore_basic_report, fz.battery],
+        fromZigbee: [fz.temperature, fz.ias_occupancy_only_alarm_2, fz.battery],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2100, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
@@ -336,18 +336,16 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery(),
             e.action([
-                "left_top_click",
-                "left_bottom_click",
-                "right_top_click",
-                "right_bottom_click",
-                "left_top_hold",
-                "left_bottom_hold",
-                "left_top_release",
-                "left_bottom_release",
-                "right_top_release",
-                "right_top_hold",
-                "right_bottom_release",
-                "right_bottom_hold",
+                "on",
+                "off",
+                "color_temperature_step_up",
+                "color_temperature_step_down",
+                "brightness_move_up",
+                "brightness_move_down",
+                "brightness_stop",
+                "move_to_saturation",
+                "hue_move",
+                "hue_stop",
             ]),
         ],
         fromZigbee: [
@@ -361,7 +359,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_move_to_saturation,
         ],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}, multiEndpoint: true},
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
@@ -407,8 +405,9 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [e.action(["toggle", "brightness_move_up", "brightness_move_down", "brightness_stop"])],
         extend: [ledvanceLight({configureReporting: true, ota: true})],
-        onEvent: (type, data, device) => {
-            if (type === "deviceInterview") {
+        onEvent: (event) => {
+            if (event.type === "deviceInterview") {
+                const {device} = event.data;
                 device.getEndpoint(25).addBinding("genOnOff", device.getEndpoint(10));
                 device.getEndpoint(25).addBinding("genLevelCtrl", device.getEndpoint(10));
             }
@@ -438,8 +437,9 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [e.action(["toggle_s1", "brightness_move_up_s1", "brightness_move_down_s1", "brightness_stop_s1"])],
-        onEvent: (type, data, device) => {
-            if (type === "deviceInterview") {
+        onEvent: (event) => {
+            if (event.type === "deviceInterview") {
+                const {device} = event.data;
                 device.getEndpoint(25).addBinding("genOnOff", device.getEndpoint(10));
                 device.getEndpoint(25).addBinding("genLevelCtrl", device.getEndpoint(10));
             }

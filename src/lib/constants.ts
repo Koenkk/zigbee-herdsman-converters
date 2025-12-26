@@ -156,6 +156,21 @@ export const danfossRoomFloorSensorMode: KeyValueNumberString = {
     2: "dual_mode",
 };
 
+export const danfossScheduleTypeUsed: KeyValueNumberString = {
+    0: "regular_schedule_selected",
+    1: "vacation_schedule_selected",
+};
+
+export const danfossIcon2PreHeat: KeyValueNumberString = {
+    0: "disable",
+    1: "enable",
+};
+
+export const danfossIcon2PreHeatStatus: KeyValueNumberString = {
+    0: "disable",
+    1: "enable",
+};
+
 export const danfossOutputStatus: KeyValueNumberString = {
     0: "inactive",
     1: "active",
@@ -179,11 +194,46 @@ export const danfossSystemStatusCode: KeyValueNumberString = {
     258: "error_on_one_or_more_output",
 };
 
+export const danfossHeatsupplyRequest: KeyValueNumberString = {
+    0: "none",
+    1: "heat_supply_request",
+};
+
 export const danfossMultimasterRole: KeyValueNumberString = {
     0: "invalid_unused",
     1: "master",
     2: "slave_1",
     3: "slave_2",
+};
+
+export const danfossIconApplication: KeyValueNumberString = {
+    0: "0",
+    1: "1",
+    2: "2",
+    3: "3",
+    4: "4",
+    5: "5",
+    6: "6",
+    7: "7",
+    8: "8",
+    9: "9",
+    10: "10",
+    11: "11",
+    12: "12",
+    13: "13",
+    14: "14",
+    15: "15",
+    16: "16",
+    17: "17",
+    18: "18",
+    19: "19",
+    20: "20",
+};
+
+export const danfossIconForcedHeatingCooling: KeyValueNumberString = {
+    0: "force_heating",
+    1: "force_cooling",
+    2: "none",
 };
 
 export const develcoInterfaceMode: KeyValueAny = {
@@ -237,6 +287,8 @@ export const armNotification = {
     5: "not_ready",
     6: "already_disarmed",
 };
+
+export const iasMaxSecondsRemain = 255;
 
 // ID's from ZCL mapped to ha names where appropriate
 // https://github.com/home-assistant/core/pull/47720

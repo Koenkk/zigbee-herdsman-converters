@@ -37,7 +37,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Sunricher", model: "SR-ZG2833PAC"},
             {vendor: "LED-Trading", model: "9125"},
             {vendor: "Feller", description: "Smart light control for Philips Hue", model: "4120.2.S.FMI.61"},
-            {vendor: "Namron", description: " ZigBee FOH Green Bryter K4", model: "4512727"},
+            {vendor: "Namron", description: " Zigbee FOH Green Bryter K4", model: "4512727"},
         ],
     },
     {

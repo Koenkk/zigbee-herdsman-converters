@@ -10,6 +10,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
+        zigbeeModel: ["91-947-micro"],
+        model: "91-947-micro",
+        vendor: "Light Solutions",
+        description: "Micro dimmer 200W",
+        extend: [m.light({configureReporting: true})],
+    },
+    {
         zigbeeModel: ["91-948"],
         model: "200106V3",
         vendor: "Light Solutions",
@@ -29,5 +36,20 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Light Solutions",
         description: "Zigbee dimmer for wire",
         extend: [m.light({configureReporting: true})],
+    },
+    {
+        zigbeeModel: ["91-943-PRO-SINGLE"],
+        model: "91-943-PRO",
+        vendor: "Light Solutions",
+        description: "LED Controller 12/24v",
+        extend: [m.light()],
+    },
+    {
+        fingerprint: [{modelID: "01F", manufacturerName: "Light"}],
+        zigbeeModel: ["91-943"],
+        model: "91-943",
+        vendor: "Light Solutions",
+        description: "LED Controller 12/24v",
+        extend: [m.light({color: true, colorTemp: {range: [160, 450]}})],
     },
 ];

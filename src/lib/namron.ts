@@ -41,14 +41,14 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             if (msg.data[0x8020] !== undefined) {
-                result.vacation_start_date = toDate(msg.data[0x8020]);
+                result.vacation_start_date = toDate(msg.data[0x8020] as number);
             }
             if (msg.data[0x8021] !== undefined) {
-                result.vacation_end_date = toDate(msg.data[0x8021]);
+                result.vacation_end_date = toDate(msg.data[0x8021] as number);
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     namron_edge_thermostat_holiday_temp: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -58,14 +58,14 @@ export const fromZigbee = {
                 result.operating_mode = utils.getFromLookup(msg.data.programingOperMode, {0: "manual", 1: "program", 5: "eco"});
             }
             if (msg.data[0x8013] !== undefined) {
-                result.holiday_temp_set = Number.parseInt(msg.data[0x8013]) / 100;
+                result.holiday_temp_set = Number.parseInt(msg.data[0x8013] as string, 10) / 100;
             }
             if (msg.data[0x801b] !== undefined) {
-                result.holiday_temp_set_f = Number.parseInt(msg.data[0x801b]) / 100;
+                result.holiday_temp_set_f = Number.parseInt(msg.data[0x801b] as string, 10) / 100;
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const toZigbee = {
@@ -84,10 +84,10 @@ export const toZigbee = {
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
                 case "vacation_start_date":
-                    await entity.write("hvacThermostat", {32800: fromDate(String(value))});
+                    await entity.write("hvacThermostat", {32800: {value: fromDate(String(value)), type: Zcl.DataType.UINT32}});
                     break;
                 case "vacation_end_date":
-                    await entity.write("hvacThermostat", {32801: fromDate(String(value))});
+                    await entity.write("hvacThermostat", {32801: {value: fromDate(String(value)), type: Zcl.DataType.UINT32}});
                     break;
             }
         },
@@ -98,15 +98,14 @@ export const toZigbee = {
             switch (key) {
                 case "operating_mode":
                     await entity.write("hvacThermostat", {
-                        37: utils.getFromLookup(value, {manual: 0, program: 1, eco: 5}),
-                        type: Zcl.DataType.BITMAP8,
+                        programingOperMode: utils.getFromLookup(value, {manual: 0, program: 1, eco: 5}),
                     });
                     break;
                 case "holiday_temp_set":
-                    await entity.write("hvacThermostat", {32787: Number(value) * 100, type: Zcl.DataType.INT16});
+                    await entity.write("hvacThermostat", {32787: {value: Number(value) * 100, type: Zcl.DataType.INT16}});
                     break;
                 case "holiday_temp_set_f":
-                    await entity.write("hvacThermostat", {32795: Number(value) * 100, type: Zcl.DataType.INT16});
+                    await entity.write("hvacThermostat", {32795: {value: Number(value) * 100, type: Zcl.DataType.INT16}});
                     break;
             }
         },
@@ -127,7 +126,7 @@ export const toZigbee = {
 };
 
 export const edgeThermostat = {
-    windowOpenDetection: (args?: Partial<modernExtend.BinaryArgs>) =>
+    windowOpenDetection: (args?: Partial<modernExtend.BinaryArgs<"hvacThermostat">>) =>
         modernExtend.binary({
             name: "window_open_check",
             valueOn: ["ON", 1],
@@ -138,7 +137,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    antiFrost: (args?: Partial<modernExtend.BinaryArgs>) =>
+    antiFrost: (args?: Partial<modernExtend.BinaryArgs<"hvacThermostat">>) =>
         modernExtend.binary({
             name: "anti_frost",
             valueOn: ["ON", 1],
@@ -149,7 +148,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    summerWinterSwitch: (args?: Partial<modernExtend.BinaryArgs>) =>
+    summerWinterSwitch: (args?: Partial<modernExtend.BinaryArgs<"hvacThermostat">>) =>
         modernExtend.binary({
             name: "summer_winter_switch",
             valueOn: ["ON", 1],
@@ -160,7 +159,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    vacationMode: (args?: Partial<modernExtend.BinaryArgs>) =>
+    vacationMode: (args?: Partial<modernExtend.BinaryArgs<"hvacThermostat">>) =>
         modernExtend.binary({
             name: "vacation_mode",
             valueOn: ["ON", 1],
@@ -171,7 +170,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    timeSync: (args?: Partial<modernExtend.BinaryArgs>) =>
+    timeSync: (args?: Partial<modernExtend.BinaryArgs<"hvacThermostat">>) =>
         modernExtend.binary({
             name: "time_sync",
             valueOn: ["ON", 1],
@@ -182,7 +181,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    autoTime: (args?: Partial<modernExtend.BinaryArgs>) =>
+    autoTime: (args?: Partial<modernExtend.BinaryArgs<"hvacThermostat">>) =>
         modernExtend.binary({
             name: "auto_time",
             valueOn: ["ON", 1],
@@ -194,7 +193,7 @@ export const edgeThermostat = {
             ...args,
         }),
 
-    displayActiveBacklight: (args?: Partial<modernExtend.NumericArgs>) =>
+    displayActiveBacklight: (args?: Partial<modernExtend.NumericArgs<"hvacThermostat">>) =>
         modernExtend.numeric({
             name: "display_active_backlight",
             cluster: "hvacThermostat",
@@ -207,11 +206,11 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    regulatorPercentage: (args?: Partial<modernExtend.NumericArgs>) =>
+    regulatorPercentage: (args?: Partial<modernExtend.NumericArgs<"hvacThermostat">>) =>
         modernExtend.numeric({
             name: "regulator_percentage",
             cluster: "hvacThermostat",
-            attribute: {ID: 0x801d, type: Zcl.DataType.UINT8},
+            attribute: {ID: 0x801d, type: Zcl.DataType.INT16},
             description: "Regulator percentage",
             unit: "%",
             valueMax: 100,
@@ -220,7 +219,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    regulationMode: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    regulationMode: (args?: Partial<modernExtend.EnumLookupArgs<"hvacThermostat">>) =>
         modernExtend.enumLookup({
             name: "regulation_mode",
             cluster: "hvacThermostat",
@@ -230,7 +229,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    displayAutoOff: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    displayAutoOff: (args?: Partial<modernExtend.EnumLookupArgs<"hvacThermostat">>) =>
         modernExtend.enumLookup({
             name: "display_auto_off",
             cluster: "hvacThermostat",
@@ -240,7 +239,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    sensorMode: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    sensorMode: (args?: Partial<modernExtend.EnumLookupArgs<"hvacThermostat">>) =>
         modernExtend.enumLookup({
             name: "sensor_mode",
             cluster: "hvacThermostat",
@@ -250,7 +249,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    boostTime: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    boostTime: (args?: Partial<modernExtend.EnumLookupArgs<"hvacThermostat">>) =>
         modernExtend.enumLookup({
             name: "boost_time_set",
             cluster: "hvacThermostat",
@@ -286,7 +285,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    systemMode: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+    systemMode: (args?: Partial<modernExtend.EnumLookupArgs<"hvacThermostat">>) =>
         modernExtend.enumLookup({
             name: "system_mode",
             cluster: "hvacThermostat",
@@ -297,7 +296,7 @@ export const edgeThermostat = {
             ...args,
         }),
 
-    deviceTime: (args?: Partial<modernExtend.NumericArgs>) =>
+    deviceTime: (args?: Partial<modernExtend.NumericArgs<"hvacThermostat">>) =>
         modernExtend.numeric({
             name: "time_sync_value",
             cluster: "hvacThermostat",
@@ -308,7 +307,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    absMinHeatSetpointLimitF: (args?: Partial<modernExtend.NumericArgs>) =>
+    absMinHeatSetpointLimitF: (args?: Partial<modernExtend.NumericArgs<"hvacThermostat">>) =>
         modernExtend.numeric({
             name: "abs_min_heat_setpoint_limit_f",
             cluster: "hvacThermostat",
@@ -318,7 +317,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    absMaxHeatSetpointLimitF: (args?: Partial<modernExtend.NumericArgs>) =>
+    absMaxHeatSetpointLimitF: (args?: Partial<modernExtend.NumericArgs<"hvacThermostat">>) =>
         modernExtend.numeric({
             name: "abs_max_heat_setpoint_limit_f",
             cluster: "hvacThermostat",
@@ -328,7 +327,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    absMinCoolSetpointLimitF: (args?: Partial<modernExtend.NumericArgs>) =>
+    absMinCoolSetpointLimitF: (args?: Partial<modernExtend.NumericArgs<"hvacThermostat">>) =>
         modernExtend.numeric({
             name: "abs_min_cool_setpoint_limit_f",
             cluster: "hvacThermostat",
@@ -338,7 +337,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    absMaxCoolSetpointLimitF: (args?: Partial<modernExtend.NumericArgs>) =>
+    absMaxCoolSetpointLimitF: (args?: Partial<modernExtend.NumericArgs<"hvacThermostat">>) =>
         modernExtend.numeric({
             name: "abs_max_cool_setpoint_limit_f",
             cluster: "hvacThermostat",
@@ -348,7 +347,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    occupiedCoolingSetpointF: (args?: Partial<modernExtend.NumericArgs>) =>
+    occupiedCoolingSetpointF: (args?: Partial<modernExtend.NumericArgs<"hvacThermostat">>) =>
         modernExtend.numeric({
             name: "occupied_cooling_setpoint_f",
             cluster: "hvacThermostat",
@@ -358,7 +357,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    occupiedHeatingSetpointF: (args?: Partial<modernExtend.NumericArgs>) =>
+    occupiedHeatingSetpointF: (args?: Partial<modernExtend.NumericArgs<"hvacThermostat">>) =>
         modernExtend.numeric({
             name: "occupied_heating_setpoint_f",
             cluster: "hvacThermostat",
@@ -368,7 +367,7 @@ export const edgeThermostat = {
             access: "ALL",
             ...args,
         }),
-    localTemperatureF: (args?: Partial<modernExtend.NumericArgs>) =>
+    localTemperatureF: (args?: Partial<modernExtend.NumericArgs<"hvacThermostat">>) =>
         modernExtend.numeric({
             name: "local_temperature_f",
             cluster: "hvacThermostat",
@@ -380,7 +379,7 @@ export const edgeThermostat = {
         }),
 
     readOnly: {
-        windowState: (args?: Partial<modernExtend.BinaryArgs>) =>
+        windowState: (args?: Partial<modernExtend.BinaryArgs<"hvacThermostat">>) =>
             modernExtend.binary({
                 name: "window_state",
                 valueOn: ["OPEN", 1],
@@ -391,7 +390,7 @@ export const edgeThermostat = {
                 access: "STATE_GET",
                 ...args,
             }),
-        deviceFault: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        deviceFault: (args?: Partial<modernExtend.EnumLookupArgs<"hvacThermostat">>) =>
             modernExtend.enumLookup({
                 name: "fault",
                 cluster: "hvacThermostat",
@@ -408,7 +407,7 @@ export const edgeThermostat = {
                 access: "STATE_GET",
                 ...args,
             }),
-        workDays: (args?: Partial<modernExtend.EnumLookupArgs>) =>
+        workDays: (args?: Partial<modernExtend.EnumLookupArgs<"hvacThermostat">>) =>
             modernExtend.enumLookup({
                 name: "work_days",
                 cluster: "hvacThermostat",
@@ -418,7 +417,7 @@ export const edgeThermostat = {
                 access: "STATE_GET",
                 ...args,
             }),
-        boostTimeRemaining: (args?: Partial<modernExtend.NumericArgs>) =>
+        boostTimeRemaining: (args?: Partial<modernExtend.NumericArgs<"hvacThermostat">>) =>
             modernExtend.numeric({
                 name: "boost_time_remaining",
                 cluster: "hvacThermostat",

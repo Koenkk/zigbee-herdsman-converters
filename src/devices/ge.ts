@@ -33,7 +33,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["45852"],
         model: "45852GE",
         vendor: "GE",
-        description: "ZigBee plug-in smart dimmer",
+        description: "Zigbee plug-in smart dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -41,7 +41,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "45853GE",
         vendor: "GE",
         description: "Plug-in smart switch",
-        fromZigbee: [fz.on_off, fz.metering, fz.ignore_basic_report],
+        fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off, tz.ignore_transition],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -73,7 +73,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["45857"],
         model: "45857GE",
         vendor: "GE",
-        description: "ZigBee in-wall smart dimmer",
+        description: "Zigbee in-wall smart dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter({cluster: "metering"})],
     },
     {

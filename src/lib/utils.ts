@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {ClusterOrRawAttributeKeys, ClusterOrRawAttributes, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import type {Light, Numeric} from "./exposes";
 import {logger} from "./logger";
 import * as globalStore from "./store";
@@ -13,8 +13,6 @@ import type {
     Fz,
     KeyValue,
     KeyValueAny,
-    OnEventData,
-    OnEventType,
     Publish,
     Tz,
     Zh,
@@ -24,41 +22,6 @@ const NS = "zhc:utils";
 
 export function flatten<Type>(arr: Type[][]): Type[] {
     return [].concat(...arr);
-}
-
-export function onEventPoll(
-    type: OnEventType,
-    data: OnEventData,
-    device: Zh.Device,
-    options: KeyValue,
-    key: string,
-    defaultIntervalSeconds: number,
-    poll: () => Promise<void>,
-) {
-    if (type === "stop") {
-        clearTimeout(globalStore.getValue(device, key));
-        globalStore.clearValue(device, key);
-    } else if (!globalStore.hasValue(device, key)) {
-        const optionsKey = `${key}_poll_interval`;
-        const seconds = toNumber(options[optionsKey] || defaultIntervalSeconds, optionsKey);
-        if (seconds <= 0) {
-            logger.debug(`Not polling '${key}' for '${device.ieeeAddr}' since poll interval is <= 0 (got ${seconds})`, NS);
-        } else {
-            logger.debug(`Polling '${key}' for '${device.ieeeAddr}' at an interval of ${seconds}`, NS);
-            const setTimer = () => {
-                const timer = setTimeout(async () => {
-                    try {
-                        await poll();
-                    } catch {
-                        /* Do nothing*/
-                    }
-                    setTimer();
-                }, seconds * 1000);
-                globalStore.putValue(device, key, timer);
-            };
-            setTimer();
-        }
-    }
 }
 
 export function precisionRound(number: number, precision: number): number {
@@ -117,10 +80,10 @@ export function mapNumberRange(value: number, fromLow: number, fromHigh: number,
 }
 
 const transactionStore: {[s: string]: number[]} = {};
-export function hasAlreadyProcessedMessage(msg: Fz.Message, model: Definition, id: number = null, key: string = null) {
+// biome-ignore lint/suspicious/noExplicitAny: generic
+export function hasAlreadyProcessedMessage(msg: Fz.Message<any, any, any>, model: Definition, id: number = null, key: string = null) {
     if (model.meta?.publishDuplicateTransaction) return false;
     const currentID = id !== null ? id : msg.meta.zclTransactionSequenceNumber;
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     key = key || `${msg.device.ieeeAddr}-${msg.endpoint.ID}`;
     if (transactionStore[key]?.includes(currentID)) return true;
     // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
@@ -165,28 +128,27 @@ export function calibrateAndPrecisionRoundOptionsIsPercentual(type: string) {
 export function calibrateAndPrecisionRoundOptions(number: number, options: KeyValue, type: string) {
     // Calibrate
     const calibrateKey = `${type}_calibration`;
-    let calibrationOffset = toNumber(options?.[calibrateKey] != null ? options[calibrateKey] : 0, calibrateKey);
+    const calibrateValue = options?.[calibrateKey];
+    let calibrationOffset = toNumber(calibrateValue != null && calibrateValue !== "" ? calibrateValue : 0, calibrateKey);
     if (calibrateAndPrecisionRoundOptionsIsPercentual(type)) {
         // linear calibration because measured value is zero based
         // +/- percent
         calibrationOffset = (number * calibrationOffset) / 100;
     }
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     number = number + calibrationOffset;
 
     // Precision round
     const precisionKey = `${type}_precision`;
+    const precisionValue = options?.[precisionKey];
     const defaultValue = calibrateAndPrecisionRoundOptionsDefaultPrecision[type] || 0;
-    const precision = toNumber(options?.[precisionKey] != null ? options[precisionKey] : defaultValue, precisionKey);
+    const precision = toNumber(precisionValue != null && precisionValue !== "" ? precisionValue : defaultValue, precisionKey);
     return precisionRound(number, precision);
 }
 
 export function toPercentage(value: number, min: number, max: number) {
     if (value > max) {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = max;
     } else if (value < min) {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = min;
     }
 
@@ -194,26 +156,28 @@ export function toPercentage(value: number, min: number, max: number) {
     return Math.round(normalised * 100);
 }
 
-export function addActionGroup(payload: KeyValue, msg: Fz.Message, definition: Definition) {
+// biome-ignore lint/suspicious/noExplicitAny: generic
+export function addActionGroup(payload: KeyValue, msg: Fz.Message<any, any, any>, definition: Definition) {
     const disableActionGroup = definition.meta?.disableActionGroup;
     if (!disableActionGroup && msg.groupID) {
         payload.action_group = msg.groupID;
     }
 }
 
-export function getEndpointName(msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
+// biome-ignore lint/suspicious/noExplicitAny: generic
+export function getEndpointName(msg: Fz.Message<any, any, any>, definition: Definition, meta: Fz.Meta) {
     if (!definition.endpoint) {
         throw new Error(`Definition '${definition.model}' has not endpoint defined`);
     }
     return getKey(definition.endpoint(meta.device), msg.endpoint.ID);
 }
 
-export function postfixWithEndpointName(value: string, msg: Fz.Message, definition: Definition, meta: Fz.Meta) {
+// biome-ignore lint/suspicious/noExplicitAny: generic
+export function postfixWithEndpointName(value: string, msg: Fz.Message<any, any, any>, definition: Definition, meta: Fz.Meta) {
     // Prevent breaking change https://github.com/Koenkk/zigbee2mqtt/issues/13451
     if (!meta) {
         logger.warning("No meta passed to postfixWithEndpointName, update your external converter!", NS);
         // @ts-expect-error ignore
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         meta = {device: null};
     }
 
@@ -241,14 +205,24 @@ export function enforceEndpoint(entity: Zh.Endpoint, key: string, meta: Tz.Meta)
     return entity;
 }
 
-export function getKey<T>(object: {[s: string]: T} | {[s: number]: T}, value: T, fallback?: T, convertTo?: (v: unknown) => T) {
+type RecordStringOrNumber<T> = Record<string, T> | Record<number, T>;
+
+export function getKey<T>(object: RecordStringOrNumber<T>, value: T): string | undefined;
+export function getKey<T, F>(object: RecordStringOrNumber<T>, value: T, fallback: F): string | F;
+export function getKey<T, R>(object: RecordStringOrNumber<T>, value: T, fallback: undefined, convertTo: (v: string | number) => R): R | undefined;
+export function getKey<T, R, F>(object: RecordStringOrNumber<T>, value: T, fallback: F, convertTo: (v: string | number) => R): R | F;
+export function getKey<T, R, F>(
+    object: RecordStringOrNumber<T>,
+    value: T,
+    fallback?: F,
+    convertTo?: (v: string | number) => R,
+): R | F | string | undefined {
     for (const key in object) {
-        // @ts-expect-error ignore
+        // @ts-expect-error too generic
         if (object[key] === value) {
             return convertTo ? convertTo(key) : key;
         }
     }
-
     return fallback;
 }
 
@@ -412,7 +386,7 @@ export function toCamelCase(value: KeyValueAny | string) {
 
 export function getLabelFromName(name: string) {
     const label = name.replace(/_/g, " ");
-    return label[0].toUpperCase() + label.slice(1);
+    return label.length === 0 ? label : label[0].toUpperCase() + label.slice(1);
 }
 
 export function saveSceneState(entity: Zh.Endpoint, sceneID: number, groupID: number, state: KeyValue, name: string) {
@@ -517,21 +491,34 @@ export function getObjectProperty(object: KeyValue, key: string, defaultValue: u
     return object && object[key] !== undefined ? object[key] : defaultValue;
 }
 
-export function validateValue(value: unknown, allowed: unknown[]) {
+export function validateValue<T>(value: T, allowed: readonly T[]): asserts value is (typeof allowed)[number] {
     if (!allowed.includes(value)) {
         throw new Error(`'${value}' not allowed, choose between: ${allowed}`);
     }
 }
 
-export async function getClusterAttributeValue<T>(endpoint: Zh.Endpoint, cluster: string, attribute: string, fallback: T = undefined): Promise<T> {
+export async function getClusterAttributeValue<
+    Cl extends string,
+    Attr extends ClusterOrRawAttributeKeys<Cl, Custom>[number],
+    Custom extends TCustomCluster | undefined = undefined,
+>(
+    endpoint: Zh.Endpoint,
+    cluster: Cl,
+    attribute: Attr,
+    fallback: ClusterOrRawAttributes<Cl, Custom>[Attr],
+): Promise<ClusterOrRawAttributes<Cl, Custom>[Attr]> {
     try {
-        if (endpoint.getClusterAttributeValue(cluster, attribute) == null) {
-            await endpoint.read(cluster, [attribute], {sendPolicy: "immediate", disableRecovery: true});
+        const value = endpoint.getClusterAttributeValue(cluster, attribute);
+        if (value == null) {
+            const result = await endpoint.read<Cl, Custom>(cluster, [attribute] as ClusterOrRawAttributeKeys<Cl, Custom>, {
+                sendPolicy: "immediate",
+                disableRecovery: true,
+            });
+            return result[attribute];
         }
-        return endpoint.getClusterAttributeValue(cluster, attribute) as T;
-    } catch (error) {
-        if (fallback !== undefined) return fallback;
-        throw error;
+        return value as ClusterOrRawAttributes<Cl, Custom>[Attr];
+    } catch {
+        return fallback;
     }
 }
 
@@ -544,7 +531,9 @@ export function normalizeCelsiusVersionOfFahrenheit(value: number) {
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: "start" | "stop") {
     if (options?.no_occupancy_since) {
         if (action === "start") {
-            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
+            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => {
+                clearTimeout(t);
+            });
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
 
             options.no_occupancy_since.forEach((since: number) => {
@@ -554,7 +543,9 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
                 globalStore.getValue(endpoint, "no_occupancy_since_timers").push(timer);
             });
         } else if (action === "stop") {
-            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => clearTimeout(t));
+            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => {
+                clearTimeout(t);
+            });
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
         }
     }
@@ -579,33 +570,32 @@ export function printNumbersAsHexSequence(numbers: number[], hexLength: number):
     return numbers.map((v) => v.toString(16).padStart(hexLength, "0")).join(":");
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+// biome-ignore lint/suspicious/noExplicitAny: generic object
 export function assertObject<T extends Record<string, any>>(value: unknown, property?: string): asserts value is T {
-    const isObject = typeof value === "object" && !Array.isArray(value) && value !== null;
-    if (!isObject) {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
         throw new Error(`${property} is not a object, got ${typeof value} (${JSON.stringify(value)})`);
     }
 }
 
 export function assertArray(value: unknown, property?: string): asserts value is Array<unknown> {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    property = property ? `'${property}'` : "Value";
-    if (!Array.isArray(value)) throw new Error(`${property} is not an array, got ${typeof value} (${value.toString()})`);
+    if (!Array.isArray(value)) {
+        throw new Error(`${property ? `'${property}'` : "Value"} is not an array, got ${typeof value} (${value.toString()})`);
+    }
 }
 
 export function assertString(value: unknown, property?: string): asserts value is string {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    property = property ? `'${property}'` : "Value";
-    if (typeof value !== "string") throw new Error(`${property} is not a string, got ${typeof value} (${value.toString()})`);
+    if (typeof value !== "string") {
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a string, got ${typeof value} (${value.toString()})`);
+    }
 }
 
 export function isNumber(value: unknown): value is number {
     return typeof value === "number";
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+// biome-ignore lint/suspicious/noExplicitAny: generic object
 export function isObject(value: unknown): value is {[s: string]: any} {
-    return typeof value === "object" && !Array.isArray(value);
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export function isString(value: unknown): value is string {
@@ -617,21 +607,31 @@ export function isBoolean(value: unknown): value is boolean {
 }
 
 export function assertNumber(value: unknown, property?: string): asserts value is number {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    property = property ? `'${property}'` : "Value";
-    if (typeof value !== "number" || Number.isNaN(value)) throw new Error(`${property} is not a number, got ${typeof value} (${value?.toString()})`);
+    if (typeof value !== "number" || Number.isNaN(value)) {
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${value?.toString()})`);
+    }
 }
 
 export function toNumber(value: unknown, property?: string): number {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
-    property = property ? `'${property}'` : "Value";
     // @ts-expect-error ignore
     const result = Number.parseFloat(value);
     if (Number.isNaN(result)) {
-        throw new Error(`${property} is not a number, got ${typeof value} (${value.toString()})`);
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${value.toString()})`);
     }
     return result;
 }
+
+export const ignoreUnsupportedAttribute = async (func: () => Promise<void>, failMessage: string) => {
+    try {
+        await func();
+    } catch (e) {
+        if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+            logger.debug(`Ignoring unsupported attribute error: ${failMessage}`, NS);
+        } else {
+            throw e;
+        }
+    }
+};
 
 export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V = undefined, keyIsBool = false): V {
     if (!keyIsBool) {
@@ -668,9 +668,9 @@ export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: 
 }
 
 export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string = undefined): string {
-    for (const entry of Object.entries(lookup)) {
-        if (entry[1] === value) {
-            return entry[0];
+    for (const [key, val] of Object.entries(lookup)) {
+        if (val === value) {
+            return key;
         }
     }
     if (defaultValue === undefined) {
@@ -730,4 +730,14 @@ export function splitArrayIntoChunks<T>(arr: T[], chunkSize: number): T[][] {
     }
 
     return result;
+}
+
+export function determineEndpoint(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta, cluster: string | number): Zh.Endpoint | Zh.Group {
+    const {device, endpoint_name} = meta;
+    if (endpoint_name !== undefined) {
+        // In case an explicit endpoint is given, always send it to that endpoint
+        return entity;
+    }
+    // In case no endpoint is given, match the first endpoint which support the cluster.
+    return device.endpoints.find((e) => e.supportsInputCluster(cluster)) ?? device.endpoints[0];
 }

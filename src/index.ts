@@ -1,7 +1,5 @@
 import assert from "node:assert";
-
 import {Zcl} from "zigbee-herdsman";
-
 import * as fromZigbee from "./converters/fromZigbee";
 import * as toZigbee from "./converters/toZigbee";
 import * as exposesLib from "./lib/exposes";
@@ -35,9 +33,6 @@ import {
     type Fingerprint,
     type KeyValue,
     type OnEvent,
-    type OnEventData,
-    type OnEventMeta,
-    OnEventType,
     Option,
     Tz,
     type Zh,
@@ -52,13 +47,13 @@ type ModelIndex = [module: string, index: number];
 
 const MODELS_INDEX = modelsIndexJson as Record<string, ModelIndex[]>;
 
+export {ACTIONS, MqttRawPayload} from "./converters/actions";
 export type {Ota} from "./lib/types";
 export {
     DefinitionWithExtend,
     ExternalDefinitionWithExtend,
     access,
     Definition,
-    OnEventType,
     Feature,
     Expose,
     Option,
@@ -77,6 +72,7 @@ export {
     toZigbee,
     fromZigbee,
     Tz,
+    type OnEvent,
 };
 export {getConfigureKey} from "./lib/configureKey";
 export {setLogger} from "./lib/logger";
@@ -268,6 +264,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             ota,
             configure: definitionConfigure,
             onEvent: definitionOnEvent,
+            options,
             ...definitionWithoutExtend
         } = definition;
 
@@ -288,9 +285,10 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 
         toZigbee = [...(toZigbee ?? [])];
         fromZigbee = [...(fromZigbee ?? [])];
+        options = [...(options ?? [])];
 
         const configures: Configure[] = definitionConfigure ? [definitionConfigure] : [];
-        const onEvents: OnEvent[] = definitionOnEvent ? [definitionOnEvent] : [];
+        const onEvents: OnEvent.Handler[] = definitionOnEvent ? [definitionOnEvent] : [];
 
         for (const ext of extend) {
             if (!ext.isModernExtend) {
@@ -303,6 +301,10 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 
             if (ext.fromZigbee) {
                 fromZigbee.push(...ext.fromZigbee);
+            }
+
+            if (ext.options) {
+                options.push(...ext.options);
             }
 
             if (ext.exposes) {
@@ -365,12 +367,12 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             };
         }
 
-        let onEvent: OnEvent | undefined;
+        let onEvent: OnEvent.Handler | undefined;
 
         if (onEvents.length !== 0) {
-            onEvent = async (type, data, device, settings, state) => {
+            onEvent = async (event) => {
                 for (const func of onEvents) {
-                    await func(type, data, device, settings, state);
+                    await func(event);
                 }
             };
         }
@@ -403,7 +405,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             };
         }
 
-        return {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, ...definitionWithoutExtend};
+        return {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, options, ...definitionWithoutExtend};
     }
 
     return {...definition};
@@ -449,7 +451,7 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
 
             const type = utils.calibrateAndPrecisionRoundOptionsIsPercentual(expose.name) ? "percentual" : "absolute";
 
-            finalDefinition.options.push(exposesLib.options.calibration(expose.name, type));
+            finalDefinition.options.push(exposesLib.options.calibration(expose.name, type).withValueStep(0.1));
 
             if (utils.calibrateAndPrecisionRoundOptionsDefaultPrecision[expose.name] !== 0) {
                 finalDefinition.options.push(exposesLib.options.precision(expose.name));
@@ -475,10 +477,10 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
     return finalDefinition;
 }
 
-export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue): void {
+export function postProcessConvertedFromZigbeeMessage(definition: Definition, payload: KeyValue, options: KeyValue, device: Zh.Device): void {
     // Apply calibration/precision options
     for (const [key, value] of Object.entries(payload)) {
-        const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes({isDummyDevice: true}, {});
+        const definitionExposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(device, {});
         const expose = definitionExposes.find((e) => e.property === key);
 
         if (expose?.name && expose.name in utils.calibrateAndPrecisionRoundOptionsDefaultPrecision && value !== "" && utils.isNumber(value)) {
@@ -502,8 +504,8 @@ export async function findByDevice(device: Zh.Device, generateForUnknown = false
                 definition = {
                     ...definition,
                     model: match.model,
-                    vendor: match.vendor,
-                    description: match.description || definition.description,
+                    vendor: match.vendor ?? definition.vendor,
+                    description: match.description ?? definition.description,
                 };
             }
         }
@@ -513,7 +515,7 @@ export async function findByDevice(device: Zh.Device, generateForUnknown = false
 }
 
 export async function findDefinition(device: Zh.Device, generateForUnknown = false): Promise<DefinitionWithExtend | undefined> {
-    if (!device) {
+    if (!device || device.type === "Coordinator") {
         return undefined;
     }
 
@@ -568,7 +570,7 @@ export async function findDefinition(device: Zh.Device, generateForUnknown = fal
         }
     }
 
-    if (!generateForUnknown || device.type === "Coordinator") {
+    if (!generateForUnknown) {
         return undefined;
     }
 
@@ -628,7 +630,10 @@ function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device): boolea
 
 // Can be used to handle events for devices which are not fully paired yet (no modelID).
 // Example usecase: https://github.com/Koenkk/zigbee2mqtt/issues/2399#issuecomment-570583325
-export function onEvent(type: OnEventType, data: OnEventData, device: Zh.Device, meta: OnEventMeta): Promise<void> {
+export function onEvent(event: OnEvent.Event): Promise<void> {
+    if (event.type === "stop") return;
+    const {device} = event.data;
+
     // support Legrand security protocol
     // when pairing, a powered device will send a read frame to every device on the network
     // it expects at least one answer. The payload contains the number of seconds

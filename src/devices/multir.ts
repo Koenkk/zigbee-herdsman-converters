@@ -1,0 +1,119 @@
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+
+const e = exposes.presets;
+const ea = exposes.access;
+
+const fzLocal = {
+    MIRSO100: {
+        cluster: "ssIasZone",
+        type: "raw",
+        convert: (model, msg, publish, options, meta) => {
+            switch (msg.data[3]) {
+                case 0:
+                    return {action: "single"};
+                case 1:
+                    return {action: "double"};
+                case 128:
+                    return {action: "hold"};
+            }
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, "raw">,
+};
+
+const tzLocal = {
+    MIRSM200: {
+        key: ["silence"],
+        convertSet: async (entity, key, value, meta) => {
+            if (value === "ON") {
+                await entity.command("genOnOff", "off", {});
+            }
+        },
+    } satisfies Tz.Converter,
+};
+
+export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["MIR-MC100"],
+        model: "MIR-MC100",
+        vendor: "MultIR",
+        description: "Door sensor",
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({
+                zoneType: "contact",
+                zoneAttributes: ["alarm_1", "tamper", "battery_low"],
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["MIR-IL100", "MIR-IR100"],
+        model: "MIR-IR100",
+        vendor: "MultIR",
+        description: "PIR sensor",
+        extend: [
+            m.battery(),
+            m.illuminance(),
+            m.iasZoneAlarm({
+                zoneType: "occupancy",
+                zoneAttributes: ["alarm_1", "tamper", "battery_low"],
+            }),
+            m.enumLookup({
+                name: "sensitivity",
+                cluster: "ssIasZone",
+                attribute: "currentZoneSensitivityLevel",
+                description: "Sensitivity of the pir detector",
+                lookup: {
+                    low: 0x00,
+                    medium: 0x01,
+                    high: 0x02,
+                },
+                entityCategory: "config",
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["MIR-SM200"],
+        model: "MIR-SM200",
+        vendor: "MultIR",
+        description: "Smoke sensor",
+        toZigbee: [tzLocal.MIRSM200],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
+        exposes: [
+            exposes.enum("silence", ea.SET, ["ON"]).withDescription("After enabling mute, it will return to detection state after 90 seconds."),
+        ],
+    },
+    {
+        zigbeeModel: ["MIR-SO100"],
+        model: "MIR-SO100",
+        vendor: "MultIR",
+        description: "SOS Button",
+        fromZigbee: [fzLocal.MIRSO100],
+        exposes: [e.action(["single", "double", "hold"])],
+        extend: [m.battery()],
+    },
+    {
+        zigbeeModel: ["MIR-TE600"],
+        model: "MIR-TE600",
+        vendor: "MultIR",
+        description: "Temperature sensor",
+        extend: [m.battery(), m.temperature(), m.humidity()],
+        meta: {
+            multiEndpoint: true,
+        },
+    },
+    {
+        zigbeeModel: ["MIR-WA100"],
+        model: "MIR-WA100",
+        vendor: "MultIR",
+        description: "Water leakage sensor",
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({
+                zoneType: "water_leak",
+                zoneAttributes: ["alarm_1", "battery_low"],
+            }),
+        ],
+    },
+];

@@ -9,6 +9,31 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 
+interface Salus {
+    attributes: {
+        frostSetpoint: number;
+        minFrostSetpoint: number;
+        maxFrostSetpoint: number;
+        timeDisplayFormat: number;
+        attr4: number;
+        attr5: number;
+        attr6: number;
+        attr7: number;
+        autoCoolingSetpoint: number;
+        autoHeatingSetpoint: number;
+        holdType: number;
+        shortCycleProtection: number;
+        coolingFanDelay: number;
+        ruleCoolingSetpoint: number;
+        ruleHeatingSetpoint: number;
+        attr15: number;
+    };
+    commands: {
+        resetDevice: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["SPE600"],
@@ -99,31 +124,32 @@ export const definitions: DefinitionWithExtend[] = [
         ota: {manufacturerName: "SalusControls"},
     },
     {
-        zigbeeModel: ["FC600"],
+        zigbeeModel: ["FC600", "FC600NH"],
         model: "FC600",
         vendor: "Salus Controls",
         description: "Fan coil thermostat",
+        whiteLabel: [{vendor: "Salus Controls", model: "FC600NH", description: "Fan coil thermostat", fingerprint: [{modelID: "FC600NH"}]}],
         extend: [
             m.deviceAddCustomCluster("manuSpecificSalus", {
                 ID: 0xfc04,
                 manufacturerCode: Zcl.ManufacturerCode.COMPUTIME,
                 attributes: {
-                    frostSetpoint: {ID: 0x0000, type: Zcl.DataType.INT16},
-                    minFrostSetpoint: {ID: 0x0001, type: Zcl.DataType.INT16},
-                    maxFrostSetpoint: {ID: 0x0002, type: Zcl.DataType.INT16},
-                    timeDisplayFormat: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
-                    attr4: {ID: 0x0004, type: Zcl.DataType.UINT16},
-                    attr5: {ID: 0x0005, type: Zcl.DataType.UINT8},
-                    attr6: {ID: 0x0006, type: Zcl.DataType.UINT16},
-                    attr7: {ID: 0x0007, type: Zcl.DataType.UINT8},
-                    autoCoolingSetpoint: {ID: 0x0008, type: Zcl.DataType.INT16},
-                    autoHeatingSetpoint: {ID: 0x0009, type: Zcl.DataType.INT16},
-                    holdType: {ID: 0x000a, type: Zcl.DataType.UINT8},
-                    shortCycleProtection: {ID: 0x000b, type: Zcl.DataType.UINT16},
-                    coolingFanDelay: {ID: 0x000c, type: Zcl.DataType.UINT16},
-                    ruleCoolingSetpoint: {ID: 0x000d, type: Zcl.DataType.INT16},
-                    ruleHeatingSetpoint: {ID: 0x000e, type: Zcl.DataType.INT16},
-                    attr15: {ID: 0x000f, type: Zcl.DataType.BOOLEAN},
+                    frostSetpoint: {ID: 0x0000, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    minFrostSetpoint: {ID: 0x0001, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    maxFrostSetpoint: {ID: 0x0002, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    timeDisplayFormat: {ID: 0x0003, type: Zcl.DataType.BOOLEAN, write: true},
+                    attr4: {ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    attr5: {ID: 0x0005, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    attr6: {ID: 0x0006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    attr7: {ID: 0x0007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    autoCoolingSetpoint: {ID: 0x0008, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    autoHeatingSetpoint: {ID: 0x0009, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    holdType: {ID: 0x000a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    shortCycleProtection: {ID: 0x000b, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    coolingFanDelay: {ID: 0x000c, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    ruleCoolingSetpoint: {ID: 0x000d, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    ruleHeatingSetpoint: {ID: 0x000e, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    attr15: {ID: 0x000f, type: Zcl.DataType.BOOLEAN, write: true},
                 },
                 commands: {
                     resetDevice: {
@@ -133,7 +159,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            m.enumLookup({
+            m.enumLookup<"manuSpecificSalus", Salus>({
                 name: "preset",
                 lookup: {schedule: 0, temporary_override: 1, permanent_override: 2, standby: 7, eco: 10},
                 cluster: "manuSpecificSalus",

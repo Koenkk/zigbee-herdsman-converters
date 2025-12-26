@@ -34,7 +34,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ZG102-BOX-UNIDIM"],
         model: "ZG102-BOX-UNIDIM",
         vendor: "Envilar",
-        description: "ZigBee AC phase-cut dimmer",
+        description: "Zigbee AC phase-cut dimmer",
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -72,5 +72,26 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Envilar",
         description: "Zigbee CV dimmable LED driver",
         extend: [m.light()],
+    },
+    {
+        zigbeeModel: ["5463"],
+        model: "5463",
+        vendor: "Envilar",
+        description: "Zigbee CCT dimmable LED driver",
+        extend: [m.light({colorTemp: {range: [160, 450]}}), m.identify()],
+    },
+    {
+        zigbeeModel: ["5491"],
+        model: "5491",
+        vendor: "Envilar",
+        description: "Dimmable driver",
+        extend: [m.light({colorTemp: {range: [160, 450]}})],
+    },
+    {
+        zigbeeModel: ["7859"],
+        model: "7859",
+        vendor: "ENVILAR",
+        description: "ZigBee DIN Rail Smart Dimmer",
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
 ];

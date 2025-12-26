@@ -28,14 +28,13 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {state: msg.data.presentValue === 1 ? msg.data.activeText : msg.data.inactiveText};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genBinaryOutput", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
     fan_mode: {
         ...tz.fan_mode,
         convertSet: async (entity, key, value, meta) => {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (String(value).toLowerCase() === "on") value = "high";
             return await tz.fan_mode.convertSet(entity, key, value, meta);
         },

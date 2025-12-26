@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -10,6 +9,28 @@ import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface NikoConfig {
+    attributes: {
+        switchOperationMode: number;
+        outletLedColor: number;
+        outletChildLock: number;
+        outletLedState: number;
+        ledSyncMode: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface NikoState {
+    manufacturerCode: Zcl.ManufacturerCode.NIKO_NV;
+    attributes: {
+        switchActionReporting: number;
+        switchAction: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const local = {
     modernExtend: {
@@ -22,12 +43,12 @@ const local = {
                      *          enum8 (switch) vs. bitmap8 (outlet)
                      *          unknown usage/function on outlet
                      */
-                    switchOperationMode: {ID: 0x0000, type: Zcl.DataType.ENUM8},
-                    outletLedColor: {ID: 0x0100, type: Zcl.DataType.UINT24},
-                    outletChildLock: {ID: 0x0101, type: Zcl.DataType.UINT8},
-                    outletLedState: {ID: 0x0104, type: Zcl.DataType.UINT8},
+                    switchOperationMode: {ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    outletLedColor: {ID: 0x0100, type: Zcl.DataType.UINT24, write: true, max: 0xffffff},
+                    outletChildLock: {ID: 0x0101, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    outletLedState: {ID: 0x0104, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                     /* WARNING: 0x0107 is not supported on older switches */
-                    ledSyncMode: {ID: 0x0107, type: Zcl.DataType.BITMAP32},
+                    ledSyncMode: {ID: 0x0107, type: Zcl.DataType.BITMAP32, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -37,8 +58,8 @@ const local = {
                 ID: 0xfc01,
                 manufacturerCode: Zcl.ManufacturerCode.NIKO_NV,
                 attributes: {
-                    switchActionReporting: {ID: 0x0001, type: Zcl.DataType.BITMAP8},
-                    switchAction: {ID: 0x0002, type: Zcl.DataType.UINT8},
+                    switchActionReporting: {ID: 0x0001, type: Zcl.DataType.BITMAP8, write: true},
+                    switchAction: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -56,7 +77,7 @@ const local = {
                 }
                 return state;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificNikoConfig", NikoConfig, ["attributeReport", "readResponse"]>,
         switch_action: {
             cluster: "manuSpecificNikoState",
             type: ["attributeReport", "readResponse"],
@@ -102,7 +123,7 @@ const local = {
                     }
                 }
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificNikoState", NikoState, ["attributeReport", "readResponse"]>,
         switch_status_led: {
             cluster: "manuSpecificNikoConfig",
             type: ["attributeReport", "readResponse"],
@@ -131,7 +152,7 @@ const local = {
                 }
                 return state;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificNikoConfig", NikoConfig, ["attributeReport", "readResponse"]>,
         outlet: {
             cluster: "manuSpecificNikoConfig",
             type: ["attributeReport", "readResponse"],
@@ -145,7 +166,7 @@ const local = {
                 }
                 return state;
             },
-        } satisfies Fz.Converter,
+        } satisfies Fz.Converter<"manuSpecificNikoConfig", NikoConfig, ["attributeReport", "readResponse"]>,
     },
     tz: {
         switch_operation_mode: {
@@ -169,7 +190,9 @@ const local = {
             },
             convertGet: async (entity, key, meta) => {
                 utils.assertEndpoint(entity);
-                await utils.enforceEndpoint(entity, key, meta).read("manuSpecificNikoConfig", ["switchOperationMode"]);
+                await utils
+                    .enforceEndpoint(entity, key, meta)
+                    .read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["switchOperationMode"]);
             },
         } satisfies Tz.Converter,
         switch_action_reporting: {
@@ -188,18 +211,18 @@ const local = {
                 return {state: {action_reporting: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificNikoState", ["switchActionReporting"]);
+                await entity.read<"manuSpecificNikoState", NikoState>("manuSpecificNikoState", ["switchActionReporting"]);
             },
         } satisfies Tz.Converter,
         switch_led_enable: {
             key: ["led_enable"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("manuSpecificNikoConfig", {outletLedState: value ? 1 : 0});
-                await entity.read("manuSpecificNikoConfig", ["outletLedColor"]);
+                await entity.write<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", {outletLedState: value ? 1 : 0});
+                await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedColor"]);
                 return {state: {led_enable: !!value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificNikoConfig", ["outletLedState"]);
+                await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedState"]);
             },
         } satisfies Tz.Converter,
         switch_led_state: {
@@ -218,7 +241,7 @@ const local = {
                 return {state: {led_state: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificNikoConfig", ["outletLedColor"]);
+                await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedColor"]);
             },
         } satisfies Tz.Converter,
         switch_led_sync_mode: {
@@ -245,32 +268,34 @@ const local = {
                     // @ts-expect-error ignore
                     result = ledSyncMap[value];
                 }
-                await entity.write("manuSpecificNikoConfig", {ledSyncMode: result});
+                await entity.write<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", {ledSyncMode: result});
                 return {state: {led_sync_mode: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificNikoConfig", ["ledSyncMode"]);
+                await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledSyncMode"]);
             },
         } satisfies Tz.Converter,
         outlet_child_lock: {
             key: ["child_lock"],
             convertSet: async (entity, key, value, meta) => {
                 utils.assertString(value, key);
-                await entity.write("manuSpecificNikoConfig", {outletChildLock: value.toLowerCase() === "lock" ? 0 : 1});
+                await entity.write<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", {
+                    outletChildLock: value.toLowerCase() === "lock" ? 0 : 1,
+                });
                 return {state: {child_lock: value.toLowerCase() === "lock" ? "LOCK" : "UNLOCK"}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificNikoConfig", ["outletChildLock"]);
+                await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletChildLock"]);
             },
         } satisfies Tz.Converter,
         outlet_led_enable: {
             key: ["led_enable"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("manuSpecificNikoConfig", {outletLedState: value ? 1 : 0});
+                await entity.write<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", {outletLedState: value ? 1 : 0});
                 return {state: {led_enable: !!value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificNikoConfig", ["outletLedState"]);
+                await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedState"]);
             },
         } satisfies Tz.Converter,
     },
@@ -302,8 +327,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.currentSummDelivered(endpoint, {min: 60, change: 1});
 
-            await endpoint.read("manuSpecificNikoConfig", ["outletChildLock"]);
-            await endpoint.read("manuSpecificNikoConfig", ["outletLedState"]);
+            await endpoint.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletChildLock"]);
+            await endpoint.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedState"]);
         },
         exposes: [
             e.switch(),
@@ -314,6 +339,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.binary("led_enable", ea.ALL, true, false).withDescription("Enable LED"),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["Smart plug Zigbee SE"],
@@ -378,6 +404,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.occupancy(), e.battery_low(), e.battery()],
+        ota: true,
     },
     {
         zigbeeModel: ["Single connectable switch,10A"],
@@ -398,11 +425,15 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint);
-            await endpoint.read("manuSpecificNikoConfig", ["switchOperationMode", "outletLedState", "outletLedColor"]);
+            await endpoint.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", [
+                "switchOperationMode",
+                "outletLedState",
+                "outletLedColor",
+            ]);
             // Enable action reporting by default
-            await endpoint.write("manuSpecificNikoState", {switchActionReporting: true});
-            await endpoint.read("manuSpecificNikoState", ["switchActionReporting"]);
-            await endpoint.read("manuSpecificNikoConfig", ["ledSyncMode"]);
+            await endpoint.write<"manuSpecificNikoState", NikoState>("manuSpecificNikoState", {switchActionReporting: 1});
+            await endpoint.read<"manuSpecificNikoState", NikoState>("manuSpecificNikoState", ["switchActionReporting"]);
+            await endpoint.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledSyncMode"]);
         },
         exposes: [
             e.switch(),
@@ -413,6 +444,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("led_state", ea.ALL, ["ON", "OFF", "Blue", "Red", "Purple"]).withDescription("LED State"),
             e.enum("led_sync_mode", ea.ALL, ["Off", "On", "Inverted"]).withDescription("Sync LED with relay state"),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["Double connectable switch,10A"],
@@ -440,13 +472,21 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(ep2, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(ep1);
             await reporting.onOff(ep2);
-            await ep1.read("manuSpecificNikoConfig", ["switchOperationMode", "outletLedState", "outletLedColor"]);
-            await ep2.read("manuSpecificNikoConfig", ["switchOperationMode", "outletLedState", "outletLedColor"]);
+            await ep1.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", [
+                "switchOperationMode",
+                "outletLedState",
+                "outletLedColor",
+            ]);
+            await ep2.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", [
+                "switchOperationMode",
+                "outletLedState",
+                "outletLedColor",
+            ]);
             // Enable action reporting by default
-            await ep1.write("manuSpecificNikoState", {switchActionReporting: true});
-            await ep1.read("manuSpecificNikoState", ["switchActionReporting"]);
-            await ep1.read("manuSpecificNikoConfig", ["ledSyncMode"]);
-            await ep2.read("manuSpecificNikoConfig", ["ledSyncMode"]);
+            await ep1.write<"manuSpecificNikoState", NikoState>("manuSpecificNikoState", {switchActionReporting: 1});
+            await ep1.read<"manuSpecificNikoState", NikoState>("manuSpecificNikoState", ["switchActionReporting"]);
+            await ep1.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledSyncMode"]);
+            await ep2.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledSyncMode"]);
         },
         exposes: [
             e.switch().withEndpoint("l1"),
@@ -474,6 +514,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("led_sync_mode", ea.ALL, ["Off", "On", "Inverted"]).withEndpoint("l1").withDescription("Sync LED with relay state"),
             e.enum("led_sync_mode", ea.ALL, ["Off", "On", "Inverted"]).withEndpoint("l2").withDescription("Sync LED with relay state"),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["Connectable dimmer,3-200W,2-wire"],
@@ -493,8 +534,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
             await reporting.onOff(endpoint);
             await reporting.brightness(endpoint);
-            await endpoint.read("manuSpecificNikoConfig", ["outletLedState", "outletLedColor"]);
+            await endpoint.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedState", "outletLedColor"]);
         },
+        ota: true,
     },
     {
         zigbeeModel: ["Connectable motor control,3A"],
@@ -510,6 +552,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.currentPositionLiftPercentage(endpoint);
         },
         exposes: [e.cover_position()],
+        ota: true,
     },
     {
         zigbeeModel: ["Battery switch, 1 button"],
@@ -524,6 +567,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.action(["on", "off", "brightness_move_up", "brightness_move_down", "brightness_stop"]), e.battery()],
+        ota: true,
     },
     {
         zigbeeModel: ["Battery switch, 2 button"],
@@ -558,6 +602,7 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
             e.battery(),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["Battery switch, 4 button"],
@@ -606,5 +651,6 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
             e.battery(),
         ],
+        ota: true,
     },
 ];

@@ -25,6 +25,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "color_temperature_move",
             ]),
         ],
+        extend: [m.battery()],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ["genBasic", "genOnOff", "genLevelCtrl", "lightingColorCtrl"]);
@@ -38,6 +39,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.command_step, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp],
         toZigbee: [],
         exposes: [e.action(["on", "off", "brightness_step_up", "brightness_step_down", "brightness_move_to_level", "color_temperature_move"])],
+        extend: [m.battery()],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ["genBasic", "genGroups", "genScenes", "genOnOff", "genLevelCtrl", "lightingColorCtrl"]);
@@ -51,11 +53,27 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
+        zigbeeModel: ["AE 282 C"],
+        model: "AE 282 C",
+        vendor: "Innr",
+        description: "Smart Bulb Colour E27 (800lm)",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["RCL 231 T"],
         model: "RCL 231 T",
         vendor: "Innr",
         description: "Round Ceiling Light - Warm to Cool White",
         extend: [m.light({colorTemp: {range: [153, 500]}, turnsOffAtBrightness1: true})],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["RCL 232 C"],
+        model: "RCL 232 C",
+        vendor: "Innr",
+        description: "Round ceilng light - white and colour",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        ota: true,
     },
     {
         zigbeeModel: ["RCL 240 T"],
@@ -78,7 +96,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FL 140 C",
         vendor: "Innr",
         description: "Color Flex LED strip 4m 1200lm",
-        extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [
+            m.light({
+                colorTemp: {range: [153, 555]},
+                color: {modes: ["xy", "hs"], applyRedFix: true},
+                turnsOffAtBrightness1: true,
+                powerOnBehavior: false,
+            }),
+        ],
     },
     {
         zigbeeModel: ["FL 130 C"],
@@ -109,6 +134,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["RB 282 C"],
+        model: "RB 282 C",
+        vendor: "Innr",
+        description: "E27 bulb RGBW",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}, turnsOffAtBrightness1: true})],
+    },
+    {
         zigbeeModel: ["BF 263"],
         model: "BF 263",
         vendor: "Innr",
@@ -129,7 +161,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OGL 130 C",
         vendor: "Innr",
         description: "Outdoor smart globe lights",
-        extend: [m.light({colorTemp: {range: [100, 1000]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [
+            m.light({
+                colorTemp: {range: [100, 1000]},
+                color: {modes: ["xy", "hs"], applyRedFix: true},
+                turnsOffAtBrightness1: true,
+                powerOnBehavior: false,
+            }),
+        ],
     },
     {
         zigbeeModel: ["OPL 130 C"],
@@ -186,11 +225,34 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["RB 252 C"],
+        model: "RB 252 C",
+        vendor: "Innr",
+        description: "Smart bulb Candle Colour E14",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["RB 256 C"],
+        model: "RB 256 C",
+        vendor: "Innr",
+        description: "Smart Mini Bulb Colour E14",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["RB 262"],
         model: "RB 262",
         vendor: "Innr",
-        description: "E27 bulb",
+        description: "Smart Bulb White 800lm E27",
         extend: [m.light({turnsOffAtBrightness1: true})],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["BB 262"],
+        model: "BB 262",
+        vendor: "Innr",
+        description: "Smart Bulb White 800lm B22",
+        extend: [m.light({turnsOffAtBrightness1: true})],
+        ota: true,
     },
     {
         zigbeeModel: ["RB 265"],
@@ -304,11 +366,45 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["RB 287 C"],
+        model: "RB 287 C",
+        vendor: "Innr",
+        description: "Smart Bulb Colour E27 1200lm",
+        extend: [
+            m.light({
+                colorTemp: {range: [153, 556]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+                turnsOffAtBrightness1: true,
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["BB 287 C-2"],
+        model: "BB 287 C-2",
+        vendor: "Innr",
+        description: "Smart Bulb Colour E27 1210lm",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["BB 287 C"],
+        model: "BB 287 C",
+        vendor: "Innr",
+        description: "Smart Bulb Colour E27 1210lm",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["BY 285 C"],
         model: "BY 285 C",
         vendor: "Innr",
         description: "B22 bulb RGBW",
         extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
+    },
+    {
+        zigbeeModel: ["BB 282 C"],
+        model: "BB 282 C",
+        vendor: "Innr",
+        description: "B22 bulb RGBW",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["BY 286 C"],
@@ -336,7 +432,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RB 172 W"],
         model: "RB 172 W",
         vendor: "Innr",
-        description: "ZigBee E27 retrofit bulb, warm dimmable 2200-2700K, 806 Lm",
+        description: "Zigbee E27 retrofit bulb, warm dimmable 2200-2700K, 806 Lm",
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -401,14 +497,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["RS 241 T"],
-        model: "RS 241 T",
-        vendor: "Innr",
-        description: "GU10 spot 420 lm, dimmable, white spectrum",
-        extend: [m.light({colorTemp: {range: [153, 455]}, turnsOffAtBrightness1: true})],
-        ota: true,
-    },
-    {
         zigbeeModel: ["RS 128 T"],
         model: "RS 128 T",
         vendor: "Innr",
@@ -456,6 +544,30 @@ export const definitions: DefinitionWithExtend[] = [
                 turnsOffAtBrightness1: true,
             }),
         ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["RS 240"],
+        model: "RS 240",
+        vendor: "Innr",
+        description: "Smart pot white GU10 ",
+        extend: [m.light({turnsOffAtBrightness1: true})],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["RS 241 T"],
+        model: "RS 241 T",
+        vendor: "Innr",
+        description: "GU10 spot 420 lm, dimmable, white spectrum",
+        extend: [m.light({colorTemp: {range: [153, 455]}, turnsOffAtBrightness1: true})],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["RS 242 C"],
+        model: "RS 242 C",
+        vendor: "Innr",
+        description: "Smart spot colour GU10",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
         ota: true,
     },
     {
@@ -658,6 +770,13 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["AE 287 C"],
+        model: "AE 287 C",
+        vendor: "Innr",
+        description: "E26 bulb 1100lm, RGBCW",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}, turnsOffAtBrightness1: true})],
+    },
+    {
         zigbeeModel: ["SP 120"],
         model: "SP 120",
         vendor: "Innr",
@@ -713,6 +832,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff()],
     },
     {
+        zigbeeModel: ["OSP 240"],
+        model: "OSP 240",
+        vendor: "Innr",
+        description: "Outdoor smart plug",
+        extend: [m.onOff(), m.electricityMeter()],
+    },
+    {
         zigbeeModel: ["OFL 120 C"],
         model: "OFL 120 C",
         vendor: "Innr",
@@ -731,7 +857,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OFL 142 C",
         vendor: "Innr",
         description: "Outdoor flex light colour LED strip 4m, 1440lm, RGBW",
-        extend: [m.light({colorTemp: {range: [100, 350]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
+        extend: [
+            m.light({
+                colorTemp: {range: [100, 350]},
+                color: {modes: ["xy", "hs"], applyRedFix: true},
+                turnsOffAtBrightness1: true,
+                powerOnBehavior: false,
+            }),
+        ],
     },
     {
         zigbeeModel: ["RB 255 C"],
@@ -774,6 +907,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OSL 132 C",
         vendor: "Innr",
         description: "Outdoor smart spot color",
+        extend: [m.light({colorTemp: {range: [100, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["OSL 140 C"],
+        model: "OSL 140 C",
+        vendor: "Innr",
+        description: "Outdoor smart spot XL color",
+        ota: true,
         extend: [m.light({colorTemp: {range: [100, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {

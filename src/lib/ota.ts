@@ -2,11 +2,8 @@ import assert from "node:assert";
 import crypto from "node:crypto";
 import {readFileSync} from "node:fs";
 import path from "node:path";
-
-import crc32 from "buffer-crc32";
-
+import {crc32} from "node:zlib";
 import {Zcl} from "zigbee-herdsman";
-
 import {logger} from "./logger";
 import type {Ota, Zh} from "./types";
 
@@ -160,7 +157,6 @@ async function getJson<T>(pageUrl: string): Promise<T> {
 function readLocalFile(fileName: string): Buffer {
     // If the file name is not a full path, then treat it as a relative to the data directory
     if (!path.isAbsolute(fileName) && dataDir) {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         fileName = path.join(dataDir, fileName);
     }
 
@@ -200,7 +196,21 @@ function parseSubElement(buffer: Buffer, position: number): Ota.ImageElement {
     return {tagID, length, data};
 }
 
-export function parseImage(buffer: Buffer, suppressElementImageParseFailure = false): Ota.Image {
+function parseTelinkEncryptSubElement(buffer: Buffer, position: number): Ota.ImageElement {
+    const tagID = buffer.readUInt16LE(position);
+    const length = buffer.readUInt32LE(position + 2);
+    // const tagInfo = buffer.readUInt32LE(position + 4);
+    const data = buffer.subarray(position + 8, position + 8 + length);
+
+    return {tagID, length, data};
+}
+
+export function parseImage(buffer: Buffer, suppressElementImageParseFailure = false, customParseLogic: Ota.CustomParseLogic = undefined): Ota.Image {
+    logger.debug(
+        `Parsing image, size=${buffer.length}, suppressElementImageParseFailure=${suppressElementImageParseFailure}, customParseLogic=${customParseLogic}`,
+        NS,
+    );
+
     const header: Ota.ImageHeader = {
         otaUpgradeFileIdentifier: buffer.subarray(0, 4),
         otaHeaderVersion: buffer.readUInt16LE(4),
@@ -213,6 +223,7 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure = fa
         otaHeaderString: buffer.toString("utf8", 20, 52),
         totalImageSize: buffer.readUInt32LE(52),
     };
+
     let headerPos = 56;
     let didSuppressElementImageParseFailure = false;
 
@@ -245,9 +256,18 @@ export function parseImage(buffer: Buffer, suppressElementImageParseFailure = fa
 
     try {
         while (position < header.totalImageSize) {
-            const element = parseSubElement(buffer, position);
+            // Use the selected parser function
+            let element: Ota.ImageElement;
+            let elementOffset = 6;
+            if (customParseLogic === "telinkEncrypted") {
+                element = parseTelinkEncryptSubElement(buffer, position);
+                elementOffset = 8;
+            } else {
+                element = parseSubElement(buffer, position);
+            }
+
             elements.push(element);
-            position += element.data.length + 6;
+            position += element.data.length + elementOffset;
         }
     } catch (error) {
         if (!suppressElementImageParseFailure) {
@@ -303,7 +323,7 @@ function validateSilabsEbl(data: Buffer): void {
             assert(data.readUInt8(position2) === EBL_PADDING, "Image padding contains invalid bytes");
         }
 
-        const calculatedCrc32 = crc32.unsigned(data.subarray(0, position));
+        const calculatedCrc32 = crc32(data.subarray(0, position));
 
         assert(calculatedCrc32 === VALID_SILABS_CRC, "Image CRC-32 is invalid");
 
@@ -321,11 +341,8 @@ function validateSilabsGbl(data: Buffer): void {
     assert(gblEndTagIndex > 16, "Not a valid GBL image"); // after HEADER, just because...
 
     const gblEnd = gblEndTagIndex + 12; // tag + length + crc32 (4*3)
-    // TODO: nodejs >= v20.15.0, remove dep buffer-crc32
-    //       import {crc32} from 'zlib';
-    //       const calculatedCrc32 = crc32(data.subarray(0, gblEnd));
     // ignore possible padding
-    const calculatedCrc32 = crc32.unsigned(data.subarray(0, gblEnd));
+    const calculatedCrc32 = crc32(data.subarray(0, gblEnd));
 
     assert(calculatedCrc32 === VALID_SILABS_CRC, "Image CRC-32 is invalid");
 }
@@ -348,7 +365,7 @@ function fillImageInfo(meta: Ota.ZigbeeOTAImageMeta): Ota.ZigbeeOTAImageMeta {
     assert(otaIdentifier !== -1, "Not a valid OTA file");
 
     // allow bypass non-spec Ledvance OTA files if proper manufacturer set
-    const image = parseImage(imageFile.subarray(otaIdentifier), meta.manufacturerCode === Zcl.ManufacturerCode.LEDVANCE_GMBH);
+    const image = parseImage(imageFile.subarray(otaIdentifier), meta.manufacturerCode === Zcl.ManufacturerCode.LEDVANCE_GMBH, meta.customParseLogic);
 
     // Will fill only those fields that were absent
     if (meta.imageType === undefined) {
@@ -594,7 +611,6 @@ async function isImageAvailable(
         // https://github.com/Koenkk/zigbee2mqtt/issues/16345 doesn't seem to be needed for all
         // https://github.com/Koenkk/zigbee2mqtt/issues/15745
         if (device.meta.lumiFileVersion) {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             current = {...current, fileVersion: device.meta.lumiFileVersion};
         }
     }
@@ -666,7 +682,7 @@ async function getImage(current: Ota.ImageInfo, device: Zh.Device, extraMetas: O
 
     assert(otaIdentifier !== -1, "Not a valid OTA file");
 
-    const image = parseImage(downloadedFile.subarray(otaIdentifier), extraMetas.suppressElementImageParseFailure || false);
+    const image = parseImage(downloadedFile.subarray(otaIdentifier), extraMetas.suppressElementImageParseFailure || false, meta.customParseLogic);
 
     logger.debug(() => `${deviceLogString(device)} Got ${imageSet} image, header: ${JSON.stringify(image.header)}`, NS);
 
@@ -721,7 +737,6 @@ export async function isUpdateAvailable(
 
         logger.debug(() => `${deviceLogString(device)} Got request '${JSON.stringify(payload)}'`, NS);
 
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         requestPayload = payload;
     }
 
@@ -814,7 +829,6 @@ export async function update(
     }
 
     if (!requestPayload) {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         [reqTransNum, requestPayload] = await requestOTA(endpoint);
 
         logger.debug(() => `${deviceLogString(device)} Got request payload '${JSON.stringify(requestPayload)}'`, NS);
@@ -880,7 +894,6 @@ export async function update(
                 imageBlockRequest.header.transactionSequenceNumber,
             );
 
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             pageOffset += blockPayload.dataSize;
         } catch (error) {
             // Shit happens, device will probably do a new imageBlockRequest so don't care.

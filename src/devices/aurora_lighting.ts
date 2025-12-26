@@ -3,7 +3,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {Configure, DefinitionWithExtend, Fz, OnEvent, Tz, Zh} from "../lib/types";
+import type {Configure, DefinitionWithExtend, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -18,7 +18,7 @@ const tzLocal = {
             const state = value.toLowerCase();
             utils.validateValue(state, ["toggle", "off", "on"]);
             const endpoint = meta.device.getEndpoint(3);
-            await endpoint.command("genOnOff", state, {});
+            await endpoint.command("genOnOff", state as "toggle" | "off" | "on", {});
             return {state: {backlight_led: state.toUpperCase()}};
         },
     } satisfies Tz.Converter,
@@ -26,7 +26,12 @@ const tzLocal = {
         key: ["brightness"],
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command("genLevelCtrl", "moveToLevel", {level: value, transtime: 0}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level: value as number, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
             return {state: {brightness: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -44,7 +49,7 @@ const disableBatteryRotaryDimmerReporting = async (endpoint: Zh.Endpoint) => {
 };
 
 const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
-    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature] satisfies Fz.Converter[],
+    fromZigbee: [fz.battery, fz.command_on, fz.command_off, fz.command_step, fz.command_step_color_temperature],
     toZigbee: [] as Tz.Converter[], // TODO: Needs documented reasoning for asserting this as a type it isn't
     exposes: [
         e.battery(),
@@ -62,11 +67,11 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
             await disableBatteryRotaryDimmerReporting(endpoint);
         }
     }) satisfies Configure,
-    onEvent: (async (type, data, device) => {
+    onEvent: (async (event) => {
         // The rotary dimmer devices appear to lose the configured reportings when they
         // re-announce themselves which they do roughly every 6 hours.
-        if (type === "deviceAnnounce") {
-            for (const endpoint of device.endpoints) {
+        if (event.type === "deviceAnnounce") {
+            for (const endpoint of event.data.device.endpoints) {
                 // First disable the default reportings (for the dimmer endpoints only)
                 if ([1, 2].includes(endpoint.ID)) {
                     await disableBatteryRotaryDimmerReporting(endpoint);
@@ -75,6 +80,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
                 for (const c of endpoint.configuredReportings) {
                     await endpoint.configureReporting(c.cluster.name, [
                         {
+                            // @ts-expect-error dynamic, assumed correct since already applied
                             attribute: c.attribute.name,
                             minimumReportInterval: c.minimumReportInterval,
                             maximumReportInterval: c.maximumReportInterval,
@@ -84,7 +90,7 @@ const batteryRotaryDimmer = (...endpointsIds: number[]) => ({
                 }
             }
         }
-    }) satisfies OnEvent,
+    }) satisfies OnEvent.Handler,
 });
 
 export const definitions: DefinitionWithExtend[] = [
@@ -275,6 +281,16 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["Smart16ARelay51AU"],
+        model: "AU-A1ZBR16A",
+        vendor: "Aurora Lighting",
+        description: "Aurora Smart Inline Relay",
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
+        endpoint: (device) => {
+            return {default: 2};
+        },
+    },
+    {
         zigbeeModel: ["1GBatteryDimmer50AU"],
         model: "AU-A1ZBR1GW",
         vendor: "Aurora Lighting",
@@ -301,5 +317,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aurora Lighting",
         description: "AOne 1-10V in-line dimmer",
         extend: [m.identify(), m.light({powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ["AU-A1CE14ZCX6"],
+        model: "AU-A1CE14ZCX6",
+        vendor: "Aurora Lighting",
+        description: "AOne smart tuneable candle lamp bulb",
+        extend: [m.light({colorTemp: {range: [200, 454]}})],
     },
 ];

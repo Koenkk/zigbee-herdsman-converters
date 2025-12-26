@@ -1,4 +1,4 @@
-import * as iconv from "iconv-lite";
+import iconv from "iconv-lite";
 
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
@@ -12,30 +12,30 @@ const e = exposes.presets;
 
 const fzLocal = {
     easyiot_ir_recv_command: {
-        cluster: "tunneling",
-        type: ["commandTransferDataResp"],
+        cluster: "seTunneling",
+        type: ["commandTransferData"],
         convert: (model, msg, publish, options, meta) => {
             logger.debug(`"easyiot_ir_recv_command" received (msg:${JSON.stringify(msg.data)})`, NS);
             const hexString = msg.data.data.toString("hex");
             logger.debug(`"easyiot_ir_recv_command" received command ${hexString}`, NS);
             return {last_received_command: hexString};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"seTunneling", undefined, ["commandTransferData"]>,
 
     easyiot_tts_recv_status: {
-        cluster: "tunneling",
-        type: ["commandTransferDataResp"],
+        cluster: "seTunneling",
+        type: ["commandTransferData"],
         convert: (model, msg, publish, options, meta) => {
             logger.debug(`"easyiot_tts_recv_status" received (msg:${JSON.stringify(msg.data)})`, NS);
             const hexString = msg.data.data.toString("hex");
             logger.debug(`"easyiot_tts_recv_status" received status ${hexString}`, NS);
             return {last_received_status: hexString};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"seTunneling", undefined, ["commandTransferData"]>,
 
     easyiot_sp1000_recv_status: {
-        cluster: "tunneling",
-        type: ["commandTransferDataResp"],
+        cluster: "seTunneling",
+        type: ["commandTransferData"],
         convert: (model, msg, publish, options, meta) => {
             logger.debug(`"easyiot_tts_recv_status" received (msg:${JSON.stringify(msg.data)})`, NS);
             const hexString = msg.data.data.toString("hex");
@@ -45,7 +45,7 @@ const fzLocal = {
                 return {last_received_status: result};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"seTunneling", undefined, ["commandTransferData"]>,
 
     easyiot_action: {
         cluster: "genOnOff",
@@ -66,7 +66,7 @@ const fzLocal = {
             const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : "";
             return {action: `${button}${lookup[msg.type]}`};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 };
 
 const tzLocal = {
@@ -79,7 +79,7 @@ const tzLocal = {
 
             logger.debug(`Sending IR code: ${value}`, NS);
             await entity.command(
-                "tunneling",
+                "seTunneling",
                 "transferData",
                 {
                     tunnelId: 0x0000,
@@ -109,7 +109,7 @@ const tzLocal = {
             const protocolFrame = Buffer.concat([frameHeader, dataLengthBuffer, commandByte, gb2312Buffer]);
 
             await entity.command(
-                "tunneling",
+                "seTunneling",
                 "transferData",
                 {
                     tunnelId: 0x0000,
@@ -136,7 +136,7 @@ const tzLocal = {
             const protocolFrame = Buffer.concat([frameCmd, dataLen, dataType, playId]);
 
             await entity.command(
-                "tunneling",
+                "seTunneling",
                 "transferData",
                 {
                     tunnelId: 0x0001,
@@ -163,7 +163,7 @@ const tzLocal = {
             const protocolFrame = Buffer.concat([frameCmd, dataLen, dataType, volume]);
 
             await entity.command(
-                "tunneling",
+                "seTunneling",
                 "transferData",
                 {
                     tunnelId: 0x0001,
@@ -181,9 +181,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "ZB-IR01", manufacturerName: "easyiot"}],
         model: "ZB-IR01",
         vendor: "easyiot",
-        description:
-            "This is an infrared remote control equipped with a local code library," +
-            "supporting devices such as air conditioners, televisions, projectors, and more.",
+        description: "Infrared remote control equipped with local code library,",
         fromZigbee: [fzLocal.easyiot_ir_recv_command],
         toZigbee: [tzLocal.easyiot_ir_send_command],
         exposes: [
@@ -195,7 +193,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "ZB-TTS01", manufacturerName: "easyiot"}],
         model: "ZB-TTS01",
         vendor: "easyiot",
-        description: "This is a Simplified Chinese (GB2312) TTS converter that can convert GB2312 encoded text to speech",
+        description: "TTS Converter for Simplified Chinese GB2312 encoded text",
         fromZigbee: [fzLocal.easyiot_tts_recv_status],
         toZigbee: [tzLocal.easyiot_tts_send_command],
         exposes: [

@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -10,6 +9,29 @@ import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface OwonFallDetection {
+    attributes: {
+        status: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        breathing_rate: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        location_x: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        location_y: number;
+        bedUpperLeftX: number;
+        bedUpperLeftY: number;
+        bedLowerRightX: number;
+        bedLowerRightY: number;
+        doorCenterX: number;
+        doorCenterY: number;
+        leftFallDetectionRange: number;
+        rightFallDetectionRange: number;
+        frontFallDetectionRange: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     temperature: {
         ...fz.temperature,
@@ -19,7 +41,7 @@ const fzLocal = {
                 return fz.temperature.convert(model, msg, publish, options, meta);
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PC321_metering: {
         cluster: "seMetering",
@@ -98,12 +120,12 @@ const fzLocal = {
             }
             if (msg.data.owonCurrentSum !== undefined || msg.data["12547"] !== undefined) {
                 // 0x3103 -> 12547
-                const data = msg.data.owonCurrentSum || msg.data["12547"] * factor;
+                const data = msg.data.owonCurrentSum || (msg.data["12547"] as number) * factor;
                 payload.current = data;
             }
             if (msg.data.owonReactiveEnergySum !== undefined || msg.data["16643"] !== undefined) {
                 // 0x4103 -> 16643
-                const value = msg.data.owonReactiveEnergySum || msg.data["16643"];
+                const value = msg.data.owonReactiveEnergySum || (msg.data["16643"] as number);
                 payload.reactive_energy = value * factor;
             }
             if (msg.data.owonL1PowerFactor !== undefined) {
@@ -118,7 +140,7 @@ const fzLocal = {
 
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
 
     owonFds315: {
         cluster: "fallDetectionOwon",
@@ -153,7 +175,7 @@ const fzLocal = {
                 "leftFallDetectionRange",
                 "rightFallDetectionRange",
                 "frontFallDetectionRange",
-            ];
+            ] as const;
             const values = keys.map((k) => (data[k] !== undefined ? data[k] : null));
 
             if (!values.includes(null)) {
@@ -162,7 +184,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"fallDetectionOwon", OwonFallDetection, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -199,22 +221,25 @@ const tzLocal = {
                 payload[id] = {value: val, type};
             });
 
-            await entity.write("fallDetectionOwon", payload, {manufacturerCode: 0x113c});
+            await entity.write<"fallDetectionOwon", OwonFallDetection>("fallDetectionOwon", payload, {manufacturerCode: 0x113c});
             return {state: {fall_detection_settings: value}};
         },
         convertGet: async (entity, key, meta) => {
-            const attrs = [
-                "bedUpperLeftX",
-                "bedUpperLeftY",
-                "bedLowerRightX",
-                "bedLowerRightY",
-                "doorCenterX",
-                "doorCenterY",
-                "leftFallDetectionRange",
-                "rightFallDetectionRange",
-                "frontFallDetectionRange",
-            ];
-            await entity.read("fallDetectionOwon", attrs, {manufacturerCode: 0x113c});
+            await entity.read<"fallDetectionOwon", OwonFallDetection>(
+                "fallDetectionOwon",
+                [
+                    "bedUpperLeftX",
+                    "bedUpperLeftY",
+                    "bedLowerRightX",
+                    "bedLowerRightY",
+                    "doorCenterX",
+                    "doorCenterY",
+                    "leftFallDetectionRange",
+                    "rightFallDetectionRange",
+                    "frontFallDetectionRange",
+                ],
+                {manufacturerCode: 0x113c},
+            );
         },
     } satisfies Tz.Converter,
 };
@@ -254,7 +279,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PIR313-E",
         vendor: "OWON",
         description: "Motion sensor",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {
@@ -332,7 +357,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature sensor",
         fromZigbee: [fzLocal.temperature, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature()],
+        exposes: [e.battery(), e.battery_voltage(), e.temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
@@ -518,7 +543,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PIR323-PTH",
         vendor: "OWON",
         description: "Multi-sensor",
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {
@@ -579,19 +604,19 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfd00,
                 manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
                 attributes: {
-                    status: {ID: 0x0000, type: Zcl.DataType.ENUM8},
-                    breathing_rate: {ID: 0x0002, type: Zcl.DataType.UINT8},
-                    location_x: {ID: 0x0003, type: Zcl.DataType.INT16},
-                    location_y: {ID: 0x0004, type: Zcl.DataType.INT16},
-                    bedUpperLeftX: {ID: 0x0100, type: Zcl.DataType.INT16},
-                    bedUpperLeftY: {ID: 0x0101, type: Zcl.DataType.INT16},
-                    bedLowerRightX: {ID: 0x0102, type: Zcl.DataType.INT16},
-                    bedLowerRightY: {ID: 0x0103, type: Zcl.DataType.INT16},
-                    doorCenterX: {ID: 0x0108, type: Zcl.DataType.INT16},
-                    doorCenterY: {ID: 0x0109, type: Zcl.DataType.INT16},
-                    leftFallDetectionRange: {ID: 0x010c, type: Zcl.DataType.UINT16},
-                    rightFallDetectionRange: {ID: 0x010d, type: Zcl.DataType.UINT16},
-                    frontFallDetectionRange: {ID: 0x010e, type: Zcl.DataType.UINT16},
+                    status: {ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    breathing_rate: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    location_x: {ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    location_y: {ID: 0x0004, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    bedUpperLeftX: {ID: 0x0100, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    bedUpperLeftY: {ID: 0x0101, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    bedLowerRightX: {ID: 0x0102, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    bedLowerRightY: {ID: 0x0103, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    doorCenterX: {ID: 0x0108, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    doorCenterY: {ID: 0x0109, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    leftFallDetectionRange: {ID: 0x010c, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    rightFallDetectionRange: {ID: 0x010d, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    frontFallDetectionRange: {ID: 0x010e, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -615,6 +640,29 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.bind("ssIasZone", coordinatorEndpoint);
             await endpoint.bind("genBasic", coordinatorEndpoint);
             await endpoint.bind("fallDetectionOwon", coordinatorEndpoint);
+        },
+    },
+    {
+        zigbeeModel: ["SLC631"],
+        model: "SLC631",
+        vendor: "OWON",
+        description: "Smart plug with doorbell press indicator",
+        extend: [
+            m.onOff({endpointNames: ["l1", "l2", "l3"]}),
+            m.iasZoneAlarm({
+                zoneType: "contact",
+                zoneAttributes: ["alarm_2"],
+            }),
+        ],
+        endpoint: (device) => ({l1: 1, l2: 2, l3: 3}),
+        configure: async (device, coordinatorEndpoint) => {
+            const ep2 = device.getEndpoint(2);
+            if (ep2) {
+                await reporting.bind(ep2, coordinatorEndpoint, ["ssIasZone"]);
+                await ep2.write("ssIasZone", {
+                    16: {value: coordinatorEndpoint.deviceIeeeAddress, type: 0xf0},
+                });
+            }
         },
     },
 ];

@@ -20,7 +20,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {action: "on"};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, "commandTuyaAction">,
 };
 
 const valueConverterLocal = {
@@ -232,7 +232,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Lidl",
         description: "Silvercrest smart plug with power monitoring (EU, FR)",
         ota: true,
-        extend: [tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true})],
+        extend: [
+            tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true}),
+            tuya.modernExtend.electricityMeasurementPoll({
+                electricalMeasurement: false,
+                metering: true,
+                optionDescription: "Only the energy value is polled for this device.",
+            }),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -245,8 +252,6 @@ export const definitions: DefinitionWithExtend[] = [
             endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 100, multiplier: 1});
             device.save();
         },
-        options: [exposes.options.measurement_poll_interval().withDescription("Only the energy value is polled for this device.")],
-        onEvent: (type, data, device, options) => tuya.onEventMeasurementPoll(type, data, device, options, false, true),
         whiteLabel: [tuya.whitelabel("Lidl", "HG08673-BS", "Silvercrest smart plug with power monitoring (BS)", ["_TZ3000_3uimvkn6"])],
     },
     {
@@ -277,7 +282,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HG06668",
         vendor: "Lidl",
         description: "Silvercrest smart wireless door bell button",
-        fromZigbee: [fz.battery, fz.tuya_doorbell_button, fz.ignore_basic_report],
+        fromZigbee: [fz.battery, fz.tuya_doorbell_button],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -382,17 +387,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PSBZS A1",
         vendor: "Lidl",
         description: "Parkside smart watering timer",
-        fromZigbee: [fz.ignore_basic_report, fz.ignore_tuya_set_time, fz.ignore_onoff_report, tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: async (type, data, device) => {
-            await tuya.onEventSetLocalTime(type, data, device);
-
-            // @ts-expect-error ignore
-            if (type === "deviceInterview" && data.status === "successful") {
+        fromZigbee: [fz.ignore_tuya_set_time, fz.ignore_onoff_report],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        onEvent: async (event) => {
+            if (event.type === "deviceInterview" && event.data.status === "successful") {
                 // dirty hack: reset frost guard & frost alarm to get the initial state
                 // wait 10 seconds to ensure configure is done
                 await utils.sleep(10000);
-                const endpoint = device.getEndpoint(1);
+                const endpoint = event.data.device.getEndpoint(1);
                 try {
                     await tuya.sendDataPointBool(endpoint, 109, false);
                     await tuya.sendDataPointBool(endpoint, 108, false);
@@ -402,7 +404,6 @@ export const definitions: DefinitionWithExtend[] = [
             }
         },
         configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
 
             // set reporting interval of genOnOff to max to "disable" it
@@ -562,11 +563,7 @@ export const definitions: DefinitionWithExtend[] = [
             legacy.toZigbee.zs_thermostat_away_setting,
             legacy.toZigbee.zs_thermostat_local_schedule,
         ],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
-        },
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, bindBasicOnConfigure: true, timeStart: "1970"})],
         exposes: [
             e.child_lock(),
             e.comfort_temperature(),

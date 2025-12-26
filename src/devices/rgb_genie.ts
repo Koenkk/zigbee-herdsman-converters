@@ -19,7 +19,7 @@ const fzLocal = {
             utils.addActionGroup(payload, msg, model);
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, "commandOn">,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZB1026_command_off: {
         cluster: "genOnOff",
@@ -29,7 +29,7 @@ const fzLocal = {
             utils.addActionGroup(payload, msg, model);
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, "commandOff">,
 };
 
 export const definitions: DefinitionWithExtend[] = [

@@ -1,8 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
-import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as libColor from "./color";
 import {ColorRGB, ColorXY} from "./color";
@@ -10,13 +8,14 @@ import * as exposes from "./exposes";
 import {logger} from "./logger";
 import * as modernExtend from "./modernExtend";
 import * as globalStore from "./store";
-import type {Configure, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "./types";
+import type {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "./types";
 import * as utils from "./utils";
-import {exposeEndpoints, isObject} from "./utils";
+import {determineEndpoint, exposeEndpoints, isObject} from "./utils";
 
 const NS = "zhc:philips";
 const ea = exposes.access;
 const e = exposes.presets;
+const eNumeric = exposes.Numeric;
 
 const encodeRGBToScaledGradient = (hex: string) => {
     const xy = ColorRGB.fromHex(hex).toXY();
@@ -52,11 +51,38 @@ export const knownEffects = {
     "0a80": "sparkle",
     "0b80": "opal",
     "0c80": "glisten",
+    "0d80": "underwater",
+    "0e80": "cosmos",
+    "0f80": "sunbeam",
+    "1080": "enchant",
 };
 
+interface PhilipsContact {
+    attributes: {
+        contact: number;
+        contactLastChange: number;
+        tamper: number;
+        tamperLastChange: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const philipsModernExtend = {
+    addCustomClusterManuSpecificPhilipsContact: () =>
+        modernExtend.deviceAddCustomCluster("manuSpecificPhilipsContact", {
+            ID: 0xfc06,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {
+                contact: {ID: 0x0100, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                contactLastChange: {ID: 0x0101, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                tamper: {ID: 0x0102, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                tamperLastChange: {ID: 0x0103, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
     light: (args?: modernExtend.LightArgs & {hueEffect?: boolean; gradient?: true | {extraEffects: string[]}}) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {hueEffect: true, turnsOffAtBrightness1: true, ota: true, ...args};
         if (args.hueEffect || args.gradient) args.effect = false;
         if (args.color) args.color = {modes: ["xy", "hs"], ...(isObject(args.color) ? args.color : {})};
@@ -95,7 +121,7 @@ const philipsModernExtend = {
             result.exposes.push(...exposeEndpoints(e.enum("effect", ea.SET, effects), args.endpointNames));
         }
 
-        const customCluster = m.deviceAddCustomCluster("manuSpecificPhilips3", {
+        const customCluster = modernExtend.deviceAddCustomCluster("manuSpecificPhilips3", {
             ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {},
@@ -129,7 +155,6 @@ const philipsModernExtend = {
         return result;
     },
     onOff: (args?: modernExtend.OnOffArgs) => {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {powerOnBehavior: false, ota: true, ...args};
         const result = modernExtend.onOff(args);
         result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
@@ -154,6 +179,105 @@ const philipsModernExtend = {
             async (device, coordinatorEndpoint) => {
                 const endpoint = device.getEndpoint(1);
                 await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "manuSpecificPhilips"]);
+            },
+        ];
+        const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+        return result;
+    },
+    contact: () => {
+        const exposes: Expose[] = [
+            e.contact().withAccess(ea.STATE_GET),
+            e.tamper().withAccess(ea.STATE_GET),
+            new eNumeric("contact_last_changed", ea.STATE_GET)
+                .withUnit("s")
+                .withDescription("Time (in seconds) since when contact was last changed."),
+            new eNumeric("tamper_last_changed", ea.STATE_GET).withUnit("s").withDescription("Time (in seconds) since when tamper was last changed."),
+        ];
+        const fromZigbee = [
+            {
+                cluster: "manuSpecificPhilipsContact",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const payload: KeyValueAny = {};
+                    if (msg.data.contact !== undefined) {
+                        // NOTE: 0 = closed, 1 = open
+                        payload.contact = msg.data.contact === 0;
+                    }
+
+                    if (msg.data.tamper !== undefined) {
+                        // NOTE: 0 = OK, 1 = tampered
+                        payload.tamper = msg.data.tamper > 0;
+                    }
+
+                    if (msg.data.contactLastChange !== undefined) {
+                        // NOTE: seems to be 1/10 of a second
+                        payload.contact_last_changed = Math.round(msg.data.contactLastChange / 10);
+                    }
+
+                    if (msg.data.tamperLastChange !== undefined) {
+                        // NOTE: seems to be 1/10 of a second
+                        payload.tamper_last_changed = Math.round(msg.data.tamperLastChange / 10);
+                    }
+
+                    return payload;
+                },
+            } satisfies Fz.Converter<"manuSpecificPhilipsContact", PhilipsContact, ["attributeReport", "readResponse"]>,
+            // NOTE: kept for compatibility as there is no auto-reconfigure for modernExtend
+            //       this should not fire once reconfigured.
+            {
+                cluster: "genOnOff",
+                type: ["commandOff", "commandOn"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.type === "commandOff" || msg.type === "commandOn") {
+                        return {contact: msg.type === "commandOff"};
+                    }
+                },
+            } satisfies Fz.Converter<"genOnOff", undefined, ["commandOff", "commandOn"]>,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["contact", "tamper", "contact_last_changed", "tamper_last_changed"],
+                convertGet: async (entity, key, meta) => {
+                    let attrib = key as "contact" | "tamper" | "contactLastChange" | "tamperLastChange";
+
+                    switch (key) {
+                        case "contact_last_changed":
+                            attrib = "contactLastChange";
+                            break;
+                        case "tamper_last_changed":
+                            attrib = "tamperLastChange";
+                            break;
+                    }
+
+                    const ep = determineEndpoint(entity, meta, "manuSpecificPhilipsContact");
+                    try {
+                        await ep.read<"manuSpecificPhilipsContact", PhilipsContact>("manuSpecificPhilipsContact", [attrib]);
+                    } catch (e) {
+                        logger.debug(`Reading ${attrib} failed: ${e}, device probably doesn't support it`, "zhc:setupattribute");
+                    }
+                },
+            },
+        ];
+        const configure: Configure[] = [
+            // NOTE: trigger report after 4 hours incase the network was offline when a contact was triggered
+            //       contactLastChange and tamperLastChange seem come with every report of contact, so we do
+            //       not configure reporting
+            modernExtend.setupConfigureForReporting<"manuSpecificPhilipsContact", PhilipsContact>("manuSpecificPhilipsContact", "contact", {
+                config: {min: 0, max: "4_HOURS", change: 1},
+                access: ea.STATE_GET,
+                singleEndpoint: true,
+            }),
+            modernExtend.setupConfigureForReporting<"manuSpecificPhilipsContact", PhilipsContact>("manuSpecificPhilipsContact", "tamper", {
+                config: {min: 0, max: "4_HOURS", change: 1},
+                access: ea.STATE_GET,
+                singleEndpoint: true,
+            }),
+            async (device, coordinatorEndpoint) => {
+                // NOTE: new fromZigbee does not use genOnoff's commandOn/commandOff
+                //       so we can unbind genOnOff so the legacy fromZigbee does not
+                //       cause double triggers.
+                const endpoint = device.getEndpoint(2);
+                await endpoint.unbind("genOnOff", coordinatorEndpoint);
             },
         ];
         const result: ModernExtend = {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
@@ -201,7 +325,6 @@ const philipsTz = {
         key: ["hue_power_on_behavior"],
         convertSet: async (entity, key, value, meta) => {
             if (value === "default") {
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = "on";
             }
 
@@ -256,7 +379,6 @@ const philipsTz = {
                         // @ts-expect-error ignore
                         const colorXY = libColor.ColorRGB.fromHex(meta.message.hue_power_on_color).toXY();
                         const xy = {x: utils.mapNumberRange(colorXY.x, 0, 1, 0, 65535), y: utils.mapNumberRange(colorXY.y, 0, 1, 0, 65535)};
-                        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                         value = xy;
 
                         // Set colortemp to default
@@ -406,22 +528,14 @@ export const hueEffects = {
     sparkle: "2100010a",
     opal: "2100010b",
     glisten: "2100010c",
+    underwater: "2100010e",
+    cosmos: "2100010f",
+    sunbeam: "21000110",
+    enchant: "21000111",
     stop_hue_effect: "200000",
 };
 
 const philipsFz = {
-    philips_contact: {
-        cluster: "genOnOff",
-        type: ["attributeReport", "readResponse", "commandOff", "commandOn"],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.type === "commandOff" || msg.type === "commandOn") {
-                return {contact: msg.type === "commandOff"};
-            }
-            if (msg.data.onOff !== undefined) {
-                return {contact: msg.data.onOff === 0};
-            }
-        },
-    } satisfies Fz.Converter,
     hue_tap_dial: {
         cluster: "manuSpecificPhilips",
         type: "commandHueNotification",
@@ -430,7 +544,7 @@ const philipsFz = {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const buttonLookup: KeyValue = {1: "button_1", 2: "button_2", 3: "button_3", 4: "button_4", 20: "dial"};
             const button = buttonLookup[msg.data.button];
-            const direction = msg.data.unknown2 < 127 ? "right" : "left";
+            const direction = msg.data.unknown3 < 127 ? "right" : "left";
             const time = msg.data.time;
             const payload: KeyValue = {};
 
@@ -469,7 +583,7 @@ const philipsFz = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification">,
     gradient: {
         cluster: "manuSpecificPhilips2",
         type: ["attributeReport", "readResponse"],
@@ -483,7 +597,7 @@ const philipsFz = {
             }
             return {};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificPhilips2", undefined, ["attributeReport", "readResponse"]>,
 };
 export {philipsFz as fz};
 
@@ -533,47 +647,38 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
 
     // Device color mode
     const mode = input.slice(0, 4);
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     input = input.slice(4);
 
     // On/off (2 bytes)
     const on = Number.parseInt(input.slice(0, 2), 16) === 1;
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     input = input.slice(2);
 
     // Brightness (2 bytes)
     const brightness = Number.parseInt(input.slice(0, 2), 16);
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     input = input.slice(2);
 
     // Gradient mode
     if (mode === COLOR_MODE_GRADIENT) {
         // Unknown (8 bytes)
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(8);
 
         // Length (2 bytes)
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
 
         // Number of colors (2 bytes)
         const nColors = Number.parseInt(input.slice(0, 2), 16) >> 4;
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
 
         // Unknown (6 bytes)
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(6);
 
         // Colors (6 * nColors bytes)
         const colorsPayload = input.slice(0, 6 * nColors);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(6 * nColors);
         const colors = colorsPayload.match(/.{6}/g).map(decodeScaledGradientToRGB);
 
         // Segments (2 bytes)
         const segments = Number.parseInt(input.slice(0, 2), 16) >> 3;
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
 
         // Offset (2 bytes)
@@ -595,16 +700,12 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
     if (mode === COLOR_MODE_COLOR_XY || mode === COLOR_MODE_EFFECT) {
         // XY Color mode
         const xLow = Number.parseInt(input.slice(0, 2), 16);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
         const xHigh = Number.parseInt(input.slice(0, 2), 16) << 8;
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
         const yHigh = Number.parseInt(input.slice(0, 2), 16);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
         const yLow = Number.parseInt(input.slice(0, 2), 16) << 8;
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
 
         const x = Math.round(((xHigh | xLow) / 65535) * 10000) / 10000;
@@ -636,10 +737,8 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
     if (mode === COLOR_MODE_COLOR_TEMP) {
         // Color temperature mode
         const low = Number.parseInt(input.slice(0, 2), 16);
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
         const high = Number.parseInt(input.slice(0, 2), 16) << 8;
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         input = input.slice(2);
 
         const temp = high | low;

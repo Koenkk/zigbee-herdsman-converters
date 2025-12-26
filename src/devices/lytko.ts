@@ -4,6 +4,7 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import {binary, deviceAddCustomCluster, deviceEndpoints, electricityMeter, enumLookup, identify, numeric, thermostat} from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import {getFromLookup, getKey, postfixWithEndpointName, precisionRound, toNumber} from "../lib/utils";
@@ -13,6 +14,25 @@ const ea = exposes.access;
 
 const manufacturerOptions = {manufacturerCode: 0x7777};
 const sensorTypes = ["3.3", "5", "6.8", "10", "12", "14.8", "15", "20", "33", "47"];
+
+interface LytoThermostat {
+    attributes: {
+        occupiedSetback: number;
+        lytkoSensor: number;
+        lytkoTargetFirst: boolean;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface LytoUIThermostat {
+    attributes: {
+        brignessActive: number;
+        brignessStandby: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const fzLocal = {
     thermostat: {
@@ -34,7 +54,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     thermostat_ui: {
         cluster: "hvacUserInterfaceCfg",
         type: ["attributeReport", "readResponse"],
@@ -54,7 +74,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -80,18 +100,19 @@ const tzLocal = {
             }
         },
         convertSet: async (entity, key, value, meta) => {
-            let payload: KeyValue = {};
             let newValue = value;
             switch (key) {
-                case "sensor_type":
+                case "sensor_type": {
                     newValue = sensorTypes.indexOf(value as string);
-                    payload = {30464: {value: newValue, type: Zcl.DataType.ENUM8}};
+                    const payload = {30464: {value: newValue, type: Zcl.DataType.ENUM8}};
                     await entity.write("hvacThermostat", payload, manufacturerOptions);
                     break;
-                case "target_temp_first":
-                    payload = {30465: {value: newValue, type: Zcl.DataType.BOOLEAN}};
+                }
+                case "target_temp_first": {
+                    const payload = {30465: {value: newValue, type: Zcl.DataType.BOOLEAN}};
                     await entity.write("hvacThermostat", payload, manufacturerOptions);
                     break;
+                }
                 case "min_setpoint_deadband":
                     await entity.write("hvacThermostat", {minSetpointDeadBand: Math.round(toNumber(value) * 10)});
                     break;
@@ -120,17 +141,18 @@ const tzLocal = {
             }
         },
         convertSet: async (entity, key, value, meta) => {
-            let payload: KeyValue = {};
             const newValue = value;
             switch (key) {
-                case "brightness":
-                    payload = {30464: {value: newValue, type: Zcl.DataType.ENUM8}};
+                case "brightness": {
+                    const payload = {30464: {value: newValue, type: Zcl.DataType.ENUM8}};
                     await entity.write("hvacUserInterfaceCfg", payload, manufacturerOptions);
                     break;
-                case "brightness_standby":
-                    payload = {30465: {value: newValue, type: Zcl.DataType.ENUM8}};
+                }
+                case "brightness_standby": {
+                    const payload = {30465: {value: newValue, type: Zcl.DataType.ENUM8}};
                     await entity.write("hvacUserInterfaceCfg", payload, manufacturerOptions);
                     break;
+                }
                 default:
                     break;
             }
@@ -754,5 +776,1050 @@ export const definitions: DefinitionWithExtend[] = [
             ]);
             await endpoint4.read("hvacThermostat", ["localTemp", "occupiedHeatingSetpoint", "systemMode", "runningMode"]);
         },
+    },
+    {
+        zigbeeModel: ["L101Ze-SLN"],
+        model: "L101Ze-SLN",
+        vendor: "LYTKO",
+        description: "Single channel thermostat without display",
+        ota: true,
+        meta: {multiEndpoint: true},
+        extend: [
+            deviceAddCustomCluster("hvacThermostat", {
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    occupiedSetback: {
+                        ID: 0x0034,
+                        type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                    lytkoSensor: {
+                        ID: 0xff00,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceEndpoints({
+                endpoints: {1: 1, 3: 3},
+            }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "3",
+            }),
+            identify(),
+            numeric<"hvacThermostat", LytoThermostat>({
+                name: "occupied_setback",
+                description: "Hysteresis",
+                unit: "°C",
+                cluster: "hvacThermostat",
+                attribute: "occupiedSetback",
+                scale: 10,
+                valueMin: 1.0,
+                valueMax: 2.5,
+                valueStep: 0.1,
+                precision: 1,
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointNames: ["3"],
+                entityCategory: "config",
+            }),
+            enumLookup({
+                name: "remote_sensing",
+                label: "Remote sensing",
+                description: "",
+                lookup: {internally: 0, remotely: 1},
+                cluster: "hvacThermostat",
+                attribute: "remoteSensing",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                entityCategory: "config",
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "sensor_type",
+                label: "Sensor",
+                description: "Sensor type",
+                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
+                cluster: "hvacThermostat",
+                attribute: "lytkoSensor",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["L101Ze-SLM"],
+        model: "L101Ze-SLM",
+        vendor: "LYTKO",
+        description: "Single channel thermostat without display",
+        ota: true,
+        meta: {multiEndpoint: true},
+        extend: [
+            deviceAddCustomCluster("hvacThermostat", {
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    occupiedSetback: {
+                        ID: 0x0034,
+                        type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                    lytkoSensor: {
+                        ID: 0xff00,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceEndpoints({
+                endpoints: {1: 1, 3: 3},
+            }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "3",
+            }),
+            identify(),
+            numeric<"hvacThermostat", LytoThermostat>({
+                name: "occupied_setback",
+                description: "Hysteresis",
+                unit: "°C",
+                cluster: "hvacThermostat",
+                attribute: "occupiedSetback",
+                scale: 10,
+                valueMin: 1.0,
+                valueMax: 2.5,
+                valueStep: 0.1,
+                precision: 1,
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointNames: ["3"],
+                entityCategory: "config",
+            }),
+            enumLookup({
+                name: "remote_sensing",
+                label: "Remote sensing",
+                description: "",
+                lookup: {internally: 0, remotely: 1},
+                cluster: "hvacThermostat",
+                attribute: "remoteSensing",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                entityCategory: "config",
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "sensor_type",
+                label: "Sensor",
+                description: "Sensor type",
+                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
+                cluster: "hvacThermostat",
+                attribute: "lytkoSensor",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+            numeric({
+                name: "power_apparent",
+                label: "Power Apparent",
+                description: "Power apparent",
+                unit: "VA",
+                cluster: "haElectricalMeasurement",
+                attribute: "apparentPower",
+                precision: 1,
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                access: "STATE_GET",
+                endpointNames: ["3"],
+            }),
+            electricityMeter({
+                type: "electricity",
+                cluster: "both",
+                voltage: false,
+                power: false,
+                endpointNames: ["3"],
+                configureReporting: true,
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["L101Ze-SBN"],
+        model: "L101Ze-SBN",
+        vendor: "LYTKO",
+        description: "Single channel thermostat with big display",
+        ota: true,
+        meta: {multiEndpoint: true},
+        extend: [
+            deviceAddCustomCluster("hvacThermostat", {
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    occupiedSetback: {
+                        ID: 0x0034,
+                        type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                    lytkoSensor: {
+                        ID: 0xff00,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                    lytkoTargetFirst: {
+                        ID: 0xff01,
+                        type: Zcl.DataType.BOOLEAN,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceAddCustomCluster("hvacUserInterfaceCfg", {
+                ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
+                attributes: {
+                    brignessActive: {
+                        ID: 0xff00,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                    brignessStandby: {
+                        ID: 0xff01,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceEndpoints({
+                endpoints: {1: 1, 3: 3},
+            }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "3",
+            }),
+            identify(),
+            binary({
+                name: "child_lock",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Enables/disables physical input on the device",
+                access: "ALL",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                valueOn: ["lock", 1],
+                valueOff: ["unlock", 0],
+                entityCategory: "config",
+            }),
+            numeric<"hvacUserInterfaceCfg", LytoUIThermostat>({
+                name: "brigness_Active",
+                label: "Brigness Active",
+                description: "Display brightness in work mode",
+                unit: "%",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "brignessActive",
+                valueMin: 0,
+                valueMax: 100,
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            numeric<"hvacUserInterfaceCfg", LytoUIThermostat>({
+                name: "brigness_Standby",
+                label: "Brigness Standby",
+                description: "Display brightness in standby mode",
+                unit: "%",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "brignessStandby",
+                valueMin: 0,
+                valueMax: 100,
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            numeric<"hvacThermostat", LytoThermostat>({
+                name: "occupied_setback",
+                description: "Hysteresis",
+                unit: "°C",
+                cluster: "hvacThermostat",
+                attribute: "occupiedSetback",
+                scale: 10,
+                valueMin: 1.0,
+                valueMax: 2.5,
+                valueStep: 0.1,
+                precision: 1,
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointNames: ["3"],
+                entityCategory: "config",
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "sensor_type",
+                label: "Sensor",
+                description: "Sensor type",
+                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
+                cluster: "hvacThermostat",
+                attribute: "lytkoSensor",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "target_first",
+                label: "First temperature",
+                description: "Display target/current temperature first",
+                lookup: {Target: 0, Current: 1},
+                cluster: "hvacThermostat",
+                attribute: "lytkoTargetFirst",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["L101Ze-DLN"],
+        model: "L101Ze-DLN",
+        vendor: "LYTKO",
+        description: "Dual channel thermostat without display",
+        ota: true,
+        meta: {multiEndpoint: true},
+        extend: [
+            deviceAddCustomCluster("hvacThermostat", {
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    occupiedSetback: {
+                        ID: 0x0034,
+                        type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                    lytkoSensor: {
+                        ID: 0xff00,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceEndpoints({
+                endpoints: {1: 1, 3: 3, 4: 4},
+            }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "3",
+            }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "4",
+            }),
+            identify(),
+            numeric<"hvacThermostat", LytoThermostat>({
+                name: "occupied_setback",
+                description: "Hysteresis",
+                unit: "°C",
+                cluster: "hvacThermostat",
+                attribute: "occupiedSetback",
+                scale: 10,
+                valueMin: 1.0,
+                valueMax: 2.5,
+                valueStep: 0.1,
+                precision: 1,
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointNames: ["3", "4"],
+                entityCategory: "config",
+            }),
+            enumLookup({
+                name: "remote_sensing",
+                label: "Remote sensing",
+                description: "",
+                lookup: {internally: 0, remotely: 1},
+                cluster: "hvacThermostat",
+                attribute: "remoteSensing",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                entityCategory: "config",
+            }),
+            enumLookup({
+                name: "remote_sensing",
+                label: "Remote sensing",
+                description: "",
+                lookup: {internally: 0, remotely: 1},
+                cluster: "hvacThermostat",
+                attribute: "remoteSensing",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "4",
+                entityCategory: "config",
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "sensor_type",
+                label: "Sensor",
+                description: "Sensor type",
+                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
+                cluster: "hvacThermostat",
+                attribute: "lytkoSensor",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "sensor_type",
+                label: "Sensor",
+                description: "Sensor type",
+                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
+                cluster: "hvacThermostat",
+                attribute: "lytkoSensor",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "4",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["L101Ze-DLM"],
+        model: "L101Ze-DLM",
+        vendor: "LYTKO",
+        description: "Dual channel thermostat without display",
+        ota: true,
+        meta: {multiEndpoint: true},
+        extend: [
+            deviceAddCustomCluster("hvacThermostat", {
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    occupiedSetback: {
+                        ID: 0x0034,
+                        type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                    lytkoSensor: {
+                        ID: 0xff00,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceEndpoints({
+                endpoints: {1: 1, 3: 3, 4: 4},
+            }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "3",
+            }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "4",
+            }),
+            identify(),
+            numeric<"hvacThermostat", LytoThermostat>({
+                name: "occupied_setback",
+                description: "Hysteresis",
+                unit: "°C",
+                cluster: "hvacThermostat",
+                attribute: "occupiedSetback",
+                scale: 10,
+                valueMin: 1.0,
+                valueMax: 2.5,
+                valueStep: 0.1,
+                precision: 1,
+                reporting: {min: "1_MINUTE", max: "1_HOUR", change: 1},
+                endpointNames: ["3", "4"],
+                entityCategory: "config",
+            }),
+            enumLookup({
+                name: "remote_sensing",
+                label: "Remote sensing",
+                description: "",
+                lookup: {internally: 0, remotely: 1},
+                cluster: "hvacThermostat",
+                attribute: "remoteSensing",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                entityCategory: "config",
+            }),
+            enumLookup({
+                name: "remote_sensing",
+                label: "Remote sensing",
+                description: "",
+                lookup: {internally: 0, remotely: 1},
+                cluster: "hvacThermostat",
+                attribute: "remoteSensing",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "4",
+                entityCategory: "config",
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "sensor_type",
+                label: "Sensor",
+                description: "Sensor type",
+                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
+                cluster: "hvacThermostat",
+                attribute: "lytkoSensor",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "sensor_type",
+                label: "Sensor",
+                description: "Sensor type",
+                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
+                cluster: "hvacThermostat",
+                attribute: "lytkoSensor",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "4",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+            numeric({
+                name: "power_apparent",
+                label: "Power Apparent",
+                description: "Power apparent",
+                unit: "VA",
+                cluster: "haElectricalMeasurement",
+                attribute: "apparentPower",
+                precision: 1,
+                reporting: {min: "1_MINUTE", max: "1_HOUR", change: 1},
+                access: "STATE_GET",
+                endpointNames: ["3", "4"],
+            }),
+            electricityMeter({
+                type: "electricity",
+                cluster: "both",
+                voltage: false,
+                power: false,
+                endpointNames: ["3", "4"],
+                configureReporting: true,
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["L101Ze-DBN"],
+        model: "L101Ze-DBN",
+        vendor: "LYTKO",
+        description: "Dual channel thermostat with big display",
+        ota: true,
+        meta: {multiEndpoint: true},
+        extend: [
+            deviceAddCustomCluster("hvacThermostat", {
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    occupiedSetback: {
+                        ID: 0x0034,
+                        type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                    lytkoSensor: {
+                        ID: 0xff00,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                    lytkoTargetFirst: {
+                        ID: 0xff01,
+                        type: Zcl.DataType.BOOLEAN,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceAddCustomCluster("hvacUserInterfaceCfg", {
+                ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
+                attributes: {
+                    brignessActive: {
+                        ID: 0xff00,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                    brignessStandby: {
+                        ID: 0xff01,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceEndpoints({
+                endpoints: {1: 1, 3: 3, 4: 4},
+            }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "3",
+            }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "4",
+            }),
+            identify(),
+            binary({
+                name: "child_lock",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Enables/disables physical input on the device",
+                access: "ALL",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                valueOn: ["lock", 1],
+                valueOff: ["unlock", 0],
+                entityCategory: "config",
+            }),
+            numeric<"hvacUserInterfaceCfg", LytoUIThermostat>({
+                name: "brigness_Active",
+                label: "Brigness Active",
+                description: "Display brightness in work mode",
+                unit: "%",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "brignessActive",
+                valueMin: 0,
+                valueMax: 100,
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            numeric<"hvacUserInterfaceCfg", LytoUIThermostat>({
+                name: "brigness_Standby",
+                label: "Brigness Standby",
+                description: "Display brightness in standby mode",
+                unit: "%",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "brignessStandby",
+                valueMin: 0,
+                valueMax: 100,
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            numeric<"hvacThermostat", LytoThermostat>({
+                name: "occupied_setback",
+                description: "Hysteresis",
+                unit: "°C",
+                cluster: "hvacThermostat",
+                attribute: "occupiedSetback",
+                scale: 10,
+                valueMin: 1.0,
+                valueMax: 2.5,
+                valueStep: 0.1,
+                precision: 1,
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointNames: ["3", "4"],
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "sensor_type_3",
+                label: "Sensor",
+                description: "Sensor type",
+                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
+                cluster: "hvacThermostat",
+                attribute: "lytkoSensor",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "sensor_type_4",
+                label: "Sensor",
+                description: "Sensor type",
+                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
+                cluster: "hvacThermostat",
+                attribute: "lytkoSensor",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "4",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "target_first_3",
+                label: "First temperature",
+                description: "Display target/current temperature first",
+                lookup: {Target: 0, Current: 1},
+                cluster: "hvacThermostat",
+                attribute: "lytkoTargetFirst",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "target_first_4",
+                label: "First temperature",
+                description: "Display target/current temperature first",
+                lookup: {Target: 0, Current: 1},
+                cluster: "hvacThermostat",
+                attribute: "lytkoTargetFirst",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "4",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["L101Ze-SMN"],
+        model: "L101Ze-SMN",
+        vendor: "LYTKO",
+        description: "Single channel thermostat with small display",
+        ota: true,
+        meta: {multiEndpoint: true},
+        extend: [
+            deviceAddCustomCluster("hvacThermostat", {
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    occupiedSetback: {
+                        ID: 0x0034,
+                        type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                    lytkoSensor: {
+                        ID: 0xff00,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                    lytkoTargetFirst: {
+                        ID: 0xff01,
+                        type: Zcl.DataType.BOOLEAN,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceAddCustomCluster("hvacUserInterfaceCfg", {
+                ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
+                attributes: {
+                    brignessActive: {
+                        ID: 0xff00,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                    brignessStandby: {
+                        ID: 0xff01,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            deviceEndpoints({
+                endpoints: {1: 1, 3: 3},
+            }),
+            thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                runningMode: {
+                    values: ["off", "heat"],
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -2.5, max: 2.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: "2_MINUTES", change: 50}},
+                },
+                localTemperature: {
+                    configure: {reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 50}},
+                },
+                endpoint: "3",
+            }),
+            identify(),
+            binary({
+                name: "child_lock",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Enables/disables physical input on the device",
+                access: "ALL",
+                reporting: {min: "1_MINUTE", max: "1_HOUR", change: 1},
+                valueOn: ["lock", 1],
+                valueOff: ["unlock", 0],
+                entityCategory: "config",
+            }),
+            numeric<"hvacThermostat", LytoThermostat>({
+                name: "occupied_setback",
+                description: "Hysteresis",
+                unit: "°C",
+                cluster: "hvacThermostat",
+                attribute: "occupiedSetback",
+                scale: 10,
+                valueMin: 1.0,
+                valueMax: 2.5,
+                valueStep: 0.1,
+                precision: 1,
+                reporting: {min: "1_MINUTE", max: "1_HOUR", change: 1},
+                endpointNames: ["3"],
+                entityCategory: "config",
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "sensor_type",
+                label: "Sensor",
+                description: "Sensor type",
+                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
+                cluster: "hvacThermostat",
+                attribute: "lytkoSensor",
+                reporting: {min: "1_MINUTE", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+            enumLookup<"hvacThermostat", LytoThermostat>({
+                name: "target_first",
+                label: "First temperature",
+                description: "Display target/current temperature first",
+                lookup: {Target: 0, Current: 1},
+                cluster: "hvacThermostat",
+                attribute: "lytkoTargetFirst",
+                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+                endpointName: "3",
+                zigbeeCommandOptions: manufacturerOptions,
+                entityCategory: "config",
+            }),
+        ],
     },
 ];

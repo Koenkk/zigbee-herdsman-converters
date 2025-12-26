@@ -21,13 +21,13 @@ const fzLocal = {
         cluster: "ssIasZone",
         type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = msg.data.zoneStatus;
+            const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
             return {
                 water_leak: (zoneStatus & 1) > 0,
                 tamper: (zoneStatus & (1 << 2)) > 0,
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
     thermostat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -55,7 +55,7 @@ const fzLocal = {
                 result.backlight_auto_dim = utils.getFromLookup(msg.data["1026"], lookup);
             }
             if (msg.data.SinopeBacklight !== undefined) {
-                const lookup = {0: "on_demand", 1: "sensing", 2: "off"};
+                const lookup = {0: "on_demand", 1: "off", 2: "sensing"};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data.SinopeBacklight, lookup);
             }
             if (msg.data["1028"] !== undefined) {
@@ -108,7 +108,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     tank_level: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -139,7 +139,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
     sinope: {
         cluster: "manuSpecificSinope",
         type: ["attributeReport", "readResponse"],
@@ -242,16 +242,19 @@ const fzLocal = {
             if (msg.data.drConfigWaterTempMin !== undefined) {
                 result.low_water_temp_protection = msg.data.drConfigWaterTempMin;
             }
+            if (msg.data.ecoMode !== undefined) {
+                result.eco_mode = (msg.data.ecoMode ?? -128) / 10;
+            }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificSinope", undefined, ["attributeReport", "readResponse"]>,
 };
 const tzLocal = {
     thermostat_occupancy: {
         key: ["thermostat_occupancy"],
         convertSet: async (entity, key, value, meta) => {
             const sinopeOccupancy = {0: "unoccupied", 1: "occupied"};
-            const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value, Number);
+            const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value as number, Number);
             await entity.write("hvacThermostat", {SinopeOccupancy}, manuSinope);
             return {state: {thermostat_occupancy: value}};
         },
@@ -262,8 +265,8 @@ const tzLocal = {
     backlight_autodim: {
         key: ["backlight_auto_dim"],
         convertSet: async (entity, key, value, meta) => {
-            const sinopeBacklightParam = {0: "on_demand", 1: "sensing", 2: "off"};
-            const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value, Number);
+            const sinopeBacklightParam = {0: "on_demand", 1: "off", 2: "sensing"};
+            const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value as number, Number);
             await entity.write("hvacThermostat", {SinopeBacklight}, manuSinope);
             return {state: {backlight_auto_dim: value}};
         },
@@ -358,7 +361,7 @@ const tzLocal = {
                 const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
                 await entity.write("manuSpecificSinope", {currentTimeToDisplay}, manuSinope);
             } else if (value !== "") {
-                await entity.write("manuSpecificSinope", {currentTimeToDisplay: value}, manuSinope);
+                await entity.write("manuSpecificSinope", {currentTimeToDisplay: value as number}, manuSinope);
             }
         },
     } satisfies Tz.Converter,
@@ -370,7 +373,6 @@ const tzLocal = {
                 return;
             }
             const lookup = {ambiant: 1, floor: 2};
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             // @ts-expect-error ignore
             if (lookup[value] !== undefined) {
@@ -435,7 +437,6 @@ const tzLocal = {
                 return;
             }
             const lookup = {"10k": 0, "12k": 1};
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             // @ts-expect-error ignore
             if (lookup[value] !== undefined) {
@@ -461,7 +462,7 @@ const tzLocal = {
         // TH1400ZB and SW2500ZB
         key: ["connected_load"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("manuSpecificSinope", {connectedLoad: value});
+            await entity.write("manuSpecificSinope", {connectedLoad: value as number});
             return {state: {connected_load: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -472,7 +473,7 @@ const tzLocal = {
         // TH1400ZB specific
         key: ["aux_connected_load"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("manuSpecificSinope", {auxConnectedLoad: value});
+            await entity.write("manuSpecificSinope", {auxConnectedLoad: value as number});
             return {state: {aux_connected_load: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -591,11 +592,22 @@ const tzLocal = {
         // RM3500ZB specific
         key: ["low_water_temp_protection"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("manuSpecificSinope", {drConfigWaterTempMin: value});
+            await entity.write("manuSpecificSinope", {drConfigWaterTempMin: value as number});
             return {state: {low_water_temp_protection: value}};
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("manuSpecificSinope", ["drConfigWaterTempMin"]);
+        },
+    } satisfies Tz.Converter,
+    eco_mode: {
+        key: ["eco_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const defaultedValue: number = (value as number | null) ?? -12.8;
+            await entity.write("manuSpecificSinope", {ecoMode: defaultedValue * 10});
+            return {state: {eco_mode: defaultedValue}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("manuSpecificSinope", ["ecoMode"]);
         },
     } satisfies Tz.Converter,
 };
@@ -623,6 +635,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
+            tzLocal.eco_mode,
         ],
         exposes: [
             e
@@ -666,6 +679,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
             e.enum("main_cycle_output", ea.ALL, ["15_sec", "15_min"]).withDescription("The length of the control cycle: 15_sec=normal 15_min=fan"),
+            e
+                .numeric("eco_mode", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.5)
+                .withDescription("Adjusts temperature setpoint to fulfill demand response")
+                .withPreset("disabled", -12.8, "Disables the eco mode"),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -723,6 +744,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
+            tzLocal.eco_mode,
         ],
         exposes: [
             e
@@ -766,6 +788,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
             e.enum("main_cycle_output", ea.ALL, ["15_sec", "15_min"]).withDescription("The length of the control cycle: 15_sec=normal 15_min=fan"),
+            e
+                .numeric("eco_mode", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.5)
+                .withDescription("Adjusts temperature setpoint to fulfill demand response")
+                .withPreset("disabled", -12.8, "Disables the eco mode"),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -805,7 +835,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1123ZB-G2",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [m.electricityMeter()],
+        extend: [m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -823,6 +853,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
+            tzLocal.eco_mode,
         ],
         exposes: [
             e
@@ -866,6 +897,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing", "off"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
             e.enum("main_cycle_output", ea.ALL, ["15_sec", "15_min"]).withDescription("The length of the control cycle: 15_sec=normal 15_min=fan"),
+            e
+                .numeric("eco_mode", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.5)
+                .withDescription("Adjusts temperature setpoint to fulfill demand response")
+                .withPreset("disabled", -12.8, "Disables the eco mode"),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -934,6 +973,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.outdoor_temperature_timeout,
             tzLocal.thermostat_occupancy,
             tzLocal.main_cycle_output,
+            tzLocal.eco_mode,
         ],
         exposes: [
             e
@@ -977,6 +1017,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing", "off"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
             e.enum("main_cycle_output", ea.ALL, ["15_sec", "15_min"]).withDescription("The length of the control cycle: 15_sec=normal 15_min=fan"),
+            e
+                .numeric("eco_mode", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.5)
+                .withDescription("Adjusts temperature setpoint to fulfill demand response")
+                .withPreset("disabled", -12.8, "Disables the eco mode"),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -1446,7 +1494,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             const payload = [
                 {
-                    attribute: "actionReport",
+                    attribute: "actionReport" as const,
                     minimumReportInterval: 0,
                     maximumReportInterval: 0,
                     reportableChange: 0,
@@ -1510,7 +1558,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DM2550ZB",
         vendor: "Sinopé",
         description: "Zigbee Adaptive phase smart dimmer",
-        extend: [m.light({configureReporting: true})],
+        extend: [m.light({configureReporting: true}), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
         fromZigbee: [fzLocal.sinope],
         toZigbee: [
             tzLocal.timer_seconds,
@@ -1554,20 +1602,30 @@ export const definitions: DefinitionWithExtend[] = [
                 .withFeature(e.numeric("b", ea.SET))
                 .withDescription("Control status LED color when load OFF"),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["manuSpecificSinope"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+        },
     },
     {
         zigbeeModel: ["SP2600ZB"],
         model: "SP2600ZB",
         vendor: "Sinopé",
         description: "Zigbee smart plug",
-        extend: [m.onOff(), m.electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["manuSpecificSinope"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+        },
     },
     {
         zigbeeModel: ["SP2610ZB"],
         model: "SP2610ZB",
         vendor: "Sinopé",
         description: "Zigbee smart plug",
-        extend: [m.onOff(), m.electricityMeter()],
+        extend: [m.onOff(), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
     },
     {
         zigbeeModel: ["RM3250ZB"],
@@ -1694,7 +1752,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RM3500ZB",
         vendor: "Sinopé",
         description: "Calypso smart water heater controller",
-        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
         fromZigbee: [fzLocal.ias_water_leak_alarm, fzLocal.sinope, fz.temperature],
         toZigbee: [tzLocal.low_water_temp_protection],
         exposes: [
@@ -1739,7 +1797,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryAlarmState(endpoint);
             await reporting.temperature(endpoint);
 
-            const payload = reporting.payload("presentValue", 10, constants.repInterval.HOUR, 1);
+            const payload = reporting.payload<"genAnalogInput">("presentValue", 10, constants.repInterval.HOUR, 1);
             await endpoint.configureReporting("genAnalogInput", payload);
             await endpoint.read("genAnalogInput", ["presentValue"]);
         },

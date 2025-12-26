@@ -79,17 +79,15 @@ const tzLocal = {
     zigusb_button_config: {
         key: ["button_mode", "link_to_output", "bind_command"],
         convertGet: async (entity, key, meta) => {
-            await entity.read("genOnOffSwitchCfg", ["buttonMode", 0x4001, 0x4002]);
+            await entity.read("genOnOffSwitchCfg", ["switchType", 0x4001, 0x4002]);
         },
         convertSet: async (entity, key, value, meta) => {
-            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-            let payload;
-            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-            let data;
+            let payload: Parameters<typeof entity.write<"genOnOffSwitchCfg">>[1];
+            let data: unknown;
             switch (key) {
                 case "button_mode":
                     data = utils.getFromLookup(value, buttonModesList);
-                    payload = {buttonMode: data};
+                    payload = {switchType: data as number};
                     break;
                 case "link_to_output":
                     data = utils.getFromLookup(value, inputLinkList);
@@ -114,10 +112,10 @@ const tzLocal = {
                 const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
 
                 if (typeof onTime !== "number") {
-                    throw Error("The on_time value must be a number!");
+                    throw new Error("The on_time value must be a number!");
                 }
                 if (typeof offWaitTime !== "number") {
-                    throw Error("The off_wait_time value must be a number!");
+                    throw new Error("The off_wait_time value must be a number!");
                 }
 
                 const payload = {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
@@ -164,7 +162,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const epId = 2;
             const endpoint = meta.device.getEndpoint(epId);
-            const value2 = Number.parseInt(value.toString());
+            const value2 = Number.parseInt(value.toString(), 10);
             if (!Number.isNaN(value2) && value2 > 0) {
                 await endpoint.configureReporting("genOnOff", [
                     {
@@ -214,16 +212,16 @@ const fzLocal = {
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
             const channel = utils.getKey(model.endpoint(msg.device), msg.endpoint.ID);
-            const {buttonMode} = msg.data;
+            const {switchType} = msg.data;
             const inputLink = msg.data[0x4001];
             const bindCommand = msg.data[0x4002];
             return {
-                [`button_mode_${channel}`]: utils.getKey(buttonModesList, buttonMode),
+                [`button_mode_${channel}`]: utils.getKey(buttonModesList, switchType),
                 [`link_to_output_${channel}`]: utils.getKey(inputLinkList, inputLink),
                 [`bind_command_${channel}`]: utils.getKey(bindCommandList, bindCommand),
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["readResponse", "attributeReport"]>,
     zigusb_analog_input: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -280,7 +278,7 @@ const fzLocal = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
     zigusb_on_off_invert: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -293,7 +291,7 @@ const fzLocal = {
                 return payload;
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_ina3221: {
         cluster: "genAnalogInput",
@@ -323,7 +321,7 @@ const fzLocal = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_uptime: {
         cluster: "genAnalogInput",
@@ -338,7 +336,7 @@ const fzLocal = {
 
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZigDC_input_config: {
         cluster: "genOnOffSwitchCfg",
@@ -353,7 +351,7 @@ const fzLocal = {
                 [`bind_command_${channel}`]: utils.getKey(bindCommandList, bindCommand),
             };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["readResponse", "attributeReport"]>,
 };
 
 function zigusbBtnConfigExposes(epName: string) {
@@ -371,7 +369,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "xyzroe",
         description: "Zigbee USB power monitor and switch",
         fromZigbee: [
-            fz.ignore_basic_report,
             fzLocal.zigusb_on_off_invert,
             fzLocal.zigusb_analog_input,
             fz.temperature,
@@ -419,15 +416,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZigDC",
         vendor: "xyzroe",
         description: "ZigDC",
-        fromZigbee: [
-            fz.ignore_basic_report,
-            fz.temperature,
-            fz.humidity,
-            fz.ptvo_multistate_action,
-            fzLocal.ZigDC_ina3221,
-            fzLocal.ZigDC_uptime,
-            fzLocal.ZigDC_input_config,
-        ],
+        fromZigbee: [fz.temperature, fz.humidity, fz.ptvo_multistate_action, fzLocal.ZigDC_ina3221, fzLocal.ZigDC_uptime, fzLocal.ZigDC_input_config],
         toZigbee: [tzLocal.ZigDC_interval, tzLocal.ZigDC_input_config],
         exposes: [
             e.current().withAccess(ea.STATE).withEndpoint("ch1"),

@@ -1,29 +1,33 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, KeyValue, OnEventData, OnEventType, Zh} from "../lib/types";
+import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
 import {isDummyDevice} from "../lib/utils";
 
 const NS = "zhc:profalux";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const DAY = 86400000;
-
-// Poll Battery voltage at most once a day
-// as the Profalux remotes do not report on battery
-async function onEventBatteryPoll(type: OnEventType, data: OnEventData, device: Zh.Device, options: KeyValue) {
-    if (type === "message" && Date.now() > globalStore.getValue(device, "battery_nextpoll", 0)) {
-        const endpoint = device.endpoints.find((e) => e.supportsInputCluster("genPowerCfg"));
-        logger.debug(`${device.ieeeAddr}: polling battery`, NS);
-        globalStore.putValue(device, "battery_nextpoll", Date.now() + DAY);
-        await endpoint.read("genPowerCfg", ["batteryVoltage"]);
-    }
-}
+const mLocal = {
+    pollBatteryVoltage: (): ModernExtend => {
+        // Poll Battery voltage at most once a day
+        // as the Profalux remotes do not report on battery
+        return m.poll({
+            key: "battery",
+            defaultIntervalSeconds: 60 * 60 * 24,
+            poll: (device) => {
+                const endpoint = device.endpoints.find((e) => e.supportsInputCluster("genPowerCfg"));
+                endpoint
+                    .read("genPowerCfg", ["batteryVoltage"], {sendPolicy: "queue"})
+                    .catch((error) => logger.debug(`Failed to poll battery voltage of '${device.ieeeAddr}' (${error})`, NS));
+            },
+        });
+    },
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -126,9 +130,9 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false}),
             m.forcePowerSource({powerSource: "Battery"}),
+            // Poll battery voltage as reporting doesn't work
+            mLocal.pollBatteryVoltage(),
         ],
-        // Poll battery voltage as reporting doesn't work
-        onEvent: onEventBatteryPoll,
     },
     {
         // Newer remotes. These expose a bunch of things but they are bound to
@@ -159,13 +163,20 @@ export const definitions: DefinitionWithExtend[] = [
             },
         ],
         model: "MAI-ZTM20C",
+        zigbeeModel: ["MAI-ZTM20C"],
         vendor: "Profalux",
         description: "Cover remote",
-        extend: [
-            m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false}),
-            m.forcePowerSource({powerSource: "Battery"}),
-        ],
-        // Poll battery voltage as reporting doesn't work
-        onEvent: onEventBatteryPoll,
+        extend: [m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false})],
+        fromZigbee: [fz.command_cover_close, fz.command_cover_open, fz.command_cover_stop],
+        exposes: [e.action(["up", "down", "stop"])],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            // Bind clusters
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genLevelCtrl"]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genPowerCfg", "closureWindowCovering"]);
+            // Configure battery voltage reporting from endpoint 2
+            await reporting.batteryVoltage(endpoint2, {min: 3600, max: repInterval.MAX, change: 1});
+        },
     },
 ];

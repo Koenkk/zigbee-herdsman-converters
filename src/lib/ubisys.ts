@@ -1,64 +1,255 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {Struct, ZclArray} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import {presets as e, access as ea} from "./exposes";
 import {logger} from "./logger";
 import {type BinaryArgs, binary, deviceAddCustomCluster, type NumericArgs, numeric, setupConfigureForReporting} from "./modernExtend";
-import type {Configure, Fz, ModernExtend, Tz} from "./types";
+import type {Configure, Fz, ModernExtend, Tz, Zh} from "./types";
 
 const NS = "zhc:ubisys";
 
+interface UbisysHvacThermostat {
+    attributes: {
+        ubisysClassBTemperatureOffset: number;
+        ubisysReturnFlowTemperatureWeight: number;
+        ubisysRawOutdoorTemperature: Struct;
+        ubisysRawLocalTemperatureA: Struct;
+        ubisysRawLocalTemperatureB: Struct;
+        ubisysRawForwardFlowTemperature: Struct;
+        ubisysRawReturnFlowTemperature: Struct;
+        ubisysInstalledExtensions: bigint;
+        ubisysTemperatureOffset: number;
+        ubisysDefaultOccupiedHeatingSetpoint: number;
+        ubisysVacationMode: number;
+        ubisysRemoteTemperature: number;
+        ubisysRemoteTemperatureValidDuration: number;
+        ubisysDetectOpenWindow: number;
+        ubisysOpenWindowState: number;
+        ubisysOpenWindowSensitivity: number;
+        ubisysOpenWindowDetectionPeriod: number;
+        ubisysOpenWindowTimeout: number;
+        ubisysProportionalGain: number;
+        ubisysProportionalShift: number;
+        ubisysIntegralFactor: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+export interface UbisysGenLevelCtrl {
+    attributes: {
+        ubisysMinimumOnLevel: number;
+        ubisysValveType: number;
+        ubisysCyclePeriod: number;
+        ubisysSeason: number;
+        ubisysBackupLevel: number;
+        ubisysAlternateBackupLevel: number;
+        ubisysLowerRange: number;
+        ubisysUpperRange: number;
+        ubisysPumpThresholdOn: number;
+        ubisysPumpThresholdOff: number;
+        ubisysHeatingDemandEnableThreshold: number;
+        ubisysHeatingDemandDisableThreshold: number;
+        ubisysCoolingDemandEnableThreshold: number;
+        ubisysCoolingDemandDisableThreshold: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+export interface UbisysClosuresWindowCovering {
+    attributes: {
+        ubisysTurnaroundGuardTime: number;
+        ubisysLiftToTiltTransitionSteps: number;
+        ubisysTotalSteps: number;
+        ubisysLiftToTiltTransitionSteps2: number;
+        ubisysTotalSteps2: number;
+        ubisysAdditionalSteps: number;
+        ubisysInactivePowerThreshold: number;
+        ubisysStartupSteps: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+export interface UbisysDeviceSetup {
+    attributes: {
+        inputConfigurations: ZclArray | unknown[];
+        inputActions: ZclArray | unknown[];
+    };
+    commands: never;
+    commandResponses: never;
+}
+export interface UbisysDimmerSetup {
+    attributes: {
+        capabilities: number;
+        status: number;
+        mode: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 export const ubisysModernExtend = {
+    pollCurrentSummDelivered: (endpointId: number | ((device: Zh.Device) => number)): ModernExtend => {
+        return m.poll({
+            key: "measurement",
+            defaultIntervalSeconds: 60,
+            option: exposes.options.measurement_poll_interval(),
+            poll: async (device) => {
+                const endpoint = device.getEndpoint(typeof endpointId === "number" ? endpointId : endpointId(device));
+                await endpoint.read("seMetering", ["currentSummDelivered"]);
+            },
+        });
+    },
     addCustomClusterHvacThermostat: () =>
         deviceAddCustomCluster("hvacThermostat", {
             ID: 0x0201,
             attributes: {
                 // H10
-                ubisysClassBTemperatureOffset: {ID: 0x0000, type: Zcl.DataType.INT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysClassBTemperatureOffset: {
+                    ID: 0x0000,
+                    type: Zcl.DataType.INT8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    min: -128,
+                },
                 ubisysReturnFlowTemperatureWeight: {
                     ID: 0x0001,
                     type: Zcl.DataType.INT8,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+
+                    write: true,
+                    min: -128,
                 },
-                ubisysRawOutdoorTemperature: {ID: 0x0002, type: Zcl.DataType.STRUCT, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysRawLocalTemperatureA: {ID: 0x0003, type: Zcl.DataType.STRUCT, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysRawLocalTemperatureB: {ID: 0x0004, type: Zcl.DataType.STRUCT, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysRawOutdoorTemperature: {
+                    ID: 0x0002,
+                    type: Zcl.DataType.STRUCT,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
+                ubisysRawLocalTemperatureA: {
+                    ID: 0x0003,
+                    type: Zcl.DataType.STRUCT,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
+                ubisysRawLocalTemperatureB: {
+                    ID: 0x0004,
+                    type: Zcl.DataType.STRUCT,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
                 ubisysRawForwardFlowTemperature: {
                     ID: 0x0005,
                     type: Zcl.DataType.STRUCT,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+
+                    write: true,
                 },
                 ubisysRawReturnFlowTemperature: {
                     ID: 0x0006,
                     type: Zcl.DataType.STRUCT,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+
+                    write: true,
                 },
-                ubisysInstalledExtensions: {ID: 0x0007, type: Zcl.DataType.BITMAP64, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysInstalledExtensions: {
+                    ID: 0x0007,
+                    type: Zcl.DataType.BITMAP64,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
                 // H1
-                ubisysTemperatureOffset: {ID: 0x0010, type: Zcl.DataType.INT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysTemperatureOffset: {
+                    ID: 0x0010,
+                    type: Zcl.DataType.INT8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    min: -128,
+                },
                 ubisysDefaultOccupiedHeatingSetpoint: {
                     ID: 0x0011,
                     type: Zcl.DataType.INT16,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+
+                    write: true,
+                    min: -32768,
                 },
-                ubisysVacationMode: {ID: 0x0012, type: Zcl.DataType.BOOLEAN, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysRemoteTemperature: {ID: 0x0013, type: Zcl.DataType.INT16, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysVacationMode: {
+                    ID: 0x0012,
+                    type: Zcl.DataType.BOOLEAN,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
+                ubisysRemoteTemperature: {
+                    ID: 0x0013,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    min: -32768,
+                },
                 ubisysRemoteTemperatureValidDuration: {
                     ID: 0x0014,
                     type: Zcl.DataType.UINT8,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+
+                    write: true,
+                    max: 0xff,
                 },
-                ubisysDetectOpenWindow: {ID: 0x0015, type: Zcl.DataType.BITMAP8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysOpenWindowState: {ID: 0x0016, type: Zcl.DataType.BITMAP8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysOpenWindowSensitivity: {ID: 0x0017, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysDetectOpenWindow: {
+                    ID: 0x0015,
+                    type: Zcl.DataType.BITMAP8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
+                ubisysOpenWindowState: {
+                    ID: 0x0016,
+                    type: Zcl.DataType.BITMAP8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
+                ubisysOpenWindowSensitivity: {
+                    ID: 0x0017,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xffff,
+                },
                 ubisysOpenWindowDetectionPeriod: {
                     ID: 0x0018,
                     type: Zcl.DataType.UINT16,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+
+                    write: true,
+                    max: 0xffff,
                 },
-                ubisysOpenWindowTimeout: {ID: 0x0019, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysProportionalGain: {ID: 0x0020, type: Zcl.DataType.INT16, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysProportionalShift: {ID: 0x0021, type: Zcl.DataType.INT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysIntegralFactor: {ID: 0x0022, type: Zcl.DataType.INT16, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysOpenWindowTimeout: {
+                    ID: 0x0019,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xffff,
+                },
+                ubisysProportionalGain: {
+                    ID: 0x0020,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    min: -32768,
+                },
+                ubisysProportionalShift: {
+                    ID: 0x0021,
+                    type: Zcl.DataType.INT8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    min: -128,
+                },
+                ubisysIntegralFactor: {
+                    ID: 0x0022,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    min: -32768,
+                },
             },
             commands: {},
             commandsResponse: {},
@@ -68,36 +259,107 @@ export const ubisysModernExtend = {
             ID: 0x0008,
             attributes: {
                 // D1(-R)
-                ubisysMinimumOnLevel: {ID: 0x0000, type: Zcl.DataType.UINT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysMinimumOnLevel: {
+                    ID: 0x0000,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xff,
+                },
                 // H10
-                ubisysValveType: {ID: 0x0001, type: Zcl.DataType.BITMAP8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysCyclePeriod: {ID: 0x0002, type: Zcl.DataType.UINT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysSeason: {ID: 0x0003, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysBackupLevel: {ID: 0x0004, type: Zcl.DataType.UINT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysAlternateBackupLevel: {ID: 0x0005, type: Zcl.DataType.UINT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysLowerRange: {ID: 0x0006, type: Zcl.DataType.UINT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysUpperRange: {ID: 0x0007, type: Zcl.DataType.UINT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysPumpThresholdOn: {ID: 0x0008, type: Zcl.DataType.UINT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysPumpThresholdOff: {ID: 0x0009, type: Zcl.DataType.UINT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysValveType: {
+                    ID: 0x0001,
+                    type: Zcl.DataType.BITMAP8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
+                ubisysCyclePeriod: {
+                    ID: 0x0002,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xff,
+                },
+                ubisysSeason: {
+                    ID: 0x0003,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xff,
+                },
+                ubisysBackupLevel: {
+                    ID: 0x0004,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xff,
+                },
+                ubisysAlternateBackupLevel: {
+                    ID: 0x0005,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xff,
+                },
+                ubisysLowerRange: {
+                    ID: 0x0006,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xff,
+                },
+                ubisysUpperRange: {
+                    ID: 0x0007,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xff,
+                },
+                ubisysPumpThresholdOn: {
+                    ID: 0x0008,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xff,
+                },
+                ubisysPumpThresholdOff: {
+                    ID: 0x0009,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xff,
+                },
                 ubisysHeatingDemandEnableThreshold: {
                     ID: 0x000a,
                     type: Zcl.DataType.UINT8,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+
+                    write: true,
+                    max: 0xff,
                 },
                 ubisysHeatingDemandDisableThreshold: {
                     ID: 0x000b,
                     type: Zcl.DataType.UINT8,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+
+                    write: true,
+                    max: 0xff,
                 },
                 ubisysCoolingDemandEnableThreshold: {
                     ID: 0x000c,
                     type: Zcl.DataType.UINT8,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+
+                    write: true,
+                    max: 0xff,
                 },
                 ubisysCoolingDemandDisableThreshold: {
                     ID: 0x000d,
                     type: Zcl.DataType.UINT8,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+
+                    write: true,
+                    max: 0xff,
                 },
             },
             commands: {},
@@ -108,26 +370,65 @@ export const ubisysModernExtend = {
             ID: 0x0102,
             attributes: {
                 // J1(-R)
-                ubisysTurnaroundGuardTime: {ID: 0x1000, type: Zcl.DataType.UINT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysTurnaroundGuardTime: {
+                    ID: 0x1000,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xff,
+                },
                 ubisysLiftToTiltTransitionSteps: {
                     ID: 0x1001,
                     type: Zcl.DataType.UINT16,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+
+                    write: true,
+                    max: 0xffff,
                 },
-                ubisysTotalSteps: {ID: 0x1002, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysTotalSteps: {
+                    ID: 0x1002,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xffff,
+                },
                 ubisysLiftToTiltTransitionSteps2: {
                     ID: 0x1003,
                     type: Zcl.DataType.UINT16,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+
+                    write: true,
+                    max: 0xffff,
                 },
-                ubisysTotalSteps2: {ID: 0x1004, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
-                ubisysAdditionalSteps: {ID: 0x1005, type: Zcl.DataType.UINT8, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysTotalSteps2: {
+                    ID: 0x1004,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xffff,
+                },
+                ubisysAdditionalSteps: {
+                    ID: 0x1005,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xff,
+                },
                 ubisysInactivePowerThreshold: {
                     ID: 0x1006,
                     type: Zcl.DataType.UINT16,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+
+                    write: true,
+                    max: 0xffff,
                 },
-                ubisysStartupSteps: {ID: 0x1007, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
+                ubisysStartupSteps: {
+                    ID: 0x1007,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                    max: 0xffff,
+                },
             },
             commands: {},
             commandsResponse: {},
@@ -138,8 +439,8 @@ export const ubisysModernExtend = {
             // XXX: once we moved all manuSpecific ones out of zh, we should revisit this
             // Doesn't use manufacturerCode: https://github.com/Koenkk/zigbee-herdsman-converters/pull/4412
             attributes: {
-                inputConfigurations: {ID: 0x0000, type: Zcl.DataType.ARRAY},
-                inputActions: {ID: 0x0001, type: Zcl.DataType.ARRAY},
+                inputConfigurations: {ID: 0x0000, type: Zcl.DataType.ARRAY, write: true},
+                inputActions: {ID: 0x0001, type: Zcl.DataType.ARRAY, write: true},
             },
             commands: {},
             commandsResponse: {},
@@ -149,15 +450,15 @@ export const ubisysModernExtend = {
             ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
             attributes: {
-                capabilities: {ID: 0x0000, type: Zcl.DataType.BITMAP8},
-                status: {ID: 0x0001, type: Zcl.DataType.BITMAP8},
-                mode: {ID: 0x0002, type: Zcl.DataType.BITMAP8},
+                capabilities: {ID: 0x0000, type: Zcl.DataType.BITMAP8, write: true},
+                status: {ID: 0x0001, type: Zcl.DataType.BITMAP8, write: true},
+                mode: {ID: 0x0002, type: Zcl.DataType.BITMAP8, write: true},
             },
             commands: {},
             commandsResponse: {},
         }),
-    localTemperatureOffset: (args?: Partial<NumericArgs>) =>
-        numeric({
+    localTemperatureOffset: (args?: Partial<NumericArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        numeric<"hvacThermostat", UbisysHvacThermostat>({
             name: "local_temperature_offset",
             cluster: "hvacThermostat",
             attribute: "ubisysTemperatureOffset",
@@ -168,8 +469,8 @@ export const ubisysModernExtend = {
             unit: "ºC",
             ...args,
         }),
-    occupiedHeatingSetpointDefault: (args?: Partial<NumericArgs>) =>
-        numeric({
+    occupiedHeatingSetpointDefault: (args?: Partial<NumericArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        numeric<"hvacThermostat", UbisysHvacThermostat>({
             name: "occupied_heating_default_setpoint",
             cluster: "hvacThermostat",
             attribute: "ubisysDefaultOccupiedHeatingSetpoint",
@@ -184,8 +485,8 @@ export const ubisysModernExtend = {
             unit: "ºC",
             ...args,
         }),
-    remoteTemperatureDuration: (args?: Partial<NumericArgs>) =>
-        numeric({
+    remoteTemperatureDuration: (args?: Partial<NumericArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        numeric<"hvacThermostat", UbisysHvacThermostat>({
             name: "remote_temperature_duration",
             cluster: "hvacThermostat",
             attribute: "ubisysRemoteTemperatureValidDuration",
@@ -199,17 +500,17 @@ export const ubisysModernExtend = {
             ...args,
         }),
     vacationMode: (): ModernExtend => {
-        const clusterName = "hvacThermostat";
-        const writeableAttributeName = "ubisysVacationMode";
-        const readableAttributeName = "occupancy";
-        const propertyName = "vacation_mode";
+        const clusterName = "hvacThermostat" as const;
+        const writeableAttributeName = "ubisysVacationMode" as const;
+        const readableAttributeName = "occupancy" as const;
+        const propertyName = "vacation_mode" as const;
         const access = ea.ALL;
 
         const expose = e
             .binary(propertyName, access, true, false)
             .withDescription("When Vacation Mode is active the schedule is disabled and unoccupied_heating_setpoint is used.");
 
-        const fromZigbee: Fz.Converter[] = [
+        const fromZigbee = [
             {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
@@ -218,7 +519,7 @@ export const ubisysModernExtend = {
                         return {[propertyName]: msg.data.occupancy === 0};
                     }
                 },
-            },
+            } satisfies Fz.Converter<typeof clusterName, undefined, ["attributeReport", "readResponse"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -226,10 +527,7 @@ export const ubisysModernExtend = {
                 key: [propertyName],
                 convertSet: async (entity, key, value, meta) => {
                     if (typeof value === "boolean") {
-                        // NOTE: DataType is BOOLEAN in zcl definition as per the device technical reference
-                        //       passing a BOOLEAN type 'value' throws INVALID_DATA_TYPE, we need to pass 1 (true) or 0 (false)
-                        //       ZCL DataType used does still need to be 0x0010 (BOOLEAN)
-                        await entity.write(
+                        await entity.write<typeof clusterName, UbisysHvacThermostat>(
                             clusterName,
                             {[writeableAttributeName]: value ? 1 : 0},
                             {manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH},
@@ -250,8 +548,8 @@ export const ubisysModernExtend = {
 
         return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
     },
-    openWindowState: (args?: Partial<BinaryArgs>) =>
-        binary({
+    openWindowState: (args?: Partial<BinaryArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        binary<"hvacThermostat", UbisysHvacThermostat>({
             name: "open_window_state",
             cluster: "hvacThermostat",
             attribute: "ubisysOpenWindowState",
@@ -261,8 +559,8 @@ export const ubisysModernExtend = {
             description: "Presents the currently detected window state.",
             ...args,
         }),
-    openWindowDetect: (args?: Partial<BinaryArgs>) =>
-        binary({
+    openWindowDetect: (args?: Partial<BinaryArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        binary<"hvacThermostat", UbisysHvacThermostat>({
             name: "open_window_detect",
             cluster: "hvacThermostat",
             attribute: "ubisysDetectOpenWindow",
@@ -272,8 +570,8 @@ export const ubisysModernExtend = {
             description: "Specifies whether the Open Window Detection is activated or deactivated.",
             ...args,
         }),
-    openWindowTimeout: (args?: Partial<NumericArgs>) =>
-        numeric({
+    openWindowTimeout: (args?: Partial<NumericArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        numeric<"hvacThermostat", UbisysHvacThermostat>({
             name: "open_window_timeout",
             cluster: "hvacThermostat",
             attribute: "ubisysOpenWindowTimeout",
@@ -287,8 +585,8 @@ export const ubisysModernExtend = {
             unit: "s",
             ...args,
         }),
-    openWindowDetectionPeriod: (args?: Partial<NumericArgs>) =>
-        numeric({
+    openWindowDetectionPeriod: (args?: Partial<NumericArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        numeric<"hvacThermostat", UbisysHvacThermostat>({
             name: "open_window_detection_periode",
             cluster: "hvacThermostat",
             attribute: "ubisysOpenWindowDetectionPeriod",
@@ -301,8 +599,8 @@ export const ubisysModernExtend = {
             unit: "m",
             ...args,
         }),
-    openWindowSensitivity: (args?: Partial<NumericArgs>) =>
-        numeric({
+    openWindowSensitivity: (args?: Partial<NumericArgs<"hvacThermostat", UbisysHvacThermostat>>) =>
+        numeric<"hvacThermostat", UbisysHvacThermostat>({
             name: "open_window_sensitivity",
             cluster: "hvacThermostat",
             attribute: "ubisysOpenWindowSensitivity",

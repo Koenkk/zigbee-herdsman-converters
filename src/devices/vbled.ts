@@ -6,7 +6,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["43023"],
         model: "43023",
         vendor: "VBLED",
-        description: "ZigBee AC phase-cut dimmer",
+        description: "Zigbee AC phase-cut dimmer",
         extend: [m.light({configureReporting: true})],
     },
 ];

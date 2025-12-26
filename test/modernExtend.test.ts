@@ -1,3 +1,4 @@
+import {describe, expect, test} from "vitest";
 import * as fz from "../src/converters/fromZigbee";
 import {repInterval} from "../src/lib/constants";
 import {fromZigbee as lumiFz} from "../src/lib/lumi";
@@ -10,7 +11,7 @@ describe("ModernExtend", () => {
         await assertDefinition({
             device: mockDevice({modelID: "FWG125Bulb50AU", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl"]}]}),
             meta: {turnsOffAtBrightness1: true},
-            fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.power_on_behavior],
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior],
             toZigbee: [
                 "state",
                 "brightness",
@@ -40,7 +41,7 @@ describe("ModernExtend", () => {
         await assertDefinition({
             device: mockDevice({modelID: "TWGU10Bulb50AU", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
             meta: {},
-            fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
                 "state",
                 "brightness",
@@ -83,7 +84,7 @@ describe("ModernExtend", () => {
         await assertDefinition({
             device: mockDevice({modelID: "OPL 130 C", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
             meta: {applyRedFix: true, supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
-            fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
                 "state",
                 "brightness",
@@ -130,7 +131,7 @@ describe("ModernExtend", () => {
         await assertDefinition({
             device: mockDevice({modelID: "ZBEK-1", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
             meta: {},
-            fromZigbee: [fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
                 "state",
                 "brightness",
@@ -224,15 +225,7 @@ describe("ModernExtend", () => {
                 endpoints: [{ID: 1, inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl", "manuSpecificPhilips2"]}, {ID: 242}],
             }),
             meta: {supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
-            fromZigbee: [
-                fz.on_off,
-                fz.brightness,
-                fz.ignore_basic_report,
-                fz.level_config,
-                fz.color_colortemp,
-                fz.power_on_behavior,
-                philips.fz.gradient,
-            ],
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior, philips.fz.gradient],
             toZigbee: [
                 "state",
                 "brightness",
@@ -299,7 +292,7 @@ describe("ModernExtend", () => {
                 ],
             }),
             meta: {multiEndpoint: true},
-            fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop, fz.on_off, fz.brightness, fz.ignore_basic_report, fz.level_config],
+            fromZigbee: [fz.command_toggle, fz.command_move, fz.command_stop, fz.on_off, fz.brightness, fz.level_config],
             toZigbee: [
                 "state",
                 "brightness",

@@ -1,7 +1,7 @@
+import {expect, vi} from "vitest";
 import type {Device} from "zigbee-herdsman/dist/controller/model";
 import type {DeviceType} from "zigbee-herdsman/dist/controller/tstype";
 import {Clusters} from "zigbee-herdsman/dist/zspec/zcl/definition/cluster";
-
 import * as tz from "../src/converters/toZigbee";
 import {findByDevice} from "../src/index";
 import type {Definition, DefinitionMeta, Fz, Zh} from "../src/lib/types";
@@ -17,6 +17,7 @@ interface MockEndpointArgs {
     inputClusterIDs?: number[];
     outputClusterIDs?: number[];
     attributes?: {[s: string]: {[s: string]: unknown}};
+    meta?: {[s: string]: unknown};
 }
 
 export function reportingItem(attribute: string, min: number, max: number, change: number) {
@@ -85,6 +86,7 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         }),
         save: vi.fn(),
         getClusterAttributeValue: vi.fn().mockImplementation((cluster, attribute) => attributes?.[cluster]?.[attribute]),
+        meta: args.meta,
     };
 }
 
@@ -145,19 +147,23 @@ export async function assertDefinition(args: AssertDefinitionArgs) {
     for (const endpoint of args.device.endpoints) {
         expect(endpoint.bind).toHaveBeenCalledTimes(args.bind[endpoint.ID]?.length ?? 0);
         if (args.bind[endpoint.ID]) {
-            args.bind[endpoint.ID].forEach((bind, idx) => expect(endpoint.bind).toHaveBeenNthCalledWith(idx + 1, bind, coordinatorEndpoint));
+            args.bind[endpoint.ID].forEach((bind, idx) => {
+                expect(endpoint.bind).toHaveBeenNthCalledWith(idx + 1, bind, coordinatorEndpoint);
+            });
         }
 
         expect(endpoint.read).toHaveBeenCalledTimes(args.read[endpoint.ID]?.length ?? 0);
         if (args.read[endpoint.ID]) {
-            args.read[endpoint.ID].forEach((read, idx) => expect(endpoint.read).toHaveBeenNthCalledWith(idx + 1, read[0], read[1]));
+            args.read[endpoint.ID].forEach((read, idx) => {
+                expect(endpoint.read).toHaveBeenNthCalledWith(idx + 1, read[0], read[1]);
+            });
         }
 
         expect(endpoint.configureReporting).toHaveBeenCalledTimes(args.configureReporting[endpoint.ID]?.length ?? 0);
         if (args.configureReporting[endpoint.ID]) {
-            args.configureReporting[endpoint.ID].forEach((configureReporting, idx) =>
-                expect(endpoint.configureReporting).toHaveBeenNthCalledWith(idx + 1, configureReporting[0], configureReporting[1]),
-            );
+            args.configureReporting[endpoint.ID].forEach((configureReporting, idx) => {
+                expect(endpoint.configureReporting).toHaveBeenNthCalledWith(idx + 1, configureReporting[0], configureReporting[1]);
+            });
         }
     }
 

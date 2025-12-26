@@ -13,11 +13,8 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_ajhu0zqb"}],
         model: "SZW08",
         vendor: "Lincukoo",
-        description: "Water leakage sensor with 2 in 1",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
-        configure: tuya.configureMagicPacket,
+        description: "Smart water leakage/lack alarm sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
             e.enum("mode", ea.STATE_SET, ["leakage", "shortage"]).withDescription("work mode of the alarm"),
@@ -38,18 +35,21 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-
     {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_lw5ny7tp"}],
         model: "SZLR08",
         vendor: "Lincukoo",
         description: "24GHz millimeter wave radar",
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
+            e
+                .numeric("detection_distance", ea.STATE)
+                .withValueMin(0)
+                .withValueMax(1000)
+                .withValueStep(1)
+                .withDescription("Distance of detected person")
+                .withUnit("cm"),
             e.illuminance(),
             e
                 .numeric("installation_height", ea.STATE_SET)
@@ -77,6 +77,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [20, "illuminance", tuya.valueConverter.raw],
                 [13, "installation_height", tuya.valueConverter.divideBy100],
                 [16, "radar_sensitivity", tuya.valueConverter.raw],
+                [19, "detection_distance", tuya.valueConverter.raw],
                 [103, "fading_time", tuya.valueConverter.raw],
                 [101, "indicator", tuya.valueConverter.onOff],
                 [104, "relay_switch", tuya.valueConverter.onOff],
@@ -88,19 +89,18 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_9ovska9w"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_9ovska9w", "_TZE284_bquwrqh1"]),
         model: "SZLM04U",
         vendor: "Lincukoo",
         description: "Motion and brightness sensor",
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.occupancy(),
             e.illuminance(),
             e.battery(),
             e.binary("usb_power", ea.STATE, "ON", "OFF").withDescription("check usb power plug in or not"),
+            e.binary("switch", ea.STATE, "ON", "OFF").withDescription("enable or disable the sensor"),
+            e.numeric("fading_time", ea.STATE_SET).withValueMin(5).withValueMax(300).withValueStep(1).withDescription("Fading time").withUnit("s"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -108,6 +108,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [101, "illuminance", tuya.valueConverter.raw],
                 [4, "battery", tuya.valueConverter.raw],
                 [102, "usb_power", tuya.valueConverter.onOff],
+                [103, "switch", tuya.valueConverter.onOff],
+                [104, "fading_time", tuya.valueConverter.raw],
             ],
         },
     },
@@ -116,10 +118,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SZLMR10",
         vendor: "Lincukoo",
         description: "Human Motion & Presence Sensor",
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -155,10 +154,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CZF02",
         vendor: "Lincukoo",
         description: "Finger Robot",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch(),
             e.enum("mode", ea.STATE_SET, ["click", "long_press"]).withDescription("work mode of the finger robot"),
@@ -205,5 +201,145 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Lincukoo",
         description: "Smart mini temperature and humidity sensor",
         extend: [m.temperature(), m.humidity(), m.identify({isSleepy: true}), m.battery({voltage: true})],
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rs62zxk8", "_TZE284_4dosadbh"]),
+        model: "SZT04",
+        vendor: "Lincukoo",
+        description: "Temperature and humidity sensor with clock",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        exposes: [
+            e.temperature(),
+            e.humidity(),
+            e.battery(),
+            e.enum("temperature_unit_convert", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Current display unit"),
+            e.enum("temperature_alarm", ea.STATE, ["canceled", "lower_alarm", "upper_alarm"]).withDescription("Temperature alarm status"),
+            e.numeric("max_temperature", ea.STATE_SET).withUnit("°C").withValueMin(-20).withValueMax(60).withDescription("Alarm temperature max"),
+            e.numeric("min_temperature", ea.STATE_SET).withUnit("°C").withValueMin(-20).withValueMax(60).withDescription("Alarm temperature min"),
+            e
+                .numeric("temperature_sensitivity", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(0.3)
+                .withValueMax(5)
+                .withValueStep(0.1)
+                .withDescription("Temperature sensitivity"),
+            e.enum("humidity_alarm", ea.STATE, ["canceled", "lower_alarm", "upper_alarm"]).withDescription("Humidity alarm status"),
+            e.numeric("max_humidity", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Alarm humidity max"),
+            e.numeric("min_humidity", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Alarm humidity min"),
+            e
+                .numeric("humidity_sensitivity", ea.STATE_SET)
+                .withUnit("%")
+                .withValueMin(1)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withDescription("Humidity sensitivity"),
+        ],
+
+        meta: {
+            tuyaDatapoints: [
+                [1, "temperature", tuya.valueConverter.divideBy10],
+                [2, "humidity", tuya.valueConverter.raw],
+                [4, "battery", tuya.valueConverter.raw],
+                [9, "temperature_unit_convert", tuya.valueConverterBasic.lookup({celsius: tuya.enum(0), fahrenheit: tuya.enum(1)})],
+                [
+                    14,
+                    "temperature_alarm",
+                    tuya.valueConverterBasic.lookup({canceled: tuya.enum(0), lower_alarm: tuya.enum(1), upper_alarm: tuya.enum(2)}),
+                ],
+                [10, "max_temperature", tuya.valueConverter.divideBy10],
+                [11, "min_temperature", tuya.valueConverter.divideBy10],
+                [19, "temperature_sensitivity", tuya.valueConverter.divideBy10],
+                [
+                    15,
+                    "humidity_alarm",
+                    tuya.valueConverterBasic.lookup({canceled: tuya.enum(0), lower_alarm: tuya.enum(1), upper_alarm: tuya.enum(2)}),
+                ],
+                [12, "max_humidity", tuya.valueConverter.raw],
+                [13, "min_humidity", tuya.valueConverter.raw],
+                [20, "humidity_sensitivity", tuya.valueConverter.raw],
+            ],
+        },
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_khoqss0a"]),
+        model: "SZR07",
+        vendor: "Lincukoo",
+        description: "24GHz millimeter wave radar",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e
+                .numeric("detection_distance", ea.STATE_SET)
+                .withValueMin(3)
+                .withValueMax(6)
+                .withValueStep(1.5)
+                .withUnit("m")
+                .withDescription("Maximum range"),
+            e.numeric("radar_sensitivity", ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription("Sensitivity of the radar"),
+            e.numeric("fading_time", ea.STATE_SET).withValueMin(5).withValueMax(300).withValueStep(1).withDescription("Fading time").withUnit("s"),
+            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse1],
+                [20, "illuminance", tuya.valueConverter.raw],
+                [13, "detection_distance", tuya.valueConverter.divideBy100],
+                [16, "radar_sensitivity", tuya.valueConverter.raw],
+                [103, "fading_time", tuya.valueConverter.raw],
+                [102, "radar_switch", tuya.valueConverter.onOff], // toggle to enable presence notifications in app is ignored
+                [101, "indicator", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_b8vxct9l"]),
+        model: "SZLR08T",
+        vendor: "Lincukoo",
+        description: "24GHz millimeter wave radar",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e
+                .numeric("installation_height", ea.STATE_SET)
+                .withValueMin(3)
+                .withValueMax(5)
+                .withValueStep(1)
+                .withUnit("m")
+                .withDescription("Maximum range"),
+            e.numeric("radar_sensitivity", ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription("Sensitivity of the radar"),
+            e.numeric("fading_time", ea.STATE_SET).withValueMin(5).withValueMax(300).withValueStep(1).withDescription("Fading time").withUnit("s"),
+            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
+            e.binary("relay_switch", ea.STATE_SET, "ON", "OFF").withDescription("Relay switch"),
+            e.enum("relay_mode", ea.STATE_SET, ["auto", "manual"]).withDescription("control mode of the relay"),
+            e.enum("radar_mode", ea.STATE_SET, ["people_on", "people_off"]).withDescription("radar mode for the relay controlling"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse0],
+                [20, "illuminance", tuya.valueConverter.raw],
+                [13, "installation_height", tuya.valueConverter.divideBy100],
+                [16, "radar_sensitivity", tuya.valueConverter.raw],
+                [103, "fading_time", tuya.valueConverter.raw],
+                [102, "radar_switch", tuya.valueConverter.onOff], // toggle to enable presence notifications in app is ignored
+                [101, "indicator", tuya.valueConverter.onOff],
+                [104, "relay_switch", tuya.valueConverter.onOff],
+                [106, "relay_mode", tuya.valueConverterBasic.lookup({auto: tuya.enum(0), manual: tuya.enum(1)})],
+                [107, "radar_mode", tuya.valueConverterBasic.lookup({people_on: tuya.enum(0), people_off: tuya.enum(1)})],
+            ],
+        },
+    },
+    {
+        zigbeeModel: ["CZB01"],
+        model: "CZB01",
+        vendor: "Lincukoo",
+        description: "Wireless switch with 1 button",
+        extend: [m.battery(), m.commandsOnOff()],
     },
 ];

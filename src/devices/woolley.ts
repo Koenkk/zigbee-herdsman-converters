@@ -27,7 +27,7 @@ const fzLocal = {
             }
             return payload;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"64529", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -46,5 +46,17 @@ export const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         exposes: [e.power(), e.current(), e.voltage(), e.switch()],
+        onEvent: (event) => {
+            if (event.type === "start") {
+                event.data.device.customReadResponse = (frame) => {
+                    if (frame.isCluster("genTime")) {
+                        // Don't respond to genTime as device keeps spamming.
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/29673
+                        return true;
+                    }
+                    return false;
+                };
+            }
+        },
     },
 ];

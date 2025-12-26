@@ -1,22 +1,25 @@
 import type {Mock} from "vitest";
-
+import {beforeEach, describe, expect, it, vi} from "vitest";
 import type {Models as ZHModels} from "zigbee-herdsman";
-
 import {findByDevice} from "../src/index";
-import type {Definition, Fz, KeyValueAny, Tz} from "../src/lib/types";
+import type {Definition, Fz, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 interface State {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    readonly weekly_schedule: {
-        readonly sunday: string;
-        readonly monday: string;
-        readonly tuesday: string;
-        readonly wednesday: string;
-        readonly thursday: string;
-        readonly friday: string;
-        readonly saturday: string;
-    };
+    readonly weekly_schedule_sunday?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    readonly weekly_schedule_monday?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    readonly weekly_schedule_tuesday?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    readonly weekly_schedule_wednesday?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    readonly weekly_schedule_thursday?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    readonly weekly_schedule_friday?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    readonly weekly_schedule_saturday?: string;
 }
 
 describe("Sonoff TRVZB", () => {
@@ -80,14 +83,15 @@ describe("Sonoff TRVZB", () => {
 
                     const state = fzConverter.convert(trv, msg, null, null, meta) as State;
 
-                    expect(state.weekly_schedule).toEqual({
-                        [day]: "00:00/5 01:30/10",
+                    expect(state).toEqual({
+                        [`weekly_schedule_${day}`]: "00:00/5 01:30/10",
                     });
                 });
             });
 
             describe("when multiple commandGetWeeklyScheduleRsp messages are received for different days", () => {
-                let state: State;
+                let state1: State;
+                let state2: State;
 
                 beforeEach(() => {
                     const msg1: Fz.Message = {
@@ -136,14 +140,16 @@ describe("Sonoff TRVZB", () => {
                         linkquality: 0,
                     };
 
-                    meta.state = fzConverter.convert(trv, msg1, null, null, meta) as KeyValueAny;
-                    state = fzConverter.convert(trv, msg2, null, null, meta) as State;
+                    state1 = fzConverter.convert(trv, msg1, null, null, meta) as State;
+                    state2 = fzConverter.convert(trv, msg2, null, null, meta) as State;
                 });
 
-                it("should merge the schedules into state", () => {
-                    expect(state.weekly_schedule).toEqual({
-                        sunday: "00:00/5 01:30/10",
-                        monday: "01:00/5.5 03:00/12.5",
+                it("should return individual day schedules", () => {
+                    expect(state1).toEqual({
+                        weekly_schedule_sunday: "00:00/5 01:30/10",
+                    });
+                    expect(state2).toEqual({
+                        weekly_schedule_monday: "01:00/5.5 03:00/12.5",
                     });
                 });
             });
@@ -169,7 +175,7 @@ describe("Sonoff TRVZB", () => {
             ];
 
             beforeEach(() => {
-                tzConverter = trv.toZigbee.find((c) => c.key.includes("weekly_schedule"));
+                tzConverter = trv.toZigbee.find((c) => c.key.includes("weekly_schedule_monday"));
 
                 meta = {
                     state: {},
@@ -189,81 +195,31 @@ describe("Sonoff TRVZB", () => {
             });
 
             it.each(invalidTransitions)("should throw error if transition format is invalid ($description)", async ({transition, description}) => {
-                await expect(
-                    tzConverter.convertSet(
-                        endpoint,
-                        "weekly_schedule",
-                        {
-                            monday: transition,
-                        },
-                        meta,
-                    ),
-                ).rejects.toEqual(
+                await expect(tzConverter.convertSet(endpoint, "weekly_schedule_monday", transition, meta)).rejects.toEqual(
                     new Error(`Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`),
                 );
             });
 
             it("should throw error if first transition does not start at 00:00", async () => {
-                await expect(
-                    tzConverter.convertSet(
-                        endpoint,
-                        "weekly_schedule",
-                        {
-                            monday: "00:01/5",
-                        },
-                        meta,
-                    ),
-                ).rejects.toEqual(new Error("Invalid schedule: the first transition of each day should start at 00:00"));
+                await expect(tzConverter.convertSet(endpoint, "weekly_schedule_monday", "00:01/5", meta)).rejects.toEqual(
+                    new Error("Invalid schedule: the first transition of each day should start at 00:00"),
+                );
             });
 
             it("should throw error if day has more than 6 transitions", async () => {
                 await expect(
-                    tzConverter.convertSet(
-                        endpoint,
-                        "weekly_schedule",
-                        {
-                            monday: "00:00/1 00:00/1 00:00/1 00:00/1 00:00/1 00:00/1 00:00/1",
-                        },
-                        meta,
-                    ),
+                    tzConverter.convertSet(endpoint, "weekly_schedule_monday", "00:00/1 00:00/1 00:00/1 00:00/1 00:00/1 00:00/1 00:00/1", meta),
                 ).rejects.toEqual(new Error("Invalid schedule: days must have no more than 6 transitions"));
             });
 
             it.each([3, 36])("should throw error if temperature value is outside of valid range ($temperature) ", async (temperature) => {
-                await expect(
-                    tzConverter.convertSet(
-                        endpoint,
-                        "weekly_schedule",
-                        {
-                            monday: `00:00/${temperature}`,
-                        },
-                        meta,
-                    ),
-                ).rejects.toEqual(new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temperature}`));
-            });
-
-            it("should throw error if day name is invalid", async () => {
-                await expect(
-                    tzConverter.convertSet(
-                        endpoint,
-                        "weekly_schedule",
-                        {
-                            notaday: "00:00/5",
-                        },
-                        meta,
-                    ),
-                ).rejects.toEqual(new Error("Invalid schedule: invalid day name, found: notaday"));
+                await expect(tzConverter.convertSet(endpoint, "weekly_schedule_monday", `00:00/${temperature}`, meta)).rejects.toEqual(
+                    new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temperature}`),
+                );
             });
 
             it("should send setWeeklySchedule command if transitions are valid", async () => {
-                await tzConverter.convertSet(
-                    endpoint,
-                    "weekly_schedule",
-                    {
-                        sunday: "00:00/5 06:30/10.5 12:00/15 18:30/20 20:45/15.5 23:00/4",
-                    },
-                    meta,
-                );
+                await tzConverter.convertSet(endpoint, "weekly_schedule_sunday", "00:00/5 06:30/10.5 12:00/15 18:30/20 20:45/15.5 23:00/4", meta);
 
                 expect(commandFn).toHaveBeenCalledWith(
                     "hvacThermostat",
@@ -304,14 +260,7 @@ describe("Sonoff TRVZB", () => {
             });
 
             it("should send setWeeklySchedule command with transitions in ascending time order", async () => {
-                await tzConverter.convertSet(
-                    endpoint,
-                    "weekly_schedule",
-                    {
-                        sunday: "00:00/5 12:00/15 06:30/10.5",
-                    },
-                    meta,
-                );
+                await tzConverter.convertSet(endpoint, "weekly_schedule_sunday", "00:00/5 12:00/15 06:30/10.5", meta);
 
                 expect(commandFn).toHaveBeenCalledWith(
                     "hvacThermostat",
@@ -340,16 +289,9 @@ describe("Sonoff TRVZB", () => {
             });
 
             it("should send a setWeeklySchedule command for each day", async () => {
-                await tzConverter.convertSet(
-                    endpoint,
-                    "weekly_schedule",
-                    {
-                        sunday: "00:00/5",
-                        monday: "00:00/10",
-                        tuesday: "00:00/15",
-                    },
-                    meta,
-                );
+                await tzConverter.convertSet(endpoint, "weekly_schedule_sunday", "00:00/5", meta);
+                await tzConverter.convertSet(endpoint, "weekly_schedule_monday", "00:00/10", meta);
+                await tzConverter.convertSet(endpoint, "weekly_schedule_tuesday", "00:00/15", meta);
 
                 expect(commandFn).toHaveBeenCalledTimes(3);
 

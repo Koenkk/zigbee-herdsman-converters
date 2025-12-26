@@ -8,7 +8,19 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["EBF_RGB_Zm", "EBF_RGB_Zm_CLP"],
+        zigbeeModel: ["EZMB-RGB-TW-CLB"],
+        model: "300686",
+        vendor: "EGLO",
+        description: "MASSIGNANO-Z ceiling light",
+        extend: [
+            m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}}),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+            m.commandsColorCtrl(),
+        ],
+    },
+    {
+        zigbeeModel: ["EBF_RGB_Zm_CLP"],
         model: "900091",
         vendor: "EGLO",
         description: "ROVITO-Z ceiling light",

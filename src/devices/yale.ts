@@ -1,12 +1,11 @@
-import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz} from "src/lib/types";
 import type {Types as ZHTypes} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz} from "../lib/types";
 import {getFromLookup} from "../lib/utils";
 
 const NS = "zhc:yale";
@@ -103,7 +102,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
     c4_assa_lock_attribute: {
         cluster: "manuSpecificUbisysDeviceSetup",
         type: ["readResponse"],
@@ -180,7 +179,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"manuSpecificUbisysDeviceSetup", undefined, ["readResponse"]>,
     c4_lock_operation_event: {
         cluster: "genAlarms",
         type: ["commandAlarm"],
@@ -211,7 +210,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
 };
 
 const tzLocal = {
@@ -393,7 +392,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lockExtend()],
     },
     {
-        zigbeeModel: ["YRD450 TS"],
+        zigbeeModel: ["YRD450 TS", "YRD450-F TS"],
         model: "YRD450-BLE",
         vendor: "Yale",
         description: "Assure lock 2",

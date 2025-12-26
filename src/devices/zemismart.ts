@@ -44,6 +44,14 @@ const valueConverterLocal = {
         warmwhite: tuya.enum(7),
         warmyellow: tuya.enum(8),
     }),
+    radarConfig: tuya.valueConverterBasic.lookup({
+        none: tuya.enum(0),
+        "10s": tuya.enum(1),
+        "20s": tuya.enum(2),
+        "30s": tuya.enum(3),
+        "45s": tuya.enum(4),
+        "60s": tuya.enum(5),
+    }),
     name: {
         to: (v: string, meta: Tz.Meta) => {
             const stringValue = String(v ?? "");
@@ -72,12 +80,13 @@ const valueConverterLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_1vxgqfba"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_1vxgqfba", "_TZE200_wdfurkoa", "_TZE200_sq6affpe", "_TZE284_wdfurkoa", "_TZE284_6fopvb6v"]),
         model: "ZM25R1",
         vendor: "Zemismart",
         description: "Tubular motor",
-        fromZigbee: [legacy.fromZigbee.tuya_cover, tuya.fz.datapoints],
-        toZigbee: [legacy.toZigbee.tuya_cover_control, tuya.tz.datapoints],
+        fromZigbee: [legacy.fromZigbee.tuya_cover],
+        toZigbee: [legacy.toZigbee.tuya_cover_control],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction").withCategory("config"),
@@ -93,6 +102,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withCategory("config"),
             e.enum("lower_stroke_limit", ea.STATE_SET, ["SET", "RESET"]).withDescription("Set / Reset the lower stroke limit").withCategory("config"),
         ],
+        whiteLabel: [tuya.whitelabel("Zemismart", "ZM25R3", "Tubular motor", ["_TZE200_sq6affpe"])],
         meta: {
             // All datapoints go in here
             tuyaDatapoints: [
@@ -124,7 +134,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM-CSW032-D",
         vendor: "Zemismart",
         description: "Curtain/roller blind switch",
-        fromZigbee: [fz.ignore_basic_report, fz.ZMCSW032D_cover_position],
+        fromZigbee: [fz.ZMCSW032D_cover_position],
         toZigbee: [tz.cover_state, tz.ZMCSW032D_cover_position],
         exposes: [e.cover_position()],
         meta: {multiEndpoint: true},
@@ -168,7 +178,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart 6 key scene switch",
         fromZigbee: [legacy.fromZigbee.ZMRM02],
         toZigbee: [],
-        onEvent: tuya.onEventSetTime,
+        extend: [tuya.modernExtend.tuyaBase()],
         exposes: [
             e.battery(),
             e.action([
@@ -217,10 +227,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Zemismart",
         description: "Tubular motor",
         // mcuVersionResponse spsams: https://github.com/Koenkk/zigbee2mqtt/issues/19817
-        onEvent: tuya.onEvent({respondToMcuVersionResponse: false}),
-        configure: tuya.configureMagicPacket,
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
             e.text("work_state", ea.STATE),
@@ -311,7 +318,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM25TQ",
         vendor: "Zemismart",
         description: "Tubular motor",
-        fromZigbee: [legacy.fz.tuya_cover, fz.ignore_basic_report],
+        fromZigbee: [legacy.fz.tuya_cover],
         toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options, legacy.tz.tuya_data_point_test],
         exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
         extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
@@ -327,7 +334,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("l3").setAccess("state", ea.STATE_SET),
             e.switch().withEndpoint("l4").setAccess("state", ea.STATE_SET),
         ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
+        fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -355,7 +362,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("l5").setAccess("state", ea.STATE_SET),
             e.switch().withEndpoint("l6").setAccess("state", ea.STATE_SET),
         ],
-        fromZigbee: [fz.ignore_basic_report, legacy.fz.tuya_switch],
+        fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -385,17 +392,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_aknpkt02"]),
-        model: "ZMO-606-S2",
-        vendor: "Zemismart",
-        description: "Smart 2 gangs switch with outlet",
-        extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, onOffCountdown: true, endpoints: ["l1", "l2", "l3"]}),
-        ],
-        configure: tuya.configureMagicPacket,
-    },
-    {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_b1q8kwmh"]),
         model: "ZMO-606-20A",
         vendor: "Zemismart",
@@ -403,14 +399,70 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.identify(), tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true})],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_sa2ueffe", "_TZE204_zuepxzck"]),
+        model: "ZMS-206US-1",
+        vendor: "Zemismart",
+        description: "Smart screen switch 1 gang",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
+            e.switch(),
+            e
+                .numeric("backlight_brightness", ea.STATE_SET)
+                .withDescription("Brightness of the light")
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1),
+            e.child_lock(),
+            e.enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"]).withDescription("Radar Config"),
+            e
+                .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("Switch lightcolor when on"),
+            e
+                .enum("switch_color_off", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("Switch lightcolor when off"),
+            e.enum("indicator_status", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("Indicator Light Status"),
+            e
+                .enum("delay_off_schedule", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
+                .withDescription("Switch lightcolor while delayed"),
+            e.text("name", ea.STATE_SET).withDescription("Name for switch"),
+            e.enum("relay_status", ea.STATE_SET, ["power_on", "power_off", "restart_memory"]).withDescription("Relay status for switch"),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withDescription("Countdown for switch 1")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [7, "countdown", tuya.valueConverter.raw],
+                [13, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [14, "relay_status", tuya.valueConverter.raw],
+                [15, "indicator_status", valueConverterLocal.indiciatorStatus],
+                [16, "backlight_mode", tuya.valueConverter.onOff],
+                [19, "delay_off_schedule", valueConverterLocal.delayOffSchedule],
+                [24, "test_bit", tuya.valueConverter.raw],
+                [29, "relay_status", valueConverterLocal.relayStatus],
+                [101, "child_lock", tuya.valueConverter.lockUnlock],
+                [102, "backlight_brightness", tuya.valueConverter.raw],
+                [103, "switch_color_on", valueConverterLocal.switchColor],
+                [104, "switch_color_off", valueConverterLocal.switchColor],
+                [105, "name", valueConverterLocal.name],
+                [111, "radar_config", valueConverterLocal.radarConfig],
+                [209, "cycle_schedule", valueConverterLocal.cycleSchedule],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3ctwoaip", "_TZE204_3ctwoaip"]),
         model: "ZMS-206EU-2",
         vendor: "Zemismart",
         description: "Smart screen switch 2 gang",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -424,6 +476,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
+            e.enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"]).withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
@@ -481,23 +534,21 @@ export const definitions: DefinitionWithExtend[] = [
                 [30, "relay_status_l2", valueConverterLocal.relayStatus],
                 [101, "child_lock", tuya.valueConverter.lockUnlock],
                 [102, "backlight_brightness", tuya.valueConverter.raw],
-                [103, "switch_color_off", valueConverterLocal.switchColor],
-                [104, "switch_color_on", valueConverterLocal.switchColor],
+                [103, "switch_color_on", valueConverterLocal.switchColor],
+                [104, "switch_color_off", valueConverterLocal.switchColor],
                 [105, "name_l1", valueConverterLocal.name],
                 [106, "name_l2", valueConverterLocal.name],
+                [111, "radar_config", valueConverterLocal.radarConfig],
                 [209, "cycle_schedule", valueConverterLocal.cycleSchedule],
             ],
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_k7v0eqke", "_TZE204_iyki9kjp", "_TZE284_k7v0eqke"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_k7v0eqke", "_TZE204_iyki9kjp", "_TZE284_k7v0eqke", "_TZE284_e4pf6l87"]),
         model: "ZMS-206EU-3",
         vendor: "Zemismart",
         description: "Smart screen switch 3 gang",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime, // Add this if you are getting no converter for 'commandMcuSyncTime'
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -512,6 +563,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
+            e.enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"]).withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
@@ -585,24 +637,29 @@ export const definitions: DefinitionWithExtend[] = [
                 [31, "relay_status_l3", valueConverterLocal.relayStatus],
                 [101, "child_lock", tuya.valueConverter.lockUnlock],
                 [102, "backlight_brightness", tuya.valueConverter.raw],
-                [103, "switch_color_off", valueConverterLocal.switchColor],
-                [104, "switch_color_on", valueConverterLocal.switchColor],
+                [103, "switch_color_on", valueConverterLocal.switchColor],
+                [104, "switch_color_off", valueConverterLocal.switchColor],
                 [105, "name_l1", valueConverterLocal.name],
                 [106, "name_l2", valueConverterLocal.name],
                 [107, "name_l3", valueConverterLocal.name],
+                [111, "radar_config", valueConverterLocal.radarConfig],
                 [209, "cycle_schedule", valueConverterLocal.cycleSchedule],
             ],
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_wwaeqnrf", "_TZE284_wwaeqnrf"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE204_wwaeqnrf",
+            "_TZE284_wwaeqnrf",
+            "_TZE204_y4jqpry8",
+            "_TZE284_y4jqpry8",
+            "_TZE204_xibaabmu",
+            "_TZE284_xibaabmu",
+        ]),
         model: "ZMS-206US-4",
         vendor: "Zemismart",
         description: "Smart screen switch 4 gang US",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -619,6 +676,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(1),
             e.child_lock(),
+            e.enum("radar_config", ea.STATE_SET, ["none", "10s", "20s", "30s", "45s", "60s"]).withDescription("Radar Config"),
             e
                 .enum("switch_color_on", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan", "warm_white", "warm_yellow"])
                 .withDescription("Switch lightcolor when on"),
@@ -708,13 +766,166 @@ export const definitions: DefinitionWithExtend[] = [
                 [32, "relay_status_l4", valueConverterLocal.relayStatus],
                 [101, "child_lock", tuya.valueConverter.lockUnlock],
                 [102, "backlight_brightness", tuya.valueConverter.raw],
-                [103, "switch_color_off", valueConverterLocal.switchColor],
-                [104, "switch_color_on", valueConverterLocal.switchColor],
+                [103, "switch_color_on", valueConverterLocal.switchColor],
+                [104, "switch_color_off", valueConverterLocal.switchColor],
                 [105, "name_l1", valueConverterLocal.name],
                 [106, "name_l2", valueConverterLocal.name],
                 [107, "name_l3", valueConverterLocal.name],
                 [108, "name_l4", valueConverterLocal.name],
+                [111, "radar_config", valueConverterLocal.radarConfig],
                 [201, "cycle_schedule", valueConverterLocal.cycleSchedule],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_xvywzhmi"]),
+        model: "ZMS-208US-3",
+        vendor: "Zemismart",
+        description: "Smart screen switch 3 gang",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch(),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e.child_lock(),
+            e.text("name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Switch 1"),
+            e.text("name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Switch 2"),
+            e.text("name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Switch 3"),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l1")
+                .withDescription("Countdown for Switch 1")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l2")
+                .withDescription("Countdown for Switch 2")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l3")
+                .withDescription("Countdown for Switch 3")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, "state_l2", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [3, "state_l3", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [7, "countdown_l1", tuya.valueConverter.raw],
+                [8, "countdown_l2", tuya.valueConverter.raw],
+                [9, "countdown_l3", tuya.valueConverter.raw],
+                [13, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [24, "test_bit", tuya.valueConverter.raw],
+                [101, "child_lock", tuya.valueConverter.lockUnlock],
+                [105, "name_l1", valueConverterLocal.name],
+                [106, "name_l2", valueConverterLocal.name],
+                [107, "name_l3", valueConverterLocal.name],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mpg22jc1"]),
+        model: "ZN-USC1U-HT",
+        vendor: "Zemismart",
+        description: "Smart curtain wall switch",
+        options: [exposes.options.invert_cover()],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor steering"),
+            e
+                .numeric("calibration_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(500)
+                .withUnit("s")
+                .withDescription("Calibration time in seconds (Please fully close the curtain before set the calibration time)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [
+                    8,
+                    "motor_steering",
+                    tuya.valueConverterBasic.lookup({
+                        FORWARD: tuya.enum(0),
+                        BACKWARD: tuya.enum(1),
+                    }),
+                ],
+                [10, "calibration_time", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_nsa76jai"]),
+        model: "KES-606US-L4",
+        vendor: "Zemismart",
+        description: "Smart light switch - 4 gang (US)",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ["l1", "l2", "l3", "l4"],
+                powerOnBehavior2: true,
+                backlightModeOffOn: true,
+                indicatorMode: true,
+            }),
+        ],
+        configure: tuya.configureMagicPacket,
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3mzb0sdz"]),
+        model: "ZM16B",
+        vendor: "Zemismart",
+        description: "Tubular motor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [9, "position", tuya.valueConverter.coverPosition], // Percent control - set position (0-100)
+                [8, "position", tuya.valueConverter.coverPosition], // Percent state - current position (0-100)
+                [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [13, "battery", tuya.valueConverter.raw],
+                [
+                    16,
+                    "border",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                        up_delete: tuya.enum(2),
+                        down_delete: tuya.enum(3),
+                        remove_top_bottom: tuya.enum(4),
+                    }),
+                ],
             ],
         },
     },

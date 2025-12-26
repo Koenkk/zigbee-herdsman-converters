@@ -76,6 +76,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
+        zigbeeModel: ["S32052"],
+        model: "S32052",
+        vendor: "SLC",
+        description: "SLC SmartOne Driver CC LED dimmable driver 2CH TW 350-1500mA 50W",
+        extend: [m.light({colorTemp: {range: [160, 450]}})],
+    },
+    {
         zigbeeModel: ["S32053"],
         model: "S32053",
         vendor: "The Light Group",
@@ -88,5 +95,17 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "The Light Group",
         description: "SLC SmartOne TW led dimmable driver 24V/75W",
         extend: [m.light({colorTemp: {range: [160, 450]}})],
+    },
+    {
+        zigbeeModel: ["S57007"],
+        model: "S57007",
+        vendor: "The Light Group",
+        description: "SLC SmartOne Zigbee remote control Zigbee IP20",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3"]}),
+            m.commandsScenes({endpointNames: ["1", "2", "3"]}),
+        ],
     },
 ];
