@@ -505,7 +505,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Soil Moisture Sensor",
         extend: [
             m.temperature(),
-            m.humidity(),
             m.soilMoisture(),
             m.battery(),
             m.deviceAddCustomCluster("3rSoilSpecialCluster", {
