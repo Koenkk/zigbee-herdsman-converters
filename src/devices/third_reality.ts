@@ -502,7 +502,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RSM0147Z"],
         model: "3RSM0147Z",
         vendor: "Third Reality",
-        description: "Soil sensor",
+        description: "Smart Soil Moisture Sensor",
         extend: [
             m.temperature(),
             m.humidity(),
@@ -520,6 +520,14 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
         ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["3RSM0347Z"],
+        model: "3RSM0347Z",
+        vendor: "Third Reality",
+        description: "Smart Soil Moisture Sensor Gen2",
+        extend: [m.temperature(), m.humidity(), m.soilMoisture(), m.battery()],
         ota: true,
     },
     {

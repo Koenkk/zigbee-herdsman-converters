@@ -403,6 +403,44 @@ const convLocal = {
     },
 };
 
+// TS0601_smart_scene_knob constants and helpers //
+// 4 physical buttons with knob rotation, 3 modes: Scene (DP 1-4), Light (ZCL), Curtain (DP broadcast)
+// Mode switch: hold button 2 or 4 for 5 seconds (only cycles through bound modes)
+// Group ID pattern: base + (button-1) * 20, detected from first button press
+const modeScene = 0x01;
+const modeLight = 0x03;
+const modeCurtain = 0x04;
+const groupIdOffset = 20;
+
+const statusUnassigned = "unassigned";
+const statusWaiting = "waiting_button_1";
+const statusReady = "ready";
+
+const getButtonFromGroupId = (groupId: number, baseGroupId: number): number | null => {
+    if (!baseGroupId || !groupId) return null;
+    const offset = groupId - baseGroupId;
+    if (offset >= 0 && offset % groupIdOffset === 0) {
+        const button = Math.floor(offset / groupIdOffset) + 1;
+        if (button >= 1 && button <= 4) return button;
+    }
+    return null;
+};
+// DP 102 payload: [0x01, 0x01, mode, ...name(12 bytes), ...suffix(4 bytes)]
+// Suffix: slot number at position (slot-1), rest 0xff
+const bindSlotTS0601SmartSceneKnob = async (entity: Zh.Endpoint | Zh.Group, slot: number, mode: number): Promise<void> => {
+    const modeNames: {[key: number]: string} = {[modeScene]: "Scene", [modeLight]: "Light", [modeCurtain]: "Curtain"};
+    const slotName = `${modeNames[mode] || "Scene"} ${slot}`;
+
+    const nameBuffer = Buffer.alloc(12, 0);
+    nameBuffer.write(slotName, "utf8");
+
+    const suffix = Buffer.from([0xff, 0xff, 0xff, 0xff]);
+    suffix[slot - 1] = slot;
+
+    const payload = Buffer.concat([Buffer.from([0x01, 0x01, mode]), nameBuffer, suffix]);
+    await tuya.sendDataPointRaw(entity as Zh.Endpoint, 102, payload, "dataRequest", 0x10 + (slot - 1));
+};
+
 const tzLocal = {
     ts0049_countdown: {
         key: ["water_countdown"],
@@ -822,6 +860,58 @@ const tzLocal = {
             return {state: {backlight_mode: value}};
         },
     } satisfies Tz.Converter,
+    // TS0601_smart_scene_knob //
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_smart_scene_knob_bind_all: {
+        key: ["bind_all_scene", "bind_all_light", "bind_all_curtain"],
+        convertSet: async (entity, key, value, meta) => {
+            const modes: {[key: string]: number} = {
+                bind_all_scene: modeScene,
+                bind_all_light: modeLight,
+                bind_all_curtain: modeCurtain,
+            };
+            const mode = modes[key];
+
+            for (let slot = 1; slot <= 4; slot++) {
+                await bindSlotTS0601SmartSceneKnob(entity, slot, mode);
+                if (slot < 4) await new Promise((resolve) => setTimeout(resolve, 500));
+            }
+
+            // Scene mode doesn't use Group ID
+            if (key === "bind_all_scene") {
+                return {};
+            }
+
+            const currentStatus = meta.state?.assignment_status as string | undefined;
+            const baseGroupId = meta.state?.base_group_id as number | undefined;
+
+            if (currentStatus !== statusReady || !baseGroupId) {
+                return {state: {assignment_status: statusWaiting}};
+            }
+            return {};
+        },
+    } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_smart_scene_knob_assign_button_1: {
+        key: ["assign_button_1"],
+        convertSet: (entity, key, value, meta) => {
+            return {state: {assignment_status: statusWaiting}};
+        },
+    } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_smart_scene_knob_set_base_group_id: {
+        key: ["set_base_group_id"],
+        convertSet: (entity, key, value, meta) => {
+            const baseGroupId = Number.parseInt(value as string, 10);
+            if (Number.isNaN(baseGroupId) || baseGroupId < 1 || baseGroupId > 65000) return {};
+            return {
+                state: {
+                    base_group_id: baseGroupId,
+                    assignment_status: statusReady,
+                },
+            };
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -1087,6 +1177,214 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    // TS0601_smart_scene_knob //
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_smart_scene_knob_light_onoff: {
+        cluster: "genOnOff",
+        type: ["commandOn", "commandOff"],
+        convert: (model, msg, publish, options, meta): KeyValue | undefined => {
+            const groupId = msg.groupID;
+            if (!groupId) return;
+
+            const baseGroupId = meta.state?.base_group_id as number | undefined;
+            const status = (meta.state?.assignment_status as string) || statusUnassigned;
+            const command = msg.type === "commandOn" ? "on" : "off";
+
+            if (status === statusWaiting) {
+                return {
+                    base_group_id: groupId,
+                    assignment_status: statusReady,
+                    action: `light_1_${command}`,
+                    action_group: groupId,
+                    action_button: 1,
+                };
+            }
+
+            if (status === statusReady && baseGroupId) {
+                const button = getButtonFromGroupId(groupId, baseGroupId);
+                if (!button) return;
+                return {
+                    action: `light_${button}_${command}`,
+                    action_group: groupId,
+                    action_button: button,
+                };
+            }
+
+            return {action_group: groupId, assignment_status: statusUnassigned};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_smart_scene_knob_light_brightness: {
+        cluster: "genLevelCtrl",
+        type: ["commandMoveToLevelWithOnOff", "commandMoveToLevel"],
+        convert: (model, msg, publish, options, meta): KeyValue | undefined => {
+            const groupId = msg.groupID;
+            if (!groupId) return;
+
+            const baseGroupId = meta.state?.base_group_id as number | undefined;
+            const status = (meta.state?.assignment_status as string) || statusUnassigned;
+            const level = msg.data.level as number;
+
+            const prevBrightness = meta.state?.brightness as number | undefined;
+            const prevDirection = meta.state?.brightness_direction as string | undefined;
+            let direction = "";
+
+            if (prevBrightness !== undefined) {
+                if (level > prevBrightness) direction = "_up";
+                else if (level < prevBrightness) direction = "_down";
+                else direction = prevDirection || "";
+            }
+
+            if (status === statusWaiting) {
+                return {
+                    base_group_id: groupId,
+                    assignment_status: statusReady,
+                    action: `light_1_brightness${direction}`,
+                    action_group: groupId,
+                    action_button: 1,
+                    brightness: level,
+                    brightness_direction: direction,
+                };
+            }
+
+            if (status === statusReady && baseGroupId) {
+                const button = getButtonFromGroupId(groupId, baseGroupId);
+                if (!button) return;
+                return {
+                    action: `light_${button}_brightness${direction}`,
+                    action_group: groupId,
+                    action_button: button,
+                    brightness: level,
+                    brightness_direction: direction,
+                };
+            }
+
+            return {action_group: groupId, brightness: level};
+        },
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevelWithOnOff", "commandMoveToLevel"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_smart_scene_knob_light_colortemp: {
+        // Direction: higher mired = warmer = down, lower mired = cooler = up
+        cluster: "lightingColorCtrl",
+        type: ["commandMoveToColorTemp"],
+        convert: (model, msg, publish, options, meta): KeyValue | undefined => {
+            const groupId = msg.groupID;
+            if (!groupId) return;
+
+            const baseGroupId = meta.state?.base_group_id as number | undefined;
+            const status = (meta.state?.assignment_status as string) || statusUnassigned;
+            const colortemp = msg.data.colortemp as number;
+
+            const prevColortemp = meta.state?.color_temp as number | undefined;
+            const prevDirection = meta.state?.color_temp_direction as string | undefined;
+            let direction = "";
+
+            if (prevColortemp !== undefined) {
+                if (colortemp > prevColortemp) direction = "_down";
+                else if (colortemp < prevColortemp) direction = "_up";
+                else direction = prevDirection || "";
+            }
+
+            if (status === statusWaiting) {
+                return {
+                    base_group_id: groupId,
+                    assignment_status: statusReady,
+                    action: `light_1_colortemp${direction}`,
+                    action_group: groupId,
+                    action_button: 1,
+                    color_temp: colortemp,
+                    color_temp_direction: direction,
+                };
+            }
+
+            if (status === statusReady && baseGroupId) {
+                const button = getButtonFromGroupId(groupId, baseGroupId);
+                if (!button) return;
+                return {
+                    action: `light_${button}_colortemp${direction}`,
+                    action_group: groupId,
+                    action_button: button,
+                    color_temp: colortemp,
+                    color_temp_direction: direction,
+                };
+            }
+
+            return {action_group: groupId, color_temp: colortemp};
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["commandMoveToColorTemp"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_smart_scene_knob_curtain_command: {
+        // DP 1: 0=start, 2=stop (1=init rotation, ignored)
+        // DP 2: 4-byte big-endian position 0-100%
+        cluster: "manuSpecificTuya",
+        type: ["commandDataRequest"],
+        convert: (model, msg, publish, options, meta): KeyValue | undefined => {
+            const groupId = msg.groupID;
+            if (!groupId) return;
+
+            const baseGroupId = meta.state?.base_group_id as number | undefined;
+            const status = (meta.state?.assignment_status as string) || statusUnassigned;
+
+            const dpValues = msg.data.dpValues as Array<{dp: number; data: Buffer}>;
+            if (!dpValues || dpValues.length === 0) return;
+
+            const dp = dpValues[0].dp;
+            const data = dpValues[0].data;
+
+            let action: string | null = null;
+            let position: number | null = null;
+
+            if (dp === 1) {
+                const commands: {[key: number]: string} = {0: "start", 2: "stop"};
+                action = commands[data[0]] || null;
+            } else if (dp === 2) {
+                position = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+
+                const prevPosition = meta.state?.curtain_position as number | undefined;
+                const prevDirection = meta.state?.curtain_position_direction as string | undefined;
+
+                if (prevPosition !== undefined) {
+                    if (position > prevPosition) action = "position_open";
+                    else if (position < prevPosition) action = "position_close";
+                    else action = prevDirection ? `position${prevDirection}` : "position";
+                } else {
+                    action = "position";
+                }
+            }
+
+            if (!action) return;
+
+            const result: KeyValue = {action_group: groupId};
+
+            if (position !== null) {
+                result.curtain_position = position;
+                if (action.includes("_open")) result.curtain_position_direction = "_open";
+                else if (action.includes("_close")) result.curtain_position_direction = "_close";
+            }
+
+            if (status === statusWaiting) {
+                return {
+                    ...result,
+                    base_group_id: groupId,
+                    assignment_status: statusReady,
+                    action: `curtain_1_${action}`,
+                    action_button: 1,
+                };
+            }
+
+            if (status === statusReady && baseGroupId) {
+                const button = getButtonFromGroupId(groupId, baseGroupId);
+                if (!button) return;
+                return {
+                    ...result,
+                    action: `curtain_${button}_${action}`,
+                    action_button: button,
+                };
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataRequest"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -2623,6 +2921,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.power_on_behavior(["off", "on", "toggle", "previous"])],
         meta: {
             moveToLevelWithOnOffDisable: true,
+            noOffTransitionWhenOff: true,
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -2714,6 +3013,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3210_wbsgmojq",
             ]),
             tuya.whitelabel("Moes", "ZB-TDC6-RCW-E14", "RGB+CCT 5W E14 LED bulb", ["_TZ3210_ifga63rg"]),
+            tuya.whitelabel("Moes", "ZB-TDD6-RCW-4", "RGB+CCT 6W Smart Downlight", ["_TZ3210_b8jdosxo"]),
             tuya.whitelabel("MiBoxer", "E3-ZR", "3 in 1 LED Controller", ["_TZB210_wy1pyu1q", "_TZB210_yatkpuha"]),
             tuya.whitelabel("MiBoxer", "SZ5", "5 in 1 LED Controller", ["_TZB210_w9hcix2r"]),
             tuya.whitelabel("MiBoxer", "FUT037Z+", "RGB led controller", ["_TZB210_417ikxay", "_TZB210_wxazcmsh"]),
@@ -3049,7 +3349,6 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_wmlc9p9z",
                 "_TZ3000_shopg9ss",
                 "_TZ3000_n0lphcok",
-                "_TZ3000_hgm6k8ku",
                 "_TZ3000_r80pzsb9",
             ]),
             ...tuya.fingerprint("TS0001", ["_TZ3000_n0lphcok", "_TZ3000_wn65ixz9"]),
@@ -3972,6 +4271,42 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Yookee", "D10110_1", "Smart blind", ["_TZE200_9caxna4s"])],
     },
     {
+        fingerprint: tuya.fingerprint("TS0301", ["_TZE210_m6lwazh9"]),
+        model: "TS0301_cover_1",
+        vendor: "Tuya",
+        description: "Cover motor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            e.battery(),
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [3, "position", tuya.valueConverter.coverPosition],
+                [
+                    5,
+                    "reverse_direction",
+                    tuya.valueConverterBasic.lookup({
+                        forward: tuya.enum(0),
+                        back: tuya.enum(1),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_aqnazj70",
             "_TZE200_di3tfv5b",
@@ -4140,7 +4475,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_gbagoilo"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_gbagoilo", "_TZE284_xnwxmj8z"]),
         model: "MG-ZG01W",
         vendor: "Tuya",
         description: "1 gang switch with power meter",
@@ -4304,6 +4639,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_ssp0maqm",
             "_TZ3000_p3fph1go",
             "_TZ3000_9r5jaajv",
+            "_TZ3000_nxdziqzc",
         ]),
         model: "TS0215A_sos",
         vendor: "Tuya",
@@ -5431,6 +5767,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
             "_TZ3000_66fekqhh",
             "_TZ3000_ok0ggpk7",
             "_TZ3000_aknpkt02",
+            "_TZ3000_pfc7i3kt",
         ]),
         model: "TS0003_switch_3_gang_with_backlight",
         vendor: "Tuya",
@@ -5439,12 +5776,14 @@ Ensure all 12 segments are defined and separated by spaces.`,
             tuya.modernExtend.tuyaMagicPacket(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.modernExtend.tuyaOnOff({
+                onOffCountdown: (m) => m !== "_TZ3000_pfc7i3kt",
                 powerOnBehavior2: (m) => m !== "_TZ3000_nwidmc4n",
-                indicatorMode: (m) => m !== "_TZ3000_nwidmc4n",
-                backlightModeOffOn: true,
+                indicatorMode: (m) => m !== "_TZ3000_nwidmc4n" && m !== "_TZ3000_pfc7i3kt",
+                inchingSwitch: (m) => m !== "_TZ3000_pfc7i3kt",
+                backlightModeOffOn: (m) => m !== "_TZ3000_pfc7i3kt",
                 endpoints: ["l1", "l2", "l3"],
                 powerOutageMemory: (m) => m === "_TZ3000_nwidmc4n",
-                switchType: (m) => m === "_TZ3000_nwidmc4n",
+                switchType: (m) => m === "_TZ3000_nwidmc4n" || m === "_TZ3000_pfc7i3kt",
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -5454,6 +5793,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
         },
         whiteLabel: [
+            tuya.whitelabel("Moes", "MS-104CZ", "3 gang switch module", ["_TZ3000_pfc7i3kt"]),
             tuya.whitelabel("Lonsonho", "X703A", "3 Gang switch with backlight", ["_TZ3000_rhkfbfcv"]),
             tuya.whitelabel("Zemismart", "ZM-L03E-Z", "3 gang switch with neutral", ["_TZ3000_empogkya", "_TZ3000_lsunm46z"]),
             tuya.whitelabel("Zemismart", "KES-606US-L3", "3 gang switch with neutral", ["_TZ3000_uilitwsy"]),
@@ -6592,6 +6932,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
             "_TZE200_ba69l9ol",
             "_TZE200_68nvbi09",
             "_TZE200_vexa5o82",
+            "_TZE200_sfqyhvpv",
         ]),
         model: "TS0601_cover_3",
         vendor: "Tuya",
@@ -6612,6 +6953,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
             tuya.whitelabel("Zemismart", "ZM85EL-2Z", "Roman Rod I type U curtains track", ["_TZE200_cf1sl3tj", "_TZE200_nw1r9hp6"]),
             tuya.whitelabel("Hiladuo", "B09M3R35GC", "Motorized roller shade", ["_TZE200_9p5xmj5r"]),
             tuya.whitelabel("Tuya", "MYQ-RM25-1.3/25-BZ", "Tubular roller blind motor", ["_TZE200_vexa5o82"]),
+            tuya.whitelabel("Shaman", "25EB-1/30-TYZ", "Motorized roller shade", ["_TZE200_sfqyhvpv"]),
         ],
         meta: {
             // All datapoints go in here
@@ -9366,7 +9708,20 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_1s0vfmtv", "_TZ3002_gdwja9a7"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_l8bfzlcd"]),
+        model: "TS0726_1_gang",
+        vendor: "Tuya",
+        description: "1 gang switch with neutral wire",
+        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
+        exposes: [e.switch(), e.power_on_behavior(), e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]), e.action(["scene_1"])],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_1s0vfmtv", "_TZ3002_gdwja9a7", "_TZ3002_u7d3nes3"]),
         model: "TS0726_2_gang",
         vendor: "Tuya",
         description: "2 gang switch with neutral wire",
@@ -9486,7 +9841,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_iedhxgyi"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_iedhxgyi", "_TZ3000_lcjsewlo", "_TZ3000_kfkqkjqe"]),
         model: "TS0726_3_gang",
         vendor: "Tuya",
         description: "3 gang switch with neutral wire",
@@ -9510,7 +9865,14 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_wsspgtcd", "_TZ3000_s678wazd", "_TZ3002_pzao9ls1", "_TZ3000_kfkqkjqe"]),
+        fingerprint: tuya.fingerprint("TS0726", [
+            "_TZ3000_wsspgtcd",
+            "_TZ3000_s678wazd",
+            "_TZ3002_pzao9ls1",
+            "_TZ3002_uu4uircb",
+            "_TZ3002_yptomml1",
+            "_TZ3002_pw4ad2xa",
+        ]),
         model: "TS0726_4_gang",
         vendor: "Tuya",
         description: "4 gang switch with neutral wire",
@@ -11539,6 +11901,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
             "_TZ3290_uc8lwbi2",
             "_TZ3290_nba3knpsarkawgnt",
             "_TZ3290_8xzb2ghn",
+            "_TZ3290_s6ezpa3j",
         ]),
         model: "ZS06",
         vendor: "Tuya",
@@ -11562,6 +11925,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
             ]),
             tuya.whitelabel("Zemismart", "ZM-18-USB", "Universal smart IR remote control", ["_TZ3290_uc8lwbi2"]),
             tuya.whitelabel("Zemismart", "ZXMIR-02", "Universal smart IR remote control", ["_TZ3290_8xzb2ghn"]),
+            tuya.whitelabel("Ekaza", "EKAT-T304Z", "Universal smart IR remote control", ["_TZ3290_s6ezpa3j"]),
         ],
     },
     {
@@ -12261,6 +12625,22 @@ Ensure all 12 segments are defined and separated by spaces.`,
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
             await reporting.onOff(endpoint);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS110E", ["_TZE200_ubgdwsnr"]),
+        model: "EKAC-T3096Z",
+        vendor: "Ekaza",
+        description: "2 channel dimmer",
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 2}})],
+        exposes: [e.light_brightness().withEndpoint("l1"), e.light_brightness().withEndpoint("l2")],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "brightness_l1", tuya.valueConverter.scale0_254to0_1000],
+                [7, "state_l2", tuya.valueConverter.onOff],
+                [8, "brightness_l2", tuya.valueConverter.scale0_254to0_1000],
+            ],
         },
     },
     {
@@ -17787,6 +18167,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
+        zigbeeModel: ["ZG-303Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wqashyqo"]),
         model: "ZG-303Z",
         vendor: "HOBEIAN",
@@ -19551,7 +19932,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_ezqbvrqz", "_TZ3002_ymv5vytn", "_TZ3002_6ahhkwyh", "_TZ3002_zjuvw9zf"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_ezqbvrqz", "_TZ3002_ymv5vytn", "_TZ3002_6ahhkwyh", "_TZ3002_zjuvw9zf", "_TZ3002_a4kvf6zd"]),
         model: "TS0726_2_gang_scene_switch",
         vendor: "Tuya",
         description: "2 gang switch with scene and backlight",
@@ -19580,7 +19961,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_noru9tix", "_TZ3002_rbnycsav", "_TZ3002_kq3kqwjt"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_noru9tix", "_TZ3002_rbnycsav", "_TZ3002_kq3kqwjt", "_TZ3002_ybtqbyk3"]),
         model: "TS0726_3_gang_scene_switch",
         vendor: "Tuya",
         description: "3 gang switch with scene and backlight",
@@ -19608,7 +19989,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_rsylfthg", "_TZ3002_umdkr64x"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_rsylfthg", "_TZ3002_umdkr64x", "_TZ3002_hkaktryd"]),
         model: "TS0726_4_gang_scene_switch",
         vendor: "Tuya",
         description: "4 gang switch with scene and backlight",
@@ -20052,7 +20433,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        zigbeeModel: ["ZG-303Z"],
+        zigbeeModel: ["CS-201Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_npj9bug3", "_TZE200_wrmhp6b3"]),
         model: "CS-201Z",
         vendor: "COOLO",
@@ -20255,6 +20636,117 @@ Ensure all 12 segments are defined and separated by spaces.`,
             l1: 1,
             l2: 1,
         }),
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_nj7sfid2"]),
+        model: "TS0601_smart_scene_knob",
+        vendor: "Tuya",
+        description: "Smart scene knob controller with 4 buttons",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        fromZigbee: [
+            fzLocal.TS0601_smart_scene_knob_light_onoff,
+            fzLocal.TS0601_smart_scene_knob_light_brightness,
+            fzLocal.TS0601_smart_scene_knob_light_colortemp,
+            fzLocal.TS0601_smart_scene_knob_curtain_command,
+        ],
+        toZigbee: [
+            tzLocal.TS0601_smart_scene_knob_bind_all,
+            tzLocal.TS0601_smart_scene_knob_assign_button_1,
+            tzLocal.TS0601_smart_scene_knob_set_base_group_id,
+        ],
+        exposes: [
+            e
+                .action([
+                    "scene_1",
+                    "scene_2",
+                    "scene_3",
+                    "scene_4",
+                    "light_1_on",
+                    "light_1_off",
+                    "light_1_brightness_up",
+                    "light_1_brightness_down",
+                    "light_1_colortemp_up",
+                    "light_1_colortemp_down",
+                    "light_2_on",
+                    "light_2_off",
+                    "light_2_brightness_up",
+                    "light_2_brightness_down",
+                    "light_2_colortemp_up",
+                    "light_2_colortemp_down",
+                    "light_3_on",
+                    "light_3_off",
+                    "light_3_brightness_up",
+                    "light_3_brightness_down",
+                    "light_3_colortemp_up",
+                    "light_3_colortemp_down",
+                    "light_4_on",
+                    "light_4_off",
+                    "light_4_brightness_up",
+                    "light_4_brightness_down",
+                    "light_4_colortemp_up",
+                    "light_4_colortemp_down",
+                    "curtain_1_start",
+                    "curtain_1_stop",
+                    "curtain_1_position_open",
+                    "curtain_1_position_close",
+                    "curtain_2_start",
+                    "curtain_2_stop",
+                    "curtain_2_position_open",
+                    "curtain_2_position_close",
+                    "curtain_3_start",
+                    "curtain_3_stop",
+                    "curtain_3_position_open",
+                    "curtain_3_position_close",
+                    "curtain_4_start",
+                    "curtain_4_stop",
+                    "curtain_4_position_open",
+                    "curtain_4_position_close",
+                ])
+                .withDescription("Triggered action from scene button, light knob, or curtain control"),
+            e.numeric("brightness", ea.STATE).withValueMin(0).withValueMax(254).withDescription("Brightness level from light mode (0-254)"),
+            e.numeric("color_temp", ea.STATE).withValueMin(150).withValueMax(500).withDescription("Color temperature from light mode (mired)"),
+            e
+                .numeric("curtain_position", ea.STATE)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withUnit("%")
+                .withDescription("Curtain position from curtain mode (0-100%)"),
+            e
+                .enum("assignment_status", ea.STATE, [statusUnassigned, statusWaiting, statusReady])
+                .withCategory("diagnostic")
+                .withDescription("Button assignment status"),
+            e
+                .numeric("base_group_id", ea.STATE)
+                .withCategory("diagnostic")
+                .withDescription("Base Group ID for button 1 (buttons 2-4 are +20, +40, +60)"),
+            e
+                .numeric("action_button", ea.STATE)
+                .withValueMin(1)
+                .withValueMax(4)
+                .withCategory("diagnostic")
+                .withDescription("Button number from last action"),
+            e.numeric("action_group", ea.STATE).withCategory("diagnostic").withDescription("Group ID from last action"),
+            e.enum("bind_all_scene", ea.SET, ["bind"]).withCategory("config").withDescription("Bind all buttons to Scene mode (red LED)"),
+            e.enum("bind_all_light", ea.SET, ["bind"]).withCategory("config").withDescription("Bind all buttons to Light mode (green LED)"),
+            e.enum("bind_all_curtain", ea.SET, ["bind"]).withCategory("config").withDescription("Bind all buttons to Curtain mode (blue LED)"),
+            e.enum("assign_button_1", ea.SET, ["assign"]).withCategory("config").withDescription("Start assignment: press button 1 after clicking"),
+            e
+                .numeric("set_base_group_id", ea.SET)
+                .withValueMin(1)
+                .withValueMax(65000)
+                .withCategory("config")
+                .withDescription("Manually set base Group ID (advanced)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "action", tuya.valueConverter.static("scene_1")],
+                [2, "action", tuya.valueConverter.static("scene_2")],
+                [3, "action", tuya.valueConverter.static("scene_3")],
+                [4, "action", tuya.valueConverter.static("scene_4")],
+                [52, "binding_confirmation", tuya.valueConverter.raw],
+                [102, "binding_config", tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_khah2lkr"}],
@@ -20776,7 +21268,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
                         manual: tuya.enum(7),
                     }),
                 ],
-                [11, "power", tuya.valueConverter.raw],
+                [11, "power", tuya.valueConverter.divideBy10],
                 [16, "local_temperature", tuya.valueConverter.divideBy10],
                 [
                     17,
@@ -20794,8 +21286,8 @@ Ensure all 12 segments are defined and separated by spaces.`,
                 [101, "voltage", tuya.valueConverter.divideBy10],
                 [102, "current", tuya.valueConverter.divideBy1000],
                 [103, "temperature_sensibility", tuya.valueConverter.divideBy10],
-                [104, "energy_today", tuya.valueConverter.raw],
-                [105, "energy_yesterday", tuya.valueConverter.raw],
+                [104, "energy_today", tuya.valueConverter.divideBy10],
+                [105, "energy_yesterday", tuya.valueConverter.divideBy10],
                 [
                     106,
                     "device_mode_type",
@@ -20805,7 +21297,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
                         switch: tuya.enum(2),
                     }),
                 ],
-                [107, "energy", tuya.valueConverter.raw],
+                [107, "energy", tuya.valueConverter.divideBy10],
                 [108, "week_program_1", tuya.valueConverter.raw],
                 [109, "week_program_2", tuya.valueConverter.raw],
                 [110, "week_program_3", tuya.valueConverter.raw],
@@ -20848,7 +21340,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
             e.energy(),
             e.numeric("energy_today", ea.STATE).withUnit("kWh").withDescription("Energy consumed today"),
             e.numeric("energy_yesterday", ea.STATE).withUnit("kWh").withDescription("Energy consumed yesterday"),
-            e.binary("device_mode_type", ea.STATE_SET, "ON", "OFF").withDescription("Set pilot wire mode to 6 (includes comfort 1 & 2)."),
+            e.binary("device_mode_type", ea.STATE_SET, "ON", "OFF").withDescription("Set pilot wire mode to 6 modes (includes comfort 1 & 2)."),
         ],
         meta: {
             tuyaDatapoints: [
@@ -20864,7 +21356,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
                         comfort_2: tuya.enum(5),
                     }),
                 ],
-                [11, "power", tuya.valueConverter.raw],
+                [11, "power", tuya.valueConverter.divideBy10],
                 [16, "local_temperature", tuya.valueConverter.divideBy10],
                 [19, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
                 [20, "fault", tuya.valueConverter.raw],
@@ -20884,10 +21376,10 @@ Ensure all 12 segments are defined and separated by spaces.`,
                 [113, "window_timeout", tuya.valueConverter.raw],
                 [114, "device_mode_type", tuya.valueConverter.onOff],
                 [115, "voltage", tuya.valueConverter.divideBy10],
-                [116, "current", tuya.valueConverter.divideBy1000],
-                [117, "energy", tuya.valueConverter.raw],
-                [119, "energy_today", tuya.valueConverter.raw],
-                [120, "energy_yesterday", tuya.valueConverter.raw],
+                [116, "current", tuya.valueConverter.divideBy10],
+                [117, "energy", tuya.valueConverter.divideBy10],
+                [119, "energy_today", tuya.valueConverter.divideBy10],
+                [120, "energy_yesterday", tuya.valueConverter.divideBy10],
             ],
         },
     },
@@ -20925,6 +21417,35 @@ Ensure all 12 segments are defined and separated by spaces.`,
                 [104, "dot_mode", tuya.valueConverterBasic.lookup({single: tuya.enum(0), multi: tuya.enum(1)})],
                 [11, "direction", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), reversed: tuya.enum(1)})],
                 [16, "border", tuya.valueConverterBasic.lookup({Up: tuya.enum(0), Down: tuya.enum(1), Delete: tuya.enum(2)})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_mlglxwp3"]),
+        model: "TS0601_cover_12",
+        vendor: "Tuya",
+        description: "Curtain motor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            e.enum("work_state", ea.STATE, ["opening", "closing"]).withDescription("Current work state"),
+            e.numeric("total_time", ea.STATE).withUnit("ms").withDescription("Total running time in milliseconds"),
+            e.enum("situation_set", ea.STATE_SET, ["fully_close", "fully_open"]).withDescription("Set fully open or fully close position"),
+            e.text("fault", ea.STATE).withDescription("Fault details"),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [3, "position", tuya.valueConverter.coverPosition],
+                [5, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [7, "work_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
+                [10, "total_time", tuya.valueConverter.raw],
+                [11, "situation_set", tuya.valueConverterBasic.lookup({fully_close: tuya.enum(0), fully_open: tuya.enum(1)})],
+                [12, "fault", tuya.valueConverter.raw],
+                [103, "battery", tuya.valueConverter.raw],
             ],
         },
     },
@@ -22331,6 +22852,27 @@ Ensure all 12 segments are defined and separated by spaces.`,
                 [112, "soil_fertility", tuya.valueConverter.raw],
                 [114, "soil_fertility_warning_setting", tuya.valueConverter.raw],
                 [115, "soil_fertility_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), alarm: tuya.enum(1)})],
+            ],
+        },
+    },
+    {
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_8se38w3c"}],
+        model: "TZ-ZT01_GA4",
+        vendor: "Tuya",
+        description: "Temperature & humidity Sensor with external probe",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.temperature(),
+            e.numeric("temperature_probe", ea.STATE).withUnit("°C").withDescription("Probe temperature"),
+            e.humidity(),
+            tuya.exposes.batteryState(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "temperature", tuya.valueConverter.divideBy10],
+                [2, "humidity", tuya.valueConverter.raw],
+                [3, "battery_state", tuya.valueConverter.batteryState],
+                [38, "temperature_probe", tuya.valueConverter.divideBy10],
             ],
         },
     },
