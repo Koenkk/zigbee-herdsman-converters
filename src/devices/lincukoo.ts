@@ -1,7 +1,7 @@
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Expose} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -114,7 +114,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_sndkanfr"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_sndkanfr", "_TZE204_bjf8qum1"]),
         model: "SZLMR10",
         vendor: "Lincukoo",
         description: "Human Motion & Presence Sensor",
@@ -204,11 +204,11 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rs62zxk8", "_TZE284_4dosadbh"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rs62zxk8", "_TZE284_4dosadbh", "_TZE284_mpzuabwk"]),
         model: "SZT04",
         vendor: "Lincukoo",
         description: "Temperature and humidity sensor with clock",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.temperature(),
             e.humidity(),
@@ -341,5 +341,83 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Lincukoo",
         description: "Wireless switch with 1 button",
         extend: [m.battery(), m.commandsOnOff()],
+    },
+
+    {
+        zigbeeModel: ["G91E-ZH", "G94E"],
+        model: "G91E-ZH",
+        vendor: "Lincukoo",
+        description: "Zigbee Router",
+        extend: [],
+        whiteLabel: [{fingerprint: [{modelID: "G94E"}], vendor: "Lincukoo", model: "G94E"}],
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vbgmewta", "_TZE284_iunyuzwe"]),
+        model: "W04-Z10T",
+        vendor: "Lincukoo",
+        description: "Smart water leakage alarm sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: (device) => {
+            const exps: Expose[] = [
+                e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
+                e.enum("alarm_switch", ea.STATE_SET, ["mute", "alarm"]).withDescription("switch of the alarm"),
+            ];
+
+            if (["_TZE284_iunyuzwe"].includes(device.manufacturerName)) {
+                exps.push(e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("battery state of the sensor"));
+            } else {
+                exps.push(e.enum("alarm_ringtone", ea.STATE_SET, ["ring1", "ring2", "ring3"]).withDescription("Ringtone of the alarm"));
+                exps.push(e.battery());
+            }
+            return exps;
+        },
+        meta: {
+            // All datapoints go in here
+            tuyaDatapoints: [
+                [1, "alarm_status", tuya.valueConverterBasic.lookup({alarm: 0, normal: 1})],
+                [3, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
+                [4, "battery", tuya.valueConverter.raw],
+                [101, "alarm_switch", tuya.valueConverterBasic.lookup({mute: tuya.enum(0), alarm: tuya.enum(1)})],
+                [102, "alarm_ringtone", tuya.valueConverterBasic.lookup({ring1: tuya.enum(0), ring2: tuya.enum(1), ring3: tuya.enum(2)})],
+            ],
+        },
+        whiteLabel: [tuya.whitelabel("Lincukoo", "W10-Z10T", "Smart water leakage alarm sensor", ["_TZE284_iunyuzwe"])],
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aghfucwi", "_TZE284_2qx7sivb"]),
+        model: "V04-Z10T",
+        vendor: "Lincukoo",
+        description: "Smart vibration alarm sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: (device) => {
+            const exps: Expose[] = [
+                e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
+                e.enum("sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("Sensitivity of the sensor"),
+            ];
+            if (["_TZE284_2qx7sivb"].includes(device.manufacturerName)) {
+                exps.push(e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("battery state of the sensor"));
+            } else {
+                exps.push(
+                    e.enum("disarm", ea.STATE_SET, ["normal"]).withDescription("Disarm the current alarm"),
+                    e.binary("silence_mode", ea.STATE_SET, "ON", "OFF").withDescription("enable/disable alarm"),
+                    e.battery(),
+                );
+            }
+            return exps;
+        },
+
+        meta: {
+            tuyaDatapoints: [
+                [1, "alarm_status", tuya.valueConverterBasic.lookup({normal: 0, alarm: 1})],
+                [3, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
+                [4, "battery", tuya.valueConverter.raw],
+                [101, "sensitivity", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
+                [102, "disarm", tuya.valueConverterBasic.lookup({normal: tuya.enum(0)})],
+                [103, "silence_mode", tuya.valueConverter.onOff],
+            ],
+        },
+        whiteLabel: [tuya.whitelabel("Lincukoo", "V06-Z10T", "Mini vibration sensor", ["_TZE284_2qx7sivb"])],
     },
 ];
