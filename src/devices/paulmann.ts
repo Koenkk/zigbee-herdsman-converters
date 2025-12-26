@@ -35,8 +35,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "94842",
         vendor: "Paulmann",
         description: "Outdoor Lighting Zigbee Motion Detector",
-        extend: [m.light({"colorTemp":{"range":[153,370]}})],
-    }, 
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
+    },
     {
         zigbeeModel: ["501.37"],
         model: "501.37",
