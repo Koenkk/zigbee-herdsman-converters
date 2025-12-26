@@ -22830,7 +22830,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
             e
                 .numeric("soil_fertility_warning_setting", ea.STATE_SET)
                 .withValueMin(100)
-                .withValueMax(1800)
+                .withValueMax(5000)
                 .withValueStep(1)
                 .withUnit("μS/cm")
                 .withDescription("When the soil fertility value is lower than what threshold should a warning be issued"),
