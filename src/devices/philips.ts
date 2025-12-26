@@ -2091,7 +2091,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["929003099001", "929003099201"],
+        zigbeeModel: ["929003099001", "929003099201", "929003099002"],
         model: "929003099001",
         vendor: "Philips",
         description: "Hue white ambiance Aurelle square panel light",
