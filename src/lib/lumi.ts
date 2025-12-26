@@ -1576,6 +1576,144 @@ function lumiBuildSegmentPacket(
     return [0x01, 0x01, 0x01, 0x0f, brightnessByte, ...segmentMask, ...colorBytes, 0x00, 0x14];
 }
 
+/**
+ * Parse T1 Strip segment patterns
+ */
+function lumiSegmentParsePattern(value: string, maxSegments: number): number[] {
+    if (!Number.isInteger(maxSegments) || maxSegments < 1) {
+        throw new Error(`Invalid maxSegments: ${maxSegments}. Must be a positive integer.`);
+    }
+
+    const trimmed = (value || "").trim().toLowerCase();
+    if (trimmed === "" || trimmed === "all") {
+        return Array.from({length: maxSegments}, (_, i) => i + 1);
+    }
+
+    const segments = new Set<number>();
+    const parts = trimmed
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0);
+
+    if (parts.length === 0) {
+        return Array.from({length: maxSegments}, (_, i) => i + 1);
+    }
+
+    for (const part of parts) {
+        if (lumiSegmentIsNamedPattern(part)) {
+            const patternSegments = lumiSegmentExpandNamedPattern(part, maxSegments);
+            for (const seg of patternSegments) {
+                segments.add(seg);
+            }
+            continue;
+        }
+
+        if (part.includes("-")) {
+            const rangeSegments = lumiSegmentExpandRange(part, maxSegments);
+            for (const seg of rangeSegments) {
+                segments.add(seg);
+            }
+            continue;
+        }
+
+        const num = lumiSegmentParseNumber(part, maxSegments);
+        segments.add(num);
+    }
+
+    if (segments.size === 0) {
+        throw new Error(`No valid segments found in pattern: "${value}". Valid range is 1-${maxSegments}.`);
+    }
+
+    return Array.from(segments).sort((a, b) => a - b);
+}
+
+function lumiSegmentIsNamedPattern(part: string): boolean {
+    const patterns = ["odd", "even", "first-half", "last-half", "first-third", "middle-third", "last-third"];
+    return patterns.includes(part);
+}
+
+function lumiSegmentExpandNamedPattern(pattern: string, maxSegments: number): number[] {
+    switch (pattern) {
+        case "odd":
+            return Array.from({length: Math.ceil(maxSegments / 2)}, (_, i) => i * 2 + 1);
+        case "even":
+            return Array.from({length: Math.floor(maxSegments / 2)}, (_, i) => (i + 1) * 2).filter((n) => n <= maxSegments);
+        case "first-half": {
+            const count = Math.ceil(maxSegments / 2);
+            return Array.from({length: count}, (_, i) => i + 1);
+        }
+        case "last-half": {
+            const count = Math.ceil(maxSegments / 2);
+            const start = maxSegments - count + 1;
+            return Array.from({length: count}, (_, i) => start + i);
+        }
+        case "first-third": {
+            const count = Math.ceil(maxSegments / 3);
+            return Array.from({length: count}, (_, i) => i + 1);
+        }
+        case "last-third": {
+            const count = Math.ceil(maxSegments / 3);
+            const start = maxSegments - count + 1;
+            return Array.from({length: count}, (_, i) => start + i);
+        }
+        case "middle-third": {
+            const count = Math.ceil(maxSegments / 3);
+            const start = Math.floor(maxSegments / 3) + 1;
+            return Array.from({length: count}, (_, i) => start + i).filter((n) => n <= maxSegments);
+        }
+        default:
+            throw new Error(`Unknown pattern: ${pattern}`);
+    }
+}
+
+function lumiSegmentExpandRange(rangeStr: string, maxSegments: number): number[] {
+    const dashCount = (rangeStr.match(/-/g) || []).length;
+
+    if (dashCount !== 1) {
+        throw new Error(`Invalid range format: "${rangeStr}". Expected format: "start-end" (e.g., "1-10").`);
+    }
+
+    const parts = rangeStr.split("-").map((p) => p.trim());
+
+    if (parts.length !== 2) {
+        throw new Error(`Invalid range format: "${rangeStr}"`);
+    }
+
+    const start = lumiSegmentParseNumber(parts[0], maxSegments, `range start in "${rangeStr}"`);
+    const end = lumiSegmentParseNumber(parts[1], maxSegments, `range end in "${rangeStr}"`);
+
+    if (start > end) {
+        throw new Error(`Invalid range: "${rangeStr}". Start (${start}) must be less than or equal to end (${end}).`);
+    }
+
+    const segments: number[] = [];
+    for (let i = start; i <= end; i++) {
+        segments.push(i);
+    }
+
+    return segments;
+}
+
+function lumiSegmentParseNumber(str: string, maxSegments: number, context = "segment"): number {
+    const trimmed = str.trim();
+
+    if (!/^[0-9]+$/.test(trimmed)) {
+        throw new Error(`Invalid ${context}: "${str}". Must be a positive integer.`);
+    }
+
+    const num = Number.parseInt(trimmed, 10);
+
+    if (Number.isNaN(num)) {
+        throw new Error(`Invalid ${context}: "${str}". Could not parse as a number.`);
+    }
+
+    if (num < 1 || num > maxSegments) {
+        throw new Error(`${context} out of range: ${num}. Valid range is 1-${maxSegments}.`);
+    }
+
+    return num;
+}
+
 export const manufacturerCode = 0x115f; // TODO: from Zcl
 const manufacturerOptions = {
     lumi: {manufacturerCode: manufacturerCode, disableDefaultResponse: true},
@@ -1921,6 +2059,42 @@ export const lumiModernExtend = {
                             ),
                     )
                     .withDescription("Set individual segment colors.")
+                    .withCategory("config"),
+            ],
+        };
+    },
+    lumiRGBEffectSegments: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            toZigbee: [
+                {
+                    key: ["effect_segments"],
+                    convertSet: async (entity, key, value, meta) => {
+                        const maxSegments = Math.round((meta.state.length !== undefined ? Number(meta.state.length) : 2) * 5);
+
+                        if (typeof value !== "string" && value !== undefined && value !== null) {
+                            throw new Error(`effect_segments must be a string, got ${typeof value}`);
+                        }
+
+                        const segments = lumiSegmentParsePattern(value as string, maxSegments);
+
+                        const mask = Buffer.from(lumiGenerateSegmentMask(segments, "strip", maxSegments));
+
+                        await entity.write("manuSpecificLumi", {1328: {value: mask, type: 0x41}}, {manufacturerCode, disableDefaultResponse: false});
+
+                        return {state: {effect_segments: value}};
+                    },
+                },
+            ],
+            exposes: [
+                exposes
+                    .text("effect_segments", ea.SET)
+                    .withDescription(
+                        "Segment selection for effects. Formats: '1,2,5' (list), '1-10' (range), " +
+                            "'1-5,10-15' (multiple ranges), '1,3,5-8,10' (mixed), " +
+                            "'odd/even/first-half/last-half/first-third/middle-third/last-third' (patterns). " +
+                            "Empty = all segments. Each meter = 5 segments (20cm each).",
+                    )
                     .withCategory("config"),
             ],
         };
