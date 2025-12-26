@@ -1046,7 +1046,7 @@ export const ikeaModernExtend = {
                     !isDummyDevice(device) &&
                     device.softwareBuildID &&
                     semverValid(device.softwareBuildID) &&
-                    semverGte(device.softwareBuildID, "2.4.25")
+                    semverGte(device.softwareBuildID, "2.4.4")
                 ) {
                     return [binary(resultName, access.ALL, "LOCK", "UNLOCK").withDescription(resultDescription).withCategory("config")];
                 }
