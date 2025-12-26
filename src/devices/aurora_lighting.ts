@@ -26,7 +26,12 @@ const tzLocal = {
         key: ["brightness"],
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command("genLevelCtrl", "moveToLevel", {level: value as number, transtime: 0}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level: value as number, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
             return {state: {brightness: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -276,6 +281,16 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["Smart16ARelay51AU"],
+        model: "AU-A1ZBR16A",
+        vendor: "Aurora Lighting",
+        description: "Aurora Smart Inline Relay",
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
+        endpoint: (device) => {
+            return {default: 2};
+        },
+    },
+    {
         zigbeeModel: ["1GBatteryDimmer50AU"],
         model: "AU-A1ZBR1GW",
         vendor: "Aurora Lighting",
@@ -302,5 +317,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aurora Lighting",
         description: "AOne 1-10V in-line dimmer",
         extend: [m.identify(), m.light({powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ["AU-A1CE14ZCX6"],
+        model: "AU-A1CE14ZCX6",
+        vendor: "Aurora Lighting",
+        description: "AOne smart tuneable candle lamp bulb",
+        extend: [m.light({colorTemp: {range: [200, 454]}})],
     },
 ];

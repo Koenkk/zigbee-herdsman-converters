@@ -17,6 +17,7 @@ interface MockEndpointArgs {
     inputClusterIDs?: number[];
     outputClusterIDs?: number[];
     attributes?: {[s: string]: {[s: string]: unknown}};
+    meta?: {[s: string]: unknown};
 }
 
 export function reportingItem(attribute: string, min: number, max: number, change: number) {
@@ -85,6 +86,7 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         }),
         save: vi.fn(),
         getClusterAttributeValue: vi.fn().mockImplementation((cluster, attribute) => attributes?.[cluster]?.[attribute]),
+        meta: args.meta,
     };
 }
 

@@ -9,6 +9,13 @@ const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["Tilt Only 50 WF TiltOnly"],
+        model: "1245600",
+        vendor: "Somfy",
+        description: "Tilt only 50 WF (tilt only)",
+        extend: [m.windowCovering({controls: ["tilt"]}), m.battery()],
+    },
+    {
         zigbeeModel: ["Sonesse 28 WF Li-Ion Roller", "Sonesse 28 WF Roller"],
         model: "1241755",
         vendor: "SOMFY",
@@ -32,6 +39,13 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Sonesse Ultra 30 WF Li-Ion Rolle"],
         model: "SOMFY-1241752",
+        vendor: "SOMFY",
+        description: "Blinds",
+        extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
+    },
+    {
+        zigbeeModel: ["Roll Up 24 WF Li-ion Roller"],
+        model: "1246037",
         vendor: "SOMFY",
         description: "Blinds",
         extend: [m.windowCovering({controls: ["lift"]}), m.battery()],

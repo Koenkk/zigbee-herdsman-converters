@@ -1,4 +1,5 @@
 import {Buffer} from "node:buffer";
+import {Zcl} from "zigbee-herdsman";
 import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import {repInterval} from "../lib/constants";
@@ -6,13 +7,91 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const ea = exposes.access;
 const e = exposes.presets;
 
 const NS = "zhc:lixee";
+
+interface LiXeePrivate {
+    attributes: {
+        linkyMode: number;
+        currentTarif: string;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+const local = {
+    modernExtend: {
+        readAttributesOnStartup: (): ModernExtend => {
+            const onEvent: OnEvent.Handler = (event) => {
+                if (event.type === "start") {
+                    event.data.device
+                        .getEndpoint(1)
+                        .read<"liXeePrivate", LiXeePrivate>("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null})
+                        .catch((e) => {
+                            // https://github.com/Koenkk/zigbee2mqtt/issues/11674
+                            logger.warning(`Failed to read Zigbee attributes during startup: ${e}`, NS);
+                        });
+                }
+            };
+            return {onEvent: [onEvent], isModernExtend: true};
+        },
+        addCustomClusterManuSpecificLixee: () =>
+            m.deviceAddCustomCluster("liXeePrivate", {
+                ID: 0xff66,
+                manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS,
+                attributes: {
+                    currentTarif: {ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
+                    tomorrowColor: {ID: 0x0001, type: Zcl.DataType.CHAR_STR, write: true},
+                    scheduleHPHC: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    presencePotential: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    startNoticeEJP: {ID: 0x0004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    warnDPS: {ID: 0x0005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    warnDIR1: {ID: 0x0006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    warnDIR2: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    warnDIR3: {ID: 0x0008, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    motDEtat: {ID: 0x0009, type: Zcl.DataType.CHAR_STR, write: true},
+                    currentPrice: {ID: 0x0200, type: Zcl.DataType.CHAR_STR, write: true},
+                    currentIndexTarif: {ID: 0x0201, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    currentDate: {ID: 0x0202, type: Zcl.DataType.CHAR_STR, write: true},
+                    activeEnergyOutD01: {ID: 0x0203, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    activeEnergyOutD02: {ID: 0x0204, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    activeEnergyOutD03: {ID: 0x0205, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    activeEnergyOutD04: {ID: 0x0206, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    injectedVA: {ID: 0x0207, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    injectedVAMaxN: {ID: 0x0208, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    injectedVAMaxN1: {ID: 0x0209, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    injectedActiveLoadN: {ID: 0x0210, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    injectedActiveLoadN1: {ID: 0x0211, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    drawnVAMaxN1: {ID: 0x0212, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    drawnVAMaxN1P2: {ID: 0x0213, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    drawnVAMaxN1P3: {ID: 0x0214, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    message1: {ID: 0x0215, type: Zcl.DataType.CHAR_STR, write: true},
+                    message2: {ID: 0x0216, type: Zcl.DataType.CHAR_STR, write: true},
+                    statusRegister: {ID: 0x0217, type: Zcl.DataType.OCTET_STR, write: true},
+                    startMobilePoint1: {ID: 0x0218, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    stopMobilePoint1: {ID: 0x0219, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    startMobilePoint2: {ID: 0x0220, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    stopMobilePoint2: {ID: 0x0221, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    startMobilePoint3: {ID: 0x0222, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    stopMobilePoint3: {ID: 0x0223, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    relais: {ID: 0x0224, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    daysNumberCurrentCalendar: {ID: 0x0225, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    daysNumberNextCalendar: {ID: 0x0226, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    daysProfileCurrentCalendar: {ID: 0x0227, type: Zcl.DataType.LONG_OCTET_STR, write: true},
+                    daysProfileNextCalendar: {ID: 0x0228, type: Zcl.DataType.LONG_OCTET_STR, write: true},
+                    linkyMode: {ID: 0x0300, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+    },
+};
+
 /* Start ZiPulses */
 
 const unitsZiPulses = [
@@ -170,14 +249,15 @@ const fzLocal = {
                 /* 0x0227 */ "daysProfileCurrentCalendar",
                 /* 0x0228 */ "daysProfileNextCalendar",
             ] as const;
-            const kWhP = options?.kWh_precision ? options.kWh_precision : 0;
+            const kWhP = options?.kWh_precision ? options.kWh_precision : 2;
             utils.assertNumber(kWhP);
             for (const at of elements) {
                 const at_snake = at
                     .split(/(?=[A-Z])/)
                     .join("_")
                     .toLowerCase();
-                let val = msg.data[at];
+                // biome-ignore lint/suspicious/noExplicitAny: bad typing
+                let val: any = msg.data[at];
                 if (val != null) {
                     // TODO: this is not possible??
                     if (utils.isObject(val) && "type" in val && "data" in val && val.type === "Buffer") {
@@ -385,7 +465,7 @@ const fzLocal = {
                 /* 0x0307 */ "siteId",
                 /* 0x0308 */ "meterSerialNumber",
             ] as const;
-            const kWhP = options?.kWh_precision ? options.kWh_precision : 0;
+            const kWhP = options?.kWh_precision ? options.kWh_precision : 2;
             for (const at of elements) {
                 const at_snake = at
                     .split(/(?=[A-Z])/)
@@ -677,7 +757,7 @@ const clustersDef = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     _0x0702: "seMetering", // 0x0702
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    _0x0B01: "haMeterIdentification", // 0x0B01
+    _0x0B01: "seMeterIdentification", // 0x0B01
 };
 
 // full list available on https://github.com/fairecasoimeme/Zlinky_TIC/blob/master/README.md
@@ -1663,8 +1743,8 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
             lMode.raiseError; // raise if undefined
             // @ts-expect-error ignore
             return ((lMode >> bitLinkyMode) & 1) === 1 ? valueTrue : valueFalse;
-        } catch {
-            logger.warning(`Was not able to detect the Linky ${targetOption}. Default to ${valueDefault}`, NS);
+        } catch (error) {
+            logger.warning(`Was not able to detect the Linky's ${targetOption}. Defaulting to ${valueDefault}. Error: ${error}`, NS);
             return valueDefault; // default value in the worst case
         }
     }
@@ -1701,7 +1781,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
         }
     }
 
-    logger.debug(`zlinky config: ${linkyMode}, ${linkyPhase}, ${linkyProduction.toString()}, ${currentTarf}`, NS);
+    logger.debug(`zlinky config: mode=${linkyMode}, phases=${linkyPhase}, production=${linkyProduction}, tariff=${currentTarf}`, NS);
 
     switch (currentTarf) {
         case linkyMode === linkyModeDef.legacy && tarifsDef.histo_BASE.currentTarf:
@@ -1799,9 +1879,11 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("tarif", ea.SET, [...Object.entries(tarifsDef).map(([k, v]) => v.fname), "auto"])
                 .withDescription(
-                    "Overrides the automatic current tarif. This option will exclude unnecessary attributes. Open a issue to support more of them. Default: auto",
+                    "Overrides the automatic current tarif. This option will exclude unnecessary attributes. Open an issue to support more of them. Default: auto",
                 ),
-            exposes.options.precision("kWh"),
+            exposes.options
+                .precision("kWh")
+                .withDescription("Number of digits after decimal point for kWh, takes into effect on next report of device. Default: 2"),
             e
                 .numeric("measurement_poll_chunk", ea.SET)
                 .withValueMin(1)
@@ -1818,26 +1900,26 @@ export const definitions: DefinitionWithExtend[] = [
 
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 clustersDef._0x0702 /* seMetering */,
-                clustersDef._0x0B01 /* haMeterIdentification */,
+                clustersDef._0x0B01 /* seMeterIdentification */,
                 clustersDef._0x0B04 /* haElectricalMeasurement */,
                 clustersDef._0xFF66 /* liXeePrivate */,
             ]);
 
-            await endpoint.read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null}).catch((e) => {
+            await endpoint.read<"liXeePrivate", LiXeePrivate>("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null}).catch((e) => {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
+                logger.warning(`Failed to read Zigbee attributes during configure: ${e}`, NS);
             });
 
             const configReportings = [];
-            const suscribeNew = getCurrentConfig(device, {}).filter((e) => e.reportable);
+            const subscribeNew = getCurrentConfig(device, {}).filter((e) => e.reportable);
 
-            const unsuscribe = endpoint.configuredReportings.filter(
-                (e) => !suscribeNew.some((r) => e.cluster.name === r.cluster && e.attribute.name === r.att),
+            const unsubscribe = endpoint.configuredReportings.filter(
+                (e) => !subscribeNew.some((r) => e.cluster.name === r.cluster && e.attribute.name === r.att),
             );
-            // Unsuscribe reports that doesn't correspond with the current config
+            // Unsubscribe reports that doesn't correspond with the current config
             (
                 await Promise.allSettled(
-                    unsuscribe.map((e) =>
+                    unsubscribe.map((e) =>
                         endpoint.configureReporting(
                             e.cluster.name,
                             reporting.payload(
@@ -1857,7 +1939,7 @@ export const definitions: DefinitionWithExtend[] = [
                     throw e.reason;
                 });
 
-            for (const e of suscribeNew) {
+            for (const e of subscribeNew) {
                 let params = {
                     att: e.att,
                     min: repInterval.MINUTE,
@@ -1894,6 +1976,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         ota: {manufacturerName: "LiXee"}, // TODO: not sure if it's set properly in device
         extend: [
+            local.modernExtend.addCustomClusterManuSpecificLixee(),
             m.poll({
                 key: "measurement",
                 defaultIntervalSeconds: 600,
@@ -1918,13 +2001,17 @@ export const definitions: DefinitionWithExtend[] = [
                             const cluster = clustersDef[key];
                             const targ = currentExposes.filter((e) => e.cluster === cluster).map((e) => e.att);
                             if (targ.length) {
+                                logger.debug(`Poll: trying to read from ${cluster}: ${targ}`, NS);
                                 let i: number;
                                 let j: number;
                                 // Split array by chunks
                                 for (i = 0, j = targ.length; i < j; i += measurement_poll_chunk) {
                                     await endpoint.read(cluster, targ.slice(i, i + measurement_poll_chunk), {manufacturerCode: null}).catch((e) => {
                                         // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                                        logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
+                                        logger.warning(
+                                            `Failed to read Zigbee attributes during poll. If you see many of these messages, try reducing 'Measurement poll chunk'. ${e}`,
+                                            NS,
+                                        );
                                     });
                                 }
                             }
@@ -1932,19 +2019,8 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                 },
             }),
+            local.modernExtend.readAttributesOnStartup(),
         ],
-
-        onEvent: (event) => {
-            if (event.type === "start") {
-                event.data.device
-                    .getEndpoint(1)
-                    .read("liXeePrivate", ["linkyMode", "currentTarif"], {manufacturerCode: null})
-                    .catch((e) => {
-                        // https://github.com/Koenkk/zigbee2mqtt/issues/11674
-                        logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
-                    });
-            }
-        },
     },
     {
         zigbeeModel: ["ZiPulses"],

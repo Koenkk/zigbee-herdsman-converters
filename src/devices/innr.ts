@@ -25,6 +25,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "color_temperature_move",
             ]),
         ],
+        extend: [m.battery()],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ["genBasic", "genOnOff", "genLevelCtrl", "lightingColorCtrl"]);
@@ -38,6 +39,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.command_step, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp],
         toZigbee: [],
         exposes: [e.action(["on", "off", "brightness_step_up", "brightness_step_down", "brightness_move_to_level", "color_temperature_move"])],
+        extend: [m.battery()],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
             await reporting.bind(ep, coordinatorEndpoint, ["genBasic", "genGroups", "genScenes", "genOnOff", "genLevelCtrl", "lightingColorCtrl"]);
@@ -230,18 +232,27 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["RB 256 C"],
+        model: "RB 256 C",
+        vendor: "Innr",
+        description: "Smart Mini Bulb Colour E14",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["RB 262"],
         model: "RB 262",
         vendor: "Innr",
-        description: "E27 bulb",
+        description: "Smart Bulb White 800lm E27",
         extend: [m.light({turnsOffAtBrightness1: true})],
+        ota: true,
     },
     {
         zigbeeModel: ["BB 262"],
         model: "BB 262",
         vendor: "Innr",
-        description: "E27 bulb",
+        description: "Smart Bulb White 800lm B22",
         extend: [m.light({turnsOffAtBrightness1: true})],
+        ota: true,
     },
     {
         zigbeeModel: ["RB 265"],
