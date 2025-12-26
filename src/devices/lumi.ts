@@ -345,6 +345,7 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTempRange: [153, 370],
             }),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            m.identify(),
             lumiPowerOnBehavior({lookup: {on: 0, previous: 1, off: 2}}),
             lumiZigbeeOTA(),
             lumi.lumiModernExtend.lumiDimmingRangeMin(),
