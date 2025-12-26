@@ -2470,10 +2470,16 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-       zigbeeModel: ['ZGRC-KEY-047'],
-       model: 'ZGRC-KEY-047',
-       vendor: 'Sunricher',
-       description: 'Automatically generated definition',
-       extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2,"3":3,"4":4}}), m.battery(), m.commandsOnOff({"endpointNames":["1","2","3","4"]}), m.commandsLevelCtrl({"endpointNames":["1","2","3","4"]}), m.commandsColorCtrl({"endpointNames":["1","2","3","4"]})],
-    },    
+        zigbeeModel: ["ZGRC-KEY-047"],
+        model: "ZGRC-KEY-047",
+        vendor: "Sunricher",
+        description: "Automatically generated definition",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+    },
 ];
