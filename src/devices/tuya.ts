@@ -22881,4 +22881,49 @@ Ensure all 12 segments are defined and separated by spaces.`,
             ],
         },
     },
+    {
+        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE284_f3tddpwc'}],
+        model: 'TS0601_4gang+4scene',
+        vendor: 'Tuya',
+        description: 'Tuya button 4 gang + 4 scene, Tuya',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.binary('Switch_1', ea.SET, true, false)
+                .withDescription('Toggle the Switch 1.'),
+            e.binary('Switch_2', ea.SET, true, false)
+                .withDescription('Toggle the Switch 2.'),
+            e.binary('Switch_3', ea.SET, true, false)
+                .withDescription('Toggle the Switch 3.'),
+            e.binary('Switch_4', ea.SET, true, false)
+                .withDescription('Toggle the Switch 4.'),
+            e.binary('Master_Switch', ea.SET, true, false)
+                .withDescription('Toggle all the relays.'),
+            e.binary('Backlight', ea.SET, true, false)
+                .withDescription('Toggle the Backlight of the device.'),
+            e.text("Scene", ea.STATE),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'Switch_1', tuya.valueConverter.raw],
+                [2, 'Switch_2', tuya.valueConverter.raw],
+                [3, 'Switch_3', tuya.valueConverter.raw],
+                [4, 'Switch_4', tuya.valueConverter.raw],
+                [13, 'Master_Switch', tuya.valueConverter.raw],
+                [102, 'Backlight', tuya.valueConverter.raw],
+                [103, 'Scene', 
+                        tuya.valueConverterBasic.lookup({
+                            scene_1: tuya.enum(0),
+                            scene_2: tuya.enum(1),
+                            scene_3: tuya.enum(2),
+                            scene_4: tuya.enum(3),
+                            off: tuya.enum(4),
+                        }),
+            ],
+        ],
+    },
+};
 ];
