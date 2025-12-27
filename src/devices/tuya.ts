@@ -2861,6 +2861,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_iy2c3n6p",
             "_TZ3000_qlmnxmac",
             "_TZ3000_sgb0xhwn",
+            "_TZ3210_ph1joc22",
         ]),
         model: "TS011F_2_gang_wall",
         vendor: "Tuya",
@@ -2877,6 +2878,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("ClickSmart+", "CMA30036", "2 gang socket outlet", ["_TYZB01_hlla45kx"]),
             tuya.whitelabel("Rylike", "RY-WS02Z", "2 gang socket outlet AU", ["_TZ3000_rgpqqmbj", "_TZ3000_8nyaanzb", "_TZ3000_iy2c3n6p"]),
             tuya.whitelabel("Nova Digital", "NT-S2", "2 gang socket outlet BR", ["_TZ3000_sgb0xhwn"]),
+            tuya.whitelabel("Nova Digital", "QZ-S2Q", "2 gang socket outlet BR with non-switchable USB", ["_TZ3210_ph1joc22"]),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
