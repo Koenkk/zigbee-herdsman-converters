@@ -547,7 +547,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ca3i8m8p"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ca3i8m8p", "_TZE200_awnadkan"]),
         model: "EONE-230W",
         vendor: "ENGO",
         description: "Zigbee smart thermostat",
