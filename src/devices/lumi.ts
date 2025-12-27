@@ -319,7 +319,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         whiteLabel: [{vendor: "Aqara", model: "RLS-K01D"}],
         description: "LED Strip T1",
-
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
