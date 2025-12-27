@@ -3019,6 +3019,9 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
             tuya.whitelabel("Moes", "ZB-TDC6-RCW-E14", "RGB+CCT 5W E14 LED bulb", ["_TZ3210_ifga63rg"]),
             tuya.whitelabel("Moes", "ZB-TDD6-RCW-4", "RGB+CCT 6W Smart Downlight", ["_TZ3210_b8jdosxo"]),
+            tuya.whitelabel("Moes", "ZB-TD6-RCW-GX53-MS", "ZigBee Smart LED Lamp GX53 Light Bulb 6W Color Changing Dimmable Music Sync", [
+                "_TZ3210_qigbovcq",
+            ]),
             tuya.whitelabel("MiBoxer", "E3-ZR", "3 in 1 LED Controller", ["_TZB210_wy1pyu1q", "_TZB210_yatkpuha"]),
             tuya.whitelabel("MiBoxer", "SZ5", "5 in 1 LED Controller", ["_TZB210_w9hcix2r"]),
             tuya.whitelabel("MiBoxer", "FUT037Z+", "RGB led controller", ["_TZB210_417ikxay", "_TZB210_wxazcmsh"]),
