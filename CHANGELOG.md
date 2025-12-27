@@ -1,5 +1,24 @@
 # Changelog
 
+## [25.95.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.94.0...v25.95.0) (2025-12-27)
+
+
+### Features
+
+* Aqara T1: support segment control, segment colors, effect colors and effect segments ([#11111](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11111)) ([2955272](https://github.com/Koenkk/zigbee-herdsman-converters/commit/29552724d70bf55e17f7a42dd0ef70febbcd54a3))
+* Ikea E2204/E2206: enable child lock for fw 2.4.4 &gt; ([#11110](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11110)) ([fb881fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fb881fc0988b5309691497defa2a3a004c0f3b1f))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3210_b3kiq1i0` as KOJIMA GX53-RGB-WW-CW-7W-ZGB ([#11113](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11113)) ([c99b2b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c99b2b6aa072d00b5f0d09dabad3863a8b7a703d))
+* **detect:** Detect `_TZ3210_ph1joc22` as Nova Digital QZ-S2Q ([#11120](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11120)) ([dea58e9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dea58e94251a3d02f11f2677740145b6faf8f456))
+* **detect:** Detect `_TZ3210_qigbovcq` as Moes ZB-TD6-RCW-GX53-MS ([#11114](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11114)) ([3459074](https://github.com/Koenkk/zigbee-herdsman-converters/commit/345907470b1efbd2a2139553a6029b9676ecc92c))
+* **detect:** Detect `_TZE200_awnadkan` as ENGO EONE-230W ([#11118](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11118)) ([9c54627](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c54627b76eefaa76a2392cc04a516e5c86bb0eb))
+* **detect:** Detect `2.9.2_r56` as Vesternet VES-ZB-HLD-017 ([#11112](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11112)) ([813fd64](https://github.com/Koenkk/zigbee-herdsman-converters/commit/813fd64eed29beb4b23ec430c2ddfe3650c6c79a))
+* **ignore:** The brand model corresponding to ZG-303Z is CS-201Z, and there is no error ([#11115](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11115)) ([bc1fc73](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc1fc73f79025b35ebbc9323b87569d24a63754d))
+* NodOn SIN-4-FP-21: fix setting pilot wire not working https://github.com/Koenkk/zigbee-herdsman-converters/issues/11121 ([5e318af](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5e318afb70528f83a0ec136fccd2197ae31f351b))
+
 ## [25.94.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.93.0...v25.94.0) (2025-12-26)
 
 
