@@ -9,6 +9,7 @@ import {
     ikeaAirPurifier,
     ikeaArrowClick,
     ikeaBattery,
+    ikeaBilresaLong,
     ikeaConfigureGenPollCtrl,
     ikeaConfigureRemote,
     ikeaConfigureStyrbar,
@@ -786,6 +787,13 @@ export const definitions: DefinitionWithExtend[] = [
             ikeaBattery(),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["09B9"],
+        model: "E2489",
+        vendor: "IKEA",
+        description: "BILRESA remote control",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), ikeaBilresaLong()],
     },
     {
         zigbeeModel: ["Remote Control N2"],
