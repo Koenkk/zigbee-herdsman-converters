@@ -10277,7 +10277,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         model: "X5H-GB-B",
         vendor: "Tuya",
         description: "Wall-mount thermostat",
-        fromZigbee: [fz.ignore_tuya_set_time, legacy.fromZigbee.x5h_thermostat],
+        fromZigbee: [legacy.fromZigbee.x5h_thermostat],
         toZigbee: [legacy.toZigbee.x5h_thermostat],
         whiteLabel: [
             {vendor: "Beok", model: "TGR85-ZB"},
