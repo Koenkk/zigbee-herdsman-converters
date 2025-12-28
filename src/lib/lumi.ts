@@ -2155,12 +2155,12 @@ export const lumiModernExtend = {
 
         if (args.powerOutageMemory === "binary") {
             const extend = lumiModernExtend.lumiPowerOutageMemory();
-            if (extend.toZigbee && result.toZigbee) result.toZigbee.push(...extend.toZigbee);
-            if (extend.exposes && result.exposes) result.exposes.push(...extend.exposes);
+            result.toZigbee.push(...extend.toZigbee);
+            result.exposes.push(...extend.exposes);
         } else if (args.powerOutageMemory === "enum") {
             const extend = lumiModernExtend.lumiPowerOnBehavior();
-            if (extend.toZigbee && result.toZigbee) result.toZigbee.push(...extend.toZigbee);
-            if (extend.exposes && result.exposes) result.exposes.push(...extend.exposes);
+            result.toZigbee.push(...extend.toZigbee);
+            result.exposes.push(...extend.exposes);
         }
         if (args.operationMode === true) {
             const extend = lumiModernExtend.lumiOperationMode({description: "Decoupled mode for a button"});
@@ -2170,12 +2170,12 @@ export const lumiModernExtend = {
                         description: `Decoupled mode for ${ep.toString()} button`,
                         endpointName: ep,
                     });
-                    if (epExtend.toZigbee && result.toZigbee) result.toZigbee.push(...epExtend.toZigbee);
-                    if (epExtend.exposes && result.exposes) result.exposes.push(...epExtend.exposes);
+                    result.toZigbee.push(...epExtend.toZigbee);
+                    result.exposes.push(...epExtend.exposes);
                 });
             } else {
-                if (extend.toZigbee && result.toZigbee) result.toZigbee.push(...extend.toZigbee);
-                if (extend.exposes && result.exposes) result.exposes.push(...extend.exposes);
+                result.toZigbee.push(...extend.toZigbee);
+                result.exposes.push(...extend.exposes);
             }
         }
         if (args.lockRelay) {
@@ -2186,12 +2186,12 @@ export const lumiModernExtend = {
                         description: `Locks ${ep.toString()} relay and prevents it from operating`,
                         endpointName: ep,
                     });
-                    if (epExtend.toZigbee && result.toZigbee) result.toZigbee.push(...epExtend.toZigbee);
-                    if (epExtend.exposes && result.exposes) result.exposes.push(...epExtend.exposes);
+                    result.toZigbee.push(...epExtend.toZigbee);
+                    result.exposes.push(...epExtend.exposes);
                 });
             } else {
-                if (extend.toZigbee && result.toZigbee) result.toZigbee.push(...extend.toZigbee);
-                if (extend.exposes && result.exposes) result.exposes.push(...extend.exposes);
+                result.toZigbee.push(...extend.toZigbee);
+                result.exposes.push(...extend.exposes);
             }
         }
         return result;
