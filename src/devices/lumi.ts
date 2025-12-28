@@ -4340,6 +4340,51 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.plug.aeu002"],
+        model: "WP-P09D",
+        vendor: "Aqara",
+        description: "Wall Outlet H2 UK",
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await endpoint1.read("manuSpecificLumi", [0x00f0], {manufacturerCode: manufacturerCode});
+            await endpoint1.read("manuSpecificLumi", [0x0203], {manufacturerCode: manufacturerCode});
+            await endpoint1.read("manuSpecificLumi", [0x020b], {manufacturerCode: manufacturerCode});
+            await endpoint1.read("manuSpecificLumi", [0x0517], {manufacturerCode: manufacturerCode});
+            await endpoint1.read("manuSpecificLumi", [0x0285], {manufacturerCode: manufacturerCode});
+            await endpoint2.read("manuSpecificLumi", [0x0285], {manufacturerCode: manufacturerCode});
+            await endpoint1.read("manuSpecificLumi", [0x0286], {manufacturerCode: manufacturerCode});
+            await endpoint2.read("manuSpecificLumi", [0x0286], {manufacturerCode: manufacturerCode});
+        },
+        extend: [
+            m.deviceEndpoints({endpoints: {1: 1, 2: 2, usb: 3}}),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            lumiZigbeeOTA(),
+            lumiOnOff({
+                endpointNames: ["1", "2", "usb"],
+                powerOutageMemory: "enum",
+                deviceTemperature: false,
+            }),
+            // Power reporting for each socket is at a different endpoint to the socket switch state
+            lumi.lumiModernExtend.lumiActivePower({name: "total_power", description: "Total combined outlet power consumption", endpoint: 1}),
+            lumi.lumiModernExtend.lumiActivePower({name: "power_socket_1_and_usb", description: "Combined power of socket 1 and USB", endpoint: 2}),
+            lumi.lumiModernExtend.lumiActivePower({name: "power_socket_2", description: "Power of socket 2", endpoint: 3}),
+            lumiElectricityMeter({voltage: false}),
+            lumiMultiClick({description: "Multi-click mode for socket 1 button", endpointName: "1"}),
+            lumiMultiClick({description: "Multi-click mode for socket 2 button", endpointName: "2"}),
+            lumiAction({
+                endpointNames: ["1", "2"],
+                actionLookup: {hold: 0, single: 1, double: 2, release: 255},
+            }),
+            lumi.lumiModernExtend.lumiChildLock({endpointName: "1", description: "Socket 1 button lock"}),
+            lumi.lumiModernExtend.lumiChildLock({endpointName: "2", description: "Socket 2 button lock"}),
+            lumiOverloadProtection({valueMax: 3250}),
+            lumiLedIndicator(),
+            lumiFlipIndicatorLight(),
+            m.identify(),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.light.acn032", "lumi.light.acn031"],
         model: "CL-L02D",
         vendor: "Aqara",
