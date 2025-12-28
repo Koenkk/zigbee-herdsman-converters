@@ -37,7 +37,12 @@ const tzLocal = {
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
             // Device doesn't support moveToLevelWithOnOff therefore this converter is needed.
-            await entity.command("genLevelCtrl", "moveToLevel", {level: Number(value), transtime: 0}, {disableDefaultResponse: true});
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level: Number(value), transtime: 0, optionsMask: 0, optionsOverride: 0},
+                {disableDefaultResponse: true},
+            );
             return {state: {brightness: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -60,13 +65,11 @@ const distinct = <T>(input: T[], toKey: (input: T) => string): T[] => {
 const hexToBytes = (hex: string): number[] => {
     // Remove '0x' prefix if present
     if (hex.startsWith("0x")) {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         hex = hex.slice(2);
     }
 
     // Ensure even length
     if (hex.length % 2 !== 0) {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         hex = `0${hex}`;
     }
 
@@ -125,7 +128,7 @@ const clusterManuSpecificOrviboPowerOnBehavior = () => {
     return m.deviceAddCustomCluster("manuSpecificOrvibo2", {
         ID: 0xff00,
         attributes: {
-            powerOnBehavior: {ID: 0x0001, type: Zcl.DataType.UINT8},
+            powerOnBehavior: {ID: 0x0001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
         },
         commands: {},
         commandsResponse: {},

@@ -71,6 +71,8 @@ export class Base {
             case "diagnostic":
                 assert(!(this.access & a.SET), "Diagnostic expose must not be settable");
                 break;
+            case undefined:
+                break;
         }
     }
 
@@ -451,7 +453,6 @@ export class Light extends Base {
     withColorTemp(range: Range) {
         const rangeProvided = range !== undefined;
         if (range === undefined) {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             range = [150, 500];
         }
 
@@ -484,7 +485,6 @@ export class Light extends Base {
 
     withColorTempStartup(range: Range) {
         if (range === undefined) {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             range = [150, 500];
         }
 

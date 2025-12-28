@@ -504,8 +504,8 @@ export async function findByDevice(device: Zh.Device, generateForUnknown = false
                 definition = {
                     ...definition,
                     model: match.model,
-                    vendor: match.vendor,
-                    description: match.description || definition.description,
+                    vendor: match.vendor ?? definition.vendor,
+                    description: match.description ?? definition.description,
                 };
             }
         }
