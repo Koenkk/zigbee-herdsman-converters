@@ -33,13 +33,20 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {disableActionGroup: true},
     },
     {
-        fingerprint: tuya.fingerprint("TS0202", ["_TZ3210_0aqbrnts", "_TZ3210_rxqls8v0", "_TZ3210_zmy9hjay", "_TZ3210_wuhzzfqg", "_TZ3210_ohvnwamm"]),
+        fingerprint: tuya.fingerprint("TS0202", [
+            "_TZ3210_0aqbrnts",
+            "_TZ3210_rxqls8v0",
+            "_TZ3210_zmy9hjay",
+            "_TZ3210_wuhzzfqg",
+            "_TZ3210_ohvnwamm",
+            "_TZ3210_oekbi7o4",
+        ]),
         model: "ZB003-X",
         vendor: "Fantem",
         description: "4 in 1 multi sensor",
         fromZigbee: [fz.battery, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
-        whiteLabel: [tuya.whitelabel("EFK", "is-thpl-zb", "4 in 1 multi sensor", ["_TZ3210_0aqbrnts"])],
+        whiteLabel: [tuya.whitelabel("EFK", "is-thpl-zb", "4 in 1 multi sensor", ["_TZ3210_0aqbrnts", "_TZ3210_oekbi7o4"])],
         exposes: [
             e.occupancy(),
             e.tamper(),
