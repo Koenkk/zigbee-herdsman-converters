@@ -4344,18 +4344,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WP-P09D",
         vendor: "Aqara",
         description: "Wall Outlet H2 UK",
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await endpoint1.read("manuSpecificLumi", [0x00f0], {manufacturerCode: manufacturerCode});
-            await endpoint1.read("manuSpecificLumi", [0x0203], {manufacturerCode: manufacturerCode});
-            await endpoint1.read("manuSpecificLumi", [0x020b], {manufacturerCode: manufacturerCode});
-            await endpoint1.read("manuSpecificLumi", [0x0517], {manufacturerCode: manufacturerCode});
-            await endpoint1.read("manuSpecificLumi", [0x0285], {manufacturerCode: manufacturerCode});
-            await endpoint2.read("manuSpecificLumi", [0x0285], {manufacturerCode: manufacturerCode});
-            await endpoint1.read("manuSpecificLumi", [0x0286], {manufacturerCode: manufacturerCode});
-            await endpoint2.read("manuSpecificLumi", [0x0286], {manufacturerCode: manufacturerCode});
-        },
         extend: [
             m.deviceEndpoints({endpoints: {1: 1, 2: 2, usb: 3}}),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
