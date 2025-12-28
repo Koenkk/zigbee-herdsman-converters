@@ -2118,33 +2118,7 @@ export const lumiModernExtend = {
 
         const result = modernExtend.onOff({powerOnBehavior: false, ...args});
 
-        if (!result.fromZigbee) result.fromZigbee = [];
-        if (!result.toZigbee) result.toZigbee = [];
-        if (!result.exposes) result.exposes = [];
-
-        if (!args.deviceTemperature || !args.powerOutageCount) {
-            result.fromZigbee.push({
-                ...fromZigbee.lumi_specific,
-                convert: async (model, msg, publish, options, meta) => {
-                    const lumiResult = await fromZigbee.lumi_specific.convert(model, msg, publish, options, meta);
-                    if (!lumiResult) return;
-
-                    const filtered: Record<string, unknown> = {};
-                    for (const [key, value] of Object.entries(lumiResult)) {
-                        if (value === undefined || value === null) continue;
-
-                        if (key === "device_temperature" && !args.deviceTemperature) continue;
-                        if (key === "power_outage_count" && !args.powerOutageCount) continue;
-
-                        filtered[key] = value;
-                    }
-
-                    return Object.keys(filtered).length > 0 ? filtered : undefined;
-                },
-            });
-        } else {
-            result.fromZigbee.push(fromZigbee.lumi_specific);
-        }
+        result.fromZigbee.push(fromZigbee.lumi_specific);
 
         if (args.deviceTemperature) {
             result.exposes.push(e.device_temperature());
@@ -2582,40 +2556,15 @@ export const lumiModernExtend = {
         if (options.voltage) exposes.push(e.voltage());
         if (options.current) exposes.push(e.current());
 
-        const fromZigbee =
-            !options.energy || !options.voltage || !options.current
-                ? [
-                      {
-                          cluster: "manuSpecificLumi",
-                          type: ["attributeReport", "readResponse"],
-                          convert: async (model, msg, publish, options, meta) => {
-                              const result = await numericAttributes2Payload(msg, meta, model, options, msg.data);
-                              if (!result) return;
-
-                              const filtered: Record<string, unknown> = {};
-                              for (const [key, value] of Object.entries(result)) {
-                                  if (value === undefined || value === null) continue;
-
-                                  if (key === "energy" && !args?.energy) continue;
-                                  if (key === "voltage" && !args?.voltage) continue;
-                                  if (key === "current" && !args?.current) continue;
-
-                                  filtered[key] = value;
-                              }
-
-                              return Object.keys(filtered).length > 0 ? filtered : undefined;
-                          },
-                      } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
-                  ]
-                : [
-                      {
-                          cluster: "manuSpecificLumi",
-                          type: ["attributeReport", "readResponse"],
-                          convert: async (model, msg, publish, options, meta) => {
-                              return await numericAttributes2Payload(msg, meta, model, options, msg.data);
-                          },
-                      } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
-                  ];
+        const fromZigbee = [
+            {
+                cluster: "manuSpecificLumi",
+                type: ["attributeReport", "readResponse"],
+                convert: async (model, msg, publish, options, meta) => {
+                    return await numericAttributes2Payload(msg, meta, model, options, msg.data);
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
+        ];
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
