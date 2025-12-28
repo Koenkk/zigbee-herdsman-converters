@@ -2099,19 +2099,66 @@ export const lumiModernExtend = {
             ],
         };
     },
-    lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean; powerOutageMemory?: "binary" | "enum"; lockRelay?: boolean}) => {
-        args = {operationMode: false, lockRelay: false, ...args};
+    lumiOnOff: (args?: modernExtend.OnOffArgs & {
+        operationMode?: boolean; 
+        powerOutageMemory?: "binary" | "enum"; 
+        lockRelay?: boolean;
+        deviceTemperature?: boolean;
+        powerOutageCount?: boolean;
+    }) => {
+        args = {
+            operationMode: false, 
+            lockRelay: false, 
+            deviceTemperature: true,
+            powerOutageCount: true,
+            ...args
+        };
+        
         const result = modernExtend.onOff({powerOnBehavior: false, ...args});
-        result.fromZigbee.push(fromZigbee.lumi_specific);
-        result.exposes.push(e.device_temperature(), e.power_outage_count());
+        
+        if (!result.fromZigbee) result.fromZigbee = [];
+        if (!result.toZigbee) result.toZigbee = [];
+        if (!result.exposes) result.exposes = [];
+        
+        if (!args.deviceTemperature || !args.powerOutageCount) {
+            result.fromZigbee.push({
+                ...fromZigbee.lumi_specific,
+                convert: async (model, msg, publish, options, meta) => {
+                    const lumiResult = await fromZigbee.lumi_specific.convert(model, msg, publish, options, meta);
+                    if (!lumiResult) return;
+                    
+                    const filtered: Record<string, any> = {};
+                    for (const [key, value] of Object.entries(lumiResult)) {
+                        if (value === undefined || value === null) continue;
+                        
+                        if (key === 'device_temperature' && !args.deviceTemperature) continue;
+                        if (key === 'power_outage_count' && !args.powerOutageCount) continue;
+                        
+                        filtered[key] = value;
+                    }
+                    
+                    return Object.keys(filtered).length > 0 ? filtered : undefined;
+                },
+            });
+        } else {
+            result.fromZigbee.push(fromZigbee.lumi_specific);
+        }
+        
+        if (args.deviceTemperature) {
+            result.exposes.push(e.device_temperature());
+        }
+        if (args.powerOutageCount) {
+            result.exposes.push(e.power_outage_count());
+        }
+        
         if (args.powerOutageMemory === "binary") {
             const extend = lumiModernExtend.lumiPowerOutageMemory();
-            result.toZigbee.push(...extend.toZigbee);
-            result.exposes.push(...extend.exposes);
+            if (extend.toZigbee && result.toZigbee) result.toZigbee.push(...extend.toZigbee);
+            if (extend.exposes && result.exposes) result.exposes.push(...extend.exposes);
         } else if (args.powerOutageMemory === "enum") {
             const extend = lumiModernExtend.lumiPowerOnBehavior();
-            result.toZigbee.push(...extend.toZigbee);
-            result.exposes.push(...extend.exposes);
+            if (extend.toZigbee && result.toZigbee) result.toZigbee.push(...extend.toZigbee);
+            if (extend.exposes && result.exposes) result.exposes.push(...extend.exposes);
         }
         if (args.operationMode === true) {
             const extend = lumiModernExtend.lumiOperationMode({description: "Decoupled mode for a button"});
@@ -2121,12 +2168,12 @@ export const lumiModernExtend = {
                         description: `Decoupled mode for ${ep.toString()} button`,
                         endpointName: ep,
                     });
-                    result.toZigbee.push(...epExtend.toZigbee);
-                    result.exposes.push(...epExtend.exposes);
+                    if (epExtend.toZigbee && result.toZigbee) result.toZigbee.push(...epExtend.toZigbee);
+                    if (epExtend.exposes && result.exposes) result.exposes.push(...epExtend.exposes);
                 });
             } else {
-                result.toZigbee.push(...extend.toZigbee);
-                result.exposes.push(...extend.exposes);
+                if (extend.toZigbee && result.toZigbee) result.toZigbee.push(...extend.toZigbee);
+                if (extend.exposes && result.exposes) result.exposes.push(...extend.exposes);
             }
         }
         if (args.lockRelay) {
@@ -2137,12 +2184,12 @@ export const lumiModernExtend = {
                         description: `Locks ${ep.toString()} relay and prevents it from operating`,
                         endpointName: ep,
                     });
-                    result.toZigbee.push(...epExtend.toZigbee);
-                    result.exposes.push(...epExtend.exposes);
+                    if (epExtend.toZigbee && result.toZigbee) result.toZigbee.push(...epExtend.toZigbee);
+                    if (epExtend.exposes && result.exposes) result.exposes.push(...epExtend.exposes);
                 });
             } else {
-                result.toZigbee.push(...extend.toZigbee);
-                result.exposes.push(...extend.exposes);
+                if (extend.toZigbee && result.toZigbee) result.toZigbee.push(...extend.toZigbee);
+                if (extend.exposes && result.exposes) result.exposes.push(...extend.exposes);
             }
         }
         return result;
@@ -2493,18 +2540,85 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
-    lumiElectricityMeter: (): ModernExtend => {
-        const exposes = [e.energy(), e.voltage(), e.current()];
+    lumiActivePower: (args: {name: string; description: string; endpoint: number}): ModernExtend => {
+        const {name, description, endpoint} = args;
+
         const fromZigbee = [
             {
-                cluster: "manuSpecificLumi",
+                cluster: "haElectricalMeasurement",
                 type: ["attributeReport", "readResponse"],
-                convert: async (model, msg, publish, options, meta) => {
-                    return await numericAttributes2Payload(msg, meta, model, options, msg.data);
+                convert: (model, msg) => {
+                    if (!("activePower" in msg.data)) return;
+                    if (msg.endpoint.ID !== endpoint) return;
+
+                    const power = msg.data.activePower;
+                    if (typeof power !== "number") return;
+
+                    return {[name]: power};
                 },
-            } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
         ];
 
+        const exposes = [e.numeric(name, ea.STATE).withUnit("W").withDescription(description)];
+
+        return {
+            isModernExtend: true,
+            fromZigbee,
+            exposes,
+        };
+    },
+    lumiElectricityMeter: (args?: {energy?: boolean; voltage?: boolean; current?: boolean}): ModernExtend => {
+        const options = {
+            energy: true,
+            voltage: true,
+            current: true,
+            ...args,
+        };
+
+        const exposes = [];
+        if (options.energy) exposes.push(e.energy());
+        if (options.voltage) exposes.push(e.voltage());
+        if (options.current) exposes.push(e.current());
+
+        let fromZigbee;
+        
+        if (!options.energy || !options.voltage || !options.current) {
+            fromZigbee = [
+                {
+                    cluster: "manuSpecificLumi",
+                    type: ["attributeReport", "readResponse"],
+                    convert: async (model, msg, publish, options, meta) => {
+                        const result = await numericAttributes2Payload(msg, meta, model, options, msg.data);
+                        if (!result) return;
+
+                        const filtered: Record<string, any> = {};
+                        for (const [key, value] of Object.entries(result)) {
+                            if (value === undefined || value === null) continue;
+                            
+                            // Filter out disabled attributes
+                            if (key === 'energy' && !args?.energy) continue;
+                            if (key === 'voltage' && !args?.voltage) continue;
+                            if (key === 'current' && !args?.current) continue;
+                            
+                            filtered[key] = value;
+                        }
+
+                        return Object.keys(filtered).length > 0 ? filtered : undefined;
+                    },
+                } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
+            ];
+        } else {
+            fromZigbee = [
+                {
+                    cluster: "manuSpecificLumi",
+                    type: ["attributeReport", "readResponse"],
+                    convert: async (model, msg, publish, options, meta) => {
+                        return await numericAttributes2Payload(msg, meta, model, options, msg.data);
+                    },
+                } satisfies Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport", "readResponse"]>,
+            ];
+        }
+        
         return {exposes, fromZigbee, isModernExtend: true};
     },
     lumiOverloadProtection: (args?: Partial<modernExtend.NumericArgs<"manuSpecificLumi">>) =>
@@ -2516,11 +2630,24 @@ export const lumiModernExtend = {
             valueMin: 100,
             valueMax: 3840,
             unit: "W",
-            access: "ALL",
+            access: "STATE_SET",
             entityCategory: "config",
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
+    lumiChildLock: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
+    modernExtend.binary({
+        name: "child_lock",
+        cluster: "manuSpecificLumi",
+        attribute: {ID: 0x0285, type: 0x20},
+        valueOn: [true, 1],
+        valueOff: [false, 0],
+        description: "Child lock (disables physical button)",
+        access: "ALL",
+        entityCategory: "config",
+        zigbeeCommandOptions: {manufacturerCode},
+        ...args,
+    }),
     lumiLedIndicator: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
         modernExtend.binary({
             name: "led_indicator",
