@@ -1,5 +1,23 @@
 # Changelog
 
+## [25.96.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.95.0...v25.96.0) (2025-12-28)
+
+
+### Features
+
+* **add:** E2489 https://github.com/Koenkk/zigbee2mqtt/issues/30325 ([93513f4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/93513f46403fa70ed83bf616a7319ee653b7d81a))
+* **add:** EKAC-T3092Z https://github.com/Koenkk/zigbee2mqtt/issues/30333 ([868961e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/868961e487a6e6002e4382d72742a30563b7353d))
+* **add:** LED2401G5 https://github.com/Koenkk/zigbee2mqtt/issues/30211 ([566b604](https://github.com/Koenkk/zigbee-herdsman-converters/commit/566b60444fea0fce3b81eb642d16597dbf432c67))
+* SMLIGHT SLZB-: support controlling LED https://github.com/Koenkk/zigbee2mqtt/issues/30375 ([74c7aef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/74c7aef0cd40895409252e7460ad01973897c18e))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3210_oekbi7o4` as EFK is-thpbl-zb https://github.com/Koenkk/zigbee-herdsman-converters/issues/11119 ([df60ece](https://github.com/Koenkk/zigbee-herdsman-converters/commit/df60ece0351549dabd3271fa479fdd2072b1b2b1))
+* TS0201-z-SlD: add more ids ([#11125](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11125)) ([3deacca](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3deacca33554b9db3b0c58efe0bc4aa3d4a87a3a))
+* TS0201-z-SlD: add more ids ([#11128](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11128)) ([882793b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/882793bc8c3134610a04278e6da4c768edd236e6))
+* Tuya X5H-GB-B: remove ignore tuya set time converter ([#11124](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11124)) ([2af6dbd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2af6dbd21dac0a874c1b10a368147370bcfc6ff9))
+
 ## [25.95.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.94.0...v25.95.0) (2025-12-27)
 
 
