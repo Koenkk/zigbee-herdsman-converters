@@ -571,6 +571,27 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
     },
     {
+        fingerprint: [
+            {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3696471655
+                modelID: "",
+                manufacturerName: "",
+                hardwareVersion: 1,
+                dateCode: "",
+                zclVersion: 8,
+                applicationVersion: 0,
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 268, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096], outputClusters: []},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
+        ],
+        model: "LED2408G10",
+        vendor: "IKEA",
+        description: "KAJPLATS E27 bulb, white spectrum, globe, opal, 1521 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}, color: false})],
+    },
+    {
         zigbeeModel: ["Floor lamp WW"],
         model: "G2015",
         vendor: "IKEA",
