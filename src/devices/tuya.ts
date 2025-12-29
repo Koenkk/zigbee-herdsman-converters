@@ -22889,4 +22889,35 @@ Ensure all 12 segments are defined and separated by spaces.`,
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_byzdayie"]),
+        model: "TS0601_DDS238-1-Z1",
+        vendor: "Tuya",
+        description: "Zigbee DIN energy meter",
+        fromZigbee: [tuya.fz.datapoints],
+		toZigbee: [tuya.tz.datapoints],
+		configure: tuya.configureMagicPacket,
+		exposes: [
+            tuya.exposes.switch(),
+			e.current().withAccess(ea.STATE).withUnit('A').withDescription('Current'),
+			e.power().withAccess(ea.STATE).withUnit('W').withDescription('Power'),
+			e.voltage().withAccess(ea.STATE).withUnit('V').withDescription('Voltage'),
+			e.produced_energy().withUnit('kwh').withDescription('Produced energy'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+            [1, 'state', tuya.valueConverter.onOff], // DP 1: Switch
+			[17, 'total_energy', tuya.valueConverter.divideBy1000], // DP 17 Add Electricity
+			[18, 'current', tuya.valueConverter.divideBy1000], // DP 10: Current in mA -> A
+			[19, 'power', tuya.valueConverter.divideBy10], // DP 19: Power in dW -> W
+			[20, 'voltage', tuya.valueConverter.divideBy10], // DP 20: Voltage in dV -> V
+            ],
+        },
+        whiteLabel: [
+            {vendor: "Tuya", model: "DDS238-1-Z1"},
+            tuya.whitelabel("TOMZN", "DDS238-1-Z1", "Single phase DIN-rail energy meter with switch function", [
+                "_TZE204_byzdayie",
+            ]),
+        ],
+    },
 ];
