@@ -1809,7 +1809,9 @@ export const definitions: DefinitionWithExtend[] = [
                 runningState: {
                     values: ["idle", "heat"],
                 },
-                piHeatingDemand: true,
+                piHeatingDemand: {
+                    values: ea.STATE_GET,
+                },
             }),
             m.occupancy(),
             m.electricityMeter({
