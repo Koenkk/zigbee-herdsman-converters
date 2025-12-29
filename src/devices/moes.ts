@@ -1077,7 +1077,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SH4-ZB",
         vendor: "Moes",
         description: "Thermostatic radiator valve",
-    
+
         extend: [
             tuya.modernExtend.tuyaBase({
                 dp: true,
@@ -1085,24 +1085,17 @@ export const definitions: DefinitionWithExtend[] = [
                 timeStart: "1970",
             }),
         ],
-    
+
         exposes: [
             e.battery(),
             e.child_lock(),
             e.window_detection(),
-    
+
             e.binary("boost_heating", ea.STATE_SET, "ON", "OFF"),
-            e.numeric("boost_heating_countdown", ea.STATE)
-                .withUnit("s")
-                .withValueMin(0)
-                .withValueMax(900),
-    
-            e.numeric("auto_setpoint_override", ea.STATE_SET)
-                .withUnit("°C")
-                .withValueMin(0.5)
-                .withValueMax(30)
-                .withValueStep(0.5),
-    
+            e.numeric("boost_heating_countdown", ea.STATE).withUnit("s").withValueMin(0).withValueMax(900),
+
+            e.numeric("auto_setpoint_override", ea.STATE_SET).withUnit("°C").withValueMin(0.5).withValueMax(30).withValueStep(0.5),
+
             e
                 .climate()
                 .withLocalTemperature(ea.STATE)
@@ -1110,34 +1103,19 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
                 .withPreset(["auto", "manual", "holiday"])
                 .withRunningState(["idle", "heat"], ea.STATE),
-    
-            e.numeric("comfort_temperature", ea.STATE_SET)
-                .withUnit("°C")
-                .withValueMin(5)
-                .withValueMax(30)
-                .withValueStep(0.5),
-    
-            e.numeric("eco_temperature", ea.STATE_SET)
-                .withUnit("°C")
-                .withValueMin(5)
-                .withValueMax(30)
-                .withValueStep(0.5),
-    
-            e.numeric("open_window_temperature", ea.STATE_SET)
-                .withUnit("°C")
-                .withValueMin(5)
-                .withValueMax(30)
-                .withValueStep(0.5),
-    
-            e.numeric("window_detection", ea.STATE_SET)
-                .withUnit("min")
-                .withValueMin(0)
-                .withValueMax(60),
-    
+
+            e.numeric("comfort_temperature", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withValueStep(0.5),
+
+            e.numeric("eco_temperature", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withValueStep(0.5),
+
+            e.numeric("open_window_temperature", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withValueStep(0.5),
+
+            e.numeric("window_detection", ea.STATE_SET).withUnit("min").withValueMin(0).withValueMax(60),
+
             e.binary("online", ea.STATE_SET, "ON", "OFF"),
             tuya.exposes.errorStatus(),
         ],
-    
+
         meta: {
             tuyaDatapoints: [
                 [
@@ -1154,7 +1132,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [30, "child_lock", tuya.valueConverter.lockUnlock],
                 [34, "battery", tuya.valueConverterBasic.scale(0, 100, 50, 150)],
                 [45, "error_status", tuya.valueConverter.raw],
-    
+
                 [101, "comfort_temperature", tuya.valueConverter.divideBy2],
                 [102, "eco_temperature", tuya.valueConverter.divideBy2],
                 [104, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
