@@ -565,9 +565,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             },
         ],
-        model: "LED2401G5",
+        model: "LED2409G6",
         vendor: "IKEA",
-        description: "KAJPLATS led bulb",
+        description: "KAJPLATS E14 bulb, color/white spectrum, globe, opal, 806 lm",
         extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
     },
     {
