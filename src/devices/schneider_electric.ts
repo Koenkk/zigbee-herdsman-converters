@@ -1792,40 +1792,126 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EKO07259",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.metering, fz.schneider_pilot_mode, fz.wiser_device_info, fz.hvac_user_interface],
-        toZigbee: [
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_system_mode,
-            tz.thermostat_running_state,
-            tz.thermostat_local_temperature,
-            tz.thermostat_control_sequence_of_operation,
-            tz.schneider_pilot_mode,
-            tz.schneider_thermostat_keypad_lockout,
-            tz.thermostat_temperature_display_mode,
+        extend: [
+            m.thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 4, max: 40, step: 0.5},
+                    },
+                },
+                setpointsLimit: {
+                    maxHeatSetpointLimit: {min: 4, max: 40, step: 0.5},
+                    minHeatSetpointLimit: {min: 4, max: 40, step: 0.5},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                },
+                runningState: {
+                    values: ['idle', 'heat'],
+                },
+                piHeatingDemand: true,
+            }),
+            m.occupancy(),
+            m.electricityMeter({
+                voltage: false,
+                current: false,
+                configureReporting: true,
+                cluster: "metering",
+            }),
+            m.numeric({
+                name: "fixed_load_demand",
+                cluster: "seMetering",
+                attribute: {ID: 0x4510, type: Zcl.DataType.UINT24},
+                description: "This attribute specifies the demand of a switched load when it is energised",
+                entityCategory: "config",
+                unit: "W",
+                valueMin: 1,
+                valueMax: 3600,
+                valueStep: 1,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                reporting: { min: 0, max: 3600, change: 10 },
+            }),
+            m.numeric({
+                name: "display_brightness_active",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe000, type: Zcl.DataType.UINT8},
+                description: "Sets brightness of the temperature display during active state",
+                entityCategory: "config",
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                valueStep: 1,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric({
+                name: "display_brightness_inactive",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe001, type: Zcl.DataType.UINT8},
+                description: "Sets brightness of the temperature display during inactive state",
+                entityCategory: "config",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric({
+                name: "display_active_timeout",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe002, type: Zcl.DataType.UINT16},
+                description: "Sets timeout of the temperature display active state",
+                entityCategory: "config",
+                unit: "seconds",
+                valueMin: 5,
+                valueMax: 3600,
+                valueStep: 5,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.enumLookup({
+                name: "LocalTemperatureSourceSelect",
+                cluster: "hvacThermostat",
+                attribute: {ID: 0xe212, type: Zcl.DataType.UINT8},
+                description: "On devices with more than one temperature input, this selects which should be used for LocalTemperature.",
+                entityCategory: "config",
+                lookup: {Ambient: 2, External: 3},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.enumLookup({
+                name: "Temperature_Sensor_Type",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0xe021, type: Zcl.DataType.ENUM8},
+                description: "This is used to specify the type of temperature sensor connected to this input",
+                entityCategory: "config",
+                lookup: {
+                    '2kΩ sensor from HRT/Alre': 1, 
+                    '10kΩ sensor from B+J': 2, 
+                    '12kΩ sensor from OJ': 3, 
+                    '15kΩ sensor from DEVI': 4, 
+                    '33kΩ sensor from EBERLE': 5, 
+                    '47kΩ sensor from CTM': 6, 
+                    'No sensor': 0xff,
+                },
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                lookup: {celsius: 0, fahrenheit: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "tempDisplayMode",
+                description: "The unit of the temperature displayed on the device screen.",
+                entityCategory: "config",
+            }),
+            m.binary({
+                name: "child_lock",
+                valueOn: ["LOCK", 1],
+                valueOff: ["UNLOCK", 0],
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Enables/disables physical input on the device",
+                access: "ALL",            
+                reporting: { min: 0, max: 3600, change: 0 },
+            }),
         ],
-        exposes: [
-            e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
-            e.enum("schneider_pilot_mode", ea.ALL, ["contactor", "pilot"]).withDescription("Controls piloting mode"),
-            e
-                .enum("temperature_display_mode", ea.ALL, ["celsius", "fahrenheit"])
-                .withDescription("The temperature format displayed on the thermostat screen"),
-            e
-                .climate()
-                .withSetpoint("occupied_heating_setpoint", 0, 40, 0.5)
-                .withLocalTemperature()
-                .withSystemMode(["off", "heat"])
-                .withRunningState(["idle", "heat"])
-                .withPiHeatingDemand(),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat"]);
-            await reporting.thermostatPIHeatingDemand(endpoint1);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["seMetering"]);
-            await endpoint1.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
-        },
     },
     {
         zigbeeModel: ["WDE002497"],
