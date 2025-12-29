@@ -22889,4 +22889,23 @@ Ensure all 12 segments are defined and separated by spaces.`,
             ],
         },
     },
+    {
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_qcasmfan"}],
+        model: "TS0601",
+        vendor: "Tuya",
+        description: "GISE GSKS-ZB Smart Smoke Sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.battery(),
+            e.tamper(),
+            e.smoke(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'smoke', tuya.valueConverter.trueFalse0],
+                [4, 'tamper', tuya.valueConverter.raw],
+                [15, 'battery', tuya.valueConverter.raw],
+            ],
+        },
+    }    
 ];
