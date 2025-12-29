@@ -66,6 +66,7 @@ const attrHumidityOffset = 0xf005;
 const attrHumidityOnOff = 0xf006;
 const attrHumidityLow = 0xf007;
 const attrHumidityHigh = 0xf008;
+const attrRepeatCommand = 0xf009;
 
 const attrCo2Calibration = 0xf008;
 const attrFeaturesSensors = 0xf009;
@@ -1407,6 +1408,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "ENERGOMERA-CE208BY": 5,
                     "NEVA-MT124": 6,
                     "NARTIS-100": 7,
+                    "NARTIS-I100": 8,
                 },
                 cluster: "seMetering",
                 attribute: {ID: attrElCityMeterModelPreset, type: 0x30},
@@ -2222,7 +2224,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["TS0201-z-SlD"],
+        zigbeeModel: ["TS0201-z-SlD", "TS0201-z15-SlD", "TS0201-z21-SlD", "TS0201-z22-SlD", "TS0201-z23-SlD", "TS0201-z24-SlD"],
         model: "TS0201-z-SlD",
         vendor: "Slacky-DIY",
         description: "Tuya temperature and humidity sensor with custom Firmware",
@@ -2268,10 +2270,18 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: attrSensorReadPeriod, type: 0x21},
                 unit: "Sec",
-                valueMin: 15,
+                valueMin: 5,
                 valueMax: 600,
                 valueStep: 1,
                 description: "Sensors reading period",
+            }),
+            m.binary({
+                name: "enabling_repeat_command",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrRepeatCommand, type: 0x10},
+                description: "Enables/disables repeat command",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
             }),
             m.binary({
                 name: "enabling_temperature_control",
