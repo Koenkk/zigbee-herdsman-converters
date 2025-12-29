@@ -437,7 +437,7 @@ const schneiderElectricExtend = {
                 minOnTime: {ID: 0x0045, type: Zcl.DataType.UINT16, write: true},
                 maxOverallDutyCycle: {ID: 0xe207, type: Zcl.DataType.UINT16, write: true, min: 900, max: 3600},
                 overallDutyCyclePeriod: {ID: 0xe208, type: Zcl.DataType.UINT16, write: true, max: 1440},
-                clusterRevision: {ID: 0xfffd, type: Zcl.DataType.UINT16, max: 0xfffe}, 
+                clusterRevision: {ID: 0xfffd, type: Zcl.DataType.UINT16, max: 0xfffe},
             },
             commands: {},
             commandsResponse: {},
