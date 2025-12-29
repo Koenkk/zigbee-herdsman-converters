@@ -410,6 +410,38 @@ const schneiderElectricExtend = {
 
         return extend;
     },
+    addHeatingCoolingOutputClusterServer: () =>
+        m.deviceAddCustomCluster("HeatingCoolingOutputClusterServer", {
+            ID: 0xff23,
+            manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            attributes: {
+                measuredTemperature: {ID: 0x0000, type: Zcl.DataType.INT16, max: 0x7fff},
+                absMinHeatTemperatureLimit: {ID: 0x0003, type: Zcl.DataType.INT16, max: 0x7fff},
+                absMaxHeatTemperatureLimit: {ID: 0x0004, type: Zcl.DataType.INT16, max: 0x7fff},
+                absMinCoolTemperatureLimit: {ID: 0x0005, type: Zcl.DataType.INT16, max: 0x7fff},
+                absMaxCoolTemperatureLimit: {ID: 0x0006, type: Zcl.DataType.INT16, max: 0x7fff},
+                minHeatTemperatureLimit: {ID: 0x0015, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                maxHeatTemperatureLimit: {ID: 0x0016, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                minCoolTemperatureLimit: {ID: 0x0017, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                maxCoolTemperatureLimit: {ID: 0x0018, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                heatTemperatureHighLimit: {ID: 0x0020, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                heatTemperatureLowLimit: {ID: 0x0021, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                coolTemperatureHighLimit: {ID: 0x0022, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                coolTemperatureLowLimit: {ID: 0x0023, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                coolingOutputMode: {ID: 0x0030, type: Zcl.DataType.ENUM8, write: true, max: 0x1},
+                heatingOutputMode: {ID: 0x0031, type: Zcl.DataType.ENUM8, write: true, max: 0x1},
+                maximumIdleTime: {ID: 0x0041, type: Zcl.DataType.UINT16, write: true, max: 8784},
+                antiIdleExerciseTime: {ID: 0x0042, type: Zcl.DataType.UINT16, write: true, max: 3600},
+                preferredExerciseTime: {ID: 0x0043, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                minOffTime: {ID: 0x0044, type: Zcl.DataType.UINT16, write: true},
+                minOnTime: {ID: 0x0045, type: Zcl.DataType.UINT16, write: true},
+                maxOverallDutyCycle: {ID: 0xe207, type: Zcl.DataType.UINT16, write: true, min: 900, max: 3600},
+                overallDutyCyclePeriod: {ID: 0xe208, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                clusterRevision: {ID: 0xfffd, type: Zcl.DataType.UINT16, max: 0xfffe}, 
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
 };
 
 const tzLocal = {
