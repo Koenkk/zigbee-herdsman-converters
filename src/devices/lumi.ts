@@ -4590,6 +4590,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "KD-R01D",
         vendor: "Aqara",
         description: "Dimmer switch H2 EU",
+        exposes: [e.device_temperature()],
         extend: [
             lumiZigbeeOTA(),
             lumiPreventLeave(),
@@ -5110,6 +5111,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Floor heating thermostat W500",
         extend: [
+            m.electricityMeter(),
             m.thermostat({
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}},
                 localTemperatureCalibration: {values: true},
