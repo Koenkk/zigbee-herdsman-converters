@@ -210,6 +210,28 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light()],
     },
     {
+        zigbeeModel: ['3455-L'],
+        model: '3455-L',
+        vendor: 'Centralite',
+        description: 'Iris Care Pendant (Panic Button)',
+        extend: [
+            m.identify(),
+            m.battery(),
+            m.iasZoneAlarm({
+                zoneType: 'generic',
+                zoneAttributes: ['alarm_1', 'alarm_2', 'tamper', 'battery_low'],
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'ssIasZone']);
+            await reporting.batteryVoltage(endpoint);
+            await endpoint.write('ssIasZone', {iasCieAddr: coordinatorEndpoint.deviceIeeeAddress});
+            await endpoint.command('ssIasZone', 'enrollRsp', {enrollrspcode: 0, zoneid: 23});
+        },
+        meta: {battery: {voltageToPercentage: '3V_2100'}},
+    },
+    {
         fingerprint: [
             {modelID: "3157100", manufacturerName: "Centralite"},
             {modelID: "3157100-E", manufacturerName: "Centralite"},
