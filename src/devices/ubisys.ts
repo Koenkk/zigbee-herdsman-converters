@@ -131,7 +131,7 @@ const ubisys = {
                 ) => {
                     if (!jsonAttr) jsonAttr = attr;
                     if (jsonAttr.startsWith("ubisys")) {
-                        jsonAttr = jsonAttr.substring(6, 1).toLowerCase + jsonAttr.substring(7);
+                        jsonAttr = jsonAttr.substring(6, 7).toLowerCase() + jsonAttr.substring(7);
                     }
                     if (value[jsonAttr] !== undefined) {
                         let attrValue = value[jsonAttr];
