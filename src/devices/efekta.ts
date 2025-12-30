@@ -7188,7 +7188,6 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.battery({
-                access: "STATE",
                 percentageReportingConfig: false,
                 lowStatus: true,
                 voltage: false,
@@ -7851,7 +7850,6 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.battery({
-                access: "STATE",
                 percentageReportingConfig: false,
                 lowStatus: true,
                 voltage: false,
@@ -8090,7 +8088,6 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.battery({
-                access: "STATE",
                 percentageReportingConfig: false,
                 lowStatus: false,
                 voltage: false,
