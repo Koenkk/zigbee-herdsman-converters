@@ -1902,7 +1902,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
             }),
             m.enumLookup({
-                name: "LocalTemperatureSourceSelect",
+                name: "local_temperature_source_select",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0xe212, type: Zcl.DataType.UINT8},
                 description: "On devices with more than one temperature input, this selects which should be used for LocalTemperature.",
@@ -1911,7 +1911,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
             }),
             m.enumLookup({
-                name: "Temperature_Sensor_Type",
+                name: "temperature_sensor_type",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0xe021, type: Zcl.DataType.ENUM8},
                 description: "This is used to specify the type of temperature sensor connected to this input",
