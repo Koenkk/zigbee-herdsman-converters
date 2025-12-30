@@ -2521,16 +2521,14 @@ export const lumiModernExtend = {
 
         const fromZigbee = [
             {
-                cluster: "haElectricalMeasurement",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg) => {
-                    if (!("activePower" in msg.data)) return;
+                ...fz.electrical_measurement,
+                convert: (model, msg, publish, options, meta) => {
                     if (msg.endpoint.ID !== endpoint) return;
 
-                    const power = msg.data.activePower;
-                    if (typeof power !== "number") return;
+                    const result = fz.electrical_measurement.convert(model, msg, publish, options, meta);
+                    if (!result || !("power" in result)) return;
 
-                    return {[name]: power};
+                    return {[name]: result.power};
                 },
             } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
         ];
