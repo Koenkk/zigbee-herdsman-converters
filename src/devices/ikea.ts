@@ -586,10 +586,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             },
         ],
-        model: "LED2408G10",
+        model: "KAJPLATS_CT",
         vendor: "IKEA",
-        description: "KAJPLATS E27 bulb, white spectrum, globe, opal, 1521 lm",
-        extend: [m.light({colorTemp: {range: [153, 454]}, color: false})],
+        description: "KAJPLATS color temperature light",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["Floor lamp WW"],
