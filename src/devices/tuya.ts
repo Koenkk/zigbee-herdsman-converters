@@ -22890,6 +22890,21 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_qcasmfan"]),
+        model: "GSKS-ZB",
+        vendor: "GISE",
+        description: "Smoke sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [e.battery(), e.tamper(), e.smoke()],
+        meta: {
+            tuyaDatapoints: [
+                [1, "smoke", tuya.valueConverter.trueFalse0],
+                [4, "tamper", tuya.valueConverter.raw],
+                [15, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_byzdayie"]),
         model: "DDS238-1-Z1",
         vendor: "TOMZN",
