@@ -8009,6 +8009,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "zFlora_X_Max",
         vendor: "EFEKTA",
         description: "Plant watering sensor zFlora X Max with signal amplifier",
+        extend: [
             m.identify(),
             m.soilMoisture({
                 reporting: false,
@@ -8088,11 +8089,13 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Temperature compensation",
                 access: "STATE_SET",
             }),
-			m.battery({
-                percentage: true,
+            m.battery({
+				access: 'STATE',
+				percentageReportingConfig: false,
                 lowStatus: false,
-                voltage: false,
-                reporting: false,
+				voltage: false,
+                voltageReporting: false,
+                voltageReportingConfig: false,
             }),
         ],
     },
