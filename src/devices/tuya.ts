@@ -22889,4 +22889,21 @@ Ensure all 12 segments are defined and separated by spaces.`,
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_byzdayie"]),
+        model: "DDS238-1-Z1",
+        vendor: "TOMZN",
+        description: "Single phase DIN-rail energy meter with switch function",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [tuya.exposes.switch(), e.current(), e.power(), e.voltage(), e.energy()],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [17, "energy", tuya.valueConverter.divideBy1000],
+                [18, "current", tuya.valueConverter.divideBy1000],
+                [19, "power", tuya.valueConverter.divideBy10],
+                [20, "voltage", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
 ];
