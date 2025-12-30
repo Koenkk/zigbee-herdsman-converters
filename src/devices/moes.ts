@@ -1077,25 +1077,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SH4-ZB",
         vendor: "Moes",
         description: "Thermostatic radiator valve",
-
-        extend: [
-            tuya.modernExtend.tuyaBase({
-                dp: true,
-                forceTimeUpdates: true,
-                timeStart: "1970",
-            }),
-        ],
-
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.battery(),
             e.child_lock(),
-            e.window_detection(),
-
+            e.window_detection_bool(),
             e.binary("boost_heating", ea.STATE_SET, "ON", "OFF"),
             e.numeric("boost_heating_countdown", ea.STATE).withUnit("s").withValueMin(0).withValueMax(900),
-
             e.numeric("auto_setpoint_override", ea.STATE_SET).withUnit("°C").withValueMin(0.5).withValueMax(30).withValueStep(0.5),
-
             e
                 .climate()
                 .withLocalTemperature(ea.STATE)
@@ -1103,15 +1092,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
                 .withPreset(["auto", "manual", "holiday"])
                 .withRunningState(["idle", "heat"], ea.STATE),
-
             e.numeric("comfort_temperature", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withValueStep(0.5),
-
             e.numeric("eco_temperature", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withValueStep(0.5),
-
             e.numeric("open_window_temperature", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withValueStep(0.5),
-
-            e.numeric("window_detection", ea.STATE_SET).withUnit("min").withValueMin(0).withValueMax(60),
-
+            e.numeric("window_detection_time", ea.STATE_SET).withUnit("min").withValueMin(0).withValueMax(60),
             e.binary("online", ea.STATE_SET, "ON", "OFF"),
             tuya.exposes.errorStatus(),
         ],
@@ -1132,7 +1116,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [30, "child_lock", tuya.valueConverter.lockUnlock],
                 [34, "battery", tuya.valueConverterBasic.scale(0, 100, 50, 150)],
                 [45, "error_status", tuya.valueConverter.raw],
-
                 [101, "comfort_temperature", tuya.valueConverter.divideBy2],
                 [102, "eco_temperature", tuya.valueConverter.divideBy2],
                 [104, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
@@ -1140,7 +1123,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [106, "boost_heating", tuya.valueConverter.onOff],
                 [107, "window_detection", tuya.valueConverter.onOff],
                 [116, "open_window_temperature", tuya.valueConverter.divideBy2],
-                [117, "window_detection", tuya.valueConverter.raw],
+                [117, "window_detection_time", tuya.valueConverter.raw],
                 [118, "boost_heating_countdown", tuya.valueConverter.raw],
                 [120, "online", tuya.valueConverter.onOffNotStrict],
             ],
