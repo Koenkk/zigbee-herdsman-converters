@@ -1,5 +1,9 @@
+import * as fz from "../converters/fromZigbee";
+import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
+
+const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -66,5 +70,23 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
             }),
         ],
+    },
+    {
+        fingerprint: [{modelID: "RH3001", manufacturerName: "TUYATEC-ktge2vqt"}],
+        model: "KKZ-DO021",
+        vendor: "Hej",
+        description: "Door contact sensor",
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.contact(), e.battery()],
+    },
+    {
+        fingerprint: [{modelID: "RH3040", manufacturerName: "TUYATEC-smmlguju"}],
+        model: "KKZ-MO021",
+        vendor: "Hej",
+        description: "PIR sensor",
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1],
+        toZigbee: [],
+        exposes: [e.battery(), e.occupancy()],
     },
 ];

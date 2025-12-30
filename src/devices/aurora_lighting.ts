@@ -26,7 +26,12 @@ const tzLocal = {
         key: ["brightness"],
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command("genLevelCtrl", "moveToLevel", {level: value as number, transtime: 0}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level: value as number, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
             return {state: {brightness: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -273,6 +278,16 @@ export const definitions: DefinitionWithExtend[] = [
 
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint, {change: 500});
+        },
+    },
+    {
+        zigbeeModel: ["Smart16ARelay51AU"],
+        model: "AU-A1ZBR16A",
+        vendor: "Aurora Lighting",
+        description: "Aurora Smart Inline Relay",
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
+        endpoint: (device) => {
+            return {default: 2};
         },
     },
     {

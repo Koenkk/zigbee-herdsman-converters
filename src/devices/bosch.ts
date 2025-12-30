@@ -803,7 +803,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xe000,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    sensitivity: {ID: 0x4003, type: Zcl.DataType.UINT16},
+                    sensitivity: {ID: 0x4003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {
                     initiateTestMode: {
@@ -817,19 +817,19 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xe002,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    humidity: {ID: 0x4000, type: Zcl.DataType.UINT16},
-                    unknown1: {ID: 0x4001, type: Zcl.DataType.UINT16},
-                    unknown2: {ID: 0x4002, type: Zcl.DataType.UINT16},
-                    airpurity: {ID: 0x4003, type: Zcl.DataType.UINT16},
-                    temperature: {ID: 0x4004, type: Zcl.DataType.INT16},
-                    illuminance: {ID: 0x4005, type: Zcl.DataType.UINT16},
-                    battery: {ID: 0x4006, type: Zcl.DataType.UINT16},
-                    unknown3: {ID: 0x4007, type: Zcl.DataType.UINT16},
-                    unknown4: {ID: 0x4008, type: Zcl.DataType.UINT16},
-                    pressure: {ID: 0x4009, type: Zcl.DataType.UINT16}, // Not yet confirmed
-                    unknown6: {ID: 0x400a, type: Zcl.DataType.UINT16},
-                    unknown7: {ID: 0x400b, type: Zcl.DataType.UINT16},
-                    unknown8: {ID: 0x400c, type: Zcl.DataType.UINT16},
+                    humidity: {ID: 0x4000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    unknown1: {ID: 0x4001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    unknown2: {ID: 0x4002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    airpurity: {ID: 0x4003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperature: {ID: 0x4004, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    illuminance: {ID: 0x4005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    battery: {ID: 0x4006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    unknown3: {ID: 0x4007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    unknown4: {ID: 0x4008, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    pressure: {ID: 0x4009, type: Zcl.DataType.UINT16, write: true, max: 0xffff}, // Not yet confirmed
+                    unknown6: {ID: 0x400a, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    unknown7: {ID: 0x400b, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    unknown8: {ID: 0x400c, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -838,8 +838,8 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xe004,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    unknown1: {ID: 0x4000, type: Zcl.DataType.BITMAP8}, // 0,1 ??? read during pairing
-                    pre_alarm: {ID: 0x4001, type: Zcl.DataType.BITMAP8}, // 0,1 on/off
+                    unknown1: {ID: 0x4000, type: Zcl.DataType.BITMAP8, write: true}, // 0,1 ??? read during pairing
+                    pre_alarm: {ID: 0x4001, type: Zcl.DataType.BITMAP8, write: true}, // 0,1 on/off
                 },
                 commands: {},
                 commandsResponse: {},
@@ -848,9 +848,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xe006,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    unknown1: {ID: 0x5003, type: Zcl.DataType.INT8}, // perhaps signal strength? -7?
-                    unknown2: {ID: 0x5004, type: Zcl.DataType.UINT8}, // ????
-                    heartbeat: {ID: 0x5005, type: Zcl.DataType.BITMAP8}, // 0
+                    unknown1: {ID: 0x5003, type: Zcl.DataType.INT8, write: true, min: -128}, // perhaps signal strength? -7?
+                    unknown2: {ID: 0x5004, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // ????
+                    heartbeat: {ID: 0x5005, type: Zcl.DataType.BITMAP8, write: true}, // 0
                 },
                 commands: {
                     pairingCompleted: {
@@ -864,13 +864,13 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xe007,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    alarm_status: {ID: 0x5000, type: Zcl.DataType.BITMAP32},
+                    alarm_status: {ID: 0x5000, type: Zcl.DataType.BITMAP32, write: true},
                 },
                 commands: {
                     burglarAlarm: {
                         ID: 0x01,
                         parameters: [
-                            {name: "data", type: Zcl.DataType.UINT8}, // data:1 trips the siren data:0 should stop the siren
+                            {name: "data", type: Zcl.DataType.UINT8, max: 0xff}, // data:1 trips the siren data:0 should stop the siren
                         ],
                     },
                 },
@@ -1006,12 +1006,12 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8},
-                    childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN},
-                    dimmerType: {ID: 0x0022, type: Zcl.DataType.ENUM8},
-                    minimumBrightness: {ID: 0x0025, type: Zcl.DataType.UINT8},
-                    maximumBrightness: {ID: 0x0026, type: Zcl.DataType.UINT8},
-                    switchMode: {ID: 0x0031, type: Zcl.DataType.BOOLEAN},
+                    switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN, write: true},
+                    dimmerType: {ID: 0x0022, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    minimumBrightness: {ID: 0x0025, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    maximumBrightness: {ID: 0x0026, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    switchMode: {ID: 0x0031, type: Zcl.DataType.BOOLEAN, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1051,11 +1051,11 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8},
-                    childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN},
-                    pulseLength: {ID: 0x0024, type: Zcl.DataType.UINT16},
-                    switchMode: {ID: 0x0031, type: Zcl.DataType.BOOLEAN},
-                    actuatorType: {ID: 0x0034, type: Zcl.DataType.ENUM8},
+                    switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN, write: true},
+                    pulseLength: {ID: 0x0024, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    switchMode: {ID: 0x0031, type: Zcl.DataType.BOOLEAN, write: true},
+                    actuatorType: {ID: 0x0034, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1103,51 +1103,51 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    deviceMode: {ID: 0x0000, type: Zcl.DataType.ENUM8},
-                    switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8},
-                    switchMode: {ID: 0x0031, type: Zcl.DataType.UINT8},
-                    calibrationOpeningTime: {ID: 0x0002, type: Zcl.DataType.UINT32},
-                    calibrationClosingTime: {ID: 0x0003, type: Zcl.DataType.UINT32},
+                    deviceMode: {ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    switchMode: {ID: 0x0031, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    calibrationOpeningTime: {ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    calibrationClosingTime: {ID: 0x0003, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                     // 0x0005 isn't used at all when using the Bosch SHC as of 30-06-2025.
                     // As I don't have any shutters, I can't run all calibration steps
                     // successfully. So, keep any comments regarding these
                     // attributes with caution.
-                    calibrationButtonHoldTime: {ID: 0x0005, type: Zcl.DataType.UINT8},
-                    autoOffEnabled: {ID: 0x0006, type: Zcl.DataType.BOOLEAN},
-                    autoOffTime: {ID: 0x0007, type: Zcl.DataType.UINT16},
-                    childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN},
+                    calibrationButtonHoldTime: {ID: 0x0005, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    autoOffEnabled: {ID: 0x0006, type: Zcl.DataType.BOOLEAN, write: true},
+                    autoOffTime: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN, write: true},
                     // 0x000f is only being set when using the automatic calibration.
                     // It's being set to 0 then before sending the calibration
                     // command. Additionally, when changing
                     // the calibrationOpeningTime or calibrationClosingTime in the
                     // Bosch app, it's also being set to 0.
                     // I couldn't find any way to set 0x000f manually in the Bosch app.
-                    calibrationMotorStartDelay: {ID: 0x000f, type: Zcl.DataType.UINT8},
-                    calibrationMotorReverseDirection: {ID: 0x0032, type: Zcl.DataType.BOOLEAN},
-                    motorState: {ID: 0x0013, type: Zcl.DataType.ENUM8},
+                    calibrationMotorStartDelay: {ID: 0x000f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    calibrationMotorReverseDirection: {ID: 0x0032, type: Zcl.DataType.BOOLEAN, write: true},
+                    motorState: {ID: 0x0013, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                     // unknownAttributeOne is always being configured as reporting
                     // attribute on endpoint 1 when using the Bosch SHC.
                     // Can't tell what this attribute does (always received
                     // 0x00 as answer on manual lookup).
-                    unknownAttributeOne: {ID: 0x0004, type: Zcl.DataType.BITMAP8},
+                    unknownAttributeOne: {ID: 0x0004, type: Zcl.DataType.BITMAP8, write: true},
                     // Attribute is being set to 255 when deactivating the automatic
                     // detection of the motor end position by the Bosch SHC. After
                     // activating the automatic end position detection it's being set
                     // to 0 by the Bosch SHC. Apart from that, there's no way to manually
                     // change the value.
-                    calibrationMotorEndPosition: {ID: 0x0021, type: Zcl.DataType.UINT8},
+                    calibrationMotorEndPosition: {ID: 0x0021, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                     // 0x0033 is used when setting the motor start delay manually
                     // using the Bosch SHC as of 30-06-2025.
                     // If the user wants to automatically detect the delay during
                     // calibration, it's being set to 0 over the Bosch app.
-                    calibrationNewMotorStartDelay: {ID: 0x0033, type: Zcl.DataType.UINT16},
+                    calibrationNewMotorStartDelay: {ID: 0x0033, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     // 0x0010 and 0x0011 is being set simultaneously with the same value
                     // when changing the delay for the rotation of the slats on venetian
                     // blinds. Maybe one attribute for each direction?
                     // It's also being configured as reporting attribute when using
                     // venetian blinds.
-                    slatRotationDurationOne: {ID: 0x0010, type: Zcl.DataType.UINT32},
-                    slatRotationDurationTwo: {ID: 0x0011, type: Zcl.DataType.UINT32},
+                    slatRotationDurationOne: {ID: 0x0010, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    slatRotationDurationTwo: {ID: 0x0011, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                     // 0x002a is only being used when doing an automatic calibration
                     // with the Bosch specific startAutomaticMotorCalibration command.
                     // It's being set to true before starting the calibration process.
@@ -1155,7 +1155,7 @@ export const definitions: DefinitionWithExtend[] = [
                     // any packages where this attribute is being actively set to false.
                     // Maybe this activates some "full calibration" flag which is being
                     // set to false by the device itself afterward?
-                    unknownAttributeTwo: {ID: 0x002a, type: Zcl.DataType.BOOLEAN},
+                    unknownAttributeTwo: {ID: 0x002a, type: Zcl.DataType.BOOLEAN, write: true},
                 },
                 commands: {
                     // Command being sent by the Bosch SHC when starting an

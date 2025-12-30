@@ -3,17 +3,20 @@ import {Zcl} from "zigbee-herdsman";
 import {repInterval} from "../lib/constants";
 import {
     addCustomClusterManuSpecificIkeaAirPurifier,
+    addCustomClusterManuSpecificIkeaSmartPlug,
     addCustomClusterManuSpecificIkeaUnknown,
     addCustomClusterManuSpecificIkeaVocIndexMeasurement,
     ikeaAirPurifier,
     ikeaArrowClick,
     ikeaBattery,
+    ikeaBilresaLong,
     ikeaConfigureGenPollCtrl,
     ikeaConfigureRemote,
     ikeaConfigureStyrbar,
     ikeaDotsClick,
     ikeaLight,
     ikeaMediaCommands,
+    ikeaModernExtend,
     ikeaVoc,
     styrbarCommandOn,
     tradfriCommandsLevelCtrl,
@@ -546,6 +549,28 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({turnsOffAtBrightness1: true}), m.identify()],
     },
     {
+        fingerprint: [
+            {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3660923636
+                modelID: "",
+                manufacturerName: "",
+                hardwareVersion: 1,
+                dateCode: "",
+                softwareBuildID: "",
+                zclVersion: 8,
+                applicationVersion: 0,
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 269, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096], outputClusters: []},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
+        ],
+        model: "LED2401G5",
+        vendor: "IKEA",
+        description: "KAJPLATS led bulb",
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
         zigbeeModel: ["Floor lamp WW"],
         model: "G2015",
         vendor: "IKEA",
@@ -633,7 +658,14 @@ export const definitions: DefinitionWithExtend[] = [
             {model: "E2204", vendor: "IKEA", description: "E2204 (EU)"},
             {model: "E2214", vendor: "IKEA", description: "E2214 (CH)"},
         ],
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), m.onOff(), m.identify()],
+        extend: [
+            addCustomClusterManuSpecificIkeaSmartPlug(),
+            addCustomClusterManuSpecificIkeaUnknown(),
+            m.onOff(),
+            ikeaModernExtend.smartPlugChildLock(),
+            ikeaModernExtend.smartPlugLedEnable(),
+            m.identify(),
+        ],
         ota: true,
     },
     {
@@ -641,8 +673,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E2206",
         vendor: "IKEA",
         description: "INSPELNING smart plug",
-        whiteLabel: [{model: "E2220", vendor: "IKEA", description: "INSPELNING smart plug (US)"}],
-        extend: [addCustomClusterManuSpecificIkeaUnknown(), m.onOff(), m.identify(), m.electricityMeter()],
+        whiteLabel: [
+            {model: "E2220", vendor: "IKEA", description: "INSPELNING smart plug (US)"},
+            {model: "E2224", vendor: "IKEA", description: "INSPELNING smart plug (CH)"},
+        ],
+        extend: [
+            addCustomClusterManuSpecificIkeaSmartPlug(),
+            addCustomClusterManuSpecificIkeaUnknown(),
+            m.onOff(),
+            ikeaModernExtend.smartPlugChildLock(),
+            ikeaModernExtend.smartPlugLedEnable(),
+            m.identify(),
+            m.electricityMeter(),
+        ],
         ota: true,
         configure: async (device) => {
             const endpoint = device.getEndpoint(1);
@@ -766,6 +809,13 @@ export const definitions: DefinitionWithExtend[] = [
             ikeaBattery(),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["09B9"],
+        model: "E2489",
+        vendor: "IKEA",
+        description: "BILRESA remote control",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), ikeaBilresaLong()],
     },
     {
         zigbeeModel: ["Remote Control N2"],
@@ -926,7 +976,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("pm25Measurement", {
                 ID: 0x042a,
                 attributes: {
-                    measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC},
+                    measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
                 },
                 commands: {},
                 commandsResponse: {},

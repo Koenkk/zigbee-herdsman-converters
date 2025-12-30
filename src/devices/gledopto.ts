@@ -319,7 +319,6 @@ const tzLocal = {
 };
 
 function gledoptoLight(args?: m.LightArgs) {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {powerOnBehavior: false, ...args};
     if (args.color) args.color = {modes: ["xy", "hs"], ...(utils.isObject(args.color) ? args.color : {})};
     const result = m.light(args);
@@ -916,6 +915,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [gledoptoLight({colorTemp: {range: undefined}, color: true})],
     },
     {
+        zigbeeModel: ["GL-D-001P"],
+        model: "GL-D-001P",
+        vendor: "Gledopto",
+        description: "Zigbee 9W Downlight RGB+CCT 350-450 lm",
+        extend: [gledoptoLight({colorTemp: {range: [158, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["GL-D-002P"],
         model: "GL-D-002P",
         vendor: "Gledopto",
@@ -1235,7 +1241,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff()],
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_gt5al3bl"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_8fffc3kb", "_TZE284_gt5al3bl"]),
         model: "GL-SPI-206P",
         vendor: "Gledopto",
         description: "SPI pixel controller RGBCCT/RGBW/RGB",

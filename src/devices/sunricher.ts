@@ -175,6 +175,22 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: [
+            {modelID: "ON/OFF (2CH)", manufacturerName: "Somfy"},
+            {modelID: "ON/OFF (2CH)", manufacturerName: "Sunricher"},
+        ],
+        model: "SR-ZG9001T2-SW",
+        vendor: "Sunricher",
+        description: "Zigbee 2-gang touch panel",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
+            m.onOff({endpointNames: ["1", "2"]}),
+            m.commandsOnOff({endpointNames: ["1", "2"]}),
+            m.identify(),
+            sunricher.extend.externalSwitchType(),
+        ],
+    },
+    {
         zigbeeModel: ["ZG9041A-2R"],
         model: "SR-ZG9041A-2R",
         vendor: "Sunricher",
@@ -203,19 +219,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.electricityMeter({endpointNames: ["3"]}),
             m.enumLookup({
-                name: "dev_mode",
-                cluster: "genBasic",
-                attribute: {ID: 0x0001, type: 0x30},
-                lookup: {
-                    curtain: 0,
-                    light: 1,
-                },
-                description: "Set device type (curtain or light)",
-                entityCategory: "config",
-                access: "ALL",
-                zigbeeCommandOptions: {manufacturerCode: 0x1224},
-            }),
-            m.enumLookup({
                 name: "curtain_type",
                 cluster: "closuresWindowCovering",
                 attribute: {ID: 0x1000, type: Zcl.DataType.ENUM8},
@@ -226,7 +229,6 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Configure curtain type",
                 access: "ALL",
                 entityCategory: "config",
-                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
             }),
             sunricher.extend.motorControl(),
             m.identify(),
@@ -614,10 +616,10 @@ export const definitions: DefinitionWithExtend[] = [
                     press: {
                         ID: 0x01,
                         parameters: [
-                            {name: "messageType", type: Zcl.DataType.UINT8},
-                            {name: "button2", type: Zcl.DataType.UINT8},
-                            {name: "button1", type: Zcl.DataType.UINT8},
-                            {name: "pressType", type: Zcl.DataType.UINT8},
+                            {name: "messageType", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "button2", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "button1", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "pressType", type: Zcl.DataType.UINT8, max: 0xff},
                         ],
                     },
                 },
@@ -639,46 +641,72 @@ export const definitions: DefinitionWithExtend[] = [
                         ID: 0x100d,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     antiFreezingTemp: {
                         ID: 0x1005,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     temperatureDisplayMode: {
                         ID: 0x1008,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     windowOpenCheck: {
                         ID: 0x1009,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     hysteresis: {
                         ID: 0x100a,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     windowOpenFlag: {
                         ID: 0x100b,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     forcedHeatingTime: {
                         ID: 0x100e,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     errorCode: {
                         ID: 0x2003,
                         type: Zcl.DataType.BITMAP8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
                     },
                     awayOrBoostMode: {
                         ID: 0x2002,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -922,9 +950,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfc8b,
                 manufacturerCode: 0x120b,
                 attributes: {
-                    indicatorLight: {ID: 0xf001, type: Zcl.DataType.UINT8},
-                    detectionArea: {ID: 0xf002, type: Zcl.DataType.UINT8},
-                    illuminanceThreshold: {ID: 0xf004, type: Zcl.DataType.UINT8},
+                    indicatorLight: {ID: 0xf001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    detectionArea: {ID: 0xf002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    illuminanceThreshold: {ID: 0xf004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1646,6 +1674,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true}), sunricher.extend.externalSwitchType()],
     },
     {
+        zigbeeModel: ["3986"],
+        model: "SRP-ZG9105-CV",
+        vendor: "Sunricher",
+        description: "Constant voltage Zigbee LED driver",
+        extend: [m.light({colorTemp: {range: [160, 450]}, color: false, configureReporting: true})],
+        whiteLabel: [{vendor: "LongLife LED", model: "3986"}],
+    },
+    {
         fingerprint: [{modelID: "HK-ZD-DIM-A", softwareBuildID: "2.9.2_r72"}],
         model: "SR-ZG9101CS",
         vendor: "Sunricher",
@@ -1952,14 +1988,20 @@ export const definitions: DefinitionWithExtend[] = [
                 logger.debug("Failed to setup keypadLockout reporting", NS);
             }
 
-            await endpoint.configureReporting("hvacThermostat", [
-                {
-                    attribute: "occupancy",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: null,
-                },
-            ]);
+            try {
+                await endpoint.configureReporting("hvacThermostat", [
+                    {
+                        attribute: "occupancy",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ]);
+            } catch {
+                // Fails for some
+                // https://github.com/Koenkk/zigbee2mqtt/issues/29833
+                logger.debug("Failed to setup occupancy reporting", NS);
+            }
 
             await endpoint.read("haElectricalMeasurement", ["acVoltageMultiplier", "acVoltageDivisor", "acCurrentMultiplier"]);
             await endpoint.read("haElectricalMeasurement", ["acCurrentDivisor"]);
@@ -2181,6 +2223,19 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.U02I007C01_contact, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
+    },
+    {
+        zigbeeModel: ["ZGRC-KEY-017"],
+        model: "ZGRC-KEY-017",
+        vendor: "Sunricher",
+        description: "6-zone RGB+CCT remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4", "5", "6"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4", "5", "6"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4", "5", "6"]}),
+        ],
     },
     {
         zigbeeModel: ["ZG9095B"],

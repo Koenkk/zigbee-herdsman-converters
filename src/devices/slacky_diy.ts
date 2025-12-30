@@ -66,6 +66,7 @@ const attrHumidityOffset = 0xf005;
 const attrHumidityOnOff = 0xf006;
 const attrHumidityLow = 0xf007;
 const attrHumidityHigh = 0xf008;
+const attrRepeatCommand = 0xf009;
 
 const attrCo2Calibration = 0xf008;
 const attrFeaturesSensors = 0xf009;
@@ -75,6 +76,7 @@ const attrDisplayInversion = 0xf00b;
 const switchFeatures = ["nothing", "co2_forced_calibration", "co2_factory_reset", "bind_reset", ""];
 
 const attrPlugKeyLock = 0xf000;
+const attrPlugLedCtrl = 0xf001;
 const attrPlugSwitchCurrentMax = 0xf002;
 const attrPlugSwitchPowerMax = 0xf003;
 const attrPlugSwitchTimeReload = 0xf004;
@@ -204,7 +206,12 @@ const tzLocal = {
         key: ["brightness", "brightness_day", "brightness_night"],
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command("genLevelCtrl", "moveToLevel", {level: value as number, transtime: 0}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level: value as number, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
             return {state: {brightness: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -441,7 +448,7 @@ const tzLocal = {
     thermostat_manuf_name: {
         key: ["manuf_name"],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {r0: 0, r1: 1, r2: 2, r3: 3, r4: 4, r5: 5, r6: 6, r7: 7, r8: 8, r9: 9, r10: 10, r11: 11};
+            const lookup = {R00: 0, R01: 1, R02: 2, R03: 3, R04: 4, R05: 5, R06: 6, R07: 7, R08: 8, R09: 9, R0A: 10, R0B: 11};
             await entity.write("hvacThermostat", {[attrThermManufName]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
             return {state: {manuf_name: value}};
         },
@@ -1099,7 +1106,7 @@ const air_extend = {
                     await entity.command(
                         "genLevelCtrl",
                         "moveToLevel",
-                        {level: value as number, transtime: 0},
+                        {level: value as number, transtime: 0, optionsMask: 0, optionsOverride: 0},
                         utils.getOptions(meta.mapped, entity),
                     );
                     return {state: {brightness: value}};
@@ -1401,6 +1408,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "ENERGOMERA-CE208BY": 5,
                     "NEVA-MT124": 6,
                     "NARTIS-100": 7,
+                    "NARTIS-I100": 8,
                 },
                 cluster: "seMetering",
                 attribute: {ID: attrElCityMeterModelPreset, type: 0x30},
@@ -2115,7 +2123,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
         exposes: [
-            e.binary("child_lock", ea.ALL, "Lock", "Unlock").withDescription("Enables/disables physical input on the device"),
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
             e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
             e
@@ -2216,7 +2224,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["TS0201-z-SlD"],
+        zigbeeModel: ["TS0201-z-SlD", "TS0201-z15-SlD", "TS0201-z21-SlD", "TS0201-z22-SlD", "TS0201-z23-SlD", "TS0201-z24-SlD"],
         model: "TS0201-z-SlD",
         vendor: "Slacky-DIY",
         description: "Tuya temperature and humidity sensor with custom Firmware",
@@ -2262,10 +2270,18 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: attrSensorReadPeriod, type: 0x21},
                 unit: "Sec",
-                valueMin: 15,
+                valueMin: 5,
                 valueMax: 600,
                 valueStep: 1,
                 description: "Sensors reading period",
+            }),
+            m.binary({
+                name: "enabling_repeat_command",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrRepeatCommand, type: 0x10},
+                description: "Enables/disables repeat command",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
             }),
             m.binary({
                 name: "enabling_temperature_control",
@@ -2648,6 +2664,13 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genOnOff",
                 attribute: {ID: attrPlugKeyLock, type: 0x10},
                 description: "Key lock enable/disable",
+            }),
+            m.enumLookup({
+                name: "led_control",
+                lookup: {off: 0, on: 1, "on/off": 2},
+                cluster: "genOnOff",
+                attribute: {ID: attrPlugLedCtrl, type: 0x30},
+                description: "Led control",
             }),
             m.electricityMeter({
                 current: {divisor: 100},

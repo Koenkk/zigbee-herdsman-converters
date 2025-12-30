@@ -50,10 +50,11 @@ const bituo_fz = {
 };
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["SPM01X001", "SPM01X"],
+        zigbeeModel: ["SPM01X001", "SPM01X", "SPM01-1Z2"],
         model: "SPM01-U01",
         vendor: "BITUO TECHNIK",
         description: "Smart energy monitor for 1P+N system",
+        ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
@@ -71,9 +72,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {},
         exposes: [e.power_apparent()],
+        whiteLabel: [{vendor: "Zemismart", model: "SPM01-1Z2", fingerprint: [{modelID: "SPM01-1Z2"}]}],
     },
     {
-        zigbeeModel: ["SDM01W"],
+        zigbeeModel: ["SDM01W", "SDM01-3Z1"],
         model: "SDM01W-U01",
         vendor: "BITUO TECHNIK",
         description: "Smart energy monitor for 3P+N system",
@@ -110,6 +112,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("total_power_reactive", ea.STATE).withUnit("VAR").withDescription("Total Reactive Power"),
             e.numeric("total_power_apparent", ea.STATE).withUnit("VA").withDescription("Total Apparent Power"),
         ],
+        whiteLabel: [{vendor: "Zemismart", model: "SDM01-3Z1", fingerprint: [{modelID: "SDM01-3Z1"}]}],
     },
     {
         zigbeeModel: ["SDM01B"],
@@ -137,7 +140,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.power_apparent()],
     },
     {
-        zigbeeModel: ["SDM02X"],
+        zigbeeModel: ["SDM02X", "SDM02-2Z1"],
         model: "SDM02-U01",
         vendor: "BITUO TECHNIK",
         description: "Smart energy monitor for 2P+N system",
@@ -170,9 +173,10 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("total_power_reactive", ea.STATE).withUnit("VAR").withDescription("Total Reactive Power"),
             e.numeric("total_power_apparent", ea.STATE).withUnit("VA").withDescription("Total Apparent Power"),
         ],
+        whiteLabel: [{vendor: "Zemismart", model: "SDM02-2Z1", fingerprint: [{modelID: "SDM02-2Z1"}]}],
     },
     {
-        zigbeeModel: ["SPM02X001", "SPM02X"],
+        zigbeeModel: ["SPM02X001", "SPM02X", "SPM02-3Z3"],
         model: "SPM02-U01",
         vendor: "BITUO TECHNIK",
         description: "Smart energy monitor for 3P+N system",
@@ -207,6 +211,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("total_power_reactive", ea.STATE).withUnit("VAR").withDescription("Total Reactive Power"),
             e.numeric("total_power_apparent", ea.STATE).withUnit("VA").withDescription("Total Apparent Power"),
         ],
+        whiteLabel: [{vendor: "Zemismart", model: "SPM02-3Z3", fingerprint: [{modelID: "SPM02-3Z3"}]}],
     },
     {
         zigbeeModel: ["SPM01"],

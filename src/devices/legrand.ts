@@ -717,4 +717,32 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: ["NLIS - Triple light switch"],
+        model: "281506",
+        vendor: "Legrand",
+        description: "Triple light switch",
+        ota: true,
+        fromZigbee: [fz.identify, fz.legrand_binary_input_on_off, fzLegrand.cluster_fc01],
+        toZigbee: [tzLegrand.identify, tzLegrand.led_mode],
+        exposes: [eLegrand.ledInDark(), eLegrand.ledIfOn()],
+        extend: [
+            m.deviceEndpoints({endpoints: {right: 1, center: 2, left: 3}}),
+            m.onOff({configureReporting: true, endpointNames: ["right", "center", "left"]}),
+        ],
+    },
+    {
+        zigbeeModel: [" Wireless Color Dimmer\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"],
+        model: "067767",
+        vendor: " Legrand",
+        description: "Wireless Color Ambiance Switch 067767/68/69 - 077710L",
+        ota: true,
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        fromZigbee: [fz.battery, fz.legrand_scenes],
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genOnOff", "genLevelCtrl", "genScenes"]);
+        },
+    },
 ];

@@ -7,6 +7,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
+import * as store from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -69,7 +70,97 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
+// Namron Simplify 3-button remote (4512793 / 4512794)
+// -----------------------------------------------------------
+const NAMRON_SIMPLIFY_ACTIONS: Record<number, "press" | "release" | "hold"> = {
+    0: "press",
+    1: "release",
+    2: "hold",
+};
 
+const HOLD_KEY_SIMPLIFY = "namron_simplify_lastHold";
+const simplify_col = (n: number) => Math.floor((n - 1) / 2) + 1;
+const simplify_sub = (n: number) => (n % 2 === 1 ? "up" : "down");
+
+// Minimal custom-cluster shape to satisfy Fz.Converter generic constraints
+type ZosungIRCustomCluster = {
+    attributes: Record<string, never>;
+    commands: Record<string, never>;
+    commandResponses: Record<string, never>;
+};
+
+// Helper to safely parse bytes from msg without any/unknown
+function parseZosungIRBytes(msg: Fz.Message<"zosungIRControl", ZosungIRCustomCluster, ["raw"]>): number[] {
+    type RawContainer = {data?: number[]};
+    type DataShape = RawContainer | number[] | Record<string, number>;
+    const m = msg as {type?: string; data?: DataShape};
+
+    if (
+        m.type === "raw" &&
+        m.data &&
+        typeof m.data === "object" &&
+        "data" in (m.data as RawContainer) &&
+        Array.isArray((m.data as RawContainer).data)
+    ) {
+        return (m.data as RawContainer).data as number[];
+    }
+
+    if (Array.isArray(m.data)) {
+        return m.data as number[];
+    }
+
+    if (m.data && typeof m.data === "object") {
+        const obj = m.data as Record<string, number>;
+        const keys = Object.keys(obj)
+            .filter((k) => !Number.isNaN(Number(k)))
+            .sort((a, b) => Number(a) - Number(b));
+        return keys.map((k) => obj[k]);
+    }
+
+    return [];
+}
+
+const fzNamronSimplifyRemote: Fz.Converter<"zosungIRControl", ZosungIRCustomCluster, ["raw"]> = {
+    cluster: "zosungIRControl",
+    type: ["raw"],
+    convert(model, msg, publish, _options, meta) {
+        const bytes = parseZosungIRBytes(msg);
+        if (bytes.length === 0) return;
+
+        const btn = bytes.at(-2);
+        const raw = bytes.at(-1);
+        if (btn == null || raw == null) return;
+
+        const kind = NAMRON_SIMPLIFY_ACTIONS[raw as 0x00 | 0x01 | 0x02];
+        const base = `button_${simplify_col(btn)}_${simplify_sub(btn)}_`;
+
+        // Firmware sometimes sends empty action after hold: synthesize release
+        if (!kind) {
+            const lastHold = store.getValue(meta.device, HOLD_KEY_SIMPLIFY) as string | undefined;
+            if (lastHold?.endsWith("_hold")) {
+                publish({action: lastHold.replace("_hold", "_release")});
+                store.putValue(meta.device, HOLD_KEY_SIMPLIFY, null);
+            }
+            return;
+        }
+
+        if (kind === "hold") {
+            store.putValue(meta.device, HOLD_KEY_SIMPLIFY, `${base}hold`);
+            publish({action: `${base}hold`});
+            return;
+        }
+
+        if (kind === "release") {
+            publish({action: `${base}press`});
+            publish({action: `${base}release`});
+            return;
+        }
+
+        publish({action: `${base}press`});
+    },
+};
+
+// END SimplifyBryter
 const tzLocal = {
     namron_panelheater: {
         key: ["display_brightnesss", "display_auto_off", "power_up_status", "window_detection", "hysterersis", "window_open"],
@@ -1501,10 +1592,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({effect: false, configureReporting: true}), m.electricityMeter({cluster: "electrical"})],
     },
     {
-        zigbeeModel: ["4512783", "4512784"],
+        zigbeeModel: ["4512783", "4512784", "4566702"],
         model: "4512783/4512784",
         vendor: "Namron",
         description: "Namron edge thermostat",
+        whiteLabel: [{vendor: "Namron", model: "4566702", fingerprint: [{modelID: "4566702"}]}],
         fromZigbee: [
             fz.thermostat,
             namron.fromZigbee.namron_edge_thermostat_holiday_temp,
@@ -1650,6 +1742,37 @@ export const definitions: DefinitionWithExtend[] = [
                 current: {multiplier: 1, divisor: 100}, // A
                 energy: {multiplier: 1, divisor: 100}, // kWh
             }),
+        ],
+    },
+    {
+        zigbeeModel: ["4512793", "4512794"],
+        model: "4512793",
+        vendor: "Namron",
+        description: "Simplify 6-button remote with battery",
+        extend: [m.battery()],
+        fromZigbee: [fzNamronSimplifyRemote],
+        toZigbee: [],
+        exposes: [
+            e.action([
+                "button_1_up_press",
+                "button_1_up_hold",
+                "button_1_up_release",
+                "button_1_down_press",
+                "button_1_down_hold",
+                "button_1_down_release",
+                "button_2_up_press",
+                "button_2_up_hold",
+                "button_2_up_release",
+                "button_2_down_press",
+                "button_2_down_hold",
+                "button_2_down_release",
+                "button_3_up_press",
+                "button_3_up_hold",
+                "button_3_up_release",
+                "button_3_down_press",
+                "button_3_down_hold",
+                "button_3_down_release",
+            ]),
         ],
     },
     {
