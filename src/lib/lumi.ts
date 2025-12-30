@@ -2518,7 +2518,7 @@ export const lumiModernExtend = {
         }),
     lumiActivePower: (args: {name: string; description: string; endpoint: number}): ModernExtend => {
         const {name, description, endpoint} = args;
-    
+
         const fromZigbee = [
             {
                 cluster: fz.electrical_measurement.cluster,
@@ -2526,17 +2526,17 @@ export const lumiModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.endpoint.ID !== endpoint) return;
                     if (!("activePower" in msg.data)) return;
-                    
+
                     const power = msg.data.activePower;
                     if (typeof power !== "number") return;
-                    
+
                     return {[name]: power};
                 },
             } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
         ];
-    
+
         const exposes = [e.numeric(name, ea.STATE).withUnit("W").withDescription(description)];
-    
+
         return {
             isModernExtend: true,
             fromZigbee,
