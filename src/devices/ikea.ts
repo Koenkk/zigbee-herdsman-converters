@@ -818,6 +818,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), ikeaBilresaLong()],
     },
     {
+        zigbeeModel: ["09BA"],
+        model: "E2490",
+        vendor: "IKEA",
+        description: "BILRESA remote control with scroll wheel",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl()],
+    },
+    {
         zigbeeModel: ["Remote Control N2"],
         model: "E2001/E2002",
         vendor: "IKEA",
