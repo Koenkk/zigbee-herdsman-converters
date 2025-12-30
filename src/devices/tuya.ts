@@ -12573,6 +12573,40 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_juzago6i"]),
+        model: "TS0601-PIR-Sensor",
+        vendor: "Tuya",
+        description: "PIR 24GHz human presence sensor",
+        extend: [m.battery(), tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e.numeric("detection_distance", ea.STATE_SET).withValueMin(1).withValueMax(6).withUnit("m").withDescription("Maximum detection distance"),
+            e
+                .numeric("fading_time", ea.STATE_SET)
+                .withValueMin(10)
+                .withValueMax(180)
+                .withValueStep(10)
+                .withUnit("s")
+                .withDescription("Presence keep time"),
+            e.enum("last_time", ea.STATE, ["pir", "none"]).withDescription("Last trigger type"),
+            e.numeric("static_detection_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription("Static detection sensitivity"),
+            e.numeric("motion_detection_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription("Motion detection sensitivity"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse0],
+                [4, "battery", tuya.valueConverter.raw],
+                [12, "illuminance", tuya.valueConverter.raw],
+                [101, "detection_distance", tuya.valueConverter.raw],
+                [103, "fading_time", tuya.valueConverter.raw],
+                [104, "last_time", tuya.valueConverterBasic.lookup({pir: 0, none: 1})],
+                [105, "static_detection_sensitivity", tuya.valueConverter.raw],
+                [106, "motion_detection_sensitivity", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS110E", ["_TZ3210_zxbtub8r"]),
         model: "TS110E_1gang_1",
         vendor: "Tuya",
