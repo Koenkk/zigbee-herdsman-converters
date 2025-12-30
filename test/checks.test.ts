@@ -61,6 +61,12 @@ describe("Check definitions", () => {
         }
     });
 
+    it("Definition should not have default configureKey of 0", () => {
+        for (const definition of definitions) {
+            assert(definition.configureKey !== 0, `'${definition.model}' has default configureKey of 0, this is not allowed`);
+        }
+    });
+
     it("Exposes properties are unique", () => {
         for (const definition of definitions) {
             const exposes = definitionExposes(definition);

@@ -270,6 +270,10 @@ type DefinitionBase = {
 
 type DefinitionConfig = {
     endpoint?: (device: Zh.Device) => {[s: string]: number};
+    // When changed, the host application (e.g. z2m) should re-configure the device.
+    // In case the definition has no `configureKey`, the default value is `0`.
+    // Therefore the value should be at least `1`.
+    configureKey?: number;
     configure?: Configure;
     options?: Option[];
     meta?: DefinitionMeta;
