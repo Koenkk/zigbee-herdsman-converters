@@ -3,6 +3,12 @@ import {Zcl} from "zigbee-herdsman";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
 
+const attrPM1 = 0x0601;
+const attrPM10 = 0x0602;
+const attrPMSZ = 0x0603;
+const attrAQi25 = 0x0604;
+const attrPM4 = 0x0605;
+
 const defaultReporting = {min: 0, max: 300, change: 0};
 const rareReporting = {min: 0, max: 21600, change: 0};
 const rarestReporting = {min: 0, max: 64800, change: 0};
@@ -1034,12 +1040,13 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Adjust Report Delay. Setting the time in minutes, by default 5 minutes",
             }),
             m.binary({
-                name: "enable_temperature",
+                name: "enabling_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Temperature Control",
+                description: "Enables/disables Tempearure control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_temperature",
@@ -1060,12 +1067,13 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Setting Low Temperature Border",
             }),
             m.binary({
-                name: "enable_humidity",
+                name: "enabling_humidity_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Humidity Control",
+                description: "Enables/disables Humidity control",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_humidity",
@@ -1316,8 +1324,8 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["EFEKTA_ePST_POW_E_LR"],
-        model: "EFEKTA_ePST_POW_E_LR",
+        zigbeeModel: ["EFEKTA_ePST_POW_E_LR", "EFEKTA_ePST_POW_R_LR"],
+        model: "EFEKTA_ePST_POW",
         vendor: "EFEKTA",
         description: "Water, gas smart pressure monitor with e-ink display",
         extend: [
@@ -1435,8 +1443,8 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["EFEKTA_eTH_POW_E_LR"],
-        model: "EFEKTA_eTH_POW_E_LR",
+        zigbeeModel: ["EFEKTA_eTH_POW_E_LR", "EFEKTA_eTH_POW_R_LR"],
+        model: "EFEKTA_eTH_POW",
         vendor: "EFEKTA",
         description: "Temperature and humidity smart sensor with with e-ink display",
         extend: [
@@ -1759,21 +1767,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_temperature",
+                name: "enabling_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Temperature Control",
+                description: "Enables/disables Tempearure control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_temperature",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "temperature_actions",
+                lookup: {HEAT: 0, COOL: 1},
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Temperature Control",
+                description: "Heat or cool",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -1874,21 +1881,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_temperature",
+                name: "enabling_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Temperature Control",
+                description: "Enables/disables Tempearure control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_temperature",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "temperature_actions",
+                lookup: {HEAT: 0, COOL: 1},
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Temperature Control",
+                description: "Heat or cool",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -1993,21 +1999,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_temperature",
+                name: "enabling_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Temperature Control",
+                description: "Enables/disables Tempearure control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_temperature",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "temperature_actions",
+                lookup: {HEAT: 0, COOL: 1},
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Temperature Control",
+                description: "Heat or cool",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -2031,21 +2036,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_humidity",
+                name: "enabling_humidity_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Humidity Control",
+                description: "Enables/disables Humidity control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_humidity",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "humidity_actions",
+                lookup: {WET: 0, DRY: 1},
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Humidity Control",
+                description: "Wet or dry",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -2142,21 +2146,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_temperature",
+                name: "enabling_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Temperature Control",
+                description: "Enables/disables Tempearure control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_temperature",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "temperature_actions",
+                lookup: {HEAT: 0, COOL: 1},
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Temperature Control",
+                description: "Heat or cool",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -2180,21 +2183,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_humidity",
+                name: "enabling_humidity_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Humidity Control",
+                description: "Enables/disables Humidity control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_humidity",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "humidity_actions",
+                lookup: {WET: 0, DRY: 1},
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Humidity Control",
+                description: "Wet or dry",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -2299,21 +2301,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_temperature",
+                name: "enabling_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Temperature Control",
+                description: "Enables/disables Tempearure control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_temperature",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "temperature_actions",
+                lookup: {HEAT: 0, COOL: 1},
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Temperature Control",
+                description: "Heat or cool",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -2337,21 +2338,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_humidity",
+                name: "enabling_humidity_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Humidity Control",
+                description: "Enables/disables Humidity control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_humidity",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "humidity_actions",
+                lookup: {WET: 0, DRY: 1},
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Humidity Control",
+                description: "Wet or dry",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -2448,21 +2448,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_temperature",
+                name: "enabling_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Temperature Control",
+                description: "Enables/disables Tempearure control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_temperature",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "temperature_actions",
+                lookup: {HEAT: 0, COOL: 1},
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Temperature Control",
+                description: "Heat or cool",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -2486,21 +2485,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_humidity",
+                name: "enabling_humidity_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Humidity Control",
+                description: "Enables/disables Humidity control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_humidity",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "humidity_actions",
+                lookup: {WET: 0, DRY: 1},
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Humidity Control",
+                description: "Wet or dry",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -2621,12 +2619,12 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_temperature",
+                name: "enabling_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Temperature Control",
+                description: "Enables/disables Tempearure control",
                 access: "STATE_SET",
             }),
             m.binary({
@@ -2638,13 +2636,12 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable internal or external sensor control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_temperature",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "temperature_actions",
+                lookup: {HEAT: 0, COOL: 1},
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Temperature Control",
+                description: "Heat or cool",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -2668,12 +2665,12 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_humidity",
+                name: "enabling_humidity_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Humidity Control",
+                description: "Enables/disables Humidity control",
                 access: "STATE_SET",
             }),
             m.binary({
@@ -2685,13 +2682,12 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable internal or external sensor control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_humidity",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "humidity_actions",
+                lookup: {WET: 0, DRY: 1},
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Humidity Control",
+                description: "Wet or dry",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -2804,12 +2800,12 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_temperature",
+                name: "enabling_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Temperature Control",
+                description: "Enables/disables Tempearure control",
                 access: "STATE_SET",
             }),
             m.binary({
@@ -2821,13 +2817,12 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable internal or external sensor control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_temperature",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "temperature_actions",
+                lookup: {HEAT: 0, COOL: 1},
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Temperature Control",
+                description: "Heat or cool",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -2851,12 +2846,12 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_humidity",
+                name: "enabling_humidity_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Humidity Control",
+                description: "Enables/disables Humidity control",
                 access: "STATE_SET",
             }),
             m.binary({
@@ -2868,13 +2863,12 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable internal or external sensor control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_humidity",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "humidity_actions",
+                lookup: {WET: 0, DRY: 1},
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Humidity Control",
+                description: "Wet or dry",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -3257,6 +3251,14 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0201, type: Zcl.DataType.UINT16},
                 description: "Setting the sensor reading interval in seconds, by default 10 seconds",
                 access: "STATE_SET",
+            }),
+            m.enumLookup({
+                name: 'sensor_type',
+                lookup: {'0-1bar': 1, '0-5bar': 5, '0-10bar': 10},
+                cluster: 'msPressureMeasurement',
+                attribute: {ID: 0x0280, type: Zcl.DataType.UINT8},
+                description: 'Set sensor type',
+				access: 'STATE_SET',
             }),
             m.enumLookup({
                 name: "tx_radio_power",
@@ -4187,11 +4189,15 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EFEKTA",
         description: "EFEKTA Smart Air Quality Box, can control the relay, binding on some other devices",
         extend: [
+            m.co2({
+                reporting: co2Reporting,
+                access: "STATE",
+            }),
             m.numeric({
                 name: "pm1",
                 unit: "µg/m³",
                 cluster: "pm25Measurement",
-                attribute: {ID: 0x0601, type: Zcl.DataType.SINGLE_PREC},
+                attribute: {ID: attrPM1, type: Zcl.DataType.SINGLE_PREC},
                 description: "Measured PM1.0 (particulate matter) concentration",
                 access: "STATE",
                 reporting: pmReporting,
@@ -4207,7 +4213,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "pm4",
                 unit: "µg/m³",
                 cluster: "pm25Measurement",
-                attribute: {ID: 0x0605, type: Zcl.DataType.SINGLE_PREC},
+                attribute: {ID: attrPM4, type: Zcl.DataType.SINGLE_PREC},
                 description: "Measured PM4.0 (particulate matter) concentration",
                 access: "STATE",
                 reporting: pmReporting,
@@ -4217,7 +4223,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "pm10",
                 unit: "µg/m³",
                 cluster: "pm25Measurement",
-                attribute: {ID: 0x0602, type: Zcl.DataType.SINGLE_PREC},
+                attribute: {ID: attrPM10, type: Zcl.DataType.SINGLE_PREC},
                 description: "Measured PM10.0 (particulate matter) concentration",
                 access: "STATE",
                 reporting: pmReporting,
@@ -4227,7 +4233,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "pm_size",
                 unit: "µm",
                 cluster: "pm25Measurement",
-                attribute: {ID: 0x0603, type: Zcl.DataType.SINGLE_PREC},
+                attribute: {ID: attrPMSZ, type: Zcl.DataType.SINGLE_PREC},
                 description: "Typical Particle Size",
                 access: "STATE",
                 reporting: pm2Reporting,
@@ -4237,14 +4243,10 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "aqi_25_index",
                 unit: "PM2.5 Index",
                 cluster: "pm25Measurement",
-                attribute: {ID: 0x0604, type: Zcl.DataType.SINGLE_PREC},
+                attribute: {ID: attrAQi25, type: Zcl.DataType.SINGLE_PREC},
                 description: "PM 2.5 INDEX",
                 access: "STATE",
                 reporting: pmReporting,
-            }),
-            m.co2({
-                reporting: co2Reporting,
-                access: "STATE",
             }),
             m.numeric({
                 name: "voc_index",
@@ -5046,7 +5048,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "lux_factor",
                 valueMin: 0.1,
-                valueMax: 10,
+                valueMax: 30,
                 valueStep: 0.1,
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0310, type: Zcl.DataType.SINGLE_PREC},
@@ -5168,7 +5170,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "lux_factor",
                 valueMin: 0.1,
-                valueMax: 10,
+                valueMax: 30,
                 valueStep: 0.1,
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0310, type: Zcl.DataType.SINGLE_PREC},
@@ -5290,7 +5292,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "lux_factor",
                 valueMin: 0.1,
-                valueMax: 10,
+                valueMax: 30,
                 valueStep: 0.1,
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0310, type: Zcl.DataType.SINGLE_PREC},
@@ -5411,7 +5413,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "lux_factor",
                 valueMin: 0.1,
-                valueMax: 10,
+                valueMax: 30,
                 valueStep: 0.1,
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0310, type: Zcl.DataType.SINGLE_PREC},
@@ -5500,9 +5502,9 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 name: "lux_factor",
-                valueMin: 0.1,
-                valueMax: 10,
-                valueStep: 0.1,
+                valueMin: 1,
+                valueMax: 50,
+                valueStep: 1,
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0310, type: Zcl.DataType.SINGLE_PREC},
                 description: "Lux factor",
@@ -5598,9 +5600,9 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 name: "lux_factor",
-                valueMin: 0.1,
-                valueMax: 10,
-                valueStep: 0.1,
+                valueMin: 1,
+                valueMax: 50,
+                valueStep: 1,
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0310, type: Zcl.DataType.SINGLE_PREC},
                 description: "Lux factor",
@@ -5723,23 +5725,23 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_temperature",
+                name: "enabling_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Temperature Control",
+                description: "Enables/disables Tempearure control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_temperature",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "temperature_actions",
+                lookup: {HEAT: 0, COOL: 1},
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Temperature Control",
+                description: "Heat or cool",
                 access: "STATE_SET",
             }),
+
             m.enumLookup({
                 name: "invert",
                 lookup: {BW: 0, WB: 1},
@@ -5769,21 +5771,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_humidity",
+                name: "enabling_humidity_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Humidity Control",
+                description: "Enables/disables Humidity control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_humidity",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "humidity_actions",
+                lookup: {WET: 0, DRY: 1},
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Humidity Control",
+                description: "Wet or dry",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -5859,30 +5860,29 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable сontrol of comparison with previous data",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "enable_temperature",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
-                cluster: "msTemperatureMeasurement",
-                attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Temperature Control",
-                access: "STATE_SET",
-            }),
-            m.binary({
-                name: "invert_logic_temperature",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
-                cluster: "msTemperatureMeasurement",
-                attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Temperature Control",
-                access: "STATE_SET",
-            }),
             m.enumLookup({
-                name: "invert",
+                name: "invert_color",
                 lookup: {BW: 0, WB: 1},
                 cluster: "genPowerCfg",
                 attribute: {ID: 0xf004, type: Zcl.DataType.BOOLEAN},
                 description: "Invert display color",
+                access: "STATE_SET",
+            }),
+            m.binary({
+                name: "enabling_temperature_control",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
+                description: "Enables/disables Tempearure control",
+                access: "STATE_SET",
+            }),
+            m.enumLookup({
+                name: "temperature_actions",
+                lookup: {HEAT: 0, COOL: 1},
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
+                description: "Heat or cool",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -5906,21 +5906,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_humidity",
+                name: "enabling_humidity_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Humidity Control",
+                description: "Enables/disables Humidity control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_humidity",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "humidity_actions",
+                lookup: {WET: 0, DRY: 1},
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Humidity Control",
+                description: "Wet or dry",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -6067,7 +6066,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "tx_radio_power",
-                lookup: {"-4dbm": -4, "0dbm": 0, "4dbm": 4},
+                lookup: {"0dbm": 0, "4dbm": 4},
                 cluster: "genPowerCfg",
                 attribute: {ID: 0x0236, type: Zcl.DataType.INT8},
                 description: "Set TX Radio Power, dbm",
@@ -6429,7 +6428,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "pm1",
                 unit: "µg/m³",
                 cluster: "pm25Measurement",
-                attribute: {ID: 0x0601, type: Zcl.DataType.SINGLE_PREC},
+                attribute: {ID: attrPM1, type: Zcl.DataType.SINGLE_PREC},
                 description: "Measured PM1.0 (particulate matter) concentration",
                 access: "STATE",
                 reporting: pmReporting,
@@ -6445,7 +6444,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "pm10",
                 unit: "µg/m³",
                 cluster: "pm25Measurement",
-                attribute: {ID: 0x0602, type: Zcl.DataType.SINGLE_PREC},
+                attribute: {ID: attrPM10, type: Zcl.DataType.SINGLE_PREC},
                 description: "Measured PM10.0 (particulate matter) concentration",
                 access: "STATE",
                 reporting: pmReporting,
@@ -6455,7 +6454,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "aqi25",
                 unit: "PM2.5 Index",
                 cluster: "pm25Measurement",
-                attribute: {ID: 0x0604, type: Zcl.DataType.SINGLE_PREC},
+                attribute: {ID: attrAQi25, type: Zcl.DataType.SINGLE_PREC},
                 description: "PM 2.5 INDEX",
                 access: "STATE",
                 reporting: pmReporting,
@@ -6895,18 +6894,18 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["EFEKTA_TH_POW_R"],
-        model: "EFEKTA_TH_POW_R",
+        zigbeeModel: ["EFEKTA_TH_POW_E", "EFEKTA_TH_POW_R"],
+        model: "EFEKTA_TH_POW",
         vendor: "EFEKTA",
         description: "Temperature and humidity smart monitor with voltage detector",
         extend: [
             m.identify(),
             m.temperature({
-                reporting: fourReporting,
+                reporting: defaultReporting,
                 access: "STATE",
             }),
             m.humidity({
-                reporting: fourReporting,
+                reporting: defaultReporting,
                 access: "STATE",
             }),
             m.numeric({
@@ -6971,21 +6970,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_temperature",
+                name: "enabling_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Temperature Control",
+                description: "Enables/disables Tempearure control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_temperature",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "temperature_actions",
+                lookup: {HEAT: 0, COOL: 1},
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Temperature Control",
+                description: "Heat or cool",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -7009,21 +7007,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_humidity",
+                name: "enabling_humidity_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Humidity Control",
+                description: "Enables/disables Humidity control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_humidity",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "humidity_actions",
+                lookup: {WET: 0, DRY: 1},
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Humidity Control",
+                description: "Wet or dry",
                 access: "STATE_SET",
             }),
             m.numeric({
@@ -7049,14 +7046,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["EFEKTA_T1_MAX_R"],
-        model: "EFEKTA_T1_MAX_R",
+        zigbeeModel: ["EFEKTA_T1_MAX_E", "EFEKTA_T1_MAX_R"],
+        model: "EFEKTA_T1_MAX",
         vendor: "EFEKTA",
         description: "Temperatureb mart monitor with voltage detector",
         extend: [
             m.identify(),
             m.temperature({
-                reporting: fourReporting,
+                reporting: defaultReporting,
                 access: "STATE",
             }),
             m.numeric({
@@ -7129,21 +7126,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_temperature",
+                name: "enabling_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0220, type: Zcl.DataType.BOOLEAN},
-                description: "Enable Temperature Control",
+                description: "Enables/disables Tempearure control",
                 access: "STATE_SET",
             }),
-            m.binary({
-                name: "invert_logic_temperature",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup({
+                name: "temperature_actions",
+                lookup: {HEAT: 0, COOL: 1},
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0225, type: Zcl.DataType.BOOLEAN},
-                description: "Invert Logic Temperature Control",
+                description: "Heat or cool",
                 access: "STATE_SET",
             }),
             m.numeric({
