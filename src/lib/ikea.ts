@@ -742,7 +742,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
 
-export function ikeaBilresaLong(): ModernExtend {
+export function ikeaBilresaDouble(): ModernExtend {
     const exposes: Expose[] = [presets.action(["off_double", "on_double"])];
 
     const fromZigbee = [
