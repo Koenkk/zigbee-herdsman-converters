@@ -567,7 +567,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "KAJPLATS_RGB",
         vendor: "IKEA",
-        description: "KAJPLATS color + color temperature light",
+        description: "KAJPLATS color/white spectrum light",
         extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
     },
     {
@@ -588,7 +588,31 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "KAJPLATS_CT",
         vendor: "IKEA",
-        description: "KAJPLATS color temperature light",
+        description: "KAJPLATS white spectrum light",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3697342174
+        zigbeeModel: ["KAJPLATS E27 WS globe 470lm"],
+        model: "LED2406G4",
+        vendor: "IKEA",
+        description: "KAJPLATS E27 bulb, white spectrum, globe, opal, 470 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3698674562
+        zigbeeModel: ["KAJPLATS E27 WS G95 clear 806lm"],
+        model: "LED2401G5",
+        vendor: "IKEA",
+        description: "KAJPLATS E27 bulb, white spectrum, globe, clear, 806 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3697858054
+        zigbeeModel: ["KAJPLATS E27 WS G60 clear 470lm"],
+        model: "LED2411G3",
+        vendor: "IKEA",
+        description: "KAJPLATS E27 bulb, white spectrum, globe, clear, 470 lm",
         extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
