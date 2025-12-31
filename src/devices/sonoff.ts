@@ -1990,6 +1990,27 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["SNZB-04PR2"],
+        model: "SNZB-04PR2",
+        vendor: "SONOFF",
+        description: "Contact sensor",
+        extend: [
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.binary({
+                name: "tamper",
+                cluster: 0xfc11,
+                attribute: {ID: 0x2000, type: 0x20},
+                description: "Tamper-proof status",
+                valueOn: [true, 0x01],
+                valueOff: [false, 0x00],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
+                access: "STATE_GET",
+            }),
+            ewelinkBattery(),
+        ],
+        ota: true,
+    },
+    {
         zigbeeModel: ["SNZB-03P"],
         model: "SNZB-03P",
         vendor: "SONOFF",
