@@ -9,7 +9,7 @@ import {
     ikeaAirPurifier,
     ikeaArrowClick,
     ikeaBattery,
-    ikeaBilresaLong,
+    ikeaBilresaDouble,
     ikeaConfigureGenPollCtrl,
     ikeaConfigureRemote,
     ikeaConfigureStyrbar,
@@ -832,18 +832,32 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/30325
         zigbeeModel: ["09B9"],
         model: "E2489",
         vendor: "IKEA",
-        description: "BILRESA remote control",
-        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), ikeaBilresaLong()],
+        description: "BILRESA remote control with buttons",
+        extend: [
+            m.battery(),
+            m.identify({isSleepy: true}),
+            m.commandsOnOff({commands: ["on", "off"]}),
+            m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
+            ikeaBilresaDouble(),
+        ],
     },
     {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/30321
         zigbeeModel: ["09BA"],
         model: "E2490",
         vendor: "IKEA",
         description: "BILRESA remote control with scroll wheel",
-        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl()],
+        extend: [
+            m.battery(),
+            m.identify({isSleepy: true}),
+            m.commandsOnOff({commands: ["on", "off"]}),
+            m.commandsLevelCtrl({commands: ["brightness_move_to_level"]}),
+            ikeaBilresaDouble(),
+        ],
     },
     {
         zigbeeModel: ["Remote Control N2"],
