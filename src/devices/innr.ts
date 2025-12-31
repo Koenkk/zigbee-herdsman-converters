@@ -598,7 +598,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 246 T",
         vendor: "Innr",
         description: "E14 mini bulb, dimmable with, color temp",
-        extend: [m.light({colorTemp: {range: [153,500]}, turnsOffAtBrightness1: true})],
+        extend: [m.light({colorTemp: {range: [153, 500]}, turnsOffAtBrightness1: true})],
         ota: true,
     },
     {
