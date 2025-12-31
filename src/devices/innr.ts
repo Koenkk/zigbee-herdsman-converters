@@ -594,11 +594,11 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["RB 248 T"],
-        model: "RB 248 T",
+        zigbeeModel: ["RB 246 T"],
+        model: "RB 246 T",
         vendor: "Innr",
-        description: "E14 candle with white spectrum",
-        extend: [m.light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
+        description: "E14 mini bulb, dimmable with, color temp",
+        extend: [m.light({colorTemp: {range: [153,500]}, turnsOffAtBrightness1: true})],
         ota: true,
     },
     {
@@ -607,6 +607,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Innr",
         description: "E14 candle, dimmable with, color temp",
         extend: [m.light({colorTemp: {range: [200, 454]}, turnsOffAtBrightness1: true})],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["RB 248 T"],
+        model: "RB 248 T",
+        vendor: "Innr",
+        description: "E14 candle with white spectrum",
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
         ota: true,
     },
     {
