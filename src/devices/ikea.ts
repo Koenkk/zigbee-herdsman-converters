@@ -9,6 +9,7 @@ import {
     ikeaAirPurifier,
     ikeaArrowClick,
     ikeaBattery,
+    ikeaBilresaLong,
     ikeaConfigureGenPollCtrl,
     ikeaConfigureRemote,
     ikeaConfigureStyrbar,
@@ -548,6 +549,49 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({turnsOffAtBrightness1: true}), m.identify()],
     },
     {
+        fingerprint: [
+            {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3660923636
+                modelID: "",
+                manufacturerName: "",
+                hardwareVersion: 1,
+                dateCode: "",
+                softwareBuildID: "",
+                zclVersion: 8,
+                applicationVersion: 0,
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 269, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096], outputClusters: []},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
+        ],
+        model: "KAJPLATS_RGB",
+        vendor: "IKEA",
+        description: "KAJPLATS color + color temperature light",
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
+        fingerprint: [
+            {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3696471655
+                modelID: "",
+                manufacturerName: "",
+                hardwareVersion: 1,
+                dateCode: "",
+                zclVersion: 8,
+                applicationVersion: 0,
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 268, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096], outputClusters: []},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
+        ],
+        model: "KAJPLATS_CT",
+        vendor: "IKEA",
+        description: "KAJPLATS color temperature light",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
         zigbeeModel: ["Floor lamp WW"],
         model: "G2015",
         vendor: "IKEA",
@@ -786,6 +830,20 @@ export const definitions: DefinitionWithExtend[] = [
             ikeaBattery(),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["09B9"],
+        model: "E2489",
+        vendor: "IKEA",
+        description: "BILRESA remote control",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), ikeaBilresaLong()],
+    },
+    {
+        zigbeeModel: ["09BA"],
+        model: "E2490",
+        vendor: "IKEA",
+        description: "BILRESA remote control with scroll wheel",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl()],
     },
     {
         zigbeeModel: ["Remote Control N2"],

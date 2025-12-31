@@ -318,17 +318,39 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LGYCDD01LM",
         vendor: "Aqara",
         whiteLabel: [{vendor: "Aqara", model: "RLS-K01D"}],
-        description: "Light strip T1",
+        description: "LED Strip T1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("manuSpecificLumi", [0x0515], {manufacturerCode: manufacturerCode});
             await endpoint.read("manuSpecificLumi", [0x0516], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0517], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x051b], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x051c], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x051d], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x051e], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x051f], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0520], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0523], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0527], {manufacturerCode: manufacturerCode});
+            await endpoint.read("manuSpecificLumi", [0x0530], {manufacturerCode: manufacturerCode});
             await endpoint.read("genLevelCtrl", [0x0012], {});
             await endpoint.read("genLevelCtrl", [0x0013], {});
         },
+
         extend: [
-            m.light({effect: false, powerOnBehavior: false, colorTemp: {startup: false, range: [153, 370]}, color: true}),
-            lumiPowerOnBehavior(),
+            lumiLight({
+                colorTemp: true,
+                color: {modes: ["xy"]},
+                colorTempRange: [153, 370],
+            }),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            m.identify(),
+            lumiPowerOnBehavior({lookup: {on: 0, previous: 1, off: 2}}),
+            lumiZigbeeOTA(),
+            lumi.lumiModernExtend.lumiDimmingRangeMin(),
+            lumi.lumiModernExtend.lumiDimmingRangeMax(),
+            lumi.lumiModernExtend.lumiOnOffDuration(),
+            lumi.lumiModernExtend.lumiOffOnDuration(),
             m.numeric({
                 name: "length",
                 valueMin: 1,
@@ -338,7 +360,8 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "m",
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x051b, type: 0x20},
-                description: "LED strip length",
+                description: "LED strip length (5 x 20cm segments per meter)",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
@@ -347,15 +370,15 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["OFF", 0],
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x051c, type: 0x20},
-                description: "Enabling audio",
+                description: "Audio sync mode",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.enumLookup({
                 name: "audio_sensitivity",
-                lookup: {low: 0, medium: 1, high: 2},
+                lookup: {low: 0, high: 2},
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x051e, type: 0x20},
-                description: "Audio sensitivity",
+                description: "Audio sync sensitivity",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.enumLookup({
@@ -366,29 +389,11 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Audio effect",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.numeric({
-                name: "preset",
-                valueMin: 1,
-                valueMax: 32,
-                cluster: "manuSpecificLumi",
-                attribute: {ID: 0x051f, type: 0x23},
-                description: "Preset index (0-6 default presets)",
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
-            m.numeric({
-                name: "speed",
-                valueMin: 1,
-                valueMax: 100,
-                cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0520, type: 0x20},
-                description: "Effect speed",
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
-            lumi.lumiModernExtend.lumiDimmingRangeMin(),
-            lumi.lumiModernExtend.lumiDimmingRangeMax(),
-            lumi.lumiModernExtend.lumiOffOnDuration(),
-            lumi.lumiModernExtend.lumiOnOffDuration(),
-            lumiZigbeeOTA(),
+            lumi.lumiModernExtend.lumiRGBEffect({breathing: 0, rainbow1: 1, chasing: 2, flash: 3, hopping: 4, rainbow2: 5, flicker: 6, dash: 7}),
+            lumi.lumiModernExtend.lumiRGBEffectSpeed(),
+            lumi.lumiModernExtend.lumiRGBEffectSegments(),
+            lumi.lumiModernExtend.lumiRGBEffectColors(),
+            lumi.lumiModernExtend.lumiSegmentColors(),
         ],
     },
     {
@@ -4552,6 +4557,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "KD-R01D",
         vendor: "Aqara",
         description: "Dimmer switch H2 EU",
+        exposes: [e.device_temperature()],
         extend: [
             lumiZigbeeOTA(),
             lumiPreventLeave(),
@@ -5072,6 +5078,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Floor heating thermostat W500",
         extend: [
+            m.electricityMeter(),
             m.thermostat({
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}},
                 localTemperatureCalibration: {values: true},
