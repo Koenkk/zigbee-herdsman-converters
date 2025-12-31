@@ -3552,6 +3552,10 @@ export const boschThermostatExtend = {
                 values: ["idle", "heat", "cool"],
                 configure: {reporting: {min: "MIN", max: "MAX", change: null}},
             },
+            ctrlSeqeOfOper: {
+                values: ["cooling_only", "heating_only"],
+                configure: {reporting: {min: "MIN", max: "MAX", change: null}},
+            },
         });
 
         const exposes: (Expose | DefinitionExposesFunction)[] = thermostat.exposes;

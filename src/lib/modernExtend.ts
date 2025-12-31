@@ -3170,6 +3170,19 @@ export interface ThermostatArgs {
     temperatureSetpointHold?: true;
     temperatureSetpointHoldDuration?: true;
     endpoint?: string;
+    ctrlSeqeOfOper?: Omit<
+        ValuesWithModernExtendConfiguration<
+            Array<
+                | "cooling_only"
+                | "cooling_with_reheat"
+                | "heating_only"
+                | "heating_with_reheat"
+                | "cooling_and_heating_4-pipes"
+                | "cooling_and_heating_4-pipes_with_reheat"
+            >
+        >,
+        "fromZigbee"
+    >;
 }
 
 export function thermostat(args: ThermostatArgs): ModernExtend {
@@ -3186,6 +3199,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
         temperatureSetpointHold = false,
         temperatureSetpointHoldDuration = false,
         endpoint = undefined,
+        ctrlSeqeOfOper = undefined,
     } = args;
 
     const endpointNames = endpoint ? [endpoint] : undefined;
@@ -3387,6 +3401,23 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
 
     if (endpoint) {
         expose.withEndpoint(endpoint);
+    }
+
+    if (ctrlSeqeOfOper) {
+        expose.withControlSequenceOfOperation(ctrlSeqeOfOper.values);
+
+        if (!ctrlSeqeOfOper.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_control_sequence_of_operation);
+        }
+
+        if (!ctrlSeqeOfOper.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "ctrlSeqeOfOper", {
+                    config: ctrlSeqeOfOper.configure?.reporting ?? repConfigChange0,
+                    access: ctrlSeqeOfOper.configure?.access ?? ea.STATE_GET,
+                }),
+            );
+        }
     }
 
     return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
