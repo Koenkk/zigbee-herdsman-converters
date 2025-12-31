@@ -185,6 +185,8 @@ export interface SonoffEwelink {
         deviceWorkMode: number;
         detachRelayMode2: number;
         lackWaterCloseValveTimeout: number;
+        windowCoveringLimitSet: number[];
+        upperLimitCompensation: number[];
         motorTravelCalibrationStatus: number;
         motorRunStatus: number;
         acCurrentCurrentValue: number;
@@ -199,7 +201,9 @@ export interface SonoffEwelink {
         calibrationStatus: number;
         calibrationProgress: number;
         minBrightnessThreshold: number;
+        maxBrightnessThreshold: number;
         transitionTime: number;
+        levelForCalibration: number;
         dimmingLightRate: number;
     };
     commands: {
@@ -228,6 +232,8 @@ const sonoffExtend = {
                 detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN},
                 deviceWorkMode: {ID: 0x0018, type: Zcl.DataType.UINT8},
                 detachRelayMode2: {ID: 0x0019, type: Zcl.DataType.BITMAP8},
+                windowCoveringLimitSet: {ID: 0x5001, type: Zcl.DataType.UINT8},
+                upperLimitCompensation: {ID: 0x5002, type: Zcl.DataType.CHAR_STR},
                 lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16},
                 motorTravelCalibrationStatus: {ID: 0x5012, type: Zcl.DataType.UINT8},
                 motorRunStatus: {ID: 0x5013, type: Zcl.DataType.UINT8},
@@ -242,7 +248,9 @@ const sonoffExtend = {
                 calibrationStatus: {ID: 0x001e, type: Zcl.DataType.UINT8},
                 calibrationProgress: {ID: 0x0020, type: Zcl.DataType.UINT8},
                 minBrightnessThreshold: {ID: 0x4001, type: Zcl.DataType.UINT8},
+                maxBrightnessThreshold: {ID: 0x4002, type: Zcl.DataType.UINT8},
                 dimmingLightRate: {ID: 0x4003, type: Zcl.DataType.UINT8},
+                levelForCalibration: {ID: 0x4006, type: Zcl.DataType.UINT8},
                 transitionTime: {ID: 0x001f, type: Zcl.DataType.UINT32},
             },
             commands: {
@@ -770,6 +778,75 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
+    upperLimitCompensationSet: (): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+        const attributeName = "upperLimitCompensation";
+        const exposes = e.composite("upper_limit_compensation", "upper_limit_compensation", ea.ALL);
+
+        exposes
+            .withDescription("Compensation Time Configuration When Calibration Mode is Manual.")
+            .withFeature(e.binary("compensation_enable", ea.SET, "ENABLE", "DISABLE").withDescription("Manual Compensation Cfg Enable."))
+            .withFeature(
+                e
+                    .numeric("compensation_time", ea.SET)
+                    .withDescription("Manual Compensation Time")
+                    .withUnit("s")
+                    .withValueMin(0)
+                    .withValueMax(120)
+                    .withValueStep(0.5),
+            );
+
+        const fromZigbee = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const attributeKey = "upperLimitCompensation";
+                    if (attributeKey in msg.data) {
+                        const buffer = Buffer.from(msg.data.upperLimitCompensation);
+                        logger.info(`from zigbee upperLimitCompensation: ${buffer[0]}, ${buffer[1]}, ${buffer[2]}`, NS);
+                        const upperLimitCompensationCfg = {
+                            compensation_enable: "DISABLE",
+                            compensation_time: 0,
+                        };
+                        upperLimitCompensationCfg.compensation_enable = buffer[0] === 0x01 ? "ENABLE" : "DISABLE";
+                        upperLimitCompensationCfg.compensation_time = buffer[2] / 2;
+                        return {upper_limit_compensation: upperLimitCompensationCfg};
+                    }
+                },
+            } satisfies Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport", "readResponse"]>,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["upper_limit_compensation"],
+                convertSet: async (entity, key, value, meta) => {
+                    const manual_compensation_enable = "compensation_enable";
+                    const manual_compensation_time = "compensation_time";
+                    const compensation_cfg = [0x03, 0x00, 0x01, 0x00];
+
+                    if (value[manual_compensation_enable as keyof typeof value] === "ENABLE") {
+                        compensation_cfg[1] = 0x01;
+                    } else {
+                        compensation_cfg[1] = 0x00;
+                    }
+
+                    compensation_cfg[3] = value[manual_compensation_time as keyof typeof value] * 2;
+
+                    await entity.write<typeof clusterName, SonoffEwelink>(clusterName, {[attributeName]: compensation_cfg}, defaultResponseOptions);
+                    return {state: {[key]: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<typeof clusterName, SonoffEwelink>(clusterName, [attributeName], defaultResponseOptions);
+                },
+            },
+        ];
+        return {
+            exposes: [exposes],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
     detachRelayModeControl: (relayCount: number): ModernExtend => {
         const clusterName = "customClusterEwelink";
         const attributeName = "detachRelayMode2";
@@ -979,86 +1056,83 @@ const sonoffExtend = {
                         let enableMinVoltageBuffer = "DISABLE";
                         let enableMinPowerBuffer = "DISABLE";
                         let enableMaxPowerBuffer = "DISABLE";
-                        let max_current = 0;
-                        let min_current = 0;
-                        let max_voltage = 0;
-                        let min_voltage = 0;
-                        let max_act_power = 0;
-                        let min_act_power= 0;
-                        let cfg_set_flag = rawData.readUInt8(1 + dataStartIndex);
-                        let current_set_flag = 0;
-                        let voltage_set_flag = 0;
-                        let act_power_set_flag = 0;
+                        let maxCurrent = 0;
+                        let minCurrent = 0;
+                        let maxVoltage = 0;
+                        let minVoltage = 0;
+                        let maxActPower = 0;
+                        let minActPower = 0;
+                        const cfg_set_flag = rawData.readUInt8(1 + dataStartIndex);
+                        let currentSetFlag = 0;
+                        let voltageSetFlag = 0;
+                        let actPowerSetFlag = 0;
                         let index = 3;
 
-                        if ( cfg_set_flag === 1 ) {
-                            current_set_flag = rawData.readUInt8(index + dataStartIndex);
+                        if (cfg_set_flag === 1) {
+                            currentSetFlag = rawData.readUInt8(index + dataStartIndex);
                             index += 1;
-                        }
-                        else if ( cfg_set_flag === 2 ) {
-                            voltage_set_flag = rawData.readUInt8(index + dataStartIndex);
+                        } else if (cfg_set_flag === 2) {
+                            voltageSetFlag = rawData.readUInt8(index + dataStartIndex);
                             index += 1;
-                        }
-                        else if ( cfg_set_flag === 3 ) {
-                            act_power_set_flag = rawData.readUInt8(index + dataStartIndex);
+                        } else if (cfg_set_flag === 3) {
+                            actPowerSetFlag = rawData.readUInt8(index + dataStartIndex);
                             index += 1;
-                        }
-                        else if ( cfg_set_flag === 4 ) {
-                            current_set_flag = rawData.readUInt8(index + dataStartIndex);
-                            voltage_set_flag = rawData.readUInt8(index + 1 + dataStartIndex);
-                            act_power_set_flag = rawData.readUInt8(index + 2 + dataStartIndex);
+                        } else if (cfg_set_flag === 4) {
+                            currentSetFlag = rawData.readUInt8(index + dataStartIndex);
+                            voltageSetFlag = rawData.readUInt8(index + 1 + dataStartIndex);
+                            actPowerSetFlag = rawData.readUInt8(index + 2 + dataStartIndex);
                             index += 3;
                         }
 
-                        if ( current_set_flag === 1 ) {
+                        if (currentSetFlag === 1) {
                             enableMaxCurrentBuffer = "ENABLE";
-                        } else if ( current_set_flag === 2 ) {
+                        } else if (currentSetFlag === 2) {
                             enableMinCurrentBuffer = "ENABLE";
-                        } else if ( current_set_flag === 3 ) {
+                        } else if (currentSetFlag === 3) {
                             enableMaxCurrentBuffer = "ENABLE";
                             enableMinCurrentBuffer = "ENABLE";
                         }
 
-                        if ( voltage_set_flag === 1 ) {
+                        if (voltageSetFlag === 1) {
                             enableMaxVoltageBuffer = "ENABLE";
-                        } else if ( voltage_set_flag === 2 ) {
+                        } else if (voltageSetFlag === 2) {
                             enableMinVoltageBuffer = "ENABLE";
-                        } else if ( voltage_set_flag === 3 ) {
+                        } else if (voltageSetFlag === 3) {
                             enableMaxVoltageBuffer = "ENABLE";
                             enableMinVoltageBuffer = "ENABLE";
                         }
 
-                        if ( act_power_set_flag === 1 ) {
+                        if (actPowerSetFlag === 1) {
                             enableMaxPowerBuffer = "ENABLE";
-                        } else if ( act_power_set_flag === 2 ) {
+                        } else if (actPowerSetFlag === 2) {
                             enableMinPowerBuffer = "ENABLE";
-                        } else if ( act_power_set_flag === 3 ) {
+                        } else if (actPowerSetFlag === 3) {
                             enableMaxPowerBuffer = "ENABLE";
                             enableMinPowerBuffer = "ENABLE";
                         }
 
-                        if ( enableMaxCurrentBuffer === "ENABLE" ) {
-                            max_current = rawData.readUint32LE(index + dataStartIndex) / 1000;
+                        if (enableMaxCurrentBuffer === "ENABLE") {
+                            maxCurrent = rawData.readUint32LE(index + dataStartIndex) / 1000;
                             index += 4;
                         }
-                        if ( enableMinCurrentBuffer === "ENABLE" ) {
-                            min_current = rawData.readUint32LE(index + dataStartIndex) / 1000;
+                        if (enableMinCurrentBuffer === "ENABLE") {
+                            minCurrent = rawData.readUint32LE(index + dataStartIndex) / 1000;
                             index += 4;
                         }
-                        if ( enableMaxVoltageBuffer === "ENABLE" ) {
-                            max_voltage = rawData.readUint32LE(index + dataStartIndex) / 1000;
+                        if (enableMaxVoltageBuffer === "ENABLE") {
+                            maxVoltage = rawData.readUint32LE(index + dataStartIndex) / 1000;
                             index += 4;
                         }
-                        if ( enableMinVoltageBuffer === "ENABLE" ) {
-                            min_voltage = rawData.readUint32LE(index + dataStartIndex) / 1000;
+                        if (enableMinVoltageBuffer === "ENABLE") {
+                            minVoltage = rawData.readUint32LE(index + dataStartIndex) / 1000;
                             index += 4;
                         }
-                        if ( enableMaxPowerBuffer === "ENABLE" ) {
-                            max_act_power = rawData.readUint32LE(index + dataStartIndex) / 1000;
+                        if (enableMaxPowerBuffer === "ENABLE") {
+                            maxActPower = rawData.readUint32LE(index + dataStartIndex) / 1000;
                             index += 4;
                         }
-                        if ( enableMinPowerBuffer === "ENABLE" ) {
-                            min_act_power = rawData.readUint32LE(index + dataStartIndex) / 1000;
+                        if (enableMinPowerBuffer === "ENABLE") {
+                            minActPower = rawData.readUint32LE(index + dataStartIndex) / 1000;
                             index += 4;
                         }
 
@@ -1068,12 +1142,12 @@ const sonoffExtend = {
                                 enable_min_current: enableMinCurrentBuffer,
                                 enable_min_power: enableMinPowerBuffer,
                                 enable_min_voltage: enableMinPowerBuffer,
-                                max_current: max_current,
-                                max_power: max_act_power,
-                                max_voltage: max_voltage,
-                                min_current: min_current,
-                                min_power: min_act_power,
-                                min_voltage: min_voltage,
+                                max_current: maxCurrent,
+                                max_power: maxActPower,
+                                max_voltage: maxVoltage,
+                                min_current: minCurrent,
+                                min_power: minActPower,
+                                min_voltage: minVoltage,
                             },
                         };
                     }
@@ -1096,7 +1170,7 @@ const sonoffExtend = {
                     const enMinP = value["enable_min_power" as keyof typeof value];
                     const payloadValue: Uint8Array = new Uint8Array(30);
                     let index = 0;
-                    
+
                     payloadValue[index++] = 0;
                     payloadValue[index++] = 0x04;
                     payloadValue[index++] = 27;
@@ -1109,7 +1183,7 @@ const sonoffExtend = {
                     payloadValue[index++] = (maxC >> 16) & 0xff;
                     payloadValue[index++] = (maxC >> 24) & 0xff;
 
-                    if ( enMinC === "ENABLE" ) {
+                    if (enMinC === "ENABLE") {
                         payloadValue[3] |= 2;
                         payloadValue[index++] = minC & 0xff;
                         payloadValue[index++] = (minC >> 8) & 0xff;
@@ -1117,7 +1191,7 @@ const sonoffExtend = {
                         payloadValue[index++] = (minC >> 24) & 0xff;
                     }
 
-                    if ( enMaxV === "ENABLE" ) {
+                    if (enMaxV === "ENABLE") {
                         payloadValue[4] |= 1;
                         payloadValue[index++] = maxV & 0xff;
                         payloadValue[index++] = (maxV >> 8) & 0xff;
@@ -1125,7 +1199,7 @@ const sonoffExtend = {
                         payloadValue[index++] = (maxV >> 24) & 0xff;
                     }
 
-                    if ( enMinV === "ENABLE" ) {
+                    if (enMinV === "ENABLE") {
                         payloadValue[4] |= 2;
                         payloadValue[index++] = minV & 0xff;
                         payloadValue[index++] = (minV >> 8) & 0xff;
@@ -1138,7 +1212,7 @@ const sonoffExtend = {
                     payloadValue[index++] = (maxP >> 16) & 0xff;
                     payloadValue[index++] = (maxP >> 24) & 0xff;
 
-                    if ( enMinP === "ENABLE" ) {
+                    if (enMinP === "ENABLE") {
                         payloadValue[5] |= 2;
                         payloadValue[index++] = minP & 0xff;
                         payloadValue[index++] = (minP >> 8) & 0xff;
@@ -1149,29 +1223,30 @@ const sonoffExtend = {
                     payloadValue[0] = index - 1;
                     payloadValue[2] = payloadValue[0] - 2;
 
-                    if ( payloadValue[3] === 3 ) {
+                    if (payloadValue[3] === 3) {
                         if (minC >= maxC) {
                             throw new Error("Invalid input: maximum current must be greater than the minimum current ");
                         }
                     }
 
-                    if ( payloadValue[4] === 3 ) {
-                        if ( minV >= maxV ) {
+                    if (payloadValue[4] === 3) {
+                        if (minV >= maxV) {
                             throw new Error("Invalid input: maximum voltage must be greater than the minimum voltage ");
                         }
                     }
 
-                    if ( payloadValue[5] === 3 ) {
-                        if ( minP >= maxP ) {
+                    if (payloadValue[5] === 3) {
+                        if (minP >= maxP) {
                             throw new Error("Invalid input: maximum power must be greater than the minimum power ");
                         }
                     }
 
-                    const payloadValue_1 = new Uint8Array(index);
-                    for ( let i = 0; i < index; i++ ) {
-                        payloadValue_1[i] = payloadValue[i];
+                    const payloadValue1 = new Uint8Array(index);
+                    for (let i = 0; i < index; i++) {
+                        payloadValue1[i] = payloadValue[i];
                     }
-                    const payload = { [0x7003]: { value: payloadValue_1, type: 0x42 } };
+                    const payload = {[0x7003]: {value: payloadValue1, type: 0x42}};
+                    await entity.write("customClusterEwelink", payload, defaultResponseOptions);
                     return {state: {[key]: value}};
                 },
                 convertGet: async (entity, key, meta) => {
@@ -2981,7 +3056,32 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "The motor's current operating status, such as forward rotation, reverse rotation, and stop.",
                 access: "STATE_GET",
             }),
-            sonoffExtend.externalSwitchTriggerMode(),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "windowCoveringLimitSet",
+                lookup: {
+                    startAutoCalibartion: 2,
+                    stopAutoCalibration: 3,
+                    startManualCalibration: 7,
+                    finishManualCalibration: 8,
+                    clearCalibrationData: 4,
+                },
+                cluster: "customClusterEwelink",
+                attribute: "windowCoveringLimitSet",
+                description: "windowCoveringLimitSet.",
+                access: "STATE_SET",
+                entityCategory: "config",
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "external_trigger_mode",
+                lookup: {edge: 0, pulse: 1},
+                cluster: "customClusterEwelink",
+                attribute: "externalTriggerMode",
+                description:
+                    "External trigger mode, which can be one of edge, pulse. " +
+                    "The appropriate triggering mode can be selected according to the type of " +
+                    "external switch to achieve a better use experience.",
+            }),
+            sonoffExtend.upperLimitCompensationSet(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
