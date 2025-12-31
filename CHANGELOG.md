@@ -1,5 +1,25 @@
 # Changelog
 
+## [25.97.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.96.0...v25.97.0) (2025-12-30)
+
+
+### Features
+
+* **add:** DDS238-1-Z1 ([#11133](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11133)) ([62164df](https://github.com/Koenkk/zigbee-herdsman-converters/commit/62164df45168cf4ed75df9729905ca2beecb3bc9))
+* **add:** GSKS-ZB ([#11138](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11138)) ([607a369](https://github.com/Koenkk/zigbee-herdsman-converters/commit/607a3699fe36b98d8f3596ed69e2ad82d4cac9df))
+* **add:** SH4-ZB ([#11131](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11131)) ([a84c805](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a84c805aaa36aaaceddcbae893cb856be56aa286))
+* **add:** TS0601-PIR-Sensor ([#11141](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11141)) ([2b7f19b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2b7f19b398131671f865596c2748d37acd036f14))
+
+
+### Bug Fixes
+
+* Aqara C3: fix automatic calibration ([#11129](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11129)) ([3901048](https://github.com/Koenkk/zigbee-herdsman-converters/commit/390104857a813a0b06112726bda09b034245f897))
+* Aqara KD-R01D: expose device temperature https://github.com/Koenkk/zigbee-herdsman/issues/1606 ([bce873f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bce873f00c1e79394acd8f37e64b3b5327ce41c9))
+* **ignore:** bump @types/node from 24.10.1 to 24.10.4 in the minor-patch group ([#11130](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11130)) ([2a5d8e5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a5d8e515d7eeb8ddc1e51e43b249616af0bf49c))
+* **ignore:** NodOn SIN-4-FP-21: fix endpoint https://github.com/Koenkk/zigbee-herdsman-converters/issues/11121 ([fd4d412](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fd4d41200ee9ebb748549bd91669a4c54398cb43))
+* Schneider Eletric EKO07259: rework integration ([#11135](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11135)) ([b5f3fa8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b5f3fa86994b66b4d2d17b2d1a3a17ff0f7676e0))
+* SZLMR10: fading_time max value from 60 to 300 ([#11134](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11134)) ([c3c1b10](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c3c1b10f493de3ec385c5dad81266f3d94b23114))
+
 ## [25.96.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.95.0...v25.96.0) (2025-12-28)
 
 

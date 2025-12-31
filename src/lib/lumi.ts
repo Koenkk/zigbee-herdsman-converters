@@ -6455,7 +6455,7 @@ export const toZigbee = {
                             const checkDesiredState = async () => {
                                 const result2 = await entity.read("manuSpecificLumi", [0x0421]);
 
-                                if (result2 && desiredStates.includes(result[0x0421] as number)) {
+                                if (result2 && desiredStates.includes(result2[0x0421] as number)) {
                                     resolve();
                                 } else {
                                     setTimeout(checkDesiredState, 500);
