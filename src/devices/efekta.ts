@@ -6507,7 +6507,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "lux_factor",
                 valueMin: 0.0,
-                valueMax: 10.0,
+                valueMax: 50.0,
                 valueStep: 0.1,
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0310, type: Zcl.DataType.SINGLE_PREC},
@@ -6733,7 +6733,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "lux_factor",
                 valueMin: 0.0,
-                valueMax: 10.0,
+                valueMax: 50.0,
                 valueStep: 0.1,
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0310, type: Zcl.DataType.SINGLE_PREC},
