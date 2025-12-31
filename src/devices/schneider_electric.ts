@@ -1850,7 +1850,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "metering",
                 voltage: false,
                 current: false,
-                energy: {divisor: 1000, multiplier: 1}, 
+                energy: {divisor: 1000, multiplier: 1},
                 configureReporting: true,
             }),
             m.numeric({
@@ -1947,13 +1947,13 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: {min: 0, max: 3600, change: 0},
             }),
         ],
-            fromZigbee: [fz.metering],
-            configure: async (device, coordinatorEndpoint) => {
-                const endpoint5 = device.getEndpoint(5);
-                await reporting.bind(endpoint5, coordinatorEndpoint, ["seMetering"]);
-                await reporting.currentSummDelivered(endpoint5, {min: 0, max: 60, change: 1});
-                await reporting.instantaneousDemand(endpoint5, {min: 0, max: 60, change: 1});
-                await reporting.readMeteringMultiplierDivisor(endpoint5);
+        fromZigbee: [fz.metering],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint5 = device.getEndpoint(5);
+            await reporting.bind(endpoint5, coordinatorEndpoint, ["seMetering"]);
+            await reporting.currentSummDelivered(endpoint5, {min: 0, max: 60, change: 1});
+            await reporting.instantaneousDemand(endpoint5, {min: 0, max: 60, change: 1});
+            await reporting.readMeteringMultiplierDivisor(endpoint5);
         },
     },
     {
