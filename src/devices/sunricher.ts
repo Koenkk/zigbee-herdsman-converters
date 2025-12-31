@@ -175,6 +175,19 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["ZGRC-KEY-047"],
+        model: "SR-ZG2868K12-DIM",
+        vendor: "Sunricher",
+        description: "ZigBee single color remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsScenes({commands: ["recall", "store"]}),
+        ],
+    },
+    {
         fingerprint: [
             {modelID: "ON/OFF (2CH)", manufacturerName: "Somfy"},
             {modelID: "ON/OFF (2CH)", manufacturerName: "Sunricher"},
