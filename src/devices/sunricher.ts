@@ -184,7 +184,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
             m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
-            m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsScenes({commands: ["recall", "store"]}),
         ],
     },
     {
