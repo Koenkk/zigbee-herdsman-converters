@@ -33,8 +33,13 @@ const owonExtendChecks = {
             throw new Error(`Invalid value for one_key_pairing: expected "start"/"on"/"true" or "end"/"off"/"false", got "${input}"`);
         }
 
-        return {payload: {oneKeyPairingStart: startParam}};
+        return {
+            payload: {
+                oneKeyPairingStart: startParam,
+            },
+        };
     },
+
     parsePairingCodeInput: (input: unknown) => {
         if (input === undefined || input === null) {
             throw new Error("pairing_code is required");
@@ -52,7 +57,11 @@ const owonExtendChecks = {
             throw new Error(`Invalid pairing_code "${codeStr}", must be between 0 and 65535`);
         }
 
-        return {payload: {pairingCode: codeNum}};
+        return {
+            payload: {
+                pairingCode: codeNum,
+            },
+        };
     },
 };
 
@@ -270,72 +279,17 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"fallDetectionOwon", OwonFallDetection, ["attributeReport", "readResponse"]>,
-    cb432Metering: {
-        cluster: "seMetering",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const multipler = 1;
-            const divisor = 1000;
-            const factor = multipler / divisor;
-
-            if (msg.data.instantaneousDemand !== undefined) {
-                let demand = msg.data.instantaneousDemand;
-                if (demand < 0) demand = demand * -1;
-                result.power = demand * factor * 1000;
-            }
-
-            if (msg.data.currentSummDelivered !== undefined) {
-                const summ = msg.data.currentSummDelivered;
-                result.energy = summ * factor;
-            }
-            return result;
-        },
-    } satisfies Fz.Converter<"seMetering", OwonFallDetection, ["attributeReport", "readResponse"]>,
-    owonCb432Alarms: {
-        cluster: "haElectricalMeasurement",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-
-            if (msg.data.acAlarmsMask !== undefined || msg.data[2048] !== undefined) {
-                const mask = (msg.data.acAlarmsMask || msg.data[2048]) as number;
-
-                result.alarm_voltage = (mask & 0x01) > 0;
-                result.alarm_current = (mask & 0x02) > 0;
-                result.alarm_power = (mask & 0x04) > 0;
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
-    owonCb432ThresholdRead: {
-        cluster: "haElectricalMeasurement",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const data = msg.data;
-
-            if (data.acVoltageOverload !== undefined) result.over_voltage_threshold = data.acVoltageOverload;
-            if (data.acCurrentOverload !== undefined) result.over_current_threshold = data.acCurrentOverload;
-            if (data.acActivePowerOverload !== undefined) result.over_power_threshold = data.acActivePowerOverload;
-
-            return result;
-        },
-    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
 
     owonAcOneKeyPairingResponse: {
         cluster: "manuSpecificOwonAc",
         type: ["commandOneKeyPairingResponse", "commandOneKeyPairingResultUpdate"],
-        // biome-ignore lint/suspicious/noExplicitAny: required for converter compatibility
-        convert: (_model: any, msg: any, _publish: any, _options: any, _meta: any) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.meta?.manufacturerCode !== Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC) {
                 return {};
             }
 
             const payload: KeyValue = {};
 
-            /* ---------- 0x52 One Key Pairing Response ---------- */
             if (msg.type === "commandOneKeyPairingResponse") {
                 const status = msg.data?.receiveStatus;
                 if (status !== undefined) {
@@ -343,7 +297,6 @@ const fzLocal = {
                 }
             }
 
-            /* ---------- 0x80 One Key Pairing Result Update ---------- */
             if (msg.type === "commandOneKeyPairingResultUpdate") {
                 let buffer: Buffer | undefined;
 
@@ -352,43 +305,39 @@ const fzLocal = {
                 }
 
                 if (!buffer || buffer.length < 6) {
-                    payload.one_key_pairing_result = JSON.stringify({
+                    payload.one_key_pairing_result = {
                         count: 0,
                         codes_found: [],
-                    });
+                    };
                     return payload;
                 }
 
-                // FC(1) + Manu(2) + TSN(1) + CmdId(1) = 5 bytes
                 const payloadOffset = 5;
-
                 const count = buffer.readUInt8(payloadOffset);
                 const codes: number[] = [];
 
                 let offset = payloadOffset + 1;
                 for (let i = 0; i < count; i++) {
                     if (offset + 1 >= buffer.length) break;
-
-                    const code = buffer.readUInt16LE(offset);
-                    codes.push(code);
+                    codes.push(buffer.readUInt16LE(offset));
                     offset += 2;
                 }
 
-                payload.one_key_pairing_result = JSON.stringify({
+                payload.one_key_pairing_result = {
                     count,
                     codes_found: codes,
-                });
+                };
             }
 
             return payload;
         },
-    },
+        // biome-ignore lint/suspicious/noExplicitAny: third-party converter signature requires any
+    } satisfies Fz.Converter<"manuSpecificOwonAc", undefined, any>,
 
     owonAcReadPairingCodeResponse: {
         cluster: "manuSpecificOwonAc",
         type: ["commandReadPairingCodeResponse"],
-        // biome-ignore lint/suspicious/noExplicitAny: required for converter compatibility
-        convert: (_model: any, msg: any, _publish: any, _options: any, _meta: any) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.data?.pairingCode !== undefined) {
                 const code = msg.data.pairingCode;
                 const displayCode = code === 0xffff ? null : code;
@@ -397,9 +346,11 @@ const fzLocal = {
                     pairing_code_current: displayCode,
                 };
             }
+
             return {};
         },
-    },
+        // biome-ignore lint/suspicious/noExplicitAny: third-party converter signature requires any
+    } satisfies Fz.Converter<"manuSpecificOwonAc", undefined, any>,
 };
 
 const tzLocal = {
@@ -455,52 +406,6 @@ const tzLocal = {
                 ],
                 {manufacturerCode: 0x113c},
             );
-        },
-    } satisfies Tz.Converter,
-
-    owonCB432Threshold: {
-        key: ["over_voltage_threshold", "over_current_threshold", "over_power_threshold"],
-        convertSet: async (entity, key, value, meta) => {
-            const ep = meta.device.getEndpoint(1);
-
-            const map = {
-                over_voltage_threshold: {
-                    attr: 0x0801,
-                    type: 0x29,
-                    multi: "acVoltageMultiplier",
-                    div: "acVoltageDivisor",
-                },
-                over_current_threshold: {
-                    attr: 0x0802,
-                    type: 0x29,
-                    multi: "acCurrentMultiplier",
-                    div: "acCurrentDivisor",
-                },
-                over_power_threshold: {
-                    attr: 0x0803,
-                    type: 0x29,
-                    multi: "acPowerMultiplier",
-                    div: "acPowerDivisor",
-                },
-            } as const;
-
-            const entry = map[key as keyof typeof map];
-            const target = ep as unknown as {getClusterAttributeValue(cluster: string, attribute: string): number | undefined};
-            const multiplier = target.getClusterAttributeValue("haElectricalMeasurement", entry.multi) || 1;
-            let divisor = target.getClusterAttributeValue("haElectricalMeasurement", entry.div) || 1;
-
-            if (key === "over_current_threshold") {
-                divisor = 1;
-            }
-
-            let rawValue = (Number(value) * divisor) / multiplier;
-            rawValue = Math.round(rawValue);
-
-            await ep.write("haElectricalMeasurement", {
-                [entry.attr]: {value: rawValue, type: entry.type},
-            });
-
-            return {state: {[key]: value}};
         },
     } satisfies Tz.Converter,
 
@@ -629,67 +534,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CB432",
         vendor: "OWON",
         description: "32A/63A power circuit breaker",
-        fromZigbee: [
-            fz.on_off,
-            fz.power_on_behavior,
-            fzLocal.cb432Metering,
-            fzLocal.owonCb432Alarms,
-            fzLocal.owonCb432ThresholdRead,
-            fz.electrical_measurement,
-        ],
-
-        toZigbee: [tz.on_off, tz.power_on_behavior, tzLocal.owonCB432Threshold],
-
-        exposes: [
-            e.switch(),
-            e.power_on_behavior(),
-            e.power(),
-            e.energy(),
-            e.binary("alarm_power", ea.STATE, true, false).withDescription("Power overload alarm"),
-            e.numeric("over_power_threshold", ea.STATE_SET).withUnit("W").withValueMin(0).withValueMax(30000),
-        ],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const ep = device.getEndpoint(1);
-
-            await ep.bind("seMetering", coordinatorEndpoint);
-            await ep.bind("haElectricalMeasurement", coordinatorEndpoint);
-            await ep.bind("genOnOff", coordinatorEndpoint);
-
-            await reporting.readMeteringMultiplierDivisor(ep);
-
-            try {
-                await ep.read("haElectricalMeasurement", [
-                    "acVoltageMultiplier",
-                    "acVoltageDivisor",
-                    "acCurrentMultiplier",
-                    "acCurrentDivisor",
-                    "acPowerMultiplier",
-                    "acPowerDivisor",
-                    "acVoltageOverload",
-                    "acCurrentOverload",
-                    "acActivePowerOverload",
-                ]);
-                await ep.configureReporting("seMetering", [
-                    {
-                        attribute: "instantaneousDemand",
-                        minimumReportInterval: 5,
-                        maximumReportInterval: 3600,
-                        reportableChange: 5,
-                    },
-                ]);
-                await ep.configureReporting("seMetering", [
-                    {
-                        attribute: "currentSummDelivered",
-                        minimumReportInterval: 5,
-                        maximumReportInterval: 3600,
-                        reportableChange: 100,
-                    },
-                ]);
-                await ep.read("genOnOff", ["onOff", "startUpOnOff"]);
-                await ep.read("seMetering", ["currentSummDelivered", "instantaneousDemand"]);
-                await ep.read("haElectricalMeasurement", ["acAlarmsMask"]);
-            } catch (_err) {}
-        },
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
     },
     {
         zigbeeModel: ["PIR313-E", "PIR313"],
@@ -1118,15 +963,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SLC631",
         vendor: "OWON",
         description: "Smart plug with doorbell press indicator",
-        meta: {multiEndpoint: true},
         extend: [
+            m.deviceEndpoints({
+                endpoints: {
+                    l1: 1,
+                    l2: 2,
+                    l3: 3,
+                },
+            }),
             m.onOff({endpointNames: ["l1", "l2", "l3"], powerOnBehavior: false}),
             m.iasZoneAlarm({
                 zoneType: "contact",
                 zoneAttributes: ["alarm_2"],
             }),
         ],
-        endpoint: (device) => ({l1: 1, l2: 2, l3: 3}),
         configure: async (device, coordinatorEndpoint) => {
             const ep2 = device.getEndpoint(2);
             if (ep2) {
