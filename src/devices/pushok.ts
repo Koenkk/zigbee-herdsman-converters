@@ -1,6 +1,6 @@
 import {access, presets} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 
 const pushokExtend = {
     valveStatus: (args?: Partial<m.EnumLookupArgs<"genMultistateInput">>) =>
@@ -49,6 +49,164 @@ const pushokExtend = {
             } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
         ];
         const toZigbee: Tz.Converter[] = [];
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    pok020Thermostat: (): ModernExtend => {
+        const exposes = [
+            presets
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", -45, 60, 0.1, access.ALL)
+                .withSetpoint("unoccupied_heating_setpoint", -45, 60, 0.1, access.ALL)
+                .withLocalTemperature(access.STATE_GET)
+                .withSystemMode(["off", "heat"], access.ALL)
+                .withLocalTemperatureCalibration(),
+
+            presets.enum("sensor_source", access.ALL, ["internal", "external"]).withDescription("Temperature sensor used for control"),
+
+            presets
+                .enum("alarm", access.STATE_GET, [
+                    "ok",
+                    "never_calibrated",
+                    "calibration_error_p0",
+                    "calibration_error_p1_not_found",
+                    "calibration_error_p1_too_close",
+                    "calibration_error_p2_too_small",
+                    "calibration_error_p2_not_found",
+                    "calibration_lost",
+                ])
+                .withDescription("Calibration status alarm"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const data = msg.data as KeyValue;
+                    const result: KeyValue = {};
+                    if (data.localTemp !== undefined) {
+                        result.local_temperature = (data.localTemp as number) / 100.0;
+                    }
+                    if (data.occupiedHeatingSetpoint !== undefined) {
+                        result.occupied_heating_setpoint = (data.occupiedHeatingSetpoint as number) / 100.0;
+                    }
+                    if (data.unoccupiedHeatingSetpoint !== undefined) {
+                        result.unoccupied_heating_setpoint = (data.unoccupiedHeatingSetpoint as number) / 100.0;
+                    }
+                    if (data.systemMode !== undefined) {
+                        const map: Record<number, string> = {
+                            0: "off",
+                            4: "heat",
+                        };
+                        const raw = data.systemMode as number;
+                        result.system_mode = map[raw] ?? raw;
+                    }
+
+                    if (data.localTemperatureCalibration !== undefined) {
+                        const raw = data.localTemperatureCalibration as number;
+                        result.local_temperature_calibration = raw / 10.0;
+                    }
+
+                    if (data.remoteSensing !== undefined) {
+                        const rs = data.remoteSensing as number;
+                        result.remote_sensing = rs;
+                        result.sensor_source = (rs & 0x01) !== 0 ? "external" : "internal";
+                    }
+
+                    if (data.alarmMask !== undefined) {
+                        const am = data.alarmMask as number;
+                        const alarmMap: Record<number, string> = {
+                            0: "ok",
+                            1: "never_calibrated",
+                            2: "calibration_error_p0",
+                            3: "calibration_error_p1_not_found",
+                            4: "calibration_error_p1_too_close",
+                            5: "calibration_error_p2_too_small",
+                            6: "calibration_error_p2_not_found",
+                            7: "calibration_lost",
+                        };
+
+                        result.alarm_mask = am;
+                        result.alarm = alarmMap[am] || `unknown_${am}`;
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["occupied_heating_setpoint"],
+                convertSet: async (entity, key, value, meta) => {
+                    const temp = Number(value);
+                    const raw = Math.round(temp * 100);
+                    await entity.write("hvacThermostat", {occupiedHeatingSetpoint: raw});
+                    return {state: {occupied_heating_setpoint: temp}};
+                },
+            },
+            {
+                key: ["unoccupied_heating_setpoint"],
+                convertSet: async (entity, key, value, meta) => {
+                    const temp = Number(value);
+                    const raw = Math.round(temp * 100);
+                    await entity.write("hvacThermostat", {unoccupiedHeatingSetpoint: raw});
+                    return {state: {unoccupied_heating_setpoint: temp}};
+                },
+            },
+            {
+                key: ["system_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    const v = String(value).toLowerCase();
+                    const map: Record<string, number> = {
+                        off: 0,
+                        heat: 4,
+                    };
+                    const raw = map[v];
+                    if (raw === undefined) {
+                        throw new Error(`Unsupported system_mode: ${value}`);
+                    }
+                    await entity.write("hvacThermostat", {systemMode: raw});
+                    return {state: {system_mode: v}};
+                },
+            },
+            {
+                key: ["local_temperature_calibration"],
+                convertSet: async (entity, key, value, meta) => {
+                    let v = Number(value);
+                    v = Math.round(v * 10) / 10;
+                    const raw = Math.round(v * 10);
+                    await entity.write("hvacThermostat", {localTemperatureCalibration: raw});
+                    return {state: {local_temperature_calibration: v}};
+                },
+            },
+            {
+                key: ["sensor_source"],
+                convertSet: async (entity, key, value, meta) => {
+                    const src = String(value) as "internal" | "external";
+
+                    const current = (meta.state?.remote_sensing as number | undefined) ?? 0;
+                    let newMask = current & ~0x01;
+                    if (src === "external") {
+                        newMask |= 0x01;
+                    }
+
+                    await entity.write("hvacThermostat", {remoteSensing: newMask});
+                    return {
+                        state: {
+                            sensor_source: src,
+                            remote_sensing: newMask,
+                        },
+                    };
+                },
+            },
+        ];
+
         return {
             exposes,
             fromZigbee,
@@ -414,6 +572,74 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 reporting: null,
             }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["POK020"],
+        model: "POK020",
+        vendor: "PushOk Hardware",
+        description: "Battery powered thermostat valve",
+        extend: [
+            m.onOff({powerOnBehavior: false, configureReporting: false}),
+            m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
+            m.numeric({
+                name: "rod_zero_position",
+                cluster: "genAnalogInput",
+                attribute: "resolution",
+                description: "Rod zero position",
+                unit: "mm",
+                access: "STATE_GET",
+                precision: 1,
+                reporting: null,
+            }),
+            m.numeric({
+                name: "rod_length",
+                cluster: "genAnalogInput",
+                attribute: "presentValue",
+                description: "Rod length",
+                unit: "mm",
+                access: "STATE_GET",
+                precision: 1,
+                reporting: null,
+            }),
+            m.numeric({
+                name: "rod_position",
+                cluster: "genAnalogOutput",
+                attribute: "presentValue",
+                description: "Rod position",
+                unit: "%",
+                access: "ALL",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 0.5,
+                precision: 1,
+                reporting: null,
+            }),
+            m.numeric({
+                name: "external_temperature",
+                cluster: "genAnalogValue",
+                attribute: "presentValue",
+                description: "External temperature",
+                unit: "°C",
+                access: "ALL",
+                valueMin: -50,
+                valueMax: 120,
+                valueStep: 0.5,
+                precision: 1,
+                reporting: null,
+            }),
+            m.enumLookup({
+                name: "control_preset",
+                lookup: {conservative: 0, moderate: 1, aggressive: 2},
+                cluster: "genMultistateOutput",
+                attribute: "presentValue",
+                zigbeeCommandOptions: {},
+                description: "Control steps preset",
+                access: "ALL",
+                reporting: null,
+            }),
+            pushokExtend.pok020Thermostat(),
         ],
         ota: true,
     },
