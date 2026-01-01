@@ -726,6 +726,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "INSPELNING smart plug",
         whiteLabel: [
             {model: "E2220", vendor: "IKEA", description: "INSPELNING smart plug (US)"},
+            {model: "E2223", vendor: "IKEA", description: "INSPELNING smart plug (UK)"},
             {model: "E2224", vendor: "IKEA", description: "INSPELNING smart plug (CH)"},
         ],
         extend: [
