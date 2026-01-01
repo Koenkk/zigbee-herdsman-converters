@@ -22965,7 +22965,6 @@ Ensure all 12 segments are defined and separated by spaces.`,
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-        onEvent: tuya.onEventSetTime,
         exposes: [
             e
                 .climate()
