@@ -22958,7 +22958,6 @@ Ensure all 12 segments are defined and separated by spaces.`,
         vendor: "Tuya",
         description: "Wall-mount thermostat",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        icon: "https://nl.beok-controls.com/uploads/34945/page/battery-powered-wifi-boiler-thermostat-bot6e13e.jpg",
         whiteLabel: [
             {vendor: "Beok", model: "BOT-R9V-ZB"},
             {vendor: "AVATTO", model: "ZWT-100-16A"},
