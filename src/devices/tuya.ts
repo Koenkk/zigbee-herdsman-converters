@@ -22953,121 +22953,131 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE204_wc2w9t1s'}],
-        model: 'BOT-R9V-ZB',
-        vendor: 'Tuya',
-        description: 'Wall-mount thermostat',
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_wc2w9t1s"}],
+        model: "BOT-R9V-ZB",
+        vendor: "Tuya",
+        description: "Wall-mount thermostat",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        icon: 'https://nl.beok-controls.com/uploads/34945/page/battery-powered-wifi-boiler-thermostat-bot6e13e.jpg',
+        icon: "https://nl.beok-controls.com/uploads/34945/page/battery-powered-wifi-boiler-thermostat-bot6e13e.jpg",
         whiteLabel: [
-            {vendor: 'Beok', model: 'BOT-R9V-ZB'},
-            {vendor: 'AVATTO', model: 'ZWT-100-16A'},
+            {vendor: "Beok", model: "BOT-R9V-ZB"},
+            {vendor: "AVATTO", model: "ZWT-100-16A"},
         ],
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         onEvent: tuya.onEventSetTime,
         exposes: [
-            e.climate()
-                .withSetpoint('current_heating_setpoint', 5, 60, 0.5, ea.STATE_SET)
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 60, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
-                .withSystemMode(['off', 'heat'], ea.STATE_SET)
-                .withRunningState(['idle', 'heat'], ea.STATE),
-            e.enum('preset', ea.STATE_SET, ['manual', 'auto', 'eco'])
-                .withDescription('Preset mode: manual, auto or eco'),
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE),
+            e.enum("preset", ea.STATE_SET, ["manual", "auto", "eco"]).withDescription("Preset mode: manual, auto or eco"),
             e.child_lock(),
             e.battery(),
-            e.enum('valve_state', ea.STATE, ['open', 'close'])
-                .withDescription('Valve state (open/close)'),
-            e.binary('frost', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Frost protection mode'),
-            e.numeric('deadzone_temperature', ea.STATE_SET)
-                .withUnit('°C')
+            e.enum("valve_state", ea.STATE, ["open", "close"]).withDescription("Valve state (open/close)"),
+            e.binary("frost", ea.STATE_SET, "ON", "OFF").withDescription("Frost protection mode"),
+            e
+                .numeric("deadzone_temperature", ea.STATE_SET)
+                .withUnit("°C")
                 .withValueMin(0)
                 .withValueMax(5)
                 .withValueStep(0.5)
-                .withDescription('Temperature deadzone (hysteresis)'),
-            e.numeric('min_temperature_limit', ea.STATE_SET)
-                .withUnit('°C')
+                .withDescription("Temperature deadzone (hysteresis)"),
+            e
+                .numeric("min_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
                 .withValueMin(5)
                 .withValueMax(30)
                 .withValueStep(0.5)
-                .withDescription('Minimum temperature limit'),
-            e.numeric('max_temperature_limit', ea.STATE_SET)
-                .withUnit('°C')
+                .withDescription("Minimum temperature limit"),
+            e
+                .numeric("max_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
                 .withValueMin(15)
                 .withValueMax(60)
                 .withValueStep(0.5)
-                .withDescription('Maximum temperature limit'),
-            e.numeric('eco_temperature', ea.STATE_SET)
-                .withUnit('°C')
+                .withDescription("Maximum temperature limit"),
+            e
+                .numeric("eco_temperature", ea.STATE_SET)
+                .withUnit("°C")
                 .withValueMin(5)
                 .withValueMax(30)
                 .withValueStep(0.5)
-                .withDescription('Eco mode temperature'),
-            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, 'HH:MM/C HH:MM/C HH:MM/C HH:MM/C'),
+                .withDescription("Eco mode temperature"),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
         ],
         meta: {
             tuyaDatapoints: [
                 // DP 1: System on/off switch
-                [1, 'system_mode', tuya.valueConverterBasic.lookup({heat: true, off: false})],
-                
+                [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
+
                 // DP 2: Mode (manual/auto/eco) - enum type
-                [2, 'preset', tuya.valueConverterBasic.lookup({
-                    auto: tuya.enum(0),
-                    manual: tuya.enum(1),
-                    eco: tuya.enum(2),
-                })],
-                
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        manual: tuya.enum(1),
+                        eco: tuya.enum(2),
+                    }),
+                ],
+
                 // DP 10: Frost protection
-                [10, 'frost', tuya.valueConverter.onOff],
-                
+                [10, "frost", tuya.valueConverter.onOff],
+
                 // DP 16: Target temperature setpoint (temp_set)
-                [16, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
-                
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+
                 // DP 18: Minimum temperature limit (lower_temp)
-                [18, 'min_temperature_limit', tuya.valueConverter.divideBy10],
-                
+                [18, "min_temperature_limit", tuya.valueConverter.divideBy10],
+
                 // DP 19: Maximum temperature limit (upper_temp)
-                [19, 'max_temperature_limit', tuya.valueConverter.divideBy10],
-                
+                [19, "max_temperature_limit", tuya.valueConverter.divideBy10],
+
                 // DP 24: Current room temperature (temp_current)
-                [24, 'local_temperature', tuya.valueConverter.divideBy10],
-                
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+
                 // DP 36: Valve state (open/close) and Running state
-                [36, null, {
-                    from: (v) => {
-                        return {
-                            valve_state: v === 'open' || v === true || v === 1 ? 'open' : 'close',
-                            running_state: v === 'open' || v === true || v === 1 ? 'heat' : 'idle',
-                        };
+                [
+                    36,
+                    null,
+                    {
+                        from: (v) => {
+                            return {
+                                valve_state: v === "open" || v === true || v === 1 ? "open" : "close",
+                                running_state: v === "open" || v === true || v === 1 ? "heat" : "idle",
+                            };
+                        },
                     },
-                }],
-                
+                ],
+
                 // DP 40: Child lock
-                [40, 'child_lock', tuya.valueConverter.lockUnlock],
-                
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+
                 // DP 65-71: Week schedules (Monday to Sunday) with format HH:MM/C (4 transitions per day)
-                [65, 'schedule_monday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [66, 'schedule_tuesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [67, 'schedule_wednesday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [68, 'schedule_thursday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [69, 'schedule_friday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [70, 'schedule_saturday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [71, 'schedule_sunday', tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                
+                [65, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [66, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [67, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [68, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [69, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [70, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [71, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+
                 // DP 107: Battery percentage
-                [107, 'battery', tuya.valueConverter.raw],
-                
+                [107, "battery", tuya.valueConverter.raw],
+
                 // DP 109: Temperature calibration (temp_calib)
-                [109, 'local_temperature_calibration', tuya.valueConverter.divideBy10],
-                
+                [109, "local_temperature_calibration", tuya.valueConverter.divideBy10],
+
                 // DP 112: Temperature deadzone/hysteresis (switch_diff)
-                [112, 'deadzone_temperature', tuya.valueConverter.divideBy10],
-                
+                [112, "deadzone_temperature", tuya.valueConverter.divideBy10],
+
                 // DP 116: Eco mode temperature
-                [116, 'eco_temperature', tuya.valueConverter.divideBy10],
+                [116, "eco_temperature", tuya.valueConverter.divideBy10],
             ],
         },
     },
