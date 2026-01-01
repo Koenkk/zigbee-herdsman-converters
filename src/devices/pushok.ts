@@ -580,7 +580,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "POK020",
         vendor: "PushOk Hardware",
         description: "Battery powered thermostat valve",
-
         extend: [
             m.onOff({powerOnBehavior: false, configureReporting: false}),
             m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
@@ -642,7 +641,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             pushokExtend.pok020Thermostat(),
         ],
-
         ota: true,
     },
 ];
