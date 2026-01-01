@@ -779,18 +779,18 @@ export const definitions: DefinitionWithExtend[] = [
                         `{ 'auto':'schedule','heat':'manual','cool':'manual','off':'pause'} %}` +
                         `{% if value == "heat" or value == "cool" %}` +
                         `{"operating_mode": "manual", "system_mode": "{{ value }}"}` +
-                        `{% else %}` +
+                        "{% else %}" +
                         `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}` +
-                        `{% endif %}`;
+                        "{% endif %}";
                     payload.mode_state_template =
                         "{% set values = " +
                         `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
-                        `{% set value = value_json.operating_mode %}` +
+                        "{% set value = value_json.operating_mode %}" +
                         `{% if value == "manual" %}` +
-                        `{{ value_json.system_mode }}` +
-                        `{% else %}` +
+                        "{{ value_json.system_mode }}" +
+                        "{% else %}" +
                         `{{ values[value] if value in values.keys() else 'off' }}` +
-                        `{% endif %}`;
+                        "{% endif %}";
                     payload.modes = ["off", "heat", "cool", "auto"];
                 }
             },
