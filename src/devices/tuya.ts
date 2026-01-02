@@ -11,7 +11,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, KeyValueString, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, KeyValueString, ThermostatSchedule, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from "../lib/utils";
 import * as zosung from "../lib/zosung";
@@ -23096,6 +23096,238 @@ export const definitions: DefinitionWithExtend[] = [
                 [109, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [112, "deadzone_temperature", tuya.valueConverter.divideBy10],
                 [116, "eco_temperature", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_roujjevx"}],
+        model: "TS0601_smart_temperature_switch",
+        vendor: "Tuya",
+        description: "Smart temperature switch with manual and automatic modes: heating & cooling",
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                timeStart: "1970",
+                queryOnDeviceAnnounce: true,
+                queryOnConfigure: true,
+            }),
+        ],
+        exposes: [
+            e
+                .numeric("temperature_c", ea.STATE)
+                .withUnit("℃")
+                .withDescription("Measured temperature in ℃. Device reports it only when it set ℃ unit.")
+                .withCategory("diagnostic"),
+            e.numeric("temperature_f", ea.STATE).withUnit("℉").withDescription("Measured temperature in ℉").withCategory("diagnostic"),
+            e.switch().withDescription("Turn on/off device connected to output"),
+            e
+                .binary("autowork", ea.ALL, "ON", "OFF")
+                .withDescription("Turn on automatic mode to control constant temperature")
+                .withCategory("config"),
+            e
+                .enum("work_mode", ea.ALL, ["heating", "cooling"])
+                .withDescription(`
+                Heating: switch is turned ON until temperature will increase to setpoint (then will turn OFF). When temperature will go down below set temperature range, switch will turn ON again.
+                Cooling: switch is turned ON until temperature will decrease to setpoint (then will turn OFF). When temperature will go up above set temperature range, switch will turn ON again.
+            `)
+                .withCategory("config"),
+            tuya.exposes.temperatureUnit().withAccess(ea.ALL).withCategory("config"),
+            e
+                .numeric("temperature_c_setpoint", ea.ALL)
+                .withUnit("℃")
+                .withDescription("Temperature ℃ set point")
+                .withCategory("config")
+                .withValueMin(-20)
+                .withValueMax(102)
+                .withValueStep(0.5),
+            e
+                .numeric("temperature_f_setpoint", ea.ALL)
+                .withUnit("℉")
+                .withDescription("Temperature ℉ set point")
+                .withCategory("config")
+                .withValueMin(-4)
+                .withValueMax(221)
+                .withValueStep(0.5),
+            e
+                .numeric("temperature_range", ea.ALL)
+                .withDescription("The delta between temperature setpoint and measured temperature to trigger heating or cooling")
+                .withCategory("config")
+                .withValueMin(1)
+                .withValueMax(9)
+                .withValueStep(0.5),
+            tuya.exposes
+                .temperatureCalibration()
+                .withUnit("℉")
+                .withDescription("Temperature calibration always in ℉")
+                .withCategory("config")
+                .withValueMin(-9)
+                .withValueMax(9)
+                .withValueStep(1),
+            e.binary("cooling_delay_switch", ea.ALL, "ON", "OFF").withDescription("Turn on cooling mode delay").withCategory("config"),
+            e
+                .numeric("cooling_delay", ea.ALL)
+                .withUnit("m")
+                .withDescription("Delay to turn on - only for cooling mode")
+                .withCategory("config")
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1),
+            tuya.exposes
+                .countdown()
+                .withAccess(ea.ALL)
+                .withDescription("Countdown to turn device on/off after a certain time")
+                .withCategory("config")
+                .withValueMax(86400), // 24h
+            e
+                .list(
+                    "schedules",
+                    ea.SET,
+                    exposes
+                        .composite("schedule", "schedule", ea.SET)
+                        .withFeature(e.binary("enabled", ea.SET, true, false).withDescription("Enable schedule"))
+                        .withFeature(e.enum("workMode", ea.SET, ["heating", "cooling"]))
+                        .withFeature(e.numeric("temperatureF", ea.SET).withUnit("℉").withDescription("Target temperature in ℉"))
+                        .withFeature(
+                            exposes
+                                .composite("start", "start", ea.SET)
+                                .withFeature(e.numeric("hour", ea.SET).withValueMin(0).withValueMax(23).withValueStep(1))
+                                .withFeature(e.numeric("minute", ea.SET).withValueMin(0).withValueMax(59).withValueStep(1)),
+                        )
+                        .withFeature(
+                            exposes
+                                .composite("end", "end", ea.SET)
+                                .withFeature(e.numeric("hour", ea.SET).withValueMin(0).withValueMax(23).withValueStep(1))
+                                .withFeature(e.numeric("minute", ea.SET).withValueMin(0).withValueMax(59).withValueStep(1)),
+                        )
+                        .withFeature(
+                            exposes
+                                .composite("weekDays", "weekDays", ea.SET)
+                                .withFeature(e.binary("sunday", ea.SET, true, false))
+                                .withFeature(e.binary("monday", ea.SET, true, false))
+                                .withFeature(e.binary("tuesday", ea.SET, true, false))
+                                .withFeature(e.binary("wednesday", ea.SET, true, false))
+                                .withFeature(e.binary("thursday", ea.SET, true, false))
+                                .withFeature(e.binary("friday", ea.SET, true, false))
+                                .withFeature(e.binary("saturday", ea.SET, true, false)),
+                        ),
+                )
+                .withDescription("Schedules for automatic mode work at certain week day and time")
+                .withCategory("config")
+                .withLengthMax(3),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [2, "state", tuya.valueConverter.onOffNotStrict],
+                [4, "countdown", tuya.valueConverter.countdown],
+                [
+                    7,
+                    "schedules",
+                    {
+                        from: (value: string): ThermostatSchedule[] => {
+                            const buffer = Buffer.from(value, "base64");
+                            const schedules: ThermostatSchedule[] = [];
+                            const scheduleLength = 12;
+
+                            for (let offset = 0; offset < buffer.length; offset += scheduleLength) {
+                                const b = buffer.slice(offset, offset + scheduleLength);
+
+                                // temperature
+                                const raw = b.readUInt16BE(3);
+                                const temperatureF = (raw - 0x8000) / 10;
+
+                                // time in minutes from midnight
+                                const startMinutes = b.readUInt16BE(5);
+                                const endMinutes = b.readUInt16BE(7);
+
+                                function minutesToTime(m: number) {
+                                    return {
+                                        hour: Math.floor(m / 60),
+                                        minute: m % 60,
+                                    };
+                                }
+
+                                const daysMask = b[9];
+
+                                schedules.push({
+                                    enabled: (b[1] & 0x80) !== 0,
+                                    workMode: b[2] === 0x02 ? "cooling" : "heating",
+                                    temperatureF: temperatureF,
+                                    start: minutesToTime(startMinutes),
+                                    end: minutesToTime(endMinutes),
+                                    weekDays: {
+                                        sunday: !!(daysMask & 0x01),
+                                        monday: !!(daysMask & 0x02),
+                                        tuesday: !!(daysMask & 0x04),
+                                        wednesday: !!(daysMask & 0x08),
+                                        thursday: !!(daysMask & 0x10),
+                                        friday: !!(daysMask & 0x20),
+                                        saturday: !!(daysMask & 0x40),
+                                    },
+                                });
+                            }
+
+                            return schedules;
+                        },
+                        to: (schedules: ThermostatSchedule[]) => {
+                            const scheduleLength = 12;
+                            const buffers = [];
+
+                            for (const schedule of schedules) {
+                                const b = Buffer.alloc(scheduleLength, 0x00);
+
+                                if (schedule.enabled) {
+                                    b[1] |= 0x80;
+                                }
+
+                                b[2] = schedule.workMode === "cooling" ? 0x02 : 0x00;
+
+                                const temperatureF = schedule.temperatureF;
+                                const rawTemperature = Math.round(temperatureF * 10) + 0x8000;
+                                b.writeUInt16BE(rawTemperature & 0xffff, 3);
+
+                                const startMinutes = schedule.start.hour * 60 + schedule.start.minute;
+                                b.writeUInt16BE(startMinutes, 5);
+
+                                const endMinutes = schedule.end.hour * 60 + schedule.end.minute;
+                                b.writeUInt16BE(endMinutes, 7);
+
+                                let daysMask = 0;
+                                if (schedule.weekDays.sunday) daysMask |= 0x01;
+                                if (schedule.weekDays.monday) daysMask |= 0x02;
+                                if (schedule.weekDays.tuesday) daysMask |= 0x04;
+                                if (schedule.weekDays.wednesday) daysMask |= 0x08;
+                                if (schedule.weekDays.thursday) daysMask |= 0x10;
+                                if (schedule.weekDays.friday) daysMask |= 0x20;
+                                if (schedule.weekDays.saturday) daysMask |= 0x40;
+                                b[9] = daysMask;
+
+                                b[10] = 0x02;
+
+                                let sum = 0;
+                                for (let i = 0; i <= 9; i++) {
+                                    sum += b[i];
+                                }
+                                b[11] = sum & 0xff;
+
+                                buffers.push(b);
+                            }
+
+                            return Buffer.concat(buffers).toString("base64");
+                        },
+                    },
+                ],
+                [8, "work_mode", tuya.valueConverterBasic.lookup({heating: tuya.enum(0), cooling: tuya.enum(2)})],
+                [9, "autowork", tuya.valueConverter.onOffNotStrict],
+                [20, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
+                [21, "temperature_f_setpoint", tuya.valueConverter.divideBy10],
+                [22, "temperature_c_setpoint", tuya.valueConverter.divideBy10],
+                [27, "temperature_c", tuya.valueConverter.divideBy10],
+                [28, "temperature_f", tuya.valueConverter.divideBy10],
+                [29, "temperature_range", tuya.valueConverter.divideBy10],
+                [30, "temperature_calibration", tuya.valueConverter.raw],
+                // 50: Fault - not mapped
+                [55, "cooling_delay", tuya.valueConverter.raw],
+                [56, "cooling_delay_switch", tuya.valueConverter.onOffNotStrict],
             ],
         },
     },

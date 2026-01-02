@@ -91,6 +91,29 @@ export type BatteryLinearVoltage = {
 
 export type BatteryNonLinearVoltage = "3V_2100" | "3V_1500_2800";
 
+export type ThermostatSchedule = KeyValue & {
+    enabled: boolean;
+    workMode: "cooling" | "heating";
+    temperatureF: number;
+    start: {
+        hour: number;
+        minute: number;
+    };
+    end: {
+        hour: number;
+        minute: number;
+    };
+    weekDays: {
+        sunday: boolean;
+        monday: boolean;
+        tuesday: boolean;
+        wednesday: boolean;
+        thursday: boolean;
+        friday: boolean;
+        saturday: boolean;
+    };
+};
+
 export interface DefinitionMeta {
     separateWhite?: boolean;
     /**
@@ -446,7 +469,7 @@ export namespace Tuya {
             publish?: Publish,
             // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
             msg?: Fz.Message<any>,
-        ) => number | string | boolean | KeyValue | null;
+        ) => number | string | boolean | KeyValue | KeyValue[] | null;
     }
     export interface MetaTuyaDataPointsMeta {
         skip?: (meta: Tz.Meta) => boolean;
