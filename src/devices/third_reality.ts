@@ -176,6 +176,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zoneAttributes: ["alarm_1", "battery_low"],
             }),
             m.battery(),
+            m.forcePowerSource({powerSource: "Battery"}),
             m.binary<"3rWaterSensorcluster", ThirdWaterSensor>({
                 name: "water_leak_buzzer",
                 valueOn: ["ON", 1],
