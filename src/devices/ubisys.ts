@@ -177,7 +177,7 @@ const ubisys = {
                             ubisysInstalledOpenLimitLiftCm: 0,
                             ubisysInstalledClosedLimitLiftCm: 240,
                             ubisysInstalledOpenLimitTiltDdegree: 0,
-                            installedClosedLimitTiltDdegree: 900,
+                            ubisysInstalledClosedLimitTiltDdegree: 900,
                             ubisysLiftToTiltTransitionSteps: 0xffff,
                             ubisysTotalSteps: 0xffff,
                             ubisysLiftToTiltTransitionSteps2: 0xffff,
