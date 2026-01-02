@@ -98,6 +98,7 @@ import {definitions as evology} from "./evology";
 import {definitions as evvr} from "./evvr";
 import {definitions as ewelink} from "./ewelink";
 import {definitions as ezex} from "./ezex";
+import {definitions as ezviz} from "./ezviz";
 import {definitions as fantem} from "./fantem";
 import {definitions as feibit} from "./feibit";
 import {definitions as fireangel} from "./fireangel";
@@ -457,6 +458,7 @@ const definitions: DefinitionWithExtend[] = [
     ...evvr,
     ...ewelink,
     ...ezex,
+    ...ezviz,
     ...fantem,
     ...feibit,
     ...fireangel,

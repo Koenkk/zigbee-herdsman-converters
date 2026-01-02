@@ -307,6 +307,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}})],
     },
     {
+        zigbeeModel: ["LTA017"],
+        model: "9290038551",
+        vendor: "Philips",
+        description: "Hue white ambiance A19 810lm with Bluetooth E26",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}})],
+    },
+    {
         zigbeeModel: ["LTA018"],
         model: "9290038552",
         vendor: "Philips",
@@ -813,7 +820,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
-        zigbeeModel: ["LCP001", "LCP002", "4090331P9_01", "4090331P9_02", "929003053301_01", "929003053301_02"],
+        zigbeeModel: ["LCP001", "LCP002", "4090331P9_01", "4090331P9_02", "929003053301_01", "929003053301_02", "929003785101_01", "929003785101_02"],
         model: "4090331P9",
         vendor: "Philips",
         description: "Hue Ensis (white)",
@@ -1406,6 +1413,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Flourish white and color ambiance pendant light",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ["4090631U9"],
+        model: "4090631U9",
+        vendor: "Philips",
+        description: "Hue Flourish white and color ambiance pendant light",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["LWB010"],
@@ -2070,10 +2084,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["929003597802"],
+        zigbeeModel: ["929003597802", "929003597602"],
         model: "929003597802",
         vendor: "Philips",
         description: "Hue black ambiance Aurelle square panel light",
+        whiteLabel: [
+            {
+                model: "929003597602",
+                vendor: "Philips",
+                description: "Hue black ambiance Aurelle square panel light 60x60",
+                fingerprint: [{modelID: "929003597602"}],
+            },
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
@@ -2084,7 +2106,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["929003099001", "929003099201"],
+        zigbeeModel: ["929003099001", "929003099201", "929003099002"],
         model: "929003099001",
         vendor: "Philips",
         description: "Hue white ambiance Aurelle square panel light",
@@ -4364,14 +4386,31 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["929003055701", "929004297402", "929004297501"],
+        zigbeeModel: ["929003055701"],
         model: "929003055701",
         vendor: "Philips",
-        description: "Hue White Ambiance Devote",
+        description: "Hue Devote Ceiling Hanging Light White Ambiance",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ["929004297401", "929004297402", "929004297501"],
+        model: "929004297401",
+        vendor: "Philips",
+        description: "Hue Devote S Ceiling Light Panel White & Color Ambiance (White)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
         whiteLabel: [
-            {model: "929004297402", fingerprint: [{modelID: "929004297402"}]},
-            {model: "929004297501", fingerprint: [{modelID: "929004297501"}]},
+            {
+                model: "929004297402",
+                vendor: "Philips",
+                description: "Hue Devote S Ceiling Light White & Color Ambiance (White)",
+                fingerprint: [{modelID: "929004297402"}],
+            },
+            {
+                model: "929004297501",
+                vendor: "Philips",
+                description: "Hue Devote M Ceiling Light White & Color Ambiance (White)",
+                fingerprint: [{modelID: "929004297501"}],
+            },
         ],
     },
     {
@@ -4577,13 +4616,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "046677577490",
         vendor: "Philips",
         description: "Hue Lightguide E26/E27 Triangle 500lm",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
-        zigbeeModel: ["929004297401"],
-        model: "929004297401",
-        vendor: "Philips",
-        description: "Hue Devote Slim ceiling light",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {

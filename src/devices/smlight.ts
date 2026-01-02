@@ -33,6 +33,6 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "SMLIGHT", model: "SLZB-06Mg26", description: "Router", fingerprint: [{modelID: "SLZB-06Mg26"}]},
             {vendor: "SMLIGHT", model: "SLZB-MR3", description: "Router", fingerprint: [{modelID: "SLZB-MR3 CC2674P10"}]},
         ],
-        extend: [m.linkQuality({reporting: true}), m.forcePowerSource({powerSource: "Mains (single phase)"})],
+        extend: [m.linkQuality({reporting: true}), m.forcePowerSource({powerSource: "Mains (single phase)"}), m.onOff({powerOnBehavior: false})],
     },
 ];
