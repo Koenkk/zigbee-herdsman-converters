@@ -4680,6 +4680,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_eo3dttwe",
             "_TZ3000_jwcixnrz",
             "_TZ3000_u2bbagu4",
+            "_TZ3000_8utxxtzr",
         ]),
         model: "TS0215A_remote",
         vendor: "Tuya",
