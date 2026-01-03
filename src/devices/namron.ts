@@ -212,14 +212,15 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 // Simplify Dimmer
-const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
-const secToZclTime = (s: number) => Math.max(0, Math.round(Number(s || 0) * 10)); // ZCL = 1/10s
+// Simplify Dimmer (4512791) — keep separate names to avoid collisions
+const sdClamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
+const sdSecToZclTime = (s: number) => Math.max(0, Math.round(Number(s || 0) * 10)); // ZCL = 1/10s
 
 // Percent <-> level (1..254)
-const pctToLevel = (pct: number) => clamp(Math.round((Number(pct) / 100) * 254), 1, 254);
-const levelToPct = (lvl: number) => clamp(Math.round((Number(lvl) / 254) * 100), 1, 100);
+const sdPctToLevel = (pct: number) => sdClamp(Math.round((Number(pct) / 100) * 254), 1, 254);
+const sdLevelToPct = (lvl: number) => sdClamp(Math.round((Number(lvl) / 254) * 100), 1, 100);
 
-const tzLocal = {
+const tzLocalSimplifyDimmer4512791 = {
     // UI: min_brightness = % (1..50). Intern: level 1..127
     min_brightness: {
         key: ['min_brightness'],
@@ -228,19 +229,19 @@ const tzLocal = {
             if (!Number.isFinite(pct) || pct < 1 || pct > 50) {
                 throw new Error('min_brightness must be 1..50 (%)');
             }
-            const lvl = clamp(pctToLevel(pct), 1, 127);
+            const lvl = sdClamp(sdPctToLevel(pct), 1, 127);
 
             const maxLvl = store.getValue(meta.device, 'max_brightness_level');
             if (typeof maxLvl === 'number' && lvl > maxLvl) {
-                throw new Error(`min_brightness (${pct}%) cannot exceed max_brightness (${levelToPct(maxLvl)}%)`);
+                throw new Error(`min_brightness (${pct}%) cannot exceed max_brightness (${sdLevelToPct(maxLvl)}%)`);
             }
 
             store.putValue(meta.device, 'min_brightness_level', lvl);
-            return {state: {min_brightness: levelToPct(lvl)}};
+            return {state: {min_brightness: sdLevelToPct(lvl)}};
         },
         convertGet: async (entity, key, meta) => {
             const lvl = store.getValue(meta.device, 'min_brightness_level');
-            if (typeof lvl === 'number') return {state: {min_brightness: levelToPct(lvl)}};
+            if (typeof lvl === 'number') return {state: {min_brightness: sdLevelToPct(lvl)}};
         },
     },
 
@@ -252,19 +253,19 @@ const tzLocal = {
             if (!Number.isFinite(pct) || pct < 50 || pct > 100) {
                 throw new Error('max_brightness must be 50..100 (%)');
             }
-            const lvl = clamp(pctToLevel(pct), 127, 254);
+            const lvl = sdClamp(sdPctToLevel(pct), 127, 254);
 
             const minLvl = store.getValue(meta.device, 'min_brightness_level');
             if (typeof minLvl === 'number' && lvl < minLvl) {
-                throw new Error(`max_brightness (${pct}%) cannot be below min_brightness (${levelToPct(minLvl)}%)`);
+                throw new Error(`max_brightness (${pct}%) cannot be below min_brightness (${sdLevelToPct(minLvl)}%)`);
             }
 
             store.putValue(meta.device, 'max_brightness_level', lvl);
-            return {state: {max_brightness: levelToPct(lvl)}};
+            return {state: {max_brightness: sdLevelToPct(lvl)}};
         },
         convertGet: async (entity, key, meta) => {
             const lvl = store.getValue(meta.device, 'max_brightness_level');
-            if (typeof lvl === 'number') return {state: {max_brightness: levelToPct(lvl)}};
+            if (typeof lvl === 'number') return {state: {max_brightness: sdLevelToPct(lvl)}};
         },
     },
 
@@ -313,7 +314,7 @@ const tzLocal = {
             if (key === 'brightness') {
                 level = Number(value);
             } else {
-                level = pctToLevel(Number(value));
+                level = sdPctToLevel(Number(value));
             }
             if (!Number.isFinite(level)) return;
 
@@ -322,14 +323,14 @@ const tzLocal = {
             const minClamp = (typeof minLvl === 'number') ? minLvl : 1;
             const maxClamp = (typeof maxLvl === 'number') ? maxLvl : 254;
 
-            level = Math.round(clamp(level, minClamp, maxClamp));
+            level = Math.round(sdClamp(level, minClamp, maxClamp));
 
             const storedSpeed = store.getValue(meta.device, 'dimming_speed');
             const transitionSec =
                 (msg.transition != null) ? Number(msg.transition) :
                 (typeof storedSpeed === 'number' ? storedSpeed : 0);
 
-            const transtime = secToZclTime(transitionSec);
+            const transtime = sdSecToZclTime(transitionSec);
 
             await entity.command(
                 'genLevelCtrl',
@@ -347,8 +348,8 @@ const tzLocal = {
         },
     },
 } as const;
-// };
-//End Simplify Dimmer
+
+// End Simplify Dimmer (4512791)
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -1929,14 +1930,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     // On/off + clamped brightness + config setters
         toZigbee: [
-            tz.on_off,
-            tzLocal.brightness_clamped,
-            tzLocal.min_brightness,
-            tzLocal.max_brightness,
-            tzLocal.dimming_speed,
-            tzLocal.start_brightness,
+          tz.on_off,
+          tzLocalSimplifyDimmer4512791.brightness_clamped,
+          tzLocalSimplifyDimmer4512791.min_brightness,
+          tzLocalSimplifyDimmer4512791.max_brightness,
+          tzLocalSimplifyDimmer4512791.dimming_speed,
+          tzLocalSimplifyDimmer4512791.start_brightness,
         ],
-
         exposes: [
             // Gir state + brightness uten effect
             e.light_brightness(),
