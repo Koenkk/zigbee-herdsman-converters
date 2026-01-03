@@ -8097,23 +8097,23 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['EFEKTA_eAir_Monitor'],
-        model: 'EFEKTA_eAir_Monitor',
-        vendor: 'EFEKTA',
-        description: 'Smart digital carbon dioxide detector with e-ink display.',
- 		extend: [
+        zigbeeModel: ["EFEKTA_eAir_Monitor"],
+        model: "EFEKTA_eAir_Monitor",
+        vendor: "EFEKTA",
+        description: "Smart digital carbon dioxide detector with e-ink display.",
+        extend: [
             m.co2({
-				reporting: false,
+                reporting: false,
                 access: "STATE",
             }),
             m.battery({
-				percentageReportingConfig: false,
+                percentageReportingConfig: false,
                 lowStatus: true,
-				voltage: false,
+                voltage: false,
                 voltageReporting: false,
                 voltageReportingConfig: false,
             }),
-			m.numeric({
+            m.numeric({
                 name: "lifetime",
                 unit: "Hours",
                 cluster: "genTime",
@@ -8121,23 +8121,23 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "lifetime",
                 access: "STATE",
             }),
-			m.enumLookup({
-                name: 'basic_data',
-                lookup: {'Barometer': 0, 'T&H': 1},
-                cluster: 'genPowerCfg',
-                attribute: {ID: 0xF005, type: 0x20},
-                description: 'Set data output on the display',
-				access: 'STATE_SET',
+            m.enumLookup({
+                name: "basic_data",
+                lookup: {Barometer: 0, "T&H": 1},
+                cluster: "genPowerCfg",
+                attribute: {ID: 0xf005, type: 0x20},
+                description: "Set data output on the display",
+                access: "STATE_SET",
             }),
-			m.enumLookup({
-                name: 'invert_color',
-                lookup: {'BW': 0, 'WB': 1},
-                cluster: 'genPowerCfg',
-                attribute: {ID: 0xF004, type: 0x29},
-                description: 'Set color mode',
-				access: 'STATE_SET',
+            m.enumLookup({
+                name: "invert_color",
+                lookup: {BW: 0, WB: 1},
+                cluster: "genPowerCfg",
+                attribute: {ID: 0xf004, type: 0x29},
+                description: "Set color mode",
+                access: "STATE_SET",
             }),
-			m.binary({
+            m.binary({
                 name: "forced_recalibration",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
