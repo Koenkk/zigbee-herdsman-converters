@@ -22985,5 +22985,5 @@ Ensure all 12 segments are defined and separated by spaces.`,
             [4, 'fault', tuya.valueConverter.raw],
         ],
     },
-};
+},
 ];
