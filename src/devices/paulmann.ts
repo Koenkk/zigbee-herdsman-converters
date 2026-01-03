@@ -383,4 +383,15 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 370]}})],
         whiteLabel: [{vendor: "Paulmann", model: "984.43", fingerprint: [{modelID: "98443"}]}],
     },
+    {
+        fingerprint: [
+            {modelID: "CCT Light", manufacturerName: "Paulmann lamp"},
+            {modelID: "CCT", manufacturerName: "Paulmann Licht GmbH"},
+        ],
+        zigbeeModel: ["CCT light", "CCT_light", "CCT light "],
+        model: "50394",
+        vendor: "Paulmann",
+        description: "LED Filament Bulb tuneable white",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
 ];
