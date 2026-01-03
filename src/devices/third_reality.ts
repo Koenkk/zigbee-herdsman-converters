@@ -240,8 +240,9 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart motion sensor R1",
         ota: true,
         extend: [
+            m.forcePowerSource({powerSource: "Battery"}),
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}),
-            m.battery({voltage: true}),
+            m.battery({voltage: true, percentageReporting: false}),
             m.deviceAddCustomCluster("3rRadarSpecialCluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
