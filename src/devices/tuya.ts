@@ -3861,6 +3861,14 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.lightType().withEndpoint("l3"),
             e.power_on_behavior().withAccess(ea.STATE_SET),
             tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET),
+            e.enum("backlight_color", ea.ALL, Object.keys(tuya.BacklightColorEnum)).withDescription("Backlight color"),
+            e
+                .numeric("backlight_brightness", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withUnit("%")
+                .withValueStep(1)
+                .withDescription("Backlight brightness"),
         ],
         meta: {
             multiEndpoint: true,
@@ -3885,6 +3893,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [19, "max_brightness_l3", tuya.valueConverter.scale0_254to0_1000],
                 [20, "countdown_l3", tuya.valueConverter.countdown],
                 [21, "backlight_mode", tuya.valueConverter.backlightModeOffNormalInverted],
+                [101, "backlight_color", tuya.valueConverterBasic.lookup(tuya.BacklightColorEnum)],
+                [103, "backlight_brightness", tuya.valueConverter.raw],
             ],
         },
         endpoint: (device) => {
