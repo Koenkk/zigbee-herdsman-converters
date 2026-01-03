@@ -22952,4 +22952,38 @@ Ensure all 12 segments are defined and separated by spaces.`,
             ],
         },
     },
+    {
+    fingerprint: [
+        {
+            modelID: 'TS0601',
+            manufacturerName: '_TZE200_fphxkxue'
+        }
+    ],
+    model: 'ZVL-PRO',
+    vendor: 'Nova Digital',
+    description: 'Water Valve (Advanced Map)',
+    fromZigbee: [tuya.fz.datapoints],
+    toZigbee: [tuya.tz.datapoints],
+    onEvent: tuya.onEventSetLocalTime,
+    configure: tuya.configureMagicPacket,
+    exposes: [
+        e.switch().setAccess('state', ea.STATE_SET),
+        e.battery(),
+        e.numeric('countdown', ea.STATE_SET).withUnit('s').withValueMin(0).withValueMax(86400)
+            .withDescription('Tempo de contagem regressiva em segundos'),
+        e.enum('work_state', ea.STATE, ['auto', 'manual', 'idle'])
+            .withDescription('Estado atual de opera    o'),
+        e.numeric('water_once', ea.STATE).withUnit('L').withDescription('Consumo da   ltima rega'),
+    ],
+    meta: {
+        tuyaDatapoints: [
+            [1, 'state', tuya.valueConverter.onOff],
+            [7, 'battery', tuya.valueConverter.raw],
+            [11, 'countdown', tuya.valueConverter.raw],
+            [12, 'work_state', tuya.valueConverter.raw], 
+            [5, 'water_once', tuya.valueConverter.raw],
+            [4, 'fault', tuya.valueConverter.raw],
+        ],
+    },
+};
 ];
