@@ -249,6 +249,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00537",
         vendor: "Yandex",
         description: "Single relay",
+        ota: true,
         extend: [
             reinterview(),
             YandexCluster(manufacturerCodeOld),
@@ -296,6 +297,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00538",
         vendor: "Yandex",
         description: "Double relay",
+        ota: true,
         extend: [
             reinterview(),
             YandexCluster(manufacturerCodeOld),
@@ -369,6 +371,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00534",
         vendor: "Yandex",
         description: "Single gang wireless switch",
+        ota: true,
         extend: [
             YandexCluster(manufacturerCodeOld),
             m.deviceEndpoints({
@@ -383,6 +386,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00535",
         vendor: "Yandex",
         description: "Double gang wireless switch",
+        ota: true,
         extend: [
             YandexCluster(manufacturerCodeOld),
             m.deviceEndpoints({
@@ -397,6 +401,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00531",
         vendor: "Yandex",
         description: "Single gang switch",
+        ota: true,
         extend: [
             reinterview(),
             YandexCluster(manufacturerCodeOld),
@@ -456,6 +461,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00532",
         vendor: "Yandex",
         description: "Double gang switch",
+        ota: true,
         extend: [
             reinterview(),
             YandexCluster(manufacturerCodeOld),
@@ -531,6 +537,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00530",
         vendor: "Yandex",
         description: "Dimmer",
+        ota: true,
         extend: [
             YandexCluster(manufacturerCodeOld),
             m.light({
