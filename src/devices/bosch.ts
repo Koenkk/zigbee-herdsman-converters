@@ -744,6 +744,31 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BTH-RM",
         vendor: "Bosch",
         description: "Room thermostat II",
+        meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                if (payload.mode_command_topic?.endsWith("/system_mode")) {
+                    payload.mode_command_topic = payload.mode_command_topic.substring(0, payload.mode_command_topic.lastIndexOf("/system_mode"));
+                    payload.mode_command_template =
+                        "{% set values = " +
+                        `{ 'auto':'schedule','heat':'manual','cool':'manual','off':'pause'} %}` +
+                        `{% if value == "heat" or value == "cool" %}` +
+                        `{"operating_mode": "manual", "system_mode": "{{ value }}"}` +
+                        "{% else %}" +
+                        `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}` +
+                        "{% endif %}";
+                    payload.mode_state_template =
+                        "{% set values = " +
+                        `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
+                        "{% set value = value_json.operating_mode %}" +
+                        `{% if value == "manual" %}` +
+                        "{{ value_json.system_mode }}" +
+                        "{% else %}" +
+                        `{{ values[value] if value in values.keys() else 'off' }}` +
+                        "{% endif %}";
+                    payload.modes = ["off", "heat", "cool", "auto"];
+                }
+            },
+        },
         extend: [
             boschGeneralExtend.handleZclVersionReadRequest(),
             boschThermostatExtend.customThermostatCluster(),
@@ -770,6 +795,31 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BTH-RM230Z",
         vendor: "Bosch",
         description: "Room thermostat II 230V",
+        meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                if (payload.mode_command_topic?.endsWith("/system_mode")) {
+                    payload.mode_command_topic = payload.mode_command_topic.substring(0, payload.mode_command_topic.lastIndexOf("/system_mode"));
+                    payload.mode_command_template =
+                        "{% set values = " +
+                        `{ 'auto':'schedule','heat':'manual','cool':'manual','off':'pause'} %}` +
+                        `{% if value == "heat" or value == "cool" %}` +
+                        `{"operating_mode": "manual", "system_mode": "{{ value }}"}` +
+                        "{% else %}" +
+                        `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}` +
+                        "{% endif %}";
+                    payload.mode_state_template =
+                        "{% set values = " +
+                        `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
+                        "{% set value = value_json.operating_mode %}" +
+                        `{% if value == "manual" %}` +
+                        "{{ value_json.system_mode }}" +
+                        "{% else %}" +
+                        `{{ values[value] if value in values.keys() else 'off' }}` +
+                        "{% endif %}";
+                    payload.modes = ["off", "heat", "cool", "auto"];
+                }
+            },
+        },
         extend: [
             boschGeneralExtend.handleZclVersionReadRequest(),
             boschThermostatExtend.customThermostatCluster(),
