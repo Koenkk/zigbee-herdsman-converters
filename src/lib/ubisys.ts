@@ -58,6 +58,13 @@ export interface UbisysGenLevelCtrl {
 }
 export interface UbisysClosuresWindowCovering {
     attributes: {
+        ubisysWindowCoveringType: number;
+        ubisysConfigStatus: number;
+        ubisysInstalledOpenLimitLiftCm: number;
+        ubisysInstalledClosedLimitLiftCm: number;
+        ubisysInstalledOpenLimitTiltDdegree: number;
+        ubisysInstalledClosedLimitTiltDdegree: number;
+        ubisysWindowCoveringMode: number;
         ubisysTurnaroundGuardTime: number;
         ubisysLiftToTiltTransitionSteps: number;
         ubisysTotalSteps: number;
@@ -370,6 +377,54 @@ export const ubisysModernExtend = {
             ID: 0x0102,
             attributes: {
                 // J1(-R)
+                // writable version of the same standard attribute
+                ubisysWindowCoveringType: {
+                    ID: 0x0000,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
+                // writable version of the same standard attribute
+                ubisysConfigStatus: {
+                    ID: 0x0007,
+                    type: Zcl.DataType.BITMAP8,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
+                // writable version of the same standard attribute
+                ubisysInstalledOpenLimitLiftCm: {
+                    ID: 0x0010,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
+                // writable version of the same standard attribute
+                ubisysInstalledClosedLimitLiftCm: {
+                    ID: 0x0011,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
+                // writable version of the same standard attribute
+                ubisysInstalledOpenLimitTiltDdegree: {
+                    ID: 0x0012,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
+                // writable version of the same standard attribute
+                ubisysInstalledClosedLimitTiltDdegree: {
+                    ID: 0x0013,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
+                    write: true,
+                },
+                // writable version of the same standard attribute
+                ubisysWindowCoveringMode: {
+                    ID: 0x0017,
+                    type: Zcl.DataType.BITMAP8,
+                    write: true,
+                },
                 ubisysTurnaroundGuardTime: {
                     ID: 0x1000,
                     type: Zcl.DataType.UINT8,
