@@ -346,6 +346,7 @@ const tzLocal = {
             return {state: {state: 'ON', brightness: level}};
         },
     },
+} as const;
 };
 //End Simplify Dimmer
 
