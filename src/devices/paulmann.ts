@@ -384,7 +384,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Paulmann", model: "984.43", fingerprint: [{modelID: "98443"}]}],
     },
     {
-        zigbeeModel: ["CCT light", "CCT_light", "CCT light "],
+        zigbeeModel: ["CCT light bulb", "CCT_light_bulb"],
         model: "50394",
         vendor: "Paulmann",
         description: "LED Filament Bulb tuneable white",
