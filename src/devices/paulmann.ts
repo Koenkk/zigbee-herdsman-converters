@@ -97,7 +97,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "948.47/29165",
         vendor: "Paulmann",
         description: "RGBW light",
-        extend: [m.light({colorTemp: {range: [153, 454]}, color: {modes: ["xy", "hs"]}})],
+        extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"]}})],
     },
     {
         zigbeeModel: ["H036-0007"],
