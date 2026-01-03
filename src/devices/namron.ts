@@ -211,7 +211,6 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
 };
-// Simplify Dimmer
 // Simplify Dimmer (4512791) — keep separate names to avoid collisions
 const sdClamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 const sdSecToZclTime = (s: number) => Math.max(0, Math.round(Number(s || 0) * 10)); // ZCL = 1/10s
@@ -221,10 +220,9 @@ const sdPctToLevel = (pct: number) => sdClamp(Math.round((Number(pct) / 100) * 2
 const sdLevelToPct = (lvl: number) => sdClamp(Math.round((Number(lvl) / 254) * 100), 1, 100);
 
 const tzLocalSimplifyDimmer4512791 = {
-    // UI: min_brightness = % (1..50). Intern: level 1..127
     min_brightness: {
         key: ['min_brightness'],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: (entity, key, value, meta) => {
             const pct = Number(value);
             if (!Number.isFinite(pct) || pct < 1 || pct > 50) {
                 throw new Error('min_brightness must be 1..50 (%)');
@@ -239,16 +237,15 @@ const tzLocalSimplifyDimmer4512791 = {
             store.putValue(meta.device, 'min_brightness_level', lvl);
             return {state: {min_brightness: sdLevelToPct(lvl)}};
         },
-        convertGet: async (entity, key, meta) => {
+        convertGet: (entity, key, meta) => {
             const lvl = store.getValue(meta.device, 'min_brightness_level');
             if (typeof lvl === 'number') return {state: {min_brightness: sdLevelToPct(lvl)}};
         },
     },
 
-    // UI: max_brightness = % (50..100). Intern: level 127..254
     max_brightness: {
         key: ['max_brightness'],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: (entity, key, value, meta) => {
             const pct = Number(value);
             if (!Number.isFinite(pct) || pct < 50 || pct > 100) {
                 throw new Error('max_brightness must be 50..100 (%)');
@@ -263,16 +260,15 @@ const tzLocalSimplifyDimmer4512791 = {
             store.putValue(meta.device, 'max_brightness_level', lvl);
             return {state: {max_brightness: sdLevelToPct(lvl)}};
         },
-        convertGet: async (entity, key, meta) => {
+        convertGet: (entity, key, meta) => {
             const lvl = store.getValue(meta.device, 'max_brightness_level');
             if (typeof lvl === 'number') return {state: {max_brightness: sdLevelToPct(lvl)}};
         },
     },
 
-    // dimming_speed: lagres og brukes som default transition (skrives ikke til unsupported attributter)
     dimming_speed: {
         key: ['dimming_speed'],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: (entity, key, value, meta) => {
             const s = Number(value);
             if (!Number.isFinite(s) || s < 1 || s > 10) {
                 throw new Error('dimming_speed must be 1..10 seconds');
@@ -280,13 +276,12 @@ const tzLocalSimplifyDimmer4512791 = {
             store.putValue(meta.device, 'dimming_speed', s);
             return {state: {dimming_speed: s}};
         },
-        convertGet: async (entity, key, meta) => {
+        convertGet: (entity, key, meta) => {
             const s = store.getValue(meta.device, 'dimming_speed');
             if (typeof s === 'number') return {state: {dimming_speed: s}};
         },
     },
 
-    // start_brightness: skriv KUN onLevel (startUpCurrentLevel er unsupported på din enhet)
     start_brightness: {
         key: ['start_brightness'],
         convertSet: async (entity, key, value, meta) => {
@@ -304,7 +299,6 @@ const tzLocalSimplifyDimmer4512791 = {
         },
     },
 
-    // Clamp brightness + FIX optionsMask/optionsOverride
     brightness_clamped: {
         key: ['brightness', 'brightness_percent', 'transition'],
         convertSet: async (entity, key, value, meta) => {
@@ -350,6 +344,7 @@ const tzLocalSimplifyDimmer4512791 = {
 } as const;
 
 // End Simplify Dimmer (4512791)
+
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -1961,11 +1956,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .withCategory('config'),
         ],
 
-        configure: async (device) => {
-            // Defaults (så det ikke blir null)
-            store.putValue(device, 'min_brightness_level', pctToLevel(20));
-            store.putValue(device, 'max_brightness_level', pctToLevel(100));
-            store.putValue(device, 'dimming_speed', 1);
+        configure: (device) => {
+          store.putValue(device, 'min_brightness_level', sdPctToLevel(20));
+          store.putValue(device, 'max_brightness_level', sdPctToLevel(100));
+          store.putValue(device, 'dimming_speed', 1);
         },
+
     },
 ];
