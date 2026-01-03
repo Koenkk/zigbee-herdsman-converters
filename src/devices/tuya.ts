@@ -11472,7 +11472,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         description: "4 gang switch with LCD",
         extend: [
             tuyaWeatherForecast({includeCurrentWeather: true, numberOfForecastDays: 3, correctForNegativeValues: true}),
-            tuyaBase({dp: true}),
+            tuyaBase({dp: true, timeStart: "1970"}),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}}),
         ],
         exposes: [
