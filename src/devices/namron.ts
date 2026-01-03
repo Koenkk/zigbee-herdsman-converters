@@ -221,114 +221,112 @@ const sdLevelToPct = (lvl: number) => sdClamp(Math.round((Number(lvl) / 254) * 1
 
 const tzLocalSimplifyDimmer4512791 = {
     min_brightness: {
-        key: ['min_brightness'],
+        key: ["min_brightness"],
         convertSet: (entity, key, value, meta) => {
             const pct = Number(value);
             if (!Number.isFinite(pct) || pct < 1 || pct > 50) {
-                throw new Error('min_brightness must be 1..50 (%)');
+                throw new Error("min_brightness must be 1..50 (%)");
             }
             const lvl = sdClamp(sdPctToLevel(pct), 1, 127);
 
-            const maxLvl = store.getValue(meta.device, 'max_brightness_level');
-            if (typeof maxLvl === 'number' && lvl > maxLvl) {
+            const maxLvl = store.getValue(meta.device, "max_brightness_level");
+            if (typeof maxLvl === "number" && lvl > maxLvl) {
                 throw new Error(`min_brightness (${pct}%) cannot exceed max_brightness (${sdLevelToPct(maxLvl)}%)`);
             }
 
-            store.putValue(meta.device, 'min_brightness_level', lvl);
+            store.putValue(meta.device, "min_brightness_level", lvl);
             return {state: {min_brightness: sdLevelToPct(lvl)}};
         },
         convertGet: (entity, key, meta) => {
-            const lvl = store.getValue(meta.device, 'min_brightness_level');
-            if (typeof lvl === 'number') return {state: {min_brightness: sdLevelToPct(lvl)}};
+            const lvl = store.getValue(meta.device, "min_brightness_level");
+            if (typeof lvl === "number") return {state: {min_brightness: sdLevelToPct(lvl)}};
         },
     },
 
     max_brightness: {
-        key: ['max_brightness'],
+        key: ["max_brightness"],
         convertSet: (entity, key, value, meta) => {
             const pct = Number(value);
             if (!Number.isFinite(pct) || pct < 50 || pct > 100) {
-                throw new Error('max_brightness must be 50..100 (%)');
+                throw new Error("max_brightness must be 50..100 (%)");
             }
             const lvl = sdClamp(sdPctToLevel(pct), 127, 254);
 
-            const minLvl = store.getValue(meta.device, 'min_brightness_level');
-            if (typeof minLvl === 'number' && lvl < minLvl) {
+            const minLvl = store.getValue(meta.device, "min_brightness_level");
+            if (typeof minLvl === "number" && lvl < minLvl) {
                 throw new Error(`max_brightness (${pct}%) cannot be below min_brightness (${sdLevelToPct(minLvl)}%)`);
             }
 
-            store.putValue(meta.device, 'max_brightness_level', lvl);
+            store.putValue(meta.device, "max_brightness_level", lvl);
             return {state: {max_brightness: sdLevelToPct(lvl)}};
         },
         convertGet: (entity, key, meta) => {
-            const lvl = store.getValue(meta.device, 'max_brightness_level');
-            if (typeof lvl === 'number') return {state: {max_brightness: sdLevelToPct(lvl)}};
+            const lvl = store.getValue(meta.device, "max_brightness_level");
+            if (typeof lvl === "number") return {state: {max_brightness: sdLevelToPct(lvl)}};
         },
     },
 
     dimming_speed: {
-        key: ['dimming_speed'],
+        key: ["dimming_speed"],
         convertSet: (entity, key, value, meta) => {
             const s = Number(value);
             if (!Number.isFinite(s) || s < 1 || s > 10) {
-                throw new Error('dimming_speed must be 1..10 seconds');
+                throw new Error("dimming_speed must be 1..10 seconds");
             }
-            store.putValue(meta.device, 'dimming_speed', s);
+            store.putValue(meta.device, "dimming_speed", s);
             return {state: {dimming_speed: s}};
         },
         convertGet: (entity, key, meta) => {
-            const s = store.getValue(meta.device, 'dimming_speed');
-            if (typeof s === 'number') return {state: {dimming_speed: s}};
+            const s = store.getValue(meta.device, "dimming_speed");
+            if (typeof s === "number") return {state: {dimming_speed: s}};
         },
     },
 
     start_brightness: {
-        key: ['start_brightness'],
+        key: ["start_brightness"],
         convertSet: async (entity, key, value, meta) => {
             const v = Math.round(Number(value));
             if (!Number.isFinite(v) || v < 1 || v > 254) {
-                throw new Error('start_brightness must be 1..254');
+                throw new Error("start_brightness must be 1..254");
             }
-            await entity.write('genLevelCtrl', {onLevel: v});
+            await entity.write("genLevelCtrl", {onLevel: v});
             return {state: {start_brightness: v}};
         },
         convertGet: async (entity, key, meta) => {
-            const res = await entity.read('genLevelCtrl', ['onLevel']);
+            const res = await entity.read("genLevelCtrl", ["onLevel"]);
             const v = (res as KeyValueAny)?.onLevel;
-            if (typeof v === 'number' && v !== 255) return {state: {start_brightness: v}};
+            if (typeof v === "number" && v !== 255) return {state: {start_brightness: v}};
         },
     },
 
     brightness_clamped: {
-        key: ['brightness', 'brightness_percent', 'transition'],
+        key: ["brightness", "brightness_percent", "transition"],
         convertSet: async (entity, key, value, meta) => {
             const msg = meta.message || {};
 
             let level: number;
-            if (key === 'brightness') {
+            if (key === "brightness") {
                 level = Number(value);
             } else {
                 level = sdPctToLevel(Number(value));
             }
             if (!Number.isFinite(level)) return;
 
-            const minLvl = store.getValue(meta.device, 'min_brightness_level');
-            const maxLvl = store.getValue(meta.device, 'max_brightness_level');
-            const minClamp = (typeof minLvl === 'number') ? minLvl : 1;
-            const maxClamp = (typeof maxLvl === 'number') ? maxLvl : 254;
+            const minLvl = store.getValue(meta.device, "min_brightness_level");
+            const maxLvl = store.getValue(meta.device, "max_brightness_level");
+            const minClamp = typeof minLvl === "number" ? minLvl : 1;
+            const maxClamp = typeof maxLvl === "number" ? maxLvl : 254;
 
             level = Math.round(sdClamp(level, minClamp, maxClamp));
 
-            const storedSpeed = store.getValue(meta.device, 'dimming_speed');
-            const transitionSec =
-                (msg.transition != null) ? Number(msg.transition) :
-                (typeof storedSpeed === 'number' ? storedSpeed : 0);
+            const storedSpeed = store.getValue(meta.device, "dimming_speed");
+            const transitionSec = msg.transition != null ? Number(msg.transition) : typeof storedSpeed === "number" ? storedSpeed : 0;
 
             const transtime = sdSecToZclTime(transitionSec);
 
             await entity.command(
-                'genLevelCtrl',
-                'moveToLevelWithOnOff',
+                "genLevelCtrl",
+                "moveToLevelWithOnOff",
                 {
                     level,
                     transtime,
@@ -338,13 +336,12 @@ const tzLocalSimplifyDimmer4512791 = {
                 {disableDefaultResponse: true},
             );
 
-            return {state: {state: 'ON', brightness: level}};
+            return {state: {state: "ON", brightness: level}};
         },
     },
 } as const;
 
 // End Simplify Dimmer (4512791)
-
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -1910,10 +1907,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['4512791'],
-        model: '4512791',
-        vendor: 'Namron',
-        description: 'Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)',
+        zigbeeModel: ["4512791"],
+        model: "4512791",
+        vendor: "Namron",
+        description: "Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)",
         // Modern extend for målinger (holder oss “modern-first” uten å dra inn effect)
         extend: [
             m.electricityMeter({
@@ -1923,44 +1920,51 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {multiplier: 1, divisor: 100},
             }),
         ],
-    // On/off + clamped brightness + config setters
+        // On/off + clamped brightness + config setters
         toZigbee: [
-          tz.on_off,
-          tzLocalSimplifyDimmer4512791.brightness_clamped,
-          tzLocalSimplifyDimmer4512791.min_brightness,
-          tzLocalSimplifyDimmer4512791.max_brightness,
-          tzLocalSimplifyDimmer4512791.dimming_speed,
-          tzLocalSimplifyDimmer4512791.start_brightness,
+            tz.on_off,
+            tzLocalSimplifyDimmer4512791.brightness_clamped,
+            tzLocalSimplifyDimmer4512791.min_brightness,
+            tzLocalSimplifyDimmer4512791.max_brightness,
+            tzLocalSimplifyDimmer4512791.dimming_speed,
+            tzLocalSimplifyDimmer4512791.start_brightness,
         ],
         exposes: [
             // Gir state + brightness uten effect
             e.light_brightness(),
-            exposes.numeric('min_brightness', ea.ALL)
-                .withValueMin(1).withValueMax(50)
-                .withDescription('Minimum brightness in % (1–50). Used to clamp brightness.')
-                .withCategory('config'),
+            exposes
+                .numeric("min_brightness", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(50)
+                .withDescription("Minimum brightness in % (1–50). Used to clamp brightness.")
+                .withCategory("config"),
 
-            exposes.numeric('max_brightness', ea.ALL)
-                .withValueMin(50).withValueMax(100)
-                .withDescription('Maximum brightness in % (50–100). Used to clamp brightness.')
-                .withCategory('config'),
+            exposes
+                .numeric("max_brightness", ea.ALL)
+                .withValueMin(50)
+                .withValueMax(100)
+                .withDescription("Maximum brightness in % (50–100). Used to clamp brightness.")
+                .withCategory("config"),
 
-            exposes.numeric('dimming_speed', ea.ALL)
-                .withValueMin(1).withValueMax(10)
-                .withDescription('Default dimming time in seconds (1–10). Applied via command transition.')
-                .withCategory('config'),
+            exposes
+                .numeric("dimming_speed", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(10)
+                .withDescription("Default dimming time in seconds (1–10). Applied via command transition.")
+                .withCategory("config"),
 
-            exposes.numeric('start_brightness', ea.ALL)
-                .withValueMin(1).withValueMax(254)
-                .withDescription('On-level (1–254). startUpCurrentLevel unsupported on this device.')
-                .withCategory('config'),
+            exposes
+                .numeric("start_brightness", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
+                .withDescription("On-level (1–254). startUpCurrentLevel unsupported on this device.")
+                .withCategory("config"),
         ],
 
         configure: (device) => {
-          store.putValue(device, 'min_brightness_level', sdPctToLevel(20));
-          store.putValue(device, 'max_brightness_level', sdPctToLevel(100));
-          store.putValue(device, 'dimming_speed', 1);
+            store.putValue(device, "min_brightness_level", sdPctToLevel(20));
+            store.putValue(device, "max_brightness_level", sdPctToLevel(100));
+            store.putValue(device, "dimming_speed", 1);
         },
-
     },
 ];
