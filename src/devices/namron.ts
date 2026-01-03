@@ -347,7 +347,7 @@ const tzLocal = {
         },
     },
 } as const;
-};
+// };
 //End Simplify Dimmer
 
 export const definitions: DefinitionWithExtend[] = [
