@@ -22547,7 +22547,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ajuasrmx"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ajuasrmx", "_TZE200_hyhl5y36"]),
         model: "MSA201Z",
         vendor: "Merrytek",
         description: "24 GHz human presence sensor (TS0601, _TZE284_ajuasrmx)",
