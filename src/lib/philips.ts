@@ -8,9 +8,11 @@ import * as exposes from "./exposes";
 import {logger} from "./logger";
 import * as modernExtend from "./modernExtend";
 import * as globalStore from "./store";
-import type {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "./types";
+import type {Configure, DefinitionMeta, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "./types";
 import * as utils from "./utils";
 import {determineEndpoint, exposeEndpoints, isObject} from "./utils";
+import {configure as lightConfigure} from "./light";
+import * as light from "./light";
 
 const NS = "zhc:philips";
 const ea = exposes.access;
@@ -68,6 +70,37 @@ interface PhilipsContact {
     commandResponses: never;
 }
 
+export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", undefined, ["attributeReport", "readResponse"]> = {
+    cluster: "manuSpecificPhilips2",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        let retval: KeyValueAny = {};
+
+        logger.info(`convert() with message: ${JSON.stringify(msg)}`, "A");
+
+        if (msg.data.state !== undefined) {
+            logger.info(`convert() binary blob: ${msg.data.state.toString("hex")}`, "A");
+            const decoded = DecodeManuSpecificPhilips2(msg.data.state);
+            logger.info(`convert() after decoding: ${JSON.stringify(decoded)}`, "A");
+            if (decoded.onOff !== undefined) {
+                retval["state"] = decoded.onOff ? "ON": "OFF";
+            }
+            if (decoded.brightness !== undefined) {
+                retval["brightness"] = decoded.brightness;
+            }
+            if (decoded.colorMirek !== undefined) {
+                retval["color_temp"] = decoded.colorMirek;
+            }
+            if (decoded.colorXY !== undefined) {
+                retval["color"] = decoded.colorXY.toObject();
+            }
+        }
+        logger.info(`convert() after parsing: ${JSON.stringify(retval)}`, "A");
+
+        return retval;
+    },
+};
+
 const philipsModernExtend = {
     addCustomClusterManuSpecificPhilipsContact: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificPhilipsContact", {
@@ -86,15 +119,101 @@ const philipsModernExtend = {
         args = {hueEffect: true, turnsOffAtBrightness1: true, ota: true, ...args};
         if (args.hueEffect || args.gradient) args.effect = false;
         if (args.color) args.color = {modes: ["xy", "hs"], ...(isObject(args.color) ? args.color : {})};
-        const result = modernExtend.light(args);
-        result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
+
+        let result = modernExtend.light(args);
+        let toZigbee = result.toZigbee;
+        result.toZigbee = [];
+
+        const keys = toZigbee.map((value, index, array) => value.key).flat().filter((value, index, array) => array.indexOf(value) == index);
+        const philipsLightTz = {
+            key: keys,
+            convertSet: async (entity, key, value, meta) => {
+                logger.info(`convertSet() called with key '${key}'`, "A")
+
+                const {message} = meta;
+                let newState: KeyValue = {};
+
+                let data: Philips2Data = {};
+
+                if (message.state !== undefined) {
+                    data.onOff = typeof message.state == "string" && message.state.toLowerCase() == "on";
+                    newState.state = data.onOff ? "ON" : "OFF";
+                }
+                if (message.brightness != null) {
+                    data.brightness = Number(message.brightness);
+                } else if (message.brightness_percent != null) {
+                    data.brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
+                }
+                if (data.brightness !== undefined) {
+                    newState.brightness = data.brightness;
+                }
+                if (message.color != null) {
+                    let newColor = libColor.Color.fromConverterArg(message.color);
+                    if (!newColor.isHSV()) {
+                        const xy = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY().rounded(4) : newColor.xy;
+                        data.colorXY = xy;
+                        newState.color_mode = "xy";
+                        newState.color = xy.toObject();
+                    }
+                }
+                if (message.color_temp != null || message.color_temp_percent != null) {
+                    const [colorTempMin, colorTempMax] = light.findColorTempRange(entity);
+                    const preset = {warmest: colorTempMax, warm: 454, neutral: 370, cool: 250, coolest: colorTempMin};
+
+                    let color_temp = message.color_temp;
+                    if (message.color_temp_percent != null) {
+                        color_temp = utils
+                            .mapNumberRange(Number(message.color_temp_percent), 0, 100, colorTempMin != null ? colorTempMin : 154, colorTempMax != null ? colorTempMax : 500)
+                            .toString();
+                    }
+                    if (utils.isString(color_temp) && color_temp in preset) {
+                        data.colorMirek = utils.getFromLookup(color_temp, preset);
+                    } else {
+                        data.colorMirek = Number(color_temp);
+                    }
+                    newState.color_mode = "color_temp";
+                    newState.color_temp = data.colorMirek;
+                }
+
+                const foo = Buffer.from(EncodeManuSpecificPhilips2(data));
+                if (foo.every((val) => val == 0)) {
+                    logger.info(`convertSet() failed to parse`, "A");
+                    // We cannot parse this message, send it to the regular 'toZigbee' objects
+                    // TODO: I am not sure this logic is correct; what if multiple keys overlap?
+                    for (const tz of toZigbee) {
+                        if (tz.key.includes(key)) {
+                            return await tz.convertSet(entity, key, value, meta);
+                        }
+                    }
+                } else {
+                    logger.info(`convertSet() after parsing: '${JSON.stringify(data)}'`, "A");
+                    logger.info(`convertSet(): ${foo.toString("hex")}`, "A");
+                    logger.info(`convertSet(): new state: '${JSON.stringify(newState)}'`, "A");
+
+                    const payload = {data: foo};
+                    await entity.command("manuSpecificPhilips2", "multiColor", payload);
+
+                    // TODO: syncColorState ruins the state, since it happily removes "state": "ON" from the KeyValue
+                    //return {state: libColor.syncColorState(newState, meta.state, entity, meta.options)};
+                    return {state: newState};
+                }
+            },
+            convertGet: async (entity, key, meta) => {
+                logger.info(`convertGet() with key '${key}'`, "A");
+                await entity.read("manuSpecificPhilips2", ["state"]);
+            },
+        } satisfies Tz.Converter;
+
+        result.toZigbee.push(philipsLightTz, philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
+        result.fromZigbee.push(manuSpecificPhilips2Fz);
+
         if (args.hueEffect || args.gradient) {
             result.toZigbee.push(philipsTz.effect);
             const effects = ["blink", "breathe", "okay", "channel_change", "candle"];
             if (args.color) effects.push("fireplace", "colorloop");
             if (args.gradient) {
                 result.toZigbee.push(philipsTz.gradient_scene, philipsTz.gradient({reverse: true}));
-                result.fromZigbee.push(philipsFz.gradient);
+                //result.fromZigbee.push(philipsFz.gradient);
                 effects.push("sunrise");
                 if (args.gradient !== true) {
                     effects.push(...args.gradient.extraEffects);
@@ -600,6 +719,246 @@ const philipsFz = {
     } satisfies Fz.Converter<"manuSpecificPhilips2", undefined, ["attributeReport", "readResponse"]>,
 };
 export {philipsFz as fz};
+const clamp = (x: number, low: number, high: number) => Math.min(Math.max(low, x), high);
+const scaleFloatToIntPow2 = (x: number, bits: number) => clamp(x, 0.0, 1.0) * ((2**bits)-1);
+const scaleFloatToPosInt = (x: number, high: number) => clamp(x, 0.0, 1.0) * high;
+const scaleIntPow2ToFloat = (x: number, bits: number) => clamp(x,0,(2**bits)-1) / ((2**bits)-1);
+const scalePosIntToFloat = (x: number, high: number) => clamp(x, 0, high)/high;
+
+export enum HueEffectType {
+    NoEffect=   0x00,
+    Candle=     0x01,
+    Fireplace=  0x02,
+    Prism=      0x03,
+    Sunrise=    0x09,
+    Sparkle=    0x0a,
+    Opal=       0x0b,
+    Glisten=    0x0c,
+    Sunset=     0x0d,
+    Underwater= 0x0e,
+    Cosmos=     0x0f,
+    Sunbeam=    0x10,
+    Enchant=    0x11,
+}
+export enum HueGradientStyle {
+    Linear = 0x0,
+    Scattered = 0x2,
+    Mirrored = 0x4,
+}
+export interface Philips2Data {
+    onOff?: boolean;
+    brightness?: number;
+    colorMirek?: number;
+    colorXY?: ColorXY;
+    fadeSpeed?: number;
+    effectType?: HueEffectType;
+    gradientParams?: {
+        scale: number;
+        offset: number;
+    };
+    effectSpeed?: number;
+    gradientColors?: {
+        style: HueGradientStyle;
+        colors: ColorXY[];
+    }
+}
+
+enum HueFlags {
+    OnOff=             0x0001,
+    Brightness=        0x0002,
+    ColorMirek=        0x0004,
+    ColorXY=           0x0008,
+    FadeSpeed=         0x0010,
+    EffectType=        0x0020,
+    GradientParams=    0x0040,
+    EffectSpeed=       0x0080,
+    GradientColors=    0x0100,
+    Unused9=           0x0200,
+    UnusedA=           0x0400,
+    UnusedB=           0x0800,
+    UnusedC=           0x1000,
+    UnusedD=           0x2000,
+    UnusedE=           0x4000,
+    UnusedF=           0x8000,
+}
+
+interface HueTypeDetails<N extends keyof Philips2Data> {
+    name: N;
+    flag: HueFlags;
+    maxLength: number;
+    encode: (view: DataView, position: number, data: Philips2Data) => number;
+    decode: (view: DataView, position: number, data: Philips2Data) => number;
+};
+
+const ON_OFF_DETAILS: HueTypeDetails<'onOff'> = {
+    name: 'onOff',
+    flag: HueFlags.OnOff,
+    maxLength: 1,
+    encode: (v,p,d) => {v.setUint8(p, d.onOff?1:0); return p+1;},
+    decode: (v,p,d) => {d.onOff = !!v.getUint8(p); return p+1;},
+}
+
+const BRIGHTNESS_DETAILS: HueTypeDetails<'brightness'> = {
+    name: 'brightness',
+    flag: HueFlags.Brightness,
+    maxLength: 1,
+    encode: (v,p,d) => {v.setUint8(p, d.brightness); return p+1;},
+    decode: (v,p,d) => {logger.info(`Retrieving brightness from position ${p}: '${v.getUint8(p)}'`, "A"); d.brightness=v.getUint8(p); return p+1;},
+}
+
+const COLOR_MIREK_DETAILS: HueTypeDetails<'colorMirek'> = {
+    name: 'colorMirek',
+    flag: HueFlags.ColorMirek,
+    maxLength: 2,
+    encode: (v,p,d) => {v.setUint16(p, d.colorMirek, true); return p+2;},
+    decode: (v,p,d) => {d.colorMirek=v.getUint16(p, true); return p+2},
+}
+
+const COLOR_XY_DETAILS: HueTypeDetails<'colorXY'> = {
+    name: 'colorXY',
+    flag: HueFlags.ColorXY,
+    maxLength: 4,
+    encode: (v,p,d) => {
+        v.setUint16(p, scaleFloatToIntPow2(d.colorXY.x,16), true);
+        v.setUint16(p+2, scaleFloatToIntPow2(d.colorXY.y,16), true);
+        return p+4;
+    },
+    decode: (v,p,d) => {
+        d.colorXY=ColorXY.fromObject({
+            x: scaleIntPow2ToFloat(v.getUint16(p, true), 16),
+            y: scaleIntPow2ToFloat(v.getUint16(p+2, true), 16),
+        });
+    return p+4;},
+}
+
+const FADE_SPEED_DETAILS: HueTypeDetails<'fadeSpeed'> = {
+    name: 'fadeSpeed',
+    flag: HueFlags.FadeSpeed,
+    maxLength: 2,
+    encode: (v,p,d) => {v.setUint16(p, d.fadeSpeed, true); return p+2;},
+    decode: (v,p,d) => {d.fadeSpeed=v.getUint16(p, true); return p+2;},
+}
+
+const EFFECT_TYPE_DETAILS: HueTypeDetails<'effectType'> = {
+    name: 'effectType',
+    flag: HueFlags.EffectType,
+    maxLength: 1,
+    encode: (v,p,d) => {v.setUint8(p, d.effectType); return p+1;},
+    decode: (v,p,d) => {d.effectType=v.getUint8(p); return p+1;},
+}
+
+const GRADIENT_PARAMS_DETAILS: HueTypeDetails<'gradientParams'> = {
+    name: 'gradientParams',
+    flag: HueFlags.GradientParams,
+    maxLength: 2,
+    encode: (v,p,d) => {
+        v.setUint8(p, clamp(d.gradientParams.scale * 8, 0, 255));
+        v.setUint8(p+1, clamp(d.gradientParams.offset * 8, 0, 255));
+        return p+2;
+    },
+    decode: (v,p,d) => {
+        d.gradientParams = {
+            scale: v.getUint8(p) / 8.0,
+            offset: v.getUint8(p+1) / 8.0,
+        };
+        return p+2;
+    },
+}
+
+const EFFECT_SPEED_DETAILS: HueTypeDetails<'effectSpeed'> = {
+    name: 'effectSpeed',
+    flag: HueFlags.EffectSpeed,
+    maxLength: 1,
+    encode: (v,p,d) => {v.setUint8(p,scaleFloatToIntPow2(d.effectSpeed, 8)); return p+1;},
+    decode: (v,p,d) => {d.effectSpeed = scaleIntPow2ToFloat(v.getUint8(p),8); return p+1;},
+}
+
+const GRADIENT_COLORS_MAX_X = 0.7347;
+const GRADIENT_COLORS_MAX_Y = 0.8264;
+
+const GRADIENT_COLORS_DETAILS: HueTypeDetails<'gradientColors'> = {
+    name: 'gradientColors',
+    flag: HueFlags.GradientColors,
+    maxLength: 5+(15*3),
+    encode: (v, p, d) => {
+        const color_count = clamp(d.gradientColors.colors.length,0,15);
+        v.setUint8(p, 4 + (color_count * 3));
+        v.setUint8(p + 1, color_count << 4);
+        v.setUint8(p + 2, d.gradientColors.style);
+        v.setUint16(p + 3, 0, true);
+        d.gradientColors.colors.slice(0, color_count).forEach(({x,y},i) => {
+            const scaled_x = scaleFloatToIntPow2(x/GRADIENT_COLORS_MAX_X, 12);
+            const scaled_y = scaleFloatToIntPow2(y/GRADIENT_COLORS_MAX_Y, 12);
+            v.setUint8(p+5 + (i*3), scaled_x & 0xff);
+            v.setUint8(p+6 + (i*3), ((scaled_y & 0xf) << 4) | ((scaled_x & 0xf00) >> 8));
+            v.setUint8(p+7 + (i*3), scaled_y & 0xff)
+        });
+        return p+7+(3*color_count);
+    },
+    decode: (v,p,d) => {
+        const size = v.getUint8(p);
+        const color_count = v.getUint8(p + 1) >> 4;
+        //assert.equal(size, 4 + (color_count*3), "Gradient colors size does not match color count");
+        const style = v.getUint8(p + 2);
+        const colors: ColorXY[] = Array.from(
+            {length: color_count},
+            (_, i) => {
+                const a = v.getUint8(p + 5 + (i * 3));
+                const b = v.getUint8(p + 6 + (i * 3));
+                const c = v.getUint8(p + 7 + (i * 3));
+                return ColorXY.fromObject({
+                    x: scaleIntPow2ToFloat(((b & 0xf) << 8) | a, 12) * GRADIENT_COLORS_MAX_X,
+                    y: scaleIntPow2ToFloat((c << 4) | ((b & 0xf0) >> 4), 12) * GRADIENT_COLORS_MAX_Y,
+                })
+            }
+        )
+        d.gradientColors={style, colors}
+        return p+size+1;
+    },
+}
+
+const HUE_DATA_TYPES = [
+    //Ordered as they appear in the data stream
+    ON_OFF_DETAILS,
+    BRIGHTNESS_DETAILS,
+    COLOR_MIREK_DETAILS,
+    COLOR_XY_DETAILS,
+    FADE_SPEED_DETAILS,
+    EFFECT_TYPE_DETAILS,
+    GRADIENT_COLORS_DETAILS,
+    EFFECT_SPEED_DETAILS,
+    GRADIENT_PARAMS_DETAILS,
+];
+
+export function DecodeManuSpecificPhilips2(data: Buffer) {
+    const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    const flags = view.getUint16(0, true);
+    logger.info(`DecodeManuSpecificPhilips2: flags = '${flags}'`, "A");
+    const decoded: Philips2Data = {}
+    let position = 2;
+    HUE_DATA_TYPES.forEach((htd) => {
+        if(flags & htd.flag) {
+            logger.info(`DecodeManuSpecificPhilips2: name = '${htd.name}', position = '${position}'`, "A");
+            position = htd.decode(view, position, decoded);
+        }
+    })
+    return decoded;
+}
+
+export function EncodeManuSpecificPhilips2(data: Philips2Data) {
+    const buffer = new ArrayBuffer(2 + HUE_DATA_TYPES.map((htd) => htd.maxLength).reduce((pv, cv) => pv+cv, 0));
+    const view = new DataView(buffer);
+    let position = 2;
+    let flags = 0;
+    HUE_DATA_TYPES.forEach((htd) => {
+        if(data[htd.name] !== undefined) {
+            flags |= htd.flag;
+            position = htd.encode(view, position, data);
+        }
+    })
+    view.setUint16(0, flags, true);
+    return buffer.slice(0, position);
+}
 
 // decoder for manuSpecificPhilips2.state
 export function decodeGradientColors(input: string, opts: KeyValue) {
