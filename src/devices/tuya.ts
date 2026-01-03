@@ -22953,18 +22953,11 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_wc2w9t1s"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_wc2w9t1s"]),
         model: "BOT-R9V-ZB",
-        vendor: "Tuya",
+        vendor: "Beok",
         description: "Wall-mount thermostat",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        whiteLabel: [
-            {vendor: "Beok", model: "BOT-R9V-ZB"},
-            {vendor: "AVATTO", model: "ZWT-100-16A"},
-        ],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
         exposes: [
             e
                 .climate()
@@ -23010,10 +23003,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         ],
         meta: {
             tuyaDatapoints: [
-                // DP 1: System on/off switch
                 [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
-
-                // DP 2: Mode (manual/auto/eco) - enum type
                 [
                     2,
                     "preset",
@@ -23023,23 +23013,11 @@ Ensure all 12 segments are defined and separated by spaces.`,
                         eco: tuya.enum(2),
                     }),
                 ],
-
-                // DP 10: Frost protection
                 [10, "frost", tuya.valueConverter.onOff],
-
-                // DP 16: Target temperature setpoint (temp_set)
                 [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
-
-                // DP 18: Minimum temperature limit (lower_temp)
                 [18, "min_temperature_limit", tuya.valueConverter.divideBy10],
-
-                // DP 19: Maximum temperature limit (upper_temp)
                 [19, "max_temperature_limit", tuya.valueConverter.divideBy10],
-
-                // DP 24: Current room temperature (temp_current)
                 [24, "local_temperature", tuya.valueConverter.divideBy10],
-
-                // DP 36: Valve state (open/close) and Running state
                 [
                     36,
                     null,
@@ -23052,11 +23030,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
                         },
                     },
                 ],
-
-                // DP 40: Child lock
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
-
-                // DP 65-71: Week schedules (Monday to Sunday) with format HH:MM/C (4 transitions per day)
                 [65, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
                 [66, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
                 [67, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
@@ -23064,17 +23038,9 @@ Ensure all 12 segments are defined and separated by spaces.`,
                 [69, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
                 [70, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
                 [71, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-
-                // DP 107: Battery percentage
                 [107, "battery", tuya.valueConverter.raw],
-
-                // DP 109: Temperature calibration (temp_calib)
                 [109, "local_temperature_calibration", tuya.valueConverter.divideBy10],
-
-                // DP 112: Temperature deadzone/hysteresis (switch_diff)
                 [112, "deadzone_temperature", tuya.valueConverter.divideBy10],
-
-                // DP 116: Eco mode temperature
                 [116, "eco_temperature", tuya.valueConverter.divideBy10],
             ],
         },
