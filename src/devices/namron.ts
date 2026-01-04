@@ -221,150 +221,106 @@ const sdLevelToPct = (lvl: number) => sdClamp(Math.round((Number(lvl) / 254) * 1
 
 const tzLocalSimplifyDimmer4512791 = {
     min_brightness: {
-        key: ['min_brightness'],
-        convertSet: (
-            entity: Tz.Entity,
-            key: string,
-            value: unknown,
-            meta: Tz.Meta,
-        ) => {
+        key: ["min_brightness"],
+        convertSet: (entity: Tz.Entity, key: string, value: unknown, meta: Tz.Meta) => {
             const pct = Number(value);
-            if (!Number.isFinite(pct) || pct < 1 || pct > 50) throw new Error('min_brightness must be 1..50 (%)');
+            if (!Number.isFinite(pct) || pct < 1 || pct > 50) throw new Error("min_brightness must be 1..50 (%)");
             const lvl = sdClamp(sdPctToLevel(pct), 1, 127);
 
-            const maxLvl = store.getValue(meta.device, 'max_brightness_level');
-            if (typeof maxLvl === 'number' && lvl > maxLvl) {
+            const maxLvl = store.getValue(meta.device, "max_brightness_level");
+            if (typeof maxLvl === "number" && lvl > maxLvl) {
                 throw new Error(`min_brightness (${pct}%) cannot exceed max_brightness (${sdLevelToPct(maxLvl)}%)`);
             }
 
-            store.putValue(meta.device, 'min_brightness_level', lvl);
+            store.putValue(meta.device, "min_brightness_level", lvl);
             return {state: {min_brightness: sdLevelToPct(lvl)}};
         },
-        convertGet: (
-            entity: Tz.Entity,
-            key: string,
-            meta: Tz.Meta,
-        ) => {
-            const lvl = store.getValue(meta.device, 'min_brightness_level');
-            if (typeof lvl === 'number') return {state: {min_brightness: sdLevelToPct(lvl)}};
+        convertGet: (entity: Tz.Entity, key: string, meta: Tz.Meta) => {
+            const lvl = store.getValue(meta.device, "min_brightness_level");
+            if (typeof lvl === "number") return {state: {min_brightness: sdLevelToPct(lvl)}};
         },
     } satisfies Tz.Converter,
 
     max_brightness: {
-        key: ['max_brightness'],
-        convertSet: (
-            entity: Tz.Entity,
-            key: string,
-            value: unknown,
-            meta: Tz.Meta,
-        ) => {
+        key: ["max_brightness"],
+        convertSet: (entity: Tz.Entity, key: string, value: unknown, meta: Tz.Meta) => {
             const pct = Number(value);
-            if (!Number.isFinite(pct) || pct < 50 || pct > 100) throw new Error('max_brightness must be 50..100 (%)');
+            if (!Number.isFinite(pct) || pct < 50 || pct > 100) throw new Error("max_brightness must be 50..100 (%)");
             const lvl = sdClamp(sdPctToLevel(pct), 127, 254);
 
-            const minLvl = store.getValue(meta.device, 'min_brightness_level');
-            if (typeof minLvl === 'number' && lvl < minLvl) {
+            const minLvl = store.getValue(meta.device, "min_brightness_level");
+            if (typeof minLvl === "number" && lvl < minLvl) {
                 throw new Error(`max_brightness (${pct}%) cannot be below min_brightness (${sdLevelToPct(minLvl)}%)`);
             }
 
-            store.putValue(meta.device, 'max_brightness_level', lvl);
+            store.putValue(meta.device, "max_brightness_level", lvl);
             return {state: {max_brightness: sdLevelToPct(lvl)}};
         },
-        convertGet: (
-            entity: Tz.Entity,
-            key: string,
-            meta: Tz.Meta,
-        ) => {
-            const lvl = store.getValue(meta.device, 'max_brightness_level');
-            if (typeof lvl === 'number') return {state: {max_brightness: sdLevelToPct(lvl)}};
+        convertGet: (entity: Tz.Entity, key: string, meta: Tz.Meta) => {
+            const lvl = store.getValue(meta.device, "max_brightness_level");
+            if (typeof lvl === "number") return {state: {max_brightness: sdLevelToPct(lvl)}};
         },
     } satisfies Tz.Converter,
 
     dimming_speed: {
-        key: ['dimming_speed'],
-        convertSet: (
-            entity: Tz.Entity,
-            key: string,
-            value: unknown,
-            meta: Tz.Meta,
-        ) => {
+        key: ["dimming_speed"],
+        convertSet: (entity: Tz.Entity, key: string, value: unknown, meta: Tz.Meta) => {
             const s = Number(value);
-            if (!Number.isFinite(s) || s < 1 || s > 10) throw new Error('dimming_speed must be 1..10 seconds');
-            store.putValue(meta.device, 'dimming_speed', s);
+            if (!Number.isFinite(s) || s < 1 || s > 10) throw new Error("dimming_speed must be 1..10 seconds");
+            store.putValue(meta.device, "dimming_speed", s);
             return {state: {dimming_speed: s}};
         },
-        convertGet: (
-            entity: Tz.Entity,
-            key: string,
-            meta: Tz.Meta,
-        ) => {
-            const s = store.getValue(meta.device, 'dimming_speed');
-            if (typeof s === 'number') return {state: {dimming_speed: s}};
+        convertGet: (entity: Tz.Entity, key: string, meta: Tz.Meta) => {
+            const s = store.getValue(meta.device, "dimming_speed");
+            if (typeof s === "number") return {state: {dimming_speed: s}};
         },
     } satisfies Tz.Converter,
 
     start_brightness: {
-        key: ['start_brightness'],
-        convertSet: async (
-            entity: Tz.Entity,
-            key: string,
-            value: unknown,
-            meta: Tz.Meta,
-        ) => {
+        key: ["start_brightness"],
+        convertSet: async (entity: Tz.Entity, key: string, value: unknown, meta: Tz.Meta) => {
             const v = Math.round(Number(value));
-            if (!Number.isFinite(v) || v < 1 || v > 254) throw new Error('start_brightness must be 1..254');
-            await entity.write('genLevelCtrl', {onLevel: v});
+            if (!Number.isFinite(v) || v < 1 || v > 254) throw new Error("start_brightness must be 1..254");
+            await entity.write("genLevelCtrl", {onLevel: v});
             return {state: {start_brightness: v}};
         },
-        convertGet: async (
-            entity: Tz.Entity,
-            key: string,
-            meta: Tz.Meta,
-        ) => {
-            const res = await entity.read('genLevelCtrl', ['onLevel']);
+        convertGet: async (entity: Tz.Entity, key: string, meta: Tz.Meta) => {
+            const res = await entity.read("genLevelCtrl", ["onLevel"]);
             const v = (res as KeyValue)?.onLevel;
-            if (typeof v === 'number' && v !== 255) return {state: {start_brightness: v}};
+            if (typeof v === "number" && v !== 255) return {state: {start_brightness: v}};
         },
     } satisfies Tz.Converter,
 
     brightness_clamped: {
-        key: ['brightness', 'brightness_percent', 'transition'],
-        convertSet: async (
-            entity: Tz.Entity,
-            key: string,
-            value: unknown,
-            meta: Tz.Meta,
-        ) => {
+        key: ["brightness", "brightness_percent", "transition"],
+        convertSet: async (entity: Tz.Entity, key: string, value: unknown, meta: Tz.Meta) => {
             const msg = meta.message || {};
-            let level = (key === 'brightness') ? Number(value) : sdPctToLevel(Number(value));
+            let level = key === "brightness" ? Number(value) : sdPctToLevel(Number(value));
             if (!Number.isFinite(level)) return;
 
-            const minLvl = store.getValue(meta.device, 'min_brightness_level');
-            const maxLvl = store.getValue(meta.device, 'max_brightness_level');
-            const minClamp = (typeof minLvl === 'number') ? minLvl : 1;
-            const maxClamp = (typeof maxLvl === 'number') ? maxLvl : 254;
+            const minLvl = store.getValue(meta.device, "min_brightness_level");
+            const maxLvl = store.getValue(meta.device, "max_brightness_level");
+            const minClamp = typeof minLvl === "number" ? minLvl : 1;
+            const maxClamp = typeof maxLvl === "number" ? maxLvl : 254;
 
             level = Math.round(sdClamp(level, minClamp, maxClamp));
 
-            const storedSpeed = store.getValue(meta.device, 'dimming_speed');
-            const transitionSec =
-                (msg.transition != null) ? Number(msg.transition) :
-                (typeof storedSpeed === 'number' ? storedSpeed : 0);
+            const storedSpeed = store.getValue(meta.device, "dimming_speed");
+            const transitionSec = msg.transition != null ? Number(msg.transition) : typeof storedSpeed === "number" ? storedSpeed : 0;
 
             const transtime = sdSecToZclTime(transitionSec);
 
             await entity.command(
-                'genLevelCtrl',
-                'moveToLevelWithOnOff',
+                "genLevelCtrl",
+                "moveToLevelWithOnOff",
                 {level, transtime, optionsMask: 0, optionsOverride: 0},
                 {disableDefaultResponse: true},
             );
 
-            return {state: {state: 'ON', brightness: level}};
+            return {state: {state: "ON", brightness: level}};
         },
     } satisfies Tz.Converter,
 };
-
 
 export const definitions: DefinitionWithExtend[] = [
     {
