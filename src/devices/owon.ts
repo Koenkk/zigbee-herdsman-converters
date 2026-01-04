@@ -461,7 +461,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "OWON",
         description: "Smart plug",
         extend: [
-            m.onOff({ powerOnBehavior: false }),
+            m.onOff({powerOnBehavior: false}),
             m.electricityMeter({
                 cluster: "metering",
             }),
@@ -499,7 +499,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Oz Smart Things", model: "WSP403"}],
         description: "Smart plug",
         extend: [
-            m.onOff({ powerOnBehavior: false }),
+            m.onOff({powerOnBehavior: false}),
             m.electricityMeter({
                 cluster: "metering",
             }),
