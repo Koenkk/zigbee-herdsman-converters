@@ -2693,13 +2693,13 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.gas(),
             tuya.exposes.selfTestResult(),
-            e.binary('preheat', ea.STATE, true, false).withDescription('Indicates sensor preheat is active'),
+            e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'gas', tuya.valueConverter.trueFalse0],
-                [9, 'self_test_result', tuya.valueConverter.selfTestResult],
-                [16, 'preheat', tuya.valueConverter.raw],
+                [1, "gas", tuya.valueConverter.trueFalse0],
+                [9, "self_test_result", tuya.valueConverter.selfTestResult],
+                [16, "preheat", tuya.valueConverter.raw],
             ],
         },
     },
