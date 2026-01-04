@@ -255,6 +255,30 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["3RPL01084Z"],
+        model: "3RPL01084Z",
+        vendor: "Third Reality",
+        description: "Multi-Function Smart Presence Sensor R3",
+        ota: true,
+        extend: [
+            m.occupancy(),
+            m.illuminance(),
+            m.numeric({
+                name: "volatile_organic_compounds",
+                access: "STATE_GET",
+                cluster: "msFormaldehyde",
+                attribute: "measuredValue",
+                unit: "ppm",
+                scale: 1000,
+                precision: 2,
+                description: "Measured VOC value",
+            }),
+            m.light({
+                color: { modes: ["xy"], enhancedHue: true },
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["3RDS17BZ"],
         model: "3RDS17BZ",
         vendor: "Third Reality",
