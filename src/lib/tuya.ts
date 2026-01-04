@@ -436,6 +436,17 @@ export class Enum extends Base {}
 const enumConstructor = (value: number) => new Enum(value);
 export {enumConstructor as enum};
 
+export const BacklightColorEnum = {
+    red: enumConstructor(0),
+    blue: enumConstructor(1),
+    green: enumConstructor(2),
+    white: enumConstructor(3),
+    yellow: enumConstructor(4),
+    magenta: enumConstructor(5),
+    cyan: enumConstructor(6),
+    warm_white: enumConstructor(7),
+} as const;
+
 export class Bitmap extends Base {}
 
 type LookupMap = {[s: string]: number | boolean | Enum | string};
