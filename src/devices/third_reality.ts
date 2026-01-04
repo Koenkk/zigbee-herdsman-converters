@@ -258,7 +258,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RPL01084Z"],
         model: "3RPL01084Z",
         vendor: "Third Reality",
-        description: "Multi-Function Smart Presence Sensor R3",
+        description: "Multi-function smart presence sensor R3",
         ota: true,
         extend: [
             m.occupancy(),
