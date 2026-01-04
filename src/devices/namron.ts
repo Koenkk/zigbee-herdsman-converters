@@ -314,12 +314,7 @@ const tzLocalSimplifyDimmer4512791 = {
             level = Math.round(sdClamp(level, minClamp, maxClamp));
 
             const storedSpeed = store.getValue(meta.device, "dimming_speed");
-            const transitionSec =
-                msg["transition"] != null
-                    ? Number(msg["transition"])
-                    : typeof storedSpeed === "number"
-                      ? storedSpeed
-                      : 0;
+            const transitionSec = msg["transition"] != null ? Number(msg["transition"]) : typeof storedSpeed === "number" ? storedSpeed : 0;
 
             const transtime = sdSecToZclTime(transitionSec);
 
