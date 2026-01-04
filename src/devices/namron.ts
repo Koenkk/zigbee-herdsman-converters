@@ -9,7 +9,7 @@ import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
 import * as store from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz, KeyValue, Meta, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const ea = exposes.access;
@@ -211,6 +211,20 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
 };
+// -----------------------------------------------------------------------------
+// Namron Simplify Dimmer (4512791) helpers + toZigbee converters
+// Place this block BEFORE: export const definitions: DefinitionWithExtend[] = [
+// -----------------------------------------------------------------------------
+
+// Derive repo-correct types from Tz.Converter (avoids importing Meta/Endpoint/Group)
+type TzConvertSet = NonNullable<Tz.Converter["convertSet"]>;
+type TzEntity = Parameters<TzConvertSet>[0];
+type TzMeta = Parameters<TzConvertSet>[3];
+
+type TzConvertGet = NonNullable<Tz.Converter["convertGet"]>;
+type TzGetEntity = Parameters<TzConvertGet>[0];
+type TzGetMeta = Parameters<TzConvertGet>[2];
+
 // Simplify Dimmer (4512791) — local toZigbee converters (repo-check-safe)
 const sdClamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 const sdSecToZclTime = (s: number) => Math.max(0, Math.round(Number(s || 0) * 10)); // ZCL = 1/10s
@@ -220,9 +234,10 @@ const sdPctToLevel = (pct: number) => sdClamp(Math.round((Number(pct) / 100) * 2
 const sdLevelToPct = (lvl: number) => sdClamp(Math.round((Number(lvl) / 254) * 100), 1, 100);
 
 const tzLocalSimplifyDimmer4512791 = {
+    // Software clamp only -> stored in store, no device attribute to read => no convertGet
     min_brightness: {
         key: ["min_brightness"],
-        convertSet: (entity: Group | Endpoint, key: string, value: unknown, meta: Meta) => {
+        convertSet: (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
             const pct = Number(value);
             if (!Number.isFinite(pct) || pct < 1 || pct > 50) throw new Error("min_brightness must be 1..50 (%)");
             const lvl = sdClamp(sdPctToLevel(pct), 1, 127);
@@ -237,9 +252,10 @@ const tzLocalSimplifyDimmer4512791 = {
         },
     } satisfies Tz.Converter,
 
+    // Software clamp only -> stored in store, no device attribute to read => no convertGet
     max_brightness: {
         key: ["max_brightness"],
-        convertSet: (entity: Group | Endpoint, key: string, value: unknown, meta: Meta) => {
+        convertSet: (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
             const pct = Number(value);
             if (!Number.isFinite(pct) || pct < 50 || pct > 100) throw new Error("max_brightness must be 50..100 (%)");
             const lvl = sdClamp(sdPctToLevel(pct), 127, 254);
@@ -254,9 +270,10 @@ const tzLocalSimplifyDimmer4512791 = {
         },
     } satisfies Tz.Converter,
 
+    // Software default transition only -> stored in store, we do NOT write unsupported attributes => no convertGet
     dimming_speed: {
         key: ["dimming_speed"],
-        convertSet: (entity: Group | Endpoint, key: string, value: unknown, meta: Meta) => {
+        convertSet: (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
             const s = Number(value);
             if (!Number.isFinite(s) || s < 1 || s > 10) throw new Error("dimming_speed must be 1..10 seconds");
             store.putValue(meta.device, "dimming_speed", s);
@@ -264,23 +281,28 @@ const tzLocalSimplifyDimmer4512791 = {
         },
     } satisfies Tz.Converter,
 
+    // Device-backed via genLevelCtrl.onLevel (startUpCurrentLevel unsupported on your device)
     start_brightness: {
         key: ["start_brightness"],
-        convertSet: async (entity: Group | Endpoint, key: string, value: unknown, meta: Meta) => {
+        convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
             const v = Math.round(Number(value));
             if (!Number.isFinite(v) || v < 1 || v > 254) throw new Error("start_brightness must be 1..254");
             await entity.write("genLevelCtrl", {onLevel: v});
             return {state: {start_brightness: v}};
         },
-        convertGet: async (entity: Group | Endpoint, key: string, meta: Meta): Promise<void> => {
+        // In this repo, convertGet must be Promise<void>: read attribute and let fromZigbee update state
+        convertGet: async (entity: TzGetEntity, key: string, meta: TzGetMeta): Promise<void> => {
             await entity.read("genLevelCtrl", ["onLevel"]);
         },
     } satisfies Tz.Converter,
 
+    // Brightness set with clamp + required optionsMask/optionsOverride to avoid "optionsMask is missing"
     brightness_clamped: {
         key: ["brightness", "brightness_percent", "transition"],
-        convertSet: async (entity: Group | Endpoint, key: string, value: unknown, meta: Meta) => {
-            const msg = meta.message || {};
+        convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
+            // meta.message typing varies; keep it safe without any
+            const msg = (meta as unknown as {message?: Record<string, unknown>}).message ?? {};
+
             let level = key === "brightness" ? Number(value) : sdPctToLevel(Number(value));
             if (!Number.isFinite(level)) return;
 
@@ -293,7 +315,11 @@ const tzLocalSimplifyDimmer4512791 = {
 
             const storedSpeed = store.getValue(meta.device, "dimming_speed");
             const transitionSec =
-                msg.transition != null ? Number(msg.transition) : typeof storedSpeed === "number" ? storedSpeed : 0;
+                msg["transition"] != null
+                    ? Number(msg["transition"])
+                    : typeof storedSpeed === "number"
+                      ? storedSpeed
+                      : 0;
 
             const transtime = sdSecToZclTime(transitionSec);
 
@@ -308,6 +334,9 @@ const tzLocalSimplifyDimmer4512791 = {
         },
     } satisfies Tz.Converter,
 };
+// -----------------------------------------------------------------------------
+// End Simplify Dimmer (4512791)
+// -----------------------------------------------------------------------------
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -1877,7 +1906,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512791",
         vendor: "Namron",
         description: "Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)",
-        // Modern extend for målinger (holder oss “modern-first” uten å dra inn effect)
+
+        // Modern extend kun for målinger (ingen effect)
         extend: [
             m.electricityMeter({
                 power: {multiplier: 1, divisor: 10},
@@ -1886,6 +1916,10 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {multiplier: 1, divisor: 100},
             }),
         ],
+
+        // Sørger for at state/brightness kommer inn (uten å dra inn modern light/effect)
+        fromZigbee: [fz.on_off, fz.brightness],
+
         // On/off + clamped brightness + config setters
         toZigbee: [
             tz.on_off,
@@ -1895,9 +1929,11 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocalSimplifyDimmer4512791.dimming_speed,
             tzLocalSimplifyDimmer4512791.start_brightness,
         ],
+
         exposes: [
             // Gir state + brightness uten effect
             e.light_brightness(),
+
             exposes
                 .numeric("min_brightness", ea.ALL)
                 .withValueMin(1)
@@ -1916,7 +1952,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("dimming_speed", ea.ALL)
                 .withValueMin(1)
                 .withValueMax(10)
-                .withDescription("Default dimming time in seconds (1–10). Applied via command transition.")
+                .withDescription("Default dimming time in seconds (1–10). Used as default transition for brightness commands.")
                 .withCategory("config"),
 
             exposes
@@ -1928,6 +1964,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
 
         configure: (device) => {
+            // Defaults så de ikke blir null
             store.putValue(device, "min_brightness_level", sdPctToLevel(20));
             store.putValue(device, "max_brightness_level", sdPctToLevel(100));
             store.putValue(device, "dimming_speed", 1);
