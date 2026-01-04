@@ -1006,6 +1006,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        whiteLabel: [
+            {model: "HS1SA-E", description: "Smoke detector", fingerprint: [{modelID: "SmokeSensor-EF-3.0"}]},
+        ],
         exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
@@ -1960,7 +1963,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["HS1SA-EF-3.0"],
-        model: "HS1SA-E",
+        model: "HS1SA-EF",
         vendor: "Heiman",
         description: "Smoke detector",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
