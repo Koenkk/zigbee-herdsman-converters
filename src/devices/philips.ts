@@ -4277,16 +4277,16 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003117201", "929003115901"],
+        zigbeeModel: ["929003117101", "929003117201"],
         model: "929003117201",
         vendor: "Philips",
         description: "Hue Perifo ceiling light, 3 pendant (White)",
         whiteLabel: [
             {
-                model: "929003115901",
+                model: "929003117101",
                 vendor: "Philips",
                 description: "Hue Perifo ceiling light, 3 pendant (Black)",
-                fingerprint: [{modelID: "929003115901"}],
+                fingerprint: [{modelID: "929003117101"}],
             },
         ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
