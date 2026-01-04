@@ -2392,7 +2392,7 @@ export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "attributeRepor
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
         const clickMapping: KeyValueNumberString = {0: "release", 1: "single", 2: "double", 3: "hold"};
-        return {action: `${clickMapping[msg.data[1]]}`};
+        return {action: `${clickMapping[msg.data["1"]]}`};
     },
 };
 export const tuya_switch_scene: Fz.Converter<"genOnOff", undefined, "commandTuyaAction"> = {
