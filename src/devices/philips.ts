@@ -3572,7 +3572,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["5047430P6"],
+        zigbeeModel: ["5047430P6", "929003048201_01"],
         model: "5047430P6",
         vendor: "Philips",
         description: "Hue White ambiance Buckram quadruple spotlight",
