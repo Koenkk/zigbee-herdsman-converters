@@ -274,7 +274,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Measured VOC value",
             }),
             m.light({
-                color: { modes: ["xy"], enhancedHue: true },
+                color: {modes: ["xy"], enhancedHue: true},
             }),
         ],
     },
