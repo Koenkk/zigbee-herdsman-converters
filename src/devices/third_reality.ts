@@ -1030,11 +1030,10 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RAP0149BZ"],
         model: "3RAP0149BZ",
         vendor: "Third Reality",
-        description: "Smart Air Pressure Sensor",
+        description: "Smart air pressure sensor",
         extend: [
             m.battery(),
-            m.pressure(),
-            m.pressure({attribute: {ID: 0xff01, type: 0x23}, name: "Pressure", unit: "Pa", scale: 1}),
+            m.pressure({attribute: {ID: 0xff01, type: 0x23}, name: "pressure", unit: "Pa", scale: 1}),
             m.commandsOnOff(),
             m.deviceAddCustomCluster("3rAirsensorSpecialCluster", {
                 ID: 0xff01,
@@ -1047,7 +1046,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.numeric<"3rAirsensorSpecialCluster", ThirdAirPressureSensor>({
-                name: "Pressure Raised Threshold",
+                name: "pressure_raised_threshold",
                 unit: "Pa",
                 valueMin: 0,
                 valueMax: 65535,
@@ -1057,7 +1056,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
             m.numeric<"3rAirsensorSpecialCluster", ThirdAirPressureSensor>({
-                name: "Pressure Falls Threshold",
+                name: "pressure_falls_threshold",
                 unit: "Pa",
                 valueMin: 0,
                 valueMax: 65535,
