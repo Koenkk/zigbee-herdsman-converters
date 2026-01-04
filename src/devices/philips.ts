@@ -307,6 +307,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}})],
     },
     {
+        zigbeeModel: ["LTA017"],
+        model: "9290038551",
+        vendor: "Philips",
+        description: "Hue white ambiance A19 810lm with Bluetooth E26",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}})],
+    },
+    {
         zigbeeModel: ["LTA018"],
         model: "9290038552",
         vendor: "Philips",
@@ -813,7 +820,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
-        zigbeeModel: ["LCP001", "LCP002", "4090331P9_01", "4090331P9_02", "929003053301_01", "929003053301_02"],
+        zigbeeModel: ["LCP001", "LCP002", "4090331P9_01", "4090331P9_02", "929003053301_01", "929003053301_02", "929003785101_01", "929003785101_02"],
         model: "4090331P9",
         vendor: "Philips",
         description: "Hue Ensis (white)",
@@ -2077,10 +2084,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["929003597802"],
+        zigbeeModel: ["929003597802", "929003597602"],
         model: "929003597802",
         vendor: "Philips",
         description: "Hue black ambiance Aurelle square panel light",
+        whiteLabel: [
+            {
+                model: "929003597602",
+                vendor: "Philips",
+                description: "Hue black ambiance Aurelle square panel light 60x60",
+                fingerprint: [{modelID: "929003597602"}],
+            },
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
@@ -2091,7 +2106,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["929003099001", "929003099201"],
+        zigbeeModel: ["929003099001", "929003099201", "929003099002"],
         model: "929003099001",
         vendor: "Philips",
         description: "Hue white ambiance Aurelle square panel light",

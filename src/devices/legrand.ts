@@ -722,7 +722,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "281506",
         vendor: "Legrand",
         description: "Triple light switch",
-        extend: [m.deviceEndpoints({endpoints: {right: 1, center: 2, left: 3}}), m.onOff({endpointNames: ["right", "center", "left"]})],
+        ota: true,
+        fromZigbee: [fz.identify, fz.legrand_binary_input_on_off, fzLegrand.cluster_fc01],
+        toZigbee: [tzLegrand.identify, tzLegrand.led_mode],
+        exposes: [eLegrand.ledInDark(), eLegrand.ledIfOn()],
+        extend: [
+            m.deviceEndpoints({endpoints: {right: 1, center: 2, left: 3}}),
+            m.onOff({configureReporting: true, endpointNames: ["right", "center", "left"]}),
+        ],
     },
     {
         zigbeeModel: [" Wireless Color Dimmer\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"],

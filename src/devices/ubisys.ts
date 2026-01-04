@@ -131,7 +131,7 @@ const ubisys = {
                 ) => {
                     if (!jsonAttr) jsonAttr = attr;
                     if (jsonAttr.startsWith("ubisys")) {
-                        jsonAttr = jsonAttr.substring(6, 1).toLowerCase + jsonAttr.substring(7);
+                        jsonAttr = jsonAttr.substring(6, 7).toLowerCase() + jsonAttr.substring(7);
                     }
                     if (value[jsonAttr] !== undefined) {
                         let attrValue = value[jsonAttr];
@@ -151,14 +151,16 @@ const ubisys = {
                 let mode = (await entity.read("closuresWindowCovering", ["windowCoveringMode"])).windowCoveringMode;
                 const modeCalibrationBitMask = 0x02;
                 if (mode & modeCalibrationBitMask) {
-                    await entity.write("closuresWindowCovering", {windowCoveringMode: mode & ~modeCalibrationBitMask});
+                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
+                        ubisysWindowCoveringMode: mode & ~modeCalibrationBitMask,
+                    });
                     await sleepSeconds(2);
                 }
                 // delay a bit if reconfiguring basic configuration attributes
-                await writeAttrFromJson("windowCoveringType", undefined, undefined, 2);
-                await writeAttrFromJson("configStatus", undefined, undefined, 2);
+                await writeAttrFromJson("ubisysWindowCoveringType", undefined, undefined, 2);
+                await writeAttrFromJson("ubisysConfigStatus", undefined, undefined, 2);
                 // @ts-expect-error ignore
-                if (await writeAttrFromJson("windowCoveringMode", undefined, undefined, 2)) {
+                if (await writeAttrFromJson("ubisysWindowCoveringMode", undefined, undefined, 2)) {
                     mode = value.windowCoveringMode;
                 }
                 if (hasCalibrate) {
@@ -172,10 +174,10 @@ const ubisys = {
                     await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>(
                         "closuresWindowCovering",
                         {
-                            installedOpenLimitLiftCm: 0,
-                            installedClosedLimitLiftCm: 240,
-                            installedOpenLimitTiltDdegree: 0,
-                            installedClosedLimitTiltDdegree: 900,
+                            ubisysInstalledOpenLimitLiftCm: 0,
+                            ubisysInstalledClosedLimitLiftCm: 240,
+                            ubisysInstalledOpenLimitTiltDdegree: 0,
+                            ubisysInstalledClosedLimitTiltDdegree: 900,
                             ubisysLiftToTiltTransitionSteps: 0xffff,
                             ubisysTotalSteps: 0xffff,
                             ubisysLiftToTiltTransitionSteps2: 0xffff,
@@ -185,7 +187,9 @@ const ubisys = {
                     );
                     // enable calibration mode
                     await sleepSeconds(2);
-                    await entity.write("closuresWindowCovering", {windowCoveringMode: mode | modeCalibrationBitMask});
+                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
+                        ubisysWindowCoveringMode: mode | modeCalibrationBitMask,
+                    });
                     await sleepSeconds(2);
                     // move down a bit and back up to detect upper limit
                     log("  Moving cover down a bit...");
@@ -204,10 +208,10 @@ const ubisys = {
                     await waitUntilStopped();
                 }
                 // now write any attribute values present in JSON
-                await writeAttrFromJson("installedOpenLimitLiftCm");
-                await writeAttrFromJson("installedClosedLimitLiftCm");
-                await writeAttrFromJson("installedOpenLimitTiltDdegree");
-                await writeAttrFromJson("installedClosedLimitTiltDdegree");
+                await writeAttrFromJson("ubisysInstalledOpenLimitLiftCm");
+                await writeAttrFromJson("ubisysInstalledClosedLimitLiftCm");
+                await writeAttrFromJson("ubisysInstalledOpenLimitTiltDdegree");
+                await writeAttrFromJson("ubisysInstalledClosedLimitTiltDdegree");
                 await writeAttrFromJson("ubisysTurnaroundGuardTime");
                 await writeAttrFromJson("ubisysLiftToTiltTransitionSteps");
                 await writeAttrFromJson("ubisysTotalSteps");
@@ -233,7 +237,9 @@ const ubisys = {
                     log("  Finalizing calibration...");
                     // disable calibration mode again
                     await sleepSeconds(2);
-                    await entity.write("closuresWindowCovering", {windowCoveringMode: mode & ~modeCalibrationBitMask});
+                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
+                        ubisysWindowCoveringMode: mode & ~modeCalibrationBitMask,
+                    });
                     await sleepSeconds(2);
                     // re-read and dump all relevant attributes
                     log("  Done - will now read back the results.");

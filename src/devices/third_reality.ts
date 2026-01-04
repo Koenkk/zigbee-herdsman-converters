@@ -176,6 +176,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zoneAttributes: ["alarm_1", "battery_low"],
             }),
             m.battery(),
+            m.forcePowerSource({powerSource: "Battery"}),
             m.binary<"3rWaterSensorcluster", ThirdWaterSensor>({
                 name: "water_leak_buzzer",
                 valueOn: ["ON", 1],
@@ -239,8 +240,9 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart motion sensor R1",
         ota: true,
         extend: [
+            m.forcePowerSource({powerSource: "Battery"}),
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}),
-            m.battery({voltage: true}),
+            m.battery({voltage: true, percentageReporting: false}),
             m.deviceAddCustomCluster("3rRadarSpecialCluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
@@ -505,7 +507,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Soil Moisture Sensor",
         extend: [
             m.temperature(),
-            m.humidity(),
             m.soilMoisture(),
             m.battery(),
             m.deviceAddCustomCluster("3rSoilSpecialCluster", {

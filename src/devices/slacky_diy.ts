@@ -30,6 +30,7 @@ const model_r08 = "THERM_SLACKY_DIY_R08";
 const model_r09 = "THERM_SLACKY_DIY_R09";
 //const model_r0a = "THERM_SLACKY_DIY_R0A";
 const model_r0b = "THERM_SLACKY_DIY_R0B";
+const modelR0c = "THERM_SLACKY_DIY_R0C";
 
 const attrThermSensorUser = 0xf000;
 const attrThermFrostProtect = 0xf001;
@@ -66,6 +67,7 @@ const attrHumidityOffset = 0xf005;
 const attrHumidityOnOff = 0xf006;
 const attrHumidityLow = 0xf007;
 const attrHumidityHigh = 0xf008;
+const attrRepeatCommand = 0xf009;
 
 const attrCo2Calibration = 0xf008;
 const attrFeaturesSensors = 0xf009;
@@ -198,6 +200,18 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
+    thermostat_humidity_offset: {
+        cluster: "msRelativeHumidity",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            if (msg.data[attrHumidityOffset] !== undefined) {
+                const data = Number.parseInt(msg.data[attrHumidityOffset] as string, 10) / 100;
+                result.humidity_offset = data;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -215,6 +229,18 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genLevelCtrl", ["currentLevel"]);
+        },
+    } satisfies Tz.Converter,
+    thermostat_humidity_offset: {
+        key: ["humidity_offset"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+            const humidity_offset = Number(Math.round(value)) * 100;
+            await entity.write("msRelativeHumidity", {[attrHumidityOffset]: {value: humidity_offset, type: 0x29}});
+            return {readAfterWriteTime: 250, state: {humidity_offset: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("msRelativeHumidity", [attrHumidityOffset]);
         },
     } satisfies Tz.Converter,
     thermostat_sensor_used: {
@@ -458,6 +484,7 @@ const tzLocal = {
 };
 
 const localFromZigbeeThermostat = [
+    fz.humidity,
     fz.thermostat,
     fz.fan,
     fz.namron_hvac_user_interface,
@@ -466,6 +493,7 @@ const localFromZigbeeThermostat = [
     fzLocal.thermostat_schedule,
     fzLocal.display_brightness,
     fzLocal.fancontrol_control,
+    fzLocal.thermostat_humidity_offset,
 ];
 
 const localToZigbeeThermostat = [
@@ -502,6 +530,7 @@ const localToZigbeeThermostat = [
     tzLocal.thermostat_mode_child_lock,
     tzLocal.thermostat_manuf_name,
     tzLocal.fancontrol_control,
+    tzLocal.thermostat_humidity_offset,
 ];
 
 interface LocalActionExtendArgs {
@@ -596,7 +625,20 @@ async function configureCommon(device: Zh.Device, coordinatorEndpoint: Zh.Endpoi
     await endpoint1.read("hvacFanCtrl", ["fanMode"]);
     await endpoint1.read("hvacFanCtrl", [attrFanCtrlControl]);
     await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat", "hvacUserInterfaceCfg", "hvacFanCtrl"]);
-    if (definition.model === model_r03 || definition.model === model_r04 || definition.model === model_r09) {
+    if (definition.model === modelR0c) {
+        await reporting.bind(endpoint1, coordinatorEndpoint, ["msRelativeHumidity"]);
+        await endpoint1.read("msRelativeHumidity", ["measuredValue"]);
+        await endpoint1.read("msRelativeHumidity", [attrHumidityOffset]);
+        const payload_humidity = [
+            {attribute: {ID: 0x0000, type: 0x21}, minimumReportInterval: 10, maximumReportInterval: 3600, reportableChange: 10},
+        ];
+        await endpoint1.configureReporting("msRelativeHumidity", payload_humidity);
+        const payload_humidity_offset = [
+            {attribute: {ID: attrHumidityOffset, type: 0x29}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+        ];
+        await endpoint1.configureReporting("msRelativeHumidity", payload_humidity_offset);
+    }
+    if (definition.model === model_r03 || definition.model === model_r04 || definition.model === model_r09 || definition.model === modelR0c) {
         await reporting.bind(endpoint1, coordinatorEndpoint, ["genLevelCtrl"]);
         const payloadCurrentLevel = [
             {attribute: {ID: 0x0000, type: 0x20}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
@@ -644,7 +686,7 @@ async function configureCommon(device: Zh.Device, coordinatorEndpoint: Zh.Endpoi
         {attribute: {ID: attrThermHeatProtect, type: 0x29}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
     ];
     await endpoint1.configureReporting("hvacThermostat", payload_heat_protect);
-    if (definition.model === model_r03 || definition.model === model_r04 || definition.model === model_r07) {
+    if (definition.model === model_r03 || definition.model === model_r04 || definition.model === model_r07 || definition.model === modelR0c) {
         const payload_eco_mode = [
             {attribute: {ID: attrThermEcoMode, type: 0x30}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
         ];
@@ -1407,6 +1449,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "ENERGOMERA-CE208BY": 5,
                     "NEVA-MT124": 6,
                     "NARTIS-100": 7,
+                    "NARTIS-I100": 8,
                 },
                 cluster: "seMetering",
                 attribute: {ID: attrElCityMeterModelPreset, type: 0x30},
@@ -2222,7 +2265,95 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["TS0201-z-SlD"],
+        zigbeeModel: ["Tuya_Thermostat_r0C"],
+        model: "THERM_SLACKY_DIY_R0C",
+        vendor: "Slacky-DIY",
+        description: "Tuya Thermostat for Floor Heating with custom Firmware",
+        endpoint: (device) => {
+            return {day: 1, night: 2};
+        },
+        fromZigbee: localFromZigbeeThermostat,
+        toZigbee: localToZigbeeThermostat,
+        configure: configureCommon,
+        // Should be empty, unless device can be controlled (e.g. lights, switches).
+        exposes: [
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
+            e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
+            e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
+            e
+                .numeric("deadzone_temperature", ea.ALL)
+                .withDescription("The delta between local_temperature and current_heating_setpoint to trigger activity")
+                .withUnit("°C")
+                .withValueMin(1)
+                .withValueMax(5)
+                .withValueStep(1),
+            e
+                .numeric("min_heat_setpoint_limit", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Minimum Heating set point limit")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(1),
+            e
+                .numeric("max_heat_setpoint_limit", ea.ALL)
+                .withDescription("Maximum Heating set point limit")
+                .withUnit("°C")
+                .withValueMin(15)
+                .withValueMax(45)
+                .withValueStep(1),
+            e
+                .numeric("frost_protect", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Protection against minimum freezing temperature")
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1),
+            e
+                .numeric("heat_protect", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Protection against maximum heating temperature")
+                .withValueMin(25)
+                .withValueMax(70)
+                .withValueStep(1),
+            e.numeric("brightness", ea.ALL).withValueMin(0).withValueMax(9).withDescription("Screen brightness").withEndpoint("day"),
+            e.binary("eco_mode", ea.ALL, "On", "Off").withDescription("On/Off Eco Mode"),
+            e
+                .numeric("eco_mode_heat_temperature", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Set heat temperature in eco mode")
+                .withValueMin(5)
+                .withValueMax(45)
+                .withValueStep(1),
+            e.humidity(),
+            e
+                .numeric("humidity_offset", ea.ALL)
+                .withUnit("%")
+                .withDescription("Offset to add/subtract to the inside humidity")
+                .withValueMin(-95)
+                .withValueMax(95)
+                .withValueStep(1),
+            e.numeric("outdoor_temperature", ea.STATE_GET).withUnit("°C").withDescription("Current temperature measured from the floor outer sensor"),
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSetpoint("occupied_heating_setpoint", 5, 45, 0.5)
+                .withLocalTemperatureCalibration(-9, 9, 1)
+                .withSystemMode(["off", "heat"])
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withWeeklySchedule(["heat"], ea.ALL),
+            e.text("schedule_monday", ea.STATE).withDescription("Monday's schedule"),
+            e.text("schedule_tuesday", ea.STATE).withDescription("Tuesday's schedule"),
+            e.text("schedule_wednesday", ea.STATE).withDescription("Wednesday's schedule"),
+            e.text("schedule_thursday", ea.STATE).withDescription("Thursday's schedule"),
+            e.text("schedule_friday", ea.STATE).withDescription("Friday's schedule"),
+            e.text("schedule_saturday", ea.STATE).withDescription("Saturday's schedule"),
+            e.text("schedule_sunday", ea.STATE).withDescription("Sunday's schedule"),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["TS0201-z-SlD", "TS0201-z15-SlD", "TS0201-z21-SlD", "TS0201-z22-SlD", "TS0201-z23-SlD", "TS0201-z24-SlD"],
         model: "TS0201-z-SlD",
         vendor: "Slacky-DIY",
         description: "Tuya temperature and humidity sensor with custom Firmware",
@@ -2261,17 +2392,25 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 10,
                 valueStep: 1,
                 scale: 100,
-                description: "Offset to add/subtract to the inside temperature",
+                description: "Offset to add/subtract to the inside humidity",
             }),
             m.numeric({
                 name: "read_interval",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: attrSensorReadPeriod, type: 0x21},
                 unit: "Sec",
-                valueMin: 15,
+                valueMin: 5,
                 valueMax: 600,
                 valueStep: 1,
                 description: "Sensors reading period",
+            }),
+            m.binary({
+                name: "enabling_repeat_command",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrRepeatCommand, type: 0x10},
+                description: "Enables/disables repeat command",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
             }),
             m.binary({
                 name: "enabling_temperature_control",
