@@ -4257,7 +4257,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Perifo cylinder spotlight (Black)",
         whiteLabel: [
-            {model: "929003115801", vendor: "Philips", description: "Hue Perifo cylinder spotlight (White)", fingerprint: [{modelID: "929003115801"}]},
+            {
+                model: "929003115801",
+                vendor: "Philips",
+                description: "Hue Perifo cylinder spotlight (White)",
+                fingerprint: [{modelID: "929003115801"}],
+            },
         ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
@@ -4277,7 +4282,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Perifo ceiling light, 3 pendant (White)",
         whiteLabel: [
-            {model: "929003115901", vendor: "Philips", description: "Hue Perifo ceiling light, 3 pendant (Black)", fingerprint: [{modelID: "929003115901"}]},
+            {
+                model: "929003115901",
+                vendor: "Philips",
+                description: "Hue Perifo ceiling light, 3 pendant (Black)",
+                fingerprint: [{modelID: "929003115901"}],
+            },
         ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
@@ -4287,7 +4297,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Perifo ceiling light, 4 spotlights (White)",
         whiteLabel: [
-            {model: "929003117301", vendor: "Philips", description: "Hue Perifo Wall Light, 4 spotlights (Black)", fingerprint: [{modelID: "929003117301"}]},
+            {
+                model: "929003117301",
+                vendor: "Philips",
+                description: "Hue Perifo Wall Light, 4 spotlights (Black)",
+                fingerprint: [{modelID: "929003117301"}],
+            },
         ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
@@ -4297,7 +4312,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Perifo Wall Light, 3 spotlights (White)",
         whiteLabel: [
-            {model: "929003117701", vendor: "Philips", description: "Hue Perifo Wall Light, 3 spotlights (Black)", fingerprint: [{modelID: "929003117701"}]},
+            {
+                model: "929003117701",
+                vendor: "Philips",
+                description: "Hue Perifo Wall Light, 3 spotlights (Black)",
+                fingerprint: [{modelID: "929003117701"}],
+            },
         ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
@@ -4307,7 +4327,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Perifo gradient light tube small (White)",
         whiteLabel: [
-            {model: "929003116301", vendor: "Philips", description: "Hue Perifo gradient light tube small (Black)", fingerprint: [{modelID: "929003116301"}]},
+            {
+                model: "929003116301",
+                vendor: "Philips",
+                description: "Hue Perifo gradient light tube small (Black)",
+                fingerprint: [{modelID: "929003116301"}],
+            },
         ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
@@ -4317,7 +4342,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Perifo gradient light tube large (White)",
         whiteLabel: [
-            {model: "929003116501", vendor: "Philips", description: "Hue Perifo gradient light tube large (Black)", fingerprint: [{modelID: "929003116501"}]},
+            {
+                model: "929003116501",
+                vendor: "Philips",
+                description: "Hue Perifo gradient light tube large (Black)",
+                fingerprint: [{modelID: "929003116501"}],
+            },
         ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
