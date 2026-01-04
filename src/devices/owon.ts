@@ -17,10 +17,7 @@ interface OwonAcControl {
         writePairingCode: {pairingCode: number};
         readPairingCodeRequest: Record<string, never>;
     };
-    commandResponses: {
-        oneKeyPairingResponse: {receiveStatus: number};
-        readPairingCodeResponse: {pairingCode: number};
-    };
+    commandResponses: never;
 }
 
 const owonExtendChecks = {
@@ -36,8 +33,13 @@ const owonExtendChecks = {
             throw new Error(`Invalid value for one_key_pairing: expected "start"/"on"/"true" or "end"/"off"/"false", got "${input}"`);
         }
 
-        return {payload: {oneKeyPairingStart: startParam}};
+        return {
+            payload: {
+                oneKeyPairingStart: startParam,
+            },
+        };
     },
+
     parsePairingCodeInput: (input: unknown) => {
         if (input === undefined || input === null) {
             throw new Error("pairing_code is required");
@@ -55,7 +57,11 @@ const owonExtendChecks = {
             throw new Error(`Invalid pairing_code "${codeStr}", must be between 0 and 65535`);
         }
 
-        return {payload: {pairingCode: codeNum}};
+        return {
+            payload: {
+                pairingCode: codeNum,
+            },
+        };
     },
 };
 
@@ -273,6 +279,7 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"fallDetectionOwon", OwonFallDetection, ["attributeReport", "readResponse"]>,
+
     owonAcOneKeyPairingResponse: {
         cluster: "manuSpecificOwonAc",
         type: ["commandOneKeyPairingResponse", "commandOneKeyPairingResultUpdate"],
@@ -284,7 +291,7 @@ const fzLocal = {
             const payload: KeyValue = {};
 
             if (msg.type === "commandOneKeyPairingResponse") {
-                const status = msg.data.receiveStatus;
+                const status = msg.data?.receiveStatus;
                 if (status !== undefined) {
                     payload.one_key_pairing_status = status === 0x00 ? "SUCCESS" : "FAILURE";
                 }
@@ -324,12 +331,14 @@ const fzLocal = {
 
             return payload;
         },
-    } satisfies Fz.Converter<"manuSpecificOwonAc", OwonAcControl, ["commandOneKeyPairingResponse", "commandOneKeyPairingResultUpdate"]>,
+        // biome-ignore lint/suspicious/noExplicitAny: third-party converter signature requires any
+    } satisfies Fz.Converter<"manuSpecificOwonAc", undefined, any>,
+
     owonAcReadPairingCodeResponse: {
         cluster: "manuSpecificOwonAc",
         type: ["commandReadPairingCodeResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.pairingCode !== undefined) {
+            if (msg.data?.pairingCode !== undefined) {
                 const code = msg.data.pairingCode;
                 const displayCode = code === 0xffff ? null : code;
 
@@ -340,7 +349,8 @@ const fzLocal = {
 
             return {};
         },
-    } satisfies Fz.Converter<"manuSpecificOwonAc", OwonAcControl, ["commandReadPairingCodeResponse"]>,
+        // biome-ignore lint/suspicious/noExplicitAny: third-party converter signature requires any
+    } satisfies Fz.Converter<"manuSpecificOwonAc", undefined, any>,
 };
 
 const tzLocal = {
@@ -398,9 +408,12 @@ const tzLocal = {
             );
         },
     } satisfies Tz.Converter,
+
     owonAcOneKeyPairing: {
         key: ["one_key_pairing"],
         convertSet: async (entity, key, value, meta) => {
+            meta.state.one_key_pairing_status = null;
+            meta.state.one_key_pairing_result = null;
             const commandWrapper = owonExtendChecks.parseOneKeyPairingInput(value);
 
             await entity.command<"manuSpecificOwonAc", "oneKeyPairingRequest", OwonAcControl>(
@@ -409,20 +422,22 @@ const tzLocal = {
                 commandWrapper.payload,
                 {disableDefaultResponse: true},
             );
-            return {state: {one_key_pairing_status: undefined, one_key_pairing_result: undefined}};
         },
     } satisfies Tz.Converter,
+
     owonAcWritePairingCode: {
         key: ["pairing_code"],
         convertSet: async (entity, key, value, meta) => {
             const commandWrapper = owonExtendChecks.parsePairingCodeInput(value);
+
+            meta.state.pairing_code = String(value);
+
             await entity.command<"manuSpecificOwonAc", "writePairingCode", OwonAcControl>(
                 "manuSpecificOwonAc",
                 "writePairingCode",
                 commandWrapper.payload,
                 {disableDefaultResponse: true},
             );
-            return {state: {pairing_code_current: value}};
         },
     } satisfies Tz.Converter,
 
@@ -445,14 +460,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WSP402",
         vendor: "OWON",
         description: "Smart plug",
-        fromZigbee: [fz.metering, fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
+        extend: [
+            m.onOff({ powerOnBehavior: false }),
+            m.electricityMeter({
+                cluster: "metering",
+            }),
+
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+        ],
+
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
-            await ep.bind("seMetering", coordinatorEndpoint);
-            await ep.bind("genOnOff", coordinatorEndpoint);
+
             await reporting.readMeteringMultiplierDivisor(ep);
+
             await ep.configureReporting("seMetering", [
                 {
                     attribute: "instantaneousDemand",
@@ -460,8 +481,6 @@ export const definitions: DefinitionWithExtend[] = [
                     maximumReportInterval: 3600,
                     reportableChange: 5,
                 },
-            ]);
-            await ep.configureReporting("seMetering", [
                 {
                     attribute: "currentSummDelivered",
                     minimumReportInterval: 5,
@@ -469,8 +488,8 @@ export const definitions: DefinitionWithExtend[] = [
                     reportableChange: 100,
                 },
             ]);
-            await ep.read("seMetering", ["currentSummDelivered", "instantaneousDemand"]);
-            await ep.read("genOnOff", ["onOff"]);
+
+            await ep.read("seMetering", ["instantaneousDemand", "currentSummDelivered"]);
         },
     },
     {
@@ -479,14 +498,20 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "OWON",
         whiteLabel: [{vendor: "Oz Smart Things", model: "WSP403"}],
         description: "Smart plug",
-        fromZigbee: [fz.metering, fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
+        extend: [
+            m.onOff({ powerOnBehavior: false }),
+            m.electricityMeter({
+                cluster: "metering",
+            }),
+
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+        ],
+
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
-            await ep.bind("seMetering", coordinatorEndpoint);
-            await ep.bind("genOnOff", coordinatorEndpoint);
+
             await reporting.readMeteringMultiplierDivisor(ep);
+
             await ep.configureReporting("seMetering", [
                 {
                     attribute: "instantaneousDemand",
@@ -494,8 +519,6 @@ export const definitions: DefinitionWithExtend[] = [
                     maximumReportInterval: 3600,
                     reportableChange: 5,
                 },
-            ]);
-            await ep.configureReporting("seMetering", [
                 {
                     attribute: "currentSummDelivered",
                     minimumReportInterval: 5,
@@ -503,8 +526,8 @@ export const definitions: DefinitionWithExtend[] = [
                     reportableChange: 100,
                 },
             ]);
-            await ep.read("seMetering", ["currentSummDelivered", "instantaneousDemand"]);
-            await ep.read("genOnOff", ["onOff"]);
+
+            await ep.read("seMetering", ["instantaneousDemand", "currentSummDelivered"]);
         },
     },
     {
@@ -582,7 +605,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["AC221"],
         model: "AC221",
         vendor: "OWON",
-        description: "AC controller / IR blaster",
+        description: "AC Controller / IR Blaster (AC221)",
         extend: [m.deviceAddCustomCluster("manuSpecificOwonAc", OwonClustersDefinition.manuSpecificOwonAc)],
         fromZigbee: [fz.fan, fz.thermostat, fzLocal.owonAcOneKeyPairingResponse, fzLocal.owonAcReadPairingCodeResponse],
         toZigbee: [
@@ -596,6 +619,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.owonAcWritePairingCode,
             tzLocal.owonAcReadPairingCode,
         ],
+
         exposes: [
             // --- One Key Pairing Exposes ---
             e.enum("one_key_pairing", ea.SET, ["start", "end"]),
@@ -616,6 +640,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(),
             e.fan().withModes(["low", "medium", "high", "on", "auto"]),
         ],
+
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["genBasic", "genIdentify", "genTime", "hvacThermostat", "hvacFanCtrl"];
@@ -947,7 +972,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "OWON",
         description: "Smart plug with doorbell press indicator",
         extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            m.deviceEndpoints({
+                endpoints: {
+                    l1: 1,
+                    l2: 2,
+                    l3: 3,
+                },
+            }),
             m.onOff({endpointNames: ["l1", "l2", "l3"], powerOnBehavior: false}),
             m.iasZoneAlarm({
                 zoneType: "contact",
