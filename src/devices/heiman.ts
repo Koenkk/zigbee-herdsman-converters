@@ -1006,9 +1006,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        whiteLabel: [
-            {model: "HS1SA-E", description: "Smoke detector", fingerprint: [{modelID: "SmokeSensor-EF-3.0"}]},
-        ],
+        whiteLabel: [{model: "HS1SA-E", description: "Smoke detector", fingerprint: [{modelID: "SmokeSensor-EF-3.0"}]}],
         exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
