@@ -2685,6 +2685,25 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ioxkjvuz"]),
+        model: "GA01",
+        vendor: "Meian",
+        description: "Gas sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.gas(),
+            tuya.exposes.selfTestResult(),
+            e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "gas", tuya.valueConverter.trueFalse0],
+                [9, "self_test_result", tuya.valueConverter.selfTestResult],
+                [16, "preheat", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_v6iczj35"]),
         model: "ZB-DG03",
         vendor: "Spacetronik",
