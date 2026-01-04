@@ -1,5 +1,29 @@
 # Changelog
 
+## [25.100.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.99.0...v25.100.0) (2026-01-04)
+
+
+### Features
+
+* **add:** 3RAP0149BZ ([#11189](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11189)) ([a82546d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a82546d662349b1e8946ee2a3d4e1f9654d353cd))
+* **add:** 3RPL01084Z ([#11191](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11191)) ([1639c2c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1639c2c8ba35258ca8bf211c9a6d121a0f63daf0))
+* **add:** 50394 ([#11186](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11186)) ([2f4c0d7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2f4c0d77b8c0e08297311103d0390b33c9d58766))
+* **add:** 929003115901 ([#11199](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11199)) ([c01b784](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c01b78461f99bcb63ac82dd3ca9fd1db67ad43a6))
+* **add:** 929004611501 ([#11198](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11198)) ([468feb7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/468feb7d4711a85da184ed86bb08356e1fba46f5))
+* **add:** EFEKTA_eAir_Monitor ([#11185](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11185)) ([64133fa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/64133fac26b4283bdce4994783e0f7a952d1dcb6))
+* **add:** GA01 ([#11192](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11192)) ([fd9e2fe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fd9e2fe6f1897402c722aa1166cd042657f0fe69))
+* Tuya TS0601_dimmer_3: expose backlight brightness and color ([#11188](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11188)) ([9724032](https://github.com/Koenkk/zigbee-herdsman-converters/commit/972403228afe93276cb18fb126336c089a1e7d88))
+
+
+### Bug Fixes
+
+* Add `E2206` as a whitelabel of IKEA E22xx ([#11200](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11200)) ([94b989f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/94b989fd992a16a1a069689944c596e53e80269a))
+* **detect:** Detect `_TZE284_q22avxbv` as Tongou TOQCB2-80 https://github.com/Koenkk/zigbee2mqtt/issues/30490 ([4253661](https://github.com/Koenkk/zigbee-herdsman-converters/commit/42536619d42df3fa9e7100e889128c5ce9d97e2f))
+* **detect:** Detect `_TZE284_waa352qv` as Tuya TS0601_cover_5 https://github.com/Koenkk/zigbee-herdsman-converters/pull/10612 ([00097f2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/00097f2fdaf4b315a2e331e851f969f324dc8cc2))
+* Endpoint configuration limitation for some modernextend's. ([#11195](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11195)) ([39f09b7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/39f09b7ecbd295ee0ccb397ba2cacc2142ccf20b))
+* J.XUAN WSZ01: fix no action  ([#11190](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11190)) ([9c81768](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c81768aa8c2db882793bc56cca451d3c92450b4))
+* Tuya RB-SRAIN01: add `illuminance_raw` unit https://github.com/Koenkk/zigbee2mqtt/issues/30439 ([c5ec123](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c5ec123054caebde93fef95f97eb5023162dd12f))
+
 ## [25.99.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.98.0...v25.99.0) (2026-01-03)
 
 
