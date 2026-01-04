@@ -17505,6 +17505,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
     },
     {
         fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE284_q22avxbv",
             "_TZE204_q22avxbv",
             "_TZE204_mrffaamu",
             "_TZE204_tzreobvu",
