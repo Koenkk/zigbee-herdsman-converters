@@ -2285,6 +2285,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_yjjdcqsq",
+            "_TZE284_9yapgbuv",
             "_TZE200_9yapgbuv",
             "_TZE200_utkemkbs",
             "_TZE204_utkemkbs",
@@ -3013,6 +3014,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Moes", "ZLD-RCW_1", "RGB+CCT Zigbee LED controller", ["_TZ3000_7hcgjxpc"]),
             tuya.whitelabel("Moes", "ZB-TD5-RCW-GU10", "RGB+CCT 4.7W GU10 LED bulb", ["_TZ3210_rcggc0ys", "_TZ3210_ljoasixl"]),
             tuya.whitelabel("Moes", "ZB-TDA9-RCW-E27-MS", "RGB+CCT 9W E27 LED bulb", ["_TZ3210_wxa85bwk"]),
+            tuya.whitelabel("Moes", "ZB-TDA14-RCW-E27-MS", "RGB+CCT 14W E27 LED bulb", ["_TZ3210_dkul5xix"]),
             tuya.whitelabel("Moes", "ZB-LZD10-RCW", "10W RGB+CCT Smart Downlight", [
                 "_TZ3210_s9lumfhn",
                 "_TZ3210_jjqdqxfq",
@@ -4680,6 +4682,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_eo3dttwe",
             "_TZ3000_jwcixnrz",
             "_TZ3000_u2bbagu4",
+            "_TZ3000_8utxxtzr",
         ]),
         model: "TS0215A_remote",
         vendor: "Tuya",
@@ -7283,7 +7286,6 @@ Ensure all 12 segments are defined and separated by spaces.`,
             "_TZE204_ogx8u5z6",
             "_TZE200_4utwoz2",
             "_TZE284_ogx8u5z6",
-            "_TZE200_hvaxb2tc" /* model: 'TRV06', vendor: 'AVATTO' */,
             "_TZE284_o3x45p96" /* model: 'TRV06', vendor: 'AVATTO' */,
             "_TZE284_c6wv4xyo" /* model: 'AVATTO_TRV06', vendor: 'AVATTO' */,
             "_TZE204_o3x45p96" /* model: 'AVATTO_TRV06', vendor: 'AVATTO' */,
@@ -7306,7 +7308,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
                 "_TZE200_4utwozi2",
             ]),
             tuya.whitelabel("AVATTO", "ME168_1", "Thermostatic radiator valve", ["_TZE200_rxntag7i"]),
-            tuya.whitelabel("AVATTO", "TRV06_1", "Thermostatic radiator valve", ["_TZE200_hvaxb2tc", "_TZE284_o3x45p96"]),
+            tuya.whitelabel("AVATTO", "TRV06_1", "Thermostatic radiator valve", ["_TZE284_o3x45p96"]),
             tuya.whitelabel("EARU", "TRV06", "Smart thermostat module", ["_TZE200_yqgbrdyo", "_TZE200_rxq4iti9"]),
             tuya.whitelabel("AVATTO", "AVATTO_TRV06", "Thermostatic radiator valve", ["_TZE284_c6wv4xyo", "_TZE204_o3x45p96"]),
             tuya.whitelabel("THALEOS", "TRV06-AT", "Thermostatic radiator valve", [
@@ -7465,11 +7467,17 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p3dbf6qs" /* model: 'ME167_1', vendor: 'AVATTO' */]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_p3dbf6qs" /* model: 'ME167_1', vendor: 'AVATTO' */,
+            "_TZE200_hvaxb2tc" /* model: 'TRV06_1b', vendor: 'AVATTO' */,
+        ]),
         model: "TS0601_thermostat_5",
         vendor: "Tuya",
         description: "Thermostatic radiator valve",
-        whiteLabel: [tuya.whitelabel("AVATTO", "ME167_1", "Thermostatic radiator valve", ["_TZE200_p3dbf6qs"])],
+        whiteLabel: [
+            tuya.whitelabel("AVATTO", "ME167_1", "Thermostatic radiator valve", ["_TZE200_p3dbf6qs"]),
+            tuya.whitelabel("AVATTO", "TRV06_1b", "Thermostatic radiator valve", ["_TZE200_hvaxb2tc"]),
+        ],
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
             e.child_lock(),
@@ -11469,7 +11477,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         description: "4 gang switch with LCD",
         extend: [
             tuyaWeatherForecast({includeCurrentWeather: true, numberOfForecastDays: 3, correctForNegativeValues: true}),
-            tuyaBase({dp: true}),
+            tuyaBase({dp: true, timeStart: "1970"}),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}}),
         ],
         exposes: [
@@ -20747,8 +20755,8 @@ Ensure all 12 segments are defined and separated by spaces.`,
                     "curtain_4_position_close",
                 ])
                 .withDescription("Triggered action from scene button, light knob, or curtain control"),
-            e.numeric("brightness", ea.STATE).withValueMin(0).withValueMax(254).withDescription("Brightness level from light mode (1-254)"),
-            e.numeric("color_temp", ea.STATE).withValueMin(150).withValueMax(500).withDescription("Color temperature from light mode (mired)"),
+            e.numeric("brightness", ea.STATE).withValueMin(1).withValueMax(254).withDescription("Brightness level from light mode (1-254)"),
+            e.numeric("color_temp", ea.STATE).withValueMin(153).withValueMax(523).withDescription("Color temperature from light mode (mired)"),
             e
                 .numeric("curtain_position", ea.STATE)
                 .withValueMin(0)
@@ -22545,7 +22553,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ajuasrmx"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ajuasrmx", "_TZE200_hyhl5y36"]),
         model: "MSA201Z",
         vendor: "Merrytek",
         description: "24 GHz human presence sensor (TS0601, _TZE284_ajuasrmx)",
@@ -22949,6 +22957,99 @@ Ensure all 12 segments are defined and separated by spaces.`,
                 [18, "current", tuya.valueConverter.divideBy1000],
                 [19, "power", tuya.valueConverter.divideBy10],
                 [20, "voltage", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_wc2w9t1s"]),
+        model: "BOT-R9V-ZB",
+        vendor: "Beok",
+        description: "Wall-mount thermostat",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 60, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE),
+            e.enum("preset", ea.STATE_SET, ["manual", "auto", "eco"]).withDescription("Preset mode: manual, auto or eco"),
+            e.child_lock(),
+            e.battery(),
+            e.enum("valve_state", ea.STATE, ["open", "close"]).withDescription("Valve state (open/close)"),
+            e.binary("frost", ea.STATE_SET, "ON", "OFF").withDescription("Frost protection mode"),
+            e
+                .numeric("deadzone_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(0)
+                .withValueMax(5)
+                .withValueStep(0.5)
+                .withDescription("Temperature deadzone (hysteresis)"),
+            e
+                .numeric("min_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(30)
+                .withValueStep(0.5)
+                .withDescription("Minimum temperature limit"),
+            e
+                .numeric("max_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(15)
+                .withValueMax(60)
+                .withValueStep(0.5)
+                .withDescription("Maximum temperature limit"),
+            e
+                .numeric("eco_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(30)
+                .withValueStep(0.5)
+                .withDescription("Eco mode temperature"),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        manual: tuya.enum(1),
+                        eco: tuya.enum(2),
+                    }),
+                ],
+                [10, "frost", tuya.valueConverter.onOff],
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [18, "min_temperature_limit", tuya.valueConverter.divideBy10],
+                [19, "max_temperature_limit", tuya.valueConverter.divideBy10],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [
+                    36,
+                    null,
+                    {
+                        from: (v) => {
+                            return {
+                                valve_state: v === "open" || v === true || v === 1 ? "open" : "close",
+                                running_state: v === "open" || v === true || v === 1 ? "heat" : "idle",
+                            };
+                        },
+                    },
+                ],
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+                [65, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [66, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [67, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [68, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [69, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [70, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [71, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [107, "battery", tuya.valueConverter.raw],
+                [109, "local_temperature_calibration", tuya.valueConverter.divideBy10],
+                [112, "deadzone_temperature", tuya.valueConverter.divideBy10],
+                [116, "eco_temperature", tuya.valueConverter.divideBy10],
             ],
         },
     },
