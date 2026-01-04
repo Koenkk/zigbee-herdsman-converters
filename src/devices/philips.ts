@@ -400,11 +400,15 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["929003055801"],
+        zigbeeModel: ["929003055801", "929004611401", "929004611501_01", "929004611501_02", "929004611501_03"],
         model: "929003055801",
         vendor: "Philips",
         description: "Hue white ambiance bathroom ceiling light Adore with Bluetooth",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+        whiteLabel: [
+            {model: "929004611401", fingerprint: [{modelID: "929004611401"}]},
+            {model: "929004611501", fingerprint: [{modelID: "929004611501_01"}, {modelID: "929004611501_02"}, {modelID: "929004611501_03"}]},
+        ],
     },
     {
         zigbeeModel: ["LCZ001", "LCZ002"],
