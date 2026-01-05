@@ -230,16 +230,16 @@ const boschExtend = {
                 .withValueMax(65)
                 .withValueStep(0.1)
                 .withUnit("°C")
-                .withDescription("Ceiling temperature"),
+                .withDescription("Temperature"),
             e.numeric("humidity", ea.STATE).withValueMin(0).withValueMax(100).withValueStep(0.1).withUnit("%").withDescription("Relative humidity"),
             e
                 .numeric("co2", ea.STATE)
                 .withValueMin(500)
                 .withValueMax(5500)
                 .withValueStep(1)
-                .withLabel("eCO2")
+                .withLabel("eCO₂")
                 .withUnit("ppm")
-                .withDescription("TVOC-derived CO2-equivalent"),
+                .withDescription("TVOC-derived CO₂-equivalent"),
             e.numeric("aqi", ea.STATE).withValueMin(0).withValueMax(500).withValueStep(1).withLabel("AQI").withDescription("Air Quality Index"),
             e.illuminance(),
             e
