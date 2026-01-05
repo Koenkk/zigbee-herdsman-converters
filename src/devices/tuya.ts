@@ -3383,7 +3383,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_n0lphcok",
                 "_TZ3000_r80pzsb9",
             ]),
-            ...tuya.fingerprint("TS0001", ["_TZ3000_n0lphcok", "_TZ3000_wn65ixz9", "_TZ3000_trdx8uxs"]),
+            ...tuya.fingerprint("TS0001", ["_TZ3000_n0lphcok", "_TZ3000_wn65ixz9", "_TZ3000_trdx8uxs", "_TZ3000_gdsvhfao"]),
         ],
         model: "TS0207_repeater",
         vendor: "Tuya",
@@ -3391,7 +3391,12 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         whiteLabel: [
-            tuya.whitelabel("Tuya", "TS0001_repeater", "Zigbee signal repeater", ["_TZ3000_n0lphcok", "_TZ3000_wn65ixz9", "_TZ3000_trdx8uxs"]),
+            tuya.whitelabel("Tuya", "TS0001_repeater", "Zigbee signal repeater", [
+                "_TZ3000_n0lphcok",
+                "_TZ3000_wn65ixz9",
+                "_TZ3000_trdx8uxs",
+                "_TZ3000_gdsvhfao",
+            ]),
         ],
         exposes: [],
     },
@@ -5246,44 +5251,62 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dzuqwsyg", "_TZE204_dzuqwsyg"]),
-        model: "BAC-002",
+        model: "BAC-003",
         vendor: "Tuya",
         description: "FCU thermostat temperature controller",
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
-
         options: [
-            e.enum("control_sequence_of_operation", ea.SET, ["cooling_only", "cooling_and_heating_4-pipes"]),
-            e.binary("expose_device_state", ea.SET, true, false),
-        ],
-
-        exposes: [
             e
-                .climate()
-                .withLocalTemperature(ea.STATE)
-                .withSystemMode(["off", "cool", "heat", "fan_only"], ea.STATE_SET)
-                .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
-                .withSetpoint("current_heating_setpoint", 5, 35, 1, ea.STATE_SET)
-                .withPreset(["auto", "manual"])
-                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
-
-            e.child_lock(),
-            e.max_temperature().withValueMin(35).withValueMax(45),
-            e.numeric("deadzone_temperature", ea.STATE_SET).withUnit("°C").withValueMax(5).withValueMin(1),
-
-            e.text("schedule_text", ea.STATE_SET).withDescription(
-                `Weekly schedule in the format "HH:MM/TT HH:MM/TT ...".
-Example for 12 segments:
-"06:00/20 11:30/21 13:30/22 17:30/23 06:00/24 12:00/23 14:30/22 17:30/21 06:00/19 12:30/20 14:30/21 18:30/20".
-Each segment contains:
-- HH:MM: Time in 24-hour format.
-- TT: Temperature in °C.
-Ensure all 12 segments are defined and separated by spaces.`,
-            ),
+                .enum("control_sequence_of_operation", ea.SET, ["cooling_only", "cooling_and_heating_4-pipes"])
+                .withDescription("Operating environment of the thermostat"),
+            e.binary("expose_device_state", ea.SET, true, false).withDescription("Expose device power state as a separate property when enabled."),
         ],
+        exposes: (device, options) => {
+            const system_modes = ["off", "cool", "heat", "fan_only"];
 
+            // Device can operate either in 2-pipe or 4-pipe configuration
+            // For 2-pipe configurations remove 'heat' mode
+            switch (options?.control_sequence_of_operation) {
+                case "cooling_only":
+                    system_modes.splice(2, 1);
+                    break;
+            }
+
+            const exposes = [
+                e
+                    .climate()
+                    .withLocalTemperature(ea.STATE)
+                    .withSystemMode(system_modes, ea.STATE_SET)
+                    .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
+                    .withSetpoint("current_heating_setpoint", 5, 35, 1, ea.STATE_SET)
+                    .withPreset(["auto", "manual"])
+                    .withLocalTemperatureCalibration(-3, 3, 1, ea.STATE_SET),
+                e.child_lock(),
+                e
+                    .composite("schedule", "schedule", ea.STATE_SET)
+                    .withFeature(e.text("weekdays", ea.SET).withDescription('Schedule (1-5), 4 periods in format "hh:mm/tt".'))
+                    .withFeature(e.text("saturday", ea.SET).withDescription('Schedule (6), 4 periods in format "hh:mm/tt".'))
+                    .withFeature(e.text("sunday", ea.SET).withDescription('Schedule (7), 4 periods in format "hh:mm/tt".'))
+                    .withDescription('Auto-mode schedule, 4 periods each per category. Example: "06:00/20 11:30/21 13:30/22 17:30/23.5".'),
+                e.max_temperature().withValueMin(35).withValueMax(45).withPreset("default", 35, "Default value"),
+                e
+                    .numeric("deadzone_temperature", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withValueMax(5)
+                    .withValueMin(1)
+                    .withValueStep(1)
+                    .withPreset("default", 1, "Default value")
+                    .withDescription("The delta between local_temperature and current_heating_setpoint to trigger activity"),
+            ];
+
+            if (options?.expose_device_state === true) {
+                exposes.unshift(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON or OFF"));
+            }
+
+            return exposes;
+        },
         meta: {
             publishDuplicateTransaction: true,
-
             tuyaDatapoints: [
                 [
                     1,
@@ -5302,32 +5325,35 @@ Ensure all 12 segments are defined and separated by spaces.`,
                         },
                         from: (v: boolean, meta: Fz.Meta, options?: KeyValue) => {
                             meta.state.system_mode = v === true ? (meta.state.system_mode_device ?? "cool") : "off";
-                            if (options?.expose_device_state === true) return v === true ? "ON" : "OFF";
+
+                            if (options?.expose_device_state === true) {
+                                return v === true ? "ON" : "OFF";
+                            }
+
                             delete meta.state.state;
                         },
                     },
                 ],
-
                 [
                     2,
                     "system_mode",
                     {
+                        // Extend system_mode to support 'off' in addition to 'cool', 'heat' and 'fan_only'
                         to: async (v: string, meta: Tz.Meta) => {
-                            const ep = meta.device.endpoints[0];
-
-                            if (v === "off") {
-                                await tuya.sendDataPointBool(ep, 1, true, "dataRequest", 1);
-                                await new Promise((r) => setTimeout(r, 120));
-                                await tuya.sendDataPointBool(ep, 1, false, "dataRequest", 1);
-                                await tuya.sendDataPointEnum(ep, 2, 0, "dataRequest", 1);
-                                return;
+                            const entity = meta.device.endpoints[0];
+                            // Power State
+                            await tuya.sendDataPointBool(entity, 1, v !== "off", "dataRequest", 1);
+                            switch (v) {
+                                case "cool":
+                                    await tuya.sendDataPointEnum(entity, 2, 0, "dataRequest", 1);
+                                    break;
+                                case "heat":
+                                    await tuya.sendDataPointEnum(entity, 2, 1, "dataRequest", 1);
+                                    break;
+                                case "fan_only":
+                                    await tuya.sendDataPointEnum(entity, 2, 2, "dataRequest", 1);
+                                    break;
                             }
-
-                            await tuya.sendDataPointBool(ep, 1, true, "dataRequest", 1);
-
-                            if (v === "cool") await tuya.sendDataPointEnum(ep, 2, 0, "dataRequest", 1);
-                            if (v === "heat") await tuya.sendDataPointEnum(ep, 2, 1, "dataRequest", 1);
-                            if (v === "fan_only") await tuya.sendDataPointEnum(ep, 2, 2, "dataRequest", 1);
                         },
                         from: (v: number, meta: Fz.Meta) => {
                             const modes = ["cool", "heat", "fan_only"];
@@ -5336,29 +5362,12 @@ Ensure all 12 segments are defined and separated by spaces.`,
                         },
                     },
                 ],
-
-                [
-                    4,
-                    "preset",
-                    {
-                        to: async (v: string, meta: Tz.Meta) => {
-                            const ep = meta.device.endpoints[0];
-                            await tuya.sendDataPointBool(ep, 4, v === "manual");
-                        },
-                        from: (v: boolean, meta: Fz.Meta) => {
-                            const preset = v ? "manual" : "auto";
-                            meta.state.preset = preset;
-                            return preset;
-                        },
-                    },
-                ],
-
+                [4, "preset", tuya.valueConverterBasic.lookup({manual: true, auto: false})],
                 [16, "current_heating_setpoint", tuya.valueConverter.raw],
                 [19, "max_temperature", tuya.valueConverter.raw],
                 [24, "local_temperature", tuya.valueConverter.divideBy10],
                 [26, "deadzone_temperature", tuya.valueConverter.raw],
                 [27, "local_temperature_calibration", tuya.valueConverter.localTemperatureCalibration],
-
                 [
                     28,
                     "fan_mode",
@@ -5369,49 +5378,56 @@ Ensure all 12 segments are defined and separated by spaces.`,
                         auto: tuya.enum(3),
                     }),
                 ],
-
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
-
                 [
                     101,
                     "schedule",
                     {
-                        from: (v: number[], meta: Fz.Meta) => {
-                            const format = (data: number[]) =>
-                                data.reduce((txt: string, val: number, i: number) => {
-                                    if (i % 3 === 0) return `${txt}${i > 0 ? " " : ""}${val.toString().padStart(2, "0")}`;
-                                    if (i % 3 === 1) return `${txt}:${val.toString().padStart(2, "0")}`;
-                                    return `${txt}/${val / 2}`;
-                                }, "");
+                        to: (v: {weekdays: string; saturday: string; sunday: string}, meta: Tz.Meta) => {
+                            const periods = (value: string) => {
+                                const regex = /((?<h>[01][0-9]|2[0-3]):(?<m>[0-5][0-9])\/(?<t>[0-3][0-9](\.[0,5]|)))/gm;
+                                const matches = [...value.matchAll(regex)];
 
-                            const weekdays = format(v.slice(0, 12));
-                            const saturday = format(v.slice(12, 24));
-                            const sunday = format(v.slice(24, 36));
+                                if (matches.length === 4) {
+                                    return matches.reduce((arr, m) => {
+                                        arr.push(Number.parseInt(m.groups.h, 10));
+                                        arr.push(Number.parseInt(m.groups.m, 10));
+                                        arr.push(Number.parseFloat(m.groups.t) * 2);
+                                        return arr;
+                                    }, []);
+                                }
 
-                            const full = `${weekdays} ${saturday} ${sunday}`.trim();
-                            meta.state.schedule_text = full;
-                            return full;
+                                logger.warning("Ignoring invalid or incomplete schedule", NS);
+                            };
+
+                            const schedule = [...periods(v.weekdays), ...periods(v.saturday), ...periods(v.sunday)];
+
+                            return schedule;
                         },
-                    },
-                ],
+                        from: (v: number[], meta: Fz.Meta) => {
+                            const format = (data: number[]) => {
+                                return data.reduce((a, v, i) => {
+                                    switch (i % 3) {
+                                        // Hour
+                                        case 0:
+                                            return `${a}${i > 0 ? " " : ""}${v.toString().padStart(2, "0")}`;
+                                        // Minute
+                                        case 1:
+                                            return `${a}:${v.toString().padStart(2, "0")}`;
+                                        // Setpoint
+                                        case 2:
+                                            return `${a}/${v / 2}`;
+                                        default:
+                                            throw new Error(`Unexpected index ${i} in schedule data`);
+                                    }
+                                }, "");
+                            };
 
-                [
-                    202,
-                    "schedule_text",
-                    {
-                        to: async (v: string, meta: Tz.Meta) => {
-                            const regex = /((?<h>[01][0-9]|2[0-3]):(?<m>[0-5][0-9])\/(?<t>[0-3]?[0-9](\.[0,5])?))/gm;
-                            const matches = [...v.matchAll(regex)];
-                            if (matches.length !== 12) return;
-
-                            const result: number[] = [];
-                            for (const m of matches) {
-                                result.push(Number(m.groups?.h));
-                                result.push(Number(m.groups?.m));
-                                result.push(Number(m.groups?.t) * 2);
-                            }
-
-                            await tuya.sendDataPointRaw(meta.device.endpoints[0], 101, Buffer.from(result));
+                            return {
+                                weekdays: format(v.slice(0, 12)),
+                                saturday: format(v.slice(1 * 12, 2 * 12)),
+                                sunday: format(v.slice(2 * 12, 3 * 12)),
+                            };
                         },
                     },
                 ],
