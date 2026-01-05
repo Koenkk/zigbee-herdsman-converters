@@ -2685,6 +2685,25 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ioxkjvuz"]),
+        model: "GA01",
+        vendor: "Meian",
+        description: "Gas sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.gas(),
+            tuya.exposes.selfTestResult(),
+            e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "gas", tuya.valueConverter.trueFalse0],
+                [9, "self_test_result", tuya.valueConverter.selfTestResult],
+                [16, "preheat", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_v6iczj35"]),
         model: "ZB-DG03",
         vendor: "Spacetronik",
@@ -3434,7 +3453,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.datapoints],
         extend: [m.iasZoneAlarm({zoneType: "rain", zoneAttributes: ["alarm_1"]}), m.battery({percentageReporting: true})],
         exposes: [
-            e.illuminance_raw(),
+            e.illuminance_raw().withUnit("mV"),
             e.numeric("illuminance_average_20min", ea.STATE).withUnit("mV").withDescription("Illuminance average for the last 20 minutes"),
             e.numeric("illuminance_maximum_today", ea.STATE).withUnit("mV").withDescription("Illuminance maximum for the last 24 hours"),
             e.binary("cleaning_reminder", ea.STATE, true, false).withDescription("Cleaning reminder"),
@@ -3865,6 +3884,14 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.lightType().withEndpoint("l3"),
             e.power_on_behavior().withAccess(ea.STATE_SET),
             tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET),
+            e.enum("backlight_color", ea.ALL, Object.keys(tuya.BacklightColorEnum)).withDescription("Backlight color"),
+            e
+                .numeric("backlight_brightness", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withUnit("%")
+                .withValueStep(1)
+                .withDescription("Backlight brightness"),
         ],
         meta: {
             multiEndpoint: true,
@@ -3889,6 +3916,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [19, "max_brightness_l3", tuya.valueConverter.scale0_254to0_1000],
                 [20, "countdown_l3", tuya.valueConverter.countdown],
                 [21, "backlight_mode", tuya.valueConverter.backlightModeOffNormalInverted],
+                [101, "backlight_color", tuya.valueConverterBasic.lookup(tuya.BacklightColorEnum)],
+                [103, "backlight_brightness", tuya.valueConverter.raw],
             ],
         },
         endpoint: (device) => {
@@ -13362,7 +13391,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
         whiteLabel: [tuya.whitelabel("Homeetec", "37022714", "4 Gang switch with backlight", ["_TZE200_hewlydpz"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p6vz3wzt", "_TZE284_uqfph8ah"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p6vz3wzt", "_TZE284_uqfph8ah", "_TZE284_waa352qv"]),
         model: "TS0601_cover_5",
         vendor: "Tuya",
         description: "Curtain/blind switch",
@@ -17476,6 +17505,7 @@ Ensure all 12 segments are defined and separated by spaces.`,
     },
     {
         fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE284_q22avxbv",
             "_TZE204_q22avxbv",
             "_TZE204_mrffaamu",
             "_TZE204_tzreobvu",
