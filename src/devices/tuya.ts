@@ -23100,7 +23100,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_roujjevx"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_roujjevx"]),
         model: "TS0601_smart_temperature_switch",
         vendor: "Tuya",
         description: "Smart temperature switch with manual and automatic modes: heating & cooling",
