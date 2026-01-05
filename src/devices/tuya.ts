@@ -3391,7 +3391,12 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         whiteLabel: [
-            tuya.whitelabel("Tuya", "TS0001_repeater", "Zigbee signal repeater", ["_TZ3000_n0lphcok", "_TZ3000_wn65ixz9", "_TZ3000_trdx8uxs", "_TZ3000_gdsvhfao"]),
+            tuya.whitelabel("Tuya", "TS0001_repeater", "Zigbee signal repeater", [
+                "_TZ3000_n0lphcok",
+                "_TZ3000_wn65ixz9",
+                "_TZ3000_trdx8uxs",
+                "_TZ3000_gdsvhfao",
+            ]),
         ],
         exposes: [],
     },
