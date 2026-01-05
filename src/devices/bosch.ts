@@ -231,13 +231,7 @@ const boschExtend = {
                 .withValueStep(0.1)
                 .withUnit("°C")
                 .withDescription("Ceiling temperature"),
-            e
-                .numeric("humidity", ea.STATE)
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(0.1)
-                .withUnit("%")
-                .withDescription("Relative humidity"),
+            e.numeric("humidity", ea.STATE).withValueMin(0).withValueMax(100).withValueStep(0.1).withUnit("%").withDescription("Relative humidity"),
             e
                 .numeric("co2", ea.STATE)
                 .withValueMin(500)
@@ -288,7 +282,7 @@ const boschExtend = {
                     if (msg.data.airpurity !== undefined) {
                         const iaq = utils.toNumber(msg.data.airpurity);
                         result.aqi = iaq;
-                        let factorCo2 = 10;
+                        const factorCo2 = 10;
                         result.co2 = iaq * factorCo2 + 500;
                     }
                     if (msg.data.temperature !== undefined) {
