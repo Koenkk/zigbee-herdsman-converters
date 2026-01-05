@@ -92,6 +92,29 @@ export enum TuyaWeatherID {
     Condition = 0x03,
 }
 
+export type ThermostatSchedule = KeyValue & {
+    enabled: boolean;
+    workMode: "cooling" | "heating";
+    temperatureF: number;
+    start: {
+        hour: number;
+        minute: number;
+    };
+    end: {
+        hour: number;
+        minute: number;
+    };
+    weekDays: {
+        sunday: boolean;
+        monday: boolean;
+        tuesday: boolean;
+        wednesday: boolean;
+        thursday: boolean;
+        friday: boolean;
+        saturday: boolean;
+    };
+};
+
 export function convertBufferToNumber(chunks: Buffer | number[]) {
     let value = 0;
     for (let i = 0; i < chunks.length; i++) {
@@ -1155,6 +1178,99 @@ export const valueConverter = {
                 payload.push(timeByte, thermByte);
             }
             return payload;
+        },
+    },
+    thermostatSchedule: {
+        from: (value: string): ThermostatSchedule[] => {
+            const buffer = Buffer.from(value, "base64");
+            const schedules: ThermostatSchedule[] = [];
+            const scheduleLength = 12;
+
+            for (let offset = 0; offset < buffer.length; offset += scheduleLength) {
+                const b = buffer.slice(offset, offset + scheduleLength);
+
+                // temperature
+                const raw = b.readUInt16BE(3);
+                const temperatureF = (raw - 0x8000) / 10;
+
+                // time in minutes from midnight
+                const startMinutes = b.readUInt16BE(5);
+                const endMinutes = b.readUInt16BE(7);
+
+                function minutesToTime(m: number) {
+                    return {
+                        hour: Math.floor(m / 60),
+                        minute: m % 60,
+                    };
+                }
+
+                const daysMask = b[9];
+
+                schedules.push({
+                    enabled: (b[1] & 0x80) !== 0,
+                    workMode: b[2] === 0x02 ? "cooling" : "heating",
+                    temperatureF: temperatureF,
+                    start: minutesToTime(startMinutes),
+                    end: minutesToTime(endMinutes),
+                    weekDays: {
+                        sunday: !!(daysMask & 0x01),
+                        monday: !!(daysMask & 0x02),
+                        tuesday: !!(daysMask & 0x04),
+                        wednesday: !!(daysMask & 0x08),
+                        thursday: !!(daysMask & 0x10),
+                        friday: !!(daysMask & 0x20),
+                        saturday: !!(daysMask & 0x40),
+                    },
+                });
+            }
+
+            return schedules;
+        },
+        to: (schedules: ThermostatSchedule[]) => {
+            const scheduleLength = 12;
+            const buffers = [];
+
+            for (const schedule of schedules) {
+                const b = Buffer.alloc(scheduleLength, 0x00);
+
+                if (schedule.enabled) {
+                    b[1] |= 0x80;
+                }
+
+                b[2] = schedule.workMode === "cooling" ? 0x02 : 0x00;
+
+                const temperatureF = schedule.temperatureF;
+                const rawTemperature = Math.round(temperatureF * 10) + 0x8000;
+                b.writeUInt16BE(rawTemperature & 0xffff, 3);
+
+                const startMinutes = schedule.start.hour * 60 + schedule.start.minute;
+                b.writeUInt16BE(startMinutes, 5);
+
+                const endMinutes = schedule.end.hour * 60 + schedule.end.minute;
+                b.writeUInt16BE(endMinutes, 7);
+
+                let daysMask = 0;
+                if (schedule.weekDays.sunday) daysMask |= 0x01;
+                if (schedule.weekDays.monday) daysMask |= 0x02;
+                if (schedule.weekDays.tuesday) daysMask |= 0x04;
+                if (schedule.weekDays.wednesday) daysMask |= 0x08;
+                if (schedule.weekDays.thursday) daysMask |= 0x10;
+                if (schedule.weekDays.friday) daysMask |= 0x20;
+                if (schedule.weekDays.saturday) daysMask |= 0x40;
+                b[9] = daysMask;
+
+                b[10] = 0x02;
+
+                let sum = 0;
+                for (let i = 0; i <= 9; i++) {
+                    sum += b[i];
+                }
+                b[11] = sum & 0xff;
+
+                buffers.push(b);
+            }
+
+            return Buffer.concat(buffers).toString("base64");
         },
     },
     tv02Preset: () => {
