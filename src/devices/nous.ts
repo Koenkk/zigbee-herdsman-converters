@@ -54,7 +54,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "water_leak", tuya.valueConverter.trueFalse0],
+                [1, "water_leak", tuya.valueConverter.trueFalse1],
                 [4, "battery", tuya.valueConverter.raw],
                 [101, "working_mode", tuya.valueConverterBasic.lookup({0: "normal", 1: "silent", 2: "test"})],
                 [102, "status", tuya.valueConverter.raw],
