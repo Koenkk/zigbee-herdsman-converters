@@ -1929,12 +1929,17 @@ export const definitions: DefinitionWithExtend[] = [
             .withDescription("Default dimming time in seconds (1–10). Used as default transition for brightness commands.")
             .withCategory("config"),
 
-        // Built-in key is level_config.on_level (this is what tz.level_config expects)
-        exposes.composite("level_config", "level_config", ea.ALL, [
-            exposes.numeric("on_level", ea.ALL)
-                .withValueMin(1).withValueMax(254)
-                .withDescription("On-level (1–254). Applied via genLevelCtrl.onLevel."),
-        ]).withCategory("config"),
+      // Built-in key is level_config.on_level (this is what tz.level_config expects)
+    exposes
+      .composite("level_config", "level_config", ea.ALL)
+      .withFeature(
+        exposes.numeric("on_level", ea.ALL)
+          .withValueMin(1)
+          .withValueMax(254)
+          .withDescription("On-level (1–254). Applied via genLevelCtrl.onLevel."),
+      )
+      .withCategory("config"),
+
     ],
 
     configure: (device) => {
