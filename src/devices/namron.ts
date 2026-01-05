@@ -222,7 +222,6 @@ type TzMeta = Parameters<TzConvertSet>[3];
 const sdClamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 const sdSecToZclTime = (s: number) => Math.max(0, Math.round(Number(s || 0) * 10)); // ZCL = 1/10s
 
-
 // Percent <-> level (1..254)
 const sdPctToLevel = (pct: number) => sdClamp(Math.round((Number(pct) / 100) * 254), 1, 254);
 const sdLevelToPct = (lvl: number) => sdClamp(Math.round((Number(lvl) / 254) * 100), 1, 100);
@@ -1875,72 +1874,77 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
         ],
     },
-{
-    zigbeeModel: ["4512791"],
-    model: "4512791",
-    vendor: "Namron",
-    description: "Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)",
+    {
+        zigbeeModel: ["4512791"],
+        model: "4512791",
+        vendor: "Namron",
+        description: "Namron Simplify Zigbee dimmer (1/2-polet / Zigbee / BT)",
 
-    extend: [
-        m.electricityMeter({
-            power: {multiplier: 1, divisor: 10},
-            voltage: {multiplier: 1, divisor: 10},
-            current: {multiplier: 1, divisor: 100},
-            energy: {multiplier: 1, divisor: 100},
-        }),
-    ],
+        extend: [
+            m.electricityMeter({
+                power: {multiplier: 1, divisor: 10},
+                voltage: {multiplier: 1, divisor: 10},
+                current: {multiplier: 1, divisor: 100},
+                energy: {multiplier: 1, divisor: 100},
+            }),
+        ],
 
-    // Sørg for state/brightness uten m.light (så vi unngår effect/dobbel)
-    fromZigbee: [fz.on_off, fz.brightness],
+        // Sørg for state/brightness uten m.light (så vi unngår effect/dobbel)
+        fromZigbee: [fz.on_off, fz.brightness],
 
-    toZigbee: [
-        tz.on_off,
-        tzLocalSimplifyDimmer4512791.brightness_clamped,
+        toZigbee: [
+            tz.on_off,
+            tzLocalSimplifyDimmer4512791.brightness_clamped,
 
-        tzLocalSimplifyDimmer4512791.min_brightness,
-        tzLocalSimplifyDimmer4512791.max_brightness,
-        tzLocalSimplifyDimmer4512791.dimming_speed,
+            tzLocalSimplifyDimmer4512791.min_brightness,
+            tzLocalSimplifyDimmer4512791.max_brightness,
+            tzLocalSimplifyDimmer4512791.dimming_speed,
 
-        // Re-use built-in (sets genLevelCtrl.onLevel)
-        tz.level_config,
-    ],
+            // Re-use built-in (sets genLevelCtrl.onLevel)
+            tz.level_config,
+        ],
 
-    exposes: [
-        e.light_brightness(),
+        exposes: [
+            e.light_brightness(),
 
-        exposes.numeric("min_brightness", ea.ALL)
-            .withValueMin(1).withValueMax(50)
-            .withDescription("Minimum brightness in % (1–50). Used to clamp brightness.")
-            .withCategory("config"),
+            exposes
+                .numeric("min_brightness", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(50)
+                .withDescription("Minimum brightness in % (1–50). Used to clamp brightness.")
+                .withCategory("config"),
 
-        exposes.numeric("max_brightness", ea.ALL)
-            .withValueMin(50).withValueMax(100)
-            .withDescription("Maximum brightness in % (50–100). Used to clamp brightness.")
-            .withCategory("config"),
+            exposes
+                .numeric("max_brightness", ea.ALL)
+                .withValueMin(50)
+                .withValueMax(100)
+                .withDescription("Maximum brightness in % (50–100). Used to clamp brightness.")
+                .withCategory("config"),
 
-        exposes.numeric("dimming_speed", ea.ALL)
-            .withValueMin(1).withValueMax(10)
-            .withDescription("Default dimming time in seconds (1–10). Used as default transition for brightness commands.")
-            .withCategory("config"),
+            exposes
+                .numeric("dimming_speed", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(10)
+                .withDescription("Default dimming time in seconds (1–10). Used as default transition for brightness commands.")
+                .withCategory("config"),
 
-      // Built-in key is level_config.on_level (this is what tz.level_config expects)
-    exposes
-      .composite("level_config", "level_config", ea.ALL)
-      .withFeature(
-        exposes.numeric("on_level", ea.ALL)
-          .withValueMin(1)
-          .withValueMax(254)
-          .withDescription("On-level (1–254). Applied via genLevelCtrl.onLevel."),
-      )
-      .withCategory("config"),
+            // Built-in key is level_config.on_level (this is what tz.level_config expects)
+            exposes
+                .composite("level_config", "level_config", ea.ALL)
+                .withFeature(
+                    exposes
+                        .numeric("on_level", ea.ALL)
+                        .withValueMin(1)
+                        .withValueMax(254)
+                        .withDescription("On-level (1–254). Applied via genLevelCtrl.onLevel."),
+                )
+                .withCategory("config"),
+        ],
 
-    ],
-
-    configure: (device) => {
-        store.putValue(device, "min_brightness_level", sdPctToLevel(20));
-        store.putValue(device, "max_brightness_level", sdPctToLevel(100));
-        store.putValue(device, "dimming_speed", 1);
+        configure: (device) => {
+            store.putValue(device, "min_brightness_level", sdPctToLevel(20));
+            store.putValue(device, "max_brightness_level", sdPctToLevel(100));
+            store.putValue(device, "dimming_speed", 1);
+        },
     },
-},
-
 ];
