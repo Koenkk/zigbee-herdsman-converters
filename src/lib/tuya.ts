@@ -436,6 +436,17 @@ export class Enum extends Base {}
 const enumConstructor = (value: number) => new Enum(value);
 export {enumConstructor as enum};
 
+export const BacklightColorEnum = {
+    red: enumConstructor(0),
+    blue: enumConstructor(1),
+    green: enumConstructor(2),
+    white: enumConstructor(3),
+    yellow: enumConstructor(4),
+    magenta: enumConstructor(5),
+    cyan: enumConstructor(6),
+    warm_white: enumConstructor(7),
+} as const;
+
 export class Bitmap extends Base {}
 
 type LookupMap = {[s: string]: number | boolean | Enum | string};
@@ -2682,24 +2693,33 @@ const tuyaModernExtend = {
         args: {
             endpoints?: string[];
             powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
-            powerOnBehavior2?: boolean;
-            switchType?: boolean;
+            powerOnBehavior2?: boolean | ((manufacturerName: string) => boolean);
+            switchType?: boolean | ((manufacturerName: string) => boolean);
             switchTypeCurtain?: boolean;
             backlightModeLowMediumHigh?: boolean;
             indicatorMode?: boolean | ((manufacturerName: string) => boolean);
             indicatorModeNoneRelayPos?: boolean;
             backlightModeOffNormalInverted?: boolean;
-            backlightModeOffOn?: boolean;
+            backlightModeOffOn?: boolean | ((manufacturerName: string) => boolean);
             electricalMeasurements?: boolean;
             // biome-ignore lint/suspicious/noExplicitAny: generic
             electricalMeasurementsFzConverter?: Fz.Converter<"haElectricalMeasurement", undefined, any>;
             childLock?: boolean | ((manufacturerName: string) => boolean);
             switchMode?: boolean;
             onOffCountdown?: boolean | ((manufacturerName: string) => boolean);
-            inchingSwitch?: boolean;
+            inchingSwitch?: boolean | ((manufacturerName: string) => boolean);
         } = {},
     ): ModernExtend => {
-        const {onOffCountdown = false, indicatorMode = false, powerOutageMemory = false, childLock = false} = args;
+        const {
+            onOffCountdown = false,
+            indicatorMode = false,
+            powerOutageMemory = false,
+            childLock = false,
+            inchingSwitch = false,
+            backlightModeOffOn = false,
+            powerOnBehavior2 = false,
+            switchType = false,
+        } = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
             : [e.switch()];
@@ -2728,13 +2748,14 @@ const tuyaModernExtend = {
             } else {
                 exposes.push(tuyaExposes.powerOutageMemory());
             }
-        } else if (args.powerOnBehavior2) {
+        } else if (powerOnBehavior2) {
             fromZigbee.push(tuyaFz.power_on_behavior_2);
             toZigbee.push(tuyaTz.power_on_behavior_2);
-            if (args.endpoints) {
-                exposes.push(...args.endpoints.map((ee) => e.power_on_behavior().withEndpoint(ee)));
+            const expose = args.endpoints ? args.endpoints.map((ee) => e.power_on_behavior().withEndpoint(ee)) : [e.power_on_behavior()];
+            if (typeof powerOnBehavior2 === "function") {
+                exposes.push((d) => (powerOnBehavior2(d.manufacturerName) ? expose : []));
             } else {
-                exposes.push(e.power_on_behavior());
+                exposes.push(...expose);
             }
         } else {
             fromZigbee.push(tuyaFz.power_on_behavior_1);
@@ -2742,20 +2763,28 @@ const tuyaModernExtend = {
             exposes.push(e.power_on_behavior());
         }
 
-        if (args.switchType) {
+        if (switchType) {
             fromZigbee.push(tuyaFz.switch_type);
             toZigbee.push(tuyaTz.switch_type);
-            exposes.push(tuyaExposes.switchType());
+            if (typeof switchType === "function") {
+                exposes.push((d) => (switchType(d.manufacturerName) ? [tuyaExposes.switchType()] : []));
+            } else {
+                exposes.push(tuyaExposes.switchType());
+            }
         }
         if (args.switchTypeCurtain) {
             fromZigbee.push(tuyaFz.switch_type_curtain);
             toZigbee.push(tuyaTz.switch_type_curtain);
             exposes.push(tuyaExposes.switchTypeCurtain());
         }
-        if (args.backlightModeOffOn) {
+        if (backlightModeOffOn) {
             fromZigbee.push(tuyaFz.backlight_mode_off_on);
-            exposes.push(tuyaExposes.backlightModeOffOn());
             toZigbee.push(tuyaTz.backlight_indicator_mode_2);
+            if (typeof backlightModeOffOn === "function") {
+                exposes.push((d) => (backlightModeOffOn(d.manufacturerName) ? [tuyaExposes.backlightModeOffOn()] : []));
+            } else {
+                exposes.push(tuyaExposes.backlightModeOffOn());
+            }
         }
         if (args.backlightModeLowMediumHigh) {
             fromZigbee.push(tuyaFz.backlight_mode_low_medium_high);
@@ -2814,14 +2843,15 @@ const tuyaModernExtend = {
             }
         }
 
-        if (args.inchingSwitch) {
-            let quantity = 1;
-            if (args.endpoints) {
-                quantity = args.endpoints.length;
-            }
+        if (inchingSwitch) {
+            const quantity = args.endpoints?.length ?? 1;
             fromZigbee.push(tuyaFz.inchingSwitch);
-            exposes.push(tuyaExposes.inchingSwitch(quantity));
             toZigbee.push(tuyaTz.inchingSwitch);
+            if (typeof inchingSwitch === "function") {
+                exposes.push((d) => (inchingSwitch(d.manufacturerName) ? [tuyaExposes.inchingSwitch(quantity)] : []));
+            } else {
+                exposes.push(tuyaExposes.inchingSwitch(quantity));
+            }
         }
 
         const configure = [configureSetPowerSourceWhenUnknown("Mains (single phase)")];

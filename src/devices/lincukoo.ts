@@ -43,6 +43,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
+            e
+                .numeric("detection_distance", ea.STATE)
+                .withValueMin(0)
+                .withValueMax(1000)
+                .withValueStep(1)
+                .withDescription("Distance of detected person")
+                .withUnit("cm"),
             e.illuminance(),
             e
                 .numeric("installation_height", ea.STATE_SET)
@@ -70,6 +77,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [20, "illuminance", tuya.valueConverter.raw],
                 [13, "installation_height", tuya.valueConverter.divideBy100],
                 [16, "radar_sensitivity", tuya.valueConverter.raw],
+                [19, "detection_distance", tuya.valueConverter.raw],
                 [103, "fading_time", tuya.valueConverter.raw],
                 [101, "indicator", tuya.valueConverter.onOff],
                 [104, "relay_switch", tuya.valueConverter.onOff],
@@ -122,7 +130,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("m")
                 .withDescription("Maximum range"),
             e.numeric("radar_sensitivity", ea.STATE_SET).withValueMin(0).withValueMax(9).withValueStep(1).withDescription("Sensitivity of the radar"),
-            e.numeric("fading_time", ea.STATE_SET).withValueMin(30).withValueMax(60).withValueStep(1).withDescription("Fading time").withUnit("s"),
+            e.numeric("fading_time", ea.STATE_SET).withValueMin(30).withValueMax(300).withValueStep(1).withDescription("Fading time").withUnit("s"),
             e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
             e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
             e.enum("work_mode", ea.STATE_SET, ["pir_mode", "radar_mode", "combine_mode"]).withDescription("work mode of device"),

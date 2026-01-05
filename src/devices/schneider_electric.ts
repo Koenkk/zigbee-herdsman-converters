@@ -410,6 +410,38 @@ const schneiderElectricExtend = {
 
         return extend;
     },
+    addHeatingCoolingOutputClusterServer: () =>
+        m.deviceAddCustomCluster("HeatingCoolingOutputClusterServer", {
+            ID: 0xff23,
+            manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            attributes: {
+                measuredTemperature: {ID: 0x0000, type: Zcl.DataType.INT16, max: 0x7fff},
+                absMinHeatTemperatureLimit: {ID: 0x0003, type: Zcl.DataType.INT16, max: 0x7fff},
+                absMaxHeatTemperatureLimit: {ID: 0x0004, type: Zcl.DataType.INT16, max: 0x7fff},
+                absMinCoolTemperatureLimit: {ID: 0x0005, type: Zcl.DataType.INT16, max: 0x7fff},
+                absMaxCoolTemperatureLimit: {ID: 0x0006, type: Zcl.DataType.INT16, max: 0x7fff},
+                minHeatTemperatureLimit: {ID: 0x0015, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                maxHeatTemperatureLimit: {ID: 0x0016, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                minCoolTemperatureLimit: {ID: 0x0017, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                maxCoolTemperatureLimit: {ID: 0x0018, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                heatTemperatureHighLimit: {ID: 0x0020, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                heatTemperatureLowLimit: {ID: 0x0021, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                coolTemperatureHighLimit: {ID: 0x0022, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                coolTemperatureLowLimit: {ID: 0x0023, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                coolingOutputMode: {ID: 0x0030, type: Zcl.DataType.ENUM8, write: true, max: 0x1},
+                heatingOutputMode: {ID: 0x0031, type: Zcl.DataType.ENUM8, write: true, max: 0x1},
+                maximumIdleTime: {ID: 0x0041, type: Zcl.DataType.UINT16, write: true, max: 8784},
+                antiIdleExerciseTime: {ID: 0x0042, type: Zcl.DataType.UINT16, write: true, max: 3600},
+                preferredExerciseTime: {ID: 0x0043, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                minOffTime: {ID: 0x0044, type: Zcl.DataType.UINT16, write: true},
+                minOnTime: {ID: 0x0045, type: Zcl.DataType.UINT16, write: true},
+                maxOverallDutyCycle: {ID: 0xe207, type: Zcl.DataType.UINT16, write: true, min: 900, max: 3600},
+                overallDutyCyclePeriod: {ID: 0xe208, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                clusterRevision: {ID: 0xfffd, type: Zcl.DataType.UINT16, max: 0xfffe},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
 };
 
 const tzLocal = {
@@ -1289,10 +1321,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "CCTFR6700", manufacturerName: "Schneider Electric"}],
+        fingerprint: [
+            {modelID: "CCTFR6700", manufacturerName: "Schneider Electric"},
+            {modelID: "CCTFR6710", manufacturerName: "Schneider Electric"},
+        ],
         model: "CCTFR6700",
         vendor: "Schneider Electric",
         description: "Heating thermostat",
+        whiteLabel: [{model: "CCTFR6710", fingerprint: [{modelID: "CCTFR6710"}]}],
         fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode],
         toZigbee: [
             tz.schneider_temperature_measured_value,
@@ -1788,40 +1824,128 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EKO07259",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.metering, fz.schneider_pilot_mode, fz.wiser_device_info, fz.hvac_user_interface],
-        toZigbee: [
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_system_mode,
-            tz.thermostat_running_state,
-            tz.thermostat_local_temperature,
-            tz.thermostat_control_sequence_of_operation,
-            tz.schneider_pilot_mode,
-            tz.schneider_thermostat_keypad_lockout,
-            tz.thermostat_temperature_display_mode,
+        extend: [
+            m.thermostat({
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 4, max: 40, step: 0.5},
+                    },
+                },
+                setpointsLimit: {
+                    maxHeatSetpointLimit: {min: 4, max: 40, step: 0.5},
+                    minHeatSetpointLimit: {min: 4, max: 40, step: 0.5},
+                },
+                systemMode: {
+                    values: ["off", "heat"],
+                },
+                runningState: {
+                    values: ["idle", "heat"],
+                },
+                piHeatingDemand: {
+                    values: ea.STATE_GET,
+                },
+            }),
+            m.occupancy(),
+            m.electricityMeter({
+                voltage: false,
+                current: false,
+                configureReporting: true,
+                cluster: "metering",
+            }),
+            m.numeric({
+                name: "fixed_load_demand",
+                cluster: "seMetering",
+                attribute: {ID: 0x4510, type: Zcl.DataType.UINT24},
+                description: "This attribute specifies the demand of a switched load when it is energised",
+                entityCategory: "config",
+                unit: "W",
+                valueMin: 1,
+                valueMax: 3600,
+                valueStep: 1,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                reporting: {min: 0, max: 3600, change: 10},
+            }),
+            m.numeric({
+                name: "display_brightness_active",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe000, type: Zcl.DataType.UINT8},
+                description: "Sets brightness of the temperature display during active state",
+                entityCategory: "config",
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                valueStep: 1,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric({
+                name: "display_brightness_inactive",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe001, type: Zcl.DataType.UINT8},
+                description: "Sets brightness of the temperature display during inactive state",
+                entityCategory: "config",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric({
+                name: "display_active_timeout",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0xe002, type: Zcl.DataType.UINT16},
+                description: "Sets timeout of the temperature display active state",
+                entityCategory: "config",
+                unit: "seconds",
+                valueMin: 5,
+                valueMax: 3600,
+                valueStep: 5,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.enumLookup({
+                name: "local_temperature_source_select",
+                cluster: "hvacThermostat",
+                attribute: {ID: 0xe212, type: Zcl.DataType.UINT8},
+                description: "On devices with more than one temperature input, this selects which should be used for LocalTemperature.",
+                entityCategory: "config",
+                lookup: {Ambient: 2, External: 3},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.enumLookup({
+                name: "temperature_sensor_type",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0xe021, type: Zcl.DataType.ENUM8},
+                description: "This is used to specify the type of temperature sensor connected to this input",
+                entityCategory: "config",
+                lookup: {
+                    "2kΩ sensor from HRT/Alre": 1,
+                    "10kΩ sensor from B+J": 2,
+                    "12kΩ sensor from OJ": 3,
+                    "15kΩ sensor from DEVI": 4,
+                    "33kΩ sensor from EBERLE": 5,
+                    "47kΩ sensor from CTM": 6,
+                    "No sensor": 0xff,
+                },
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                lookup: {celsius: 0, fahrenheit: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "tempDisplayMode",
+                description: "The unit of the temperature displayed on the device screen.",
+                entityCategory: "config",
+            }),
+            m.binary({
+                name: "child_lock",
+                valueOn: ["LOCK", 1],
+                valueOff: ["UNLOCK", 0],
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Enables/disables physical input on the device",
+                access: "ALL",
+                reporting: {min: 0, max: 3600, change: 0},
+            }),
         ],
-        exposes: [
-            e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
-            e.enum("schneider_pilot_mode", ea.ALL, ["contactor", "pilot"]).withDescription("Controls piloting mode"),
-            e
-                .enum("temperature_display_mode", ea.ALL, ["celsius", "fahrenheit"])
-                .withDescription("The temperature format displayed on the thermostat screen"),
-            e
-                .climate()
-                .withSetpoint("occupied_heating_setpoint", 0, 40, 0.5)
-                .withLocalTemperature()
-                .withSystemMode(["off", "heat"])
-                .withRunningState(["idle", "heat"])
-                .withPiHeatingDemand(),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat"]);
-            await reporting.thermostatPIHeatingDemand(endpoint1);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["seMetering"]);
-            await endpoint1.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
-        },
     },
     {
         zigbeeModel: ["WDE002497"],

@@ -9,6 +9,7 @@ import {
     ikeaAirPurifier,
     ikeaArrowClick,
     ikeaBattery,
+    ikeaBilresaDouble,
     ikeaConfigureGenPollCtrl,
     ikeaConfigureRemote,
     ikeaConfigureStyrbar,
@@ -133,10 +134,15 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
     },
     {
-        zigbeeModel: ["TRADFRIbulbE26WSglobeclear800lm", "TRADFRIbulbE27WSglobeclear806lm", "TRADFRIbulbE26WSglobeclear806lm"],
+        zigbeeModel: [
+            "TRADFRIbulbE26WSglobeclear800lm",
+            "TRADFRIbulbE27WSglobeclear806lm",
+            "TRADFRIbulbE26WSglobeclear806lm",
+            "TRADFRIbulbE26WSglobeclear810lm",
+        ],
         model: "LED2004G8",
         vendor: "IKEA",
-        description: "TRADFRI bulb E26/E27, white spectrum, globe, clear, 800/806 lm",
+        description: "TRADFRI bulb E26/E27, white spectrum, globe, clear, 800/806/810 lm",
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
     },
     {
@@ -147,10 +153,11 @@ export const definitions: DefinitionWithExtend[] = [
             "TRADFRIbulbT120E26WSopal450lm",
             "TRADFRIbulbT120E26WSopal470lm",
             "TRADFRI bulb E26 WS opal 440lm",
+            "TRADFRIbulbT120E26WSopal440lm",
         ],
         model: "LED1937T5",
         vendor: "IKEA",
-        description: "TRADFRI bulb E26/E27, white spectrum, T120 cylinder, opal, 450/470 lm",
+        description: "TRADFRI bulb E26/E27, white spectrum, T120 cylinder, opal, 440/450/470 lm",
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({colorTemp: true}), m.identify()],
     },
     {
@@ -548,6 +555,73 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight({turnsOffAtBrightness1: true}), m.identify()],
     },
     {
+        fingerprint: [
+            {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3660923636
+                modelID: "",
+                manufacturerName: "",
+                hardwareVersion: 1,
+                dateCode: "",
+                softwareBuildID: "",
+                zclVersion: 8,
+                applicationVersion: 0,
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 269, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096], outputClusters: []},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
+        ],
+        model: "KAJPLATS_RGB",
+        vendor: "IKEA",
+        description: "KAJPLATS color/white spectrum light",
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
+        fingerprint: [
+            {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3696471655
+                modelID: "",
+                manufacturerName: "",
+                hardwareVersion: 1,
+                dateCode: "",
+                zclVersion: 8,
+                applicationVersion: 0,
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 268, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096], outputClusters: []},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
+        ],
+        model: "KAJPLATS_CT",
+        vendor: "IKEA",
+        description: "KAJPLATS white spectrum light",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3697342174
+        zigbeeModel: ["KAJPLATS E27 WS globe 470lm"],
+        model: "LED2406G4",
+        vendor: "IKEA",
+        description: "KAJPLATS E27 bulb, white spectrum, globe, opal, 470 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3698674562
+        zigbeeModel: ["KAJPLATS E27 WS G95 clear 806lm"],
+        model: "LED2401G5",
+        vendor: "IKEA",
+        description: "KAJPLATS E27 bulb, white spectrum, globe, clear, 806 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3697858054
+        zigbeeModel: ["KAJPLATS E27 WS G60 clear 470lm"],
+        model: "LED2411G3",
+        vendor: "IKEA",
+        description: "KAJPLATS E27 bulb, white spectrum, globe, clear, 470 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
         zigbeeModel: ["Floor lamp WW"],
         model: "G2015",
         vendor: "IKEA",
@@ -647,11 +721,13 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["INSPELNING Smart plug"],
-        model: "E2206",
+        model: "E22xx",
         vendor: "IKEA",
         description: "INSPELNING smart plug",
         whiteLabel: [
+            {model: "E2206", vendor: "IKEA", description: "INSPELNING smart plug (EU)"},
             {model: "E2220", vendor: "IKEA", description: "INSPELNING smart plug (US)"},
+            {model: "E2223", vendor: "IKEA", description: "INSPELNING smart plug (UK)"},
             {model: "E2224", vendor: "IKEA", description: "INSPELNING smart plug (CH)"},
         ],
         extend: [
@@ -786,6 +862,34 @@ export const definitions: DefinitionWithExtend[] = [
             ikeaBattery(),
         ],
         ota: true,
+    },
+    {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/30325
+        zigbeeModel: ["09B9"],
+        model: "E2489",
+        vendor: "IKEA",
+        description: "BILRESA remote control with buttons",
+        extend: [
+            m.battery(),
+            m.identify({isSleepy: true}),
+            m.commandsOnOff({commands: ["on", "off"]}),
+            m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
+            ikeaBilresaDouble(),
+        ],
+    },
+    {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/30321
+        zigbeeModel: ["09BA"],
+        model: "E2490",
+        vendor: "IKEA",
+        description: "BILRESA remote control with scroll wheel",
+        extend: [
+            m.battery(),
+            m.identify({isSleepy: true}),
+            m.commandsOnOff({commands: ["on", "off"]}),
+            m.commandsLevelCtrl({commands: ["brightness_move_to_level"]}),
+            ikeaBilresaDouble(),
+        ],
     },
     {
         zigbeeModel: ["Remote Control N2"],
