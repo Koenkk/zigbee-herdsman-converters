@@ -224,13 +224,7 @@ const boschExtend = {
         };
         const exposes: Expose[] = [
             e.binary("smoke", ea.STATE, true, false).withDescription("Indicates whether the device detected smoke"),
-            e
-                .numeric("temperature", ea.STATE)
-                .withValueMin(0)
-                .withValueMax(65)
-                .withValueStep(0.1)
-                .withUnit("°C")
-                .withDescription("Temperature"),
+            e.numeric("temperature", ea.STATE).withValueMin(0).withValueMax(65).withValueStep(0.1).withUnit("°C").withDescription("Temperature"),
             e.numeric("humidity", ea.STATE).withValueMin(0).withValueMax(100).withValueStep(0.1).withUnit("%").withDescription("Relative humidity"),
             e
                 .numeric("co2", ea.STATE)
