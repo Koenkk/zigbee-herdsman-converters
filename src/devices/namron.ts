@@ -213,21 +213,15 @@ const tzLocal = {
 };
 // -----------------------------------------------------------------------------
 // Namron Simplify Dimmer (4512791) helpers + toZigbee converters
-// Place this block BEFORE: export const definitions: DefinitionWithExtend[] = [
-// -----------------------------------------------------------------------------
 
-// Derive repo-correct types from Tz.Converter (avoids importing Meta/Endpoint/Group)
 type TzConvertSet = NonNullable<Tz.Converter["convertSet"]>;
 type TzEntity = Parameters<TzConvertSet>[0];
 type TzMeta = Parameters<TzConvertSet>[3];
 
-type TzConvertGet = NonNullable<Tz.Converter["convertGet"]>;
-type TzGetEntity = Parameters<TzConvertGet>[0];
-type TzGetMeta = Parameters<TzConvertGet>[2];
-
 // Simplify Dimmer (4512791) — local toZigbee converters (repo-check-safe)
 const sdClamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 const sdSecToZclTime = (s: number) => Math.max(0, Math.round(Number(s || 0) * 10)); // ZCL = 1/10s
+
 
 // Percent <-> level (1..254)
 const sdPctToLevel = (pct: number) => sdClamp(Math.round((Number(pct) / 100) * 254), 1, 254);
