@@ -23003,8 +23003,8 @@ Ensure all 12 segments are defined and separated by spaces.`,
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
                 .withSystemMode(["off", "heat"], ea.STATE_SET)
-                .withRunningState(['idle', 'heat'], ea.STATE)
-                .withPreset(["auto", "manual", "eco"],ea.STATE_SET),
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withPreset(["auto", "manual", "eco"], ea.STATE_SET),
             e.child_lock(),
             e.battery(),
             e.enum("valve_state", ea.STATE, ["open", "close"]).withDescription("Valve state (open/close)"),
