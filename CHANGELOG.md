@@ -1,5 +1,22 @@
 # Changelog
 
+## [25.101.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.100.0...v25.101.0) (2026-01-05)
+
+
+### Features
+
+* **add:** G91E-ZH, G94E, W04-Z10T, W10-Z10T, V04-Z10T, V06-Z10T ([#10922](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10922)) ([f044789](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f044789188e5ad0242249a4966cf931167484393))
+
+
+### Bug Fixes
+
+* Beok BOT-R9V-ZB: remove `preset` to climate expose ([#11205](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11205)) ([b87712f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b87712fdb920465df11b7363f8770f7598b5c4f8))
+* **detect:** Detect `_TZ3000_gdsvhfao` as Tuya TS0207_repeater ([#11207](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11207)) ([3b11b13](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3b11b1385470e08c2c09d36d11a30665133250dc))
+* **detect:** Detect `SmokeSensor-EF-3.0` as Heiman HS1SA-E ([#11202](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11202)) ([89b5ecc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/89b5ecc0ba5d5ca1b2d15cc7c17b9e3014935f99))
+* **ignore:** bump the minor-patch group with 2 updates ([#11203](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11203)) ([0adcd38](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0adcd38c6b8da2aac7d148783b9af5404bb1fed0))
+* Nous E13: fix water leak state https://github.com/Koenkk/zigbee2mqtt/issues/30411 ([6de2199](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6de2199a572a4ce0d750a1fc3c0b6373a1696577))
+* Revert "Add full support for Tuya BAC-002-ALZB (schedule_text, improved off behavior, calibration -9/+9)" ([#11209](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11209)) ([44e4389](https://github.com/Koenkk/zigbee-herdsman-converters/commit/44e4389b2d186ea25c9aa3f677452a2da52d94c3))
+
 ## [25.100.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.99.0...v25.100.0) (2026-01-04)
 
 
