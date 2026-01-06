@@ -94,8 +94,10 @@ export enum TuyaWeatherID {
 
 export type ThermostatSchedule = KeyValue & {
     enabled: boolean;
-    workMode: "cooling" | "heating";
-    temperatureF: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    work_mode: "cooling" | "heating";
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    temperature_f: number;
     start: {
         hour: number;
         minute: number;
@@ -104,7 +106,8 @@ export type ThermostatSchedule = KeyValue & {
         hour: number;
         minute: number;
     };
-    weekDays: {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    week_days: {
         sunday: boolean;
         monday: boolean;
         tuesday: boolean;
@@ -1208,11 +1211,11 @@ export const valueConverter = {
 
                 schedules.push({
                     enabled: (b[1] & 0x80) !== 0,
-                    workMode: b[2] === 0x02 ? "cooling" : "heating",
-                    temperatureF: temperatureF,
+                    work_mode: b[2] === 0x02 ? "cooling" : "heating",
+                    temperature_f: temperatureF,
                     start: minutesToTime(startMinutes),
                     end: minutesToTime(endMinutes),
-                    weekDays: {
+                    week_days: {
                         sunday: !!(daysMask & 0x01),
                         monday: !!(daysMask & 0x02),
                         tuesday: !!(daysMask & 0x04),
@@ -1237,9 +1240,9 @@ export const valueConverter = {
                     b[1] |= 0x80;
                 }
 
-                b[2] = schedule.workMode === "cooling" ? 0x02 : 0x00;
+                b[2] = schedule.work_mode === "cooling" ? 0x02 : 0x00;
 
-                const temperatureF = schedule.temperatureF;
+                const temperatureF = schedule.temperature_f;
                 const rawTemperature = Math.round(temperatureF * 10) + 0x8000;
                 b.writeUInt16BE(rawTemperature & 0xffff, 3);
 
@@ -1250,13 +1253,13 @@ export const valueConverter = {
                 b.writeUInt16BE(endMinutes, 7);
 
                 let daysMask = 0;
-                if (schedule.weekDays.sunday) daysMask |= 0x01;
-                if (schedule.weekDays.monday) daysMask |= 0x02;
-                if (schedule.weekDays.tuesday) daysMask |= 0x04;
-                if (schedule.weekDays.wednesday) daysMask |= 0x08;
-                if (schedule.weekDays.thursday) daysMask |= 0x10;
-                if (schedule.weekDays.friday) daysMask |= 0x20;
-                if (schedule.weekDays.saturday) daysMask |= 0x40;
+                if (schedule.week_days.sunday) daysMask |= 0x01;
+                if (schedule.week_days.monday) daysMask |= 0x02;
+                if (schedule.week_days.tuesday) daysMask |= 0x04;
+                if (schedule.week_days.wednesday) daysMask |= 0x08;
+                if (schedule.week_days.thursday) daysMask |= 0x10;
+                if (schedule.week_days.friday) daysMask |= 0x20;
+                if (schedule.week_days.saturday) daysMask |= 0x40;
                 b[9] = daysMask;
 
                 b[10] = 0x02;

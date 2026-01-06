@@ -23185,8 +23185,8 @@ export const definitions: DefinitionWithExtend[] = [
                     exposes
                         .composite("schedule", "schedule", ea.SET)
                         .withFeature(e.binary("enabled", ea.SET, true, false).withDescription("Enable schedule"))
-                        .withFeature(e.enum("workMode", ea.SET, ["heating", "cooling"]))
-                        .withFeature(e.numeric("temperatureF", ea.SET).withUnit("℉").withDescription("Target temperature in ℉"))
+                        .withFeature(e.enum("work_mode", ea.SET, ["heating", "cooling"]))
+                        .withFeature(e.numeric("temperature_f", ea.SET).withUnit("℉").withDescription("Target temperature in ℉"))
                         .withFeature(
                             exposes
                                 .composite("start", "start", ea.SET)
@@ -23201,7 +23201,7 @@ export const definitions: DefinitionWithExtend[] = [
                         )
                         .withFeature(
                             exposes
-                                .composite("weekDays", "weekDays", ea.SET)
+                                .composite("week_days", "week_days", ea.SET)
                                 .withFeature(e.binary("sunday", ea.SET, true, false))
                                 .withFeature(e.binary("monday", ea.SET, true, false))
                                 .withFeature(e.binary("tuesday", ea.SET, true, false))
