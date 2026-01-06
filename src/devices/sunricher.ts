@@ -2482,4 +2482,16 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("hvacThermostat", [0x1008], options);
         },
     },
+    {
+        fingerprint: [
+            {modelID: "DIM", manufacturerName: "Sunricher"},
+        ],
+        model: "SR-ZG9001T2-SW",
+        vendor: "Sunricher",
+        description: 'Zigbee 2 channel AC phase-cut dimmer',
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}, configureReporting: true}), 
+            m.light({endpointNames: ["l1",  "l2"]}),
+        ],
+    },
 ];
