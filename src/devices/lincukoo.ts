@@ -477,7 +477,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hyt4iucb"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_hyt4iucb"]),
         model: "E02C-Z10T",
         vendor: "Lincukoo",
         description: "Smart Air Quality Monitor(CO2)",
@@ -540,7 +540,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_isvlaage"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_isvlaage"]),
         model: "EZC04",
         vendor: "Lincukoo",
         description: "Smart Air Quality Monitor(CO2)",
@@ -585,7 +585,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_fpwtjlfh"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fpwtjlfh"]),
         model: "EZCP04",
         vendor: "Lincukoo",
         description: "Smart Air Quality Monitor(CO2+PM2.5)",
@@ -638,7 +638,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ra9zfiwr"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ra9zfiwr"]),
         model: "E04CF-Z10T",
         vendor: "Lincukoo",
         description: "Smart Gas and CO sensor",
@@ -689,7 +689,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_l4daccga"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_l4daccga"]),
         model: "A08-Z10T",
         vendor: "Lincukoo",
         description: "Smart Sound and flash siren",
