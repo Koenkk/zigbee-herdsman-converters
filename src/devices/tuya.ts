@@ -2527,6 +2527,23 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit("ppb"), e.formaldehyd().withUnit("µg/m³")],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_8b9zpaav"]),
+        model: "TS0601_airbox",
+        vendor: "Tuya",
+        description: "zigbee air quality sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit("ppb"), e.formaldehyd().withUnit("µg/m³")],
+        meta: {
+            tuyaDatapoints: [
+                [2, "co2", tuya.valueConverter.raw],
+                [18, "temperature", tuya.valueConverter.divideBy10],
+                [19, "humidity", tuya.valueConverter.raw],
+                [21, "voc", tuya.valueConverter.divideBy100],
+                [22, "formaldehyd", tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rbbx5mfq", "_TZE204_rbbx5mfq"]),
         model: "TS0601_illuminance_temperature_humidity_sensor_2",
         vendor: "Tuya",
