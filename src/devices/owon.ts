@@ -468,29 +468,6 @@ export const definitions: DefinitionWithExtend[] = [
 
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
         ],
-
-        configure: async (device, coordinatorEndpoint) => {
-            const ep = device.getEndpoint(1);
-
-            await reporting.readMeteringMultiplierDivisor(ep);
-
-            await ep.configureReporting("seMetering", [
-                {
-                    attribute: "instantaneousDemand",
-                    minimumReportInterval: 5,
-                    maximumReportInterval: 3600,
-                    reportableChange: 5,
-                },
-                {
-                    attribute: "currentSummDelivered",
-                    minimumReportInterval: 5,
-                    maximumReportInterval: 3600,
-                    reportableChange: 100,
-                },
-            ]);
-
-            await ep.read("seMetering", ["instantaneousDemand", "currentSummDelivered"]);
-        },
     },
     {
         zigbeeModel: ["WSP403-E"],
@@ -506,29 +483,6 @@ export const definitions: DefinitionWithExtend[] = [
 
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
         ],
-
-        configure: async (device, coordinatorEndpoint) => {
-            const ep = device.getEndpoint(1);
-
-            await reporting.readMeteringMultiplierDivisor(ep);
-
-            await ep.configureReporting("seMetering", [
-                {
-                    attribute: "instantaneousDemand",
-                    minimumReportInterval: 5,
-                    maximumReportInterval: 3600,
-                    reportableChange: 5,
-                },
-                {
-                    attribute: "currentSummDelivered",
-                    minimumReportInterval: 5,
-                    maximumReportInterval: 3600,
-                    reportableChange: 100,
-                },
-            ]);
-
-            await ep.read("seMetering", ["instantaneousDemand", "currentSummDelivered"]);
-        },
     },
     {
         zigbeeModel: ["WSP404"],
