@@ -53,7 +53,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Lighting Switch"],
-        model: "Lighting Switch",
+        model: "BN-600087",
         vendor: "Dresden Elektronik",
         description: "2 part zigbee powered light switch",
         ota: true,
