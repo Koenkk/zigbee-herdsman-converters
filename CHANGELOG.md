@@ -1,5 +1,25 @@
 # Changelog
 
+## [25.103.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.102.0...v25.103.0) (2026-01-07)
+
+
+### Features
+
+* **add:** AC221 ([#11106](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11106)) ([056279c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/056279cd84b8933038d0709b88297aec6e34a1b8))
+* **add:** BN-600085 ([#11070](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11070)) ([c9a4132](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c9a4132cc549ed6ea661408160b7123a3a8049d2))
+* **add:** BN-600087 ([#11071](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11071)) ([551a508](https://github.com/Koenkk/zigbee-herdsman-converters/commit/551a508e8ae771e82a623ee47be008357aeadfb0))
+* **add:** ECO-DIM.13 ([#11224](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11224)) ([acbe737](https://github.com/Koenkk/zigbee-herdsman-converters/commit/acbe737725d5bf712657255a1d0560bf57e89e12))
+* **add:** Kobold ([#11072](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11072)) ([0fa92f9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0fa92f9063164ced94dedb37f2e11bf022251115))
+* **add:** MIR-MC100-E ([#11225](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11225)) ([83eb1da](https://github.com/Koenkk/zigbee-herdsman-converters/commit/83eb1da8a55580f72034a48f443a725536539a0f))
+* **add:** TS0601_smart_temperature_switch ([#11174](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11174)) ([072edce](https://github.com/Koenkk/zigbee-herdsman-converters/commit/072edce28a9849394f2d114768305873a6ac6cbc))
+
+
+### Bug Fixes
+
+* AwoX 33951/33948: narrow detection https://github.com/Koenkk/zigbee-herdsman-converters/pull/11216 ([89ef9ca](https://github.com/Koenkk/zigbee-herdsman-converters/commit/89ef9caf49e7ebb52a0e08971c895a7c8c53b211))
+* BITUO TECHNIK: add clear energy function ([#11223](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11223)) ([b6cc153](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b6cc1536ea6a46feb22ab12970cd2cb5820a2d64))
+* **detect:** Detect `_TZB210_uoiqhjqe` as MiBoxer FUT105ZR ([#11222](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11222)) ([efca6a3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/efca6a38de29b9abc85ee522906d73d148129753))
+
 ## [25.102.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.101.0...v25.102.0) (2026-01-06)
 
 
