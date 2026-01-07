@@ -30,11 +30,11 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Kobold"],
-        model: "BN-600110",
+        model: "Kobold",
         vendor: "Dresden Elektronik",
         description: "Zigbee 3.0 dimm actuator",
-        extend: [m.light()],
         ota: true,
+        extend: [m.light()],
     },
     {
         zigbeeModel: ["Hive"],
