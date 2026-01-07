@@ -546,7 +546,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Air Quality Monitor(CO2)",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.numeric("co2_value", ea.STATE).withUnit("ppm").withValueMin(400).withValueMax(10000).withDescription("Current CO2 Value"),
+            e.numeric("co2", ea.STATE).withUnit("ppm").withValueMin(400).withValueMax(10000).withDescription("Current CO2 Value"),
             e.temperature(),
             e.humidity(),
             e.enum("temperature_unit_convert", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Current display unit"),
@@ -564,7 +564,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "co2_state", tuya.valueConverterBasic.lookup({alarm: 0, normal: 1})],
-                [2, "co2_value", tuya.valueConverter.raw],
+                [2, "co2", tuya.valueConverter.raw],
                 [
                     6,
                     "alarm_ringtone",
@@ -591,8 +591,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Air Quality Monitor(CO2+PM2.5)",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.numeric("co2_value", ea.STATE).withUnit("ppm").withValueMin(400).withValueMax(10000).withDescription("Current CO2 Value"),
-            e.numeric("pm25_value", ea.STATE).withUnit("ug/m3").withValueMin(0).withValueMax(1000).withDescription("Current PM2.5 Value"),
+            e.numeric("co2", ea.STATE).withUnit("ppm").withValueMin(400).withValueMax(10000).withDescription("Current CO2 Value"),
+            e.numeric("pm25", ea.STATE).withUnit("ug/m3").withValueMin(0).withValueMax(1000).withDescription("Current PM2.5 Value"),
             e.temperature(),
             e.humidity(),
             e.enum("temperature_unit_convert", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Current display unit"),
@@ -616,7 +616,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "alarm_state", tuya.valueConverterBasic.lookup({normal: 0, alarm_co2: 1, alarm_pm25: 2})],
-                [2, "co2_value", tuya.valueConverter.raw],
+                [2, "co2", tuya.valueConverter.raw],
                 [
                     6,
                     "alarm_ringtone",
@@ -631,7 +631,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [19, "humidity", tuya.valueConverter.raw],
                 [26, "co2_alarm_value", tuya.valueConverter.raw],
                 [31, "temperature_unit_convert", tuya.valueConverterBasic.lookup({celsius: tuya.enum(0), fahrenheit: tuya.enum(1)})],
-                [20, "pm25_value", tuya.valueConverter.raw],
+                [20, "pm25", tuya.valueConverter.raw],
                 [101, "pm25_alarm_value", tuya.valueConverter.raw],
             ],
         },
@@ -644,8 +644,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Gas and CO sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.numeric("gas_sensor_value", ea.STATE).withUnit("%LEL").withValueMin(0).withValueMax(20).withDescription("Current Gas Value"),
-            e.numeric("co_value", ea.STATE).withUnit("ppm").withValueMin(0).withValueMax(1000).withDescription("Current CO Value"),
+            e.numeric("gas", ea.STATE).withUnit("%LEL").withValueMin(0).withValueMax(20).withDescription("Current Gas Value"),
+            e.numeric("co", ea.STATE).withUnit("ppm").withValueMin(0).withValueMax(1000).withDescription("Current CO Value"),
             e
                 .numeric("set_max_gas_alarm", ea.STATE_SET)
                 .withUnit("%LEL")
@@ -668,7 +668,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "gas_sensor_state", tuya.valueConverterBasic.lookup({normal: 0, alarm: 1})],
-                [2, "gas_sensor_value", tuya.valueConverter.divideBy1000],
+                [2, "gas", tuya.valueConverter.divideBy1000],
                 [8, "self_checking", tuya.valueConverter.onOff],
                 [
                     9,
@@ -681,7 +681,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [18, "co_state", tuya.valueConverterBasic.lookup({normal: 0, alarm: 1})],
-                [19, "co_value", tuya.valueConverter.raw],
+                [19, "co", tuya.valueConverter.raw],
                 [101, "set_max_gas_alarm", tuya.valueConverter.divideBy1000],
                 [102, "set_max_co_alarm", tuya.valueConverter.raw],
             ],
