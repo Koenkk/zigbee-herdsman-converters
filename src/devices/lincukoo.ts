@@ -485,7 +485,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.temperature(),
             e.humidity(),
-            e.numeric("co2_value", ea.STATE).withUnit("ppm").withValueMin(400).withValueMax(10000).withDescription("Current CO2 Value"),
+            e.numeric("co2", ea.STATE).withUnit("ppm").withValueMin(400).withValueMax(10000).withDescription("Current CO2 Value"),
             e.battery(),
             e.enum("temperature_unit_convert", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Current display unit"),
             e.binary("alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("alarm switch"),
@@ -515,7 +515,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [2, "temperature", tuya.valueConverter.divideBy10],
                 [3, "humidity", tuya.valueConverter.raw],
-                [4, "co2_value", tuya.valueConverter.raw],
+                [4, "co2", tuya.valueConverter.raw],
                 [22, "battery", tuya.valueConverter.raw],
                 [102, "temperature_unit_convert", tuya.valueConverterBasic.lookup({celsius: tuya.enum(0), fahrenheit: tuya.enum(1)})],
                 [101, "alarm_switch", tuya.valueConverter.onOff],
