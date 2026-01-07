@@ -559,7 +559,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["AC221"],
         model: "AC221",
         vendor: "OWON",
-        description: "AC Controller / IR Blaster (AC221)",
+        description: "AC controller / IR blaster",
         extend: [m.deviceAddCustomCluster("manuSpecificOwonAc", OwonClustersDefinition.manuSpecificOwonAc)],
         fromZigbee: [fz.fan, fz.thermostat, fzLocal.owonAcOneKeyPairingResponse, fzLocal.owonAcReadPairingCodeResponse],
         toZigbee: [
