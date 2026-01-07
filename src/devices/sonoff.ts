@@ -464,39 +464,38 @@ const sonoffExtend = {
         };
 
         const toZigbee: Tz.Converter[] = [
-            // Single day converter
+            // Single/multi day converter with batching support
             {
                 key: days.map((day) => `weekly_schedule_${day}`),
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertString(value, key);
 
-                    const dayName = key.replace("weekly_schedule_", "");
-                    const dayBit = getDayBit(dayName);
-                    const parsed = parseScheduleString(value, dayName);
+                    // Extract all weekly_schedule keys from the message (if message exists)
+                    const message = meta.message as Record<string, unknown> | null;
+                    const scheduleKeys = message
+                        ? Object.keys(message).filter(
+                              (k) => k.startsWith("weekly_schedule_") && days.includes(k.replace("weekly_schedule_", "") as DayName),
+                          )
+                        : [];
 
-                    await sendScheduleCommand(entity, 1 << dayBit, parsed.numoftrans, parsed.transitions, meta);
+                    // For single-key messages or when message is not available, process normally (original behavior)
+                    if (scheduleKeys.length <= 1) {
+                        const dayName = key.replace("weekly_schedule_", "");
+                        const dayBit = getDayBit(dayName);
+                        const parsed = parseScheduleString(value, dayName);
 
-                    return {state: {[key]: value}};
-                },
-            },
-            // Batch update converter
-            {
-                key: ["weekly_schedule_set"],
-                convertSet: async (entity, key, value, meta) => {
-                    utils.assertObject(value, key);
+                        await sendScheduleCommand(entity, 1 << dayBit, parsed.numoftrans, parsed.transitions, meta);
 
-                    const scheduleObj = value as Record<string, string>;
-                    const providedDays = Object.keys(scheduleObj).filter((d) => days.includes(d as DayName));
-
-                    if (providedDays.length === 0) {
-                        throw new Error("weekly_schedule_set: at least one valid day (sunday-saturday) must be provided");
+                        return {state: {[key]: value}};
                     }
 
+                    // Process all schedule keys from the message with batching
                     // Group days by their schedule string to optimize Zigbee commands
                     const scheduleGroups = new Map<string, string[]>();
-                    for (const dayName of providedDays) {
-                        const schedule = scheduleObj[dayName];
-                        utils.assertString(schedule, dayName);
+                    for (const scheduleKey of scheduleKeys) {
+                        const dayName = scheduleKey.replace("weekly_schedule_", "");
+                        const schedule = message[scheduleKey] as string;
+                        utils.assertString(schedule, scheduleKey);
 
                         const existing = scheduleGroups.get(schedule);
                         if (existing) {
