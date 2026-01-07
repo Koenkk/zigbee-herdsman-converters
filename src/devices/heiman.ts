@@ -2086,4 +2086,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
     },
+    {
+        zigbeeModel: ['SMOK_YDLV10N'],
+        model: 'SMOK_YDLV10N',
+        vendor: 'HEIMAN',
+        description: 'Smoke sensor',
+        extend: [m.battery(), m.iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1","alarm_2","tamper","battery_low"]})],
+    },
 ];
