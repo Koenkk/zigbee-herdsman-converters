@@ -1085,7 +1085,12 @@ export const ikeaModernExtend = {
                 ) {
                     return [binary(resultName, access.ALL, "TRUE", "FALSE").withDescription(resultDescription).withCategory("config")];
                 }
-                return [];
+                return [
+                    binary(resultName, access.ALL, "TRUE", "FALSE")
+                        .withDescription(resultDescription)
+                        .withCategory("config")
+                        .withLabel("Led disable"),
+                ];
             },
         ];
 
