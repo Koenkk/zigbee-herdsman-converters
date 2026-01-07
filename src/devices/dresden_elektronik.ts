@@ -61,4 +61,12 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
+    {
+        zigbeeModel: ["Scene Switch"],
+        model: "BN-600085",
+        vendor: "Dresden Elektronik",
+        description: "3 part zigbee powered scene switch",
+        ota: true,
+        extend: [m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl(), m.commandsScenes(), m.battery()],
+    },
 ];
