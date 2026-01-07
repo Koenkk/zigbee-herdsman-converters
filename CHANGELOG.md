@@ -1,5 +1,23 @@
 # Changelog
 
+## [25.102.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.101.0...v25.102.0) (2026-01-06)
+
+
+### Features
+
+* **add:** 929003048201 ([#11201](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11201)) ([ad2ad20](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ad2ad200c0efe7c2174f129e9112e5c4b476d227))
+* **add:** ME202WZ ([#11210](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11210)) ([7985fad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7985fadb871eb36c6a29c1713744894c11f3be06))
+* **add:** TS0601_airbox ([#11213](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11213)) ([abaed71](https://github.com/Koenkk/zigbee-herdsman-converters/commit/abaed71932d8c16a3a613c48e5b88028c7ad9514))
+
+
+### Bug Fixes
+
+* Bosch Twinguard 8750001213: rework air quality feature ([#11204](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11204)) ([b252243](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b252243e3669e6852300137f0a40dead88522761))
+* **detect:** Detect `_TZ3000_3n2minvf` as AVATTO ZWSM16-4-Zigbee ([#11211](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11211)) ([d593a2d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d593a2ddb7a34fc15c444f02a0baea4c0f3d0208))
+* **detect:** Detect `_TZE200_dcnsggvz` as Tuya TS0601_dimmer_5 ([#11217](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11217)) ([410c084](https://github.com/Koenkk/zigbee-herdsman-converters/commit/410c084e61cf90794f4dac8c2b2e7ce9b11e1730))
+* Niko: fix datatype of switchAction attribute ([#11218](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11218)) ([d3b6ff5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d3b6ff5c0669507fcb829bb576fc3d44ef93aca4))
+* Tuya ZG-2002-RF: fix integration ([#11212](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11212)) ([753855b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/753855b8542963d833ff5aca45bac74e8ceb6ac8))
+
 ## [25.101.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.100.0...v25.101.0) (2026-01-05)
 
 

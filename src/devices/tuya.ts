@@ -2527,6 +2527,23 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit("ppb"), e.formaldehyd().withUnit("µg/m³")],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_8b9zpaav"]),
+        model: "TS0601_airbox",
+        vendor: "Tuya",
+        description: "zigbee air quality sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit("ppb"), e.formaldehyd().withUnit("µg/m³")],
+        meta: {
+            tuyaDatapoints: [
+                [2, "co2", tuya.valueConverter.raw],
+                [18, "temperature", tuya.valueConverter.divideBy10],
+                [19, "humidity", tuya.valueConverter.raw],
+                [21, "voc", tuya.valueConverter.divideBy100],
+                [22, "formaldehyd", tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rbbx5mfq", "_TZE204_rbbx5mfq"]),
         model: "TS0601_illuminance_temperature_humidity_sensor_2",
         vendor: "Tuya",
@@ -4001,7 +4018,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dcnsggvz", "_TZE200_dcnsggv"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dcnsggvz", "_TZE200_dcnsggv", "_TZE200_dcnsggvz"]),
         model: "TS0601_dimmer_5",
         vendor: "Tuya",
         description: "1 gang smart dimmer module",
@@ -5689,9 +5706,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_eei0ubpy",
             "_TZ3000_qaa59zqd",
             "_TZ3000_lmlsduws",
-            "_TZ3000_lugaswf8",
-            "_TZ3000_nuenzetq",
-            "_TZ3000_ruldv5dt",
             "_TZ3000_fbjdkph9",
             "_TZ3000_zbfya6h0",
             "_TZ3000_hznzbl0x",
@@ -5704,7 +5718,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Moes", "ZM-104B-M", "2 gang switch", ["_TZ3000_qaa59zqd"]),
             tuya.whitelabel("pcblab.io", "RR620ZB", "2 gang Zigbee switch module", ["_TZ3000_4xfqlgqo"]),
             tuya.whitelabel("Nous", "L13Z", "2 gang switch", ["_TZ3000_ruxexjfz", "_TZ3000_hojntt34"]),
-            tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", ["_TZ3000_lugaswf8", "_TZ3000_nuenzetq", "_TZ3000_ruldv5dt"]),
             tuya.whitelabel("Mercator Ikuü", "SSW02", "2 gang switch", ["_TZ3000_fbjdkph9"]),
             tuya.whitelabel("Aubess", "TMZ02", "2 gang switch", ["_TZ3000_lmlsduws"]),
             tuya.whitelabel("RSH", "TS0002_basic_2", "2 gang switch", ["_TZ3000_zbfya6h0"]),
@@ -5805,6 +5818,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("PSMART", "T462", "2 Gang switch with backlight, countdown, inching", ["_TZ3000_wnzoyohq"]),
             tuya.whitelabel("Nova Digital", "FZB-2", "2-Gang switch with backlight, countdown and inching", ["_TZ3000_5ksufhqi"]),
             tuya.whitelabel("iHseno", "_TZ3000_zxrfobzw", "2-gang touch switch", ["_TZ3000_zxrfobzw"]),
+            tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", ["_TZ3000_lugaswf8", "_TZ3000_nuenzetq", "_TZ3000_ruldv5dt"]),
         ],
     },
 
@@ -16419,7 +16433,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_5ajpkyq6", "_TZ3000_knoj8lpk"]),
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_5ajpkyq6", "_TZ3000_knoj8lpk", "_TZ3000_3n2minvf"]),
         model: "TS0004_switch_module_2",
         vendor: "Tuya",
         description: "4 gang switch module",
@@ -16443,7 +16457,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
         },
         whiteLabel: [
-            tuya.whitelabel("AVATTO", "ZWSM16-4-Zigbee", "4 gang switch module", ["_TZ3000_5ajpkyq6"]),
+            tuya.whitelabel("AVATTO", "ZWSM16-4-Zigbee", "4 gang switch module", ["_TZ3000_5ajpkyq6", "_TZ3000_3n2minvf"]),
             tuya.whitelabel("iHseno", "_TZ3000_knoj8lpk", "4 gang switch module", ["_TZ3000_knoj8lpk"]),
         ],
     },
@@ -18949,6 +18963,61 @@ export const definitions: DefinitionWithExtend[] = [
                 [8, "mini_set", tuya.valueConverter.raw],
                 [19, "installation_height", tuya.valueConverter.divideBy100],
                 [21, "liquid_depth_max", tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_mxujdmxo"]),
+        model: "ME202WZ",
+        vendor: "Tuya",
+        description: "Water level sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        exposes: [
+            e.enum("liquid_state", ea.STATE, ["low", "normal", "high"]).withDescription("Liquid level status"),
+            e.numeric("liquid_depth", ea.STATE).withUnit("m").withDescription("Liquid Depth"),
+            e.numeric("power_level", ea.STATE).withUnit("V").withDescription("Power supply voltage"),
+            e
+                .numeric("max_set", ea.STATE_SET)
+                .withUnit("%")
+                .withDescription("Liquid max percentage")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1),
+            e
+                .numeric("mini_set", ea.STATE_SET)
+                .withUnit("%")
+                .withDescription("Liquid minimal percentage")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1),
+            e
+                .numeric("liquid_depth_max", ea.STATE_SET)
+                .withUnit("m")
+                .withDescription("Height from sensor to liquid level")
+                .withValueMin(0.1)
+                .withValueMax(4)
+                .withValueStep(0.01),
+            e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
+            e.text("version", ea.STATE_GET).withDescription("Device version"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "liquid_state",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(1),
+                        normal: tuya.enum(0),
+                        high: tuya.enum(2),
+                    }),
+                ],
+                [2, "liquid_depth", tuya.valueConverter.divideBy100],
+                [5, "power_level", tuya.valueConverter.divideBy10],
+                [7, "max_set", tuya.valueConverter.raw],
+                [8, "mini_set", tuya.valueConverter.raw],
+                [21, "liquid_depth_max", tuya.valueConverter.divideBy100],
+                [22, "liquid_level_percent", tuya.valueConverter.raw],
+                [103, "version", tuya.valueConverter.raw],
             ],
         },
     },
