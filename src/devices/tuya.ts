@@ -6080,8 +6080,8 @@ export const definitions: DefinitionWithExtend[] = [
                 switchType: true,
                 onOffCountdown: (m) => m !== "_TZ3000_xfxpoxe0",
                 indicatorMode: (m) => m !== "_TZ3000_xfxpoxe0",
-                powerOutageMemory: (m) => m === "_TZ3000_xfxpoxe0",
-                backlightModeOffOn: (m) => m === "_TZ3000_xfxpoxe0",
+                powerOutageMemory: true,
+                backlightModeOffOn: true,
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
