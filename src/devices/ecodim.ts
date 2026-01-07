@@ -8,6 +8,13 @@ const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["eco-dim13-zigbee"],
+        model: "ECO-DIM.13",
+        vendor: "EcoDim",
+        description: "Dimmer",
+        extend: [m.light()],
+    },
+    {
         zigbeeModel: ["Eco-Dim.05 Zigbee", "eco-dim05-zigbee"],
         fingerprint: [
             {
