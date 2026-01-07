@@ -222,3 +222,103 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 454]}})],
     },
 ];
+{
+    "description": "Zigbee LED dimmer",
+    "exposes": [
+        {
+            "features": [
+                {
+                    "access": 7,
+                    "description": "On/off state of this light",
+                    "label": "State",
+                    "name": "state",
+                    "property": "state",
+                    "type": "binary",
+                    "value_off": "OFF",
+                    "value_on": "ON",
+                    "value_toggle": "TOGGLE"
+                },
+                {
+                    "access": 7,
+                    "description": "Brightness of this light",
+                    "label": "Brightness",
+                    "name": "brightness",
+                    "property": "brightness",
+                    "type": "numeric",
+                    "value_max": 254,
+                    "value_min": 0
+                }
+            ],
+            "type": "light"
+        },
+        {
+            "access": 2,
+            "description": "Triggers an effect on the light (e.g. make light blink for a few seconds)",
+            "label": "Effect",
+            "name": "effect",
+            "property": "effect",
+            "type": "enum",
+            "values": [
+                "blink",
+                "breathe",
+                "okay",
+                "channel_change",
+                "finish_effect",
+                "stop_effect"
+            ]
+        },
+        {
+            "access": 7,
+            "category": "config",
+            "description": "Controls the behavior when the device is powered on after power loss",
+            "label": "Power-on behavior",
+            "name": "power_on_behavior",
+            "property": "power_on_behavior",
+            "type": "enum",
+            "values": [
+                "off",
+                "on",
+                "toggle",
+                "previous"
+            ]
+        },
+        {
+            "access": 1,
+            "category": "diagnostic",
+            "description": "Link quality (signal strength)",
+            "label": "Linkquality",
+            "name": "linkquality",
+            "property": "linkquality",
+            "type": "numeric",
+            "unit": "lqi",
+            "value_max": 255,
+            "value_min": 0
+        }
+    ],
+    "model": "Eco-Dim.07/Eco-Dim.10",
+    "options": [
+        {
+            "access": 2,
+            "description": "Controls the transition time (in seconds) of on/off, brightness, color temperature (if applicable) and color (if applicable) changes. Defaults to `0` (no transition).",
+            "label": "Transition",
+            "name": "transition",
+            "property": "transition",
+            "type": "numeric",
+            "value_min": 0,
+            "value_step": 0.1
+        },
+        {
+            "access": 2,
+            "description": "State actions will also be published as 'action' when true (default false).",
+            "label": "State action",
+            "name": "state_action",
+            "property": "state_action",
+            "type": "binary",
+            "value_off": false,
+            "value_on": true
+        }
+    ],
+    "source": "native",
+    "supports_ota": true,
+    "vendor": "EcoDim"
+}
