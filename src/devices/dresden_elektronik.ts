@@ -52,22 +52,8 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {disableDefaultResponse: true},
     },
     {
-        zigbeeModel: ["Lighting Switch"],
-        model: "Lighting Switch",
-        vendor: "Dresden Elektronik",
-        description: "2 part zigbee powered light switch",
-        ota: true,
-        extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
-            m.commandsOnOff({endpointNames: ["1", "2"]}),
-            m.commandsLevelCtrl({endpointNames: ["1", "2"]}),
-            m.commandsColorCtrl({endpointNames: ["1", "2"]}),
-            m.battery(),
-        ],
-    },
-    {
         zigbeeModel: ["Scene Switch"],
-        model: "Scene Switch",
+        model: "BN-600085",
         vendor: "Dresden Elektronik",
         description: "3 part zigbee powered scene switch",
         ota: true,
