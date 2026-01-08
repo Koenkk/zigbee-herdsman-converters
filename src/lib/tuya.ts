@@ -92,6 +92,32 @@ export enum TuyaWeatherID {
     Condition = 0x03,
 }
 
+export type ThermostatSchedule = KeyValue & {
+    enabled: boolean;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    work_mode: "cooling" | "heating";
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    temperature_f: number;
+    start: {
+        hour: number;
+        minute: number;
+    };
+    end: {
+        hour: number;
+        minute: number;
+    };
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    week_days: {
+        sunday: boolean;
+        monday: boolean;
+        tuesday: boolean;
+        wednesday: boolean;
+        thursday: boolean;
+        friday: boolean;
+        saturday: boolean;
+    };
+};
+
 export function convertBufferToNumber(chunks: Buffer | number[]) {
     let value = 0;
     for (let i = 0; i < chunks.length; i++) {
@@ -435,6 +461,17 @@ class Base {
 export class Enum extends Base {}
 const enumConstructor = (value: number) => new Enum(value);
 export {enumConstructor as enum};
+
+export const BacklightColorEnum = {
+    red: enumConstructor(0),
+    blue: enumConstructor(1),
+    green: enumConstructor(2),
+    white: enumConstructor(3),
+    yellow: enumConstructor(4),
+    magenta: enumConstructor(5),
+    cyan: enumConstructor(6),
+    warm_white: enumConstructor(7),
+} as const;
 
 export class Bitmap extends Base {}
 
@@ -1144,6 +1181,99 @@ export const valueConverter = {
                 payload.push(timeByte, thermByte);
             }
             return payload;
+        },
+    },
+    thermostatSchedule: {
+        from: (value: string): ThermostatSchedule[] => {
+            const buffer = Buffer.from(value, "base64");
+            const schedules: ThermostatSchedule[] = [];
+            const scheduleLength = 12;
+
+            for (let offset = 0; offset < buffer.length; offset += scheduleLength) {
+                const b = buffer.slice(offset, offset + scheduleLength);
+
+                // temperature
+                const raw = b.readUInt16BE(3);
+                const temperatureF = (raw - 0x8000) / 10;
+
+                // time in minutes from midnight
+                const startMinutes = b.readUInt16BE(5);
+                const endMinutes = b.readUInt16BE(7);
+
+                function minutesToTime(m: number) {
+                    return {
+                        hour: Math.floor(m / 60),
+                        minute: m % 60,
+                    };
+                }
+
+                const daysMask = b[9];
+
+                schedules.push({
+                    enabled: (b[1] & 0x80) !== 0,
+                    work_mode: b[2] === 0x02 ? "cooling" : "heating",
+                    temperature_f: temperatureF,
+                    start: minutesToTime(startMinutes),
+                    end: minutesToTime(endMinutes),
+                    week_days: {
+                        sunday: !!(daysMask & 0x01),
+                        monday: !!(daysMask & 0x02),
+                        tuesday: !!(daysMask & 0x04),
+                        wednesday: !!(daysMask & 0x08),
+                        thursday: !!(daysMask & 0x10),
+                        friday: !!(daysMask & 0x20),
+                        saturday: !!(daysMask & 0x40),
+                    },
+                });
+            }
+
+            return schedules;
+        },
+        to: (schedules: ThermostatSchedule[]) => {
+            const scheduleLength = 12;
+            const buffers = [];
+
+            for (const schedule of schedules) {
+                const b = Buffer.alloc(scheduleLength, 0x00);
+
+                if (schedule.enabled) {
+                    b[1] |= 0x80;
+                }
+
+                b[2] = schedule.work_mode === "cooling" ? 0x02 : 0x00;
+
+                const temperatureF = schedule.temperature_f;
+                const rawTemperature = Math.round(temperatureF * 10) + 0x8000;
+                b.writeUInt16BE(rawTemperature & 0xffff, 3);
+
+                const startMinutes = schedule.start.hour * 60 + schedule.start.minute;
+                b.writeUInt16BE(startMinutes, 5);
+
+                const endMinutes = schedule.end.hour * 60 + schedule.end.minute;
+                b.writeUInt16BE(endMinutes, 7);
+
+                let daysMask = 0;
+                if (schedule.week_days.sunday) daysMask |= 0x01;
+                if (schedule.week_days.monday) daysMask |= 0x02;
+                if (schedule.week_days.tuesday) daysMask |= 0x04;
+                if (schedule.week_days.wednesday) daysMask |= 0x08;
+                if (schedule.week_days.thursday) daysMask |= 0x10;
+                if (schedule.week_days.friday) daysMask |= 0x20;
+                if (schedule.week_days.saturday) daysMask |= 0x40;
+                b[9] = daysMask;
+
+                b[10] = 0x02;
+
+                let sum = 0;
+                for (let i = 0; i <= 9; i++) {
+                    sum += b[i];
+                }
+                b[11] = sum & 0xff;
+
+                buffers.push(b);
+            }
+
+            return Buffer.concat(buffers).toString("base64");
         },
     },
     tv02Preset: () => {

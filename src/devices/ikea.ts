@@ -721,11 +721,13 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["INSPELNING Smart plug"],
-        model: "E2206",
+        model: "E22xx",
         vendor: "IKEA",
         description: "INSPELNING smart plug",
         whiteLabel: [
+            {model: "E2206", vendor: "IKEA", description: "INSPELNING smart plug (EU)"},
             {model: "E2220", vendor: "IKEA", description: "INSPELNING smart plug (US)"},
+            {model: "E2223", vendor: "IKEA", description: "INSPELNING smart plug (UK)"},
             {model: "E2224", vendor: "IKEA", description: "INSPELNING smart plug (CH)"},
         ],
         extend: [

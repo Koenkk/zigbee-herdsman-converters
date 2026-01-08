@@ -224,36 +224,16 @@ const boschExtend = {
         };
         const exposes: Expose[] = [
             e.binary("smoke", ea.STATE, true, false).withDescription("Indicates whether the device detected smoke"),
-            e
-                .numeric("temperature", ea.STATE)
-                .withValueMin(0)
-                .withValueMax(65)
-                .withValueStep(0.1)
-                .withUnit("°C")
-                .withDescription("Measured temperature value"),
-            e
-                .numeric("humidity", ea.STATE)
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(0.1)
-                .withUnit("%")
-                .withDescription("Measured relative humidity"),
-            e
-                .numeric("voc", ea.STATE)
-                .withValueMin(0)
-                .withValueMax(50000)
-                .withValueStep(1)
-                .withLabel("VOC")
-                .withUnit("µg/m³")
-                .withDescription("Measured VOC value"),
+            e.numeric("temperature", ea.STATE).withValueMin(0).withValueMax(65).withValueStep(0.1).withUnit("°C").withDescription("Temperature"),
+            e.numeric("humidity", ea.STATE).withValueMin(0).withValueMax(100).withValueStep(0.1).withUnit("%").withDescription("Relative humidity"),
             e
                 .numeric("co2", ea.STATE)
-                .withValueMin(400)
-                .withValueMax(2400)
+                .withValueMin(500)
+                .withValueMax(5500)
                 .withValueStep(1)
-                .withLabel("CO2")
+                .withLabel("eCO₂")
                 .withUnit("ppm")
-                .withDescription("The measured CO2 (carbon dioxide) value"),
+                .withDescription("TVOC-derived CO₂-equivalent"),
             e.numeric("aqi", ea.STATE).withValueMin(0).withValueMax(500).withValueStep(1).withLabel("AQI").withDescription("Air Quality Index"),
             e.illuminance(),
             e
@@ -296,26 +276,8 @@ const boschExtend = {
                     if (msg.data.airpurity !== undefined) {
                         const iaq = utils.toNumber(msg.data.airpurity);
                         result.aqi = iaq;
-                        let factorVoc = 6;
-                        let factorCo2 = 2;
-                        if (iaq >= 51 && iaq <= 100) {
-                            factorVoc = 10;
-                            factorCo2 = 4;
-                        } else if (iaq >= 101 && iaq <= 150) {
-                            factorVoc = 20;
-                            factorCo2 = 4;
-                        } else if (iaq >= 151 && iaq <= 200) {
-                            factorVoc = 50;
-                            factorCo2 = 4;
-                        } else if (iaq >= 201 && iaq <= 250) {
-                            factorVoc = 100;
-                            factorCo2 = 4;
-                        } else if (iaq >= 251) {
-                            factorVoc = 100;
-                            factorCo2 = 4;
-                        }
-                        result.voc = iaq * factorVoc;
-                        result.co2 = iaq * factorCo2 + 400;
+                        const factorCo2 = 10;
+                        result.co2 = iaq * factorCo2 + 500;
                     }
                     if (msg.data.temperature !== undefined) {
                         result.temperature = utils.toNumber(msg.data.temperature) / 100.0;
@@ -744,6 +706,31 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BTH-RM",
         vendor: "Bosch",
         description: "Room thermostat II",
+        meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                if (payload.mode_command_topic?.endsWith("/system_mode")) {
+                    payload.mode_command_topic = payload.mode_command_topic.substring(0, payload.mode_command_topic.lastIndexOf("/system_mode"));
+                    payload.mode_command_template =
+                        "{% set values = " +
+                        `{ 'auto':'schedule','heat':'manual','cool':'manual','off':'pause'} %}` +
+                        `{% if value == "heat" or value == "cool" %}` +
+                        `{"operating_mode": "manual", "system_mode": "{{ value }}"}` +
+                        "{% else %}" +
+                        `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}` +
+                        "{% endif %}";
+                    payload.mode_state_template =
+                        "{% set values = " +
+                        `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
+                        "{% set value = value_json.operating_mode %}" +
+                        `{% if value == "manual" %}` +
+                        "{{ value_json.system_mode }}" +
+                        "{% else %}" +
+                        `{{ values[value] if value in values.keys() else 'off' }}` +
+                        "{% endif %}";
+                    payload.modes = ["off", "heat", "cool", "auto"];
+                }
+            },
+        },
         extend: [
             boschGeneralExtend.handleZclVersionReadRequest(),
             boschThermostatExtend.customThermostatCluster(),
@@ -770,6 +757,31 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BTH-RM230Z",
         vendor: "Bosch",
         description: "Room thermostat II 230V",
+        meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                if (payload.mode_command_topic?.endsWith("/system_mode")) {
+                    payload.mode_command_topic = payload.mode_command_topic.substring(0, payload.mode_command_topic.lastIndexOf("/system_mode"));
+                    payload.mode_command_template =
+                        "{% set values = " +
+                        `{ 'auto':'schedule','heat':'manual','cool':'manual','off':'pause'} %}` +
+                        `{% if value == "heat" or value == "cool" %}` +
+                        `{"operating_mode": "manual", "system_mode": "{{ value }}"}` +
+                        "{% else %}" +
+                        `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}` +
+                        "{% endif %}";
+                    payload.mode_state_template =
+                        "{% set values = " +
+                        `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
+                        "{% set value = value_json.operating_mode %}" +
+                        `{% if value == "manual" %}` +
+                        "{{ value_json.system_mode }}" +
+                        "{% else %}" +
+                        `{{ values[value] if value in values.keys() else 'off' }}` +
+                        "{% endif %}";
+                    payload.modes = ["off", "heat", "cool", "auto"];
+                }
+            },
+        },
         extend: [
             boschGeneralExtend.handleZclVersionReadRequest(),
             boschThermostatExtend.customThermostatCluster(),
