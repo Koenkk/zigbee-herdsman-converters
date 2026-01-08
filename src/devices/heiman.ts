@@ -13,9 +13,8 @@ import {
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz, Zh, KeyValueAny} from "../lib/types";
+import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
-
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -83,7 +82,6 @@ interface HeimanPrivateCluster {
 }
 
 const iasWarningMode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
-
 
 const heimanExtend = {
     heimanClusterRadar: () =>
@@ -299,7 +297,6 @@ const heimanExtend = {
                     const result: Record<string, unknown> = {};
                     const value = msg.data["cellMountedTable"];
                     if (Buffer.isBuffer(value) && value.length >= 5) {
-                        console.log(value);
                         if (value.length !== 10) {
                             throw new Error(`Invalid cell_mounted_table data length: expected 10 bytes, got ${value.length}.`);
                         }
@@ -311,7 +308,6 @@ const heimanExtend = {
                             value.readInt16LE(8), // height
                         ];
                         result.cell_mounted_table = coordinates.join(",");
-                        console.log(result);
                     }
                     return result;
                 },
@@ -906,7 +902,9 @@ const heimanExtend = {
     },
     heimanClusterSensorMutable: (): ModernExtend => {
         const clusterName = "heimanClusterSpecial" as const;
-        const exposes = utils.exposeEndpoints(e.binary("temporary_mute", ea.ALL, true, false).withDescription("temporarily mute smoke alarm but please ensure there is no real fire."));
+        const exposes = utils.exposeEndpoints(
+            e.binary("temporary_mute", ea.ALL, true, false).withDescription("temporarily mute smoke alarm but please ensure there is no real fire."),
+        );
 
         const fromZigbee = [
             {
@@ -926,20 +924,12 @@ const heimanExtend = {
             {
                 key: ["temporary_mute"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, HeimanPrivateCluster>(
-                        clusterName,
-                        ["deviceMuteControl"],
-                        defaultResponseOptions,
-                    );
+                    await entity.read<typeof clusterName, HeimanPrivateCluster>(clusterName, ["deviceMuteControl"], defaultResponseOptions);
                 },
                 convertSet: async (entity, key, value, meta) => {
                     // const state = (value as Record<string, unknown>) || {};
                     const state = value ? 1 : 0;
-                    await entity.write<typeof clusterName, HeimanPrivateCluster>(
-                        clusterName,
-                        {deviceMuteControl: state},
-                        defaultResponseOptions,
-                    );
+                    await entity.write<typeof clusterName, HeimanPrivateCluster>(clusterName, {deviceMuteControl: state}, defaultResponseOptions);
                 },
             },
         ];
@@ -958,8 +948,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: Record<string, unknown> = {};
-            console.log( "---> heiman data:", msg.data );
-            const data = msg.data as Record<string, any>;
+            const data = msg.data as Record<string, unknown>;
 
             // 1. Define your lookup map
             const contaminationLookup: Record<number, string> = {
@@ -975,27 +964,23 @@ const fzLocal = {
             };
 
             if (data.smokeConcentrationLevel !== undefined) {
-                console.log("smokeConcentrationLevel:", data.smokeConcentrationLevel);
-                const raw = parseFloat(data.smokeConcentrationLevel);
+                const raw = Number.parseFloat(data.smokeConcentrationLevel as string);
                 // Check if valid, then force exactly 2 decimal places as a STRING
-                result.smoke_level = isNaN(raw) ? "0.00" : raw.toFixed(2);
-                console.log("smoke_level:", result.smoke_level); 
+                result.smoke_level = Number.isNaN(raw) ? "0.00" : raw.toFixed(2);
             }
             if (data.deviceCascadeState !== undefined) {
-                result.siren_for_automation_only = smokeSirenLookup[data.deviceCascadeState];
+                result.siren_for_automation_only = smokeSirenLookup[data.deviceCascadeState as number];
             }
             if (data.smokeChamberContaminationLevel !== undefined) {
-                result.chamber_contamination = contaminationLookup[data.smokeChamberContaminationLevel];
+                result.chamber_contamination = contaminationLookup[data.smokeChamberContaminationLevel as number];
             }
             if (data.smokeConcentationUnit !== undefined) {
-                result.smoke_unit = data.smokeConcentationUnit ? "%ft OBS": "dB/m";
+                result.smoke_unit = data.smokeConcentationUnit ? "%ft OBS" : "dB/m";
             }
-            console.log( "---> heiman result:", result );
             return result;
         },
     } satisfies Fz.Converter<"heimanClusterSpecial", undefined, ["attributeReport", "readResponse"]>,
 };
-
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -1099,7 +1084,6 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        whiteLabel: [{model: "HS1SA-E", description: "Smoke detector", fingerprint: [{modelID: "SmokeSensor-EF-3.0"}]}],
         exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
@@ -2096,13 +2080,13 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "smoke_unit",
                 lookup: {"dB/m": 0, "%ft OBS": 1},
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x0018, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x0018, type: Zcl.DataType.ENUM8},
                 description: "smoke level unit",
                 access: "STATE_GET",
             }),
             m.enumLookup({
                 name: "chamber_contamination",
-                lookup: {"normal": 0, "light_contamination": 1, "medium_contamication": 2, "critical_contamication": 3},
+                lookup: {normal: 0, light_contamination: 1, medium_contamication: 2, critical_contamication: 3},
                 cluster: "heimanClusterSpecial",
                 attribute: {ID: 0x0017, type: Zcl.DataType.ENUM8},
                 description: "it indicates that how serious the smoke chamber get contaminated.",
@@ -2112,7 +2096,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "siren_for_automation_only",
                 lookup: {stop: 0, smoke_siren: 1, co_siren: 2},
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x0012, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x0012, type: Zcl.DataType.ENUM8},
                 description: "siren effect",
                 access: "ALL",
             }),
@@ -2122,7 +2106,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 60000,
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x001b, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x001b, type: Zcl.DataType.UINT16},
                 description: "for diagnostic purpose, how many zigbee packages has the reported in a day.",
                 access: "STATE_GET",
             }),
@@ -2132,7 +2116,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 60000,
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x001a, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x001a, type: Zcl.DataType.UINT16},
                 description: "for diagnostic purpose, how many times has the product rejoined to zigbee network.",
                 access: "STATE_GET",
             }),
@@ -2142,7 +2126,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 60000,
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x0019, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x0019, type: Zcl.DataType.UINT16},
                 description: "for diagnostic purpose, how many times has the product rebooted.",
                 access: "STATE_GET",
             }),
