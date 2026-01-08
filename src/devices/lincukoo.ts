@@ -8,8 +8,6 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        // Since a lot of Tuya devices use the same modelID, but use different datapoints
-        // it's necessary to provide a fingerprint instead of a zigbeeModel
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_ajhu0zqb"}],
         model: "SZW08",
         vendor: "Lincukoo",
@@ -373,7 +371,6 @@ export const definitions: DefinitionWithExtend[] = [
             return exps;
         },
         meta: {
-            // All datapoints go in here
             tuyaDatapoints: [
                 [1, "alarm_status", tuya.valueConverterBasic.lookup({alarm: 0, normal: 1})],
                 [3, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
@@ -411,7 +408,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
 
         meta: {
-            // All datapoints go in here
             tuyaDatapoints: [
                 [1, "alarm_status", tuya.valueConverterBasic.lookup({normal: 0, alarm: 1})],
                 [3, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
@@ -429,7 +425,7 @@ export const definitions: DefinitionWithExtend[] = [
 
     {
         zigbeeModel: ["Zigbee-Repeater"],
-        model: "Zigbee-Repeater",
+        model: "GEZ65",
         vendor: "Lincukoo",
         description: "Zigbee Repeater",
         extend: [],
@@ -485,7 +481,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.temperature(),
             e.humidity(),
-            e.numeric("co2", ea.STATE).withUnit("ppm").withValueMin(400).withValueMax(10000).withDescription("Current CO2 Value"),
+            e.co2(),
             e.battery(),
             e.enum("temperature_unit_convert", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Current display unit"),
             e.binary("alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("alarm switch"),
@@ -511,7 +507,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("co2_alarm", ea.STATE, "ON", "OFF").withDescription("CO2 alarm"),
         ],
         meta: {
-            // All datapoints go in here
             tuyaDatapoints: [
                 [2, "temperature", tuya.valueConverter.divideBy10],
                 [3, "humidity", tuya.valueConverter.raw],
@@ -546,7 +541,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Air Quality Monitor(CO2)",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.numeric("co2", ea.STATE).withUnit("ppm").withValueMin(400).withValueMax(10000).withDescription("Current CO2 Value"),
+            e.co2(),
             e.temperature(),
             e.humidity(),
             e.enum("temperature_unit_convert", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Current display unit"),
@@ -591,8 +586,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Air Quality Monitor(CO2+PM2.5)",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.numeric("co2", ea.STATE).withUnit("ppm").withValueMin(400).withValueMax(10000).withDescription("Current CO2 Value"),
-            e.numeric("pm25", ea.STATE).withUnit("ug/m3").withValueMin(0).withValueMax(1000).withDescription("Current PM2.5 Value"),
+            e.co2(),
+            e.pm25(),
             e.temperature(),
             e.humidity(),
             e.enum("temperature_unit_convert", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Current display unit"),
@@ -645,7 +640,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.numeric("gas", ea.STATE).withUnit("%LEL").withValueMin(0).withValueMax(20).withDescription("Current Gas Value"),
-            e.numeric("co", ea.STATE).withUnit("ppm").withValueMin(0).withValueMax(1000).withDescription("Current CO Value"),
+            e.co(),
             e
                 .numeric("set_max_gas_alarm", ea.STATE_SET)
                 .withUnit("%LEL")
