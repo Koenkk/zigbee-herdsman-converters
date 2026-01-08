@@ -31,6 +31,13 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["94842"],
+        model: "94842",
+        vendor: "Paulmann",
+        description: "Outdoor lighting Zigbee motion detector",
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
+    },
+    {
         zigbeeModel: ["501.37"],
         model: "501.37",
         vendor: "Paulmann",
@@ -90,7 +97,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "948.47/29165",
         vendor: "Paulmann",
         description: "RGBW light",
-        extend: [m.light({colorTemp: {range: [153, 454]}, color: {modes: ["xy", "hs"]}})],
+        extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"]}})],
     },
     {
         zigbeeModel: ["H036-0007"],
@@ -375,5 +382,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Azalena Smart Home Zigbee LED Light with motion detection (HF)",
         extend: [m.light({colorTemp: {range: [153, 370]}})],
         whiteLabel: [{vendor: "Paulmann", model: "984.43", fingerprint: [{modelID: "98443"}]}],
+    },
+    {
+        zigbeeModel: ["CCT light bulb", "CCT_light_bulb"],
+        model: "50394",
+        vendor: "Paulmann",
+        description: "LED Filament Bulb tuneable white",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
 ];

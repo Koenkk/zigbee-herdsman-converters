@@ -1073,6 +1073,63 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fhn3negr"]),
+        model: "SH4-ZB",
+        vendor: "Moes",
+        description: "Thermostatic radiator valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        exposes: [
+            e.battery(),
+            e.child_lock(),
+            e.window_detection_bool(),
+            e.binary("boost_heating", ea.STATE_SET, "ON", "OFF"),
+            e.numeric("boost_heating_countdown", ea.STATE).withUnit("s").withValueMin(0).withValueMax(900),
+            e.numeric("auto_setpoint_override", ea.STATE_SET).withUnit("°C").withValueMin(0.5).withValueMax(30).withValueStep(0.5),
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint("current_heating_setpoint", 0.5, 30, 0.5, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
+                .withPreset(["auto", "manual", "holiday"])
+                .withRunningState(["idle", "heat"], ea.STATE),
+            e.numeric("comfort_temperature", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withValueStep(0.5),
+            e.numeric("eco_temperature", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withValueStep(0.5),
+            e.numeric("open_window_temperature", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withValueStep(0.5),
+            e.numeric("window_detection_time", ea.STATE_SET).withUnit("min").withValueMin(0).withValueMax(60),
+            e.binary("online", ea.STATE_SET, "ON", "OFF"),
+            tuya.exposes.errorStatus(),
+        ],
+
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        manual: tuya.enum(1),
+                        holiday: tuya.enum(2),
+                    }),
+                ],
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy2],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [30, "child_lock", tuya.valueConverter.lockUnlock],
+                [34, "battery", tuya.valueConverterBasic.scale(0, 100, 50, 150)],
+                [45, "error_status", tuya.valueConverter.raw],
+                [101, "comfort_temperature", tuya.valueConverter.divideBy2],
+                [102, "eco_temperature", tuya.valueConverter.divideBy2],
+                [104, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [105, "auto_setpoint_override", tuya.valueConverter.divideBy2],
+                [106, "boost_heating", tuya.valueConverter.onOff],
+                [107, "window_detection", tuya.valueConverter.onOff],
+                [116, "open_window_temperature", tuya.valueConverter.divideBy2],
+                [117, "window_detection_time", tuya.valueConverter.raw],
+                [118, "boost_heating_countdown", tuya.valueConverter.raw],
+                [120, "online", tuya.valueConverter.onOffNotStrict],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_b6wax7g0", "_TZE200_qsoecqlk", "_TZE200_6y7kyjga"]),
         model: "BRT-100-TRV",
         vendor: "Moes",
@@ -1732,6 +1789,104 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0041", ["_TZ3000_axpdxqgu"]),
+        model: "ZT-B-EU1",
+        vendor: "Moes",
+        description: "Scene remote with 1 key",
+        fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold"])],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "1_single": 0,
+                        "1_double": 1,
+                        "1_hold": 2,
+                    }),
+                ],
+            ],
+        },
+        endpoint: () => ({}),
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0042", ["_TZ3000_5e235jpa"]),
+        model: "ZT-B-EU2",
+        vendor: "Moes",
+        description: "Scene remote with 2 keys",
+        fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold", "2_single", "2_double", "2_hold"])],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "1_single": 0,
+                        "1_double": 1,
+                        "1_hold": 2,
+                    }),
+                ],
+                [
+                    2,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "2_single": 0,
+                        "2_double": 1,
+                        "2_hold": 2,
+                    }),
+                ],
+            ],
+        },
+        endpoint: () => ({}),
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0043", ["_TZ3000_gbm10jnj"]),
+        model: "ZT-B-EU3",
+        vendor: "Moes",
+        description: "Scene remote with 3 keys",
+        fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold", "2_single", "2_double", "2_hold", "3_single", "3_double", "3_hold"])],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "1_single": 0,
+                        "1_double": 1,
+                        "1_hold": 2,
+                    }),
+                ],
+                [
+                    2,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "2_single": 0,
+                        "2_double": 1,
+                        "2_hold": 2,
+                    }),
+                ],
+                [
+                    3,
+                    "action",
+                    tuya.valueConverterBasic.lookup({
+                        "3_single": 0,
+                        "3_double": 1,
+                        "3_hold": 2,
+                    }),
+                ],
+            ],
         },
     },
 ];

@@ -742,6 +742,23 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
 
+export function ikeaBilresaDouble(): ModernExtend {
+    const exposes: Expose[] = [presets.action(["off_double", "on_double"])];
+
+    const fromZigbee = [
+        {
+            cluster: "genScenes",
+            type: "commandTradfriArrowSingle",
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                return {action: `${msg.data.value === 257 ? "off" : "on"}_double`};
+            },
+        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowSingle">,
+    ];
+
+    return {exposes, fromZigbee, isModernExtend: true};
+}
+
 export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): ModernExtend {
     args = {styrbar: false, bind: true, ...args};
     const actions = ["arrow_left_click", "arrow_left_hold", "arrow_left_release", "arrow_right_click", "arrow_right_hold", "arrow_right_release"];
@@ -1046,7 +1063,7 @@ export const ikeaModernExtend = {
                     !isDummyDevice(device) &&
                     device.softwareBuildID &&
                     semverValid(device.softwareBuildID) &&
-                    semverGte(device.softwareBuildID, "2.4.25")
+                    semverGte(device.softwareBuildID, "2.4.4")
                 ) {
                     return [binary(resultName, access.ALL, "LOCK", "UNLOCK").withDescription(resultDescription).withCategory("config")];
                 }

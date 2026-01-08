@@ -4,13 +4,13 @@ import type {DefinitionWithExtend} from "../lib/types";
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["FLS-PP3", "FLS-PP3\u0000", "FLS-PP3 White\u0000"],
-        model: "Mega23M12",
+        model: "FLS-PP",
         vendor: "Dresden Elektronik",
         description: "Zigbee Light Link wireless electronic ballast",
         ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {rgb: 10, white: 11}}),
-            m.light({colorTemp: {range: undefined}, color: true, endpointNames: ["rgb", "white"]}),
+            m.light({colorTemp: {range: [153, 500]}, color: true, endpointNames: ["rgb", "white"]}),
         ],
     },
     {
@@ -22,18 +22,19 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["FLS-CT"],
-        model: "XVV-Mega23M12",
+        model: "FLS-CT",
         vendor: "Dresden Elektronik",
         description: "Zigbee Light Link wireless electronic ballast color temperature",
-        extend: [m.light({colorTemp: {range: undefined}})],
+        ota: true,
+        extend: [m.light({colorTemp: {range: [153, 500]}})],
     },
     {
         zigbeeModel: ["Kobold"],
-        model: "BN-600110",
+        model: "Kobold",
         vendor: "Dresden Elektronik",
         description: "Zigbee 3.0 dimm actuator",
-        extend: [m.light()],
         ota: true,
+        extend: [m.light()],
     },
     {
         zigbeeModel: ["Hive"],
@@ -45,10 +46,41 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["FLS-A lp (1-10V)"],
-        model: "BN-600078",
+        model: "FLS-A",
         vendor: "Dresden Elektronik",
         description: "Zigbee controller for 1-10V/PWM",
-        extend: [m.deviceEndpoints({endpoints: {l1: 11, l2: 12, l3: 13, l4: 14}}), m.light({endpointNames: ["l1", "l2", "l3", "l4"]})],
         meta: {disableDefaultResponse: true},
+        ota: true,
+        extend: [m.deviceEndpoints({endpoints: {l1: 11, l2: 12, l3: 13, l4: 14}}), m.light({endpointNames: ["l1", "l2", "l3", "l4"]})],
+    },
+    {
+        zigbeeModel: ["FLS-H3"],
+        model: "FLS-H",
+        vendor: "Dresden Elektronik",
+        description: "Zigbee Light Link wireless electronic ballast",
+        ota: true,
+        extend: [m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ["Scene Switch"],
+        model: "BN-600085",
+        vendor: "Dresden Elektronik",
+        description: "3 part zigbee powered scene switch",
+        ota: true,
+        extend: [m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl(), m.commandsScenes(), m.battery()],
+    },
+    {
+        zigbeeModel: ["Lighting Switch"],
+        model: "BN-600087",
+        vendor: "Dresden Elektronik",
+        description: "2 part zigbee powered light switch",
+        ota: true,
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
+            m.commandsOnOff({endpointNames: ["1", "2"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2"]}),
+            m.battery(),
+        ],
     },
 ];

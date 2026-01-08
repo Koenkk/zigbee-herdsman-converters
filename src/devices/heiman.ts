@@ -22,7 +22,6 @@ const ea = exposes.access;
 
 const defaultResponseOptions = {disableDefaultResponse: false};
 
-
 interface RadarSensorHeimanZcl {
     attributes: {
         enableIndicator: number;
@@ -1100,6 +1099,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        whiteLabel: [{model: "HS1SA-E", description: "Smoke detector", fingerprint: [{modelID: "SmokeSensor-EF-3.0"}]}],
         exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
@@ -2096,7 +2096,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "smoke_unit",
                 lookup: {"dB/m": 0, "%ft OBS": 1},
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x0018, type: Zcl.DataType.ENUM8},
+                attribute: {ID: 0x0018, type: Zcl.DataType.UINT8},
                 description: "smoke level unit",
                 access: "STATE_GET",
             }),
@@ -2110,9 +2110,9 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "siren_for_automation_only",
-                lookup: {"stop": 0, "smoke_siren": 1, "co_siren": 2},
+                lookup: {stop: 0, smoke_siren: 1, co_siren: 2},
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x0012, type: Zcl.DataType.ENUM8},
+                attribute: {ID: 0x0012, type: Zcl.DataType.UINT8},
                 description: "siren effect",
                 access: "ALL",
             }),
@@ -2122,7 +2122,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 60000,
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x001b, type: Zcl.DataType.UINT16},
+                attribute: {ID: 0x001b, type: Zcl.DataType.UINT8},
                 description: "for diagnostic purpose, how many zigbee packages has the reported in a day.",
                 access: "STATE_GET",
             }),
@@ -2132,7 +2132,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 60000,
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x001a, type: Zcl.DataType.UINT16},
+                attribute: {ID: 0x001a, type: Zcl.DataType.UINT8},
                 description: "for diagnostic purpose, how many times has the product rejoined to zigbee network.",
                 access: "STATE_GET",
             }),
@@ -2142,7 +2142,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 60000,
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x0019, type: Zcl.DataType.UINT16},
+                attribute: {ID: 0x0019, type: Zcl.DataType.UINT8},
                 description: "for diagnostic purpose, how many times has the product rebooted.",
                 access: "STATE_GET",
             }),

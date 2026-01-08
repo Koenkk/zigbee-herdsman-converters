@@ -410,6 +410,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Pilot wire heating module",
         extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), ...nodonPilotWire(true)],
         ota: true,
+        endpoint: (device) => ({default: 1}),
     },
     {
         zigbeeModel: ["STPH-4-1-00"],
