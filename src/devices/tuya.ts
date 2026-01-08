@@ -5291,7 +5291,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             // Device can operate either in cooling or heating/cooling configuration
             // For cooling only configurations remove 'heat' mode
-            if (options?.control_sequence_of_operation === "cooling_only") {
+            if (options.control_sequence_of_operation === "cooling_only") {
                 system_modes.splice(2, 1);
             }
 
@@ -5319,7 +5319,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
             ];
 
-            if (options?.expose_device_state === true) {
+            if (options.expose_device_state === true) {
                 exposes.unshift(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON or OFF"));
             }
 
@@ -5333,7 +5333,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "state",
                     {
                         to: async (v: string, meta: Tz.Meta) => {
-                            if (meta.options?.expose_device_state === true) {
+                            if (meta.options.expose_device_state === true) {
                                 await tuya.sendDataPointBool(
                                     meta.device.endpoints[0],
                                     1,
@@ -5343,9 +5343,9 @@ export const definitions: DefinitionWithExtend[] = [
                                 );
                             }
                         },
-                        from: (v: boolean, meta: Fz.Meta, options?: KeyValue) => {
+                        from: (v: boolean, meta: Fz.Meta, options: KeyValue) => {
                             meta.state.system_mode = v === true ? (meta.state.system_mode_device ?? "cool") : "off";
-                            if (options?.expose_device_state === true) return v === true ? "ON" : "OFF";
+                            if (options.expose_device_state === true) return v === true ? "ON" : "OFF";
                             delete meta.state.state;
                         },
                     },
@@ -5354,11 +5354,11 @@ export const definitions: DefinitionWithExtend[] = [
                     2,
                     "system_mode",
                     {
-                        to: async (v: string, meta: Tz.Meta, options?: KeyValue) => {
+                        to: async (v: string, meta: Tz.Meta) => {
                             const ep = meta.device.endpoints[0];
 
                             if (v === "off") {
-                                if (options?.wake_before_power_transition === true) {
+                                if (meta.options.wake_before_power_transition === true) {
                                     await tuya.sendDataPointBool(ep, 1, true, "dataRequest", 1);
                                     await new Promise((r) => setTimeout(r, 120));
                                 }
@@ -5367,7 +5367,7 @@ export const definitions: DefinitionWithExtend[] = [
                                 return;
                             }
 
-                            if (options?.wake_before_power_transition === true) {
+                            if (meta.options.wake_before_power_transition === true) {
                                 if (meta.state.system_mode === "off") {
                                     await tuya.sendDataPointBool(ep, 1, true, "dataRequest", 1);
                                     await new Promise((r) => setTimeout(r, 120));
