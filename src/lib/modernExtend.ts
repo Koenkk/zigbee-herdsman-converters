@@ -2627,7 +2627,8 @@ export function enumLookup<Cl extends string | number, Custom extends TCustomClu
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
+    const endpointNames = endpointName ? [endpointName] : null;
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2846,7 +2847,8 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
+    const endpointNames = endpointName ? [endpointName] : null;
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2915,7 +2917,8 @@ export function text<Cl extends string | number, Custom extends TCustomCluster |
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
+    const endpointNames = endpointName ? [endpointName] : null;
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }

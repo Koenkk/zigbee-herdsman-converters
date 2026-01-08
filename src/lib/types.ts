@@ -446,7 +446,7 @@ export namespace Tuya {
             publish?: Publish,
             // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
             msg?: Fz.Message<any>,
-        ) => number | string | boolean | KeyValue | null;
+        ) => number | string | boolean | KeyValue | KeyValue[] | null;
     }
     export interface MetaTuyaDataPointsMeta {
         skip?: (meta: Tz.Meta) => boolean;

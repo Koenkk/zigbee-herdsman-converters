@@ -30,11 +30,11 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Kobold"],
-        model: "BN-600110",
+        model: "Kobold",
         vendor: "Dresden Elektronik",
         description: "Zigbee 3.0 dimm actuator",
-        extend: [m.light()],
         ota: true,
+        extend: [m.light()],
     },
     {
         zigbeeModel: ["Hive"],
@@ -60,5 +60,27 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee Light Link wireless electronic ballast",
         ota: true,
         extend: [m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ["Scene Switch"],
+        model: "BN-600085",
+        vendor: "Dresden Elektronik",
+        description: "3 part zigbee powered scene switch",
+        ota: true,
+        extend: [m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl(), m.commandsScenes(), m.battery()],
+    },
+    {
+        zigbeeModel: ["Lighting Switch"],
+        model: "BN-600087",
+        vendor: "Dresden Elektronik",
+        description: "2 part zigbee powered light switch",
+        ota: true,
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
+            m.commandsOnOff({endpointNames: ["1", "2"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2"]}),
+            m.battery(),
+        ],
     },
 ];
