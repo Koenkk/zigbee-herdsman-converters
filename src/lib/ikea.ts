@@ -768,15 +768,8 @@ export function bilresaBrightnessScrollWheel(): ModernExtend {
             .withValueMin(0)
             .withValueMax(255)
             .withDescription("Current brightness level"),
-        presets
-            .numeric("action_brightness_delta", access.STATE)
-            .withLabel("Brightness step")
-            .withDescription("How much the brightness changed"),
-        presets
-            .numeric("action_transition_time", access.STATE)
-            .withLabel("Transition time")
-            .withUnit("s")
-            .withDescription("Transition duration"),
+        presets.numeric("action_brightness_delta", access.STATE).withLabel("Brightness step").withDescription("How much the brightness changed"),
+        presets.numeric("action_transition_time", access.STATE).withLabel("Transition time").withUnit("s").withDescription("Transition duration"),
     ];
 
     const fromZigbee = [
