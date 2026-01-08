@@ -353,6 +353,7 @@ const sonoffExtend = {
             "e.g. '04:00/20 10:00/25' will result in the temperature being set to 20°C at 04:00 until 10:00, when it will change to 25°C.";
 
         const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
+        type DayName = (typeof days)[number];
 
         const exposes = days.map((day) => e.text(`weekly_schedule_${day}`, ea.STATE_SET).withCategory("config").withDescription(scheduleDescription));
 
@@ -386,71 +387,142 @@ const sonoffExtend = {
             } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
         ];
 
+        // Helper function to parse and validate a schedule string
+        const parseScheduleString = (scheduleValue: string, dayName: string) => {
+            // Transition format: HH:mm/temperature
+            const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.5)?)$/;
+
+            const rawTransitions = scheduleValue.split(" ").sort();
+
+            if (rawTransitions.length > 6) {
+                throw new Error(`Invalid schedule for ${dayName}: days must have no more than 6 transitions`);
+            }
+
+            const transitions = [];
+
+            for (const transition of rawTransitions) {
+                const matches = transition.match(transitionRegex);
+
+                if (!matches) {
+                    throw new Error(
+                        `Invalid schedule for ${dayName}: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
+                    );
+                }
+
+                const hour = Number.parseInt(matches[1], 10);
+                const mins = Number.parseInt(matches[2], 10);
+                const temp = Number.parseFloat(matches[3]);
+
+                if (temp < 4 || temp > 35) {
+                    throw new Error(`Invalid schedule for ${dayName}: temperature value must be between 4-35 (inclusive), found: ${temp}`);
+                }
+
+                transitions.push({
+                    transitionTime: hour * 60 + mins,
+                    heatSetpoint: Math.round(temp * 100),
+                });
+            }
+
+            if (transitions[0].transitionTime !== 0) {
+                throw new Error(`Invalid schedule for ${dayName}: the first transition of each day should start at 00:00`);
+            }
+
+            return {
+                numoftrans: rawTransitions.length,
+                transitions,
+            };
+        };
+
+        // Helper function to get day bit from day name
+        const getDayBit = (dayName: string): number => {
+            const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayName, null);
+            if (dayKey === null) {
+                throw new Error(`Invalid schedule: invalid day name, found: ${dayName}`);
+            }
+            return Number(dayKey);
+        };
+
+        // Helper function to send setWeeklySchedule command
+        const sendScheduleCommand = async (
+            entity: Parameters<Tz.Converter["convertSet"]>[0],
+            dayofweek: number,
+            numoftrans: number,
+            transitions: Array<{transitionTime: number; heatSetpoint: number}>,
+            meta: Parameters<Tz.Converter["convertSet"]>[3],
+        ) => {
+            await entity.command(
+                "hvacThermostat",
+                "setWeeklySchedule",
+                {
+                    dayofweek,
+                    numoftrans,
+                    mode: 1 << 0, // heat
+                    transitions,
+                },
+                utils.getOptions(meta.mapped, entity),
+            );
+        };
+
         const toZigbee: Tz.Converter[] = [
+            // Single/multi day converter with batching support
             {
                 key: days.map((day) => `weekly_schedule_${day}`),
                 convertSet: async (entity, key, value, meta) => {
-                    // Transition format: HH:mm/temperature
-                    const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.5)?)$/;
-
                     utils.assertString(value, key);
 
-                    // Extract day name from key (e.g., "weekly_schedule_monday" -> "monday")
-                    const dayOfWeekName = key.replace("weekly_schedule_", "");
-                    const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayOfWeekName, null);
+                    // Extract all weekly_schedule keys from the message (if message exists)
+                    const message = meta.message as Record<string, unknown> | null;
+                    const scheduleKeys = message
+                        ? Object.keys(message).filter(
+                              (k) => k.startsWith("weekly_schedule_") && days.includes(k.replace("weekly_schedule_", "") as DayName),
+                          )
+                        : [];
 
-                    if (dayKey === null) {
-                        throw new Error(`Invalid schedule: invalid day name, found: ${dayOfWeekName}`);
+                    // For single-key messages or when message is not available, process normally (original behavior)
+                    if (scheduleKeys.length <= 1) {
+                        const dayName = key.replace("weekly_schedule_", "");
+                        const dayBit = getDayBit(dayName);
+                        const parsed = parseScheduleString(value, dayName);
+
+                        await sendScheduleCommand(entity, 1 << dayBit, parsed.numoftrans, parsed.transitions, meta);
+
+                        return {state: {[key]: value}};
                     }
 
-                    const dayOfWeekBit = Number(dayKey);
+                    // Process all schedule keys from the message with batching
+                    // Group days by their schedule string to optimize Zigbee commands
+                    const scheduleGroups = new Map<string, string[]>();
+                    for (const scheduleKey of scheduleKeys) {
+                        const dayName = scheduleKey.replace("weekly_schedule_", "");
+                        const schedule = message[scheduleKey] as string;
+                        utils.assertString(schedule, scheduleKey);
 
-                    const rawTransitions = value.split(" ").sort();
-
-                    if (rawTransitions.length > 6) {
-                        throw new Error("Invalid schedule: days must have no more than 6 transitions");
+                        const existing = scheduleGroups.get(schedule);
+                        if (existing) {
+                            existing.push(dayName);
+                        } else {
+                            scheduleGroups.set(schedule, [dayName]);
+                        }
                     }
 
-                    const transitions = [];
+                    const stateUpdates: Record<string, string> = {};
 
-                    for (const transition of rawTransitions) {
-                        const matches = transition.match(transitionRegex);
+                    // Send one command per unique schedule, combining days with identical schedules
+                    for (const [schedule, daysWithSchedule] of scheduleGroups) {
+                        // Parse and validate the schedule (only need to do once per unique schedule)
+                        const parsed = parseScheduleString(schedule, daysWithSchedule.join(", "));
 
-                        if (!matches) {
-                            throw new Error(
-                                `Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
-                            );
+                        // Build dayofweek bitmask for all days with this schedule
+                        let dayofweek = 0;
+                        for (const dayName of daysWithSchedule) {
+                            dayofweek |= 1 << getDayBit(dayName);
+                            stateUpdates[`weekly_schedule_${dayName}`] = schedule;
                         }
 
-                        const hour = Number.parseInt(matches[1], 10);
-                        const mins = Number.parseInt(matches[2], 10);
-                        const temp = Number.parseFloat(matches[3]);
-
-                        if (temp < 4 || temp > 35) {
-                            throw new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temp}`);
-                        }
-
-                        transitions.push({
-                            transitionTime: hour * 60 + mins,
-                            heatSetpoint: Math.round(temp * 100),
-                        });
+                        await sendScheduleCommand(entity, dayofweek, parsed.numoftrans, parsed.transitions, meta);
                     }
 
-                    if (transitions[0].transitionTime !== 0) {
-                        throw new Error("Invalid schedule: the first transition of each day should start at 00:00");
-                    }
-
-                    await entity.command(
-                        "hvacThermostat",
-                        "setWeeklySchedule",
-                        {
-                            dayofweek: 1 << Number(dayOfWeekBit),
-                            numoftrans: rawTransitions.length,
-                            mode: 1 << 0, // heat
-                            transitions,
-                        },
-                        utils.getOptions(meta.mapped, entity),
-                    );
+                    return {state: stateUpdates};
                 },
             },
         ];
