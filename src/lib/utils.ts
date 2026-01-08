@@ -673,6 +673,14 @@ export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unkno
             return key;
         }
     }
+    if (isString(value)) {
+        const valueLower = value.toLowerCase();
+        for (const key of Object.keys(lookup)) {
+            if (key.toLowerCase() === valueLower) {
+                return key;
+            }
+        }
+    }
     if (defaultValue === undefined) {
         throw new Error(`Expected one of: ${Object.values(lookup).join(", ")}, got: '${value}'`);
     }
