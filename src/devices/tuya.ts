@@ -983,7 +983,7 @@ const fzLocal = {
     TS0201_humidity: {
         ...fz.humidity,
         convert: (model, msg, publish, options, meta) => {
-            if (["_TZ3210_ncw88jfq", "_TZ3000_ywagc4rj", "_TZ3000_isw9u95y", "_TZ3000_yupc0pb7"].includes(meta.device.manufacturerName)) {
+            if (["_TZ3210_ncw88jfq", "_TZ3000_ywagc4rj", "_TZ3000_isw9u95y"].includes(meta.device.manufacturerName)) {
                 msg.data.measuredValue *= 10;
             }
             return fz.humidity.convert(model, msg, publish, options, meta);
@@ -5941,7 +5941,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_4o16jdca", "_TZ3000_odzoiovu", "_TZ3000_hbic3ka3", "_TZ3000_lvhy15ix", "_TZ3000_mhhxxjrs"]),
+        fingerprint: tuya.fingerprint("TS0003", [
+            "_TZ3000_4o16jdca",
+            "_TZ3000_odzoiovu",
+            "_TZ3000_hbic3ka3",
+            "_TZ3000_lvhy15ix",
+            "_TZ3000_mhhxxjrs",
+            "_TZ3000_iv4eq7eh",
+        ]),
         model: "TS0003_switch_module_2",
         vendor: "Tuya",
         description: "3 gang switch module",
@@ -5964,7 +5971,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
         },
         whiteLabel: [
-            tuya.whitelabel("AVATTO", "ZWSM16-3-Zigbee", "3 gang switch module", ["_TZ3000_hbic3ka3"]),
+            tuya.whitelabel("AVATTO", "ZWSM16-3-Zigbee", "3 gang switch module", ["_TZ3000_hbic3ka3", "_TZ3000_iv4eq7eh"]),
             tuya.whitelabel("iHseno", "_TZ3000_mhhxxjrs", "3 gang switch module", ["_TZ3000_mhhxxjrs"]),
         ],
     },
@@ -6080,8 +6087,8 @@ export const definitions: DefinitionWithExtend[] = [
                 switchType: true,
                 onOffCountdown: (m) => m !== "_TZ3000_xfxpoxe0",
                 indicatorMode: (m) => m !== "_TZ3000_xfxpoxe0",
-                powerOutageMemory: (m) => m === "_TZ3000_xfxpoxe0",
-                backlightModeOffOn: (m) => m === "_TZ3000_xfxpoxe0",
+                powerOutageMemory: true,
+                backlightModeOffOn: true,
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -11070,7 +11077,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lu01t0zl", "_TZE200_vrfecyku", "_TZE200_ypprdwsl", "_TZE200_jkbljri7"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lu01t0zl", "_TZE200_vrfecyku", "_TZE200_ypprdwsl", "_TZE200_jkbljri7", "_TZE204_bvfld3xc"]),
         model: "MIR-HE200-TY",
         vendor: "Tuya",
         description: "Human presence sensor with fall function",
@@ -14930,6 +14937,53 @@ export const definitions: DefinitionWithExtend[] = [
                 [129, "light_mode_l8", tuya.valueConverter.lightMode],
                 [130, "power_on_behavior_l7", tuya.valueConverter.powerOnBehaviorEnum],
                 [131, "power_on_behavior_l8", tuya.valueConverter.powerOnBehaviorEnum],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_yrwmnya3"]),
+        model: "M9-zigbee-SL-2",
+        vendor: "Tuya",
+        description: "Smart switch (4 gang + 4 scene) with neutral wire and motion sensing",
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1, state: 1, backlight: 1}})],
+        fromZigbee: [fz.ias_occupancy_only_alarm_2, tuya.fz.indicator_mode],
+        toZigbee: [tuya.tz.power_on_behavior_1, tuya.tz.backlight_indicator_mode_1],
+        exposes: [
+            ...[1, 2, 3, 4].map((i) => tuya.exposes.switch().withEndpoint(`l${i}`)),
+            ...[0, 1, 2, 3, 4].map((i) => e.power_on_behavior().withAccess(ea.STATE_SET).withEndpoint(`l${i}`)),
+            ...[1, 2, 3, 4].map((i) => tuya.exposes.switchMode().withEndpoint(`l${i}`)),
+            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
+            e.action(["scene_0", "scene_1", "scene_2", "scene_3", "scene_4", "scene_5", "scene_6", "scene_7", "scene_8"]),
+            e.presence(),
+            e.numeric("delay", ea.STATE_SET).withUnit("s").withDescription("Light off delay").withValueMin(0).withValueMax(1000),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "action", tuya.valueConverter.static("scene_1")],
+                [2, "action", tuya.valueConverter.static("scene_2")],
+                [3, "action", tuya.valueConverter.static("scene_3")],
+                [4, "action", tuya.valueConverter.static("scene_4")],
+                [5, "action", tuya.valueConverter.static("scene_5")],
+                [6, "action", tuya.valueConverter.static("scene_6")],
+                [7, "action", tuya.valueConverter.static("scene_7")],
+                [8, "action", tuya.valueConverter.static("scene_8")],
+                [17, "action", tuya.valueConverter.static("scene_0")],
+                [18, "switch_mode_l1", tuya.valueConverter.switchMode],
+                [19, "switch_mode_l2", tuya.valueConverter.switchMode],
+                [20, "switch_mode_l3", tuya.valueConverter.switchMode],
+                [21, "switch_mode_l4", tuya.valueConverter.switchMode],
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [26, "state_l3", tuya.valueConverter.onOff],
+                [27, "state_l4", tuya.valueConverter.onOff],
+                [36, "backlight_mode", tuya.valueConverter.onOff],
+                [38, "power_on_behavior_l0", tuya.valueConverter.powerOnBehaviorEnum],
+                [39, "power_on_behavior_l1", tuya.valueConverter.powerOnBehaviorEnum],
+                [40, "power_on_behavior_l2", tuya.valueConverter.powerOnBehaviorEnum],
+                [41, "power_on_behavior_l3", tuya.valueConverter.powerOnBehaviorEnum],
+                [42, "power_on_behavior_l4", tuya.valueConverter.powerOnBehaviorEnum],
+                [101, "presence", tuya.valueConverter.raw],
+                [102, "delay", tuya.valueConverter.raw],
             ],
         },
     },
