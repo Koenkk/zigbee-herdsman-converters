@@ -5306,7 +5306,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
                 e.child_lock(),
                 e.max_temperature().withValueMin(35).withValueMax(45),
-                e.numeric("deadzone_temperature", ea.STATE_SET).withUnit("°C").withValueMax(5).withValueMin(1),
+                e.numeric("deadzone_temperature", ea.STATE_SET).withUnit("°C").withValueMax(5).withValueMin(0),
 
                 e.text("schedule_text", ea.STATE_SET).withDescription(
                     `Weekly schedule in the format "HH:MM/TT HH:MM/TT ...".
