@@ -8143,7 +8143,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "оperating_mode",
-                lookup: {"Normal": 0, "Energy-saving": 1},
+                lookup: {Normal: 0, "Energy-saving": 1},
                 cluster: "genPowerCfg",
                 attribute: {ID: 0xf005, type: 0x20},
                 description: "Set data output on the display",
