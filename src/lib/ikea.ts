@@ -759,6 +759,50 @@ export function ikeaBilresaDouble(): ModernExtend {
     return {exposes, fromZigbee, isModernExtend: true};
 }
 
+export function bilresaBrightnessScrollWheel(): ModernExtend {
+    const exposes: Expose[] = [
+        presets.action(["brightness_move_to_level"]),
+        presets
+            .numeric("brightness", access.STATE)
+            .withLabel("Brightness")
+            .withValueMin(0)
+            .withValueMax(255)
+            .withDescription("Current brightness level"),
+        presets
+            .numeric("action_brightness_delta", access.STATE)
+            .withLabel("Brightness step")
+            .withDescription("How much the brightness changed"),
+        presets
+            .numeric("action_transition_time", access.STATE)
+            .withLabel("Transition time")
+            .withUnit("s")
+            .withDescription("Transition duration"),
+    ];
+
+    const fromZigbee = [
+        {
+            cluster: "genLevelCtrl",
+            type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff"],
+            convert: (model, msg, publish, options, meta) => {
+                let level = msg.data.level;
+                if (level === null || level === undefined || Number.isNaN(level)) {
+                    level = 255;
+                }
+                const previousBrightness = Number(meta.state?.brightness ?? 0);
+                const safePrevious = Number.isNaN(previousBrightness) ? 0 : previousBrightness;
+                return {
+                    action: "brightness_move_to_level",
+                    brightness: level,
+                    action_brightness_delta: level - safePrevious,
+                    action_transition_time: msg.data.transtime ? msg.data.transtime / 10 : 0,
+                };
+            },
+        } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevel", "commandMoveToLevelWithOnOff"]>,
+    ];
+
+    return {exposes, fromZigbee, isModernExtend: true};
+}
+
 export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): ModernExtend {
     args = {styrbar: false, bind: true, ...args};
     const actions = ["arrow_left_click", "arrow_left_hold", "arrow_left_release", "arrow_right_click", "arrow_right_hold", "arrow_right_release"];
