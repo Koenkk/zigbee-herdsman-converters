@@ -2099,11 +2099,34 @@ export const lumiModernExtend = {
             ],
         };
     },
-    lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean; powerOutageMemory?: "binary" | "enum"; lockRelay?: boolean}) => {
-        args = {operationMode: false, lockRelay: false, ...args};
+    lumiOnOff: (
+        args?: modernExtend.OnOffArgs & {
+            operationMode?: boolean;
+            powerOutageMemory?: "binary" | "enum";
+            lockRelay?: boolean;
+            deviceTemperature?: boolean;
+            powerOutageCount?: boolean;
+        },
+    ) => {
+        args = {
+            operationMode: false,
+            lockRelay: false,
+            deviceTemperature: true,
+            powerOutageCount: true,
+            ...args,
+        };
+
         const result = modernExtend.onOff({powerOnBehavior: false, ...args});
+
         result.fromZigbee.push(fromZigbee.lumi_specific);
-        result.exposes.push(e.device_temperature(), e.power_outage_count());
+
+        if (args.deviceTemperature) {
+            result.exposes.push(e.device_temperature());
+        }
+        if (args.powerOutageCount) {
+            result.exposes.push(e.power_outage_count());
+        }
+
         if (args.powerOutageMemory === "binary") {
             const extend = lumiModernExtend.lumiPowerOutageMemory();
             result.toZigbee.push(...extend.toZigbee);
@@ -2493,8 +2516,46 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
-    lumiElectricityMeter: (): ModernExtend => {
-        const exposes = [e.energy(), e.voltage(), e.current()];
+    lumiActivePower: (args: {name: string; description: string; endpoint: number}): ModernExtend => {
+        const {name, description, endpoint} = args;
+
+        const fromZigbee = [
+            {
+                cluster: fz.electrical_measurement.cluster,
+                type: fz.electrical_measurement.type,
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.endpoint.ID !== endpoint) return;
+                    if (!("activePower" in msg.data)) return;
+
+                    const power = msg.data.activePower;
+                    if (typeof power !== "number") return;
+
+                    return {[name]: power};
+                },
+            } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
+        ];
+
+        const exposes = [e.numeric(name, ea.STATE).withUnit("W").withDescription(description)];
+
+        return {
+            isModernExtend: true,
+            fromZigbee,
+            exposes,
+        };
+    },
+    lumiElectricityMeter: (args?: {energy?: boolean; voltage?: boolean; current?: boolean}): ModernExtend => {
+        const options = {
+            energy: true,
+            voltage: true,
+            current: true,
+            ...args,
+        };
+
+        const exposes = [];
+        if (options.energy) exposes.push(e.energy());
+        if (options.voltage) exposes.push(e.voltage());
+        if (options.current) exposes.push(e.current());
+
         const fromZigbee = [
             {
                 cluster: "manuSpecificLumi",
@@ -2516,6 +2577,19 @@ export const lumiModernExtend = {
             valueMin: 100,
             valueMax: 3840,
             unit: "W",
+            access: "STATE_SET",
+            entityCategory: "config",
+            zigbeeCommandOptions: {manufacturerCode},
+            ...args,
+        }),
+    lumiChildLock: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi">>) =>
+        modernExtend.binary({
+            name: "child_lock",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x0285, type: 0x20},
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            description: "Child lock (disables physical button)",
             access: "ALL",
             entityCategory: "config",
             zigbeeCommandOptions: {manufacturerCode},
