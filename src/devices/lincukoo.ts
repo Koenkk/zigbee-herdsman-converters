@@ -392,16 +392,20 @@ export const definitions: DefinitionWithExtend[] = [
                 e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
                 e.enum("sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("Sensitivity of the sensor"),
             ];
-            if (["_TZE284_2qx7sivb"].includes(device.manufacturerName))
+            if (["_TZE284_2qx7sivb"].includes(device.manufacturerName)) {
                 exps.push(e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("battery state of the sensor"));
-            else if (["_TZE284_aghfucwi"].includes(device.manufacturerName)) {
-                exps.push(e.enum("disarm", ea.STATE_SET, ["normal"]).withDescription("Disarm the current alarm"));
-                exps.push(e.binary("silence_mode", ea.STATE_SET, "ON", "OFF").withDescription("enable/disable alarm"));
-                exps.push(e.battery());
+            } else if (["_TZE284_aghfucwi"].includes(device.manufacturerName)) {
+                exps.push(
+                    e.enum("disarm", ea.STATE_SET, ["normal"]).withDescription("Disarm the current alarm"),
+                    e.binary("silence_mode", ea.STATE_SET, "ON", "OFF").withDescription("enable/disable alarm"),
+                    e.battery(),
+                );
             } else {
-                exps.push(e.enum("disarm", ea.STATE_SET, ["normal"]).withDescription("Disarm the current alarm"));
-                exps.push(e.binary("silence_mode", ea.STATE_SET, "ON", "OFF").withDescription("enable/disable alarm"));
-                exps.push(e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("battery state of the sensor"));
+                exps.push(
+                    e.enum("disarm", ea.STATE_SET, ["normal"]).withDescription("Disarm the current alarm"),
+                    e.binary("silence_mode", ea.STATE_SET, "ON", "OFF").withDescription("enable/disable alarm"),
+                    e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("battery state of the sensor"),
+                );
             }
             return exps;
         },
@@ -421,21 +425,18 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lincukoo", "V04-Z20T", "Vibration alarm sensor", ["_TZE284_8sejxcue"]),
         ],
     },
-
     {
         zigbeeModel: ["Zigbee-Repeater"],
         model: "GEZ65",
         vendor: "Lincukoo",
         description: "Zigbee Repeater",
         extend: [],
-        meta: {},
     },
-
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hqys6frs"]),
         model: "R12LM-Z10T",
         vendor: "Lincukoo",
-        description: "Human Motion & Presence Sensor",
+        description: "Human motion & presence sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
@@ -475,7 +476,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_hyt4iucb"]),
         model: "E02C-Z10T",
         vendor: "Lincukoo",
-        description: "Smart Air Quality Monitor(CO2)",
+        description: "Smart air quality monitor (CO2)",
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e.temperature(),
@@ -537,7 +538,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_isvlaage"]),
         model: "EZC04",
         vendor: "Lincukoo",
-        description: "Smart Air Quality Monitor(CO2)",
+        description: "Smart air quality monitor (CO2)",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.co2(),
@@ -582,7 +583,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fpwtjlfh"]),
         model: "EZCP04",
         vendor: "Lincukoo",
-        description: "Smart Air Quality Monitor(CO2+PM2.5)",
+        description: "Smart air quality monitor (CO2+PM2.5)",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.co2(),
@@ -635,7 +636,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ra9zfiwr"]),
         model: "E04CF-Z10T",
         vendor: "Lincukoo",
-        description: "Smart Gas and CO sensor",
+        description: "Smart gas and CO sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.numeric("gas", ea.STATE).withUnit("%LEL").withValueMin(0).withValueMax(20).withDescription("Current Gas Value"),
@@ -686,7 +687,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_l4daccga"]),
         model: "A08-Z10T",
         vendor: "Lincukoo",
-        description: "Smart Sound and flash siren",
+        description: "Smart sound and flash siren",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("alarm_state", ea.STATE_SET, ["alarm_sound", "alarm_light", "alarm_sound_light", "normal"]).withDescription("alarm status"),
