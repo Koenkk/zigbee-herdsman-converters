@@ -20,7 +20,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
         ],
         meta: {
-            // All datapoints go in here
             tuyaDatapoints: [
                 [4, "battery", tuya.valueConverter.raw],
                 [102, "alarm_status", tuya.valueConverterBasic.lookup({normal: 0, alarm: 1})],
