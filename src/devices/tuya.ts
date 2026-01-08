@@ -11070,7 +11070,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lu01t0zl", "_TZE200_vrfecyku", "_TZE200_ypprdwsl", "_TZE200_jkbljri7"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lu01t0zl", "_TZE200_vrfecyku", "_TZE200_ypprdwsl", "_TZE200_jkbljri7","_TZE204_bvfld3xc"]),
         model: "MIR-HE200-TY",
         vendor: "Tuya",
         description: "Human presence sensor with fall function",
