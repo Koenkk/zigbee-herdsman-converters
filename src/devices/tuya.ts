@@ -14937,10 +14937,10 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_yrwmnya3"]),
         model: "M9-zigbee-SL-2",
         vendor: "Tuya",
-        description: "Smart Switch (4 gang + 4 scene) with neutral wire and motion sensing",
-        fromZigbee: [tuya.fz.datapoints, fz.ias_occupancy_only_alarm_2, tuya.fz.indicator_mode],
-        toZigbee: [tuya.tz.datapoints, tuya.tz.power_on_behavior_1, tuya.tz.backlight_indicator_mode_1],
-        configure: tuya.configureMagicPacket,
+        description: "Smart switch (4 gang + 4 scene) with neutral wire and motion sensing",
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1, state: 1, backlight: 1}})],
+        fromZigbee: [fz.ias_occupancy_only_alarm_2, tuya.fz.indicator_mode],
+        toZigbee: [tuya.tz.power_on_behavior_1, tuya.tz.backlight_indicator_mode_1],
         exposes: [
             ...[1, 2, 3, 4].map((i) => tuya.exposes.switch().withEndpoint(`l${i}`)),
             ...[0, 1, 2, 3, 4].map((i) => e.power_on_behavior().withAccess(ea.STATE_SET).withEndpoint(`l${i}`)),
@@ -14948,20 +14948,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.action(["scene_0", "scene_1", "scene_2", "scene_3", "scene_4", "scene_5", "scene_6", "scene_7", "scene_8"]),
             e.presence(),
-            new exposes.Numeric("delay", ea.STATE_SET).withUnit("sec").withDescription("light off delay").withValueMin(0).withValueMax(1000),
+            e.numeric("delay", ea.STATE_SET).withUnit("s").withDescription("Light off delay").withValueMin(0).withValueMax(1000),
         ],
-        endpoint: (device) => {
-            return {
-                l1: 1,
-                l2: 1,
-                l3: 1,
-                l4: 1,
-                state: 1,
-                backlight: 1,
-            };
-        },
         meta: {
-            multiEndpoint: true,
             tuyaDatapoints: [
                 [1, "action", tuya.valueConverter.static("scene_1")],
                 [2, "action", tuya.valueConverter.static("scene_2")],
