@@ -13,13 +13,15 @@ import {
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, ModernExtend, Reporting, Tz, Zh, KeyValueAny} from "../lib/types";
 import * as utils from "../lib/utils";
+
 
 const e = exposes.presets;
 const ea = exposes.access;
 
 const defaultResponseOptions = {disableDefaultResponse: false};
+
 
 interface RadarSensorHeimanZcl {
     attributes: {
@@ -83,6 +85,7 @@ interface HeimanPrivateCluster {
 
 const iasWarningMode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
 
+
 const heimanExtend = {
     heimanClusterRadar: () =>
         m.deviceAddCustomCluster("heimanClusterRadar", {
@@ -115,7 +118,7 @@ const heimanExtend = {
                 sensorPrealarmThreshold: {ID: 0x0005, type: Zcl.DataType.ENUM8, write: true},
                 sensorLifeState: {ID: 0x0006, type: Zcl.DataType.ENUM8, write: true},
                 sensorLifeTime: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true},
-                deviceMuteControl: {ID: 0x0008, type: Zcl.DataType.BITMAP32, write: true},
+                deviceMuteControl: {ID: 0x0008, type: Zcl.DataType.UINT8, write: true},
                 deviceMuteState: {ID: 0x0009, type: Zcl.DataType.BITMAP16, write: true},
                 deviceCascadeControlEnable: {ID: 0x000a, type: Zcl.DataType.BITMAP8, write: true},
                 deviceSoundToneType: {ID: 0x000b, type: Zcl.DataType.ENUM8, write: true},
@@ -591,9 +594,9 @@ const heimanExtend = {
         const clusterName = "heimanClusterSpecial" as const;
         const faultStateBitMap = {
             0: "fault", // bit0
-            1: "sensor_open_circuit_fault", // bit1
-            2: "sensor_short_circuit_fault", // bit2
-            3: "sensor_pollution_fault", // bit3
+            1: "open circuit fault", // bit1
+            2: "short circuit fault", // bit2
+            3: "pollution fault", // bit3
         };
         const exposes = utils.exposeEndpoints(e.text("fault_state", ea.STATE_GET).withDescription("Device fault status (normal or fault types)."));
         const fromZigbee = [
@@ -640,10 +643,10 @@ const heimanExtend = {
     heimanClusterDeviceMuteState: (): ModernExtend => {
         const clusterName = "heimanClusterSpecial" as const;
         const muteStateBitMap = {
-            0: "mute", // bit0
-            1: "alarm_mute", // bit1
-            2: "fault_mute", // bit2
-            3: "low_battery_mute", // bit3
+            0: "muted", // bit0
+            1: "alarm muted", // bit1
+            2: "fault muted", // bit2
+            3: "low battery muted", // bit3
         };
         const exposes = utils.exposeEndpoints(e.text("muted", ea.STATE_GET).withDescription("Device mute status (normal or mute types)."));
         const fromZigbee = [
@@ -670,7 +673,7 @@ const heimanExtend = {
                         }
                     }
                     const muteResult = activeMutes.length > 0 ? activeMutes.join(" | ") : "normal";
-                    return {Muted: muteResult};
+                    return {muted: muteResult};
                 },
             } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
         ];
@@ -902,7 +905,98 @@ const heimanExtend = {
             isModernExtend: true,
         };
     },
+    heimanClusterSensorMutable: (): ModernExtend => {
+        const clusterName = "heimanClusterSpecial" as const;
+        const exposes = utils.exposeEndpoints(e.binary("temporary_mute", ea.ALL, true, false).withDescription("temporarily mute smoke alarm but please ensure there is no real fire."));
+
+        const fromZigbee = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.deviceMuteControl === undefined) {
+                        return;
+                    }
+
+                    const state = !!msg.data["deviceMuteControl"];
+                    return {temporary_mute: state};
+                },
+            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["temporary_mute"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<typeof clusterName, HeimanPrivateCluster>(
+                        clusterName,
+                        ["deviceMuteControl"],
+                        defaultResponseOptions,
+                    );
+                },
+                convertSet: async (entity, key, value, meta) => {
+                    // const state = (value as Record<string, unknown>) || {};
+                    const state = value ? 1 : 0;
+                    await entity.write<typeof clusterName, HeimanPrivateCluster>(
+                        clusterName,
+                        {deviceMuteControl: state},
+                        defaultResponseOptions,
+                    );
+                },
+            },
+        ];
+        return {
+            exposes: exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
 };
+
+const fzLocal = {
+    heimanClusterSpecialfz: {
+        cluster: "heimanClusterSpecial",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: Record<string, unknown> = {};
+            console.log( "---> heiman data:", msg.data );
+            const data = msg.data as Record<string, any>;
+
+            // 1. Define your lookup map
+            const contaminationLookup: Record<number, string> = {
+                0: "normal",
+                1: "light_contamination",
+                2: "medium_contamination",
+                3: "critical_contamination",
+            };
+            const smokeSirenLookup: Record<number, string> = {
+                0: "stop",
+                1: "smoke_siren",
+                2: "co_siren",
+            };
+
+            if (data.smokeConcentrationLevel !== undefined) {
+                console.log("smokeConcentrationLevel:", data.smokeConcentrationLevel);
+                const raw = parseFloat(data.smokeConcentrationLevel);
+                // Check if valid, then force exactly 2 decimal places as a STRING
+                result.smoke_level = isNaN(raw) ? "0.00" : raw.toFixed(2);
+                console.log("smoke_level:", result.smoke_level); 
+            }
+            if (data.deviceCascadeState !== undefined) {
+                result.siren_for_automation_only = smokeSirenLookup[data.deviceCascadeState];
+            }
+            if (data.smokeChamberContaminationLevel !== undefined) {
+                result.chamber_contamination = contaminationLookup[data.smokeChamberContaminationLevel];
+            }
+            if (data.smokeConcentationUnit !== undefined) {
+                result.smoke_unit = data.smokeConcentationUnit ? "%ft OBS": "dB/m";
+            }
+            console.log( "---> heiman result:", result );
+            return result;
+        },
+    } satisfies Fz.Converter<"heimanClusterSpecial", undefined, ["attributeReport", "readResponse"]>,
+};
+
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -1963,27 +2057,28 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS1SA-E",
         vendor: "Heiman",
         description: "Smoke detector",
-        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", 0xfc90]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
-            await endpoint.read("heimanClusterSpecial", [0x0002, 0x009, 0x1004, 0x1007, 0x0016, 0x0017, 0x0018, 0x0019, 0x001a, 0x001b], {
+            await endpoint.read("heimanClusterSpecial", [0x0002, 0x008, 0x009, 0x1004, 0x1007, 0x0016, 0x0017, 0x0018, 0x0019, 0x001a, 0x001b], {
                 manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
             });
         },
         exposes: [],
         extend: [
             m.battery(),
+            m.identify(),
             m.temperature(),
             m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
             heimanExtend.heimanClusterSpecial(),
             heimanExtend.heimanClusterSensorFaultState(),
             heimanExtend.heimanClusterDeviceMuteState(),
             heimanExtend.iasZoneInitiateTestMode(),
-            heimanExtend.iasWarningDeviceMute(),
+            heimanExtend.heimanClusterSensorMutable(),
             heimanExtend.heimanClusterIndicatorLight(),
             heimanExtend.heimanClusterSensorInterconnectable(),
             m.numeric({
@@ -2001,23 +2096,23 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "smoke_unit",
                 lookup: {"dB/m": 0, "%ft OBS": 1},
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x0018, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x0018, type: Zcl.DataType.ENUM8},
                 description: "smoke level unit",
                 access: "STATE_GET",
             }),
             m.enumLookup({
                 name: "chamber_contamination",
-                lookup: {normal: 0, light_contamination: 1, medium_contamication: 2, critical_contamication: 3},
+                lookup: {"normal": 0, "light_contamination": 1, "medium_contamication": 2, "critical_contamication": 3},
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x0017, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x0017, type: Zcl.DataType.ENUM8},
                 description: "it indicates that how serious the smoke chamber get contaminated.",
                 access: "STATE_GET",
             }),
             m.enumLookup({
                 name: "siren_for_automation_only",
-                lookup: {stop: 0, smoke_siren: 1, co_siren: 2},
+                lookup: {"stop": 0, "smoke_siren": 1, "co_siren": 2},
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x0012, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x0012, type: Zcl.DataType.ENUM8},
                 description: "siren effect",
                 access: "ALL",
             }),
@@ -2027,7 +2122,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 60000,
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x001b, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x001b, type: Zcl.DataType.UINT16},
                 description: "for diagnostic purpose, how many zigbee packages has the reported in a day.",
                 access: "STATE_GET",
             }),
@@ -2037,7 +2132,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 60000,
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x001a, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x001a, type: Zcl.DataType.UINT16},
                 description: "for diagnostic purpose, how many times has the product rejoined to zigbee network.",
                 access: "STATE_GET",
             }),
@@ -2047,7 +2142,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 60000,
                 cluster: "heimanClusterSpecial",
-                attribute: {ID: 0x0019, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x0019, type: Zcl.DataType.UINT16},
                 description: "for diagnostic purpose, how many times has the product rebooted.",
                 access: "STATE_GET",
             }),
