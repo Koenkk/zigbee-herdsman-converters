@@ -16,4 +16,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee 3.0 LED controller, dimmable white spectrum",
         extend: [m.light({colorTemp: {range: [153, 370]}, turnsOffAtBrightness1: true})],
     },
+    {
+        zigbeeModel: ["iStar RGBW Light"],
+        model: "iStar RGBW Light",
+        vendor: "iStar",
+        description: "Zigbee 3.0 LED controller, dimmable RGBW",
+        extend: [m.light({colorTemp:{range:[275,295]},color:{modes:["xy","hs"],enhancedHue:true}})],
+    },
 ];
