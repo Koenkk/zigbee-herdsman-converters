@@ -1793,6 +1793,29 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_tyg4yiat"]),
+        model: "ZM4LT4",
+        vendor: "Moes",
+        description: "4-gang switch module",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                indicatorMode: true,
+                onOffCountdown: true,
+                inchingSwitch: true,
+                endpoints: ["l1", "l2", "l3", "l4"],
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0041", ["_TZ3000_axpdxqgu"]),
         model: "ZT-B-EU1",
         vendor: "Moes",
