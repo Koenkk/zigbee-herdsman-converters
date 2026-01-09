@@ -983,7 +983,7 @@ const fzLocal = {
     TS0201_humidity: {
         ...fz.humidity,
         convert: (model, msg, publish, options, meta) => {
-            if (["_TZ3210_ncw88jfq", "_TZ3000_ywagc4rj", "_TZ3000_isw9u95y", "_TZ3000_yupc0pb7"].includes(meta.device.manufacturerName)) {
+            if (["_TZ3210_ncw88jfq", "_TZ3000_ywagc4rj", "_TZ3000_isw9u95y"].includes(meta.device.manufacturerName)) {
                 msg.data.measuredValue *= 10;
             }
             return fz.humidity.convert(model, msg, publish, options, meta);
@@ -3069,6 +3069,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("MiBoxer", "FUT066Z", "RGB+CCT LED Downlight", ["_TZ3210_zrvxvydd"]),
             tuya.whitelabel("MiBoxer", "FUT068ZR", "RGB+CCT LED Downlight", ["_TZB210_endmggws"]),
             tuya.whitelabel("MiBoxer", "FUT103ZR", "GU10 RGB+CCT", ["_TZB210_6eed09b9"]),
+            tuya.whitelabel("MiBoxer", "FUT105ZR", "RGB+CCT LED bulb", ["_TZB210_uoiqhjqe"]),
             tuya.whitelabel("MiBoxer", "FUT106ZR", "GU10 RGB+CCT", ["_TZB210_rwy5hexp", "_TZB210_lnnkh3f9"]),
             tuya.whitelabel("Tuya", "TS0505B_1_1", "Zigbee 3.0 18W led light bulb E27 RGBCW", [
                 "_TZ3210_jd3z4yig",
@@ -3399,6 +3400,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_shopg9ss",
                 "_TZ3000_n0lphcok",
                 "_TZ3000_r80pzsb9",
+                "_TZ3000_sgpbz53b",
             ]),
             ...tuya.fingerprint("TS0001", ["_TZ3000_n0lphcok", "_TZ3000_wn65ixz9", "_TZ3000_trdx8uxs", "_TZ3000_gdsvhfao"]),
         ],
@@ -5953,7 +5955,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_4o16jdca", "_TZ3000_odzoiovu", "_TZ3000_hbic3ka3", "_TZ3000_lvhy15ix", "_TZ3000_mhhxxjrs"]),
+        fingerprint: tuya.fingerprint("TS0003", [
+            "_TZ3000_4o16jdca",
+            "_TZ3000_odzoiovu",
+            "_TZ3000_hbic3ka3",
+            "_TZ3000_lvhy15ix",
+            "_TZ3000_mhhxxjrs",
+            "_TZ3000_iv4eq7eh",
+        ]),
         model: "TS0003_switch_module_2",
         vendor: "Tuya",
         description: "3 gang switch module",
@@ -5976,7 +5985,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
         },
         whiteLabel: [
-            tuya.whitelabel("AVATTO", "ZWSM16-3-Zigbee", "3 gang switch module", ["_TZ3000_hbic3ka3"]),
+            tuya.whitelabel("AVATTO", "ZWSM16-3-Zigbee", "3 gang switch module", ["_TZ3000_hbic3ka3", "_TZ3000_iv4eq7eh"]),
             tuya.whitelabel("iHseno", "_TZ3000_mhhxxjrs", "3 gang switch module", ["_TZ3000_mhhxxjrs"]),
         ],
     },
@@ -6092,8 +6101,8 @@ export const definitions: DefinitionWithExtend[] = [
                 switchType: true,
                 onOffCountdown: (m) => m !== "_TZ3000_xfxpoxe0",
                 indicatorMode: (m) => m !== "_TZ3000_xfxpoxe0",
-                powerOutageMemory: (m) => m === "_TZ3000_xfxpoxe0",
-                backlightModeOffOn: (m) => m === "_TZ3000_xfxpoxe0",
+                powerOutageMemory: true,
+                backlightModeOffOn: true,
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -11082,7 +11091,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lu01t0zl", "_TZE200_vrfecyku", "_TZE200_ypprdwsl", "_TZE200_jkbljri7"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lu01t0zl", "_TZE200_vrfecyku", "_TZE200_ypprdwsl", "_TZE200_jkbljri7", "_TZE204_bvfld3xc"]),
         model: "MIR-HE200-TY",
         vendor: "Tuya",
         description: "Human presence sensor with fall function",
@@ -14942,6 +14951,53 @@ export const definitions: DefinitionWithExtend[] = [
                 [129, "light_mode_l8", tuya.valueConverter.lightMode],
                 [130, "power_on_behavior_l7", tuya.valueConverter.powerOnBehaviorEnum],
                 [131, "power_on_behavior_l8", tuya.valueConverter.powerOnBehaviorEnum],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_yrwmnya3"]),
+        model: "M9-zigbee-SL-2",
+        vendor: "Tuya",
+        description: "Smart switch (4 gang + 4 scene) with neutral wire and motion sensing",
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1, state: 1, backlight: 1}})],
+        fromZigbee: [fz.ias_occupancy_only_alarm_2, tuya.fz.indicator_mode],
+        toZigbee: [tuya.tz.power_on_behavior_1, tuya.tz.backlight_indicator_mode_1],
+        exposes: [
+            ...[1, 2, 3, 4].map((i) => tuya.exposes.switch().withEndpoint(`l${i}`)),
+            ...[0, 1, 2, 3, 4].map((i) => e.power_on_behavior().withAccess(ea.STATE_SET).withEndpoint(`l${i}`)),
+            ...[1, 2, 3, 4].map((i) => tuya.exposes.switchMode().withEndpoint(`l${i}`)),
+            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
+            e.action(["scene_0", "scene_1", "scene_2", "scene_3", "scene_4", "scene_5", "scene_6", "scene_7", "scene_8"]),
+            e.presence(),
+            e.numeric("delay", ea.STATE_SET).withUnit("s").withDescription("Light off delay").withValueMin(0).withValueMax(1000),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "action", tuya.valueConverter.static("scene_1")],
+                [2, "action", tuya.valueConverter.static("scene_2")],
+                [3, "action", tuya.valueConverter.static("scene_3")],
+                [4, "action", tuya.valueConverter.static("scene_4")],
+                [5, "action", tuya.valueConverter.static("scene_5")],
+                [6, "action", tuya.valueConverter.static("scene_6")],
+                [7, "action", tuya.valueConverter.static("scene_7")],
+                [8, "action", tuya.valueConverter.static("scene_8")],
+                [17, "action", tuya.valueConverter.static("scene_0")],
+                [18, "switch_mode_l1", tuya.valueConverter.switchMode],
+                [19, "switch_mode_l2", tuya.valueConverter.switchMode],
+                [20, "switch_mode_l3", tuya.valueConverter.switchMode],
+                [21, "switch_mode_l4", tuya.valueConverter.switchMode],
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [26, "state_l3", tuya.valueConverter.onOff],
+                [27, "state_l4", tuya.valueConverter.onOff],
+                [36, "backlight_mode", tuya.valueConverter.onOff],
+                [38, "power_on_behavior_l0", tuya.valueConverter.powerOnBehaviorEnum],
+                [39, "power_on_behavior_l1", tuya.valueConverter.powerOnBehaviorEnum],
+                [40, "power_on_behavior_l2", tuya.valueConverter.powerOnBehaviorEnum],
+                [41, "power_on_behavior_l3", tuya.valueConverter.powerOnBehaviorEnum],
+                [42, "power_on_behavior_l4", tuya.valueConverter.powerOnBehaviorEnum],
+                [101, "presence", tuya.valueConverter.raw],
+                [102, "delay", tuya.valueConverter.raw],
             ],
         },
     },
@@ -23178,6 +23234,142 @@ export const definitions: DefinitionWithExtend[] = [
                 [109, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [112, "deadzone_temperature", tuya.valueConverter.divideBy10],
                 [116, "eco_temperature", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_roujjevx"]),
+        model: "TS0601_smart_temperature_switch",
+        vendor: "Tuya",
+        description: "Smart temperature switch with manual and automatic modes: heating & cooling",
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                timeStart: "1970",
+                queryOnDeviceAnnounce: true,
+                queryOnConfigure: true,
+            }),
+        ],
+        exposes: [
+            e
+                .numeric("temperature_c", ea.STATE)
+                .withUnit("℃")
+                .withDescription("Measured temperature in ℃. Device reports it only when it set ℃ unit.")
+                .withCategory("diagnostic"),
+            e.numeric("temperature_f", ea.STATE).withUnit("℉").withDescription("Measured temperature in ℉").withCategory("diagnostic"),
+            e.switch().withDescription("Turn on/off device connected to output"),
+            e
+                .binary("autowork", ea.ALL, "ON", "OFF")
+                .withDescription("Turn on automatic mode to control constant temperature")
+                .withCategory("config"),
+            e
+                .enum("work_mode", ea.ALL, ["heating", "cooling"])
+                .withDescription(`
+                Heating: switch is turned ON until temperature will increase to setpoint (then will turn OFF). When temperature will go down below set temperature range, switch will turn ON again.
+                Cooling: switch is turned ON until temperature will decrease to setpoint (then will turn OFF). When temperature will go up above set temperature range, switch will turn ON again.
+            `)
+                .withCategory("config"),
+            tuya.exposes.temperatureUnit().withAccess(ea.ALL).withCategory("config"),
+            e
+                .numeric("temperature_c_setpoint", ea.ALL)
+                .withUnit("℃")
+                .withDescription("Temperature ℃ set point")
+                .withCategory("config")
+                .withValueMin(-20)
+                .withValueMax(102)
+                .withValueStep(0.5),
+            e
+                .numeric("temperature_f_setpoint", ea.ALL)
+                .withUnit("℉")
+                .withDescription("Temperature ℉ set point")
+                .withCategory("config")
+                .withValueMin(-4)
+                .withValueMax(221)
+                .withValueStep(0.5),
+            e
+                .numeric("temperature_range", ea.ALL)
+                .withDescription("The delta between temperature setpoint and measured temperature to trigger heating or cooling")
+                .withCategory("config")
+                .withValueMin(1)
+                .withValueMax(9)
+                .withValueStep(0.5),
+            tuya.exposes
+                .temperatureCalibration()
+                .withUnit("℉")
+                .withDescription("Temperature calibration always in ℉")
+                .withCategory("config")
+                .withValueMin(-9)
+                .withValueMax(9)
+                .withValueStep(1),
+            e.binary("cooling_delay_switch", ea.ALL, "ON", "OFF").withDescription("Turn on cooling mode delay").withCategory("config"),
+            e
+                .numeric("cooling_delay", ea.ALL)
+                .withUnit("m")
+                .withDescription("Delay to turn on - only for cooling mode")
+                .withCategory("config")
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1),
+            tuya.exposes
+                .countdown()
+                .withAccess(ea.ALL)
+                .withDescription("Countdown to turn device on/off after a certain time")
+                .withCategory("config")
+                .withValueMax(86400), // 24h
+            e
+                .list(
+                    "schedules",
+                    ea.SET,
+                    exposes
+                        .composite("schedule", "schedule", ea.SET)
+                        .withFeature(e.binary("enabled", ea.SET, true, false).withDescription("Enable schedule"))
+                        .withFeature(e.enum("work_mode", ea.SET, ["heating", "cooling"]))
+                        .withFeature(e.numeric("temperature_f", ea.SET).withUnit("℉").withDescription("Target temperature in ℉"))
+                        .withFeature(
+                            exposes
+                                .composite("start", "start", ea.SET)
+                                .withFeature(e.numeric("hour", ea.SET).withValueMin(0).withValueMax(23).withValueStep(1))
+                                .withFeature(e.numeric("minute", ea.SET).withValueMin(0).withValueMax(59).withValueStep(1)),
+                        )
+                        .withFeature(
+                            exposes
+                                .composite("end", "end", ea.SET)
+                                .withFeature(e.numeric("hour", ea.SET).withValueMin(0).withValueMax(23).withValueStep(1))
+                                .withFeature(e.numeric("minute", ea.SET).withValueMin(0).withValueMax(59).withValueStep(1)),
+                        )
+                        .withFeature(
+                            exposes
+                                .composite("week_days", "week_days", ea.SET)
+                                .withFeature(e.binary("sunday", ea.SET, true, false))
+                                .withFeature(e.binary("monday", ea.SET, true, false))
+                                .withFeature(e.binary("tuesday", ea.SET, true, false))
+                                .withFeature(e.binary("wednesday", ea.SET, true, false))
+                                .withFeature(e.binary("thursday", ea.SET, true, false))
+                                .withFeature(e.binary("friday", ea.SET, true, false))
+                                .withFeature(e.binary("saturday", ea.SET, true, false)),
+                        ),
+                )
+                .withDescription("Schedules for automatic mode work at certain week day and time")
+                .withCategory("config")
+                .withLengthMax(3),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [2, "state", tuya.valueConverter.onOffNotStrict],
+                [4, "countdown", tuya.valueConverter.countdown],
+                [7, "schedules", tuya.valueConverter.thermostatSchedule],
+                [8, "work_mode", tuya.valueConverterBasic.lookup({heating: tuya.enum(0), cooling: tuya.enum(2)})],
+                [9, "autowork", tuya.valueConverter.onOffNotStrict],
+                [20, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
+                [21, "temperature_f_setpoint", tuya.valueConverter.divideBy10],
+                [22, "temperature_c_setpoint", tuya.valueConverter.divideBy10],
+                [27, "temperature_c", tuya.valueConverter.divideBy10],
+                [28, "temperature_f", tuya.valueConverter.divideBy10],
+                [29, "temperature_range", tuya.valueConverter.divideBy10],
+                [30, "temperature_calibration", tuya.valueConverter.raw],
+                // 50: Fault - not mapped
+                [55, "cooling_delay", tuya.valueConverter.raw],
+                [56, "cooling_delay_switch", tuya.valueConverter.onOffNotStrict],
             ],
         },
     },

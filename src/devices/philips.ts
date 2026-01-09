@@ -3850,7 +3850,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["LTF001"],
+        zigbeeModel: ["LTF001", "LTC009"],
         model: "6109231C5",
         vendor: "Philips",
         description: "Hue white ambiance Apogee square",
