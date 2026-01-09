@@ -85,7 +85,7 @@ const local = {
                 const state: KeyValue = {};
 
                 if (msg.data.switchActionReporting !== undefined) {
-                    state.action_reporting = Boolean(msg.data.switchActionReporting & 0xb);
+                    state.action_reporting = Boolean(msg.data.switchActionReporting & 0x1e);
                 }
                 if (msg.data.switchAction !== undefined) {
                     // NOTE: a single press = two separate values reported, 16 followed by 64
@@ -197,11 +197,12 @@ const local = {
         switch_action_reporting: {
             key: ["action_reporting"],
             convertSet: async (entity, key, value, meta) => {
-                // Bit 0: unknown, but set in a reset device
-                //     1: turn on reporting for channel 1 (ep1)
-                //     2: unknown
-                //     3: turn on reporting for channel 2 (ep2)
-                const actionReportingMap: KeyValue = {false: 0x01, true: 0x0b};
+                // Bit 0: unknown, but set in a reset device. Leave as-is.
+                //     1: enable reporting for channel 1 button
+                //     2: enable reporting for channel 1 ext. button input
+                //     3: enable reporting for channel 2 button
+                //     4: enable reporting for channel 2 ext. button input
+                const actionReportingMap: KeyValue = {false: 0x01, true: 0x1f};
                 // @ts-expect-error ignore
                 if (actionReportingMap[value] === undefined) {
                     throw new Error(`action_reporting was called with an invalid value (${value})`);
