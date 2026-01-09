@@ -59,7 +59,7 @@ const local = {
                 manufacturerCode: Zcl.ManufacturerCode.NIKO_NV,
                 attributes: {
                     switchActionReporting: {ID: 0x0001, type: Zcl.DataType.BITMAP8, write: true},
-                    switchAction: {ID: 0x0002, type: Zcl.DataType.BITMAP32, write: true, max: 0xffff},
+                    switchAction: {ID: 0x0002, type: Zcl.DataType.BITMAP32, write: true, max: 0x7ffff},
                 },
                 commands: {},
                 commandsResponse: {},
