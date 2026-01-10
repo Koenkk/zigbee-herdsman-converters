@@ -4954,7 +4954,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WT-A03E",
         vendor: "Aqara",
         description: "Radiator thermostat W600",
-        ota: true,
         extend: [
             m.thermostat({
                 setpoints: {
