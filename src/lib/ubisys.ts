@@ -196,11 +196,10 @@ export const ubisysModernExtend = {
                 },
                 ubisysRemoteTemperatureValidDuration: {
                     ID: 0x0014,
-                    type: Zcl.DataType.UINT8,
+                    type: Zcl.DataType.UINT16,
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
-
                     write: true,
-                    max: 0xff,
+                    max: 0x15180,
                 },
                 ubisysDetectOpenWindow: {
                     ID: 0x0015,
