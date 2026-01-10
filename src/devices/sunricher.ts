@@ -2489,4 +2489,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee 2 channel AC phase-cut dimmer",
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.light({endpointNames: ["l1", "l2"], configureReporting: true})],
     },
+    {
+        zigbeeModel: ["ZG2855-RGB"],
+        model: "ZG2855-RGB",
+        vendor: "Sunricher",
+        description: "DIM RGB 3 in 1 Zigbee remote",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+    },
 ];
