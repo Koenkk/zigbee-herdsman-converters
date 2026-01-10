@@ -5070,6 +5070,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.identify(),
+            lumiZigbeeOTA(),
         ],
     },
     {
