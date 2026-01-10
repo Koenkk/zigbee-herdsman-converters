@@ -490,7 +490,7 @@ describe("ZHC", () => {
     });
 
     describe("configure key", () => {
-        const mockDefinition = (configure: Definition["configure"]): Definition => ({
+        const baseDefinition: Definition = {
             zigbeeModel: ["abcd"],
             model: "abcd",
             vendor: "efg",
@@ -498,36 +498,15 @@ describe("ZHC", () => {
             fromZigbee: [],
             toZigbee: [],
             exposes: [],
-            configure,
+            configure: () => {},
+        };
+
+        it("default configure key when definition has no configureKey", () => {
+            expect(getConfigureKey({...baseDefinition})).toStrictEqual(0);
         });
 
-        it("calculates", () => {
-            expect(
-                getConfigureKey(
-                    mockDefinition(() => {
-                        console.log("hello world");
-                        console.log("bye world");
-                    }),
-                ),
-            ).toStrictEqual(1320643662);
-        });
-
-        it("calculates diff", () => {
-            expect(
-                getConfigureKey(
-                    mockDefinition(() => {
-                        console.log("hello world");
-                        console.log("bye world");
-                    }),
-                ),
-            ).not.toStrictEqual(
-                getConfigureKey(
-                    mockDefinition(() => {
-                        console.log("hello world");
-                        console.log("bye mars");
-                    }),
-                ),
-            );
+        it("return configureKey when definition has one", () => {
+            expect(getConfigureKey({...baseDefinition, configureKey: 1})).toStrictEqual(1);
         });
     });
 
