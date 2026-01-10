@@ -2490,7 +2490,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.light({endpointNames: ["l1", "l2"], configureReporting: true})],
     },
     {
-        zigbeeModel: ['ZG2855-RGB'],
+        zigbeeModel: ["ZG2855-RGB"],
         model: "ZG2855-RGB",
         vendor: "Sunricher",
         description: "DIM RGB 3 in 1 Zigbee remote",
