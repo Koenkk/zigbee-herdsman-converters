@@ -51,4 +51,11 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({endpointNames: ["11", "12", "13", "14"], colorTemp: {range: [153, 500]}}),
         ],
     },
+    {
+        zigbeeModel: ["SEMOTE"],
+        model: "756200643",
+        vendor: "L&S Lighting",
+        description: "Zigbee remote",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl(), m.commandsScenes()],
+    },
 ];
