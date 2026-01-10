@@ -52,17 +52,13 @@ export const ledvanceTz = {
     } satisfies Tz.Converter,
 };
 
-// Ledvance OTAs are not valid against the Zigbee spec, the last image element fails to parse but the
-// update succeeds even without sending it. Therefore set suppressElementImageParseFailure to true
-// https://github.com/Koenkk/zigbee2mqtt/issues/16900
-
 export function ledvanceOnOff(args?: modernExtend.OnOffArgs) {
-    args = {ota: {suppressElementImageParseFailure: true}, configureReporting: true, ...args};
+    args = {ota: true, configureReporting: true, ...args};
     return modernExtend.onOff(args);
 }
 
 export function ledvanceLight(args?: modernExtend.LightArgs) {
-    args = {powerOnBehavior: false, ota: {suppressElementImageParseFailure: true}, ...args};
+    args = {powerOnBehavior: false, ota: true, ...args};
     if (args.colorTemp) args.colorTemp.startup = false;
     if (args.color) args.color = {modes: ["xy", "hs"], ...(isObject(args.color) ? args.color : {})};
     const result = modernExtend.light(args);
