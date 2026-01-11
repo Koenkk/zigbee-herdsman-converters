@@ -70,8 +70,7 @@ export class ColorRGB {
      * @returns new ColoRGB object
      */
     static fromHex(hex: string): ColorRGB {
-        hex = hex.replace("#", "");
-        const bigint = Number.parseInt(hex, 16);
+        const bigint = Number.parseInt(hex.replace("#", ""), 16);
         return new ColorRGB(((bigint >> 16) & 255) / 255, ((bigint >> 8) & 255) / 255, (bigint & 255) / 255);
     }
 
@@ -136,6 +135,7 @@ export class ColorRGB {
 
     /**
      * Convert to CIE
+     * TODO: refactor, this is the Philips Hue formula, not the CIE 1931 gamut
      * @returns color in CIE space
      */
     toXY(): ColorXY {
@@ -243,6 +243,7 @@ export class ColorXY {
 
     /**
      * Converts CIE color space to RGB color space
+     * TODO: refactor, this is the Philips Hue formula, not the CIE 1931 gamut
      * From: https://github.com/usolved/cie-rgb-converter/blob/master/cie_rgb_converter.js
      */
     toRGB(): ColorRGB {
@@ -326,7 +327,7 @@ export class ColorHSV {
      */
     constructor(hue: number, saturation: number = null, value: number = null) {
         /** hue component (0..360) */
-        this.hue = hue === null ? null : hue % 360;
+        this.hue = hue === null ? null : hue === 360 ? hue : hue % 360;
         /** saturation component (0..100) */
         this.saturation = saturation;
         /** value component (0..100) */
