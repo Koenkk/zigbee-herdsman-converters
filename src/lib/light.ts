@@ -54,10 +54,9 @@ export function readColorAttributes(
 }
 
 export function findColorTempRange(entity: Zh.Endpoint | Zh.Group) {
-    // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-    let colorTempMin;
-    // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-    let colorTempMax;
+    let colorTempMin: number | undefined | null;
+    let colorTempMax: number | undefined | null;
+
     if (utils.isGroup(entity)) {
         const minCandidates = entity.members
             .map((m) => m.getClusterAttributeValue("lightingColorCtrl", "colorTempPhysicalMin"))
@@ -84,7 +83,9 @@ export function findColorTempRange(entity: Zh.Endpoint | Zh.Group) {
             NS,
         );
     }
-    return [colorTempMin, colorTempMax];
+
+    // default to Zigbee spec min/max range
+    return [colorTempMin ?? 0x0000, colorTempMax ?? 0xfeff] as const;
 }
 
 export function clampColorTemp(colorTemp: number, colorTempMin: number, colorTempMax: number) {
