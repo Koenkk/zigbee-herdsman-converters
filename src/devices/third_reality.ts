@@ -71,6 +71,15 @@ interface ThirdPlugGen3 {
     commandResponses: never;
 }
 
+interface ThirdAirPressureSensor {
+    attributes: {
+        sendCommandUpThreshold: number;
+        sendCommandDownThreshold: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     thirdreality_acceleration: {
         cluster: "3rVirationSpecialcluster",
@@ -240,8 +249,9 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart motion sensor R1",
         ota: true,
         extend: [
+            m.forcePowerSource({powerSource: "Battery"}),
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}),
-            m.battery({voltage: true}),
+            m.battery({voltage: true, percentageReporting: false}),
             m.deviceAddCustomCluster("3rRadarSpecialCluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
@@ -250,6 +260,30 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["3RPL01084Z"],
+        model: "3RPL01084Z",
+        vendor: "Third Reality",
+        description: "Multi-function smart presence sensor R3",
+        ota: true,
+        extend: [
+            m.occupancy(),
+            m.illuminance(),
+            m.numeric({
+                name: "volatile_organic_compounds",
+                access: "STATE_GET",
+                cluster: "msFormaldehyde",
+                attribute: "measuredValue",
+                unit: "ppm",
+                scale: 1000,
+                precision: 2,
+                description: "Measured VOC value",
+            }),
+            m.light({
+                color: {modes: ["xy"], enhancedHue: true},
             }),
         ],
     },
@@ -506,7 +540,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Soil Moisture Sensor",
         extend: [
             m.temperature(),
-            m.humidity(),
             m.soilMoisture(),
             m.battery(),
             m.deviceAddCustomCluster("3rSoilSpecialCluster", {
@@ -1016,5 +1049,47 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
         ],
+    },
+    {
+        zigbeeModel: ["3RAP0149BZ"],
+        model: "3RAP0149BZ",
+        vendor: "Third Reality",
+        description: "Smart air pressure sensor",
+        extend: [
+            m.battery(),
+            m.pressure({attribute: {ID: 0xff01, type: 0x23}, name: "pressure", unit: "Pa", scale: 1}),
+            m.commandsOnOff(),
+            m.deviceAddCustomCluster("3rAirsensorSpecialCluster", {
+                ID: 0xff01,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    sendCommandUpThreshold: {ID: 0x0040, type: 0x21},
+                    sendCommandDownThreshold: {ID: 0x0041, type: 0x21},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"3rAirsensorSpecialCluster", ThirdAirPressureSensor>({
+                name: "pressure_raised_threshold",
+                unit: "Pa",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rAirsensorSpecialCluster",
+                attribute: "sendCommandUpThreshold",
+                description: "Reports sudden air-pressure changes. Pressure rise and fall alerts can be enabled separately. Threshold adjustable.",
+                access: "ALL",
+            }),
+            m.numeric<"3rAirsensorSpecialCluster", ThirdAirPressureSensor>({
+                name: "pressure_falls_threshold",
+                unit: "Pa",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rAirsensorSpecialCluster",
+                attribute: "sendCommandDownThreshold",
+                description: "Reports sudden air-pressure changes. Pressure rise and fall alerts can be enabled separately. Threshold adjustable.",
+                access: "ALL",
+            }),
+        ],
+        ota: true,
     },
 ];
