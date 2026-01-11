@@ -16298,7 +16298,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BLE-YL01",
         vendor: "Tuya",
         description: "Smart WiFi Zigbee chlorine meter",
-        whiteLabel: [tuya.whitelabel("Tuya", "YK-S03", "Smart pH and Chlorine Tester for Swimming Pool", ["_TZE200_d9mzkhoq"])],
+        whiteLabel: [
+            tuya.whitelabel("Tuya", "YK-S03", "Smart pH and Chlorine Tester for Swimming Pool", ["_TZE200_d9mzkhoq"]),
+            {model: "YY-1099L", vendor: "Tuya"},
+        ],
         // Don't query too often. Values are not always updated. https://github.com/Koenkk/zigbee2mqtt/issues/18704
         extend: [
             tuya.modernExtend.tuyaBase({
