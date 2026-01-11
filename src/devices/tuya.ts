@@ -22974,9 +22974,9 @@ Ensure all 12 segments are defined and separated by spaces.`,
                 .withUnit("s")
                 .withValueMin(0)
                 .withValueMax(86400)
-                .withDescription("Tempo de contagem regressiva em segundos"),
-            e.enum("work_state", ea.STATE, ["auto", "manual", "idle"]).withDescription("Estado atual de opera    o"),
-            e.numeric("water_once", ea.STATE).withUnit("L").withDescription("Consumo da   ltima rega"),
+                .withDescription("Countdown time in seconds"),
+            e.enum("work_state", ea.STATE, ["auto", "manual", "idle"]).withDescription("Current state of operation"),
+            e.numeric("water_once", ea.STATE).withUnit("L").withDescription("Consumption from the last watering"),
         ],
         meta: {
             tuyaDatapoints: [
