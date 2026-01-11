@@ -1734,26 +1734,15 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Iluminize", model: "511.344"}],
         description: "Zigbee handheld remote RGBW 4 channels",
         extend: [
-            m.deviceEndpoints({endpoints: {"ep1": 1, "ep2": 2, "ep3": 3, "ep4": 4}}),
+            m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
             m.battery({voltage: true, voltageReporting: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({
-                commands: [
-                    "brightness_step_up",
-                    "brightness_step_down",
-                    "brightness_move_up",
-                    "brightness_move_down",
-                    "brightness_stop",
-                ],
+                commands: ["brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down", "brightness_stop"],
             }),
             m.commandsColorCtrl({
-                commands: [
-                    "hue_move",
-                    "hue_stop",
-                    "color_move",
-                    "color_temperature_move",
-                ],
+                commands: ["hue_move", "hue_stop", "color_move", "color_temperature_move"],
             }),
             m.commandsScenes({commands: ["recall", "store"], bind: false}),
         ],
@@ -1764,28 +1753,15 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sunricher",
         description: "Zigbee handheld remote CCT 4 channels",
         extend: [
-            m.deviceEndpoints({endpoints: {"ep1": 1, "ep2": 2, "ep3": 3, "ep4": 4}}),
+            m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
             m.battery({voltage: true, voltageReporting: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({
-                commands: [
-                    "brightness_step_up",
-                    "brightness_step_down",
-                    "brightness_move_up",
-                    "brightness_move_down",
-                    "brightness_stop",
-                ],
+                commands: ["brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down", "brightness_stop"],
             }),
             m.commandsColorCtrl({
-                commands: [
-                    "hue_move",
-                    "hue_stop",
-                    "color_move",
-                    "color_temperature_move",
-                    "color_loop_set",
-                    "enhanced_move_to_hue_and_saturation",
-                ],
+                commands: ["hue_move", "hue_stop", "color_move", "color_temperature_move", "color_loop_set", "enhanced_move_to_hue_and_saturation"],
             }),
             m.commandsScenes({commands: ["recall", "store"], bind: false}),
         ],
