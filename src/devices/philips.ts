@@ -3850,7 +3850,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["LTF001"],
+        zigbeeModel: ["LTF001", "LTC009"],
         model: "6109231C5",
         vendor: "Philips",
         description: "Hue white ambiance Apogee square",
@@ -4102,10 +4102,17 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
+        zigbeeModel: ["929003048201_01", "929003048201_02", "929003048201_03", "929003048201_04"],
+        model: "929003048201",
+        vendor: "Philips",
+        description: "Hue white ambiance Buckram quadruple spotlight with Bluetooth (White)",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
         zigbeeModel: ["929003048301_01", "929003048301_02", "929003048301_03", "929003048301_04"],
         model: "8719514339163",
         vendor: "Philips",
-        description: "Hue white ambiance Buckram quadruple spotlight with Bluetooth",
+        description: "Hue white ambiance Buckram quadruple spotlight with Bluetooth (Black)",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
