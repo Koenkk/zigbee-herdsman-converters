@@ -78,8 +78,11 @@ export function findColorTempRange(entity: Zh.Endpoint | Zh.Group) {
         colorTempMax = entity.getClusterAttributeValue("lightingColorCtrl", "colorTempPhysicalMax") as number;
     }
     if (colorTempMin == null || colorTempMax == null) {
-        const entityId = utils.isGroup(entity) ? entity.groupID : entity.deviceIeeeAddress;
-        logger.debug(`Missing colorTempPhysicalMin and/or colorTempPhysicalMax for ${utils.isGroup(entity) ? "group" : "endpoint"} ${entityId}!`, NS);
+        logger.debug(
+            () =>
+                `Missing colorTempPhysicalMin and/or colorTempPhysicalMax for ${utils.isGroup(entity) ? `group ${entity.groupID}` : `endpoint ${entity.ID} of ${entity.deviceIeeeAddress}`}!`,
+            NS,
+        );
     }
     return [colorTempMin, colorTempMax];
 }

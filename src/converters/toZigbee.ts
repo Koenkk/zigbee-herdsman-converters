@@ -92,8 +92,8 @@ export const light_color: Tz.Converter = {
 
             newState.color_mode = constants.colorModeLookup[1];
             newState.color = xy.toObject();
-            const colorx = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
-            const colory = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
+            const colorx = Math.min(utils.mapNumberRange(xy.x, 0, 1, 0, 0xffff), 0xfeff);
+            const colory = Math.min(utils.mapNumberRange(xy.y, 0, 1, 0, 0xffff), 0xfeff);
 
             await entity.command(
                 "lightingColorCtrl",
@@ -111,16 +111,16 @@ export const light_color: Tz.Converter = {
                 await entity.command(
                     "genLevelCtrl",
                     "moveToLevelWithOnOff",
-                    {level: utils.mapNumberRange(hsvCorrected.value, 0, 100, 0, 254), transtime, optionsMask: 0, optionsOverride: 0},
+                    {level: utils.mapNumberRange(hsvCorrected.value, 0, 100, 0, 0xfe), transtime, optionsMask: 0, optionsOverride: 0},
                     utils.getOptions(meta.mapped, entity),
                 );
             }
 
             if (hsv.hue !== null && hsv.saturation !== null) {
-                const saturation = utils.mapNumberRange(hsvCorrected.saturation, 0, 100, 0, 254);
+                const saturation = utils.mapNumberRange(hsvCorrected.saturation, 0, 100, 0, 0xfe);
 
                 if (supportsEnhancedHue) {
-                    const enhancehue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 65535);
+                    const enhancehue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 0xffff);
                     await entity.command(
                         "lightingColorCtrl",
                         "enhancedMoveToHueAndSaturation",
@@ -128,7 +128,7 @@ export const light_color: Tz.Converter = {
                         utils.getOptions(meta.mapped, entity),
                     );
                 } else {
-                    const hue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 254);
+                    const hue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 0xfe);
                     await entity.command(
                         "lightingColorCtrl",
                         "moveToHueAndSaturation",
@@ -140,7 +140,7 @@ export const light_color: Tz.Converter = {
                 const direction = ((value as KeyValue).direction as number) || 0;
 
                 if (supportsEnhancedHue) {
-                    const enhancehue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 65535);
+                    const enhancehue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 0xffff);
                     await entity.command(
                         "lightingColorCtrl",
                         "enhancedMoveToHue",
@@ -148,7 +148,7 @@ export const light_color: Tz.Converter = {
                         utils.getOptions(meta.mapped, entity),
                     );
                 } else {
-                    const hue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 254);
+                    const hue = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 0xfe);
                     await entity.command(
                         "lightingColorCtrl",
                         "moveToHue",
@@ -157,7 +157,7 @@ export const light_color: Tz.Converter = {
                     );
                 }
             } else if (hsv.saturation !== null) {
-                const saturation = utils.mapNumberRange(hsvCorrected.saturation, 0, 100, 0, 254);
+                const saturation = utils.mapNumberRange(hsvCorrected.saturation, 0, 100, 0, 0xfe);
 
                 await entity.command(
                     "lightingColorCtrl",
@@ -1435,7 +1435,7 @@ export const light_colortemp_startup: Tz.Converter = {
     key: ["color_temp_startup"],
     convertSet: async (entity, key, value, meta) => {
         const [colorTempMin, colorTempMax] = light.findColorTempRange(entity);
-        const preset = {warmest: colorTempMax, warm: 454, neutral: 370, cool: 250, coolest: colorTempMin, previous: 65535};
+        const preset = {warmest: colorTempMax, warm: 454, neutral: 370, cool: 250, coolest: colorTempMin, previous: 0xffff};
 
         if (utils.isString(value) && value in preset) {
             value = utils.getFromLookup(value, preset);
