@@ -293,13 +293,17 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
 
     if (onOffEndpoints.length !== 0) {
         let endpointNames: string[] | undefined;
-        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
-            endpointNames = endpoints.map((e) => e.ID.toString());
+        if (!onlyFirstDeviceEnpoint(device, onOffEndpoints)) {
+            endpointNames = onOffEndpoints.map((e) => e.ID.toString());
         }
         generated.push(new ExtendGenerator({extend: m.onOff, args: {powerOnBehavior: false, endpointNames}, source: "onOff"}));
     }
 
     for (const endpoint of lightEndpoints) {
+        let endpointNames: string[] | undefined;
+        if (!onlyFirstDeviceEnpoint(device, lightEndpoints)) {
+            endpointNames = lightEndpoints.map((e) => e.ID.toString());
+        }
         // In case read fails, support all features with 31
         let colorCapabilities = 0;
         if (endpoint.supportsInputCluster("lightingColorCtrl")) {
@@ -310,6 +314,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
         const supportsColorXY = (colorCapabilities & (1 << 3)) > 0;
         const supportsColorTemperature = (colorCapabilities & (1 << 4)) > 0;
         const args: m.LightArgs = {};
+        args.endpointNames = endpointNames;
 
         if (supportsColorTemperature) {
             const minColorTemp = await getClusterAttributeValue(endpoint, "lightingColorCtrl", "colorTempPhysicalMin", 150);
@@ -355,10 +360,20 @@ function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoint[]): 
 
 async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     const generated: GeneratedExtend[] = [];
+    let endpointName: string | undefined;
     for (const endpoint of endpoints) {
-        const description = `binary_input_${endpoint.ID}`;
+        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+            endpointName = endpoint.ID.toString();
+        }
+        const name = await getClusterAttributeValue(endpoint, "genBinaryInput", "description", `binary_input_${endpoint.ID}`);
+        let label: string | undefined;
+        if (name !== `binary_input_${endpoint.ID}`) {
+            label = name;
+        }
+        const description = `Binary Input ${name} on endpoint ${endpoint.ID}`;
         const args: m.BinaryArgs<"genBinaryInput"> = {
-            name: await getClusterAttributeValue(endpoint, "genBinaryInput", "description", description),
+            name: name.replace(/\s+/g, "_").toLowerCase(),
+            label: label,
             cluster: "genBinaryInput",
             attribute: "presentValue",
             reporting: {min: "MIN", max: "MAX", change: 1},
@@ -366,7 +381,7 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
             valueOff: ["OFF", 0],
             description: description,
             access: "STATE_GET",
-            endpointName: `${endpoint.ID}`,
+            endpointName: endpointName,
         };
         generated.push(new ExtendGenerator({extend: m.binary, args, source: "binary"}));
     }
@@ -375,10 +390,20 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
 
 async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     const generated: GeneratedExtend[] = [];
+    let endpointName: string | undefined;
     for (const endpoint of endpoints) {
-        const description = `binary_output_${endpoint.ID}`;
+        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+            endpointName = endpoint.ID.toString();
+        }
+        const name = await getClusterAttributeValue(endpoint, "genBinaryOutput", "description", `binary_output_${endpoint.ID}`);
+        let label: string | undefined;
+        if (name !== `binary_output_${endpoint.ID}`) {
+            label = name;
+        }
+        const description = `Binary Output ${name} on endpoint ${endpoint.ID}`;
         const args: m.BinaryArgs<"genBinaryOutput"> = {
-            name: await getClusterAttributeValue(endpoint, "genBinaryOutput", "description", description),
+            name: name.replace(/\s+/g, "_").toLowerCase(),
+            label: label,
             cluster: "genBinaryOutput",
             attribute: "presentValue",
             reporting: {min: "MIN", max: "MAX", change: 1},
@@ -386,7 +411,7 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
             valueOff: ["OFF", 0],
             description: description,
             access: "ALL",
-            endpointName: `${endpoint.ID}`,
+            endpointName: endpointName,
         };
         generated.push(new ExtendGenerator({extend: m.binary, args, source: "binary"}));
     }
@@ -395,16 +420,29 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
 
 async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     const generated: GeneratedExtend[] = [];
+    let endpointNames: string[] | undefined;
     for (const endpoint of endpoints) {
-        const description = `analog_input_${endpoint.ID}`;
+        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+            endpointNames = [endpoint.ID.toString()];
+        }
+        const name = await getClusterAttributeValue(endpoint, "genAnalogInput", "description", `analog_input_${endpoint.ID}`);
+        let label: string | undefined;
+        if (name !== `analog_input_${endpoint.ID}`) {
+            label = name;
+        }
+        const description = `Analog Input ${name} on endpoint ${endpoint.ID}`;
         const args: m.NumericArgs<"genAnalogInput"> = {
-            name: await getClusterAttributeValue(endpoint, "genAnalogInput", "description", description),
+            name: name.replace(/\s+/g, "_").toLowerCase(),
+            label: label,
+            valueMin: await getClusterAttributeValue(endpoint, "genAnalogInput", "minPresentValue", undefined),
+            valueMax: await getClusterAttributeValue(endpoint, "genAnalogInput", "maxPresentValue", undefined),
+            valueStep: await getClusterAttributeValue(endpoint, "genAnalogInput", "resolution", undefined),
             cluster: "genAnalogInput",
             attribute: "presentValue",
             reporting: {min: "MIN", max: "MAX", change: 1},
             description: description,
             access: "STATE_GET",
-            endpointNames: [`${endpoint.ID}`],
+            endpointNames: endpointNames,
         };
         generated.push(new ExtendGenerator({extend: m.numeric, args, source: "numeric"}));
     }
@@ -413,10 +451,20 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
 
 async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     const generated: GeneratedExtend[] = [];
+    let endpointNames: string[] | undefined;
     for (const endpoint of endpoints) {
-        const description = `analog_output_${endpoint.ID}`;
+        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+            endpointNames = [endpoint.ID.toString()];
+        }
+        const name = await getClusterAttributeValue(endpoint, "genAnalogOutput", "description", `analog_output_${endpoint.ID}`);
+        let label: string | undefined;
+        if (name !== `analog_output_${endpoint.ID}`) {
+            label = name;
+        }
+        const description = `Analog Output ${name} on endpoint ${endpoint.ID}`;
         const args: m.NumericArgs<"genAnalogOutput"> = {
-            name: await getClusterAttributeValue(endpoint, "genAnalogOutput", "description", description),
+            name: name.replace(/\s+/g, "_").toLowerCase(),
+            label: label,
             valueMin: await getClusterAttributeValue(endpoint, "genAnalogOutput", "minPresentValue", undefined),
             valueMax: await getClusterAttributeValue(endpoint, "genAnalogOutput", "maxPresentValue", undefined),
             valueStep: await getClusterAttributeValue(endpoint, "genAnalogOutput", "resolution", undefined),
@@ -425,7 +473,7 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
             reporting: {min: "MIN", max: "MAX", change: 1},
             description: description,
             access: "ALL",
-            endpointNames: [`${endpoint.ID}`],
+            endpointNames: endpointNames,
         };
         generated.push(new ExtendGenerator({extend: m.numeric, args, source: "numeric"}));
     }
