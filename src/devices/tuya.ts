@@ -23145,6 +23145,30 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fphxkxue"]),
+        model: "ZVL-PRO",
+        vendor: "Nova Digital",
+        description: "Water walve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().setAccess("state", ea.STATE_SET),
+            e.battery(),
+            e.numeric("countdown", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(86400).withDescription("Countdown time in seconds"),
+            e.enum("work_state", ea.STATE, ["auto", "manual", "idle"]).withDescription("Current state of operation"),
+            e.numeric("water_once", ea.STATE).withUnit("L").withDescription("Consumption from the last watering"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [7, "battery", tuya.valueConverter.raw],
+                [11, "countdown", tuya.valueConverter.raw],
+                [12, "work_state", tuya.valueConverter.raw],
+                [5, "water_once", tuya.valueConverter.raw],
+                [4, "fault", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_wc2w9t1s"]),
         model: "BOT-R9V-ZB",
         vendor: "Beok",
