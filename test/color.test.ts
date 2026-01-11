@@ -1,95 +1,85 @@
-import {beforeEach, describe, expect, it, test} from "vitest";
+import assert from "node:assert";
+import {beforeEach, describe, expect, it} from "vitest";
 import {light_color} from "../src/converters/toZigbee";
 import {findByDevice, type Tz} from "../src/index";
-import {Color, ColorHSV, ColorRGB, ColorXY} from "../src/lib/color";
+import {Color, ColorHSV, ColorRGB, ColorXY, SUPPORTED_GAMUTS} from "../src/lib/color";
 import {getOptions} from "../src/lib/utils";
 import {type MockEndpointArgs, mockDevice} from "./utils";
 
 describe("lib/color", () => {
     describe("ColorRGB", () => {
-        test.each([[{red: 0.5, green: 0.5, blue: 0.5}]])(".{from,to}Object() - %j", (color) => {
+        it.each([[{red: 0.5, green: 0.5, blue: 0.5}]])(".{from,to}Object() - %j", (color) => {
             expect(ColorRGB.fromObject(color).toObject()).toEqual(color);
         });
 
-        test.each([
+        it.each([
             ["red", {red: 1.0, green: 0, blue: 0}, {hue: 0, saturation: 100, value: 100}],
             ["green", {red: 0, green: 1.0, blue: 0}, {hue: 120, saturation: 100, value: 100}],
             ["blue", {red: 0, green: 0, blue: 1.0}, {hue: 240, saturation: 100, value: 100}],
             ["white", {red: 1.0, green: 1.0, blue: 1.0}, {hue: 0, saturation: 0, value: 100}],
             ["black", {red: 0, green: 0, blue: 0}, {hue: 0, saturation: 0, value: 0}],
         ])(".toHSV() - %s", (_name, rgb, hsv) => {
-            expect(ColorRGB.fromObject(rgb).toHSV().toObject()).toStrictEqual(hsv);
+            expect(ColorRGB.fromObject(rgb).toHSV().toObject(true)).toStrictEqual(hsv);
         });
 
-        test.each([
-            ["red", {red: 1.0, green: 0, blue: 0}, {x: 0.7006, y: 0.2993}],
-            ["green", {red: 0, green: 1.0, blue: 0}, {x: 0.1724, y: 0.7468}],
-            ["blue", {red: 0, green: 0, blue: 1.0}, {x: 0.1355, y: 0.0399}],
-            ["white", {red: 1.0, green: 1.0, blue: 1.0}, {x: 0.3227, y: 0.329}],
-            ["black", {red: 0, green: 0, blue: 0}, {x: 0, y: 0}],
-        ])(".toXY() - %s", (_name, rgb, xy) => {
-            expect(ColorRGB.fromObject(rgb).toXY().rounded(4).toObject()).toStrictEqual(xy);
+        it.each([
+            ["red" as const, {red: 1.0, green: 0, blue: 0}],
+            ["green" as const, {red: 0, green: 1.0, blue: 0}],
+            ["blue" as const, {red: 0, green: 0, blue: 1.0}],
+        ])(".toXY() - %s", (name, rgb) => {
+            for (const gamut in SUPPORTED_GAMUTS) {
+                expect(
+                    ColorRGB.fromObject(rgb)
+                        .toXY(SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS])
+                        .rounded(4)
+                        .toObject(),
+                    gamut,
+                ).toStrictEqual({
+                    x: SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS][name][0],
+                    y: SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS][name][1],
+                });
+            }
         });
 
-        test.each([
-            [
-                {red: 1.0, green: 1.0, blue: 1.0},
-                {red: 1.0, green: 1.0, blue: 1.0},
-            ],
-            [
-                {red: 0.5, green: 0.5, blue: 0.5},
-                {red: 0.214, green: 0.214, blue: 0.214},
-            ],
-            [
-                {red: 0.0, green: 0.0, blue: 0.0},
-                {red: 0.0, green: 0.0, blue: 0.0},
-            ],
-        ])(".gammaCorrected - %j", (input, output) => {
-            expect(ColorRGB.fromObject(input).gammaCorrected().rounded(4).toObject()).toStrictEqual(output);
+        it(".toXY() - white", () => {
+            for (const gamut in SUPPORTED_GAMUTS) {
+                const color = ColorRGB.fromObject({red: 1.0, green: 1.0, blue: 1.0})
+                    .toXY(SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS])
+                    .rounded(4)
+                    .toObject();
+                expect(color.x, gamut).toBeCloseTo(SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS].white[0], 3);
+                expect(color.y, gamut).toBeCloseTo(SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS].white[1], 3);
+            }
         });
 
-        expect(ColorRGB.fromHex("#663399").toHEX()).toBe("#663399");
-        expect(ColorRGB.fromHex("#020202").toHEX()).toBe("#020202");
+        expect(ColorRGB.fromHex("#663399").toHex()).toBe("#663399");
+        expect(ColorRGB.fromHex("#020202").toHex()).toBe("#020202");
     });
 
     describe("ColorHSV", () => {
-        const cases = [
+        it.each([
             [{hue: 0, saturation: 100, value: 100}, null],
             [{hue: 0, saturation: 100}, null],
             [{hue: 0}, null],
             [{saturation: 100}, null],
-        ];
-
-        test.each(cases)(".{from,to}Object() - %j", (input, output) => {
-            expect(ColorHSV.fromObject(input).toObject()).toStrictEqual(output || input);
+        ])(".{from,to}Object() - %j", (input, output) => {
+            expect(ColorHSV.fromObject(input).toObject(true)).toStrictEqual(output || input);
         });
 
-        test.each([
-            ...cases,
+        it.each([
+            [{hue: 0, saturation: 100, value: 100}, null],
+            [{hue: 0, saturation: 100}, null],
+            [{hue: 0}, null],
+            [{saturation: 100}, null],
             [
                 {hue: 359.31231, saturation: 99.969123, value: 99.983131},
                 {hue: 359.3, saturation: 100, value: 100},
             ],
         ])(".{from,to}Object(), rounded - %j", (input, output) => {
-            expect(ColorHSV.fromObject(input).rounded(1).toObject()).toStrictEqual(output || input);
+            expect(ColorHSV.fromObject(input).rounded(1).toObject(true)).toStrictEqual(output || input);
         });
 
-        test.each([
-            [
-                {hue: 0, saturation: 100, value: 100},
-                {h: 0, s: 100, v: 100},
-            ],
-            [
-                {hue: 0, saturation: 100},
-                {h: 0, s: 100},
-            ],
-            [{hue: 0}, {h: 0}],
-            [{saturation: 100}, {s: 100}],
-        ])(".toObject() short - %j", (input, output) => {
-            expect(ColorHSV.fromObject(input).toObject(true)).toStrictEqual(output);
-        });
-
-        test.each([
+        it.each([
             ["red", {hue: 0, saturation: 100, value: 100}, {red: 1.0, green: 0, blue: 0}],
             ["red (only hue)", {hue: 0}, {red: 1.0, green: 0.0, blue: 0.0}],
             ["green", {hue: 120, saturation: 100, value: 100}, {red: 0, green: 1.0, blue: 0}],
@@ -103,35 +93,68 @@ describe("lib/color", () => {
             expect(ColorHSV.fromObject(hsv).toRGB().toObject()).toStrictEqual(rgb);
         });
 
-        test.each([
-            ["red", {hue: 0, saturation: 100, value: 100}, {x: 0.7006, y: 0.2993}],
-            ["red (only hue)", {hue: 0}, {x: 0.7006, y: 0.2993}],
-            ["green", {hue: 120, saturation: 100, value: 100}, {x: 0.1724, y: 0.7468}],
-            ["blue", {hue: 240, saturation: 100, value: 100}, {x: 0.1355, y: 0.0399}],
-            ["white (red hue)", {hue: 0, saturation: 0, value: 100}, {x: 0.3227, y: 0.329}],
-            ["white (blue hue)", {hue: 120, saturation: 0, value: 100}, {x: 0.3227, y: 0.329}],
-            ["white (green hue)", {hue: 240, saturation: 0, value: 100}, {x: 0.3227, y: 0.329}],
-            ["white (only saturation)", {saturation: 0}, {x: 0.3227, y: 0.329}],
-            ["black", {hue: 0, saturation: 0, value: 0}, {x: 0, y: 0}],
-        ])(".toXY() - %s", (_name, hsv, xy) => {
-            expect(ColorHSV.fromObject(hsv).toXY().rounded(4).toObject()).toStrictEqual(xy);
+        it.each([
+            ["red", {hue: 0, saturation: 100, value: 100}, "red" as const],
+            ["red (only hue)", {hue: 0}, "red" as const],
+            ["green", {hue: 120, saturation: 100, value: 100}, "green" as const],
+            ["blue", {hue: 240, saturation: 100, value: 100}, "blue" as const],
+        ])(".toXY() - %s", (_name, hsv, gamutKey) => {
+            for (const gamut in SUPPORTED_GAMUTS) {
+                expect(
+                    ColorHSV.fromObject(hsv)
+                        .toXY(SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS])
+                        .rounded(4)
+                        .toObject(),
+                    gamut,
+                ).toStrictEqual({
+                    x: SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS][gamutKey][0],
+                    y: SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS][gamutKey][1],
+                });
+            }
+        });
+
+        it.each([
+            ["red hue", {hue: 0, saturation: 0, value: 100}],
+            ["blue hue", {hue: 120, saturation: 0, value: 100}],
+            ["green hue", {hue: 240, saturation: 0, value: 100}],
+            ["only saturation", {saturation: 0}],
+        ])(".toXY() - white - %s", (_name, hsv) => {
+            for (const gamut in SUPPORTED_GAMUTS) {
+                const color = ColorHSV.fromObject(hsv)
+                    .toXY(SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS])
+                    .rounded(4)
+                    .toObject();
+                expect(color.x, gamut).toBeCloseTo(SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS].white[0], 3);
+                expect(color.y, gamut).toBeCloseTo(SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS].white[1], 3);
+            }
         });
     });
 
     describe("ColorXY", () => {
-        test.each([[{x: 5, y: 0.5}]])(".{from,to}Object() - %j", (color) => {
+        it.each([[{x: 5, y: 0.5}]])(".{from,to}Object() - %j", (color) => {
             expect(ColorXY.fromObject(color).toObject()).toStrictEqual(color);
         });
 
-        test.each([
-            ["red", {x: 0.7006, y: 0.2993}, {red: 1.0, green: 0, blue: 0}],
-            ["green", {x: 0.1724, y: 0.7468}, {red: 0, green: 1.0, blue: 0}],
-            ["blue", {x: 0.1355, y: 0.0399}, {red: 0, green: 0, blue: 1.0}],
-        ])(".toRGB() - %s", (_name, xy, rgb) => {
-            expect(ColorXY.fromObject(xy).toRGB().rounded(4).toObject()).toStrictEqual(rgb, 4);
+        it.each([
+            ["red" as const, {red: 1.0, green: 0, blue: 0}],
+            ["green" as const, {red: 0, green: 1.0, blue: 0}],
+            ["blue" as const, {red: 0, green: 0, blue: 1.0}],
+        ])(".toRGB() - %s", (name, rgb) => {
+            for (const gamut in SUPPORTED_GAMUTS) {
+                expect(
+                    ColorXY.fromObject({
+                        x: SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS][name][0],
+                        y: SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS][name][1],
+                    })
+                        .toRGB(SUPPORTED_GAMUTS[gamut as keyof typeof SUPPORTED_GAMUTS])
+                        .rounded(4)
+                        .toObject(),
+                    gamut,
+                ).toStrictEqual(rgb);
+            }
         });
 
-        test.each([[500], [370], [150]])(".{to,from}Mireds() - %j", (mireds) => {
+        it.each([[500], [370], [150]])(".{to,from}Mireds() - %j", (mireds) => {
             const asXY = ColorXY.fromMireds(mireds);
             const backConv = asXY.toMireds();
             const error = Math.abs(backConv - mireds);
@@ -141,7 +164,7 @@ describe("lib/color", () => {
     });
 
     describe("Color", () => {
-        test.each([
+        it.each([
             [{x: 0.4969, y: 0.4719}, {xy: {x: 0.4969, y: 0.4719}}],
             [{r: 255, g: 213, b: 0}, {rgb: {red: 1.0, green: 0.8353, blue: 0}}],
             [{rgb: "255,213,0"}, {rgb: {red: 1.0, green: 0.8353, blue: 0}}],
@@ -167,7 +190,7 @@ describe("lib/color", () => {
                 expect(extracted.isHSV()).toBe(false);
             } else {
                 expect(extracted.isHSV()).toBe(true);
-                expect(extracted.hsv.toObject()).toStrictEqual(expected.hsv);
+                expect(extracted.hsv.toObject(true)).toStrictEqual(expected.hsv);
             }
 
             if (expected.rgb === undefined) {
@@ -185,14 +208,21 @@ describe("lib/color", () => {
             }
         });
 
-        test.each([[{}], [{v: 100}], [{unknown_property: 42}]])(".fromConverterArg() invalid - %j", (value) => {
+        it.each([[{}], [{v: 100}], [{unknown_property: 42}]])(".fromConverterArg() invalid - %j", (value) => {
             expect(() => Color.fromConverterArg(value)).toThrow();
         });
     });
 
-    describe("tz.light_color", () => {
+    describe("tz.light_color with CIE 1931", () => {
+        const MAX_X = SUPPORTED_GAMUTS.cie1931.red[0];
+        const MAX_Y = SUPPORTED_GAMUTS.cie1931.green[1];
+        const MIN_X = SUPPORTED_GAMUTS.cie1931.blue[0];
+        const MIN_Y = SUPPORTED_GAMUTS.cie1931.blue[1];
+
         const defaultMeta = async (device: Tz.Meta["device"], message: Tz.Meta["message"], state: Tz.Meta["state"]): Promise<Tz.Meta> => {
+            assert(device);
             const definition = await findByDevice(device);
+            assert(definition);
 
             return {
                 endpoint_name: "default",
@@ -213,10 +243,6 @@ describe("lib/color", () => {
             outputClusters: ["genOta"],
             attributes: {lightingColorCtrl: {colorTempPhysicalMin: 100, colorTempPhysicalMax: 500}},
         };
-        const MAX_X = 0.7347;
-        const MAX_Y = 0.7174;
-        const MIN_X = 0.1666;
-        const MIN_Y = 0.0089;
 
         beforeEach(() => {});
 
@@ -240,10 +266,11 @@ describe("lib/color", () => {
                 "Router",
             );
             const endpoint = device.getEndpoint(1);
+            assert(endpoint);
             const message = {color: inColor};
             const meta = await defaultMeta(device, message, {});
 
-            await expect(light_color.convertSet(endpoint, "color", message.color, meta)).resolves.toStrictEqual({
+            await expect(light_color.convertSet?.(endpoint, "color", message.color, meta)).resolves.toStrictEqual({
                 state: {color_mode: "xy", color: outColor},
             });
             expect(endpoint.command).toHaveBeenCalledWith(
@@ -255,11 +282,11 @@ describe("lib/color", () => {
         });
 
         it.each([
-            ["white", {r: 255, g: 255, b: 255}, {x: 1 / 3, y: 1 / 3}, {colorx: 21066, colory: 21477}],
-            ["red", {r: 255, g: 0, b: 0}, {x: 0.7347, y: 0.2653}, {colorx: 45734, colory: 19538}],
-            ["green", {r: 0, g: 255, b: 0}, {x: 0.2738, y: 0.7174}, {colorx: 11254, colory: 48750}],
-            ["blue", {r: 0, g: 0, b: 255}, {x: 0.1666, y: 0.0089}, {colorx: 8845, colory: 2605}],
-            ["random", {r: 60, g: 138, b: 164}, {x: 0.267, y: 0.3165}, {colorx: 15184, colory: 20334}],
+            ["white", {r: 255, g: 255, b: 255}, {x: 1 / 3, y: 1 / 3}, {colorx: 21843, colory: 21843}],
+            ["red", {r: 255, g: 0, b: 0}, {x: 0.7347, y: 0.2653}, {colorx: 48149, colory: 17386}],
+            ["green", {r: 0, g: 255, b: 0}, {x: 0.2738, y: 0.7174}, {colorx: 17943, colory: 47015}],
+            ["blue", {r: 0, g: 0, b: 255}, {x: 0.1666, y: 0.0089}, {colorx: 10918, colory: 583}],
+            ["random", {r: 60, g: 138, b: 164}, {x: 0.267, y: 0.3165}, {colorx: 17498, colory: 20748}],
         ])("processes RGB payload for %s", async (_name, inColor, outColor, outCmdColor) => {
             const device = mockDevice(
                 {
@@ -269,9 +296,10 @@ describe("lib/color", () => {
                 "Router",
             );
             const endpoint = device.getEndpoint(1);
+            assert(endpoint);
             const message = {color: inColor};
             const meta = await defaultMeta(device, message, {});
-            const stateColor = (await light_color.convertSet(endpoint, "color", message.color, meta)) as {
+            const stateColor = (await light_color.convertSet?.(endpoint, "color", message.color, meta)) as {
                 // biome-ignore lint/style/useNamingConvention: API
                 state: {color_mode: string; color: {x: number; y: number}};
             };
@@ -305,10 +333,11 @@ describe("lib/color", () => {
                 "Router",
             );
             const endpoint = device.getEndpoint(1);
+            assert(endpoint);
             const message = {color: inColor};
             const meta = await defaultMeta(device, message, {});
 
-            await expect(light_color.convertSet(endpoint, "color", message.color, meta)).resolves.toStrictEqual({
+            await expect(light_color.convertSet?.(endpoint, "color", message.color, meta)).resolves.toStrictEqual({
                 state: {color_mode: "hs", color: outColor},
             });
             expect(endpoint.command).toHaveBeenCalledWith(
@@ -318,5 +347,35 @@ describe("lib/color", () => {
                 getOptions(meta.mapped, endpoint),
             );
         });
+    });
+
+    it.each([
+        ["#0c32ff", 12, 50, 255, 0.158, 0.042],
+        ["#1137ff", 17, 55, 255, 0.158, 0.047],
+        ["#2538ff", 37, 56, 255, 0.166, 0.051],
+        ["#7951ff", 121, 81, 255, 0.244, 0.105],
+        ["#ff77f8", 255, 119, 248, 0.433, 0.202],
+        ["#ff0517", 255, 5, 23, 0.729, 0.264],
+        ["#ffa52c", 255, 165, 44, 0.571, 0.4],
+    ])("Wide gamut from/to hex %s", (val, r, g, b, x, y) => {
+        const rgb = ColorRGB.fromHex(val);
+        const hexFromRgb = rgb.toHex();
+        const xy = rgb.toXY(SUPPORTED_GAMUTS.wide);
+        const rgbFromXY = xy.toRGB(SUPPORTED_GAMUTS.wide);
+        const hexFromXY = rgbFromXY.toHex();
+
+        expect(rgb.red).toBeCloseTo(r / 255, 0);
+        expect(rgb.green).toBeCloseTo(g / 255, 0);
+        expect(rgb.blue).toBeCloseTo(b / 255, 0);
+
+        expect(rgbFromXY.red).toBeCloseTo(r / 255, 1);
+        expect(rgbFromXY.green).toBeCloseTo(g / 255, 1);
+        expect(rgbFromXY.blue).toBeCloseTo(b / 255, 1);
+
+        expect(xy.x).toBeCloseTo(x, 3);
+        expect(xy.y).toBeCloseTo(y, 3);
+
+        expect(val).toStrictEqual(hexFromRgb);
+        expect(val).toStrictEqual(hexFromXY);
     });
 });

@@ -1,7 +1,332 @@
 import kelvinToXyLookup from "./kelvinToXy";
 import {clampColorTemp, findColorTempRange} from "./light";
-import type {KeyValue, KeyValueAny, Tz, Zh} from "./types";
+import type {Definition, KeyValue, KeyValueAny, Tz, Zh} from "./types";
 import {precisionRound} from "./utils";
+
+type Vector3 = [number, number, number];
+type Vector2 = [number, number];
+type Matrix3 = [number, number, number, number, number, number, number, number, number];
+
+export interface GammaCorrection {
+    encode: (linear: number) => number; // linear [0..1] -> non-linear
+    decode: (nonLinear: number) => number; // non-linear [0..1] -> linear
+}
+
+export interface Gamut {
+    name: string;
+    red: Vector2;
+    green: Vector2;
+    blue: Vector2;
+    white: Vector2;
+    gammaCorrection: Readonly<GammaCorrection>;
+}
+
+const clamp = (value: number, min: number, max: number): number => {
+    return value <= min ? min : value >= max ? max : value;
+};
+
+const clampMatrixValue = (value: number): number => {
+    return Number.isFinite(value) ? value : 0;
+};
+
+const xyToXyz = ([x, y]: Vector2): Vector3 => {
+    const z = 1 - x - y;
+    const Y = 1;
+
+    return [x / y, Y, z / y];
+};
+
+const invert3x3 = (m: Matrix3): Matrix3 => {
+    const [a, b, c, d, e, f, g, h, i] = m;
+    const A = e * i - f * h;
+    const B = -(d * i - f * g);
+    const C = d * h - e * g;
+    const det = a * A + b * B + c * C;
+
+    if (Math.abs(det) < 1e-9 || !Number.isFinite(det)) {
+        return [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+
+    const invDet = 1 / det;
+
+    return [
+        clampMatrixValue(A * invDet),
+        clampMatrixValue((c * h - b * i) * invDet),
+        clampMatrixValue((b * f - c * e) * invDet),
+        clampMatrixValue(B * invDet),
+        clampMatrixValue((a * i - c * g) * invDet),
+        clampMatrixValue((c * d - a * f) * invDet),
+        clampMatrixValue(C * invDet),
+        clampMatrixValue((b * g - a * h) * invDet),
+        clampMatrixValue((a * e - b * d) * invDet),
+    ];
+};
+
+const multiplyMatrix3 = (m: Matrix3, v: Vector3): Vector3 => {
+    return [m[0] * v[0] + m[1] * v[1] + m[2] * v[2], m[3] * v[0] + m[4] * v[1] + m[5] * v[2], m[6] * v[0] + m[7] * v[1] + m[8] * v[2]];
+};
+
+const buildMatrices = (gamut: Gamut): {toXyz: Matrix3; toRgb: Matrix3} => {
+    const [Xr, Yr, Zr] = xyToXyz(gamut.red);
+    const [Xg, Yg, Zg] = xyToXyz(gamut.green);
+    const [Xb, Yb, Zb] = xyToXyz(gamut.blue);
+    const [Xw, Yw, Zw] = xyToXyz(gamut.white);
+
+    const primariesMatrix: Matrix3 = [Xr, Xg, Xb, Yr, Yg, Yb, Zr, Zg, Zb];
+    const primariesInv = invert3x3(primariesMatrix);
+    const [Sr, Sg, Sb] = multiplyMatrix3(primariesInv, [Xw, Yw, Zw]);
+
+    const toXyz: Matrix3 = [Xr * Sr, Xg * Sg, Xb * Sb, Yr * Sr, Yg * Sg, Yb * Sb, Zr * Sr, Zg * Sg, Zb * Sb];
+
+    return {toXyz, toRgb: invert3x3(toXyz)};
+};
+
+const makeGammaCorrection = (params: {threshold: number; slope: number; exponent: number; offset: number}): Readonly<GammaCorrection> => {
+    const {threshold, slope, exponent, offset} = params;
+
+    const encode = (linear: number): number => {
+        if (linear <= threshold) {
+            return slope * linear;
+        }
+
+        return (1 + offset) * linear ** (1 / exponent) - offset;
+    };
+
+    const thresholdEnc = encode(threshold);
+
+    const decode = (nonLinear: number): number => {
+        if (nonLinear <= thresholdEnc) {
+            return nonLinear / slope;
+        }
+
+        return ((nonLinear + offset) / (1 + offset)) ** exponent;
+    };
+
+    return {encode, decode};
+};
+
+const GAMMA_CORRECTION_LINEAR: Readonly<GammaCorrection> = {
+    encode: (linear: number): number => clamp(linear, 0, 1),
+    decode: (nonLinear: number): number => clamp(nonLinear, 0, 1),
+};
+
+const GAMMA_CORRECTION_SRGB = makeGammaCorrection({threshold: 0.0031308, slope: 12.92, exponent: 2.4, offset: 0.055});
+
+/** https://en.wikipedia.org/wiki/CIE_1931_color_space */
+const CIE1931: Readonly<Gamut> = {
+    name: "Zigbee / CIE 1931",
+    red: [0.7347, 0.2653],
+    green: [0.2738, 0.7174],
+    blue: [0.1666, 0.0089],
+    white: [1 / 3, 1 / 3],
+    gammaCorrection: GAMMA_CORRECTION_LINEAR,
+};
+/** https://developers.meethue.com/develop/application-design-guidance/color-conversion-formulas-rgb-to-xy-and-back/ */
+const PHILIPS_HUE: Readonly<Gamut> = {
+    name: "Philips Hue",
+    red: [0.675, 0.322],
+    green: [0.4091, 0.518],
+    blue: [0.167, 0.04],
+    white: [1 / 3, 1 / 3],
+    gammaCorrection: GAMMA_CORRECTION_SRGB,
+};
+/** https://developers.meethue.com/develop/application-design-guidance/color-conversion-formulas-rgb-to-xy-and-back/ */
+const PHILIPS_HUE_LIVING_COLORS: Readonly<Gamut> = {
+    name: "Philips Hue Living Colors",
+    red: [0.704, 0.296],
+    green: [0.2151, 0.7106],
+    blue: [0.138, 0.08],
+    white: [1 / 3, 1 / 3],
+    gammaCorrection: GAMMA_CORRECTION_SRGB,
+};
+/**
+ * https://en.wikipedia.org/wiki/Wide-gamut_RGB_color_space
+ * Appears to be the one used for Philips gradients, used directly, not currently returned by `getDeviceGamut`
+ */
+const WIDE: Readonly<Gamut> = {
+    name: "Wide",
+    red: [0.7347, 0.2653],
+    green: [0.1152, 0.8264],
+    blue: [0.1566, 0.0177],
+    white: [0.3457, 0.3585],
+    gammaCorrection: GAMMA_CORRECTION_SRGB,
+};
+
+export const SUPPORTED_GAMUTS = {
+    cie1931: CIE1931,
+    philipsHue: PHILIPS_HUE,
+    philipsLivingColors: PHILIPS_HUE_LIVING_COLORS,
+    wide: WIDE,
+} as const;
+
+const gamutMatrices: Record<string, ReturnType<typeof buildMatrices>> = {};
+
+for (const key in SUPPORTED_GAMUTS) {
+    const entry = SUPPORTED_GAMUTS[key as keyof typeof SUPPORTED_GAMUTS];
+
+    gamutMatrices[entry.name] = buildMatrices(entry);
+}
+
+/**
+ * Use definition to determine the proper gamut.
+ * This can be easily expanded by added entries to @see SUPPORTED_GAMUTS and by refining checks in this function as appropriate.
+ */
+export const getDeviceGamut = (definition: Definition): Readonly<Gamut> => {
+    if (definition.vendor === "Philips") {
+        if (
+            definition.description.includes("LivingColors") ||
+            definition.description.includes("Bloom") ||
+            definition.description.includes("Aura") ||
+            definition.description.includes("Iris")
+        ) {
+            return SUPPORTED_GAMUTS.philipsLivingColors;
+        }
+
+        return SUPPORTED_GAMUTS.philipsHue;
+    }
+
+    return SUPPORTED_GAMUTS.cie1931;
+};
+
+const timesArray = (array: Vector3, matrix: Matrix3): Vector3 => {
+    const result: Vector3 = [0, 0, 0];
+
+    for (let i = 0; i < 3; i++) {
+        result[i] = 0;
+
+        for (let n = 0; n < 3; n++) {
+            result[i] += matrix[i * 3 + n] * array[n];
+        }
+    }
+
+    return result;
+};
+
+const findMaximumY = (x: number, y: number, gamut: Gamut, iterations = 10) => {
+    if (y <= 0) {
+        return 0;
+    }
+
+    let bri = 1;
+
+    for (let i = 0; i < iterations; i++) {
+        const max = Math.max(...convertXyYToRgb(x, y, bri, gamut));
+
+        if (max <= 0 || !Number.isFinite(max)) {
+            return 0;
+        }
+
+        bri = bri / max;
+    }
+
+    return bri;
+};
+
+/** Expects RGB in [0..1] range */
+const convertRgbToXyz = (r: number, g: number, b: number, gamut: Gamut): Vector3 => {
+    const rgb: Vector3 = [gamut.gammaCorrection.decode(r), gamut.gammaCorrection.decode(g), gamut.gammaCorrection.decode(b)];
+    const {toXyz} = gamutMatrices[gamut.name];
+
+    return timesArray(rgb, toXyz);
+};
+
+/** Return RGB in [0..1] range */
+const convertXyzToRgb = (x: number, y: number, z: number, gamut: Gamut): Vector3 => {
+    const {toRgb} = gamutMatrices[gamut.name];
+    const rgb = timesArray([x, y, z], toRgb);
+
+    return [gamut.gammaCorrection.encode(rgb[0]), gamut.gammaCorrection.encode(rgb[1]), gamut.gammaCorrection.encode(rgb[2])];
+};
+
+/** Returns RGB in [0..1] range */
+export const convertXyYToRgb = (x: number, y: number, Y: number, gamut: Gamut): Vector3 => {
+    const z = 1.0 - x - y;
+
+    return convertXyzToRgb((Y / y) * x, Y, (Y / y) * z, gamut);
+};
+
+/** Expects RGB in [0..255] range */
+export const convertRgbToXyY = (r: number, g: number, b: number, gamut: Gamut): Vector3 => {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    if (r < 1e-12 && g < 1e-12 && b < 1e-12) {
+        const [x, y, z] = convertRgbToXyz(1, 1, 1, gamut);
+        const sum = x + y + z;
+
+        return [x / sum, y / sum, 0];
+    }
+
+    const [x, y, z] = convertRgbToXyz(r, g, b, gamut);
+    const sum = x + y + z;
+
+    return [x / sum, y / sum, y];
+};
+
+/** Returns RGB in [0..255] range */
+export const convertXyToRgb = (x: number, y: number, Y: number | undefined, gamut: Gamut): Vector3 => {
+    if (y <= 0) {
+        return [0, 0, 0];
+    }
+
+    const luminance = Y ?? findMaximumY(x, y, gamut, 10);
+
+    if (luminance <= 0 || !Number.isFinite(luminance)) {
+        return [0, 0, 0];
+    }
+
+    const [r, g, b] = convertXyYToRgb(x, y, luminance, gamut);
+
+    return [clamp(r * 255, 0, 255), clamp(g * 255, 0, 255), clamp(b * 255, 0, 255)];
+};
+
+/** Expects RGB in [0..255] range */
+export const convertRgbToHsv = (r: number, g: number, b: number): Vector3 => {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    const max = Math.max(r, g, b);
+    const d = max - Math.min(r, g, b);
+
+    const h = d ? (max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? 2 + (b - r) / d : 4 + (r - g) / d) * 60 : 0;
+    const s = max ? (d / max) * 100 : 0;
+    const v = max * 100;
+
+    return [clamp(h, 0, 360), clamp(s, 0, 100), clamp(v, 0, 100)];
+};
+
+/** Returns RGB in [0..255] range */
+export const convertHsvToRgb = (h: number, s: number, v: number): Vector3 => {
+    s /= 100;
+    v /= 100;
+
+    const i = ~~(h / 60);
+    const f = h / 60 - i;
+    const p = v * (1 - s);
+    const q = v * (1 - s * f);
+    const t = v * (1 - s * (1 - f));
+    const index = i % 6;
+
+    const r = [v, q, p, p, t, v][index] * 255;
+    const g = [t, v, v, q, p, p][index] * 255;
+    const b = [p, p, t, v, v, q][index] * 255;
+
+    return [clamp(r, 0, 255), clamp(g, 0, 255), clamp(b, 0, 255)];
+};
+
+/** Expects RGB in [0..255] range */
+export const convertRgbToHex = (r: number, g: number, b: number): string => {
+    return `#${Math.round(r).toString(16).padStart(2, "0")}${Math.round(g).toString(16).padStart(2, "0")}${Math.round(b).toString(16).padStart(2, "0")}`;
+};
+
+/** Returns RGB in [0..255] range */
+export const convertHexToRgb = (hex: string): Vector3 => {
+    const hexNum = Number.parseInt(hex.slice(1), 16);
+
+    return [(hexNum >> 16) & 255, (hexNum >> 8) & 255, hexNum & 255];
+};
 
 /**
  * Converts color temp mireds to Kelvins
@@ -57,11 +382,20 @@ export class ColorRGB {
      * @param rgb - object with properties red, green and blue
      * @returns new ColoRGB object
      */
-    static fromObject(rgb: {red: number; green: number; blue: number}) {
-        if (rgb.red === undefined || rgb.green === undefined || rgb.blue === undefined) {
+    static fromObject({red, green, blue}: {red?: number | null; green?: number | null; blue?: number | null}) {
+        if (red == null || green == null || blue == null) {
             throw new Error('One or more required properties missing. Required properties: "red", "green", "blue"');
         }
-        return new ColorRGB(rgb.red, rgb.green, rgb.blue);
+
+        return new ColorRGB(red, green, blue);
+    }
+
+    /**
+     * Convert to Object
+     * @returns object with properties red, green and blue
+     */
+    toObject(): {red: number; green: number; blue: number} {
+        return {red: this.red, green: this.green, blue: this.blue};
     }
 
     /**
@@ -70,8 +404,38 @@ export class ColorRGB {
      * @returns new ColoRGB object
      */
     static fromHex(hex: string): ColorRGB {
-        const bigint = Number.parseInt(hex.replace("#", ""), 16);
-        return new ColorRGB(((bigint >> 16) & 255) / 255, ((bigint >> 8) & 255) / 255, (bigint & 255) / 255);
+        const [r, g, b] = convertHexToRgb(hex);
+
+        return new ColorRGB(r / 255, g / 255, b / 255);
+    }
+
+    /**
+     * Create hex string from RGB color
+     * @returns hex hex encoded RGB color
+     */
+    toHex(): string {
+        return convertRgbToHex(this.red * 255, this.green * 255, this.blue * 255);
+    }
+
+    /**
+     * Convert to HSV
+     *
+     * @returns color in HSV space
+     */
+    toHSV(): ColorHSV {
+        const [h, s, v] = convertRgbToHsv(this.red * 255, this.green * 255, this.blue * 255);
+
+        return new ColorHSV(h, s, v);
+    }
+
+    /**
+     * Convert to CIE
+     * @returns color in CIE space
+     */
+    toXY(gamut: Readonly<Gamut>): ColorXY {
+        const [x, y, capY] = convertRgbToXyY(this.red * 255, this.green * 255, this.blue * 255, gamut);
+
+        return new ColorXY(x, y, capY);
     }
 
     /**
@@ -81,132 +445,29 @@ export class ColorRGB {
     rounded(precision: number): ColorRGB {
         return new ColorRGB(precisionRound(this.red, precision), precisionRound(this.green, precision), precisionRound(this.blue, precision));
     }
-
-    /**
-     * Convert to Object
-     * @returns object with properties red, green and blue
-     */
-    toObject(): {red: number; green: number; blue: number} {
-        return {
-            red: this.red,
-            green: this.green,
-            blue: this.blue,
-        };
-    }
-
-    /**
-     * Convert to HSV
-     *
-     * @returns color in HSV space
-     */
-    toHSV(): ColorHSV {
-        const r = this.red;
-        const g = this.green;
-        const b = this.blue;
-
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        const d = max - min;
-        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-        let h;
-        const s = max === 0 ? 0 : d / max;
-        const v = max;
-
-        switch (max) {
-            case min:
-                h = 0;
-                break;
-            case r:
-                h = g - b + d * (g < b ? 6 : 0);
-                h /= 6 * d;
-                break;
-            case g:
-                h = b - r + d * 2;
-                h /= 6 * d;
-                break;
-            case b:
-                h = r - g + d * 4;
-                h /= 6 * d;
-                break;
-        }
-
-        return new ColorHSV(h * 360, s * 100, v * 100);
-    }
-
-    /**
-     * Convert to CIE
-     * TODO: refactor, this is the Philips Hue formula, not the CIE 1931 gamut
-     * @returns color in CIE space
-     */
-    toXY(): ColorXY {
-        // From: https://github.com/usolved/cie-rgb-converter/blob/master/cie_rgb_converter.js
-
-        // RGB values to XYZ using the Wide RGB D65 conversion formula
-        const X = this.red * 0.664511 + this.green * 0.154324 + this.blue * 0.162028;
-        const Y = this.red * 0.283881 + this.green * 0.668433 + this.blue * 0.047685;
-        const Z = this.red * 0.000088 + this.green * 0.07231 + this.blue * 0.986039;
-        const sum = X + Y + Z;
-
-        const retX = sum === 0 ? 0 : X / sum;
-        const retY = sum === 0 ? 0 : Y / sum;
-
-        return new ColorXY(retX, retY);
-    }
-
-    /**
-     * Returns color after sRGB gamma correction
-     * @returns corrected RGB
-     */
-    gammaCorrected(): ColorRGB {
-        function transform(v: number) {
-            return v > 0.04045 ? ((v + 0.055) / (1.0 + 0.055)) ** 2.4 : v / 12.92;
-        }
-        return new ColorRGB(transform(this.red), transform(this.green), transform(this.blue));
-    }
-
-    /**
-     * Returns color after reverse sRGB gamma correction
-     * @returns raw RGB
-     */
-    gammaUncorrected(): ColorRGB {
-        function transform(v: number) {
-            return v <= 0.0031308 ? 12.92 * v : (1.0 + 0.055) * v ** (1.0 / 2.4) - 0.055;
-        }
-        return new ColorRGB(transform(this.red), transform(this.green), transform(this.blue));
-    }
-
-    /**
-     * Create hex string from RGB color
-     * @returns hex hex encoded RGB color
-     */
-    toHEX(): string {
-        return `#${Number.parseInt((this.red * 255).toFixed(0), 10)
-            .toString(16)
-            .padStart(2, "0")}${Number.parseInt((this.green * 255).toFixed(0), 10)
-            .toString(16)
-            .padStart(2, "0")}${Number.parseInt((this.blue * 255).toFixed(0), 10)
-            .toString(16)
-            .padStart(2, "0")}`;
-    }
 }
 
 /**
  *  Class representing color in CIE space
  */
 export class ColorXY {
-    /** X component (0..1) */
+    /** x component (0..1) */
     x: number;
-    /** Y component (0..1) */
+    /** y component (0..1) */
     y: number;
+    /** Y component (0..1) */
+    capY?: number | null;
 
     /**
      * Create CIE color
      */
-    constructor(x: number, y: number) {
+    constructor(x: number, y: number, capY?: number | null) {
         /** x component (0..1) */
         this.x = x;
         /** y component (0..1) */
         this.y = y;
+        /** Y component (0..1) */
+        this.capY = capY;
     }
 
     /**
@@ -214,11 +475,23 @@ export class ColorXY {
      * @param xy - object with properties x and y
      * @returns new ColorXY object
      */
-    static fromObject(xy: {x: number | string; y: number | string}): ColorXY {
-        if (xy.x === undefined || xy.y === undefined) {
+    static fromObject({x, y}: {x: number | string | null; y: number | string | null}): ColorXY {
+        if (x == null || y == null) {
             throw new Error('One or more required properties missing. Required properties: "x", "y"');
         }
-        return new ColorXY(Number(xy.x), Number(xy.y));
+
+        return new ColorXY(Number(x), Number(y));
+    }
+
+    /**
+     * Convert to object
+     * @returns object with properties x and y
+     */
+    toObject(): {x: number; y: number} {
+        return {
+            x: this.x,
+            y: this.y,
+        };
     }
 
     /**
@@ -243,52 +516,19 @@ export class ColorXY {
 
     /**
      * Converts CIE color space to RGB color space
-     * TODO: refactor, this is the Philips Hue formula, not the CIE 1931 gamut
-     * From: https://github.com/usolved/cie-rgb-converter/blob/master/cie_rgb_converter.js
      */
-    toRGB(): ColorRGB {
-        // use maximum brightness
-        const brightness = 254;
+    toRGB(gamut: Readonly<Gamut>): ColorRGB {
+        const [r, g, b] = convertXyToRgb(this.x, this.y, this.capY, gamut);
 
-        const z = 1.0 - this.x - this.y;
-        const Y = Number((brightness / 254).toFixed(2));
-        const X = (Y / this.y) * this.x;
-        const Z = (Y / this.y) * z;
-
-        // Convert to RGB using Wide RGB D65 conversion
-        let red = X * 1.656492 - Y * 0.354851 - Z * 0.255038;
-        let green = -X * 0.707196 + Y * 1.655397 + Z * 0.036152;
-        let blue = X * 0.051713 - Y * 0.121364 + Z * 1.01153;
-
-        // If red, green or blue is larger than 1.0 set it back to the maximum of 1.0
-        if (red > blue && red > green && red > 1.0) {
-            green = green / red;
-            blue = blue / red;
-            red = 1.0;
-        } else if (green > blue && green > red && green > 1.0) {
-            red = red / green;
-            blue = blue / green;
-            green = 1.0;
-        } else if (blue > red && blue > green && blue > 1.0) {
-            red = red / blue;
-            green = green / blue;
-            blue = 1.0;
-        }
-
-        // This fixes situation when due to computational errors value get slightly below 0, or NaN in case of zero-division.
-        red = Number.isNaN(red) || red < 0 ? 0 : red;
-        green = Number.isNaN(green) || green < 0 ? 0 : green;
-        blue = Number.isNaN(blue) || blue < 0 ? 0 : blue;
-
-        return new ColorRGB(red, green, blue);
+        return new ColorRGB(r / 255, g / 255, b / 255);
     }
 
     /**
      * Convert to HSV
      * @returns color in HSV space
      */
-    toHSV(): ColorHSV {
-        return this.toRGB().toHSV();
+    toHSV(gamut: Readonly<Gamut>): ColorHSV {
+        return this.toRGB(gamut).toHSV();
     }
 
     /**
@@ -298,17 +538,6 @@ export class ColorXY {
     rounded(precision: number): ColorXY {
         return new ColorXY(precisionRound(this.x, precision), precisionRound(this.y, precision));
     }
-
-    /**
-     * Convert to object
-     * @returns object with properties x and y
-     */
-    toObject(): {x: number; y: number} {
-        return {
-            x: this.x,
-            y: this.y,
-        };
-    }
 }
 
 /**
@@ -316,18 +545,18 @@ export class ColorXY {
  */
 export class ColorHSV {
     /** hue component (0..360) */
-    hue: number;
+    hue: number | null | undefined;
     /** saturation component (0..100) */
-    saturation: number;
+    saturation: number | null | undefined;
     /** value component (0..100) */
-    value: number;
+    value: number | null | undefined;
 
     /**
      * Create color in HSV space
      */
-    constructor(hue: number, saturation: number = null, value: number = null) {
+    constructor(hue: number | null | undefined, saturation: number | null | undefined = null, value: number | null | undefined = null) {
         /** hue component (0..360) */
-        this.hue = hue === null ? null : hue === 360 ? hue : hue % 360;
+        this.hue = hue == null ? null : hue === 360 ? hue : hue % 360;
         /** saturation component (0..100) */
         this.saturation = saturation;
         /** value component (0..100) */
@@ -337,11 +566,34 @@ export class ColorHSV {
     /**
      * Create HSV color from object
      */
-    static fromObject(hsv: {hue?: number; saturation?: number; value: number}): ColorHSV {
-        if (hsv.hue === undefined && hsv.saturation === undefined) {
+    static fromObject({hue, saturation, value}: {hue?: number | null; saturation?: number | null; value?: number | null}): ColorHSV {
+        if (hue == null && saturation == null) {
             throw new Error("HSV color must specify at least hue or saturation.");
         }
-        return new ColorHSV(hsv.hue === undefined ? null : hsv.hue, hsv.saturation, hsv.value);
+
+        return new ColorHSV(hue == null ? null : hue, saturation, value);
+    }
+
+    /**
+     * Convert to object
+     * @param includeValue - omit `value` from return
+     */
+    toObject(includeValue: boolean): {hue?: number; saturation?: number; value?: number} {
+        const ret: {hue?: number; saturation?: number; value?: number} = {};
+
+        if (this.hue != null) {
+            ret.hue = this.hue;
+        }
+
+        if (this.saturation != null) {
+            ret.saturation = this.saturation;
+        }
+
+        if (this.value != null && includeValue) {
+            ret.value = this.value;
+        }
+
+        return ret;
     }
 
     /**
@@ -349,14 +601,73 @@ export class ColorHSV {
      * @param hsl - color in HSL space
      * @returns color in HSV space
      */
-    static fromHSL(hsl: {hue: number; saturation: number; lightness: number}): ColorHSV {
-        if (hsl.hue === undefined || hsl.saturation === undefined || hsl.lightness === undefined) {
+    static fromHSL({hue, saturation, lightness}: {hue: number; saturation: number; lightness: number}): ColorHSV {
+        if (hue === undefined || saturation === undefined || lightness === undefined) {
             throw new Error('One or more required properties missing. Required properties: "hue", "saturation", "lightness"');
         }
-        const retH = hsl.hue;
-        const retV = (hsl.saturation * Math.min(hsl.lightness, 100 - hsl.lightness)) / 100 + hsl.lightness;
-        const retS = retV ? 200 * (1 - hsl.lightness / retV) : 0;
+
+        const retH = hue;
+        const retV = (saturation * Math.min(lightness, 100 - lightness)) / 100 + lightness;
+        const retS = retV ? 200 * (1 - lightness / retV) : 0;
+
         return new ColorHSV(retH, retS, retV);
+    }
+
+    /**
+     * Convert RGB color
+     * @returns
+     */
+    toRGB(): ColorRGB {
+        const [r, g, b] = convertHsvToRgb(this.hue ?? 0, this.saturation ?? 100, this.value ?? 100);
+
+        return new ColorRGB(r / 255, g / 255, b / 255);
+    }
+
+    /**
+     * Create CIE color from HSV
+     */
+    toXY(gamut: Readonly<Gamut>): ColorXY {
+        return this.toRGB().toXY(gamut);
+    }
+
+    /**
+     * Create Mireds from HSV
+     * @returns color temp in mireds
+     */
+    toMireds(gamut: Readonly<Gamut>): number {
+        return this.toRGB().toXY(gamut).toMireds();
+    }
+
+    /**
+     * Returns HSV color after hue corrections
+     * Applies hue linear interpolation if entity has hue correction data
+     * `meta.options.hue_correction` expected format: array of hueIn -\> hueOut mappings; example: `[ {"in": 20, "out": 25}, {"in": 109, "out": 104}]`
+     * @param meta - entity meta object
+     * @returns corrected color in HSV space
+     */
+    colorCorrected(meta: Tz.Meta): ColorHSV {
+        const hueCorrection = meta.options?.hue_correction as KeyValueAny[] | null | undefined;
+
+        if (hueCorrection != null && hueCorrection.length >= 2) {
+            const baseHue = this.hue ?? 0;
+            // retain immutablity
+            const clonedCorrectionMap = [...hueCorrection];
+
+            // reverse sort calibration map and find left edge
+            clonedCorrectionMap.sort((a, b) => b.in - a.in);
+            const correctionLeft = clonedCorrectionMap.find((m) => m.in <= baseHue) || {in: 0, out: 0};
+
+            // sort calibration map and find right edge
+            clonedCorrectionMap.sort((a, b) => a.in - b.in);
+            const correctionRight = clonedCorrectionMap.find((m) => m.in > baseHue) || {in: 359, out: 359};
+
+            const ratio = 1 - (correctionRight.in - baseHue) / (correctionRight.in - correctionLeft.in);
+            const newHue = Math.round(correctionLeft.out + ratio * (correctionRight.out - correctionLeft.out));
+
+            return new ColorHSV(newHue, this.saturation, this.value);
+        }
+
+        return this;
     }
 
     /**
@@ -365,186 +676,17 @@ export class ColorHSV {
      */
     rounded(precision: number): ColorHSV {
         return new ColorHSV(
-            this.hue === null ? null : precisionRound(this.hue, precision),
-            this.saturation === null ? null : precisionRound(this.saturation, precision),
-            this.value === null ? null : precisionRound(this.value, precision),
+            this.hue == null ? null : precisionRound(this.hue, precision),
+            this.saturation == null ? null : precisionRound(this.saturation, precision),
+            this.value == null ? null : precisionRound(this.value, precision),
         );
-    }
-
-    /**
-     * Convert to object
-     * @param short - return h, s, v instead of hue, saturation, value
-     * @param includeValue - omit v(alue) from return
-     */
-    toObject(short = false, includeValue = true): {h?: number; hue?: number; s?: number; saturation?: number; v?: number; value?: number} {
-        const ret: {h?: number; hue?: number; s?: number; saturation?: number; v?: number; value?: number} = {};
-        if (this.hue !== null) {
-            if (short) {
-                ret.h = this.hue;
-            } else {
-                ret.hue = this.hue;
-            }
-        }
-        if (this.saturation !== null) {
-            if (short) {
-                ret.s = this.saturation;
-            } else {
-                ret.saturation = this.saturation;
-            }
-        }
-        if (this.value !== null && includeValue) {
-            if (short) {
-                ret.v = this.value;
-            } else {
-                ret.value = this.value;
-            }
-        }
-        return ret;
-    }
-
-    /**
-     * Convert RGB color
-     * @returns
-     */
-    toRGB(): ColorRGB {
-        const hsvComplete = this.complete();
-        const h = hsvComplete.hue / 360;
-        const s = hsvComplete.saturation / 100;
-        const v = hsvComplete.value / 100;
-
-        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-        let r;
-        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-        let g;
-        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-        let b;
-        const i = Math.floor(h * 6);
-        const f = h * 6 - i;
-        const p = v * (1 - s);
-        const q = v * (1 - f * s);
-        const t = v * (1 - (1 - f) * s);
-        switch (i % 6) {
-            case 0:
-                r = v;
-                g = t;
-                b = p;
-                break;
-            case 1:
-                r = q;
-                g = v;
-                b = p;
-                break;
-            case 2:
-                r = p;
-                g = v;
-                b = t;
-                break;
-            case 3:
-                r = p;
-                g = q;
-                b = v;
-                break;
-            case 4:
-                r = t;
-                g = p;
-                b = v;
-                break;
-            case 5:
-                r = v;
-                g = p;
-                b = q;
-                break;
-        }
-        return new ColorRGB(r, g, b);
-    }
-
-    /**
-     * Create CIE color from HSV
-     */
-    toXY(): ColorXY {
-        return this.toRGB().toXY();
-    }
-
-    /**
-     * Create Mireds from HSV
-     * @returns color temp in mireds
-     */
-    toMireds(): number {
-        return this.toRGB().toXY().toMireds();
-    }
-
-    /**
-     * Returns color with missing properties set to defaults
-     * @returns HSV color
-     */
-    complete(): ColorHSV {
-        const hue = this.hue !== null ? this.hue : 0;
-        const saturation = this.saturation !== null ? this.saturation : 100;
-        const value = this.value !== null ? this.value : 100;
-        return new ColorHSV(hue, saturation, value);
-    }
-
-    /**
-     * Interpolates hue value based on correction map through ranged linear interpolation
-     * @param hue - hue to be corrected
-     * @param correctionMap -  array of hueIn -\> hueOut mappings; example: `[ {"in": 20, "out": 25}, {"in": 109, "out": 104}]`
-     * @returns corrected hue value
-     */
-    static interpolateHue(hue: number, correctionMap: KeyValueAny[]): number {
-        if (correctionMap.length < 2) return hue;
-
-        // retain immutablity
-        const clonedCorrectionMap = [...correctionMap];
-
-        // reverse sort calibration map and find left edge
-        clonedCorrectionMap.sort((a, b) => b.in - a.in);
-        const correctionLeft = clonedCorrectionMap.find((m) => m.in <= hue) || {in: 0, out: 0};
-
-        // sort calibration map and find right edge
-        clonedCorrectionMap.sort((a, b) => a.in - b.in);
-        const correctionRight = clonedCorrectionMap.find((m) => m.in > hue) || {in: 359, out: 359};
-
-        const ratio = 1 - (correctionRight.in - hue) / (correctionRight.in - correctionLeft.in);
-        return Math.round(correctionLeft.out + ratio * (correctionRight.out - correctionLeft.out));
-    }
-
-    /**
-     * Applies hue interpolation if entity has hue correction data
-     * @param hue - hue component of HSV color
-     * @returns corrected hue component of HSV color
-     */
-    static correctHue(hue: number, meta: Tz.Meta): number {
-        const {options} = meta;
-        if (options.hue_correction != null) {
-            // @ts-expect-error ignore
-            return ColorHSV.interpolateHue(hue, options.hue_correction);
-        }
-        return hue;
-    }
-
-    /**
-     * Returns HSV color after hue correction
-     * @param meta - entity meta object
-     * @returns hue corrected color
-     */
-    hueCorrected(meta: Tz.Meta): ColorHSV {
-        return new ColorHSV(ColorHSV.correctHue(this.hue, meta), this.saturation, this.value);
-    }
-
-    /**
-     * Returns HSV color after gamma and hue corrections
-     * @param meta - entity meta object
-     * @returns corrected color in HSV space
-     */
-    colorCorrected(meta: Tz.Meta): ColorHSV {
-        return this.hueCorrected(meta);
     }
 }
 
 export class Color {
-    hsv: ColorHSV;
-    xy: ColorXY;
-    rgb: ColorRGB;
+    hsv: ColorHSV | null;
+    xy: ColorXY | null;
+    rgb: ColorRGB | null;
 
     /**
      * Create Color object
@@ -552,24 +694,25 @@ export class Color {
      * @param rgb - ColorRGB instance
      * @param xy - ColorXY instance
      */
-    constructor(hsv: ColorHSV, rgb: ColorRGB, xy: ColorXY) {
-        // @ts-expect-error ignore
-        if ((hsv !== null) + (rgb !== null) + (xy !== null) !== 1) {
+    constructor(hsv: ColorHSV | null, rgb: ColorRGB | null, xy: ColorXY | null) {
+        if ((hsv ? 1 : 0) + (rgb ? 1 : 0) + (xy ? 1 : 0) !== 1) {
             throw new Error("Color object should have exactly only one of hsv, rgb or xy properties");
         }
-        if (hsv !== null) {
+
+        if (hsv != null) {
             if (!(hsv instanceof ColorHSV)) {
                 throw new Error("hsv argument must be an instance of ColorHSV class");
             }
-        } else if (rgb !== null) {
+        } else if (rgb != null) {
             if (!(rgb instanceof ColorRGB)) {
                 throw new Error("rgb argument must be an instance of ColorRGB class");
             }
-        } /* if (xy !== null) */ else {
+        } else {
             if (!(xy instanceof ColorXY)) {
                 throw new Error("xy argument must be an instance of ColorXY class");
             }
         }
+
         this.hsv = hsv;
         this.rgb = rgb;
         this.xy = xy;
@@ -581,10 +724,35 @@ export class Color {
      * @returns Color object
      */
 
-    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-    static fromConverterArg(value: any): Color {
+    static fromConverterArg(
+        value:
+            | {
+                  x?: number | string | null;
+                  y?: number | string | null;
+                  r?: number | null;
+                  g?: number | null;
+                  b?: number | null;
+                  rgb?: string | null;
+                  hex?: string | null;
+                  h?: number | null;
+                  s?: number | null;
+                  l?: number | null;
+                  hsl?: string | null;
+                  hsb?: string | null;
+                  v?: number | null;
+                  hsv?: string | null;
+                  hue?: number | null;
+                  saturation?: number | null;
+                  value?: number | null;
+              }
+            | string,
+    ): Color {
+        if (typeof value === "string") {
+            const rgb = ColorRGB.fromHex(value.startsWith("#") ? value : `#${value}`);
+            return new Color(null, rgb, null);
+        }
         if (value.x != null && value.y != null) {
-            const xy = ColorXY.fromObject(value);
+            const xy = ColorXY.fromObject(value as {x: number | string; y: number | string} /* XXX: typing failure due to lack of strict */);
             return new Color(null, null, xy);
         }
         if (value.r != null && value.g != null && value.b != null) {
@@ -597,11 +765,7 @@ export class Color {
             return new Color(null, rgb, null);
         }
         if (value.hex != null) {
-            const rgb = ColorRGB.fromHex(value.hex);
-            return new Color(null, rgb, null);
-        }
-        if (typeof value === "string" && value.startsWith("#")) {
-            const rgb = ColorRGB.fromHex(value);
+            const rgb = ColorRGB.fromHex(value.hex.startsWith("#") ? value.hex : `#${value.hex}`);
             return new Color(null, rgb, null);
         }
         if (value.h != null && value.s != null && value.l != null) {
@@ -644,7 +808,10 @@ export class Color {
             return new Color(hsv, null, null);
         }
         if (value.hue != null || value.saturation != null) {
-            const hsv = ColorHSV.fromObject(value);
+            const hsv = ColorHSV.fromObject(
+                value as {hue: number; saturation: number; value?: number | null} /* XXX: typing failure due to lack of strict */,
+            );
+
             return new Color(hsv, null, null);
         }
         throw new Error("Value does not contain valid color definition");
@@ -689,6 +856,7 @@ export function syncColorState(
     endpoint: Zh.Endpoint | Zh.Group,
     options: KeyValue,
     epPostfix?: string,
+    gamut: Readonly<Gamut> = SUPPORTED_GAMUTS.cie1931,
 ): KeyValueAny {
     const colorTargets = [];
     const colorSync = options?.color_sync != null ? options.color_sync : true;
@@ -764,10 +932,10 @@ export function syncColorState(
             if (result[keys.color].hue !== undefined && result[keys.color].saturation !== undefined) {
                 const hsv = new ColorHSV(result[keys.color].hue, result[keys.color].saturation);
                 if (colorTargets.includes("color_temp")) {
-                    result[keys.color_temp] = clampColorTemp(precisionRound(hsv.toMireds(), 0), colorTempMin, colorTempMax);
+                    result[keys.color_temp] = clampColorTemp(precisionRound(hsv.toMireds(gamut), 0), colorTempMin, colorTempMax);
                 }
                 if (colorTargets.includes("xy")) {
-                    Object.assign(result[keys.color], hsv.toXY().rounded(4).toObject());
+                    Object.assign(result[keys.color], hsv.toXY(gamut).rounded(4).toObject());
                 }
             }
             break;
@@ -789,7 +957,7 @@ export function syncColorState(
                     result[keys.color_temp] = clampColorTemp(precisionRound(xy.toMireds(), 0), colorTempMin, colorTempMax);
                 }
                 if (colorTargets.includes("hs")) {
-                    Object.assign(result[keys.color], xy.toHSV().rounded(0).toObject(false, false));
+                    Object.assign(result[keys.color], xy.toHSV(gamut).rounded(0).toObject(false));
                 }
             }
             break;
@@ -806,7 +974,7 @@ export function syncColorState(
                     Object.assign(result[keys.color], xy.rounded(4).toObject());
                 }
                 if (colorTargets.includes("hs")) {
-                    Object.assign(result[keys.color], xy.toHSV().rounded(0).toObject(false, false));
+                    Object.assign(result[keys.color], xy.toHSV(gamut).rounded(0).toObject(false));
                 }
             }
             break;

@@ -743,11 +743,12 @@ export const color_colortemp: Fz.Converter<"lightingColorCtrl", undefined, ["att
         // Use postfixWithEndpointName with an empty value to get just the postfix that
         // needs to be added to the result key.
         const epPostfix = postfixWithEndpointName("", msg, model, meta);
+        const gamut = libColor.getDeviceGamut(model);
 
         // handle color property sync
         // NOTE: this should the last thing we do, as we need to have processed all attributes,
         //       we use assign here so we do not lose other attributes.
-        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
+        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix, gamut));
     },
 };
 export const meter_identification: Fz.Converter<"seMeterIdentification", undefined, ["readResponse"]> = {
@@ -2209,7 +2210,9 @@ export const tuya_led_controller: Fz.Converter<"lightingColorCtrl", undefined, [
         // Use postfixWithEndpointName with an empty value to get just the postfix that
         // can be added to the result keys.
         const epPostfix = postfixWithEndpointName("", msg, model, meta);
-        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
+        const gamut = libColor.getDeviceGamut(model);
+
+        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix, gamut));
     },
 };
 export const wiser_device_info: Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport"> = {
