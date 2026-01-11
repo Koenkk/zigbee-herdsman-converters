@@ -22953,28 +22953,15 @@ Ensure all 12 segments are defined and separated by spaces.`,
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE200_fphxkxue",
-            },
-        ],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fphxkxue"]),
         model: "ZVL-PRO",
         vendor: "Nova Digital",
-        description: "Water Valve (Advanced Map)",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
-        configure: tuya.configureMagicPacket,
+        description: "Water walve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
             e.battery(),
-            e
-                .numeric("countdown", ea.STATE_SET)
-                .withUnit("s")
-                .withValueMin(0)
-                .withValueMax(86400)
-                .withDescription("Countdown time in seconds"),
+            e.numeric("countdown", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(86400).withDescription("Countdown time in seconds"),
             e.enum("work_state", ea.STATE, ["auto", "manual", "idle"]).withDescription("Current state of operation"),
             e.numeric("water_once", ea.STATE).withUnit("L").withDescription("Consumption from the last watering"),
         ],
