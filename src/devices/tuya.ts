@@ -4379,35 +4379,27 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0301_dual_rail",
         vendor: "Tuya",
         description: "Top-down bottom-up dual motor shade",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {bottom: 1, top: 1}})],
         exposes: [
             e.cover_position().withEndpoint("bottom").withDescription("Bottom rail"),
             e.cover_position().withEndpoint("top").withDescription("Top rail"),
             e.battery(),
         ],
         meta: {
-            multiEndpoint: true,
             tuyaDatapoints: [
                 // Bottom rail - DP109 is control, DP101 is set position, DP102 is current position
                 [109, "state_bottom", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(1), STOP: tuya.enum(2)})],
                 [101, "position_bottom", tuya.valueConverter.coverPositionInverted],
                 [102, "position_bottom", tuya.valueConverter.coverPositionInverted],
-
                 // Top rail - DP1 is control, DP2 is set position, DP3 is current position
                 // Note: State commands are reversed for Home Assistant compatibility with top-down operation
                 [1, "state_top", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(1), CLOSE: tuya.enum(0), STOP: tuya.enum(2)})],
                 [2, "position_top", tuya.valueConverter.coverPosition],
                 [3, "position_top", tuya.valueConverter.coverPosition],
-
                 // Battery
                 [13, "battery", tuya.valueConverter.raw],
             ],
         },
-        endpoint: (device) => {
-            return {bottom: 1, top: 1};
-        },
-        configure: tuya.configureMagicPacket,
     },
     {
         fingerprint: tuya.fingerprint("TS0601", [
