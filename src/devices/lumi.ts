@@ -4528,10 +4528,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["lumi.switch.agl010"],
-        whiteLabel: [
-            {model: "WS-K08E", vendor: "Aqara"},
-            {model: "WS-K08D", vendor: "Aqara"},
-        ],
+        whiteLabel: [{model: "WS-K08D", vendor: "Aqara"}],
         model: "WS-K08E",
         vendor: "Aqara",
         description: "Light switch H2 EU (double rocker)",
