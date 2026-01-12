@@ -6129,7 +6129,7 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: (m) => m !== "_TZ3000_xfxpoxe0",
                 indicatorMode: (m) => m !== "_TZ3000_xfxpoxe0",
                 powerOutageMemory: true,
-                backlightModeOffOn: true,
+                backlightModeOffOn: (m) => m === "_TZ3000_xfxpoxe0",
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -9790,10 +9790,9 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
             tuya.modernExtend.tuyaOnOff({
-                powerOnBehavior2: (m) => m !== "_TZ3000_r9e2w7dn",
+                powerOnBehavior2: true,
                 backlightModeOffOn: true,
                 endpoints: ["l1", "l2", "l3", "l4"],
-                powerOutageMemory: (m) => m === "_TZ3000_r9e2w7dn",
                 switchType: (m) => m === "_TZ3000_r9e2w7dn",
             }),
         ],
