@@ -1063,8 +1063,8 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    sendCommandUpThreshold: {ID: 0x0040, type: 0x21},
-                    sendCommandDownThreshold: {ID: 0x0041, type: 0x21},
+                    sendCommandUpThreshold: {ID: 0x0040, type: 0x21, write: true, max: 0xffff},
+                    sendCommandDownThreshold: {ID: 0x0041, type: 0x21, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
