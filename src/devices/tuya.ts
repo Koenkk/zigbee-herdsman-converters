@@ -19969,10 +19969,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_thermostat_6",
         vendor: "Tuya",
         description: "Thermostatic radiator valve",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
-        configure: tuya.configureMagicPacket,
         exposes: [
             e.child_lock(),
             e.battery(),
