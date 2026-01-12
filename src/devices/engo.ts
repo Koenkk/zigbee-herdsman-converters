@@ -669,11 +669,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E25-BATB",
         vendor: "ENGO",
         description: "Zigbee Smart Thermostat Wireless",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.binary("on_off", ea.STATE_SET, "ON", "OFF").withLabel("Thermostat").withDescription("Turn the device On or Off"),
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat  ON/OFF"),
             e
                 .climate()
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
@@ -701,17 +699,17 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100),
             e
                 .enum("control_type", ea.STATE_SET, [
-                    "TPI Water Heated Floor",
-                    "TPI Radiator",
-                    "TPI Electic Heated Floor",
-                    "Histeresis 0.2",
-                    "Histeresis 0.4",
-                    "Histeresis 0.8",
-                    "Histeresis 1.2",
-                    "Histeresis 1.6",
-                    "Histeresis 2.0",
-                    "Histeresis 3.0",
-                    "Histeresis 4.0",
+                    "TPI_UFH",
+                    "TPI_RAD",
+                    "TPI_ELE",
+                    "HIS_02",
+                    "HIS_04",
+                    "HIS_08",
+                    "HIS_12",
+                    "HIS_16",
+                    "HIS_20",
+                    "HIS_30",
+                    "HIS_40",
                 ])
                 .withLabel("Control Type")
                 .withDescription("Type of device controlled: Any for heating machines, histeresis only for cooling (non-invertor ACs)"),
@@ -724,7 +722,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.5)
                 .withValueMax(5),
             e
-                .enum("dp_device_pair_state", ea.STATE, ["None/Commutation Center", "TRVs"])
+                .enum("device_pair_state", ea.STATE, ["none", "trv"])
                 .withLabel("Device Pair State")
                 .withDescription("Defines paired devices type: None, Commutation Center or TRV"),
             e
@@ -736,7 +734,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.5)
                 .withValueMax(17),
             e
-                .enum("valve_protection", ea.STATE_SET, ["Off", "On", "Antistop"])
+                .enum("valve_protection", ea.STATE_SET, ["off", "on", "anti_stop"])
                 .withLabel("Valve Protection")
                 .withDescription("Prevents valve blockage during long periods of inactivity"),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
@@ -753,7 +751,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "on_off", tuya.valueConverter.onOff],
+                [1, "state", tuya.valueConverter.onOff],
                 [
                     2,
                     "system_mode",
@@ -794,26 +792,26 @@ export const definitions: DefinitionWithExtend[] = [
                     101,
                     "control_type",
                     tuya.valueConverterBasic.lookup({
-                        "TPI Water Heated Floor": tuya.enum(0),
-                        "TPI Radiator": tuya.enum(1),
-                        "TPI Electic Heated Floor": tuya.enum(2),
-                        "Histeresis 0.2": tuya.enum(3),
-                        "Histeresis 0.4": tuya.enum(4),
-                        "Histeresis 0.8": tuya.enum(5),
-                        "Histeresis 1.2": tuya.enum(6),
-                        "Histeresis 1.6": tuya.enum(7),
-                        "Histeresis 2.0": tuya.enum(8),
-                        "Histeresis 3.0": tuya.enum(9),
-                        "Histeresis 4.0": tuya.enum(10),
+                        "TPI_UFH": tuya.enum(0),
+                        "TPI_RAD": tuya.enum(1),
+                        "TPI_ELE": tuya.enum(2),
+                        "HIS_02": tuya.enum(3),
+                        "HIS_04": tuya.enum(4),
+                        "HIS_08": tuya.enum(5),
+                        "HIS_12": tuya.enum(6),
+                        "HIS_16": tuya.enum(7),
+                        "HIS_20": tuya.enum(8),
+                        "HIS_30": tuya.enum(9),
+                        "HIS_40": tuya.enum(10),
                     }),
                 ],
                 [102, "delta_t_rcwc_alg", tuya.valueConverter.divideBy10],
                 [
                     103,
-                    "dp_device_pair_state",
+                    "device_pair_state",
                     tuya.valueConverterBasic.lookup({
-                        "None/Commutation Center": tuya.enum(0),
-                        TRVs: tuya.enum(2),
+                        "none": tuya.enum(0),
+                        "trv": tuya.enum(2),
                     }),
                 ],
                 [106, "frost_set", tuya.valueConverter.divideBy10],
@@ -821,9 +819,9 @@ export const definitions: DefinitionWithExtend[] = [
                     107,
                     "valve_protection",
                     tuya.valueConverterBasic.lookup({
-                        Off: tuya.enum(0),
-                        On: tuya.enum(1),
-                        Antistop: tuya.enum(2),
+                        "off": tuya.enum(0),
+                        "on": tuya.enum(1),
+                        "anti_stop": tuya.enum(2),
                     }),
                 ],
                 [109, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(6)],
