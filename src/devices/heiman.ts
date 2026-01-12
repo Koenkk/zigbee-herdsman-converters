@@ -995,6 +995,7 @@ export const definitions: DefinitionWithExtend[] = [
             "c3442b4ac59b4ba1a83119d938f283ab",
             "SmokeSensor-EF-3.0",
             "SMOK_HV14",
+            "SMOK_YDLV10N",
         ],
         model: "HS1SA",
         vendor: "Heiman",
@@ -1006,6 +1007,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+        whiteLabel: [{model: "HS1SA-E", description: "Smoke detector", fingerprint: [{modelID: "SmokeSensor-EF-3.0"}, {modelID: "SMOK_YDLV10N"}]}],
         exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
     },
     {
@@ -1960,7 +1962,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["HS1SA-EF-3.0"],
-        model: "HS1SA-E",
+        model: "HS1SA-EF",
         vendor: "Heiman",
         description: "Smoke detector",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],

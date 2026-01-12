@@ -66,7 +66,17 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light()],
     },
     {
-        zigbeeModel: ["TLSR82xx"],
+        fingerprint: [
+            {
+                type: "Router",
+                manufacturerName: "AwoX",
+                modelID: "TLSR82xx",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 258},
+                    {ID: 3, profileID: 49152, deviceID: 258},
+                ],
+            },
+        ],
         model: "33951/33948",
         vendor: "AwoX",
         description: "LED white",
