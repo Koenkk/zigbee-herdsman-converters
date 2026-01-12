@@ -964,7 +964,7 @@ const fzLocal = {
             };
 
             if (data.smokeConcentrationLevel !== undefined) {
-                const raw = Number.parseFloat(data.smokeConcentrationLevel as string);
+                const raw = Number.parseFloat(data.smokeConcentrationLevel as string) / 100;
                 // Check if valid, then force exactly 2 decimal places as a STRING
                 result.smoke_level = Number.isNaN(raw) ? "0.00" : raw.toFixed(2);
             }
