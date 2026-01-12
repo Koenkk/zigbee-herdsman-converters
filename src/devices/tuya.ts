@@ -15028,6 +15028,20 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_w2vunxzm"]),
+        model: "_TZE204_w2vunxzm",
+        vendor: "Tuya",
+        description: "Pressure sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [e.pressure(), e.temperature()],
+        meta: {
+            tuyaDatapoints: [
+                [101, "pressure", tuya.valueConverter.divideBy10],
+                [8, "temperature", tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_sooucan5", "_TZE204_oqtpvx51"]),
         model: "YXZBRB58",
         vendor: "Tuya",
