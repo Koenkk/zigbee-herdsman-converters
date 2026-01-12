@@ -589,9 +589,9 @@ const heimanExtend = {
         const clusterName = "heimanClusterSpecial" as const;
         const faultStateBitMap = {
             0: "fault", // bit0
-            1: "open circuit fault", // bit1
-            2: "short circuit fault", // bit2
-            3: "pollution fault", // bit3
+            1: "open_circuit_fault", // bit1
+            2: "short_circuit_fault", // bit2
+            3: "pollution_fault", // bit3
         };
         const exposes = utils.exposeEndpoints(e.text("fault_state", ea.STATE_GET).withDescription("Device fault status (normal or fault types)."));
         const fromZigbee = [
@@ -639,9 +639,9 @@ const heimanExtend = {
         const clusterName = "heimanClusterSpecial" as const;
         const muteStateBitMap = {
             0: "muted", // bit0
-            1: "alarm muted", // bit1
-            2: "fault muted", // bit2
-            3: "low battery muted", // bit3
+            1: "alarm_muted", // bit1
+            2: "fault_muted", // bit2
+            3: "low_battery_muted", // bit3
         };
         const exposes = utils.exposeEndpoints(e.text("muted", ea.STATE_GET).withDescription("Device mute status (normal or mute types)."));
         const fromZigbee = [
@@ -2086,7 +2086,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "chamber_contamination",
-                lookup: {normal: 0, light_contamination: 1, medium_contamication: 2, critical_contamication: 3},
+                lookup: {normal: 0, light_contamination: 1, medium_contamination: 2, critical_contamination: 3},
                 cluster: "heimanClusterSpecial",
                 attribute: {ID: 0x0017, type: Zcl.DataType.ENUM8},
                 description: "it indicates that how serious the smoke chamber get contaminated.",
