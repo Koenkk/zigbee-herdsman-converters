@@ -19966,7 +19966,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_cgr0rhza"]),
-        model: "TS0601_thermostat_5",
+        model: "TS0601_thermostat_6",
         vendor: "Tuya",
         description: "Thermostatic radiator valve",
         fromZigbee: [tuya.fz.datapoints],
