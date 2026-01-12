@@ -23431,10 +23431,8 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vceqncho"]),
         model: "ZIS-01P",
         vendor: "Novato",
-        description: "Dual-tech presence sensor (PIR + Radar)",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        description: "Dual-tech presence sensor (PIR + radar)",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.occupancy(),
             e
