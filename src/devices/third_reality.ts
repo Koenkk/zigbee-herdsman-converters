@@ -1057,14 +1057,14 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart air pressure sensor",
         extend: [
             m.battery(),
-            m.pressure({attribute: {ID: 0xff01, type: 0x23}, name: "pressure", unit: "Pa", scale: 1}),
+            m.pressure({attribute: {ID: 0xff01, type: Zcl.DataType.UINT32}, name: "pressure", unit: "Pa", scale: 1}),
             m.commandsOnOff(),
             m.deviceAddCustomCluster("3rAirsensorSpecialCluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    sendCommandUpThreshold: {ID: 0x0040, type: 0x21},
-                    sendCommandDownThreshold: {ID: 0x0041, type: 0x21},
+                    sendCommandUpThreshold: {ID: 0x0040, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    sendCommandDownThreshold: {ID: 0x0041, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
