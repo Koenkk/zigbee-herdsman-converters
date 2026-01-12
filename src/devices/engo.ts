@@ -664,4 +664,190 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_cg8hdnjv"]),
+        model: "E25-BATB",
+        vendor: "ENGO",
+        description: "Zigbee Smart Thermostat Wireless",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat  ON/OFF"),
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-3.0, 3.0, 0.5, ea.STATE_SET)
+                .withSystemMode(["heat", "cool"], ea.STATE_SET)
+                .withRunningState(["idle", "heat", "cool"], ea.STATE)
+                .withPreset(["manual", "schedule", "frost protection"]),
+            e
+                .max_temperature()
+                .withValueMin(5)
+                .withValueMax(35), //45 possible
+            e
+                .min_temperature()
+                .withValueMin(5)
+                .withValueMax(35), //45 possible
+            e.battery(),
+            e.child_lock(),
+            e
+                .numeric("backlight_brightness", ea.STATE_SET)
+                .withUnit("%")
+                .withLabel("Backlight Brightness")
+                .withValueMin(10)
+                .withValueStep(10)
+                .withValueMax(100),
+            e
+                .enum("control_type", ea.STATE_SET, [
+                    "TPI_UFH",
+                    "TPI_RAD",
+                    "TPI_ELE",
+                    "HIS_02",
+                    "HIS_04",
+                    "HIS_08",
+                    "HIS_12",
+                    "HIS_16",
+                    "HIS_20",
+                    "HIS_30",
+                    "HIS_40",
+                ])
+                .withLabel("Control Type")
+                .withDescription("Type of device controlled: Any for heating machines, histeresis only for cooling (non-invertor ACs)"),
+            e
+                .numeric("delta_t_rcwc_alg", ea.STATE_SET)
+                .withLabel("Delta RCWC Algorithm")
+                .withDescription("Defines how fast the TRV will react on temperature change. Defaults to 2.0")
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueStep(0.5)
+                .withValueMax(5),
+            e
+                .enum("device_pair_state", ea.STATE, ["none", "trv"])
+                .withLabel("Device Pair State")
+                .withDescription("Defines paired devices type: None, Commutation Center or TRV"),
+            e
+                .numeric("frost_set", ea.STATE_SET)
+                .withLabel("Frost Mode Temperature")
+                .withDescription("Defines temperature for frost mode. Defaults to 7.0")
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueStep(0.5)
+                .withValueMax(17),
+            e
+                .enum("valve_protection", ea.STATE_SET, ["off", "on", "anti_stop"])
+                .withLabel("Valve Protection")
+                .withDescription("Prevents valve blockage during long periods of inactivity"),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
+            e
+                .numeric("trv_work_state", ea.STATE)
+                .withLabel("TRV Current State")
+                .withDescription("Shows TRV current state for each TRV. Opened or closed"),
+            e
+                .binary("trv_frost_protection", ea.STATE_SET, "ON", "OFF")
+                .withLabel("TRV Frost Protection")
+                .withDescription("Enables frost protection for TRVs"),
+            e.numeric("trv_latest_firmware", ea.STATE).withLabel("TRV Latest Firmware").withDescription("Shows TRV latest firmware option"),
+            e.numeric("trv_firmware", ea.STATE).withLabel("TRV Current Firmware").withDescription("Shows TRV current firmware for each TRV"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        heat: tuya.enum(0),
+                        cool: tuya.enum(1),
+                    }),
+                ],
+                [
+                    3,
+                    "running_state",
+                    tuya.valueConverterBasic.lookup(
+                        {
+                            heat: tuya.enum(2),
+                            cool: tuya.enum(3),
+                        },
+                        "idle",
+                    ),
+                ],
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [19, "max_temperature", tuya.valueConverter.divideBy10],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [26, "min_temperature", tuya.valueConverter.divideBy10],
+                [27, "local_temperature_calibration", tuya.valueConverter.divideBy10],
+                [35, "battery", tuya.valueConverter.raw],
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+                [44, "backlight_brightness", tuya.valueConverter.raw],
+                [
+                    58,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        schedule: tuya.enum(1),
+                        "frost protection": tuya.enum(3),
+                    }),
+                ],
+                [
+                    101,
+                    "control_type",
+                    tuya.valueConverterBasic.lookup({
+                        TPI_UFH: tuya.enum(0),
+                        TPI_RAD: tuya.enum(1),
+                        TPI_ELE: tuya.enum(2),
+                        HIS_02: tuya.enum(3),
+                        HIS_04: tuya.enum(4),
+                        HIS_08: tuya.enum(5),
+                        HIS_12: tuya.enum(6),
+                        HIS_16: tuya.enum(7),
+                        HIS_20: tuya.enum(8),
+                        HIS_30: tuya.enum(9),
+                        HIS_40: tuya.enum(10),
+                    }),
+                ],
+                [102, "delta_t_rcwc_alg", tuya.valueConverter.divideBy10],
+                [
+                    103,
+                    "device_pair_state",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        trv: tuya.enum(2),
+                    }),
+                ],
+                [106, "frost_set", tuya.valueConverter.divideBy10],
+                [
+                    107,
+                    "valve_protection",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on: tuya.enum(1),
+                        anti_stop: tuya.enum(2),
+                    }),
+                ],
+                [109, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(6)],
+                [110, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(6)],
+                [111, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(6)],
+                [112, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(6)],
+                [113, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(6)],
+                [114, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(6)],
+                [115, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(6)],
+
+                // not implemented
+                // [119, "pin_to_unlock", tuya.valueConverter.raw],
+                // [120, "sensor_status", tuya.valueConverter.raw],
+                // [121, "pin_to_settings", tuya.valueConverter.raw],
+                // [122, "trv_state", tuya.valueConverter.raw],
+
+                [123, "trv_work_state", tuya.valueConverter.raw],
+                [128, "trv_frost_protection", tuya.valueConverter.raw],
+
+                // not implemented
+                // [129, "trv_calibration", tuya.valueConverter.raw],
+                // [135, "trv_ota_trigger", tuya.valueConverter.raw],
+
+                [136, "trv_latest_firmware", tuya.valueConverter.divideBy10],
+                [137, "trv_firmware", tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
