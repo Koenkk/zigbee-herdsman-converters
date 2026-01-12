@@ -2231,7 +2231,7 @@ function genericMeter(args: MeterArgs = {}) {
     } else if (args.cluster === "metering" && args.type === "gas") {
         if (args.power !== false)
             exposes.push(e.numeric("volume_flow_rate", ea.STATE_GET).withUnit("m³/h").withDescription("Instantaneous gas flow in m³/h"));
-        if (args.energy !== false) exposes.push(e.numeric("gas", ea.ALL).withUnit("m³").withDescription("Total gas consumption in m³"));
+        if (args.energy !== false) exposes.push(e.numeric("gas", ea.STATE_GET).withUnit("m³").withDescription("Total gas consumption in m³"));
         fromZigbee = [args.fzMetering ?? fz.gas_metering];
         toZigbee = [
             {
