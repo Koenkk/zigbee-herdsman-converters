@@ -19965,7 +19965,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-		fingerprint: tuya.fingerprint("TS0601", ["_TZE284_cgr0rhza"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_cgr0rhza"]),
         model: "TR-M3Z",
         vendor: "Tuya",
         description: "Thermostatic radiator valve",
@@ -19976,14 +19976,14 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.child_lock(),
             e.battery(),
-			e.open_window(),
-			e.window_detection(),
+            e.open_window(),
+            e.window_detection(),
             e.battery_low(),
             e
                 .climate()
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
-                .withPreset(["manual", "schedule", "eco", "comfort","antifrost","off"])
+                .withPreset(["manual", "schedule", "eco", "comfort", "antifrost", "off"])
                 .withSystemMode(["off", "heat"], ea.STATE)
                 .withLocalTemperatureCalibration(-12, 12, 1, ea.STATE_SET),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
@@ -19991,14 +19991,18 @@ export const definitions: DefinitionWithExtend[] = [
             e.eco_temperature().withValueMin(5).withValueMax(35),
             e
                 .binary("scale_protection", ea.STATE_SET, "ON", "OFF")
-                .withDescription("If the heat sink is not fully opened within " +
-                "two weeks or is not used for a long time, the valve will be blocked due to silting up and the heat sink will not be " +
-                "able to be used. To ensure normal use of the heat sink, the controller will automatically open the valve fully every " +
-                'two weeks. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
-                "again."),
+                .withDescription(
+                    "If the heat sink is not fully opened within " +
+                        "two weeks or is not used for a long time, the valve will be blocked due to silting up and the heat sink will not be " +
+                        "able to be used. To ensure normal use of the heat sink, the controller will automatically open the valve fully every " +
+                        'two weeks. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
+                        "again.",
+                ),
             e
                 .binary("frost_protection", ea.STATE_SET, "ON", "OFF")
-                .withDescription("When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes."),
+                .withDescription(
+                    "When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.",
+                ),
             e.numeric("error", ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
         ],
         meta: {
@@ -20012,18 +20016,18 @@ export const definitions: DefinitionWithExtend[] = [
                         eco: tuya.enum(2),
                         comfort: tuya.enum(3),
                         antifrost: tuya.enum(4),
-						off: tuya.enum(5),
+                        off: tuya.enum(5),
                     }),
                 ],
                 [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [5, "local_temperature", tuya.valueConverter.divideBy10],
                 [6, "battery", tuya.valueConverter.raw],
                 [7, "child_lock", tuya.valueConverter.lockUnlock],
-				[8, "window_detection", tuya.valueConverter.onOff],
+                [8, "window_detection", tuya.valueConverter.onOff],
                 [14, "open_window", tuya.valueConverter.onOff],
                 [24, "comfort_temperature", tuya.valueConverter.divideBy10],
                 [25, "eco_temperature", tuya.valueConverter.divideBy10],
-				[28, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [28, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
                 [29, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
                 [30, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
                 [31, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
@@ -20042,7 +20046,6 @@ export const definitions: DefinitionWithExtend[] = [
                         heat: tuya.enum(1),
                     }),
                 ],
-			
             ],
         },
     },
