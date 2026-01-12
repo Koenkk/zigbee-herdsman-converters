@@ -23426,7 +23426,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vceqncho"]),
         model: "ZIS-01P",
@@ -23438,11 +23438,27 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.occupancy(),
-            e.numeric("presence_distance", ea.STATE_SET).withUnit("m").withDescription("Detection distance").withValueMin(1).withValueMax(3).withValueStep(1),
-            e.numeric("presence_sensitivity", ea.STATE_SET).withDescription("Presence detection sensitivity").withValueMin(1).withValueMax(3).withValueStep(1),
+            e
+                .numeric("presence_distance", ea.STATE_SET)
+                .withUnit("m")
+                .withDescription("Detection distance")
+                .withValueMin(1)
+                .withValueMax(3)
+                .withValueStep(1),
+            e
+                .numeric("presence_sensitivity", ea.STATE_SET)
+                .withDescription("Presence detection sensitivity")
+                .withValueMin(1)
+                .withValueMax(3)
+                .withValueStep(1),
             e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable radar detection"),
             e.numeric("pir_sensitivity", ea.STATE_SET).withDescription("PIR sensor sensitivity").withValueMin(1).withValueMax(3).withValueStep(1),
-            e.numeric("delay_time", ea.STATE_SET).withUnit("s").withDescription("Delay time before reporting no presence").withValueMin(10).withValueMax(600),
+            e
+                .numeric("delay_time", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Delay time before reporting no presence")
+                .withValueMin(10)
+                .withValueMax(600),
             e.binary("led_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable LED indicator"),
             e.illuminance().withUnit("lx"),
             e.battery().withUnit("%"),
@@ -23463,5 +23479,4 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
 ];
