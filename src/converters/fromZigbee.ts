@@ -1515,12 +1515,12 @@ export const command_move_color_temperature: Fz.Converter<"lightingColorCtrl", u
         return payload;
     },
 };
-export const command_move_color_temperature_stop: Fz.Converter<"lightingColorCtrl", undefined, "commandStopMoveStep"> = {
+export const command_stop_move_step: Fz.Converter<"lightingColorCtrl", undefined, "commandStopMoveStep"> = {
     cluster: "lightingColorCtrl",
     type: "commandStopMoveStep",
     convert: (model, msg, publish, options, meta) => {
         if (hasAlreadyProcessedMessage(msg, model)) return;
-        const payload = {action: postfixWithEndpointName("color_temperature_move_stop", msg, model, meta)};
+        const payload = {action: postfixWithEndpointName("stop_move_step", msg, model, meta)};
         addActionGroup(payload, msg, model);
         return payload;
     },
