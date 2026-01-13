@@ -1,6 +1,13 @@
 import * as exposes from "../lib/exposes";
+import {presets as e, access as ea} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
+import {setupConfigureForBinding} from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
+import {
+    addActionGroup,
+    hasAlreadyProcessedMessage,
+    postfixWithEndpointName,
+} from "../lib/utils";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
