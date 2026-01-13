@@ -4528,6 +4528,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["lumi.switch.agl010"],
+        whiteLabel: [{model: "WS-K08D", vendor: "Aqara"}],
         model: "WS-K08E",
         vendor: "Aqara",
         description: "Light switch H2 EU (double rocker)",
@@ -4959,7 +4960,7 @@ export const definitions: DefinitionWithExtend[] = [
                 setpoints: {
                     values: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
                 },
-                localTemperatureCalibration: {values: true},
+                localTemperatureCalibration: {values: {min: -5, max: 5, step: 0.1}},
                 temperatureSetpointHold: true,
                 temperatureSetpointHoldDuration: true,
                 setpointsLimit: {
@@ -5070,6 +5071,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.identify(),
+            lumiZigbeeOTA(),
         ],
     },
     {
