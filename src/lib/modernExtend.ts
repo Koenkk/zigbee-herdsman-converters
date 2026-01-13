@@ -7,6 +7,7 @@ import type {
     TCustomClusterPayload,
 } from "zigbee-herdsman/dist/controller/tstype";
 import type {TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
+import {DataType} from "zigbee-herdsman/dist/zspec/zcl/definition/enums";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -1459,6 +1460,19 @@ export function lightingBallast(): ModernExtend {
 // #endregion
 
 // #region HVAC
+
+export function customLocalTemperatureCalibrationRange({min, max}: {min: number; max: number}): ModernExtend {
+    // Some devices have a custom range for localTemperatureCalibration attribute.
+    // To find the range for a specific device: https://github.com/Koenkk/zigbee2mqtt/issues/30448#issuecomment-3707495349
+    return deviceAddCustomCluster("hvacThermostat", {
+        ID: 0x0201,
+        attributes: {
+            localTemperatureCalibration: {ID: 0x0010, type: DataType.INT8, write: true, min, max, default: 0},
+        },
+        commands: {},
+        commandsResponse: {},
+    });
+}
 
 // #endregion
 
