@@ -23572,4 +23572,35 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: [
+            {
+                modelID: "TS0601",
+                manufacturerName: "_TZE284_hodyryli",
+            },
+        ],
+        model: "TS0601_display_sensor_temp_hum_tempext",
+        vendor: "Tuya",
+        description: "Temperature and Humidity Sensor with additional external temerature sensor",
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                timeStart: "1970",
+            }),
+        ],
+        exposes: [
+            e.temperature(),
+            e.humidity(),
+            e.numeric("temperature_ext", ea.STATE).withUnit("°C").withDescription("External sensor temperature").withCategory("diagnostic"),
+            tuya.exposes.batteryState(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "temperature", tuya.valueConverter.divideBy10],
+                [2, "humidity", tuya.valueConverter.raw],
+                [3, "battery_state", tuya.valueConverter.batteryState],
+                [38, "temperature_ext", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
 ];
