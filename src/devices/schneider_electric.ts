@@ -446,9 +446,9 @@ const schneiderElectricExtend = {
         m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
             ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
             attributes: {
-                displayBrightnessActive: {ID: 0xe000, type: Zcl.DataType.UINT8, read: true, write: true, min: 0, max: 100},
-                displayBrightnessInactive: {ID: 0xe001, type: Zcl.DataType.UINT8, read: true, write: true, min: 0, max: 100},
-                displayActiveTimeout: {ID: 0xe002, type: Zcl.DataType.UINT16, read: true, write: true, min: 5, max: 600},
+                displayBrightnessActive: {ID: 0xe000, type: Zcl.DataType.UINT8, write: true, min: 0, max: 100},
+                displayBrightnessInactive: {ID: 0xe001, type: Zcl.DataType.UINT8, write: true, min: 0, max: 100},
+                displayActiveTimeout: {ID: 0xe002, type: Zcl.DataType.UINT16, write: true, min: 5, max: 600},
             },
             commands: {},
             commandsResponse: {},
@@ -457,7 +457,7 @@ const schneiderElectricExtend = {
         m.numeric({
             name: "display_brightness_active",
             cluster: "hvacUserInterfaceCfg",
-            attribute: "displayBrightnessActive",
+            attribute: {ID: 0xe000, type: Zcl.DataType.UINT8},
             description: "Sets brightness of the temperature display during active state",
             entityCategory: "config",
             unit: "%",
@@ -470,7 +470,7 @@ const schneiderElectricExtend = {
         m.numeric({
             name: "display_brightness_inactive",
             cluster: "hvacUserInterfaceCfg",
-            attribute: "displayBrightnessInactive",
+            attribute: {ID: 0xe001, type: Zcl.DataType.UINT8},
             description: "Sets brightness of the temperature display during inactive state",
             entityCategory: "config",
             unit: "%",
@@ -483,7 +483,7 @@ const schneiderElectricExtend = {
         m.numeric({
             name: "display_active_timeout",
             cluster: "hvacUserInterfaceCfg",
-            attribute: "displayActiveTimeout",
+            attribute: {ID: 0xe002, type: Zcl.DataType.UINT16},
             description: "Sets timeout of the temperature display active state",
             entityCategory: "config",
             unit: "seconds",
