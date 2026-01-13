@@ -4960,7 +4960,7 @@ export const definitions: DefinitionWithExtend[] = [
                 setpoints: {
                     values: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
                 },
-                localTemperatureCalibration: {values: true},
+                localTemperatureCalibration: {values: {min: -5, max: 5, step: 0.1}},
                 temperatureSetpointHold: true,
                 temperatureSetpointHoldDuration: true,
                 setpointsLimit: {
