@@ -1515,7 +1515,7 @@ export const command_move_color_temperature: Fz.Converter<"lightingColorCtrl", u
         return payload;
     },
 };
-export const command_move_color_temperature_stop: Fz.Converter<"lightingColorCtrl", undefined, ["commandStopMoveStep"]> = {
+export const command_move_color_temperature_stop: Fz.Converter<"lightingColorCtrl", undefined, "commandStopMoveStep"> = {
     cluster: "lightingColorCtrl",
     type: "commandStopMoveStep",
     convert: (model, msg, publish, options, meta) => {

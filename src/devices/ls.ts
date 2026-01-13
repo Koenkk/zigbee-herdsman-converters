@@ -1,20 +1,15 @@
 import * as exposes from "../lib/exposes";
-import * as fz from "../converters/fromZigbee";
 import * as m from "../lib/modernExtend";
 import {setupConfigureForBinding} from "../lib/modernExtend";
-import type {DefinitionWithExtend} from "../lib/types";
-import {
-    addActionGroup,
-    hasAlreadyProcessedMessage,
-    postfixWithEndpointName,
-} from "../lib/utils";
+import type {DefinitionWithExtend, Fz, ModernExtend} from "../lib/types";
 import * as utils from "../lib/utils";
+import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
 const fzLocal = {
-    command_on_double: Fz.Converter<"genOnOff", undefined, "commandOnWithRecallGlobalScene"> = {
+    command_on_double: {
         cluster: "genOnOff",
         type: "commandOnWithRecallGlobalScene",
         convert: (model, msg, publish, options, meta) => {
@@ -23,8 +18,8 @@ const fzLocal = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    },
-    command_off_double: Fz.Converter<"genOnOff", undefined, "commandOffWithEffect"> = {
+    } satisfies Fz.Converter<"genOnOff", undefined, "commandOnWithRecallGlobalScene">,
+    command_off_double: {
         cluster: "genOnOff",
         type: "commandOffWithEffect",
         convert: (model, msg, publish, options, meta) => {
@@ -33,45 +28,30 @@ const fzLocal = {
             addActionGroup(payload, msg, model);
             return payload;
         },
-    },
+    } satisfies Fz.Converter<"genOnOff", undefined, "commandOffWithEffect">,
 };
 
 const lsModernExtend = {
     groupIdExpose(): ModernExtend {
         const result: ModernExtend = {
-            exposes: [
-                e.enum("action_group", ea.STATE)
-                .withDescription("Group where the action was triggered on")
-                .withCategory("diagnostic"),
-            ],
+            exposes: [e.numeric("action_group", ea.STATE).withDescription("Group where the action was triggered on")],
             isModernExtend: true,
         };
 
         return result;
     },
-
     commandsOnOffDouble(): ModernExtend {
-        const {commands = ["on_double", "off_double"], bind = true, endpointNames = undefined};
-        let actions: string[] = commands;
-        if (endpointNames) {
-            actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
-        }
-
-        const fromZigbee = [fzLocal.command_on_double, fzLocal.command_off_double];
-    
-        const result: ModernExtend = {
+        return {
             exposes: [
-                e.enum("action", ea.STATE, actions)
+                e
+                    .enum("action", ea.STATE, ["on_double", "off_double"])
                     .withDescription("Triggered action (e.g. a button click)")
                     .withCategory("diagnostic"),
             ],
-            fromZigbee,
+            fromZigbee: [fzLocal.command_on_double, fzLocal.command_off_double],
             isModernExtend: true,
+            configure: [setupConfigureForBinding("genOnOff", "output")],
         };
-    
-        if (bind) result.configure = [setupConfigureForBinding("genOnOff", "output", endpointNames)];
-    
-        return result;
     },
 };
 
