@@ -1,5 +1,4 @@
 import * as exposes from "../lib/exposes";
-import {presets as e, access as ea} from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {setupConfigureForBinding} from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -11,6 +10,7 @@ import {
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 const fzLocal = {
     command_on_double: Fz.Converter<"genOnOff", undefined, "commandOnWithRecallGlobalScene"> = {
@@ -36,7 +36,7 @@ const fzLocal = {
 };
 
 const lsModernExtend = {
-    groupIdExpose: (args: any): { exposes: any[], isModernExtend: boolean } => {
+    groupIdExpose: (args: groupIdExpose = {}): ModernExtend {
         const exposes = [e.numeric("action_group", ea.STATE).withDescription("Group where the action was triggered on")];
 
         const result = {exposes, isModernExtend: true};
