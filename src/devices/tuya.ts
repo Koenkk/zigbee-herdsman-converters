@@ -19018,7 +19018,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-        {
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_7yyuo8sr"]),
         model: "TS0601",
         vendor: "Tuya",
