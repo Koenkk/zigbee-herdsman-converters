@@ -1375,7 +1375,7 @@ export type ColorCtrlCommand =
     | "hue_move"
     | "hue_stop"
     | "move_to_saturation"
-    | "move_to_hue";
+    | "move_to_hue"
     | "stop_move_step";
 export interface CommandsColorCtrl {
     commands?: ColorCtrlCommand[];
