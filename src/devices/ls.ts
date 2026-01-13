@@ -1,4 +1,5 @@
 import * as exposes from "../lib/exposes";
+import * as fz from "../converters/fromZigbee";
 import * as m from "../lib/modernExtend";
 import {setupConfigureForBinding} from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
