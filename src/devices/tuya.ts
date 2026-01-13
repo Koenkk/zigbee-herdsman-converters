@@ -19019,11 +19019,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_kyyu8rbj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_kyyu8rbj", "_TZE204_7yyuo8sr"]),
         model: "ME201WZ",
         vendor: "Tuya",
         description: "Water level sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        whiteLabel: [tuya.whitelabel("Tuya", "872WZ", "Water level sensor", ["_TZE204_7yyuo8sr"])],
         exposes: [
             e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
             e.numeric("liquid_depth", ea.STATE).withUnit("m").withDescription("Liquid Depth"),
