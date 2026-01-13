@@ -36,32 +36,42 @@ const fzLocal = {
 };
 
 const lsModernExtend = {
-    groupIdExpose: (args: groupIdExpose = {}): ModernExtend {
-        const exposes = [e.numeric("action_group", ea.STATE).withDescription("Group where the action was triggered on")];
-
-        const result = {exposes, isModernExtend: true};
+    groupIdExpose(): ModernExtend {
+        const result: ModernExtend = {
+            exposes: [
+                e.enum("action_group", ea.STATE)
+                .withDescription("Group where the action was triggered on")
+                .withCategory("diagnostic"),
+            ],
+            isModernExtend: true,
+        };
 
         return result;
     },
 
-    commandsOnOffDouble(args: commandsOnOffDouble = {}): ModernExtend {
-        const {commands = ["on_double", "off_double"], bind = true, endpointNames = undefined} = args;
+    commandsOnOffDouble(): ModernExtend {
+        const {commands = ["on_double", "off_double"], bind = true, endpointNames = undefined};
         let actions: string[] = commands;
         if (endpointNames) {
             actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
         }
-        const exposes: Expose[] = [
-            e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic"),
-        ];
-    
+
         const fromZigbee = [fzLocal.command_on_double, fzLocal.command_off_double];
     
-        const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
+        const result: ModernExtend = {
+            exposes: [
+                e.enum("action", ea.STATE, actions)
+                    .withDescription("Triggered action (e.g. a button click)")
+                    .withCategory("diagnostic"),
+            ],
+            fromZigbee,
+            isModernExtend: true,
+        };
     
         if (bind) result.configure = [setupConfigureForBinding("genOnOff", "output", endpointNames)];
     
         return result;
-    }
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
