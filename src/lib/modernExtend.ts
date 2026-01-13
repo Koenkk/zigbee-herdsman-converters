@@ -1376,6 +1376,7 @@ export type ColorCtrlCommand =
     | "hue_stop"
     | "move_to_saturation"
     | "move_to_hue";
+    | "stop_move_step";
 export interface CommandsColorCtrl {
     commands?: ColorCtrlCommand[];
     bind?: boolean;
@@ -1402,6 +1403,7 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
             "hue_stop",
             "move_to_saturation",
             "move_to_hue",
+            "stop_move_step",
         ],
         bind = true,
         endpointNames = undefined,
@@ -1428,6 +1430,7 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
         fz.command_move_hue,
         fz.command_move_to_saturation,
         fz.command_move_to_hue,
+        fz.command_stop_move_step,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
