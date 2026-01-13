@@ -5,6 +5,58 @@ import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 
+const fzLocal = {
+    command_on_double: Fz.Converter<"genOnOff", undefined, "commandOnWithRecallGlobalScene"> = {
+        cluster: "genOnOff",
+        type: "commandOnWithRecallGlobalScene",
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            const payload = {action: postfixWithEndpointName("on_double", msg, model, meta)};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+    command_off_double: Fz.Converter<"genOnOff", undefined, "commandOffWithEffect"> = {
+        cluster: "genOnOff",
+        type: "commandOffWithEffect",
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            const payload = {action: postfixWithEndpointName("off_double", msg, model, meta)};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    },
+};
+
+const lsModernExtend = {
+    groupIdExpose: (args: any): { exposes: any[], isModernExtend: boolean } => {
+        const exposes = [e.numeric("action_group", ea.STATE).withDescription("Group where the action was triggered on")];
+
+        const result = {exposes, isModernExtend: true};
+
+        return result;
+    },
+
+    commandsOnOffDouble(args: commandsOnOffDouble = {}): ModernExtend {
+        const {commands = ["on_double", "off_double"], bind = true, endpointNames = undefined} = args;
+        let actions: string[] = commands;
+        if (endpointNames) {
+            actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
+        }
+        const exposes: Expose[] = [
+            e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic"),
+        ];
+    
+        const fromZigbee = [fzLocal.command_on_double, fzLocal.command_off_double];
+    
+        const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
+    
+        if (bind) result.configure = [setupConfigureForBinding("genOnOff", "output", endpointNames)];
+    
+        return result;
+    }
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Emotion"],
@@ -56,6 +108,22 @@ export const definitions: DefinitionWithExtend[] = [
         model: "756200643",
         vendor: "L&S Lighting",
         description: "Zigbee remote",
-        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl(), m.commandsScenes()],
+            extend: [
+        m.battery(),
+        lsModernExtend.groupIdExpose(),
+        lsModernExtend.commandsOnOffDouble(),
+        m.commandsOnOff({commands: ["on", "off"]}),
+        m.commandsLevelCtrl({
+            commands: ["brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down", "brightness_stop"],
+        }),
+        m.commandsColorCtrl({
+            commands: [
+                "color_temperature_step_up",
+                "color_temperature_step_down",
+                "color_temperature_move_up",
+                "color_temperature_move_down",
+                "color_temperature_move_stop",
+            ],
+        }),
     },
 ];
