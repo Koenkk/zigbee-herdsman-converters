@@ -673,6 +673,22 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["W564100"],
+        model: "W564100",
+        vendor: "Schneider Electric",
+        description: "Motion sensor",
+        extend: [
+            m.onOff({powerOnBehavior: false}),
+            // Illuminance doesn't require scale
+            // https://github.com/Koenkk/zigbee2mqtt/issues/30580#issuecomment-3742159287
+            m.illuminance({scale: (v) => v}),
+            m.temperature(),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_2"]}),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+        ],
+    },
+    {
         zigbeeModel: ["PUCK/SHUTTER/1"],
         model: "CCT5015-0001",
         vendor: "Schneider Electric",
