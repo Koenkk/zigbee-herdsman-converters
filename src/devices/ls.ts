@@ -113,17 +113,7 @@ export const definitions: DefinitionWithExtend[] = [
         lsModernExtend.groupIdExpose(),
         lsModernExtend.commandsOnOffDouble(),
         m.commandsOnOff({commands: ["on", "off"]}),
-        m.commandsLevelCtrl({
-            commands: ["brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down", "brightness_stop"],
-        }),
-        m.commandsColorCtrl({
-            commands: [
-                "color_temperature_step_up",
-                "color_temperature_step_down",
-                "color_temperature_move_up",
-                "color_temperature_move_down",
-                "color_temperature_move_stop",
-            ],
-        }),
+        m.commandsLevelCtrl({commands: ["brightness_step_up", "brightness_step_down", "brightness_stop"]}),
+        m.commandsColorCtrl({commands: ["color_temperature_step_up", "color_temperature_step_down", "color_temperature_move_stop"]}),
     },
 ];
