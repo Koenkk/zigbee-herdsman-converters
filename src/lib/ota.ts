@@ -492,7 +492,7 @@ function getImageBlockResponsePayload(
     // Some devices send `imageBlockRequest.payload.maximumDataSize` 0xFF which is translated to `null` according to the spec.
     // In that case default to the `initialMaximumDataSize`.
     // e.g. Develco https://github.com/Koenkk/zigbee-OTA/issues/863#issuecomment-3736158829
-    let dataSize = Math.min(initialMaximumDataSize, imageBlockRequest.payload.maximumDataSize ?? initialMaximumDataSize);
+    let dataSize = Number.isFinite(imageBlockRequest.payload.maximumDataSize) ? Math.min(initialMaximumDataSize, imageBlockRequest.payload.maximumDataSize) : initialMaximumDataSize;
     let start = imageBlockRequest.payload.fileOffset + pageOffset;
 
     // Hack for https://github.com/Koenkk/zigbee-OTA/issues/328 (Legrand OTA not working)
