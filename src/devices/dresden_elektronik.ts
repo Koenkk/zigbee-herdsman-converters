@@ -12,7 +12,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Mega23M12",
         vendor: "Dresden Elektronik",
         description: "Zigbee Light Link wireless electronic ballast",
-        ota: true, 
+        ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {rgb: 10, white: 11}}),
             m.light({colorTemp: {range: undefined}, color: true, endpointNames: ["rgb", "white"]}),
