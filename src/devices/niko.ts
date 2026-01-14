@@ -16,6 +16,7 @@ interface NikoConfig {
         outletLedColor: number;
         outletChildLock: number;
         ledEnable: number;
+        ledState: number;
         ledSyncMode: number;
     };
     commands: never;
@@ -47,6 +48,7 @@ const local = {
                     outletLedColor: {ID: 0x0100, type: Zcl.DataType.UINT24, write: true, max: 0xffffff},
                     outletChildLock: {ID: 0x0101, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                     ledEnable: {ID: 0x0104, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    ledState: {ID: 0x0105, type: Zcl.DataType.BITMAP8, write: true, max: 0x03},
                     /* WARNING: 0x0107 is not supported on older switches */
                     ledSyncMode: {ID: 0x0107, type: Zcl.DataType.BITMAP32, write: true},
                 },
@@ -132,8 +134,8 @@ const local = {
                     state.led_enable = msg.data.ledEnable === 1;
                 }
                 if (msg.data.outletLedColor !== undefined) {
-                    const ledStateMap: KeyValue = {0: "OFF", 255: "ON", 65280: "Blue", 16711680: "Red", 16777215: "Purple"};
-                    state.led_state = utils.getFromLookup(msg.data.outletLedColor, ledStateMap);
+                    const ledColorMap: KeyValue = {0: "OFF", 255: "ON", 65280: "Blue", 16711680: "Red", 16777215: "Purple"};
+                    state.led_color = utils.getFromLookup(msg.data.outletLedColor, ledColorMap);
                 }
                 if (msg.data.ledSyncMode !== undefined) {
                     const ledSyncMap: {[key: number]: string} = {0: "Off", 1: "On", 2: "Inverted"};
@@ -229,23 +231,52 @@ const local = {
                 await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledEnable"]);
             },
         } satisfies Tz.Converter,
-        switch_led_state: {
-            key: ["led_state"],
+        switch_led_color: {
+            key: ["led_color"],
             convertSet: async (entity, key, value, meta) => {
-                const ledStateMap: KeyValue = {OFF: 0x00, ON: 0x0000ff, Blue: 0x00ff00, Red: 0xff0000, Purple: 0xffffff};
+                const ledColorMap: KeyValue = {OFF: 0x00, ON: 0x0000ff, Blue: 0x00ff00, Red: 0xff0000, Purple: 0xffffff};
                 // @ts-expect-error ignore
-                if (ledStateMap[value] === undefined) {
-                    throw new Error(`led_state was called with an invalid value (${value})`);
+                if (ledColorMap[value] === undefined) {
+                    throw new Error(`led_color was called with an invalid value (${value})`);
                 }
                 await entity.write(
                     "manuSpecificNikoConfig",
                     // @ts-expect-error ignore
-                    {outletLedColor: ledStateMap[value]},
+                    {outletLedColor: ledColorMap[value]},
                 );
-                return {state: {led_state: value}};
+                return {state: {led_color: value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["outletLedColor"]);
+            },
+        } satisfies Tz.Converter,
+        switch_led_state: {
+            key: ["led_state"],
+            convertSet: async (entity, key, value, meta) => {
+                const ledStateMap: {[key: string]: number} = {Off: 0, On: 1};
+                // @ts-expect-error ignore
+                if (ledStateMap[value] === undefined) {
+                    throw new Error(`led_state was called with an invalid value (${value})`);
+                }
+                const endpointOffsetMap: {[key: string]: number} = {l1: 0, l2: 1};
+                let result = 0x00;
+                if (endpointOffsetMap[meta.endpoint_name] !== undefined) {
+                    for (const ep in endpointOffsetMap) {
+                        // @ts-expect-error ignore
+                        const endpointState: number = ep === meta.endpoint_name ? value : meta.state[`led_state_${ep}`];
+                        // @ts-expect-error ignore
+                        const endpointValue = ledStateMap[endpointState] === undefined ? ledStateMap[value] : ledStateMap[endpointState];
+                        result = result | (endpointValue << endpointOffsetMap[ep]);
+                    }
+                } else {
+                    // @ts-expect-error ignore
+                    result = ledStateMap[value];
+                }
+                await entity.write<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", {ledState: result});
+                return {state: {led_state: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledState"]);
             },
         } satisfies Tz.Converter,
         switch_led_sync_mode: {
@@ -421,7 +452,7 @@ export const definitions: DefinitionWithExtend[] = [
             local.tz.switch_operation_mode,
             local.tz.switch_action_reporting,
             local.tz.switch_led_enable,
-            local.tz.switch_led_state,
+            local.tz.switch_led_color,
             local.tz.switch_led_sync_mode,
         ],
         extend: [local.modernExtend.addCustomClusterManuSpecificNikoConfig(), local.modernExtend.addCustomClusterManuSpecificNikoState()],
@@ -445,7 +476,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("operation_mode", ea.ALL, ["control_relay", "decoupled"]),
             e.binary("action_reporting", ea.ALL, true, false).withDescription("Enable Action Reporting"),
             e.binary("led_enable", ea.ALL, true, false).withDescription("Enable LED"),
-            e.enum("led_state", ea.ALL, ["ON", "OFF", "Blue", "Red", "Purple"]).withDescription("LED State"),
+            e.enum("led_color", ea.ALL, ["ON", "OFF", "Blue", "Red", "Purple"]).withDescription("LED State"),
             e.enum("led_sync_mode", ea.ALL, ["Off", "On", "Inverted"]).withDescription("Sync LED with relay state"),
         ],
         ota: true,
@@ -461,6 +492,7 @@ export const definitions: DefinitionWithExtend[] = [
             local.tz.switch_operation_mode,
             local.tz.switch_action_reporting,
             local.tz.switch_led_enable,
+            local.tz.switch_led_color,
             local.tz.switch_led_state,
             local.tz.switch_led_sync_mode,
         ],
@@ -476,17 +508,17 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(ep2, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(ep1);
             await reporting.onOff(ep2);
+            // These values are endpoint-independent
             await ep1.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["switchOperationMode", "ledEnable", "outletLedColor"]);
-            await ep2.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["switchOperationMode", "ledEnable", "outletLedColor"]);
-            // Enable action reporting by default
+            // Enable action reporting by default - NOTE: does not work
             await ep1.write<"manuSpecificNikoState", NikoState>("manuSpecificNikoState", {switchActionReporting: 1});
             await ep1.read<"manuSpecificNikoState", NikoState>("manuSpecificNikoState", ["switchActionReporting"]);
             await ep1.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledSyncMode"]);
             await ep2.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledSyncMode"]);
+            await ep1.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledState"]);
+            await ep2.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledState"]);
         },
         exposes: [
-            e.switch().withEndpoint("l1"),
-            e.switch().withEndpoint("l2"),
             e.action([
                 "single_left",
                 "hold_left",
@@ -503,10 +535,12 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
             e.enum("operation_mode", ea.ALL, ["control_relay", "decoupled"]),
             e.binary("action_reporting", ea.ALL, true, false).withDescription("Enable Action Reporting"),
-            e.binary("led_enable", ea.ALL, true, false).withEndpoint("l1").withDescription("Enable LED"),
-            e.binary("led_enable", ea.ALL, true, false).withEndpoint("l2").withDescription("Enable LED"),
-            e.enum("led_state", ea.ALL, ["ON", "OFF", "Blue", "Red", "Purple"]).withEndpoint("l1").withDescription("LED State"),
-            e.enum("led_state", ea.ALL, ["ON", "OFF", "Blue", "Red", "Purple"]).withEndpoint("l2").withDescription("LED State"),
+            e.binary("led_enable", ea.ALL, true, false).withDescription("Enable LED"),
+            e.enum("led_color", ea.ALL, ["ON", "OFF", "Blue", "Red", "Purple"]).withDescription("LED ambient color"),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.enum("led_state", ea.ALL, ["Off", "On"]).withEndpoint("l1").withDescription("LED state"),
+            e.enum("led_state", ea.ALL, ["Off", "On"]).withEndpoint("l2").withDescription("LED state"),
             e.enum("led_sync_mode", ea.ALL, ["Off", "On", "Inverted"]).withEndpoint("l1").withDescription("Sync LED with relay state"),
             e.enum("led_sync_mode", ea.ALL, ["Off", "On", "Inverted"]).withEndpoint("l2").withDescription("Sync LED with relay state"),
         ],
@@ -518,12 +552,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Niko",
         description: "Connectable dimmer",
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.command_move, fz.command_stop, local.fz.switch_status_led],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, local.tz.switch_led_enable, local.tz.switch_led_state],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, local.tz.switch_led_enable, local.tz.switch_led_color],
         extend: [local.modernExtend.addCustomClusterManuSpecificNikoConfig(), local.modernExtend.addCustomClusterManuSpecificNikoState()],
         exposes: [
             e.light_brightness().withLevelConfig(),
             e.binary("led_enable", ea.ALL, true, false).withDescription("Enable LED"),
-            e.enum("led_state", ea.ALL, ["ON", "OFF", "Blue", "Red", "Purple"]).withDescription("LED State"),
+            e.enum("led_color", ea.ALL, ["ON", "OFF", "Blue", "Red", "Purple"]).withDescription("LED State"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
