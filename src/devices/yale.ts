@@ -257,12 +257,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lockExtend()],
     },
     {
-        zigbeeModel: ['YRL256 TS'],
-        model: 'YRL256 TS',
-        vendor: 'Yale',
-        description: 'Assure lock',
-        extend: [m.battery(), m.lock({"pinCodeCount":250})],
-    },   
+        zigbeeModel: ["YRL256 TS"],
+        model: "YRL256 TS",
+        vendor: "Yale",
+        description: "Assure lock",
+        extend: [m.battery(), m.lock({pinCodeCount: 250})],
+    },
     {
         zigbeeModel: ["YRD226 TSDB", "YRD226L TSDB"],
         model: "YRD226HA2619",
