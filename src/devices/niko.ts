@@ -47,12 +47,13 @@ const local = {
                 //       1: Decoupled
                 //       2: Controlled relay
                 //       3+: (invalid value reported)
-                //     NOTE: affects all channels
+                //     NOTES: - affects all channels
+                //            - see warning below on data type
                 //
                 // 0x0100  34 (0x22): UINT24     "outletLedColor" (after reset: 0)
                 // Probably intended for ambient light purposes
                 //
-                // 0x0101  32 (0x20): UINT8    * (after reset: 1)
+                // 0x0101  32 (0x20): UINT8      "outletChildLock" (after reset: 1)
                 // 	 bit 0: enable relay control?
                 //
                 // 0x0102  32 (0x20): UINT8    * (after reset: 55 (0x37))
@@ -204,7 +205,16 @@ const local = {
                     state.led_color = utils.getFromLookup(msg.data.outletLedColor, ledColorMap);
                 }
                 if (msg.data.ledState !== undefined) {
-                    state.led_state = !!msg.data.ledState;
+                    const ledStateMap: {[key: number]: string} = {0: "OFF", 1: "ON"};
+                    if (model.meta.multiEndpoint) {
+                        const endpointOffsetMap: {[key: string]: number} = {l1: 0, l2: 1};
+                        for (const ep in endpointOffsetMap) {
+                            const result = (msg.data.ledState >> endpointOffsetMap[ep]) & 0x1;
+                            state[`led_state_${ep}`] = utils.getFromLookup(result, ledStateMap);
+                        }
+                    } else {
+                        state.led_state = utils.getFromLookup(msg.data.ledState, ledStateMap);
+                    }
                 }
                 if (msg.data.ledSyncMode !== undefined) {
                     const ledSyncMap: {[key: number]: string} = {0: "Off", 1: "On", 2: "Inverted"};
@@ -322,20 +332,27 @@ const local = {
         switch_led_state: {
             key: ["led_state"],
             convertSet: async (entity, key, value, meta) => {
+                const ledStateMap: {[key: string]: number} = {OFF: 0, ON: 1};
+                // @ts-expect-error ignore
+                if (ledStateMap[value] === undefined) {
+                    throw new Error(`led_state was called with an invalid value (${value})`);
+                }
                 const endpointOffsetMap: {[key: string]: number} = {l1: 0, l2: 1};
                 let result = 0x00;
                 if (endpointOffsetMap[meta.endpoint_name] !== undefined) {
                     for (const ep in endpointOffsetMap) {
                         // @ts-expect-error ignore
-                        const endpointValue: number = ep === meta.endpoint_name ? !!value : meta.state[`led_state_${ep}`];
+                        const endpointState: number = ep === meta.endpoint_name ? value : meta.state[`led_state_${ep}`];
+                        // @ts-expect-error ignore
+                        const endpointValue = ledStateMap[endpointState] === undefined ? ledStateMap[value] : ledStateMap[endpointState];
                         result = result | (endpointValue << endpointOffsetMap[ep]);
                     }
                 } else {
                     // @ts-expect-error ignore
-                    result = !!value;
+                    result = ledStateMap[value];
                 }
                 await entity.write<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", {ledState: result});
-                return {state: {led_state: !!value}};
+                return {state: {led_state: value}};
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read<"manuSpecificNikoConfig", NikoConfig>("manuSpecificNikoConfig", ["ledState"]);
@@ -542,7 +559,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("action_reporting", ea.ALL, true, false).withDescription("Enable Action Reporting"),
             e.binary("led_enable", ea.ALL, true, false).withDescription("Enable LED"),
             e.enum("led_color", ea.ALL, ["ON", "OFF", "Blue", "Red", "Purple"]).withDescription("LED ambient color"),
-            e.binary("led_state", ea.ALL, true, false).withDescription("LED state"),
+            e.binary("led_state", ea.ALL, "ON", "OFF").withDescription("LED state"),
             e.enum("led_sync_mode", ea.ALL, ["Off", "On", "Inverted"]).withDescription("Sync LED with relay state"),
         ],
         ota: true,
@@ -610,8 +627,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("action_reporting", ea.ALL, true, false).withDescription("Enable Action Reporting"),
             e.binary("led_enable", ea.ALL, true, false).withDescription("Enable LED"),
             e.enum("led_color", ea.ALL, ["ON", "OFF", "Blue", "Red", "Purple"]).withDescription("LED ambient color"),
-            e.binary("led_state", ea.ALL, true, false).withEndpoint("l1").withDescription("LED state"),
-            e.binary("led_state", ea.ALL, true, false).withEndpoint("l2").withDescription("LED state"),
+            e.binary("led_state", ea.ALL, "ON", "OFF").withEndpoint("l1").withDescription("LED state"),
+            e.binary("led_state", ea.ALL, "ON", "OFF").withEndpoint("l2").withDescription("LED state"),
             e.enum("led_sync_mode", ea.ALL, ["Off", "On", "Inverted"]).withEndpoint("l1").withDescription("Sync LED with relay state"),
             e.enum("led_sync_mode", ea.ALL, ["Off", "On", "Inverted"]).withEndpoint("l2").withDescription("Sync LED with relay state"),
         ],
