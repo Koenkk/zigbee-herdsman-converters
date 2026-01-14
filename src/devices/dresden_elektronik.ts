@@ -2,31 +2,9 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, Expose, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Expose} from "../lib/types";
 
 const e = exposes.presets;
-
-const tzLocal = {
-    flsm_color_hs: {
-        key: ["color"],
-        convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta): Promise<void> => {
-            if (typeof value !== "object" || value === null) {
-                return;
-            }
-
-            const v = value as {hue?: number; saturation?: number};
-
-            if (typeof v.hue !== "number" || typeof v.saturation !== "number") {
-                return;
-            }
-
-            const hue = Math.max(0, Math.min(254, Math.round((v.hue / 360) * 254)));
-            const saturation = Math.max(0, Math.min(254, Math.round((v.saturation / 100) * 254)));
-
-            await (entity as Zh.Endpoint).command("lightingColorCtrl", "moveToHueAndSaturation", {hue, saturation, transtime: 0}, {});
-        },
-    },
-};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -34,7 +12,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Mega23M12",
         vendor: "Dresden Elektronik",
         description: "Zigbee Light Link wireless electronic ballast",
-        ota: true,
+        ota: true, 
         extend: [
             m.deviceEndpoints({endpoints: {rgb: 10, white: 11}}),
             m.light({colorTemp: {range: undefined}, color: true, endpointNames: ["rgb", "white"]}),
@@ -46,6 +24,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Dresden Elektronik",
         description: "Universal LED controller (dynamic endpoints)",
         ota: true,
+        meta: {
+            supportsEnhancedHue: () => false,
+        },
         endpoint: (device) => {
             const result: {[name: string]: number} = {};
 
@@ -88,7 +69,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
 
         fromZigbee: [fz.on_off, fz.brightness, fz.color_colortemp],
-        toZigbee: [tz.on_off, tz.light_onoff_brightness, tzLocal.flsm_color_hs, tz.light_colortemp],
+        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_color, tz.light_colortemp],
     },
     {
         zigbeeModel: ["FLS-CT"],
