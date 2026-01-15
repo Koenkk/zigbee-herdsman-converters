@@ -718,7 +718,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zen,
     ...zigbeetlc,
     ...zipato,
-	...zunzunbee,
+    ...zunzunbee,
     ...qa,
     ...engo,
     ...vsmart,
