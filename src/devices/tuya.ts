@@ -23573,4 +23573,29 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("Excellux", ["VABRATE"]),
+        model: "VABRATE-01",
+        vendor: "Excellux",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        description: "vibration sensor",
+        exposes: [
+            e.binary("vibration", ea.STATE, true, false).withDescription("Vibration state,true:vibration detected,false:no vibration"),
+            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
+            e
+                .numeric("vibration_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(50)
+                .withValueStep(1)
+                .withUnit("times")
+                .withDescription("Vibration sensitivity"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [4, "battery", tuya.valueConverter.raw],
+                [3, "vibration", tuya.valueConverter.raw],
+                [6, "vibration_sensitivity", tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
