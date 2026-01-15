@@ -23578,10 +23578,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VABRATE-01",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        description: "vibration sensor",
+        description: "Vibration sensor",
         exposes: [
-            e.binary("vibration", ea.STATE, true, false).withDescription("Vibration state,true:vibration detected,false:no vibration"),
-            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
+            e.binary("vibration", ea.STATE, true, false).withDescription("Vibration state"),
+            e.battery(),
             e
                 .numeric("vibration_sensitivity", ea.STATE_SET)
                 .withValueMin(0)
