@@ -1,8 +1,7 @@
-import type {Definition, DefinitionWithExtend, Fz} from "../lib/types";
-
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 
@@ -63,17 +62,11 @@ function decodeSlateZoneStatus(zoneStatusRaw: number): string | null {
 
 // ---------- fromZigbee ----------
 
-type IasMsgType =
-    | "attributeReport"
-    | "readResponse"
-    | "commandStatusChangeNotification"
-    | "commandZoneStatusChangeNotification";
-
 const fzZunzunbeeSlateSwitchIAS = {
     cluster: "ssIasZone",
     // NOTE: this repo version only accepts commandStatusChangeNotification for IAS zone
     type: ["attributeReport", "readResponse", "commandStatusChangeNotification"],
-    convert: (model: Definition, msg: {data: unknown; type: string}) => {
+    convert: (_model: unknown, msg: {data: unknown; type: string}) => {
         const data = msg.data;
 
         // Silabs/Ember often lowercases keys (you observed `zonestatus`)
@@ -91,7 +84,6 @@ const fzZunzunbeeSlateSwitchIAS = {
         return {action};
     },
 } as const;
-
 
 // ---------- Definitions ----------
 
