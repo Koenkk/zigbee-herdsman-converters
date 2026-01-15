@@ -48,7 +48,7 @@ function parseZoneStatusAny(z: unknown): number | undefined {
 
 function decodeSlateZoneStatus(zoneStatusRaw: number): string | null {
     // Bit0 encodes press type (matches your released ZHA behavior)
-    const pressType = (zoneStatusRaw & 0x0001) ? "long_press" : "short_press";
+    const pressType = zoneStatusRaw & 0x0001 ? "long_press" : "short_press";
 
     // Bits 1..8 encode button number (2..256)
     const masked = zoneStatusRaw & 0x01fe;
