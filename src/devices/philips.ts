@@ -3513,6 +3513,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
     },
     {
+        zigbeeModel: ["929004608101"],
+        model: "929004608101",
+        vendor: "Philips",
+        description: "Hue OmniGlow lightstrip 5m",
+        extend: [philips.m.light({"colorTemp":{"range":[50,1000]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+    },
+    {
         zigbeeModel: ["929003099301", "929003099302"],
         model: "929003099301",
         vendor: "Philips",
