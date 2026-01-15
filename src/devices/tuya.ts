@@ -23192,7 +23192,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("soil_fertility_warning_setting", ea.STATE_SET)
                 .withValueMin(100)
-                .withValueMax(1800)
+                .withValueMax(5000)
                 .withValueStep(1)
                 .withUnit("μS/cm")
                 .withDescription("When the soil fertility value is lower than what threshold should a warning be issued"),
@@ -23571,6 +23571,351 @@ export const definitions: DefinitionWithExtend[] = [
                 [109, "battery", tuya.valueConverter.raw],
                 [164, "radar_threshold", tuya.valueConverter.raw],
             ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("Excellux", ["DHT0001", "DHTA001"]),
+        model: "FEDHT-01",
+        vendor: "Excellux",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        description: "HT sensor with temperature and humidity",
+        exposes: [
+            e
+                .enum("temperature_warning", ea.STATE, ["none", "low", "high"])
+                .withDescription("Temperature warning.low :temperature is lower than v0 and v1.high:temperature is higher than v0 and v1"),
+            e
+                .enum("humidity_warning", ea.STATE, ["none", "low", "high"])
+                .withDescription("Humidity warning.low :humidity is lower than v0 and v1.high:humidity is higher than v0 and v1"),
+            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
+            e.temperature(),
+            e.humidity(),
+            e
+                .numeric("sampling_interval", ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(1200)
+                .withValueStep(5)
+                .withUnit("S")
+                .withDescription("sampling interval"),
+            e
+                .numeric("temperature_calibration", ea.STATE_SET)
+                .withValueMin(-2)
+                .withValueMax(2)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Temperature calibration"),
+            e
+                .numeric("temperature_v0_set", ea.STATE_SET)
+                .withValueMin(-40)
+                .withValueMax(85)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Temperature v0 threshold setting"),
+            e
+                .numeric("temperature_v1_set", ea.STATE_SET)
+                .withValueMin(-40)
+                .withValueMax(85)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Temperature v1 threshold setting"),
+
+            e
+                .numeric("humidity_calibration", ea.STATE_SET)
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Humidity calibration"),
+            e
+                .numeric("humidity_v0_set", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Humidity v0 threshold setting"),
+            e
+                .numeric("humidity_v1_set", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Humidity v1 threshold setting"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [4, "battery", tuya.valueConverter.raw],
+                [5, "temperature", tuya.valueConverter.divideBy100],
+                [101, "sampling_interval", tuya.valueConverter.raw],
+                [114, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [115, "temperature_v0_set", tuya.valueConverter.divideBy100],
+                [116, "temperature_v1_set", tuya.valueConverter.divideBy100],
+                [117, "temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
+                [118, "humidity", tuya.valueConverter.divideBy100],
+                [119, "humidity_calibration", tuya.valueConverter.divideBy100],
+                [120, "humidity_v0_set", tuya.valueConverter.divideBy100],
+                [121, "humidity_v1_set", tuya.valueConverter.divideBy100],
+                [122, "humidity_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("Excellux", ["NTCHT01"]),
+        model: "NTCHT-01",
+        vendor: "Excellux",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        description: "Probe Temperature and ht(humidity and temperature) Sensor",
+        exposes: [
+            e
+                .enum("probe_temperature_warning", ea.STATE, ["none", "low", "high"])
+                .withDescription(
+                    "Probe temperature sensor warning.low :temperature is lower than v0 and v1.high:temperature is higher than v0 and v1",
+                ),
+            e
+                .enum("temperature_warning", ea.STATE, ["none", "low", "high"])
+                .withDescription("Temperature warning.low :temperature is lower than v0 and v1.high:temperature is higher than v0 and v1"),
+            e
+                .enum("humidity_warning", ea.STATE, ["none", "low", "high"])
+                .withDescription("Humidity warning.low :humidity is lower than v0 and v1.high:humidity is higher than v0 and v1"),
+            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
+            e
+                .numeric("probe_temperature", ea.STATE)
+                .withValueMin(-40)
+                .withValueMax(120)
+                .withValueStep(1)
+                .withUnit("°C")
+                .withDescription("Probe temperature sensor"),
+            e.temperature(),
+            e.humidity(),
+
+            e
+                .numeric("sampling_interval", ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(1200)
+                .withValueStep(5)
+                .withUnit("S")
+                .withDescription("sampling interval"),
+
+            e
+                .numeric("probe_temperature_calibration", ea.STATE_SET)
+                .withValueMin(-2)
+                .withValueMax(2)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Probe temperature sensor calibration"),
+            e
+                .numeric("probe_temperature_v0_set", ea.STATE_SET)
+                .withValueMin(-40)
+                .withValueMax(125)
+                .withValueStep(1)
+                .withUnit("°C")
+                .withDescription("Probe temperature sensor v0 threshold setting"),
+            e
+                .numeric("probe_temperature_v1_set", ea.STATE_SET)
+                .withValueMin(-40)
+                .withValueMax(125)
+                .withValueStep(1)
+                .withUnit("°C")
+                .withDescription("Probe temperature sensor v1 threshold setting"),
+
+            e
+                .numeric("temperature_calibration", ea.STATE_SET)
+                .withValueMin(-2)
+                .withValueMax(2)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Temperature calibration"),
+            e
+                .numeric("temperature_v0_set", ea.STATE_SET)
+                .withValueMin(-40)
+                .withValueMax(85)
+                .withValueStep(1)
+                .withUnit("°C")
+                .withDescription("Temperature v0 threshold setting"),
+            e
+                .numeric("temperature_v1_set", ea.STATE_SET)
+                .withValueMin(-40)
+                .withValueMax(85)
+                .withValueStep(1)
+                .withUnit("°C")
+                .withDescription("Temperature v1 threshold setting"),
+
+            e
+                .numeric("humidity_calibration", ea.STATE_SET)
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Humidity calibration"),
+            e
+                .numeric("humidity_v0_set", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Humidity v0 threshold setting"),
+            e
+                .numeric("humidity_v1_set", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Humidity v1 threshold setting"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "probe_temperature", tuya.valueConverter.divideBy10],
+                [4, "battery", tuya.valueConverter.raw],
+                [5, "temperature", tuya.valueConverter.divideBy100],
+                [101, "sampling_interval", tuya.valueConverter.raw],
+                [108, "probe_temperature_calibration", tuya.valueConverter.divideBy10],
+                [109, "probe_temperature_v0_set", tuya.valueConverter.divideBy10],
+                [110, "probe_temperature_v1_set", tuya.valueConverter.divideBy10],
+                [112, "probe_temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
+                [114, "temperature_calibration", tuya.valueConverter.divideBy100],
+                [115, "temperature_v0_set", tuya.valueConverter.divideBy100],
+                [116, "temperature_v1_set", tuya.valueConverter.divideBy100],
+                [117, "temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
+                [118, "humidity", tuya.valueConverter.divideBy100],
+                [119, "humidity_calibration", tuya.valueConverter.divideBy100],
+                [120, "humidity_v0_set", tuya.valueConverter.divideBy100],
+                [121, "humidity_v1_set", tuya.valueConverter.divideBy100],
+                [122, "humidity_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("Excellux", ["PIRIV01"]),
+        model: "PIRIV-01",
+        vendor: "Excellux",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        description: "PIR motion sensor, vibration sensor, and light sensor",
+        exposes: [
+            e.enum("presence_state", ea.STATE, ["true", "false"]).withDescription("Presence state,true:motion detected,false:no motion"),
+            e.binary("vibration", ea.STATE, true, false).withDescription("Vibration state,true:vibration detected,false:no vibration"),
+            e.enum("illumiance_warning", ea.STATE, ["none", "low", "high"]).withDescription("Illuminance warning level,low:low,high:high,none"),
+            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
+            e.numeric("illumiance", ea.STATE).withValueMin(0).withValueMax(10000).withValueStep(1).withUnit("lux").withDescription("Illuminance"),
+            e
+                .numeric("sampling_interval", ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(1200)
+                .withValueStep(5)
+                .withUnit("S")
+                .withDescription("sampling illumiance interval"),
+            e
+                .numeric("vibration_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(50)
+                .withValueStep(1)
+                .withUnit("times")
+                .withDescription("Vibration sensitivity"),
+            e
+                .numeric("illumiance_v0", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10000)
+                .withValueStep(1)
+                .withUnit("lux")
+                .withDescription("Illuminance v0 threshold setting"),
+            e
+                .numeric("illumiance_v1", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10000)
+                .withValueStep(1)
+                .withUnit("lux")
+                .withDescription("Illuminance v1 threshold setting"),
+            e
+                .numeric("illumiance_calibration", ea.STATE_SET)
+                .withValueMin(-1000)
+                .withValueMax(1000)
+                .withValueStep(1)
+                .withUnit("lux")
+                .withDescription("Illuminance calibration"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [4, "battery", tuya.valueConverter.raw],
+                [1, "presence_state", tuya.valueConverterBasic.lookup({true: tuya.enum(1), false: tuya.enum(0)})],
+                [3, "vibration", tuya.valueConverter.raw],
+                [6, "vibration_sensitivity", tuya.valueConverter.raw],
+                [20, "illumiance", tuya.valueConverter.raw],
+                [101, "sampling_interval", tuya.valueConverter.raw],
+                [104, "illumiance_v0", tuya.valueConverter.raw],
+                [105, "illumiance_v1", tuya.valueConverter.raw],
+                [106, "illumiance_calibration", tuya.valueConverter.raw],
+                [107, "illumiance_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("Excellux", ["CAT0001"]),
+        model: "Contact-01",
+        vendor: "Excellux",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        description: "contact sensor and vibration sensor",
+        exposes: [
+            e.contact(),
+            e.binary("vibration", ea.STATE, true, false).withDescription("Vibration state,true:vibration detected,false:no vibration"),
+            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
+            e
+                .numeric("vibration_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(50)
+                .withValueStep(1)
+                .withUnit("times")
+                .withDescription("Vibration sensitivity"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [4, "battery", tuya.valueConverter.raw],
+                [7, "contact", tuya.valueConverter.trueFalseInvert],
+                [3, "vibration", tuya.valueConverter.raw],
+                [6, "vibration_sensitivity", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("Excellux", ["DSS0010"]),
+        model: "Scene-Switc",
+        vendor: "Excellux",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        description: "Scene switch",
+        fromZigbee: [
+            fz.command_step,
+            fz.command_on,
+            fz.command_off,
+            fz.command_move_to_color_temp,
+            fz.command_move_to_level,
+            fz.tuya_multi_action,
+            fz.tuya_operation_mode,
+        ],
+        exposes: [
+            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
+            e.action([
+                "single",
+                "double",
+                "hold",
+                "brightness_move_to_level",
+                "color_temperature_move",
+                "brightness_step_up",
+                "brightness_step_down",
+                "on",
+                "off",
+            ]),
+            e
+                .enum("operation_mode", ea.ALL, ["command", "event"])
+                .withDescription('Operation mode: "command" - for group control, "event" - for clicks'),
+        ],
+        meta: {
+            tuyaDatapoints: [[4, "battery", tuya.valueConverter.raw]],
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await endpoint.write("genOnOff", {tuyaOperationMode: 1});
+            await endpoint.read("genOnOff", ["tuyaOperationMode"]);
+            await endpoint.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
