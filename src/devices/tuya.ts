@@ -23589,7 +23589,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
             e.temperature(),
             e.humidity(),
-
             e
                 .numeric("sampling_interval", ea.STATE_SET)
                 .withValueMin(5)
@@ -23650,7 +23649,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [115, "temperature_v0_set", tuya.valueConverter.divideBy100],
                 [116, "temperature_v1_set", tuya.valueConverter.divideBy100],
                 [117, "temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
-
                 [118, "humidity", tuya.valueConverter.divideBy100],
                 [119, "humidity_calibration", tuya.valueConverter.divideBy100],
                 [120, "humidity_v0_set", tuya.valueConverter.divideBy100],
@@ -23767,19 +23765,15 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "probe_temperature", tuya.valueConverter.divideBy10],
                 [4, "battery", tuya.valueConverter.raw],
                 [5, "temperature", tuya.valueConverter.divideBy100],
-
                 [101, "sampling_interval", tuya.valueConverter.raw],
-
                 [108, "probe_temperature_calibration", tuya.valueConverter.divideBy10],
                 [109, "probe_temperature_v0_set", tuya.valueConverter.divideBy10],
                 [110, "probe_temperature_v1_set", tuya.valueConverter.divideBy10],
                 [112, "probe_temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
-
                 [114, "temperature_calibration", tuya.valueConverter.divideBy100],
                 [115, "temperature_v0_set", tuya.valueConverter.divideBy100],
                 [116, "temperature_v1_set", tuya.valueConverter.divideBy100],
                 [117, "temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
-
                 [118, "humidity", tuya.valueConverter.divideBy100],
                 [119, "humidity_calibration", tuya.valueConverter.divideBy100],
                 [120, "humidity_v0_set", tuya.valueConverter.divideBy100],
@@ -23883,9 +23877,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Scene-Switc",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        description: "scene switch",
+        description: "Scene switch",
         fromZigbee: [
-            tuya.fz.datapoints,
             fz.command_step,
             fz.command_on,
             fz.command_off,
@@ -23894,7 +23887,6 @@ export const definitions: DefinitionWithExtend[] = [
             fz.tuya_multi_action,
             fz.tuya_operation_mode,
         ],
-        toZigbee: [tuya.tz.datapoints],
         exposes: [
             e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
             e.action([
