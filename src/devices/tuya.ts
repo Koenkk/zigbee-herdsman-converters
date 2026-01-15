@@ -3064,7 +3064,7 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
             tuya.whitelabel("MiBoxer", "E3-ZR", "3 in 1 LED Controller", ["_TZB210_wy1pyu1q", "_TZB210_yatkpuha"]),
             tuya.whitelabel("MiBoxer", "SZ5", "5 in 1 LED Controller", ["_TZB210_w9hcix2r"]),
-            tuya.whitelabel("MiBoxer", "FUT037Z+", "RGB led controller", ["_TZB210_417ikxay", "_TZB210_wxazcmsh"]),
+            tuya.whitelabel("MiBoxer", "FUT037Z+", "RGB led controller", ["_TZB210_417ikxay", "_TZB210_wxazcmsh", "_TZB210_u3ri0968"]),
             tuya.whitelabel("MiBoxer", "FUT039Z", "RGB+CCT LED controller", ["_TZ3210_jicmoite", "_TZB210_rs0ufzwg"]),
             tuya.whitelabel("MiBoxer", "FUT066Z", "RGB+CCT LED Downlight", ["_TZ3210_zrvxvydd"]),
             tuya.whitelabel("MiBoxer", "FUT068ZR", "RGB+CCT LED Downlight", ["_TZB210_endmggws"]),
@@ -6129,7 +6129,7 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: (m) => m !== "_TZ3000_xfxpoxe0",
                 indicatorMode: (m) => m !== "_TZ3000_xfxpoxe0",
                 powerOutageMemory: true,
-                backlightModeOffOn: true,
+                backlightModeOffOn: (m) => m === "_TZ3000_xfxpoxe0",
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -9790,10 +9790,9 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
             tuya.modernExtend.tuyaOnOff({
-                powerOnBehavior2: (m) => m !== "_TZ3000_r9e2w7dn",
+                powerOnBehavior2: true,
                 backlightModeOffOn: true,
                 endpoints: ["l1", "l2", "l3", "l4"],
-                powerOutageMemory: (m) => m === "_TZ3000_r9e2w7dn",
                 switchType: (m) => m === "_TZ3000_r9e2w7dn",
             }),
         ],
@@ -11723,7 +11722,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_qasjif9e", "_TZE204_ztqnh5cg", "_TZE204_iadro9bf", "_TZE284_iadro9bf"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_qasjif9e", "_TZE200_qasjif9e", "_TZE204_ztqnh5cg", "_TZE204_iadro9bf", "_TZE284_iadro9bf"]),
         model: "ZY-M100-S_2",
         vendor: "Tuya",
         description: "Mini human breathe sensor",
@@ -15025,6 +15024,20 @@ export const definitions: DefinitionWithExtend[] = [
                 [42, "power_on_behavior_l4", tuya.valueConverter.powerOnBehaviorEnum],
                 [101, "presence", tuya.valueConverter.raw],
                 [102, "delay", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_w2vunxzm"]),
+        model: "_TZE204_w2vunxzm",
+        vendor: "Tuya",
+        description: "Pressure sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [e.pressure(), e.temperature()],
+        meta: {
+            tuyaDatapoints: [
+                [101, "pressure", tuya.valueConverter.divideBy10],
+                [8, "temperature", tuya.valueConverter.divideBy100],
             ],
         },
     },
@@ -19006,11 +19019,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_kyyu8rbj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_kyyu8rbj", "_TZE204_7yyuo8sr"]),
         model: "ME201WZ",
         vendor: "Tuya",
         description: "Water level sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        whiteLabel: [tuya.whitelabel("Tuya", "872WZ", "Water level sensor", ["_TZE204_7yyuo8sr"])],
         exposes: [
             e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
             e.numeric("liquid_depth", ea.STATE).withUnit("m").withDescription("Liquid Depth"),
@@ -19961,6 +19975,88 @@ export const definitions: DefinitionWithExtend[] = [
                 [103, "eco_temperature", tuya.valueConverter.divideBy10],
                 [104, "comfort_temperature", tuya.valueConverter.divideBy10],
                 [105, "frost_protection_temperature", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_cgr0rhza"]),
+        model: "TS0601_thermostat_6",
+        vendor: "Tuya",
+        description: "Thermostatic radiator valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        exposes: [
+            e.child_lock(),
+            e.battery(),
+            e.open_window(),
+            e.window_detection(),
+            e.battery_low(),
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withPreset(["manual", "schedule", "eco", "comfort", "antifrost", "off"])
+                .withSystemMode(["off", "heat"], ea.STATE)
+                .withLocalTemperatureCalibration(-12, 12, 1, ea.STATE_SET),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
+            e.comfort_temperature().withValueMin(5).withValueMax(35),
+            e.eco_temperature().withValueMin(5).withValueMax(35),
+            e
+                .binary("scale_protection", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "If the heat sink is not fully opened within " +
+                        "two weeks or is not used for a long time, the valve will be blocked due to silting up and the heat sink will not be " +
+                        "able to be used. To ensure normal use of the heat sink, the controller will automatically open the valve fully every " +
+                        'two weeks. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
+                        "again.",
+                ),
+            e
+                .binary("frost_protection", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "When the room temperature is lower than 5 °C, the valve opens; when the temperature rises to 8 °C, the valve closes.",
+                ),
+            e.numeric("error", ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        schedule: tuya.enum(1),
+                        eco: tuya.enum(2),
+                        comfort: tuya.enum(3),
+                        antifrost: tuya.enum(4),
+                        off: tuya.enum(5),
+                    }),
+                ],
+                [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [5, "local_temperature", tuya.valueConverter.divideBy10],
+                [6, "battery", tuya.valueConverter.raw],
+                [7, "child_lock", tuya.valueConverter.lockUnlock],
+                [8, "window_detection", tuya.valueConverter.onOff],
+                [14, "open_window", tuya.valueConverter.onOff],
+                [24, "comfort_temperature", tuya.valueConverter.divideBy10],
+                [25, "eco_temperature", tuya.valueConverter.divideBy10],
+                [28, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [29, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [30, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
+                [31, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [32, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
+                [33, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
+                [34, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [35, "fault_alarm", tuya.valueConverter.errorOrBatteryLow],
+                [36, "frost_protection", tuya.valueConverter.onOff],
+                [39, "scale_protection", tuya.valueConverter.onOff],
+                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
+                [
+                    49,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        heat: tuya.enum(1),
+                    }),
+                ],
             ],
         },
     },
@@ -23424,6 +23520,56 @@ export const definitions: DefinitionWithExtend[] = [
                 // 50: Fault - not mapped
                 [55, "cooling_delay", tuya.valueConverter.raw],
                 [56, "cooling_delay_switch", tuya.valueConverter.onOffNotStrict],
+            ],
+        },
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vceqncho"]),
+        model: "ZIS-01P",
+        vendor: "Novato",
+        description: "Dual-tech presence sensor (PIR + radar)",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.occupancy(),
+            e
+                .numeric("presence_distance", ea.STATE_SET)
+                .withUnit("m")
+                .withDescription("Detection distance")
+                .withValueMin(1)
+                .withValueMax(3)
+                .withValueStep(1),
+            e
+                .numeric("presence_sensitivity", ea.STATE_SET)
+                .withDescription("Presence detection sensitivity")
+                .withValueMin(1)
+                .withValueMax(3)
+                .withValueStep(1),
+            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable radar detection"),
+            e.numeric("pir_sensitivity", ea.STATE_SET).withDescription("PIR sensor sensitivity").withValueMin(1).withValueMax(3).withValueStep(1),
+            e
+                .numeric("delay_time", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Delay time before reporting no presence")
+                .withValueMin(10)
+                .withValueMax(600),
+            e.binary("led_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable LED indicator"),
+            e.illuminance().withUnit("lx"),
+            e.battery().withUnit("%"),
+            e.numeric("radar_threshold", ea.STATE_SET).withDescription("Radar detection threshold").withValueMin(5).withValueMax(50).withValueStep(1),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "occupancy", tuya.valueConverter.trueFalse1],
+                [102, "presence_distance", tuya.valueConverter.raw],
+                [103, "presence_sensitivity", tuya.valueConverter.raw],
+                [104, "radar_switch", tuya.valueConverter.onOff],
+                [105, "pir_sensitivity", tuya.valueConverter.raw],
+                [106, "delay_time", tuya.valueConverter.raw],
+                [107, "led_switch", tuya.valueConverter.onOff],
+                [108, "illuminance", tuya.valueConverter.raw],
+                [109, "battery", tuya.valueConverter.raw],
+                [164, "radar_threshold", tuya.valueConverter.raw],
             ],
         },
     },
