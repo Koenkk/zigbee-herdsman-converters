@@ -1673,6 +1673,19 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
     },
     {
+        zigbeeModel: ["ZG2803-RGB-CCT"],
+        model: "SR-ZG2803-G4-5C",
+        vendor: "Sunricher",
+        description: "4 groups remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+    },
+    {
         zigbeeModel: ["HK-SL-DIM-A"],
         model: "SR-ZG9040A/ZG9041A-D",
         vendor: "Sunricher",
