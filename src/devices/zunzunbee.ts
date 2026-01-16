@@ -15,6 +15,8 @@ const fzLocal = {
                 zoneStatus = msg.data.zoneStatus;
             } else if ("zonestatus" in msg.data) {
                 zoneStatus = msg.data.zonestatus;
+            } else {
+                return;
             }
 
             // Bit0 encodes press type
@@ -23,7 +25,9 @@ const fzLocal = {
             // Bits 1..8 encode button number (2..256)
             const masked = zoneStatus & 0x01fe;
             const map = {2: 1, 4: 2, 8: 3, 16: 4, 32: 5, 64: 6, 128: 7, 256: 8};
-            return {action: `button_${utils.getFromLookup(masked, map)}_${pressType}`};
+            if (masked in map) {
+                return {action: `button_${utils.getFromLookup(masked, map)}_${pressType}`};
+            }
         },
     } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse", "commandStatusChangeNotification"]>,
 };
