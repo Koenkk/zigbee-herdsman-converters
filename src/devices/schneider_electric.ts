@@ -442,6 +442,56 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    addHvacUserInterfaceCfgCustomAttributes: () =>
+        m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
+            ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
+            attributes: {
+                displayBrightnessActive: {ID: 0xe000, type: Zcl.DataType.UINT8, write: true, min: 0, max: 100},
+                displayBrightnessInactive: {ID: 0xe001, type: Zcl.DataType.UINT8, write: true, min: 0, max: 100},
+                displayActiveTimeout: {ID: 0xe002, type: Zcl.DataType.UINT16, write: true, min: 5, max: 600},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    displayBrightnessActive: () =>
+        m.numeric({
+            name: "display_brightness_active",
+            cluster: "hvacUserInterfaceCfg",
+            attribute: {ID: 0xe000, type: Zcl.DataType.UINT8},
+            description: "Sets brightness of the temperature display during active state",
+            entityCategory: "config",
+            unit: "%",
+            valueMin: 0,
+            valueMax: 100,
+            valueStep: 1,
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        }),
+    displayBrightnessInactive: () =>
+        m.numeric({
+            name: "display_brightness_inactive",
+            cluster: "hvacUserInterfaceCfg",
+            attribute: {ID: 0xe001, type: Zcl.DataType.UINT8},
+            description: "Sets brightness of the temperature display during inactive state",
+            entityCategory: "config",
+            unit: "%",
+            valueMin: 0,
+            valueMax: 100,
+            valueStep: 1,
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        }),
+    displayActiveTimeout: () =>
+        m.numeric({
+            name: "display_active_timeout",
+            cluster: "hvacUserInterfaceCfg",
+            attribute: {ID: 0xe002, type: Zcl.DataType.UINT16},
+            description: "Sets timeout of the temperature display active state",
+            entityCategory: "config",
+            unit: "seconds",
+            valueMin: 5,
+            valueMax: 600,
+            valueStep: 5,
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        }),
 };
 
 const tzLocal = {
@@ -622,6 +672,22 @@ const fzLocal = {
 };
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["W564100"],
+        model: "W564100",
+        vendor: "Schneider Electric",
+        description: "Motion sensor",
+        extend: [
+            m.onOff({powerOnBehavior: false}),
+            // Illuminance doesn't require scale
+            // https://github.com/Koenkk/zigbee2mqtt/issues/30580#issuecomment-3742159287
+            m.illuminance({scale: (v) => v}),
+            m.temperature(),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_2"]}),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+        ],
+    },
     {
         zigbeeModel: ["PUCK/SHUTTER/1"],
         model: "CCT5015-0001",
@@ -2095,42 +2161,10 @@ export const definitions: DefinitionWithExtend[] = [
                     values: ea.ALL,
                 },
             }),
-            m.numeric({
-                name: "display_brightness_active",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0xe000, type: Zcl.DataType.UINT8},
-                description: "Sets brightness of the temperature display during active state",
-                entityCategory: "config",
-                unit: "%",
-                valueMin: 0,
-                valueMax: 100,
-                valueStep: 1,
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-            }),
-            m.numeric({
-                name: "display_brightness_inactive",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0xe001, type: Zcl.DataType.UINT8},
-                description: "Sets brightness of the temperature display during inactive state",
-                entityCategory: "config",
-                unit: "%",
-                valueMin: 0,
-                valueMax: 100,
-                valueStep: 1,
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-            }),
-            m.numeric({
-                name: "display_active_timeout",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0xe002, type: Zcl.DataType.UINT16},
-                description: "Sets timeout of the temperature display active state",
-                entityCategory: "config",
-                unit: "seconds",
-                valueMin: 5,
-                valueMax: 600,
-                valueStep: 5,
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-            }),
+            schneiderElectricExtend.addHvacUserInterfaceCfgCustomAttributes(),
+            schneiderElectricExtend.displayBrightnessActive(),
+            schneiderElectricExtend.displayBrightnessInactive(),
+            schneiderElectricExtend.displayActiveTimeout(),
             m.enumLookup({
                 name: "temperature_display_mode",
                 lookup: {celsius: 0, fahrenheit: 1},
