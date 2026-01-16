@@ -410,7 +410,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LIA",
         vendor: "Yale",
         description: "Fechadura Digital Lia",
-        extend: [lockExtend(), m.lock({pinCodeCount:250})],
+        extend: [lockExtend(), m.lock({pinCodeCount: 250})],
     },
     {
         // Appears to be a slightly rebranded Assure lock SL
