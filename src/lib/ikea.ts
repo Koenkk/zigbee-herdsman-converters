@@ -81,6 +81,119 @@ const bulbOnEvent: OnEvent.Handler = async (event) => {
     }
 };
 
+export function ikeaScenes(): ModernExtend {
+    const exposes: Expose[] = [
+        presets
+            .numeric("current_scene", access.STATE_GET)
+            .withDescription("Currently active scene number")
+            .withValueMin(0)
+            .withValueMax(254)
+            .withCategory("diagnostic"),
+        presets
+            .numeric("scene_count", access.STATE_GET)
+            .withDescription("Number of scenes currently stored")
+            .withValueMin(0)
+            .withValueMax(255)
+            .withCategory("diagnostic"),
+        presets
+            .binary("scene_valid", access.STATE_GET, true, false)
+            .withDescription("Indicates whether the current scene is valid")
+            .withCategory("diagnostic"),
+        presets.numeric("scene_recall", access.SET).withDescription("Recall a scene by scene number").withValueMin(0).withValueMax(254),
+        presets.numeric("scene_store", access.SET).withDescription("Store current light state as a scene").withValueMin(0).withValueMax(254),
+        presets.numeric("scene_remove", access.SET).withDescription("Remove a stored scene").withValueMin(0).withValueMax(254),
+    ];
+
+    const fromZigbee = [
+        {
+            cluster: "genScenes",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const payload: KeyValue = {};
+                if (msg.data.count !== undefined) {
+                    payload.scene_count = msg.data.count;
+                }
+                if (msg.data.currentScene !== undefined) {
+                    payload.current_scene = msg.data.currentScene;
+                }
+                if (msg.data.sceneValid !== undefined) {
+                    payload.scene_valid = msg.data.sceneValid === 1;
+                }
+                return payload;
+            },
+        } satisfies Fz.Converter<"genScenes", undefined, ["attributeReport", "readResponse"]>,
+    ];
+
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: ["scene_recall"],
+            convertSet: async (entity, key, value, meta) => {
+                const sceneId = Number(value);
+                await entity.command("genScenes", "recall", {groupid: 0, sceneid: sceneId});
+                // Read back scene info after command
+                setTimeout(async () => {
+                    try {
+                        await entity.read("genScenes", ["count", "currentScene", "sceneValid"]);
+                    } catch (error) {
+                        logger.debug(`Failed to read scene info after recall for '${meta.device.ieeeAddr}': ${error}`, NS);
+                    }
+                }, 100);
+            },
+        },
+        {
+            key: ["scene_store"],
+            convertSet: async (entity, key, value, meta) => {
+                const sceneId = Number(value);
+                await entity.command("genScenes", "store", {groupid: 0, sceneid: sceneId});
+                // Read back scene info after command
+                setTimeout(async () => {
+                    try {
+                        await entity.read("genScenes", ["count", "currentScene", "sceneValid"]);
+                    } catch (error) {
+                        logger.debug(`Failed to read scene info after store for '${meta.device.ieeeAddr}': ${error}`, NS);
+                    }
+                }, 100);
+            },
+        },
+        {
+            key: ["scene_remove"],
+            convertSet: async (entity, key, value, meta) => {
+                const sceneId = Number(value);
+                await entity.command("genScenes", "remove", {groupid: 0, sceneid: sceneId});
+                // Read back scene info after command
+                setTimeout(async () => {
+                    try {
+                        await entity.read("genScenes", ["count", "currentScene", "sceneValid"]);
+                    } catch (error) {
+                        logger.debug(`Failed to read scene info after remove for '${meta.device.ieeeAddr}': ${error}`, NS);
+                    }
+                }, 100);
+            },
+        },
+        {
+            key: ["current_scene", "scene_count", "scene_valid"],
+            convertGet: async (entity, key, meta) => {
+                await entity.read("genScenes", ["count", "currentScene", "sceneValid"]);
+            },
+        },
+    ];
+
+    const configure: Configure[] = [
+        async (device, coordinatorEndpoint, definition) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genScenes"]);
+            // Read scene info on startup
+            try {
+                await endpoint.read("genScenes", ["count", "currentScene", "sceneValid"]);
+            } catch (error) {
+                logger.warning(`Failed to read scene info for '${device.ieeeAddr}': ${error}`, NS);
+            }
+        },
+    ];
+
+    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+}
+
 export function ikeaLight(args?: Omit<m.LightArgs, "colorTemp"> & {colorTemp?: true | {range: Range; viaColor: true}}) {
     const colorTemp: {range: Range} = args?.colorTemp ? (args.colorTemp === true ? {range: [250, 454]} : args.colorTemp) : undefined;
     const levelConfig: {features?: LevelConfigFeatures} = args?.levelConfig
