@@ -1,5 +1,20 @@
 # Changelog
 
+## [25.108.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.107.0...v25.108.0) (2026-01-16)
+
+
+### Features
+
+* **add:** SSWZ8T ([#11298](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11298)) ([a4c3173](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a4c3173f6a6e2b01c43e4d70150b29eb45bf7cd2))
+
+
+### Bug Fixes
+
+* BOX ERC2201-Z: fix device has no endpoint 'l1' (or 'l2') ([#11303](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11303)) ([cf0c883](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cf0c8831c181a0269cc1f95ed6e03122cd017062))
+* **detect:** Detect `_TZE204_ad2jkxwh` as ZYXH TS0601_switch_8 https://github.com/Koenkk/zigbee2mqtt/issues/30664 ([d647f24](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d647f24a9ce4b2ebd464f0a38d6afa62a0c2af37))
+* **detect:** Detect `_TZE204_tuhfx7tf` as Tongou TOWSMR1-20A-AC https://github.com/Koenkk/zigbee2mqtt/issues/30667 ([5fbbea4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5fbbea4b70b748b5dfaf93bd6b877e8b81161bd8))
+* Third Reality 3RSPE02065Z: various improvements ([#11306](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11306)) ([dc7fdeb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dc7fdeb9a544c764e299ee9e3455668ea4c1a038))
+
 ## [25.107.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.106.0...v25.107.0) (2026-01-15)
 
 
