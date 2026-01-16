@@ -199,6 +199,7 @@ import {definitions as mazda} from "./mazda";
 import {definitions as meazon} from "./meazon";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
+import {definitions as micasa} from "./micasa";
 import {definitions as micromatic} from "./micromatic";
 import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
@@ -558,6 +559,7 @@ const definitions: DefinitionWithExtend[] = [
     ...meazon,
     ...mercator,
     ...miboxer,
+    ...micasa,
     ...micromatic,
     ...mill,
     ...mindy,
