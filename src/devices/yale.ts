@@ -406,6 +406,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lockExtend()],
     },
     {
+        zigbeeModel: ["LIA"],
+        model: "LIA",
+        vendor: "Yale",
+        description: "Fechadura Digital Lia",
+        extend: [lockExtend(), m.lock({pinCodeCount:250})],
+    },
+    {
         // Appears to be a slightly rebranded Assure lock SL
         // Just with Lockwood | Assa Abloy branding instead of Yale
         // Appears to have been part of a deal with Telstra, hence the T-Lock name
