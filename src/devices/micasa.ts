@@ -5,8 +5,9 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["GasCounter"],
         model: "GasCounter",
-        vendor: "MICASA",
-        description: "Zigbee Gas counter created by Ignacio Hernández-Ros",
+        vendor: "Custom devices (DiY)",
+        description:
+            "Zigbee Gas counter created by Ignacio Hernández-Ros. For more information please visit: https://github.com/IgnacioHR/ZigbeeGasCounter",
         ota: true,
         extend: [m.gasMeter({cluster: "metering", power: false}), m.battery({voltage: true, lowStatus: true})],
         meta: {},
