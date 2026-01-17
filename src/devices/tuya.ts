@@ -6561,29 +6561,23 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_pzm3wab5"]),
-        model: "TS0601_Presence_Sensor",
+        model: "ZF24",
         vendor: "Tuya",
-        description: "Tuya Human Presence Sensor (Millimeter Wave Radar)",
+        description: "Human presence sensor (millimeter wave radar)",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.enum("presence_state", ea.STATE, ["none", "presence"]).withDescription("Presence status sensor"),
-            e.presence().withDescription("Human presence detection"),
-            e.numeric("distance", ea.STATE).withUnit("m").withDescription("object distance"),
+            e.presence(),
+            e.numeric("distance", ea.STATE).withUnit("m").withDescription("Object distance"),
             e.illuminance(),
             e.numeric("move_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription("Mobility sensitivity"),
-            e
-                .numeric("presence_sensitivity", ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(10)
-                .withValueStep(1)
-                .withDescription("Existence of sensitivity"),
+            e.numeric("presence_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription("Presence sensitivity"),
             e
                 .numeric("presence_timeout", ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(600)
                 .withValueStep(1)
                 .withUnit("s")
-                .withDescription("Existence state timeout time"),
+                .withDescription("Presence state timeout time"),
             e
                 .numeric("detection_distance_max", ea.STATE_SET)
                 .withValueMin(0.75)
@@ -6592,29 +6586,15 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("m")
                 .withDescription("Maximum detection distance"),
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Function"),
-            e.binary("living_room", ea.STATE_SET, "ON", "OFF").withDescription("living room"),
-            e.binary("bedroom", ea.STATE_SET, "ON", "OFF").withDescription("bedroom"),
+            e.binary("living_room", ea.STATE_SET, "ON", "OFF").withDescription("Living room"),
+            e.binary("bedroom", ea.STATE_SET, "ON", "OFF").withDescription("Bedroom"),
             e.binary("bathroom", ea.STATE_SET, "ON", "OFF").withDescription("Bathroom"),
             e.binary("sleep", ea.STATE_SET, "ON", "OFF").withDescription("Sleep"),
-            e.binary("Radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
+            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    null,
-                    {
-                        from: (v: number) => {
-                            if (v === 0) {
-                                return {presence_state: "none", presence: false};
-                            }
-                            if (v === 1) {
-                                return {presence_state: "presence", presence: true};
-                            }
-                            return {presence_state: "none", presence: false};
-                        },
-                    },
-                ],
+                [1, "presence", tuya.valueConverter.trueFalse1],
                 [2, "move_sensitivity", tuya.valueConverter.raw],
                 [4, "detection_distance_max", tuya.valueConverter.divideBy100],
                 [9, "distance", tuya.valueConverter.divideBy100],
@@ -6624,9 +6604,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [104, "state", tuya.valueConverter.onOff],
                 [105, "living_room", tuya.valueConverter.onOff],
                 [106, "bedroom", tuya.valueConverter.onOff],
-                [107, "bathroom ", tuya.valueConverter.onOff],
+                [107, "bathroom", tuya.valueConverter.onOff],
                 [108, "sleep", tuya.valueConverter.onOff],
-                [109, "Radar_switch", tuya.valueConverter.onOff],
+                [109, "radar_switch", tuya.valueConverter.onOff],
             ],
         },
     },
