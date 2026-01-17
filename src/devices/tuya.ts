@@ -23963,5 +23963,5 @@ export const definitions: DefinitionWithExtend[] = [
                 [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
             ],
         },
-    },    
+    },
 ];
