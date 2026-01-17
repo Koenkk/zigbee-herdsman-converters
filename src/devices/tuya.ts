@@ -14389,6 +14389,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_wktrysab",
             "_TZE204_nvxorhcj",
             "_TZE204_tdhnhhiy",
+            "_TZE204_ad2jkxwh",
         ]),
         model: "TS0601_switch_8",
         vendor: "ZYXH",
@@ -16604,6 +16605,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_432zhuwe",
             "_TZE284_s5vuaadg",
             "_TZE284_tuhfx7tf",
+            "_TZE204_tuhfx7tf",
         ]),
         model: "TOWSMR1",
         vendor: "Tongou",
@@ -16619,7 +16621,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Tongou", "TOWSMR1-40A-AC", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_432zhuwe", "_TZE204_432zhuwe"]),
             tuya.whitelabel("Tongou", "TOWSMR1-40A-A", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_s5vuaadg"]),
-            tuya.whitelabel("Tongou", "TOWSMR1-20A-AC", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_tuhfx7tf"]),
+            tuya.whitelabel("Tongou", "TOWSMR1-20A-AC", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_tuhfx7tf", "_TZE204_tuhfx7tf"]),
         ],
         exposes: (device, options) => {
             const exps: Expose[] = [
@@ -16740,7 +16742,7 @@ export const definitions: DefinitionWithExtend[] = [
                         .withValueMin(1)
                         .withValueMax(40),
                 );
-            } else if (device.manufacturerName === "_TZE284_tuhfx7tf") {
+            } else if (device.manufacturerName === "_TZE284_tuhfx7tf" || device.manufacturerName === "_TZE204_tuhfx7tf") {
                 exps.push(
                     e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
                     e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),

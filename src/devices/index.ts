@@ -359,6 +359,7 @@ import {definitions as zemismart} from "./zemismart";
 import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
 import {definitions as zipato} from "./zipato";
+import {definitions as zunzunbee} from "./zunzunbee";
 
 const definitions: DefinitionWithExtend[] = [
     ...acova,
@@ -718,6 +719,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zen,
     ...zigbeetlc,
     ...zipato,
+    ...zunzunbee,
     ...qa,
     ...engo,
     ...vsmart,
