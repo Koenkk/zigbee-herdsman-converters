@@ -388,7 +388,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["YMC420", "YMC 420", "YMC420 W", "YMC 420 W"],
         model: "YMC420-W",
         vendor: "Yale",
-        description: "Fechadura Digital YMC 420 W",
+        description: "Digital Lock YMC 420 W",
         extend: [lockExtend()],
     },
     {
@@ -409,7 +409,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["LIA"],
         model: "LIA",
         vendor: "Yale",
-        description: "Fechadura Digital Lia",
+        description: "Digital Lock Lia",
         extend: [lockExtend()],
     },
     {
