@@ -4828,6 +4828,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Donovan Panel Light",
             },
             tuya.whitelabel("Aldi", "F122SB62H22A4.5W", "LIGHTWAY smart home LED-lamp - filament", ["_TZ3000_g1glzzfk"]),
+            tuya.whitelabel("Sibling", "Light-ZSLL", "Linear ceiling LED luminaire", ["_TZ3000_bumeauzp"]),
             tuya.whitelabel("MiBoxer", "FUT035Z+", "Dual white LED controller", [
                 "_TZ3210_frm6149r",
                 "_TZ3210_jtifm80b",
