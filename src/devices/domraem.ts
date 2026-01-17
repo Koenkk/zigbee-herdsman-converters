@@ -14,7 +14,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DOM-Z-105P_RGBW",
         vendor: "DOMRAEM",
         description: "LED controller 5 in 1",
-        extend: [m.light({colorTemp: {range: undefined}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        extend: [m.light({colorTemp: {range: [158, 495]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         fingerprint: [{modelID: "RGBWC", manufacturerName: "DOMRAEM"}],
