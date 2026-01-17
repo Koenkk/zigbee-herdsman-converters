@@ -2,23 +2,33 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
+import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
-const ea = exposes.access;
 
 const fzLocal = {
-    custom_command_move_to_level: {
+    aurora_dimmer: {
         cluster: "genLevelCtrl",
         type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff"],
-        options: [exposes.options.simulated_brightness()],
         convert: (model, msg, publish, options, meta) => {
-            // Map null to 255
-            // https://github.com/Koenkk/zigbee2mqtt/issues/28450
-            const newMsg = {...msg, data: {...msg.data, level: Number.isNaN(msg.data.level) ? 255 : msg.data.level}};
-            return fz.command_move_to_level.convert(model, newMsg, publish, options, meta);
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+
+            // device reports 255 -> herdsman treats as invalid -> converter sees NaN -> map to 254
+            const level = Number.isNaN(msg.data.level) ? 254 : msg.data.level;
+
+            const payload: KeyValue = {};
+            if (msg.data.transtime === 7) {
+                const actionName = level === 0 ? "off_press" : "on_press";
+                payload.action = postfixWithEndpointName(actionName, msg, model, meta);
+            } else {
+                payload.action = postfixWithEndpointName("rotate", msg, model, meta);
+                payload.brightness = level; // note: device min level is 2, so the range is 2-254
+            }
+            addActionGroup(payload, msg, model);
+            return payload;
         },
-    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevel", "commandMoveToLevelWithOnOff"]>,
+    } satisfies Fz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -27,7 +37,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LZL4BWHL01",
         vendor: "Lutron",
         description: "Connected bulb remote control",
-        fromZigbee: [fz.command_step, fz.command_step, fzLocal.custom_command_move_to_level, fz.command_stop],
+        fromZigbee: [fz.command_step, fz.command_step, fz.command_move_to_level, fz.command_stop],
         toZigbee: [],
         exposes: [e.action(["brightness_step_down", "brightness_step_up", "brightness_stop", "brightness_move_to_level"])],
     },
@@ -36,9 +46,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Z3-1BRL",
         vendor: "Lutron",
         description: "Aurora smart bulb dimmer",
-        fromZigbee: [fzLocal.custom_command_move_to_level],
+        fromZigbee: [fzLocal.aurora_dimmer],
         extend: [m.battery()],
-        exposes: [e.action(["brightness"]), e.numeric("brightness", ea.STATE)],
+        exposes: [e.action(["on_press", "off_press", "rotate"])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genLevelCtrl"]);
