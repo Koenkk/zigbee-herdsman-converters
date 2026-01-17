@@ -56,9 +56,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "water_leak", tuya.valueConverter.trueFalse1],
                 [4, "battery", tuya.valueConverter.raw],
-                [101, "working_mode", tuya.valueConverterBasic.lookup({0: "normal", 1: "silent", 2: "test"})],
+                [101, "working_mode", tuya.valueConverterBasic.lookup({normal: 0, silent: 1, test: 2})],
                 [102, "status", tuya.valueConverter.raw],
-                [103, "alarm_ringtone", tuya.valueConverterBasic.lookup({0: "tone_1", 1: "tone_2", 2: "tone_3"})],
+                [103, "alarm_ringtone", tuya.valueConverterBasic.lookup({tone_1: 0, tone_2: 1, tone_3: 2})],
             ],
         },
     },
