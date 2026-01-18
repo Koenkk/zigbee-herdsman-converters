@@ -1,12 +1,12 @@
 import {Zcl} from "zigbee-herdsman";
 import type {ClusterOrRawPayload} from "zigbee-herdsman/dist/controller/tstype";
-
+import type {ParameterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {Configure, DefinitionWithExtend, Expose, Fz, ModernExtend, Tz, Zh} from "../lib/types";
+import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -184,6 +184,87 @@ interface InovelliMmWave {
             area3: number;
             /** uint8: 0 or 1 */
             area4: number;
+        };
+        reportInterferenceArea: {
+            count: number;
+            xMin1: number;
+            xMax1: number;
+            yMin1: number;
+            yMax1: number;
+            zMin1: number;
+            zMax1: number;
+            xMin2: number;
+            xMax2: number;
+            yMin2: number;
+            yMax2: number;
+            zMin2: number;
+            zMax2: number;
+            xMin3: number;
+            xMax3: number;
+            yMin3: number;
+            yMax3: number;
+            zMin3: number;
+            zMax3: number;
+            xMin4: number;
+            xMax4: number;
+            yMin4: number;
+            yMax4: number;
+            zMin4: number;
+            zMax4: number;
+        };
+        reportDetectionArea: {
+            count: number;
+            xMin1: number;
+            xMax1: number;
+            yMin1: number;
+            yMax1: number;
+            zMin1: number;
+            zMax1: number;
+            xMin2: number;
+            xMax2: number;
+            yMin2: number;
+            yMax2: number;
+            zMin2: number;
+            zMax2: number;
+            xMin3: number;
+            xMax3: number;
+            yMin3: number;
+            yMax3: number;
+            zMin3: number;
+            zMax3: number;
+            xMin4: number;
+            xMax4: number;
+            yMin4: number;
+            yMax4: number;
+            zMin4: number;
+            zMax4: number;
+        };
+        reportStayArea: {
+            count: number;
+            xMin1: number;
+            xMax1: number;
+            yMin1: number;
+            yMax1: number;
+            zMin1: number;
+            zMax1: number;
+            xMin2: number;
+            xMax2: number;
+            yMin2: number;
+            yMax2: number;
+            zMin2: number;
+            zMax2: number;
+            xMin3: number;
+            xMax3: number;
+            yMin3: number;
+            yMax3: number;
+            zMin3: number;
+            zMax3: number;
+            xMin4: number;
+            xMax4: number;
+            yMin4: number;
+            yMax4: number;
+            zMin4: number;
+            zMax4: number;
         };
     };
 }
@@ -384,7 +465,7 @@ const inovelliExtend = {
             commandsResponse: {},
         }),
     addCustomMMWaveClusterInovelli: () => {
-        const mmWaveAreaParameters = [
+        const mmWaveCommandAreaParameters: ParameterDefinition[] = [
             {name: "areaId", type: Zcl.DataType.UINT8, max: 3},
             {name: "xMin", type: Zcl.DataType.INT16, min: -600, max: 600},
             {name: "xMax", type: Zcl.DataType.INT16, min: -600, max: 600},
@@ -392,6 +473,33 @@ const inovelliExtend = {
             {name: "yMax", type: Zcl.DataType.INT16, min: -600, max: 600},
             {name: "zMin", type: Zcl.DataType.INT16, min: -600, max: 600},
             {name: "zMax", type: Zcl.DataType.INT16, min: -600, max: 600},
+        ];
+        const mmWaveCommandResponseAreaParameters: ParameterDefinition[] = [
+            {name: "count", type: Zcl.DataType.UINT8},
+            {name: "xMin1", type: Zcl.DataType.INT16},
+            {name: "xMax1", type: Zcl.DataType.INT16},
+            {name: "yMin1", type: Zcl.DataType.INT16},
+            {name: "yMax1", type: Zcl.DataType.INT16},
+            {name: "zMin1", type: Zcl.DataType.INT16},
+            {name: "zMax1", type: Zcl.DataType.INT16},
+            {name: "xMin2", type: Zcl.DataType.INT16},
+            {name: "xMax2", type: Zcl.DataType.INT16},
+            {name: "yMin2", type: Zcl.DataType.INT16},
+            {name: "yMax2", type: Zcl.DataType.INT16},
+            {name: "zMin2", type: Zcl.DataType.INT16},
+            {name: "zMax2", type: Zcl.DataType.INT16},
+            {name: "xMin3", type: Zcl.DataType.INT16},
+            {name: "xMax3", type: Zcl.DataType.INT16},
+            {name: "yMin3", type: Zcl.DataType.INT16},
+            {name: "yMax3", type: Zcl.DataType.INT16},
+            {name: "zMin3", type: Zcl.DataType.INT16},
+            {name: "zMax3", type: Zcl.DataType.INT16},
+            {name: "xMin4", type: Zcl.DataType.INT16},
+            {name: "xMax4", type: Zcl.DataType.INT16},
+            {name: "yMin4", type: Zcl.DataType.INT16},
+            {name: "yMax4", type: Zcl.DataType.INT16},
+            {name: "zMin4", type: Zcl.DataType.INT16},
+            {name: "zMax4", type: Zcl.DataType.INT16},
         ];
 
         return m.deviceAddCustomCluster(INOVELLI_MMWAVE_CLUSTER_NAME, {
@@ -418,15 +526,15 @@ const inovelliExtend = {
                 },
                 setInterferenceArea: {
                     ID: 1,
-                    parameters: mmWaveAreaParameters,
+                    parameters: mmWaveCommandAreaParameters,
                 },
                 setDetectionArea: {
                     ID: 2,
-                    parameters: mmWaveAreaParameters,
+                    parameters: mmWaveCommandAreaParameters,
                 },
                 setStayArea: {
                     ID: 3,
-                    parameters: mmWaveAreaParameters,
+                    parameters: mmWaveCommandAreaParameters,
                 },
             },
             commandsResponse: {
@@ -438,6 +546,18 @@ const inovelliExtend = {
                         {name: "area3", type: Zcl.DataType.UINT8},
                         {name: "area4", type: Zcl.DataType.UINT8},
                     ],
+                },
+                reportInterferenceArea: {
+                    ID: 2,
+                    parameters: mmWaveCommandResponseAreaParameters,
+                },
+                reportDetectionArea: {
+                    ID: 3,
+                    parameters: mmWaveCommandResponseAreaParameters,
+                },
+                reportStayArea: {
+                    ID: 4,
+                    parameters: mmWaveCommandResponseAreaParameters,
                 },
             },
         });
@@ -613,7 +733,7 @@ const inovelliExtend = {
                 tzLocal.inovelli_mmwave_set_detection_area,
                 tzLocal.inovelli_mmwave_set_stay_area,
             ],
-            exposes: [exposeMMWaveControl(), exposeSetInterferenceArea(), exposeSetDetectionArea(), exposeSetStayArea(), ...exposeMMWaveAreas()],
+            exposes: [exposeMMWaveControl(), ...exposeMMWaveAreas(), exposeSetInterferenceArea(), exposeSetDetectionArea(), exposeSetStayArea()],
             configure: configure,
             isModernExtend: true,
         } as ModernExtend;
@@ -2100,9 +2220,9 @@ const tzLocal = {
             return {state: {[key]: values}};
         },
     } satisfies Tz.Converter,
-    inovelli_mmwave_set_interference_area: createMmWaveAreaConverter("mwwave_set_interference_area", "setInterferenceArea"),
-    inovelli_mmwave_set_detection_area: createMmWaveAreaConverter("mwwave_set_detection_area", "setDetectionArea"),
-    inovelli_mmwave_set_stay_area: createMmWaveAreaConverter("mwwave_set_stay_area", "setStayArea"),
+    inovelli_mmwave_set_interference_area: createMmWaveAreaConverter("mmwave_set_interference_area", "setInterferenceArea"),
+    inovelli_mmwave_set_detection_area: createMmWaveAreaConverter("mmwave_set_detection_area", "setDetectionArea"),
+    inovelli_mmwave_set_stay_area: createMmWaveAreaConverter("mmwave_set_stay_area", "setStayArea"),
     /*
      * Inovelli devices have a default transition property that the device should
      * fallback to if a transition is not specified by passing 0xffff
@@ -2468,18 +2588,63 @@ const fzLocal = {
             return {notificationComplete: "Unknown"};
         },
     } satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["commandLedEffectComplete"]>,
+    report_areas: {
+        cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
+        type: ["commandReportInterferenceArea", "commandReportDetectionArea", "commandReportStayArea"],
+        convert: (model, msg, publish, options, meta) => {
+            const areas = [];
+            areas.push({
+                width_min: msg.data.xMin1,
+                width_max: msg.data.xMax1,
+                height_min: msg.data.yMin1,
+                height_max: msg.data.yMax1,
+                depth_min: msg.data.zMin1,
+                depth_max: msg.data.zMax1,
+            });
+            areas.push({
+                width_min: msg.data.xMin2,
+                width_max: msg.data.xMax2,
+                height_min: msg.data.yMin2,
+                height_max: msg.data.yMax2,
+                depth_min: msg.data.zMin2,
+                depth_max: msg.data.zMax2,
+            });
+            areas.push({
+                width_min: msg.data.xMin3,
+                width_max: msg.data.xMax3,
+                height_min: msg.data.yMin3,
+                height_max: msg.data.yMax3,
+                depth_min: msg.data.zMin3,
+                depth_max: msg.data.zMax3,
+            });
+            areas.push({
+                width_min: msg.data.xMin4,
+                width_max: msg.data.xMax4,
+                height_min: msg.data.yMin4,
+                height_max: msg.data.yMax4,
+                depth_min: msg.data.zMin4,
+                depth_max: msg.data.zMax4,
+            });
+            const result: KeyValueAny = {};
+
+            result[`${msg.type.slice(13)}s`] = areas;
+            return result;
+        },
+    } satisfies Fz.Converter<
+        typeof INOVELLI_MMWAVE_CLUSTER_NAME,
+        InovelliMmWave,
+        ["commandReportInterferenceArea", "commandReportDetectionArea", "commandReportStayArea"]
+    >,
     anyone_in_reporting_area: {
         cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
         type: ["commandAnyoneInReportingArea"],
         convert: (model, msg, publish, options, meta) => {
             const data = msg.data as {area1?: number; area2?: number; area3?: number; area4?: number};
             return {
-                mmwave_areas: {
-                    area1: data.area1 === 1,
-                    area2: data.area2 === 1,
-                    area3: data.area3 === 1,
-                    area4: data.area4 === 1,
-                },
+                mmwave_area1_occupancy: data.area1 === 1,
+                mmwave_area2_occupancy: data.area2 === 1,
+                mmwave_area3_occupancy: data.area3 === 1,
+                mmwave_area4_occupancy: data.area4 === 1,
             };
         },
     } satisfies Fz.Converter<typeof INOVELLI_MMWAVE_CLUSTER_NAME, InovelliMmWave, ["commandAnyoneInReportingArea"]>,
@@ -2618,7 +2783,7 @@ const exposeSetArea = (name: string, id: string, areaType: string, areaIdDescrip
 const exposeSetInterferenceArea = () => {
     return exposeSetArea(
         "Set Interference Area",
-        "set_interference_area",
+        "mmwave_set_interference_area",
         "interference",
         "Interference area to adjust",
         "Defines an area to be excluded by the mmWave sensor. The switch supports 4 separate interference areas",
@@ -2628,7 +2793,7 @@ const exposeSetInterferenceArea = () => {
 const exposeSetDetectionArea = () => {
     return exposeSetArea(
         "Set Detection Area",
-        "set_detection_area",
+        "mmwave_set_detection_area",
         "detection",
         "Detection area to adjust",
         "Defines an area to be detected by the mmWave sensor. The switch supports 4 separate detection areas",
@@ -2638,7 +2803,7 @@ const exposeSetDetectionArea = () => {
 const exposeSetStayArea = () => {
     return exposeSetArea(
         "Set Stay Area",
-        "set_stay_area",
+        "mmwave_set_stay_area",
         "stay",
         "Detection area to adjust",
         "Defines a stay area for the mmWave sensor. The switch supports 4 separate stay areas",
@@ -2660,19 +2825,19 @@ const exposeMMWaveAreas = () => {
     return [
         e
             .binary("Area1Occupancy", ea.STATE, "true", "false")
-            .withProperty("mmwave_areas.area1")
+            .withProperty("mmwave_area1_occupancy")
             .withDescription("Indicates whether the device detected occupancy in Area 1"),
         e
             .binary("Area2Occupancy", ea.STATE, "true", "false")
-            .withProperty("mmwave_areas.area2")
+            .withProperty("mmwave_area2_occupancy")
             .withDescription("Indicates whether the device detected occupancy in Area 2"),
         e
             .binary("Area3Occupancy", ea.STATE, "true", "false")
-            .withProperty("mmwave_areas.area3")
+            .withProperty("mmwave_area3_occupancy")
             .withDescription("Indicates whether the device detected occupancy in Area 3"),
         e
             .binary("Area4Occupancy", ea.STATE, "true", "false")
-            .withProperty("mmwave_areas.area4")
+            .withProperty("mmwave_area4_occupancy")
             .withDescription("Indicates whether the device detected occupancy in Area 4"),
     ];
 };
