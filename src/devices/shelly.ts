@@ -768,7 +768,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: "BLU Remote Control ZB", manufacturerName: "Shelly"}],
-        model: "BLU Remote Control ZB",
+        model: "SBRC-005B-B",
         vendor: "Shelly",
         description: "BLU Remote Control ZB",
         exposes: [
