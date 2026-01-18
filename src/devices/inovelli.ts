@@ -325,10 +325,12 @@ const individualLedEffects: {[key: string]: number} = {
 };
 
 const mmWaveControlCommands: {[key: string]: number} = {
+    reset_mmwave_module: 0,
     set_interference: 1,
+    query_areas: 2,
     clear_interference: 3,
     reset_detection_area: 4,
-    reset_mmwave_module: 0,
+    clear_stay_areas: 5,
 };
 
 const INOVELLI_CLUSTER_NAME = "manuSpecificInovelli" as const;
@@ -726,7 +728,7 @@ const inovelliExtend = {
         ];
 
         return {
-            fromZigbee: [fzLocal.anyone_in_reporting_area],
+            fromZigbee: [fzLocal.anyone_in_reporting_area, fzLocal.report_areas],
             toZigbee: [
                 tzLocal.inovelli_mmwave_control_commands,
                 tzLocal.inovelli_mmwave_set_interference_area,
@@ -2432,7 +2434,7 @@ const fzLocal = {
     ) =>
         ({
             cluster: cluster,
-            type: ["raw", "readResponse"],
+            type: ["raw", "readResponse", "attributeReport"],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.type === "raw" && msg.endpoint.ID === 2 && msg.data[4] === 0x00) {
                     // Scene Event
@@ -2454,7 +2456,7 @@ const fzLocal = {
                     const action = clickLookup[msg.data[6]];
                     return {action: `${button}_${action}`};
                 }
-                if (msg.type === "readResponse") {
+                if (msg.type === "readResponse" || msg.type === "attributeReport") {
                     return Object.keys(msg.data).reduce((p, c) => {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
                         const raw = (msg.data as Record<string | number, unknown>)[c];
@@ -2471,7 +2473,7 @@ const fzLocal = {
                 }
                 return msg.data;
             },
-        }) satisfies Fz.Converter<typeof cluster, undefined, ["raw", "readResponse"]>,
+        }) satisfies Fz.Converter<typeof cluster, undefined, ["raw", "readResponse", "attributeReport"]>,
     fan_mode: (endpointId: number) =>
         ({
             cluster: "genLevelCtrl",
