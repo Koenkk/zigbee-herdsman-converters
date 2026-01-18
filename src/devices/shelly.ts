@@ -766,4 +766,25 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Humidity & temperature sensor",
         extend: [m.battery(), m.temperature(), m.humidity()],
     },
+    {
+        fingerprint: [{modelID: "BLU Remote Control ZB", manufacturerName: "Shelly"}],
+        model: "BLU Remote Control ZB",
+        vendor: "Shelly",
+        description: "More info on usage here: https://github.com/Koenkk/zigbee2mqtt/issues/29104#issuecomment-3765263669",
+        exposes: [
+            e.action(['on', 'off', 'brightness_step_up', 'brightness_step_down']),
+            e.numeric('action_group', ea.STATE)
+              .withDescription('Group ID associated with the action command.'),
+            e.numeric('action_step_size', ea.STATE)
+              .withDescription('Step size value used for brightness step actions.'),
+            e.numeric('action_transition_time', ea.STATE)
+              .withDescription('Transition time in seconds for the action.'),
+        ],
+        extend: [
+            m.battery(),
+            m.commandsOnOff({commands: ['on', 'off']}),
+            m.commandsLevelCtrl({commands: ['brightness_step_up', 'brightness_step_down']}),
+            m.identify(),
+        ],
+    },
 ];
