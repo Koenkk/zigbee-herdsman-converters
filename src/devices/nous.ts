@@ -17,25 +17,30 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee carbon monoxide (CO) sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.carbon_monoxide(),
-            e.numeric("carbon_monoxide_value", ea.STATE).withUnit("ppm").withDescription("Current CO concentration"),
-            e.binary("self_checking", ea.ALL, true, false).withDescription("Triggers self-checking process"),
-            e.enum("checking_result", ea.STATE, ["ok", "error"]).withDescription("Result of self-checking"),
-            e.binary("preheat", ea.ALL, "ON", "OFF").withDescription("Sensor preheating status"),
-            e.binary("fault", ea.ALL, true, false).withDescription("Sensor fault indicator"),
-            e.numeric("lifecycle", ea.STATE).withUnit("days").withDescription("Sensor service life or usage counter"),
-            e.battery().withDescription("Battery level in %"),
+           e.enum('co_state', ea.STATE, Object.values(CO_STATES))
+            .withDescription('CO alarm state (normal or alarm)'),
+        e.numeric('co_value', ea.STATE).withUnit('ppm').withDescription('Current CO concentration'),
+        e.binary('self_checking', ea.ALL, 'ON', 'OFF')
+            .withDescription('Triggers self-checking process'),
+        e.enum('checking_result', ea.STATE, Object.values(CHECK_RESULTS))
+            .withDescription('Result of self-checking'),
+        e.enum('preheat', ea.STATE, Object.values(PREHEAT_STATE))
+            .withDescription('Sensor preheating status'),
+        e.enum('fault', ea.STATE, Object.values(FAULT_STATE))
+            .withDescription('Sensor fault indicator'),
+        e.numeric('lifecycle', ea.STATE).withUnit('days').withDescription('Sensor service life or usage counter'),
+        e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "carbon_monoxide", tuya.valueConverter.trueFalse1],
-                [2, "carbon_monoxide_value", tuya.valueConverter.raw],
-                [8, "self_checking", tuya.valueConverter.trueFalse0],
-                [9, "checking_result", tuya.valueConverterBasic.lookup({ok: 0, error: 1})],
-                [10, "preheat", tuya.valueConverterBasic.lookup({OFF: 0, ON: 1})],
-                [11, "fault", tuya.valueConverter.trueFalse1],
-                [12, "lifecycle", tuya.valueConverter.raw],
-                [14, "battery", tuya.valueConverter.raw],
+            [DP_CO_STATE,     'co_state',        valueConverterLookup(CO_STATES)],
+            [DP_CO_VALUE,     'co_value',        tuya.valueConverter.raw],
+            [DP_SELF_CHECKING, 'self_checking',  trueFalseRobust],
+            [DP_CHECK_RESULT, 'checking_result', valueConverterLookup(CHECK_RESULTS)],
+            [DP_PREHEAT,      'preheat',         valueConverterLookup(PREHEAT_STATE)],
+            [DP_FAULT,        'fault',           valueConverterLookup(FAULT_STATE)],
+            [DP_LIFECYCLE,    'lifecycle',       tuya.valueConverter.raw],
+            [DP_BATTERY_STATE,'battery',         tuya.valueConverter.raw],
             ],
         },
     },
