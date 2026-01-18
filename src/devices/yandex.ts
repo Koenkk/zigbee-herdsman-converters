@@ -443,13 +443,12 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 endpointName: "1",
             }),
-            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
+            m.binary<"manuSpecificYandex", Yandex>({
                 name: "led_indicator",
                 cluster: "manuSpecificYandex",
                 attribute: "ledIndicator",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                setCommand: "ledIndicator",
                 zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Led indicator",
                 entityCategory: "config",
@@ -519,13 +518,12 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 endpointName: "2",
             }),
-            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
+            m.binary<"manuSpecificYandex", Yandex>({
                 name: "led_indicator",
                 cluster: "manuSpecificYandex",
                 attribute: "ledIndicator",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                setCommand: "ledIndicator",
                 zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Led indicator",
                 entityCategory: "config",
