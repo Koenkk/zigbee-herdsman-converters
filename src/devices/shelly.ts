@@ -770,7 +770,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "BLU Remote Control ZB", manufacturerName: "Shelly"}],
         model: "BLU Remote Control ZB",
         vendor: "Shelly",
-        description: "More info on usage here: https://github.com/Koenkk/zigbee2mqtt/issues/29104#issuecomment-3765263669",
+        description: "BLU Remote Control ZB",
         exposes: [
             e.action(["on", "off", "brightness_step_up", "brightness_step_down"]),
             e.numeric("action_group", ea.STATE).withDescription("Group ID associated with the action command."),
