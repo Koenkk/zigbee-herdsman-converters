@@ -1262,7 +1262,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Tuya", "iH-F8260", "Universal smart IR remote control", ["_TZ3290_gnl5a6a5xvql7c2a", "_TZ3290_785fbxik"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_cjfmu5he", "_TZ3000_mq4wujmp", "_TZ3000_5af5r192", "_TZE200_fphxkxue"]),
+        fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_cjfmu5he", "_TZ3000_mq4wujmp", "_TZ3000_5af5r192"]),
         model: "ZWV-YC",
         vendor: "Moes",
         description: "Water valve",
@@ -1592,11 +1592,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xtrnjaoz", "_TZE200_xtrnjaoz"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xtrnjaoz", "_TZE200_xtrnjaoz", "_TZE284_8whfphjv"]),
         model: "GM25TEQ-TYZ-2/25",
         vendor: "Moes",
         description: "Roller Shade Blinds Motor for 38mm Tube",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        whiteLabel: [tuya.whitelabel("Tuya", "GM35TEQ-TYZ-2/25", "Roller Shade Blinds Motor for 38mm Tube", ["_TZE284_8whfphjv"])],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Set the motor direction"),

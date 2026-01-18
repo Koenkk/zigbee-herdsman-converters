@@ -1056,21 +1056,6 @@ export const ikeaModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
         });
 
-        // NOTE: make exposes dynamic based on fw version
-        result.exposes = [
-            (device, options) => {
-                if (
-                    !isDummyDevice(device) &&
-                    device.softwareBuildID &&
-                    semverValid(device.softwareBuildID) &&
-                    semverGte(device.softwareBuildID, "2.4.4")
-                ) {
-                    return [binary(resultName, access.ALL, "LOCK", "UNLOCK").withDescription(resultDescription).withCategory("config")];
-                }
-                return [];
-            },
-        ];
-
         return result;
     },
 
@@ -1100,7 +1085,12 @@ export const ikeaModernExtend = {
                 ) {
                     return [binary(resultName, access.ALL, "TRUE", "FALSE").withDescription(resultDescription).withCategory("config")];
                 }
-                return [];
+                return [
+                    binary(resultName, access.ALL, "TRUE", "FALSE")
+                        .withDescription(resultDescription)
+                        .withCategory("config")
+                        .withLabel("Led disable"),
+                ];
             },
         ];
 
