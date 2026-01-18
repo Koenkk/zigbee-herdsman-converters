@@ -129,7 +129,7 @@ export const definitions: DefinitionWithExtend[] = [
             // Try to read lock capabilities (may not be supported by all models)
             try {
                 await endpoint.read("closuresDoorLock", [18, 23, 24]);  // maxPinUsers, minPinLength, maxPinLength
-            } catch (error) {
+            } catch (_error) {
                 // Capabilities read may fail on some models - this is expected
             }
             
