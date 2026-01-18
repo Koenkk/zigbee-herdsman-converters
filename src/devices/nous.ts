@@ -263,10 +263,22 @@ export const definitions: DefinitionWithExtend[] = [
         model: "A11Z",
         vendor: "Nous",
         description: "Smart power strip 3 gang with power monitoring",
+        meta: {
+            multiEndpoint: true,
+            multiEndpointSkip: ['energy', 'current', 'voltage', 'power'],
+        },
         extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            m.onOff({endpointNames: ["l1", "l2", "l3"], powerOnBehavior: false}),
-            m.electricityMeter(),
+            tuya.modernExtend.tuyaOnOff({
+                electricalMeasurements: true,
+                powerOutageMemory: true,
+                onOffCountdown: true,
+                indicatorMode: true,
+                childLock: true,
+                endpoints: ['l1', 'l2', 'l3'],
+            }),
+            tuya.modernExtend.electricityMeasurementPoll({
+                metering: (device) => [100, 160, 192].includes(device.applicationVersion) || ["1.0.5"].includes(device.softwareBuildID),
+            }),
         ],
     },
 ];
