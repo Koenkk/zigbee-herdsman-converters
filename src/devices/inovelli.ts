@@ -2639,12 +2639,11 @@ const fzLocal = {
         cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
         type: ["commandAnyoneInReportingArea"],
         convert: (model, msg, publish, options, meta) => {
-            const data = msg.data as {area1?: number; area2?: number; area3?: number; area4?: number};
             return {
-                mmwave_area1_occupancy: data.area1 === 1,
-                mmwave_area2_occupancy: data.area2 === 1,
-                mmwave_area3_occupancy: data.area3 === 1,
-                mmwave_area4_occupancy: data.area4 === 1,
+                mmwave_area1_occupancy: msg.data.area1 === 1,
+                mmwave_area2_occupancy: msg.data.area2 === 1,
+                mmwave_area3_occupancy: msg.data.area3 === 1,
+                mmwave_area4_occupancy: msg.data.area4 === 1,
             };
         },
     } satisfies Fz.Converter<typeof INOVELLI_MMWAVE_CLUSTER_NAME, InovelliMmWave, ["commandAnyoneInReportingArea"]>,
