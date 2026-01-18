@@ -310,10 +310,10 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{manufacturerName: "MLI", modelID: "Desk lamp"}],
-        zigbeeModel: ['Nolia desk lamp'],
-        model: '404117',
-        vendor: 'Müller Licht',
-        description: 'Tint desk lamp with battery',
-        extend: [mullerLichtLight({"colorTemp":{"range":[153,555]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
-    }
+        zigbeeModel: ["Nolia desk lamp"],
+        model: "404117",
+        vendor: "Müller Licht",
+        description: "Tint desk lamp with battery",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
 ];
