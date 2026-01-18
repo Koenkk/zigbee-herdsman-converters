@@ -16,12 +16,24 @@ const fzLocal = {
             const attributes: KeyValue = {};
             
             // Handle attribute 257: last_used_pin_code
-            // The lock sends PIN codes as ASCII bytes encoded as hex
-            // Example: "303030" (hex) = [0x30, 0x30, 0x30] = "000" (ASCII)
+            // The lock sends PIN codes as the actual digits typed
+            // Report exactly what the lock sends
             if (msg.data["257"] !== undefined) {
-                const buffer = Buffer.from(msg.data["257"] as string);
-                // Decode ASCII characters from the buffer
-                attributes.last_used_pin_code = buffer.toString('ascii');
+                const data = msg.data["257"];
+                
+                if (Buffer.isBuffer(data)) {
+                    // Convert buffer to ASCII string
+                    attributes.last_used_pin_code = data.toString('ascii').trim();
+                } else if (Array.isArray(data)) {
+                    // Array of bytes, convert to ASCII string
+                    attributes.last_used_pin_code = Buffer.from(data).toString('ascii').trim();
+                } else if (typeof data === 'string') {
+                    // Already a string
+                    attributes.last_used_pin_code = data.trim();
+                } else {
+                    // Fallback: convert to string
+                    attributes.last_used_pin_code = String(data);
+                }
             }
 
             // Handle attribute 256: last action (lock/unlock) source and user
