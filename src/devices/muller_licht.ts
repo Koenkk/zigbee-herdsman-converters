@@ -308,4 +308,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "tint Flores Gen2 garden light",
         extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"]}, effect: false, powerOnBehavior: false})],
     },
+    {
+        fingerprint: [{manufacturerName: "MLI", modelID: "Desk lamp"}],
+        model: "404117",
+        vendor: "Müller Licht",
+        description: "Tint desk lamp with battery",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
 ];
