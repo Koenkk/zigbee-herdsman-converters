@@ -1531,7 +1531,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["LCW004"],
+        zigbeeModel: ["LCW004", "LCW005"],
         model: "046677585235",
         vendor: "Philips",
         description: "Hue Dymera indoor and outdoor wall light",
