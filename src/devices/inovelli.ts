@@ -1,4 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
+import type {ClusterOrRawPayload} from "zigbee-herdsman/dist/controller/tstype";
 
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -154,6 +155,24 @@ interface InovelliMmWave {
             zMin: number;
             zMax: number;
         };
+        setDetectionArea: {
+            areaId: number;
+            xMin: number;
+            xMax: number;
+            yMin: number;
+            yMax: number;
+            zMin: number;
+            zMax: number;
+        };
+        setStayArea: {
+            areaId: number;
+            xMin: number;
+            xMax: number;
+            yMin: number;
+            yMax: number;
+            zMin: number;
+            zMax: number;
+        };
     };
     commandResponses: {
         anyoneInReportingArea: {
@@ -233,6 +252,8 @@ const mmWaveControlCommands: {[key: string]: number} = {
 
 const INOVELLI_CLUSTER_NAME = "manuSpecificInovelli" as const;
 const INOVELLI_MMWAVE_CLUSTER_NAME = "manuSpecificInovelliMMWave" as const;
+
+type MmWaveAreaPayload = InovelliMmWave["commands"]["setInterferenceArea"];
 
 const inovelliExtend = {
     addCustomClusterInovelli: () =>
@@ -362,8 +383,18 @@ const inovelliExtend = {
             },
             commandsResponse: {},
         }),
-    addCustomMMWaveClusterInovelli: () =>
-        m.deviceAddCustomCluster(INOVELLI_MMWAVE_CLUSTER_NAME, {
+    addCustomMMWaveClusterInovelli: () => {
+        const mmWaveAreaParameters = [
+            {name: "areaId", type: Zcl.DataType.UINT8, max: 3},
+            {name: "xMin", type: Zcl.DataType.INT16, min: -600, max: 600},
+            {name: "xMax", type: Zcl.DataType.INT16, min: -600, max: 600},
+            {name: "yMin", type: Zcl.DataType.INT16, min: -600, max: 600},
+            {name: "yMax", type: Zcl.DataType.INT16, min: -600, max: 600},
+            {name: "zMin", type: Zcl.DataType.INT16, min: -600, max: 600},
+            {name: "zMax", type: Zcl.DataType.INT16, min: -600, max: 600},
+        ];
+
+        return m.deviceAddCustomCluster(INOVELLI_MMWAVE_CLUSTER_NAME, {
             ID: 64562, // 0xfc32
             manufacturerCode: 0x122f,
             attributes: {
@@ -387,15 +418,15 @@ const inovelliExtend = {
                 },
                 setInterferenceArea: {
                     ID: 1,
-                    parameters: [
-                        {name: "areaID", type: Zcl.DataType.UINT8},
-                        {name: "xMin", type: Zcl.DataType.INT16},
-                        {name: "xMax", type: Zcl.DataType.INT16},
-                        {name: "yMin", type: Zcl.DataType.INT16},
-                        {name: "yMax", type: Zcl.DataType.INT16},
-                        {name: "zMin", type: Zcl.DataType.INT16},
-                        {name: "zMax", type: Zcl.DataType.INT16},
-                    ],
+                    parameters: mmWaveAreaParameters,
+                },
+                setDetectionArea: {
+                    ID: 2,
+                    parameters: mmWaveAreaParameters,
+                },
+                setStayArea: {
+                    ID: 3,
+                    parameters: mmWaveAreaParameters,
                 },
             },
             commandsResponse: {
@@ -409,7 +440,8 @@ const inovelliExtend = {
                     ],
                 },
             },
-        }),
+        });
+    },
     inovelliDevice: ({
         attrs,
         supportsLedEffects,
@@ -575,8 +607,13 @@ const inovelliExtend = {
 
         return {
             fromZigbee: [fzLocal.anyone_in_reporting_area],
-            toZigbee: [tzLocal.inovelli_mmwave_control_commands, tzLocal.inovelli_mmwave_set_interference_area],
-            exposes: [exposeMMWaveControl(), exposeSetInterferenceArea(), ...exposeMMWaveAreas()],
+            toZigbee: [
+                tzLocal.inovelli_mmwave_control_commands,
+                tzLocal.inovelli_mmwave_set_interference_area,
+                tzLocal.inovelli_mmwave_set_detection_area,
+                tzLocal.inovelli_mmwave_set_stay_area,
+            ],
+            exposes: [exposeMMWaveControl(), exposeSetInterferenceArea(), exposeSetDetectionArea(), exposeSetStayArea(), ...exposeMMWaveAreas()],
             configure: configure,
             isModernExtend: true,
         } as ModernExtend;
@@ -1893,6 +1930,37 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
     },
 };
 
+function createMmWaveAreaConverter<Cmd extends "setInterferenceArea" | "setDetectionArea" | "setStayArea">(key: string, command: Cmd): Tz.Converter {
+    return {
+        key: [key],
+        convertSet: async (entity, key, values, meta) => {
+            utils.assertObject(values);
+
+            const payload: MmWaveAreaPayload = {
+                // areaID is zero indexed
+                areaId: values.area_id - 1,
+                xMin: values.width_min,
+                xMax: values.width_max,
+                yMin: values.height_min,
+                yMax: values.height_max,
+                zMin: values.depth_min,
+                zMax: values.depth_max,
+            };
+
+            await entity.command<typeof INOVELLI_MMWAVE_CLUSTER_NAME, Cmd, InovelliMmWave>(
+                INOVELLI_MMWAVE_CLUSTER_NAME,
+                command,
+                payload as ClusterOrRawPayload<typeof INOVELLI_MMWAVE_CLUSTER_NAME, Cmd, InovelliMmWave>,
+                {
+                    disableResponse: true,
+                    disableDefaultResponse: true,
+                },
+            );
+            return {state: {[key]: values}};
+        },
+    } satisfies Tz.Converter;
+}
+
 const tzLocal = {
     inovelli_parameters: (attributes: {[s: string]: Attribute}, cluster: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME) =>
         ({
@@ -2032,29 +2100,9 @@ const tzLocal = {
             return {state: {[key]: values}};
         },
     } satisfies Tz.Converter,
-    inovelli_mmwave_set_interference_area: {
-        key: ["mwwave_set_interference_area"],
-        convertSet: async (entity, key, values, meta) => {
-            utils.assertObject(values);
-
-            await entity.command<typeof INOVELLI_MMWAVE_CLUSTER_NAME, "setInterferenceArea", InovelliMmWave>(
-                INOVELLI_MMWAVE_CLUSTER_NAME,
-                "setInterferenceArea",
-                {
-                    // areaID is zero indexed
-                    areaId: values.area_id - 1,
-                    xMin: values.width_min,
-                    xMax: values.width_max,
-                    yMin: values.height_min,
-                    yMax: values.height_max,
-                    zMin: values.depth_min,
-                    zMax: values.depth_max,
-                },
-                {disableResponse: true, disableDefaultResponse: true},
-            );
-            return {state: {[key]: values}};
-        },
-    } satisfies Tz.Converter,
+    inovelli_mmwave_set_interference_area: createMmWaveAreaConverter("mwwave_set_interference_area", "setInterferenceArea"),
+    inovelli_mmwave_set_detection_area: createMmWaveAreaConverter("mwwave_set_detection_area", "setDetectionArea"),
+    inovelli_mmwave_set_stay_area: createMmWaveAreaConverter("mwwave_set_stay_area", "setStayArea"),
     /*
      * Inovelli devices have a default transition property that the device should
      * fallback to if a transition is not specified by passing 0xffff
@@ -2513,17 +2561,17 @@ const exposeMMWaveControl = () => {
         .withCategory("config");
 };
 
-const exposeSetInterferenceArea = () => {
+const exposeSetArea = (name: string, id: string, areaType: string, areaIdDescription: string, finalDescription: string) => {
     return e
-        .composite("Set Interference Area", "set_interference_area", ea.STATE_SET)
-        .withFeature(e.enum("area_id", ea.STATE_SET, [1, 2, 3, 4]).withDescription("Interference area to adjust"))
+        .composite(name, id, ea.STATE_SET)
+        .withFeature(e.enum("area_id", ea.STATE_SET, [1, 2, 3, 4]).withDescription(areaIdDescription))
         .withFeature(
             e
                 .numeric("width_min", ea.STATE_SET)
                 .withValueMin(-600)
                 .withValueMax(600)
                 .withDescription(
-                    "Defines the detection area (negative values are left of the switch facing away from the wall, positive values are right)",
+                    `Defines the ${areaType} area (negative values are left of the switch facing away from the wall, positive values are right)`,
                 ),
         )
         .withFeature(
@@ -2532,7 +2580,7 @@ const exposeSetInterferenceArea = () => {
                 .withValueMin(-600)
                 .withValueMax(600)
                 .withDescription(
-                    "Defines the detection area (negative values are left of the switch facing away from the wall, positive values are right)",
+                    `Defines the ${areaType} area (negative values are left of the switch facing away from the wall, positive values are right)`,
                 ),
         )
         .withFeature(
@@ -2540,31 +2588,61 @@ const exposeSetInterferenceArea = () => {
                 .numeric("height_min", ea.STATE_SET)
                 .withValueMin(-600)
                 .withValueMax(600)
-                .withDescription("Defines the detection area (negative values are below the switch, positive values are above)"),
+                .withDescription(`Defines the ${areaType} area (negative values are below the switch, positive values are above)`),
         )
         .withFeature(
             e
                 .numeric("height_max", ea.STATE_SET)
                 .withValueMin(-600)
                 .withValueMax(600)
-                .withDescription("Defines the detection area (negative values are below the switch, positive values are above)"),
+                .withDescription(`Defines the ${areaType} area (negative values are below the switch, positive values are above)`),
         )
         .withFeature(
             e
                 .numeric("depth_min", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(600)
-                .withDescription("Defines the detection area in front of the switch"),
+                .withDescription(`Defines the ${areaType} area in front of the switch`),
         )
         .withFeature(
             e
                 .numeric("depth_max", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(600)
-                .withDescription("Defines the detection area in front of the switch"),
+                .withDescription(`Defines the ${areaType} area in front of the switch`),
         )
         .withCategory("config")
-        .withDescription("Defines an area to be excluded by the mmWave sensor. The switch supports 4 separate exclusion areas");
+        .withDescription(finalDescription);
+};
+
+const exposeSetInterferenceArea = () => {
+    return exposeSetArea(
+        "Set Interference Area",
+        "set_interference_area",
+        "interference",
+        "Interference area to adjust",
+        "Defines an area to be excluded by the mmWave sensor. The switch supports 4 separate interference areas",
+    );
+};
+
+const exposeSetDetectionArea = () => {
+    return exposeSetArea(
+        "Set Detection Area",
+        "set_detection_area",
+        "detection",
+        "Detection area to adjust",
+        "Defines an area to be detected by the mmWave sensor. The switch supports 4 separate detection areas",
+    );
+};
+
+const exposeSetStayArea = () => {
+    return exposeSetArea(
+        "Set Stay Area",
+        "set_stay_area",
+        "stay",
+        "Detection area to adjust",
+        "Defines a stay area for the mmWave sensor. The switch supports 4 separate stay areas",
+    );
 };
 
 const exposeLedEffectComplete = () => {
