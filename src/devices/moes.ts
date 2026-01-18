@@ -22,14 +22,14 @@ const exposesLocal = {
 };
 
 const fzTuyaBatteryDp13 = {
-    cluster: 'manuSpecificTuya',
-    type: ['commandDataReport'],
+    cluster: "manuSpecificTuya",
+    type: ["commandDataReport"],
     convert: (model, msg, publish, options, meta) => {
         if (!msg.data.dpValues) return;
-        const dp = msg.data.dpValues.find(d => d.dp === 13);
+        const dp = msg.data.dpValues.find((d) => d.dp === 13);
         if (!dp) return;
-        const battery = dp.data.readUInt32BE(0); 
-        return { battery };  
+        const battery = dp.data.readUInt32BE(0);
+        return {battery};
     },
 };
 
@@ -1908,31 +1908,31 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Moes roller blind motor 17mm/25mm/28mm",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-	    fromZigbee: [fzTuyaBatteryDp13],   // custom battery converter value [0,0,0,999] - 999 is 0 to 100
+        fromZigbee: [fzTuyaBatteryDp13], // custom battery converter value [0,0,0,999] - 999 is 0 to 100
         toZigbee: [],
-	    exposes: [
-        	e.cover_position().setAccess("position", ea.STATE_SET),
-	        e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
-	        e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
-	        e.battery(),
-	    ],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
+            e.battery(),
+        ],
         meta: {
-	        tuyaDatapoints: [
-     	        [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
-		        [9, "position", tuya.valueConverter.coverPosition],
-            	[8, "position", tuya.valueConverter.coverPosition],
-            	[11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
-            	[
-                16,
-                "border",
-                tuya.valueConverterBasic.lookup({
-                    up: tuya.enum(0),
-                    down: tuya.enum(1),
-                    up_delete: tuya.enum(2),
-                    down_delete: tuya.enum(3),
-                    remove_top_bottom: tuya.enum(4),
-                }),
-		        ],
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [9, "position", tuya.valueConverter.coverPosition],
+                [8, "position", tuya.valueConverter.coverPosition],
+                [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [
+                    16,
+                    "border",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                        up_delete: tuya.enum(2),
+                        down_delete: tuya.enum(3),
+                        remove_top_bottom: tuya.enum(4),
+                    }),
+                ],
             ],
         },
     },
