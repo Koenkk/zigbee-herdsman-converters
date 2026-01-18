@@ -14,20 +14,20 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const attributes: KeyValue = {};
-            
+
             // Handle attribute 257: last_used_pin_code
             // The lock sends PIN codes as the actual digits typed
             // Report exactly what the lock sends
             if (msg.data["257"] !== undefined) {
                 const data = msg.data["257"];
-                
+
                 if (Buffer.isBuffer(data)) {
                     // Convert buffer to ASCII string
-                    attributes.last_used_pin_code = data.toString('ascii').trim();
+                    attributes.last_used_pin_code = data.toString("ascii").trim();
                 } else if (Array.isArray(data)) {
                     // Array of bytes, convert to ASCII string
-                    attributes.last_used_pin_code = Buffer.from(data).toString('ascii').trim();
-                } else if (typeof data === 'string') {
+                    attributes.last_used_pin_code = Buffer.from(data).toString("ascii").trim();
+                } else if (typeof data === "string") {
                     // Already a string
                     attributes.last_used_pin_code = data.trim();
                 } else {
@@ -55,10 +55,10 @@ const fzLocal = {
                 const secondOctet = hex.substring(2, 4);
                 const thirdOctet = hex.substring(4, 8);
                 result.last_action_user = Number.parseInt(thirdOctet, 16);
-                
+
                 // Store user ID as string for consistency with Home Assistant expectations
                 const userIdStr = result.last_action_user.toString();
-                
+
                 if (secondOctet === "01") {
                     attributes.last_lock_user = userIdStr;
                     attributes.last_lock_source = result.last_action_source;
@@ -67,30 +67,30 @@ const fzLocal = {
                     attributes.last_unlock_source = result.last_action_source;
                 }
             }
-            
+
             // Handle voltage attribute (if present)
-            if (msg.data.hasOwnProperty("voltage")) {
+            if (Object.hasOwn(msg.data, "voltage")) {
                 attributes.voltage = (msg.data as KeyValue)["voltage"];
             }
-            
+
             // Handle auto_relock_time attribute (if present)
-            if (msg.data.hasOwnProperty("autoRelockTime")) {
+            if (Object.hasOwn(msg.data, "autoRelockTime")) {
                 attributes.auto_relock_time = (msg.data as KeyValue)["autoRelockTime"];
             }
-            
+
             // Handle lock capabilities (if present)
             // Attribute 18 (0x12): Number of PIN users supported
-            if (msg.data.hasOwnProperty(18)) {
+            if (Object.hasOwn(msg.data, 18)) {
                 attributes.max_pin_users = (msg.data as KeyValue)[18];
             }
-            
+
             // Attribute 23 (0x17): Min PIN code length
-            if (msg.data.hasOwnProperty(23)) {
+            if (Object.hasOwn(msg.data, 23)) {
                 attributes.min_pin_length = (msg.data as KeyValue)[23];
             }
-            
+
             // Attribute 24 (0x18): Max PIN code length
-            if (msg.data.hasOwnProperty(24)) {
+            if (Object.hasOwn(msg.data, 24)) {
                 attributes.max_pin_length = (msg.data as KeyValue)[24];
             }
 
@@ -125,14 +125,14 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("closuresDoorLock", ["lockState", "soundVolume"]);
-            
+
             // Try to read lock capabilities (may not be supported by all models)
             try {
-                await endpoint.read("closuresDoorLock", [18, 23, 24]);  // maxPinUsers, minPinLength, maxPinLength
+                await endpoint.read("closuresDoorLock", [18, 23, 24]); // maxPinUsers, minPinLength, maxPinLength
             } catch (_error) {
                 // Capabilities read may fail on some models - this is expected
             }
-            
+
             device.powerSource = "Battery";
             device.save();
         },
