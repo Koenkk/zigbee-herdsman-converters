@@ -157,13 +157,13 @@ interface InovelliMmWave {
     };
     commandResponses: {
         anyoneInReportingArea: {
-            /** boolean */
+            /** uint8: 0 or 1 */
             area1: number;
-            /** boolean */
+            /** uint8: 0 or 1 */
             area2: number;
-            /** boolean */
+            /** uint8: 0 or 1 */
             area3: number;
-            /** boolean */
+            /** uint8: 0 or 1 */
             area4: number;
         };
     };
@@ -402,10 +402,10 @@ const inovelliExtend = {
                 anyoneInReportingArea: {
                     ID: 0,
                     parameters: [
-                        {name: "area1", type: Zcl.DataType.BOOLEAN},
-                        {name: "area2", type: Zcl.DataType.BOOLEAN},
-                        {name: "area3", type: Zcl.DataType.BOOLEAN},
-                        {name: "area4", type: Zcl.DataType.BOOLEAN},
+                        {name: "area1", type: Zcl.DataType.UINT8},
+                        {name: "area2", type: Zcl.DataType.UINT8},
+                        {name: "area3", type: Zcl.DataType.UINT8},
+                        {name: "area4", type: Zcl.DataType.UINT8},
                     ],
                 },
             },
@@ -576,7 +576,7 @@ const inovelliExtend = {
         return {
             fromZigbee: [fzLocal.anyone_in_reporting_area],
             toZigbee: [tzLocal.inovelli_mmwave_control_commands, tzLocal.inovelli_mmwave_set_interference_area],
-            exposes: [exposeMMWaveControl(), exposeSetInterferenceArea(), exposeMMWaveAreas()],
+            exposes: [exposeMMWaveControl(), exposeSetInterferenceArea(), ...exposeMMWaveAreas()],
             configure: configure,
             isModernExtend: true,
         } as ModernExtend;
@@ -2424,10 +2424,17 @@ const fzLocal = {
         cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
         type: ["commandAnyoneInReportingArea"],
         convert: (model, msg, publish, options, meta) => {
-            const data = msg.data as {area1?: boolean; area2?: boolean; area3?: boolean; area4?: boolean};
-            return {mmwave_areas: data};
+            const data = msg.data as {area1?: number; area2?: number; area3?: number; area4?: number};
+            return {
+                mmwave_areas: {
+                    area1: data.area1 === 1,
+                    area2: data.area2 === 1,
+                    area3: data.area3 === 1,
+                    area4: data.area4 === 1,
+                },
+            };
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<typeof INOVELLI_MMWAVE_CLUSTER_NAME, InovelliMmWave, ["commandAnyoneInReportingArea"]>,
 };
 
 const exposeLedEffects = () => {
@@ -2572,13 +2579,24 @@ const exposeEnergyReset = () => {
 };
 
 const exposeMMWaveAreas = () => {
-    return e
-        .composite("anyone_in_reporting_area", "mmwave_areas", ea.STATE)
-        .withFeature(e.binary("area1", ea.STATE, "true", "false").withDescription("Area 1"))
-        .withFeature(e.binary("area2", ea.STATE, "true", "false").withDescription("Area 2"))
-        .withFeature(e.binary("area3", ea.STATE, "true", "false").withDescription("Area 3"))
-        .withFeature(e.binary("area4", ea.STATE, "true", "false").withDescription("Area 4"))
-        .withCategory("diagnostic");
+    return [
+        e
+            .binary("Area1Occupancy", ea.STATE, "true", "false")
+            .withProperty("mmwave_areas.area1")
+            .withDescription("Indicates whether the device detected occupancy in Area 1"),
+        e
+            .binary("Area2Occupancy", ea.STATE, "true", "false")
+            .withProperty("mmwave_areas.area2")
+            .withDescription("Indicates whether the device detected occupancy in Area 2"),
+        e
+            .binary("Area3Occupancy", ea.STATE, "true", "false")
+            .withProperty("mmwave_areas.area3")
+            .withDescription("Indicates whether the device detected occupancy in Area 3"),
+        e
+            .binary("Area4Occupancy", ea.STATE, "true", "false")
+            .withProperty("mmwave_areas.area4")
+            .withDescription("Indicates whether the device detected occupancy in Area 4"),
+    ];
 };
 
 const BUTTON_TAP_SEQUENCES = [
