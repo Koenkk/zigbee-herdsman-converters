@@ -3322,7 +3322,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
                 name: "switch_model",
-                lookup: {none: 0, "model 1": 1, "model 2": 2, "model 3": 3, "model 4": 4, "model 5": 5},
+                lookup: {none: 0, "model_1": 1, "model_2": 2, "model_3": 3, "model_4": 4, "model_5": 5},
                 cluster: "genOnOffSwitchCfg",
                 attribute: "customSwitchModel",
                 description: "Switch model",
