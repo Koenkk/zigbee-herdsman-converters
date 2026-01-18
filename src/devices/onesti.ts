@@ -130,7 +130,8 @@ export const definitions: DefinitionWithExtend[] = [
             try {
                 await endpoint.read("closuresDoorLock", [18, 23, 24]); // maxPinUsers, minPinLength, maxPinLength
             } catch (_error) {
-                // Capabilities read may fail on some models - this is expected
+                // Capabilities read may fail on some models - this is expected and harmless
+                // Attributes will be exposed if the lock reports them during operation
             }
 
             device.powerSource = "Battery";
