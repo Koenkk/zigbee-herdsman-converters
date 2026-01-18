@@ -265,7 +265,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart power strip 3 gang with power monitoring",
         meta: {
             multiEndpoint: true,
-            multiEndpointSkip: ['energy', 'current', 'voltage', 'power'],
+            multiEndpointSkip: ["energy", "current", "voltage", "power"],
         },
         extend: [
             tuya.modernExtend.tuyaOnOff({
@@ -274,7 +274,7 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: true,
                 indicatorMode: true,
                 childLock: true,
-                endpoints: ['l1', 'l2', 'l3'],
+                endpoints: ["l1", "l2", "l3"],
             }),
             tuya.modernExtend.electricityMeasurementPoll({
                 metering: (device) => [100, 160, 192].includes(device.applicationVersion) || ["1.0.5"].includes(device.softwareBuildID),
