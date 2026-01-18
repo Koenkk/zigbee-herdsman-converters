@@ -893,7 +893,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Remote Control N2"],
-        model: "E2001/E2002",
+        model: "E2001/E2002/E2313",
         vendor: "IKEA",
         description: "STYRBAR remote control",
         extend: [
