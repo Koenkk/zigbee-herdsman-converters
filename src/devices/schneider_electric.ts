@@ -495,6 +495,49 @@ const schneiderElectricExtend = {
 };
 
 const tzLocal = {
+    /**
+     * Custom level control converter for Schneider Electric devices with strict ZCL compliance.
+     * These devices reject commands containing optional parameters (optionsMask, optionsOverride)
+     * that are not explicitly supported, even with value 0.
+     * This converter sends only the mandatory level and transtime parameters.
+     */
+    schneider_strict_level_control: {
+        key: ["brightness", "brightness_percent", "level"],
+        options: [exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            // Determine target level based on input key
+            let level: number;
+            if (key === "level") {
+                level = Number(value);
+            } else if (key === "brightness_percent") {
+                level = utils.toNumber(value, "brightness_percent");
+                level = Math.round((level * 254) / 100);
+            } else {
+                // key === "brightness"
+                level = utils.toNumber(value, "brightness");
+            }
+
+            // Clamp level to valid range [0, 254] per ZCL spec
+            level = Math.min(254, Math.max(0, level));
+
+            // Calculate transition time
+            const transitionTime = utils.getTransition(entity, key, meta).time;
+
+            // Send command with only mandatory parameters for strict ZCL compliance
+            // Do NOT include optionsMask or optionsOverride - Schneider devices reject them
+            const payload = {
+                level: level,
+                transtime: transitionTime,
+            };
+
+            await entity.command("genLevelCtrl", "moveToLevelWithOnOff", payload, utils.getOptions(meta.mapped, entity));
+
+            return {state: {brightness: level}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genLevelCtrl", ["currentLevel"]);
+        },
+    } satisfies Tz.Converter,
     lift_duration: {
         key: ["lift_duration"],
         convertSet: async (entity, key, value, meta) => {
@@ -948,19 +991,11 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["NHPB/DIMMER/1"],
         model: "WDE002386",
         vendor: "Schneider Electric",
-        description: "Push button dimmer",
-        extend: [
-            m.light({
-                effect: false,
-                powerOnBehavior: true,
-                configureReporting: true,
-                levelConfig: {features: ["on_level", "current_level_startup"]},
-            }),
-            m.lightingBallast(),
-            m.identify(),
-            schneiderElectricExtend.dimmingMode(),
-            indicatorMode(),
-        ],
+        description: "Push button dimmer with strict ZCL compliance",
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tzLocal.schneider_strict_level_control, tz.level_config, tz.power_on_behavior, tz.ignore_transition],
+        exposes: [e.light_brightness().withLevelConfig(["on_level", "current_level_startup"]), e.power_on_behavior(["off", "on", "previous"])],
+        extend: [m.lightingBallast(), m.identify(), schneiderElectricExtend.dimmingMode(), indicatorMode()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingBallastCfg"]);
