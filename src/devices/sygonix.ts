@@ -16,10 +16,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch(),
             e.binary("auto_adjustment", ea.STATE_SET, "ON", "OFF").withDescription("auto adjustment the arm position"),
             e.binary("set_switch_state", ea.STATE_SET, "ON", "OFF").withDescription("set the switch display status"),
-            e
-                .enum("mode", ea.STATE_SET, ["click", "long_press"])
-                .withDescription("work mode of the finger robot")
-                .withCategory("config"),
+            e.enum("mode", ea.STATE_SET, ["click", "long_press"]).withDescription("work mode of the finger robot").withCategory("config"),
             e
                 .numeric("click_sustain_time", ea.STATE_SET)
                 .withValueMin(0.3)
