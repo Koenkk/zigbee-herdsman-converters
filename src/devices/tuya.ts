@@ -23630,7 +23630,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("Excellux", ["DHT0001", "DHTA001"]),
-        model: "FEDHT-01",
+        model: "ZG-107TH",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "HT sensor with temperature and humidity",
