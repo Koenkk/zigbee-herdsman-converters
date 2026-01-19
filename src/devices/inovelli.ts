@@ -6,7 +6,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
+import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -724,6 +724,15 @@ const inovelliExtend = {
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
                 await reporting.bind(endpoint, coordinatorEndpoint, [INOVELLI_MMWAVE_CLUSTER_NAME]);
+
+                await endpoint.command<typeof INOVELLI_MMWAVE_CLUSTER_NAME, "mmWaveControl", InovelliMmWave>(
+                    INOVELLI_MMWAVE_CLUSTER_NAME,
+                    "mmWaveControl",
+                    {
+                        controlID: mmWaveControlCommands.query_areas,
+                    },
+                    {disableResponse: true, disableDefaultResponse: true},
+                );
             },
         ];
 
@@ -731,11 +740,11 @@ const inovelliExtend = {
             fromZigbee: [fzLocal.anyone_in_reporting_area, fzLocal.report_areas],
             toZigbee: [
                 tzLocal.inovelli_mmwave_control_commands,
-                tzLocal.inovelli_mmwave_set_interference_area,
-                tzLocal.inovelli_mmwave_set_detection_area,
-                tzLocal.inovelli_mmwave_set_stay_area,
+                tzLocal.mmwave_detection_areas,
+                tzLocal.mmwave_interference_areas,
+                tzLocal.mmwave_stay_areas,
             ],
-            exposes: [exposeMMWaveControl(), ...exposeMMWaveAreas(), exposeSetInterferenceArea(), exposeSetDetectionArea(), exposeSetStayArea()],
+            exposes: [exposeMMWaveControl(), ...exposeMMWaveAreas(), exposeInterferenceAreas(), exposeDetectionAreas(), exposeStayAreas()],
             configure: configure,
             isModernExtend: true,
         } as ModernExtend;
@@ -2052,33 +2061,66 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
     },
 };
 
-function createMmWaveAreaConverter<Cmd extends "setInterferenceArea" | "setDetectionArea" | "setStayArea">(key: string, command: Cmd): Tz.Converter {
+function createMmWaveCompositeAreaConverter<Cmd extends "setInterferenceArea" | "setDetectionArea" | "setStayArea">(
+    key: string,
+    command: Cmd,
+): Tz.Converter {
     return {
         key: [key],
         convertSet: async (entity, key, values, meta) => {
             utils.assertObject(values);
 
-            const payload: MmWaveAreaPayload = {
-                // areaID is zero indexed
-                areaId: values.area_id - 1,
-                xMin: values.width_min,
-                xMax: values.width_max,
-                yMin: values.depth_min,
-                yMax: values.depth_max,
-                zMin: values.height_min,
-                zMax: values.height_max,
-            };
+            // The composite structure has Area1, Area2, Area3, Area4 as keys
+            const areaKeys = ["Area1", "Area2", "Area3", "Area4"];
+            const state: KeyValue = {[key]: {}} as KeyValue;
+            const compositeState = state[key] as KeyValueAny;
 
-            await entity.command<typeof INOVELLI_MMWAVE_CLUSTER_NAME, Cmd, InovelliMmWave>(
-                INOVELLI_MMWAVE_CLUSTER_NAME,
-                command,
-                payload as ClusterOrRawPayload<typeof INOVELLI_MMWAVE_CLUSTER_NAME, Cmd, InovelliMmWave>,
-                {
-                    disableResponse: true,
-                    disableDefaultResponse: true,
-                },
-            );
-            return {state: {[key]: values}};
+            // Process each area that's provided in the composite
+            for (const areaKey of areaKeys) {
+                if (areaKey in values && utils.isObject(values[areaKey])) {
+                    const areaData = values[areaKey] as KeyValueAny;
+                    // Extract area number from "Area1" -> 1, "Area2" -> 2, etc.
+                    const areaId = Number.parseInt(areaKey.replace("Area", ""), 10);
+
+                    const payload: MmWaveAreaPayload = {
+                        // areaID is zero indexed
+                        areaId: areaId - 1,
+                        xMin: areaData.width_min,
+                        xMax: areaData.width_max,
+                        yMin: areaData.depth_min,
+                        yMax: areaData.depth_max,
+                        zMin: areaData.height_min,
+                        zMax: areaData.height_max,
+                    };
+
+                    await entity.command<typeof INOVELLI_MMWAVE_CLUSTER_NAME, Cmd, InovelliMmWave>(
+                        INOVELLI_MMWAVE_CLUSTER_NAME,
+                        command,
+                        payload as ClusterOrRawPayload<typeof INOVELLI_MMWAVE_CLUSTER_NAME, Cmd, InovelliMmWave>,
+                        {
+                            disableResponse: true,
+                            disableDefaultResponse: true,
+                        },
+                    );
+
+                    // Store the area data in the state
+                    compositeState[areaKey] = areaData;
+                }
+            }
+
+            // Query areas after all updates are complete
+            if (Object.keys(compositeState).length > 0) {
+                await entity.command<typeof INOVELLI_MMWAVE_CLUSTER_NAME, "mmWaveControl", InovelliMmWave>(
+                    INOVELLI_MMWAVE_CLUSTER_NAME,
+                    "mmWaveControl",
+                    {
+                        controlID: mmWaveControlCommands.query_areas,
+                    },
+                    {disableResponse: true, disableDefaultResponse: true},
+                );
+            }
+
+            return {state};
         },
     } satisfies Tz.Converter;
 }
@@ -2222,9 +2264,9 @@ const tzLocal = {
             return {state: {[key]: values}};
         },
     } satisfies Tz.Converter,
-    inovelli_mmwave_set_interference_area: createMmWaveAreaConverter("mmwave_set_interference_area", "setInterferenceArea"),
-    inovelli_mmwave_set_detection_area: createMmWaveAreaConverter("mmwave_set_detection_area", "setDetectionArea"),
-    inovelli_mmwave_set_stay_area: createMmWaveAreaConverter("mmwave_set_stay_area", "setStayArea"),
+    mmwave_detection_areas: createMmWaveCompositeAreaConverter("mmwave_detection_areas", "setDetectionArea"),
+    mmwave_interference_areas: createMmWaveCompositeAreaConverter("mmwave_interference_areas", "setInterferenceArea"),
+    mmwave_stay_areas: createMmWaveCompositeAreaConverter("mmwave_stay_areas", "setStayArea"),
     /*
      * Inovelli devices have a default transition property that the device should
      * fallback to if a transition is not specified by passing 0xffff
@@ -2594,42 +2636,28 @@ const fzLocal = {
         cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
         type: ["commandReportInterferenceArea", "commandReportDetectionArea", "commandReportStayArea"],
         convert: (model, msg, publish, options, meta) => {
-            const areas = [];
-            areas.push({
-                width_min: msg.data.xMin1,
-                width_max: msg.data.xMax1,
-                height_min: msg.data.zMin1,
-                height_max: msg.data.zMax1,
-                depth_min: msg.data.yMin1,
-                depth_max: msg.data.yMax1,
-            });
-            areas.push({
-                width_min: msg.data.xMin2,
-                width_max: msg.data.xMax2,
-                height_min: msg.data.zMin2,
-                height_max: msg.data.zMax2,
-                depth_min: msg.data.yMin2,
-                depth_max: msg.data.yMax2,
-            });
-            areas.push({
-                width_min: msg.data.xMin3,
-                width_max: msg.data.xMax3,
-                height_min: msg.data.zMin3,
-                height_max: msg.data.zMax3,
-                depth_min: msg.data.yMin3,
-                depth_max: msg.data.yMax3,
-            });
-            areas.push({
-                width_min: msg.data.xMin4,
-                width_max: msg.data.xMax4,
-                height_min: msg.data.zMin4,
-                height_max: msg.data.zMax4,
-                depth_min: msg.data.yMin4,
-                depth_max: msg.data.yMax4,
-            });
+            const areas: KeyValueAny = {};
+            const data = msg.data as KeyValueAny;
+            for (let i = 1; i <= 4; i++) {
+                areas[`Area${i}`] = {
+                    width_min: data[`xMin${i}`],
+                    width_max: data[`xMax${i}`],
+                    height_min: data[`zMin${i}`],
+                    height_max: data[`zMax${i}`],
+                    depth_min: data[`yMin${i}`],
+                    depth_max: data[`yMax${i}`],
+                };
+            }
             const result: KeyValueAny = {};
 
-            result[`${msg.type.slice(13)}s`] = areas;
+            // Map command types to the new property names
+            const propertyMap: KeyValueAny = {
+                commandReportInterferenceArea: "mmwave_interference_areas",
+                commandReportDetectionArea: "mmwave_detection_areas",
+                commandReportStayArea: "mmwave_stay_areas",
+            };
+
+            result[propertyMap[msg.type]] = areas;
             return result;
         },
     } satisfies Fz.Converter<
@@ -2727,90 +2755,6 @@ const exposeMMWaveControl = () => {
         .withCategory("config");
 };
 
-const exposeSetArea = (name: string, id: string, areaType: string, areaIdDescription: string, finalDescription: string) => {
-    return e
-        .composite(name, id, ea.STATE_SET)
-        .withFeature(e.enum("area_id", ea.STATE_SET, [1, 2, 3, 4]).withDescription(areaIdDescription))
-        .withFeature(
-            e
-                .numeric("width_min", ea.STATE_SET)
-                .withValueMin(-600)
-                .withValueMax(600)
-                .withDescription(
-                    `Defines the ${areaType} area (negative values are left of the switch facing away from the wall, positive values are right)`,
-                ),
-        )
-        .withFeature(
-            e
-                .numeric("width_max", ea.STATE_SET)
-                .withValueMin(-600)
-                .withValueMax(600)
-                .withDescription(
-                    `Defines the ${areaType} area (negative values are left of the switch facing away from the wall, positive values are right)`,
-                ),
-        )
-        .withFeature(
-            e
-                .numeric("height_min", ea.STATE_SET)
-                .withValueMin(-600)
-                .withValueMax(600)
-                .withDescription(`Defines the ${areaType} area (negative values are below the switch, positive values are above)`),
-        )
-        .withFeature(
-            e
-                .numeric("height_max", ea.STATE_SET)
-                .withValueMin(-600)
-                .withValueMax(600)
-                .withDescription(`Defines the ${areaType} area (negative values are below the switch, positive values are above)`),
-        )
-        .withFeature(
-            e
-                .numeric("depth_min", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(600)
-                .withDescription(`Defines the ${areaType} area in front of the switch`),
-        )
-        .withFeature(
-            e
-                .numeric("depth_max", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(600)
-                .withDescription(`Defines the ${areaType} area in front of the switch`),
-        )
-        .withCategory("config")
-        .withDescription(finalDescription);
-};
-
-const exposeSetInterferenceArea = () => {
-    return exposeSetArea(
-        "Set Interference Area",
-        "mmwave_set_interference_area",
-        "interference",
-        "Interference area to adjust",
-        "Defines an area to be excluded by the mmWave sensor. The switch supports 4 separate interference areas",
-    );
-};
-
-const exposeSetDetectionArea = () => {
-    return exposeSetArea(
-        "Set Detection Area",
-        "mmwave_set_detection_area",
-        "detection",
-        "Detection area to adjust",
-        "Defines an area to be detected by the mmWave sensor. The switch supports 4 separate detection areas",
-    );
-};
-
-const exposeSetStayArea = () => {
-    return exposeSetArea(
-        "Set Stay Area",
-        "mmwave_set_stay_area",
-        "stay",
-        "Detection area to adjust",
-        "Defines a stay area for the mmWave sensor. The switch supports 4 separate stay areas",
-    );
-};
-
 const exposeLedEffectComplete = () => {
     return e
         .enum("notificationComplete", ea.STATE, Object.values(LED_NOTIFICATION_TYPES))
@@ -2841,6 +2785,84 @@ const exposeMMWaveAreas = () => {
             .withProperty("mmwave_area4_occupancy")
             .withDescription("Indicates whether the device detected occupancy in Area 4"),
     ];
+};
+
+const createAreaComposite = (areaName: string) => {
+    return e
+        .composite(areaName, areaName, ea.STATE)
+        .withFeature(
+            e
+                .numeric("width_min", ea.STATE_SET)
+                .withValueMin(-600)
+                .withValueMax(600)
+                .withDescription("Defines the area (negative values are left of the switch facing away from the wall, positive values are right)"),
+        )
+        .withFeature(
+            e
+                .numeric("width_max", ea.STATE_SET)
+                .withValueMin(-600)
+                .withValueMax(600)
+                .withDescription("Defines the area (negative values are left of the switch facing away from the wall, positive values are right)"),
+        )
+        .withFeature(
+            e
+                .numeric("height_min", ea.STATE_SET)
+                .withValueMin(-600)
+                .withValueMax(600)
+                .withDescription("Defines the area (negative values are below the switch, positive values are above)"),
+        )
+        .withFeature(
+            e
+                .numeric("height_max", ea.STATE_SET)
+                .withValueMin(-600)
+                .withValueMax(600)
+                .withDescription("Defines the area (negative values are below the switch, positive values are above)"),
+        )
+        .withFeature(
+            e.numeric("depth_min", ea.STATE_SET).withValueMin(0).withValueMax(600).withDescription("Defines the area in front of the switch"),
+        )
+        .withFeature(
+            e.numeric("depth_max", ea.STATE_SET).withValueMin(0).withValueMax(600).withDescription("Defines the area in front of the switch"),
+        );
+};
+
+const exposeDetectionAreas = () => {
+    return e
+        .composite("Detection Areas", "mmwave_detection_areas", ea.STATE_SET)
+        .withDescription(
+            "Defines one or more active detection zones where the sensor reports movement or occupancy. Up to four detection zones can be set.",
+        )
+        .withFeature(createAreaComposite("Area1").withProperty("Area1"))
+        .withFeature(createAreaComposite("Area2").withProperty("Area2"))
+        .withFeature(createAreaComposite("Area3").withProperty("Area3"))
+        .withFeature(createAreaComposite("Area4").withProperty("Area4"))
+        .withCategory("config");
+};
+
+const exposeInterferenceAreas = () => {
+    return e
+        .composite("Interference Areas", "mmwave_interference_areas", ea.STATE_SET)
+        .withDescription(
+            "Manually defines the coordinates of an interference area, which is an ignored zone where targets are not reported as present. Up to four zones can be defined.",
+        )
+        .withFeature(createAreaComposite("Area1").withProperty("Area1"))
+        .withFeature(createAreaComposite("Area2").withProperty("Area2"))
+        .withFeature(createAreaComposite("Area3").withProperty("Area3"))
+        .withFeature(createAreaComposite("Area4").withProperty("Area4"))
+        .withCategory("config");
+};
+
+const exposeStayAreas = () => {
+    return e
+        .composite("Stay Areas", "mmwave_stay_areas", ea.STATE_SET)
+        .withDescription(
+            "Defines one or more stay areas where stationary presence should still be detected. Up to four stay zones can be configured.",
+        )
+        .withFeature(createAreaComposite("Area1").withProperty("Area1"))
+        .withFeature(createAreaComposite("Area2").withProperty("Area2"))
+        .withFeature(createAreaComposite("Area3").withProperty("Area3"))
+        .withFeature(createAreaComposite("Area4").withProperty("Area4"))
+        .withCategory("config");
 };
 
 const BUTTON_TAP_SEQUENCES = [
