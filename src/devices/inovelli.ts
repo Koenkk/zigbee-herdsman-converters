@@ -2063,10 +2063,10 @@ function createMmWaveAreaConverter<Cmd extends "setInterferenceArea" | "setDetec
                 areaId: values.area_id - 1,
                 xMin: values.width_min,
                 xMax: values.width_max,
-                yMin: values.height_min,
-                yMax: values.height_max,
-                zMin: values.depth_min,
-                zMax: values.depth_max,
+                yMin: values.depth_min,
+                yMax: values.depth_max,
+                zMin: values.height_min,
+                zMax: values.height_max,
             };
 
             await entity.command<typeof INOVELLI_MMWAVE_CLUSTER_NAME, Cmd, InovelliMmWave>(
@@ -2598,34 +2598,34 @@ const fzLocal = {
             areas.push({
                 width_min: msg.data.xMin1,
                 width_max: msg.data.xMax1,
-                height_min: msg.data.yMin1,
-                height_max: msg.data.yMax1,
-                depth_min: msg.data.zMin1,
-                depth_max: msg.data.zMax1,
+                height_min: msg.data.zMin1,
+                height_max: msg.data.zMax1,
+                depth_min: msg.data.yMin1,
+                depth_max: msg.data.yMax1,
             });
             areas.push({
                 width_min: msg.data.xMin2,
                 width_max: msg.data.xMax2,
-                height_min: msg.data.yMin2,
-                height_max: msg.data.yMax2,
-                depth_min: msg.data.zMin2,
-                depth_max: msg.data.zMax2,
+                height_min: msg.data.zMin2,
+                height_max: msg.data.zMax2,
+                depth_min: msg.data.yMin2,
+                depth_max: msg.data.yMax2,
             });
             areas.push({
                 width_min: msg.data.xMin3,
                 width_max: msg.data.xMax3,
-                height_min: msg.data.yMin3,
-                height_max: msg.data.yMax3,
-                depth_min: msg.data.zMin3,
-                depth_max: msg.data.zMax3,
+                height_min: msg.data.zMin3,
+                height_max: msg.data.zMax3,
+                depth_min: msg.data.yMin3,
+                depth_max: msg.data.yMax3,
             });
             areas.push({
                 width_min: msg.data.xMin4,
                 width_max: msg.data.xMax4,
-                height_min: msg.data.yMin4,
-                height_max: msg.data.yMax4,
-                depth_min: msg.data.zMin4,
-                depth_max: msg.data.zMax4,
+                height_min: msg.data.zMin4,
+                height_max: msg.data.zMax4,
+                depth_min: msg.data.yMin4,
+                depth_max: msg.data.yMax4,
             });
             const result: KeyValueAny = {};
 
