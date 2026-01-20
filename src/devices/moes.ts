@@ -1800,16 +1800,16 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
-        exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold"])],
+        exposes: [e.battery(), e.action(["single", "double", "hold"])],
         meta: {
             tuyaDatapoints: [
                 [
                     1,
                     "action",
                     tuya.valueConverterBasic.lookup({
-                        "1_single": 0,
-                        "1_double": 1,
-                        "1_hold": 2,
+                        single: 0,
+                        double: 1,
+                        hold: 2,
                     }),
                 ],
             ],
