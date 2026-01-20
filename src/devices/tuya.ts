@@ -3336,7 +3336,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.iasZoneAlarm({
                 zoneType: "occupancy",
                 zoneAttributes: ["alarm_1", "battery_low"],
-                keepAliveTimeout: 125,
+                // No keepAlivetimeout for ZG-204Z
+                // https://github.com/Koenkk/zigbee2mqtt/issues/30676
+                keepAliveTimeout: (d) => (d.modelID === "ZG-204Z" ? 0 : 125),
             }),
         ],
         exposes: [
