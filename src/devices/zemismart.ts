@@ -933,7 +933,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6hrnp30w"]),
         model: "ZMP1",
         vendor: "Zemismart",
-        description: "Zemismart ZMP1",
+        description: "Blind driver",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
