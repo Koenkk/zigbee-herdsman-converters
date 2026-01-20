@@ -4834,29 +4834,35 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 model: "929004610502",
                 vendor: "Philips",
-                description: "Hue White and Color  Lightstrip Flux (4m)",
+                description: "Hue White and Color Lightstrip Flux (4m)",
                 fingerprint: [{modelID: "929004610502"}],
             },
             {
                 model: "929004610602",
                 vendor: "Philips",
-                description: "Hue White and Color  Lightstrip Flux (5m)",
+                description: "Hue White and Color Lightstrip Flux (5m)",
                 fingerprint: [{modelID: "929004610602"}],
             },
             {
                 model: "929004610702",
                 vendor: "Philips",
-                description: "Hue White and Color  Lightstrip Flux (6m)",
+                description: "Hue White and Color Lightstrip Flux (6m)",
                 fingerprint: [{modelID: "929004610702"}],
             },
             {
                 model: "929004610802",
                 vendor: "Philips",
-                description: "Hue White and Color  Lightstrip Flux (10m)",
+                description: "Hue White and Color Lightstrip Flux (10m)",
                 fingerprint: [{modelID: "929004610802"}],
             },
         ],
-        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        extend: [
+            philips.m.light({
+                colorTemp: {range: [50, 1000]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+                gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
+            }),
+        ],
     },
     {
         zigbeeModel: ["929004276602", "929004276702", "929004276802"],
