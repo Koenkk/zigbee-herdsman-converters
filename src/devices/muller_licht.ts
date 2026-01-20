@@ -310,7 +310,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{manufacturerName: "MLI", modelID: "Desk lamp"}],
-        model: "404117",
+        model: "404117/404135/404136/404137",
         vendor: "Müller Licht",
         description: "Tint desk lamp with battery",
         extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
