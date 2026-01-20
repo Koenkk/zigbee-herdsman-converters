@@ -307,7 +307,6 @@ import {definitions as stelpro} from "./stelpro";
 import {definitions as sunricher} from "./sunricher";
 import {definitions as superled} from "./superled";
 import {definitions as swann} from "./swann";
-import {definitions as sygonix} from "./sygonix";
 import {definitions as sylvania} from "./sylvania";
 import {definitions as tapestry} from "./tapestry";
 import {definitions as tci} from "./tci";
@@ -668,7 +667,6 @@ const definitions: DefinitionWithExtend[] = [
     ...sunricher,
     ...superled,
     ...swann,
-    ...sygonix,
     ...sylvania,
     ...tapestry,
     ...tci,
