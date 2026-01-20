@@ -1,5 +1,26 @@
 # Changelog
 
+## [25.110.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.109.0...v25.110.0) (2026-01-20)
+
+
+### Features
+
+* **add:** 929003809301 ([#11336](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11336)) ([924bc6a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/924bc6a00203320a334ac6262fdeac7596f3b9e4))
+* **add:** SY-6811314 ([#11338](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11338)) ([5626440](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5626440af824bf516a7f1b8daddc1fa149297cd6))
+* **add:** ZMP1 ([#11346](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11346)) ([3f36bce](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f36bce3a1f31ccc498fd6088c3d8e5085cb47cb))
+* Philips: Lightstrip Ultra Bright and Gradient effects to Lightstrip Flux ([#11339](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11339)) ([f54de3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f54de3fbad73d5b24d7a494b193e5292893b66bf))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_ogjpfoyn` as Moes ZWV-YC ([#11342](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11342)) ([0e6f6c2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0e6f6c2759cb3428358a9e3badfeee470edcce3a))
+* **detect:** Detect `_TZE284_twybxdzl` as Tuya ZF24 ([#11334](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11334)) ([d460a98](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d460a9860f0fe014efb88637091994186e7a175d))
+* easyCodeTouch_v1: fix battery percentage halved https://github.com/Koenkk/zigbee2mqtt/issues/30704 ([091fe45](https://github.com/Koenkk/zigbee-herdsman-converters/commit/091fe4512dad601c53a8641ab89ab2a819ea347c))
+* HOBEIAN ZG-204Z: fix switch to unoccupied after 125 seconds even when there is movement https://github.com/Koenkk/zigbee2mqtt/issues/30676 ([490ab9e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/490ab9ed6dd5f94f221087922279e33aefcf2ac0))
+* **ignore:** bump the minor-patch group with 2 updates ([#11333](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11333)) ([5981b35](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5981b3590a773ce69e23081c1434f083b2a0ea9b))
+* MiBoxer FUT105ZR: fix cannot maintain last RGB color when turn off then on https://github.com/Koenkk/zigbee2mqtt/issues/30584 ([968a874](https://github.com/Koenkk/zigbee-herdsman-converters/commit/968a874d9c62c0dfc63015082d4a7818b785ee5c))
+* Moes ZT-B-EU1: fix action values https://github.com/Koenkk/zigbee-herdsman-converters/issues/11327 ([b088eef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b088eefc0ecbcd68532df06ae65b1e7fc0ab8fe7))
+
 ## [25.109.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.108.0...v25.109.0) (2026-01-18)
 
 
