@@ -1230,15 +1230,10 @@ export function light(args: LightArgs = {}): ModernExtend {
             e.withColor(argsColor.modes);
         });
         toZigbee.push(tz.light_hue_saturation_move, tz.light_hue_saturation_step);
-        if (argsColor.modes.includes("hs")) {
-            meta.supportsHueAndSaturation = true;
-        }
-        if (argsColor.applyRedFix) {
-            meta.applyRedFix = true;
-        }
-        if (!argsColor.enhancedHue) {
-            meta.supportsEnhancedHue = false;
-        }
+
+        meta.supportsHueAndSaturation = Array.isArray(argsColor.modes) && argsColor.modes.includes("hs");
+        meta.applyRedFix = argsColor.applyRedFix == true;
+        meta.supportsEnhancedHue = argsColor.enhancedHue == true;
     }
 
     if (levelConfig) {
