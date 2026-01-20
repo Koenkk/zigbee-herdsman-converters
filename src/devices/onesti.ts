@@ -118,7 +118,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.easycodetouch_action,
         ],
         toZigbee: [tz.lock, tz.easycode_auto_relock, tz.lock_sound_volume, tz.pincode_lock],
-        meta: {pinCodeCount: 1000},
+        meta: {pinCodeCount: 1000, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ["closuresDoorLock", "genPowerCfg"]);
