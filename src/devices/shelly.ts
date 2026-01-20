@@ -13,6 +13,9 @@ const SHELLY_OPTIONS = {profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID};
 
 const NS = "zhc:shelly";
 
+const HA_ELECTRICAL_MEASUREMENT_CLUSTER_ID = 0x0b04;
+const HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID = 0x0510;
+
 interface ShellyRPC {
     attributes: {
         data: string;
@@ -24,6 +27,18 @@ interface ShellyRPC {
 }
 
 const shellyModernExtend = {
+    shellyPowerFactorInt16Fix(): ModernExtend {
+        // Shelly Gen4 devices report haElectricalMeasurement.powerFactor (0x0510) as INT16 (0x29)
+        // while zigbee-herdsman defines it as INT8 (0x28). This breaks configureReporting (INVALID_DATA_TYPE).
+        return m.deviceAddCustomCluster("haElectricalMeasurement", {
+            ID: HA_ELECTRICAL_MEASUREMENT_CLUSTER_ID,
+            attributes: {
+                powerFactor: {ID: HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID, type: Zcl.DataType.INT16},
+            },
+            commands: {},
+            commandsResponse: {},
+        });
+    },
     shellyCustomClusters(): ModernExtend[] {
         return [
             m.deviceAddCustomCluster("shellyRPCCluster", {
@@ -514,6 +529,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
+            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -526,6 +542,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
+            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -537,6 +554,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "EM Mini Gen4",
         extend: [
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
+            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -580,6 +598,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["l1", "l2"]}),
             m.electricityMeter({producedEnergy: true, acFrequency: true, endpointNames: ["l1", "l2"]}),
+            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -592,6 +611,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter(),
+            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -605,6 +625,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
             m.electricityMeter({endpointNames: ["1", "2", "3", "4"]}),
+            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["PowerstripUI"]),
             shellyModernExtend.shellyWiFiSetup(),
@@ -733,6 +754,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({configureReporting: true}),
             m.electricityMeter(),
+            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -743,5 +765,23 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "Humidity & temperature sensor",
         extend: [m.battery(), m.temperature(), m.humidity()],
+    },
+    {
+        fingerprint: [{modelID: "BLU Remote Control ZB", manufacturerName: "Shelly"}],
+        model: "SBRC-005B-B",
+        vendor: "Shelly",
+        description: "BLU Remote Control ZB",
+        exposes: [
+            e.action(["on", "off", "brightness_step_up", "brightness_step_down"]),
+            e.numeric("action_group", ea.STATE).withDescription("Group ID associated with the action command."),
+            e.numeric("action_step_size", ea.STATE).withDescription("Step size value used for brightness step actions."),
+            e.numeric("action_transition_time", ea.STATE).withDescription("Transition time in seconds for the action."),
+        ],
+        extend: [
+            m.battery(),
+            m.commandsOnOff({commands: ["on", "off"]}),
+            m.commandsLevelCtrl({commands: ["brightness_step_up", "brightness_step_down"]}),
+            m.identify(),
+        ],
     },
 ];

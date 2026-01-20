@@ -1515,6 +1515,16 @@ export const command_move_color_temperature: Fz.Converter<"lightingColorCtrl", u
         return payload;
     },
 };
+export const command_stop_move_step: Fz.Converter<"lightingColorCtrl", undefined, "commandStopMoveStep"> = {
+    cluster: "lightingColorCtrl",
+    type: "commandStopMoveStep",
+    convert: (model, msg, publish, options, meta) => {
+        if (hasAlreadyProcessedMessage(msg, model)) return;
+        const payload = {action: postfixWithEndpointName("stop_move_step", msg, model, meta)};
+        addActionGroup(payload, msg, model);
+        return payload;
+    },
+};
 export const command_step_color_temperature: Fz.Converter<"lightingColorCtrl", undefined, "commandStepColorTemp"> = {
     cluster: "lightingColorCtrl",
     type: "commandStepColorTemp",
@@ -2392,7 +2402,7 @@ export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "attributeRepor
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
         const clickMapping: KeyValueNumberString = {0: "release", 1: "single", 2: "double", 3: "hold"};
-        return {action: `${clickMapping[msg.data[1]]}`};
+        return {action: `${clickMapping[msg.data["1"]]}`};
     },
 };
 export const tuya_switch_scene: Fz.Converter<"genOnOff", undefined, "commandTuyaAction"> = {

@@ -109,8 +109,6 @@ export const ACTIONS: Record<string, (controller: Controller, args: Record<strin
             clusterKey: "manuSpecificPhilipsPairing",
             interPan: true,
             zcl: {
-                frameType: Zcl.FrameType.SPECIFIC,
-                direction: Zcl.Direction.CLIENT_TO_SERVER,
                 disableDefaultResponse: true,
                 manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
                 tsn: 0,

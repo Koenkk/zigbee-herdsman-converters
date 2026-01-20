@@ -7,6 +7,7 @@ import type {
     TCustomClusterPayload,
 } from "zigbee-herdsman/dist/controller/tstype";
 import type {TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
+import {DataType} from "zigbee-herdsman/dist/zspec/zcl/definition/enums";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -1369,7 +1370,8 @@ export type ColorCtrlCommand =
     | "hue_move"
     | "hue_stop"
     | "move_to_saturation"
-    | "move_to_hue";
+    | "move_to_hue"
+    | "stop_move_step";
 export interface CommandsColorCtrl {
     commands?: ColorCtrlCommand[];
     bind?: boolean;
@@ -1396,6 +1398,7 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
             "hue_stop",
             "move_to_saturation",
             "move_to_hue",
+            "stop_move_step",
         ],
         bind = true,
         endpointNames = undefined,
@@ -1421,6 +1424,7 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
         fz.command_move_hue,
         fz.command_move_to_saturation,
         fz.command_move_to_hue,
+        fz.command_stop_move_step,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
@@ -1454,6 +1458,19 @@ export function lightingBallast(): ModernExtend {
 // #endregion
 
 // #region HVAC
+
+export function customLocalTemperatureCalibrationRange({min, max}: {min: number; max: number}): ModernExtend {
+    // Some devices have a custom range for localTemperatureCalibration attribute.
+    // To find the range for a specific device: https://github.com/Koenkk/zigbee2mqtt/issues/30448#issuecomment-3707495349
+    return deviceAddCustomCluster("hvacThermostat", {
+        ID: 0x0201,
+        attributes: {
+            localTemperatureCalibration: {ID: 0x0010, type: DataType.INT8, write: true, min: min * 10, max: max * 10, default: 0},
+        },
+        commands: {},
+        commandsResponse: {},
+    });
+}
 
 // #endregion
 
@@ -2226,7 +2243,7 @@ function genericMeter(args: MeterArgs = {}) {
     } else if (args.cluster === "metering" && args.type === "gas") {
         if (args.power !== false)
             exposes.push(e.numeric("volume_flow_rate", ea.STATE_GET).withUnit("m³/h").withDescription("Instantaneous gas flow in m³/h"));
-        if (args.energy !== false) exposes.push(e.numeric("gas", ea.ALL).withUnit("m³").withDescription("Total gas consumption in m³"));
+        if (args.energy !== false) exposes.push(e.numeric("gas", ea.STATE_GET).withUnit("m³").withDescription("Total gas consumption in m³"));
         fromZigbee = [args.fzMetering ?? fz.gas_metering];
         toZigbee = [
             {
@@ -2622,7 +2639,8 @@ export function enumLookup<Cl extends string | number, Custom extends TCustomClu
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
+    const endpointNames = endpointName ? [endpointName] : null;
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2841,7 +2859,8 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
+    const endpointNames = endpointName ? [endpointName] : null;
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2910,7 +2929,8 @@ export function text<Cl extends string | number, Custom extends TCustomCluster |
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
+    const endpointNames = endpointName ? [endpointName] : null;
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -3205,6 +3225,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
     const exposes: Expose[] = <Expose[]>[];
     const fromZigbee = [];
     const toZigbee = [];
+    const onEvent: OnEvent.Handler[] = [];
     const configure: Configure[] = <Configure[]>[];
 
     const expose = e.climate().withLocalTemperature(undefined, localTemperature?.values?.description ?? undefined);
@@ -3230,9 +3251,15 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
     }
 
     if (localTemperatureCalibration) {
-        const {min, max, step} =
-            localTemperatureCalibration.values === true ? {min: -12.8, max: 12.8, step: 0.1} : localTemperatureCalibration.values;
+        const {min, max, step} = localTemperatureCalibration.values === true ? {min: -2.5, max: 2.5, step: 0.1} : localTemperatureCalibration.values;
         expose.withLocalTemperatureCalibration(min, max, step);
+
+        if (min !== -2.5 || max !== 2.5) {
+            // -2.5 - 2.5 is the default ZCL range, add a custom range if different.
+            const customRange = customLocalTemperatureCalibrationRange({min, max});
+            onEvent.push(...customRange.onEvent);
+            configure.push(...customRange.configure);
+        }
 
         if (!localTemperatureCalibration.toZigbee?.skip) {
             toZigbee.push(tz.thermostat_local_temperature_calibration);
@@ -3415,7 +3442,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
         }
     }
 
-    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    return {exposes, fromZigbee, toZigbee, configure, onEvent, isModernExtend: true};
 }
 
 // #endregion

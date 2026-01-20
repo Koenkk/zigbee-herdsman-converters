@@ -66,6 +66,18 @@ interface ThirdPlugGen3 {
         meteringOnlyMode: number;
         powerRiseThreshold: number;
         powerDropThreshold: number;
+        resetTotalEnergy: number;
+        countdownToTurnOff: number;
+        countdownToTurnOn: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdAirPressureSensor {
+    attributes: {
+        sendCommandUpThreshold: number;
+        sendCommandDownThreshold: number;
     };
     commands: never;
     commandResponses: never;
@@ -202,7 +214,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RWS0218Z"],
         model: "3RWS0218Z",
         vendor: "Third Reality",
-        description: "Water sensor gen2",
+        description: "Smart WaterLeak Sensor WL2",
         ota: true,
         extend: [m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1"]}), m.battery()],
     },
@@ -251,6 +263,30 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["3RPL01084Z"],
+        model: "3RPL01084Z",
+        vendor: "Third Reality",
+        description: "Multi-function smart presence sensor R3",
+        ota: true,
+        extend: [
+            m.occupancy(),
+            m.illuminance(),
+            m.numeric({
+                name: "volatile_organic_compounds",
+                access: "STATE_GET",
+                cluster: "msFormaldehyde",
+                attribute: "measuredValue",
+                unit: "ppm",
+                scale: 1000,
+                precision: 2,
+                description: "Measured VOC value",
+            }),
+            m.light({
+                color: {modes: ["xy"], enhancedHue: true},
             }),
         ],
     },
@@ -648,66 +684,20 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["3RSPE02065Z", "3RSPU01080Z"],
-        model: "3RSPE02065Z",
-        vendor: "Third Reality",
-        description: "Smart Plug E3",
-        whiteLabel: [{vendor: "Third Reality", model: "3RSPU01080Z", description: "Smart Plug UZ1", fingerprint: [{modelID: "3RSPU01080Z"}]}],
-        extend: [
-            m.onOff(),
-            m.electricityMeter({acFrequency: true, powerFactor: true}),
-            m.deviceAddCustomCluster("3rPlugSpecialcluster", {
-                ID: 0xff03,
-                manufacturerCode: 0x1407,
-                attributes: {
-                    resetTotalEnergy: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    countdownToTurnOff: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    countdownToTurnOn: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
-            m.enumLookup<"3rPlugSpecialcluster", ThirdPlug>({
-                name: "reset_total_energy",
-                lookup: {Reset: 1},
-                cluster: "3rPlugSpecialcluster",
-                attribute: "resetTotalEnergy",
-                description: "Reset the sum of consumed energy",
-                access: "ALL",
-            }),
-            m.numeric<"3rPlugSpecialcluster", ThirdPlug>({
-                name: "countdown_to_turn_off",
-                unit: "s",
-                valueMin: 0,
-                valueMax: 65535,
-                cluster: "3rPlugSpecialcluster",
-                attribute: "countdownToTurnOff",
-                description: "(ON-OFF)",
-                access: "ALL",
-            }),
-            m.numeric<"3rPlugSpecialcluster", ThirdPlug>({
-                name: "countdown_to_turn_on",
-                unit: "s",
-                valueMin: 0,
-                valueMax: 65535,
-                cluster: "3rPlugSpecialcluster",
-                attribute: "countdownToTurnOn",
-                description: "(OFF-ON)",
-                access: "ALL",
-            }),
-        ],
-        ota: true,
-    },
-    {
-        zigbeeModel: ["3RSP02064Z"],
+        zigbeeModel: ["3RSP02064Z", "3RSPU01080Z", "3RSPE02065Z", "3RSP0186Z", "3RSPJ0187Z"],
         model: "3RSP02064Z",
         vendor: "Third Reality",
         description: "Smart Plug Gen3",
+        whiteLabel: [
+            {vendor: "Third Reality", model: "3RSPU01080Z", description: "Smart Plug UZ1", fingerprint: [{modelID: "3RSPU01080Z"}]},
+            {vendor: "Third Reality", model: "3RSPE02065Z", description: "Smart Plug E3", fingerprint: [{modelID: "3RSPE02065Z"}]},
+            {vendor: "Third Reality", model: "3RSP0186Z", description: " Smart Plug C1", fingerprint: [{modelID: "3RSP0186Z"}]},
+            {vendor: "Third Reality", model: "3RSPJ0187Z", description: "Smart Plug J1", fingerprint: [{modelID: "3RSPJ0187Z"}]},
+        ],
         extend: [
             m.onOff(),
             m.electricityMeter({acFrequency: true, powerFactor: true}),
-            m.deviceAddCustomCluster("3rPlugSpecialcluster", {
+            m.deviceAddCustomCluster("3rPlugGen3Specialcluster", {
                 ID: 0xff03,
                 manufacturerCode: 0x1407,
                 attributes: {
@@ -722,59 +712,59 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.enumLookup<"3rPlugSpecialcluster", ThirdPlug>({
+            m.enumLookup<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
                 name: "reset_total_energy",
                 lookup: {Reset: 1},
-                cluster: "3rPlugSpecialcluster",
+                cluster: "3rPlugGen3Specialcluster",
                 attribute: "resetTotalEnergy",
                 description: "Reset the sum of consumed energy",
                 access: "ALL",
             }),
-            m.binary<"3rPlugSpecialcluster", ThirdPlugGen3>({
+            m.binary<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
                 name: "metering_only_mode",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                cluster: "3rPlugSpecialcluster",
+                cluster: "3rPlugGen3Specialcluster",
                 attribute: "meteringOnlyMode",
                 description: "When enabled, the device enters metering-only mode and the relay is forced to stay ON.",
                 access: "ALL",
             }),
-            m.numeric<"3rPlugSpecialcluster", ThirdPlug>({
+            m.numeric<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
                 name: "countdown_to_turn_off",
                 unit: "s",
                 valueMin: 0,
                 valueMax: 65535,
-                cluster: "3rPlugSpecialcluster",
+                cluster: "3rPlugGen3Specialcluster",
                 attribute: "countdownToTurnOff",
                 description: "(ON-OFF)",
                 access: "ALL",
             }),
-            m.numeric<"3rPlugSpecialcluster", ThirdPlug>({
+            m.numeric<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
                 name: "countdown_to_turn_on",
                 unit: "s",
                 valueMin: 0,
                 valueMax: 65535,
-                cluster: "3rPlugSpecialcluster",
+                cluster: "3rPlugGen3Specialcluster",
                 attribute: "countdownToTurnOn",
                 description: "(OFF-ON)",
                 access: "ALL",
             }),
-            m.numeric<"3rPlugSpecialcluster", ThirdPlugGen3>({
+            m.numeric<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
                 name: "power_rise_threshold",
                 unit: "w",
                 valueMin: 0,
                 valueMax: 65535,
-                cluster: "3rPlugSpecialcluster",
+                cluster: "3rPlugGen3Specialcluster",
                 attribute: "powerRiseThreshold",
                 description: "Reports sudden power changes. Power rise and fall alerts can be enabled separately. Threshold adjustable.",
                 access: "ALL",
             }),
-            m.numeric<"3rPlugSpecialcluster", ThirdPlugGen3>({
+            m.numeric<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
                 name: "power_drop_threshold",
                 unit: "w",
                 valueMin: 0,
                 valueMax: 65535,
-                cluster: "3rPlugSpecialcluster",
+                cluster: "3rPlugGen3Specialcluster",
                 attribute: "powerDropThreshold",
                 description: "Reports sudden power changes. Power rise and drop alerts can be enabled separately. Threshold adjustable.",
                 access: "ALL",
@@ -1016,5 +1006,47 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
         ],
+    },
+    {
+        zigbeeModel: ["3RAP0149BZ"],
+        model: "3RAP0149BZ",
+        vendor: "Third Reality",
+        description: "Smart air pressure sensor",
+        extend: [
+            m.battery(),
+            m.pressure({attribute: {ID: 0xff01, type: Zcl.DataType.UINT32}, name: "pressure", unit: "Pa", scale: 1}),
+            m.commandsOnOff(),
+            m.deviceAddCustomCluster("3rAirsensorSpecialCluster", {
+                ID: 0xff01,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    sendCommandUpThreshold: {ID: 0x0040, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    sendCommandDownThreshold: {ID: 0x0041, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"3rAirsensorSpecialCluster", ThirdAirPressureSensor>({
+                name: "pressure_raised_threshold",
+                unit: "Pa",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rAirsensorSpecialCluster",
+                attribute: "sendCommandUpThreshold",
+                description: "Reports sudden air-pressure changes. Pressure rise and fall alerts can be enabled separately. Threshold adjustable.",
+                access: "ALL",
+            }),
+            m.numeric<"3rAirsensorSpecialCluster", ThirdAirPressureSensor>({
+                name: "pressure_falls_threshold",
+                unit: "Pa",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "3rAirsensorSpecialCluster",
+                attribute: "sendCommandDownThreshold",
+                description: "Reports sudden air-pressure changes. Pressure rise and fall alerts can be enabled separately. Threshold adjustable.",
+                access: "ALL",
+            }),
+        ],
+        ota: true,
     },
 ];
