@@ -559,10 +559,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ['WISZB-134'],
-        model: 'WISZB-134',
-        vendor: 'Develco',
-        description: 'Window/Door sensor',
+        zigbeeModel: ["WISZB-134"],
+        model: "WISZB-134",
+        vendor: "Develco",
+        description: "Window/Door sensor",
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
@@ -574,7 +574,7 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             m.battery({
-                voltageToPercentage: '3V_2100',
+                voltageToPercentage: "3V_2100",
                 percentage: true,
                 voltage: true,
                 lowStatus: false,
