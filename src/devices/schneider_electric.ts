@@ -961,6 +961,7 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.dimmingMode(),
             indicatorMode(),
         ],
+        meta: {omitOptionalLevelParams: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingBallastCfg"]);
