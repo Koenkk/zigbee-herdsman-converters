@@ -1,5 +1,20 @@
 # Changelog
 
+## [25.111.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.110.0...v25.111.0) (2026-01-21)
+
+
+### Features
+
+* Sunricher ZG2858A: support scene actions, Philips 929004276602: support gradient effects ([#11350](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11350)) ([5a2978b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5a2978beb55eee847e51c334b35eff73380db22c))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_hgeqeyuv` as Tuya ZF24 ([#11349](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11349)) ([0c83b2a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0c83b2a7f6c19d4251817f4c3e7226baa67b8136))
+* **ignore:** fix args?.keepAliveTimeout is not a function https://github.com/Koenkk/zigbee-herdsman/pull/1619 ([6d6f48d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6d6f48db607fe19eeedcaa34a362b124df77f9b5))
+* Müller Licht 4041xx: add various whitelabels ([#11343](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11343)) ([6dcf040](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6dcf0405bde50cc84e8e6171837c8df67dc0b697))
+* Schneider Electric NHPB/DIMMER/1: fix controlling not working ([#11340](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11340)) ([b7240cd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b7240cd8ccf738ef44c9296de2ff8691a905ca12))
+
 ## [25.110.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.109.0...v25.110.0) (2026-01-20)
 
 
