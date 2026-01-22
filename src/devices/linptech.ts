@@ -81,9 +81,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ES1ZZ(TY)",
         vendor: "Linptech",
         description: "mmWave Presence sensor",
-        whiteLabel: [
-            tuya.whitelabel("Momax", "SL12S", "mmWave Presence sensor", ["_TZ3218_ewrxirng"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Momax", "SL12S", "mmWave Presence sensor", ["_TZ3218_ewrxirng"])],
         fromZigbee: [fz.ias_occupancy_alarm_1, fzLocal.TS0225, fzLocal.TS0225_illuminance],
         toZigbee: [tzLocal.TS0225],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
