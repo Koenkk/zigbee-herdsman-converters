@@ -1,5 +1,7 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
@@ -781,6 +783,93 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_step_up", "brightness_step_down"]}),
+            m.identify(),
+        ],
+    },
+    {
+        zigbeeModel: ["BLU TRV"],
+        model: "BLU TRV",
+        vendor: "Shelly",
+        description: "BLU TRV - Thermostatic Radiator Valve",
+        fromZigbee: [
+            fz.thermostat,
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    if (msg.data.alarmMask !== undefined) {
+                        const alarmMask = msg.data.alarmMask;
+                        result.calibration_fault = (alarmMask & (1 << 2)) > 0;
+                    }
+                    return result;
+                },
+            },
+        ],
+        toZigbee: [
+            {
+                key: ["calibrate"],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.command("shellyTRVManualMode", "calibrate", {}, {manufacturerCode: Zcl.ManufacturerCode.SHELLY});
+                },
+            },
+        ],
+        exposes: [
+            e
+                .binary("calibration_fault", ea.STATE, true, false)
+                .withDescription("Calibration fault")
+                .withCategory("diagnostic"),
+            e.enum("calibrate", ea.SET, ["trigger"]).withDescription("Trigger valve calibration").withCategory("config"),
+        ],
+        extend: [
+            m.battery(),
+            m.thermostat({
+                localTemperatureCalibration: {values: {min: -5, max: 5, step: 0.1}},
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
+                        unoccupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
+                    },
+                },
+                setpointsLimit: {
+                    minHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
+                    maxHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
+                },
+                systemMode: {values: ["off", "auto", "heat"]},
+                piHeatingDemand: {values: true},
+            }),
+            m.deviceAddCustomCluster("shellyTRVManualMode", {
+                ID: 0xfc24,
+                manufacturerCode: Zcl.ManufacturerCode.SHELLY,
+                attributes: {
+                    manualMode: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    position: {ID: 0x0001, type: Zcl.DataType.UINT8},
+                },
+                commands: {
+                    calibrate: {ID: 0x0000, parameters: []},
+                },
+                commandsResponse: {},
+            }),
+            m.binary({
+                name: "manual_mode",
+                cluster: "shellyTRVManualMode",
+                attribute: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                description: "Manual mode (0 = auto, 1 = manual)",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "valve_position",
+                cluster: "shellyTRVManualMode",
+                attribute: {ID: 0x0001, type: Zcl.DataType.UINT8},
+                valueMin: 0,
+                valueMax: 100,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                description: "Valve position (0-100%)",
+                unit: "%",
+                access: "ALL",
+            }),
             m.identify(),
         ],
     },
