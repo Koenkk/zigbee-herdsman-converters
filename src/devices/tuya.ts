@@ -23589,7 +23589,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Dual-tech presence sensor (PIR + mmWave Radar)",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.occupancy(),
