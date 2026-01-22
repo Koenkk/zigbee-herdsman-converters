@@ -2364,9 +2364,9 @@ export const definitions: DefinitionWithExtend[] = [
             tz.level_config,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
-            tzLocal.inovelli_energy_reset,
             tzLocal.inovelli_parameters(VZM30_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
             tzLocal.inovelli_parameters_readOnly(VZM30_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            tzLocal.inovelli_energy_reset
         ],
         fromZigbee: [
             fz.on_off,
@@ -2419,9 +2419,9 @@ export const definitions: DefinitionWithExtend[] = [
             tz.level_config,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
-            tzLocal.inovelli_energy_reset,
             tzLocal.inovelli_parameters(VZM31_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
             tzLocal.inovelli_parameters_readOnly(VZM31_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
+            tzLocal.inovelli_energy_reset
         ],
         fromZigbee: [
             fz.on_off,
