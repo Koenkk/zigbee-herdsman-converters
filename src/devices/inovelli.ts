@@ -2769,19 +2769,19 @@ const exposeEnergyReset = () => {
 const exposeMMWaveAreas = () => {
     return [
         e
-            .binary("Area1Occupancy", ea.STATE, true, false)
+            .binary("area1Occupancy", ea.STATE, true, false)
             .withProperty("mmwave_area1_occupancy")
             .withDescription("Indicates whether the device detected occupancy in Area 1"),
         e
-            .binary("Area2Occupancy", ea.STATE, true, false)
+            .binary("area2Occupancy", ea.STATE, true, false)
             .withProperty("mmwave_area2_occupancy")
             .withDescription("Indicates whether the device detected occupancy in Area 2"),
         e
-            .binary("Area3Occupancy", ea.STATE, true, false)
+            .binary("area3Occupancy", ea.STATE, true, false)
             .withProperty("mmwave_area3_occupancy")
             .withDescription("Indicates whether the device detected occupancy in Area 3"),
         e
-            .binary("Area4Occupancy", ea.STATE, true, false)
+            .binary("area4Occupancy", ea.STATE, true, false)
             .withProperty("mmwave_area4_occupancy")
             .withDescription("Indicates whether the device detected occupancy in Area 4"),
     ];
