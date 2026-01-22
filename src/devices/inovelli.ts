@@ -111,6 +111,7 @@ interface Inovelli {
             level: number;
             duration: number;
         };
+        energyReset: {};
         individualLedEffect: {
             led: number;
             effect: number;
@@ -330,6 +331,10 @@ const inovelliExtend = {
                         {name: "level", type: Zcl.DataType.UINT8},
                         {name: "duration", type: Zcl.DataType.UINT8},
                     ],
+                },
+                energyReset: {
+                    ID: 0x02,
+                    parameters: [],
                 },
                 individualLedEffect: {
                     ID: 3,
@@ -1779,6 +1784,18 @@ const tzLocal = {
             return {state: {[key]: values}};
         },
     } satisfies Tz.Converter,
+    inovelli_energy_reset: {
+        key: ["energy_reset"],
+        convertSet: async (entity, key, values, meta) => {
+            await entity.command<typeof INOVELLI_CLUSTER_NAME, "energyReset", Inovelli>(
+                INOVELLI_CLUSTER_NAME,
+                "energyReset",
+                {},
+                {disableResponse: true, disableDefaultResponse: true},
+            );
+            return {state: {[key]: values}};
+        },
+    } satisfies Tz.Converter,
     inovelli_individual_led_effect: {
         key: ["individual_led_effect"],
         convertSet: async (entity, key, values, meta) => {
@@ -2241,9 +2258,16 @@ const exposeLedEffectComplete = () => {
         .withCategory("diagnostic");
 };
 
-const exposesListVZM30: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete()];
+const exposeEnergyReset = () => {
+    return e
+        .switch()
+        .withState("energy_reset", true, "Reset energy meter", ea.STATE_SET)
+        .withCategory("config");
+};
 
-const exposesListVZM31: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete()];
+const exposesListVZM30: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete(), exposeEnergyReset()];
+
+const exposesListVZM31: Expose[] = [e.light_brightness(), exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete(), exposeEnergyReset()];
 
 const exposesListVZM32: Expose[] = [
     e.light_brightness(),
@@ -2251,6 +2275,7 @@ const exposesListVZM32: Expose[] = [
     exposeIndividualLedEffects(),
     exposeMMWaveControl(),
     exposeLedEffectComplete(),
+    exposeEnergyReset(),
 ];
 
 const exposesListVZM35: Expose[] = [
@@ -2340,6 +2365,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.level_config,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
+            tzLocal.inovelli_energy_reset,
             tzLocal.inovelli_parameters(VZM30_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
             tzLocal.inovelli_parameters_readOnly(VZM30_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
         ],
@@ -2394,6 +2420,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.level_config,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
+            tzLocal.inovelli_energy_reset,
             tzLocal.inovelli_parameters(VZM31_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
             tzLocal.inovelli_parameters_readOnly(VZM31_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
         ],
@@ -2446,6 +2473,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.level_config,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
+            tzLocal.inovelli_energy_reset,
             tzLocal.inovelli_mmwave_control_commands,
             tzLocal.inovelli_parameters(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
             tzLocal.inovelli_parameters_readOnly(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
