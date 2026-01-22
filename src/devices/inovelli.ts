@@ -1793,7 +1793,6 @@ const tzLocal = {
                 {},
                 {disableResponse: true, disableDefaultResponse: true},
             );
-            return {state: {[key]: values}};
         },
     } satisfies Tz.Converter,
     inovelli_individual_led_effect: {
