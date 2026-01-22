@@ -2472,12 +2472,12 @@ export const definitions: DefinitionWithExtend[] = [
             tz.level_config,
             tzLocal.inovelli_led_effect,
             tzLocal.inovelli_individual_led_effect,
-            tzLocal.inovelli_energy_reset,
             tzLocal.inovelli_mmwave_control_commands,
             tzLocal.inovelli_parameters(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
             tzLocal.inovelli_parameters_readOnly(VZM32_ATTRIBUTES, INOVELLI_CLUSTER_NAME),
             tzLocal.inovelli_parameters(VZM32_MMWAVE_ATTRIBUTES, INOVELLI_MMWAVE_CLUSTER_NAME),
             tzLocal.inovelli_parameters_readOnly(VZM32_MMWAVE_ATTRIBUTES, INOVELLI_MMWAVE_CLUSTER_NAME),
+            tzLocal.inovelli_energy_reset
         ],
         fromZigbee: [
             fz.on_off,
