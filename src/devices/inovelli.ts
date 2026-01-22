@@ -2260,7 +2260,7 @@ const exposeLedEffectComplete = () => {
 
 const exposeEnergyReset = () => {
     return e
-        .binary("energy_reset", ea.STATE_SET, true, false)
+        .enum("energy_reset", ea.SET, ["reset"])
         .withDescription("Reset energy meter")
         .withCategory("config");
 };
