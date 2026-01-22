@@ -328,6 +328,8 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "MGM240P", manufacturerName: "SparkFun", applicationVersion: 200},
             {modelID: "MGM24", manufacturerName: "TubesZB", applicationVersion: 200},
             {modelID: "BM24", manufacturerName: "TubesZB", applicationVersion: 200},
+            {modelID: "EFR32MG21-V1", manufacturerName: "ZBGW7688", applicationVersion: 200},
+            {modelID: "EFR32MG21-V2", manufacturerName: "ZBGW7688", applicationVersion: 200},
         ],
         model: "Silabs series 2 router",
         vendor: "Silabs",
