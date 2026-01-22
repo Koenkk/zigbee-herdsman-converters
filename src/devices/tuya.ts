@@ -23583,54 +23583,41 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vceqncho"]),
-        model: "ZIS-01P",
-        vendor: "Novato",
-        description: "Dual-tech presence sensor (PIR + radar)",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.occupancy(),
-            e
-                .numeric("presence_distance", ea.STATE_SET)
-                .withUnit("m")
-                .withDescription("Detection distance")
-                .withValueMin(1)
-                .withValueMax(3)
-                .withValueStep(1),
-            e
-                .numeric("presence_sensitivity", ea.STATE_SET)
-                .withDescription("Presence detection sensitivity")
-                .withValueMin(1)
-                .withValueMax(3)
-                .withValueStep(1),
-            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable radar detection"),
-            e.numeric("pir_sensitivity", ea.STATE_SET).withDescription("PIR sensor sensitivity").withValueMin(1).withValueMax(3).withValueStep(1),
-            e
-                .numeric("delay_time", ea.STATE_SET)
-                .withUnit("s")
-                .withDescription("Delay time before reporting no presence")
-                .withValueMin(10)
-                .withValueMax(600),
-            e.binary("led_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable LED indicator"),
-            e.illuminance().withUnit("lx"),
-            e.battery().withUnit("%"),
-            e.numeric("radar_threshold", ea.STATE_SET).withDescription("Radar detection threshold").withValueMin(5).withValueMax(50).withValueStep(1),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, "occupancy", tuya.valueConverter.trueFalse1],
-                [102, "presence_distance", tuya.valueConverter.raw],
-                [103, "presence_sensitivity", tuya.valueConverter.raw],
-                [104, "radar_switch", tuya.valueConverter.onOff],
-                [105, "pir_sensitivity", tuya.valueConverter.raw],
-                [106, "delay_time", tuya.valueConverter.raw],
-                [107, "led_switch", tuya.valueConverter.onOff],
-                [108, "illuminance", tuya.valueConverter.raw],
-                [109, "battery", tuya.valueConverter.raw],
-                [164, "radar_threshold", tuya.valueConverter.raw],
-            ],
-        },
-    },
+         fingerprint: [
+        {modelID: 'TS0601', manufacturerName: '_TZE284_who1jxwd'}
+    ],
+    model: 'TS0601',
+    vendor: 'Tuya',
+    description: 'Dual-tech presence sensor (PIR + mmWave Radar)',
+    fromZigbee: [tuya.fz.datapoints],
+    toZigbee: [tuya.tz.datapoints],
+    onEvent: tuya.onEventSetTime,
+    configure: tuya.configureMagicPacket,
+    exposes: [
+        e.occupancy(),
+        e.illuminance(),
+        e.battery(),
+        e.numeric('presence_distance', ea.STATE_SET).withUnit('m').withDescription('Maximum detection distance').withValueMin(1).withValueMax(3).withValueStep(1),
+        e.numeric('presence_sensitivity', ea.STATE_SET).withDescription('Radar presence detection sensitivity (1=Low, 2=Medium, 3=High)').withValueMin(1).withValueMax(3).withValueStep(1),
+        e.binary('radar_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable radar detection'),
+        e.numeric('pir_sensitivity', ea.STATE_SET).withDescription('PIR motion sensor sensitivity (1=Low, 2=Medium, 3=High)').withValueMin(1).withValueMax(3).withValueStep(1),
+        e.numeric('delay_time', ea.STATE_SET).withUnit('s').withDescription('Time delay before reporting no presence').withValueMin(10).withValueMax(600).withValueStep(10),
+        e.binary('led_switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Enable or disable LED indicator')
+    ],
+    meta: {
+        tuyaDatapoints: [
+            [1, 'occupancy', tuya.valueConverter.trueFalse1],
+            [102, 'presence_distance', tuya.valueConverter.raw],
+            [103, 'presence_sensitivity', tuya.valueConverter.raw],
+            [104, 'radar_switch', tuya.valueConverter.onOff],
+            [105, 'pir_sensitivity', tuya.valueConverter.raw],
+            [106, 'delay_time', tuya.valueConverter.raw],
+            [107, 'led_switch', tuya.valueConverter.onOff],
+            [108, 'illuminance', tuya.valueConverter.raw],
+            [109, 'battery', tuya.valueConverter.raw]
+        ]
+    }
+},
     {
         fingerprint: tuya.fingerprint("Excellux", ["DHT0001", "DHTA001"]),
         model: "FEDHT-01",
