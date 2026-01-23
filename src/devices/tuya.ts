@@ -24002,7 +24002,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_hdml1aav"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hdml1aav"]),
         model: "ZS-300TF",
         vendor: "Excellux",
         description: "Soil fertility sensor",
