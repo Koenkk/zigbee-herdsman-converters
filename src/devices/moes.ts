@@ -21,18 +21,6 @@ const exposesLocal = {
     program_temperature: (name: string) => e.numeric(name, ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(35).withValueStep(0.5),
 };
 
-const fzTuyaBatteryDp13 = {
-    cluster: "manuSpecificTuya",
-    type: ["commandDataReport"],
-    convert: (model, msg, publish, options, meta) => {
-        if (!msg.data.dpValues) return;
-        const dp = msg.data.dpValues.find((d) => d.dp === 13);
-        if (!dp) return;
-        const battery = dp.data.readUInt32BE(0);
-        return {battery};
-    },
-};
-
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zxkwaztm"]),
@@ -1908,8 +1896,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Moes roller blind motor 17mm/25mm/28mm",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        fromZigbee: [fzTuyaBatteryDp13], // custom battery converter value [0,0,0,999] - 999 is 0 to 100
-        toZigbee: [],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
@@ -1922,6 +1908,16 @@ export const definitions: DefinitionWithExtend[] = [
                 [9, "position", tuya.valueConverter.coverPosition],
                 [8, "position", tuya.valueConverter.coverPosition],
                 [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [
+                    13,
+                    "battery",
+                    {
+                        from: (v: string) => {
+                            const buf = Buffer.from(v, "base64");
+                            return buf.readUInt32BE(0);
+                        },
+                    },
+                ],
                 [
                     16,
                     "border",
