@@ -24009,13 +24009,8 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
-            e.enum("soil_fertility_warning", ea.STATE, ["none", "low","high"]).withDescription("Soil fertility warning"),
-            e.numeric("battery", ea.STATE)
-                .withValueMin(1)
-                .withValueMax(100)
-                .withValueStep(1)
-                .withUnit("%")
-                .withDescription("Battery percentage"),
+            e.enum("soil_fertility_warning", ea.STATE, ["none", "low", "high"]).withDescription("Soil fertility warning"),
+            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
             e.soil_moisture(),
             e
                 .numeric("soil_fertility", ea.STATE)
@@ -24038,20 +24033,21 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Illuminance calibration"),
             tuya.exposes.temperatureCalibration(),
             tuya.exposes.soilWarning(),
-            
-            e.numeric("soil_fertility_set_v0",ea.STATE_SET)
+
+            e
+                .numeric("soil_fertility_set_v0", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(5000)
                 .withValueStep(1)
-                .withUnit('μS/cm')
+                .withUnit("μS/cm")
                 .withDescription("When the soil fertility value is lower than what threshold should a warning be issued"),
-            e.numeric("soil_fertility_set_v1",ea.STATE_SET)
+            e
+                .numeric("soil_fertility_set_v1", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(5000)
                 .withValueStep(1)
-                .withUnit('μS/cm')
+                .withUnit("μS/cm")
                 .withDescription("When the soil fertility value is lower than what threshold should a warning be issued"),
-                
         ],
         meta: {
             tuyaDatapoints: [
@@ -24068,10 +24064,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [110, "soil_warning", tuya.valueConverter.raw],
                 [111, "water_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), alarm: tuya.enum(1)})],
                 [112, "soil_fertility", tuya.valueConverter.raw],
-                [113,"soil_fertility_calibration",tuya.valueConverter.raw],
-                [114,"soil_fertility_set_v0",tuya.valueConverter.raw],
-                [115,"soil_fertility_set_v1",tuya.valueConverter.raw],
-                [116,"soil_fertility_warning",tuya.valueConverterBasic.lookup({'none': tuya.enum(0),'low':tuya.enum(1),'high':tuya.enum(2)})],
+                [113, "soil_fertility_calibration", tuya.valueConverter.raw],
+                [114, "soil_fertility_set_v0", tuya.valueConverter.raw],
+                [115, "soil_fertility_set_v1", tuya.valueConverter.raw],
+                [116, "soil_fertility_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
             ],
         },
     },
