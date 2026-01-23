@@ -111,7 +111,7 @@ interface Inovelli {
             level: number;
             duration: number;
         };
-        energyReset: {};
+        energyReset: Record<string, never>;
         individualLedEffect: {
             led: number;
             effect: number;
@@ -2455,10 +2455,7 @@ const exposeLedEffectComplete = () => {
 };
 
 const exposeEnergyReset = () => {
-    return e
-        .enum("energy_reset", ea.SET, ["reset"])
-        .withDescription("Reset energy meter")
-        .withCategory("config");
+    return e.enum("energy_reset", ea.SET, ["reset"]).withDescription("Reset energy meter").withCategory("config");
 };
 
 const BUTTON_TAP_SEQUENCES = [
