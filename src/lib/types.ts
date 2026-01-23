@@ -180,7 +180,13 @@ export interface DefinitionMeta {
      * @defaultValue false
      */
     turnsOffAtBrightness1?: boolean;
-    moveToLevelWithOnOffDisable?: boolean;
+    moveToLevelWithOnOffDisable?: boolean | ((entity: Zh.Endpoint) => boolean);
+    /**
+     * Omit optional optionsMask/optionsOverride parameters for devices with strict ZCL v1 compliance
+     *
+     * @defaultValue false
+     */
+    omitOptionalLevelParams?: boolean;
     tuyaThermostatPreset?: {[s: number]: string};
     /** Tuya specific thermostat options */
     tuyaThermostatSystemMode?: {[s: number]: string};
