@@ -111,6 +111,7 @@ interface Inovelli {
             level: number;
             duration: number;
         };
+        energyReset: {};
         individualLedEffect: {
             led: number;
             effect: number;
@@ -331,6 +332,10 @@ const inovelliExtend = {
                         {name: "duration", type: Zcl.DataType.UINT8, max: 0xff},
                     ],
                 },
+                energyReset: {
+                    ID: 2,
+                    parameters: [],
+                },
                 individualLedEffect: {
                     ID: 3,
                     parameters: [
@@ -544,6 +549,15 @@ const inovelliExtend = {
             fromZigbee: [],
             toZigbee: [tzLocal.inovelli_mmwave_control_commands],
             exposes: [exposeMMWaveControl()],
+            configure: [],
+            isModernExtend: true,
+        } as ModernExtend;
+    },
+    inovelliEnergyReset: () => {
+        return {
+            fromZigbee: [],
+            toZigbee: [tzLocal.inovelli_energy_reset],
+            exposes: [exposeEnergyReset()],
             configure: [],
             isModernExtend: true,
         } as ModernExtend;
@@ -1943,6 +1957,17 @@ const tzLocal = {
             return {state: {[key]: values}};
         },
     } satisfies Tz.Converter,
+    inovelli_energy_reset: {
+        key: ["energy_reset"],
+        convertSet: async (entity, key, values, meta) => {
+            await entity.command<typeof INOVELLI_CLUSTER_NAME, "energyReset", Inovelli>(
+                INOVELLI_CLUSTER_NAME,
+                "energyReset",
+                {},
+                {disableResponse: true, disableDefaultResponse: true},
+            );
+        },
+    } satisfies Tz.Converter,
     inovelli_individual_led_effect: {
         key: ["individual_led_effect"],
         convertSet: async (entity, key, values, meta) => {
@@ -2429,6 +2454,13 @@ const exposeLedEffectComplete = () => {
         .withCategory("diagnostic");
 };
 
+const exposeEnergyReset = () => {
+    return e
+        .enum("energy_reset", ea.SET, ["reset"])
+        .withDescription("Reset energy meter")
+        .withCategory("config");
+};
+
 const BUTTON_TAP_SEQUENCES = [
     "down_single",
     "up_single",
@@ -2483,6 +2515,7 @@ export const definitions: DefinitionWithExtend[] = [
                 supportsButtonTaps: true,
             }),
             inovelliExtend.addCustomClusterInovelli(),
+            inovelliExtend.inovelliEnergyReset(),
             m.identify(),
             m.temperature(),
             m.humidity(),
@@ -2507,6 +2540,7 @@ export const definitions: DefinitionWithExtend[] = [
                 supportsButtonTaps: true,
             }),
             inovelliExtend.addCustomClusterInovelli(),
+            inovelliExtend.inovelliEnergyReset(),
             m.identify(),
             m.electricityMeter({
                 current: false,
@@ -2539,6 +2573,7 @@ export const definitions: DefinitionWithExtend[] = [
             inovelliExtend.inovelliMMWave(),
             inovelliExtend.addCustomClusterInovelli(),
             inovelliExtend.addCustomMMWaveClusterInovelli(),
+            inovelliExtend.inovelliEnergyReset(),
             m.identify(),
             m.electricityMeter({
                 // Current and voltage were removed in version 0.8 of the firmware and expected to be restored in the future
