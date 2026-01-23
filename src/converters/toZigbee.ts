@@ -67,39 +67,10 @@ export const light_color: Tz.Converter = {
         const newColor = libColor.Color.fromConverterArg(value);
         const newState: KeyValueAny = {};
         const transtime = utils.getTransition(entity, key, meta).time;
-        const supportsHueAndSaturation = utils.getMetaValue(entity, meta.mapped, "supportsHueAndSaturation", "allEqual", true);
-        const supportsEnhancedHue = utils.getMetaValue(entity, meta.mapped, "supportsEnhancedHue", "allEqual", true);
+        const supportsHueAndSaturation = utils.getMetaValue(entity, meta.mapped, "supportsHueAndSaturation", "allEqual", false);
+        const supportsEnhancedHue = utils.getMetaValue(entity, meta.mapped, "supportsEnhancedHue", "allEqual", false);
 
-        if (newColor.isHSV() && !supportsHueAndSaturation) {
-            // The color we got is HSV but the bulb does not support Hue/Saturation mode
-            throw new Error("This light does not support Hue/Saturation, please use X/Y instead.");
-        }
-
-        if (newColor.isRGB() || newColor.isXY()) {
-            // Convert RGB to XY color mode because Zigbee doesn't support RGB (only x/y and hue/saturation)
-            const xy = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY().rounded(4) : newColor.xy;
-
-            // Some bulbs e.g. RB 185 C don't turn to red (they don't respond at all) when x: 0.701 and y: 0.299
-            // is send. These values are e.g. send by Home Assistant when clicking red in the color wheel.
-            // If we slightly modify these values the bulb will respond.
-            // https://github.com/home-assistant/home-assistant/issues/31094
-            if (utils.getMetaValue(entity, meta.mapped, "applyRedFix", "allEqual", false) && xy.x === 0.701 && xy.y === 0.299) {
-                xy.x = 0.7006;
-                xy.y = 0.2993;
-            }
-
-            newState.color_mode = constants.colorModeLookup[1];
-            newState.color = xy.toObject();
-            const colorx = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
-            const colory = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
-
-            await entity.command(
-                "lightingColorCtrl",
-                "moveToColor",
-                {transtime, colorx, colory, optionsMask: 0, optionsOverride: 0},
-                utils.getOptions(meta.mapped, entity),
-            );
-        } else if (newColor.isHSV()) {
+        if (newColor.isHSV() && supportsHueAndSaturation) {
             const hsv = newColor.hsv;
             const hsvCorrected = hsv.colorCorrected(meta);
             newState.color_mode = constants.colorModeLookup[0];
@@ -164,6 +135,35 @@ export const light_color: Tz.Converter = {
                     utils.getOptions(meta.mapped, entity),
                 );
             }
+        } else if (newColor.isRGB() || newColor.isXY() || newColor.isHSV()) {
+            // convert RGB/HSV to XY color mode
+            // (many devices only support XY, some support also HSV, but RGB is not supported at all)
+            const xy = newColor.isRGB()
+                ? newColor.rgb.gammaCorrected().toXY().rounded(4)
+                : newColor.isHSV()
+                  ? newColor.hsv.colorCorrected(meta).toXY().rounded(4)
+                  : newColor.xy;
+
+            // Some bulbs e.g. RB 185 C don't turn to red (they don't respond at all) when x: 0.701 and y: 0.299
+            // is send. These values are e.g. send by Home Assistant when clicking red in the color wheel.
+            // If we slightly modify these values the bulb will respond.
+            // https://github.com/home-assistant/home-assistant/issues/31094
+            if (utils.getMetaValue(entity, meta.mapped, "applyRedFix", "allEqual", false) && xy.x === 0.701 && xy.y === 0.299) {
+                xy.x = 0.7006;
+                xy.y = 0.2993;
+            }
+
+            newState.color_mode = constants.colorModeLookup[1];
+            newState.color = xy.toObject();
+            const colorx = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
+            const colory = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
+
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToColor",
+                {transtime, colorx, colory, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
         } else {
             throw new Error("Invalid color");
         }
