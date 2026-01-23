@@ -1894,7 +1894,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_qoi1aqxg"]),
         model: "FWJZCEH18A001",
         vendor: "Moes",
-        description: "Moes roller blind motor 17mm/25mm/28mm",
+        description: "Roller blind motor 17mm/25mm/28mm",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
@@ -1908,16 +1908,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [9, "position", tuya.valueConverter.coverPosition],
                 [8, "position", tuya.valueConverter.coverPosition],
                 [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
-                [
-                    13,
-                    "battery",
-                    {
-                        from: (v: string) => {
-                            const buf = Buffer.from(v, "base64");
-                            return buf.readUInt32BE(0);
-                        },
-                    },
-                ],
+                [13, "battery", {from: (v: string) => Buffer.from(v, "base64").readUInt32BE(0)}],
                 [
                     16,
                     "border",
