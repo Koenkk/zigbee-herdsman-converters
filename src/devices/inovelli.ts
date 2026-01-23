@@ -2070,8 +2070,8 @@ function createMmWaveCompositeAreaConverter<Cmd extends "setInterferenceArea" | 
         convertSet: async (entity, key, values, meta) => {
             utils.assertObject(values);
 
-            // The composite structure has Area1, Area2, Area3, Area4 as keys
-            const areaKeys = ["Area1", "Area2", "Area3", "Area4"];
+            // The composite structure has area1, area2, area3, area4 as keys
+            const areaKeys = ["area1", "area2", "area3", "area4"];
             const state: KeyValue = {[key]: {}} as KeyValue;
             const compositeState = state[key] as KeyValueAny;
 
@@ -2079,8 +2079,8 @@ function createMmWaveCompositeAreaConverter<Cmd extends "setInterferenceArea" | 
             for (const areaKey of areaKeys) {
                 if (areaKey in values && utils.isObject(values[areaKey])) {
                     const areaData = values[areaKey] as KeyValueAny;
-                    // Extract area number from "Area1" -> 1, "Area2" -> 2, etc.
-                    const areaId = Number.parseInt(areaKey.replace("Area", ""), 10);
+                    // Extract area number from "area1" -> 1, "area2" -> 2, etc.
+                    const areaId = Number.parseInt(areaKey.replace("area", ""), 10);
 
                     const payload: MmWaveAreaPayload = {
                         // areaID is zero indexed
@@ -2639,7 +2639,7 @@ const fzLocal = {
             const areas: KeyValueAny = {};
             const data = msg.data as KeyValueAny;
             for (let i = 1; i <= 4; i++) {
-                areas[`Area${i}`] = {
+                areas[`area${i}`] = {
                     width_min: data[`xMin${i}`],
                     width_max: data[`xMax${i}`],
                     height_min: data[`zMin${i}`],
@@ -2787,9 +2787,9 @@ const exposeMMWaveAreas = () => {
     ];
 };
 
-const createAreaComposite = (areaName: string) => {
+const createAreaComposite = (areaName: string, property: string) => {
     return e
-        .composite(areaName, areaName, ea.STATE)
+        .composite(areaName, property, ea.STATE)
         .withFeature(
             e
                 .numeric("width_min", ea.STATE_SET)
@@ -2832,10 +2832,10 @@ const exposeDetectionAreas = () => {
         .withDescription(
             "Defines one or more active detection zones where the sensor reports movement or occupancy. Up to four detection zones can be set.",
         )
-        .withFeature(createAreaComposite("Area1").withProperty("Area1"))
-        .withFeature(createAreaComposite("Area2").withProperty("Area2"))
-        .withFeature(createAreaComposite("Area3").withProperty("Area3"))
-        .withFeature(createAreaComposite("Area4").withProperty("Area4"))
+        .withFeature(createAreaComposite("Area 1", "area1"))
+        .withFeature(createAreaComposite("Area 2", "area2"))
+        .withFeature(createAreaComposite("Area 3", "area3"))
+        .withFeature(createAreaComposite("Area 4", "area4"))
         .withCategory("config");
 };
 
@@ -2845,10 +2845,10 @@ const exposeInterferenceAreas = () => {
         .withDescription(
             "Manually defines the coordinates of an interference area, which is an ignored zone where targets are not reported as present. Up to four zones can be defined.",
         )
-        .withFeature(createAreaComposite("Area1").withProperty("Area1"))
-        .withFeature(createAreaComposite("Area2").withProperty("Area2"))
-        .withFeature(createAreaComposite("Area3").withProperty("Area3"))
-        .withFeature(createAreaComposite("Area4").withProperty("Area4"))
+        .withFeature(createAreaComposite("Area 1", "area1"))
+        .withFeature(createAreaComposite("Area 2", "area2"))
+        .withFeature(createAreaComposite("Area 3", "area3"))
+        .withFeature(createAreaComposite("Area 4", "area4"))
         .withCategory("config");
 };
 
@@ -2858,10 +2858,10 @@ const exposeStayAreas = () => {
         .withDescription(
             "Defines one or more stay areas where stationary presence should still be detected. Up to four stay zones can be configured.",
         )
-        .withFeature(createAreaComposite("Area1").withProperty("Area1"))
-        .withFeature(createAreaComposite("Area2").withProperty("Area2"))
-        .withFeature(createAreaComposite("Area3").withProperty("Area3"))
-        .withFeature(createAreaComposite("Area4").withProperty("Area4"))
+        .withFeature(createAreaComposite("Area 1", "area1"))
+        .withFeature(createAreaComposite("Area 2", "area2"))
+        .withFeature(createAreaComposite("Area 3", "area3"))
+        .withFeature(createAreaComposite("Area 4", "area4"))
         .withCategory("config");
 };
 
