@@ -1,5 +1,22 @@
 # Changelog
 
+## [25.112.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.111.0...v25.112.0) (2026-01-23)
+
+
+### Features
+
+* **add:** FWJZCEH18A001 ([#11325](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11325)) ([eafda3c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eafda3c53d512a9b481777657cab6ad3e3ea6110))
+* **add:** SL12S ([#11356](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11356)) ([31489fb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/31489fbc7ce57134e99d2be46836587ddf5d5430))
+* **add:** WISZB-134 ([#11353](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11353)) ([3476314](https://github.com/Koenkk/zigbee-herdsman-converters/commit/347631483d1868a7859befc0026026373e6345f8))
+* **add:** ZS-300TF ([#11359](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11359)) ([fdff8d3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fdff8d35bd6896379309e0234eb5052244fa2ddf))
+* Inovelli VZM30-SN, VZM31-SN, and VZM32-SN: add energy reset command ([#11358](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11358)) ([5aab6e8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5aab6e87e91c346f01014a3ae645498d5bce8c96))
+* Silabs series 2 router: add more fingerprints ([#11354](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11354)) ([bbaee2d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bbaee2d99a0827fe200e1cbd386659b3358b8822))
+
+
+### Bug Fixes
+
+* ADEO: lights turn off at brightness 1 ([#11360](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11360)) ([b2d6a4e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b2d6a4eb805e2818fe6df0937a817813f905ecf6))
+
 ## [25.111.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.110.0...v25.111.0) (2026-01-21)
 
 
