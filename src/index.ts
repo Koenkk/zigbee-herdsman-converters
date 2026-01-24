@@ -48,7 +48,6 @@ type ModelIndex = [module: string, index: number];
 const MODELS_INDEX = modelsIndexJson as Record<string, ModelIndex[]>;
 
 export {ACTIONS, MqttRawPayload} from "./converters/actions";
-export type {Ota} from "./lib/types";
 export {
     DefinitionWithExtend,
     ExternalDefinitionWithExtend,
@@ -76,7 +75,6 @@ export {
 };
 export {getConfigureKey} from "./lib/configureKey";
 export {setLogger} from "./lib/logger";
-export * as ota from "./lib/ota";
 export {clear as clearGlobalStore} from "./lib/store";
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
