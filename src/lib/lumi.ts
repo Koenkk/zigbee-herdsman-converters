@@ -1,3 +1,4 @@
+import assert from "node:assert";
 import {Buffer} from "node:buffer";
 import {DataType} from "zigbee-herdsman/dist/zspec/zcl";
 import * as fz from "../converters/fromZigbee";
@@ -2245,7 +2246,8 @@ export const lumiModernExtend = {
             ...args,
         });
         result.configure.push(...configure);
-        result.onEvent.push(...onEvent);
+        assert(result.onEvent === undefined);
+        result.onEvent = onEvent;
         return result;
     },
     lumiCurtainStatus: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
