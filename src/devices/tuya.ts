@@ -23582,7 +23582,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
 
-       {
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vceqncho", "_TZE284_who1jxwd"]),
         model: "ZIS-01P",
         vendor: "Novato",
