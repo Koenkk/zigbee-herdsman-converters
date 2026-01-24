@@ -1,7 +1,6 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
-import * as exposes from "../lib/exposes";
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
@@ -25,6 +24,17 @@ interface ShellyRPC {
         rxCtl: number;
     };
     commands: never;
+    commandResponses: never;
+}
+
+interface ShellyTRVManualMode {
+    attributes: {
+        manualMode: number;
+        position: number;
+    };
+    commands: {
+        calibrate: Record<string, never>;
+    };
     commandResponses: never;
 }
 
@@ -800,7 +810,7 @@ export const definitions: DefinitionWithExtend[] = [
                     const result: KeyValue = {};
                     if (msg.data.alarmMask !== undefined) {
                         const alarmMask = msg.data.alarmMask;
-                        result.calibration_fault = (alarmMask & (1 << 2)) > 0;
+                        result.calibration_ok = !((alarmMask & (1 << 2)) > 0);
                     }
                     return result;
                 },
@@ -810,30 +820,32 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 key: ["calibrate"],
                 convertSet: async (entity, key, value, meta) => {
-                    await entity.command("shellyTRVManualMode", "calibrate", {}, {manufacturerCode: Zcl.ManufacturerCode.SHELLY});
+                    await entity.command<"shellyTRVManualMode", "calibrate", ShellyTRVManualMode>(
+                        "shellyTRVManualMode",
+                        "calibrate",
+                        {},
+                        {manufacturerCode: Zcl.ManufacturerCode.SHELLY},
+                    );
                 },
             },
         ],
         exposes: [
-            e
-                .binary("calibration_fault", ea.STATE, true, false)
-                .withDescription("Calibration fault")
-                .withCategory("diagnostic"),
+            e.binary("calibration_ok", ea.STATE, true, false).withDescription("Calibration OK").withCategory("diagnostic"),
             e.enum("calibrate", ea.SET, ["trigger"]).withDescription("Trigger valve calibration").withCategory("config"),
         ],
         extend: [
             m.battery(),
             m.thermostat({
-                localTemperatureCalibration: {values: {min: -5, max: 5, step: 0.1}},
+                localTemperatureCalibration: {values: {min: -10, max: 10, step: 0.1}},
                 setpoints: {
                     values: {
-                        occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
-                        unoccupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
+                        occupiedHeatingSetpoint: {min: 4, max: 30, step: 0.1},
+                        unoccupiedHeatingSetpoint: {min: 4, max: 30, step: 0.1},
                     },
                 },
                 setpointsLimit: {
-                    minHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
-                    maxHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
+                    minHeatSetpointLimit: {min: 4, max: 30, step: 0.1},
+                    maxHeatSetpointLimit: {min: 4, max: 30, step: 0.1},
                 },
                 systemMode: {values: ["off", "auto", "heat"]},
                 piHeatingDemand: {values: true},
