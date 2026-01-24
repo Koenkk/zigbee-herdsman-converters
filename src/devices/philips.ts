@@ -3521,13 +3521,6 @@ export const definitions: DefinitionWithExtend[] = [
             {model: "929004608101", vendor: "Philips", description: "Hue OmniGlow lightstrip (5m)", fingerprint: [{modelID: "929004608101"}]},
             {model: "929004608201", vendor: "Philips", description: "Hue OmniGlow lightstrip (10m)", fingerprint: [{modelID: "929004608201"}]},
         ],
-        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
-        zigbeeModel: ["929004608201"],
-        model: "929004608201",
-        vendor: "Philips",
-        description: "Hue OmniGlow lightstrip 10m",
         extend: [
             philips.m.light({
                 colorTemp: {range: [50, 1000]},
