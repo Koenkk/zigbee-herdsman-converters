@@ -4888,4 +4888,31 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        zigbeeModel: ["929004276902", "929004277002", "929004277102"],
+        model: "929004276902",
+        vendor: "Philips",
+        description: "Hue Neon Outdoor Lightstrip (3m)",
+        whiteLabel: [
+            {
+                model: "929004277002",
+                vendor: "Philips",
+                description: "Hue Neon Outdoor Lightstrip (5m)",
+                fingerprint: [{modelID: "929004277002"}],
+            },
+            {
+                model: "929004277102",
+                vendor: "Philips",
+                description: "Hue Neon Outdoor Lightstrip (10m)",
+                fingerprint: [{modelID: "929004277102"}],
+            },
+        ],
+        extend: [
+            philips.m.light({
+                colorTemp: {range: [50, 1000]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+                gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
+            }),
+        ],
+    },
 ];
