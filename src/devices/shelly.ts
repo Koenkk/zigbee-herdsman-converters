@@ -798,9 +798,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["BLU TRV"],
-        model: "BLU TRV",
+        model: "SBTR-001AEU",
         vendor: "Shelly",
-        description: "BLU TRV - Thermostatic Radiator Valve",
+        description: "Thermostatic radiator valve",
         fromZigbee: [
             fz.thermostat,
             {
@@ -814,7 +814,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
         ],
         toZigbee: [
             {
