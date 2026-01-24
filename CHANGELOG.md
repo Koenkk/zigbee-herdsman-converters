@@ -1,5 +1,22 @@
 # Changelog
 
+## [25.113.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.112.0...v25.113.0) (2026-01-24)
+
+
+### Features
+
+* **add:** 929004276902, 929004277002, 929004277102 ([#11365](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11365)) ([83ffefe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/83ffefedcb71cde7129384b95a6d5107ae955b07))
+* **add:** SBTR-001AEU ([#11368](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11368)) ([f803cb5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f803cb5585e2365c7e398837b2b80cefa7da3a6b))
+* Smart Things IM6001-WLP01: expose voltage ([#11366](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11366)) ([0aa08d2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0aa08d24e561d8757c0fb53f10d55386b18a87b7))
+
+
+### Bug Fixes
+
+* cleanup OTA (moved to ZH) ([#11259](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11259)) ([cd9d008](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cd9d0084a15410909e325eed4fceb8341da12e6b))
+* **ignore:** 65dc6179ea2c348eef96da122cf13b1a25bbff2b ([3045cfb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3045cfb0fa9d32303066d112df4053688c180dba))
+* Lumi: fix windowCoveringMode not writeable https://github.com/Koenkk/zigbee2mqtt/issues/30768 ([65dc617](https://github.com/Koenkk/zigbee-herdsman-converters/commit/65dc6179ea2c348eef96da122cf13b1a25bbff2b))
+* Philips Omniglow Lighstrip: improve definitions ([#11362](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11362)) ([e52a8ec](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e52a8ec362ac35b21a06a972cee8198b2f82dfa6))
+
 ## [25.112.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.111.0...v25.112.0) (2026-01-23)
 
 
