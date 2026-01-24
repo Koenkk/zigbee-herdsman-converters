@@ -1,5 +1,5 @@
 import {Buffer} from "node:buffer";
-
+import {DataType} from "zigbee-herdsman/dist/zspec/zcl";
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
@@ -2222,8 +2222,18 @@ export const lumiModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    lumiCurtainReverse: (args?: Partial<modernExtend.BinaryArgs<"closuresWindowCovering">>) =>
-        modernExtend.binary({
+    lumiCurtainReverse: (args?: Partial<modernExtend.BinaryArgs<"closuresWindowCovering">>) => {
+        const {onEvent, configure} = modernExtend.deviceAddCustomCluster("hvacThermostat", {
+            ID: 0x0201,
+            attributes: {
+                // Make windowCoveringMode writable
+                // https://github.com/Koenkk/zigbee2mqtt/issues/30768
+                windowCoveringMode: {ID: 0x0017, type: DataType.BITMAP8, required: true, default: 4, write: true, max: 0xffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        });
+        const result = modernExtend.binary({
             name: "reverse_direction",
             valueOn: [true, 1],
             valueOff: [false, 0],
@@ -2233,7 +2243,11 @@ export const lumiModernExtend = {
             access: "ALL",
             entityCategory: "config",
             ...args,
-        }),
+        });
+        result.configure.push(...configure);
+        result.onEvent.push(...onEvent);
+        return result;
+    },
     lumiCurtainStatus: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
             name: "status",
