@@ -1,5 +1,21 @@
 # Changelog
 
+## [25.114.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.113.0...v25.114.0) (2026-01-25)
+
+
+### Features
+
+* Namron 4512739: expose energy meter ([#11374](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11374)) ([e200bb4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e200bb4da13e69e9500d7eab91a35ce7335f4fdc))
+
+
+### Bug Fixes
+
+* Awox Awox 33952: fix recall action not working https://github.com/Koenkk/zigbee2mqtt/issues/30794 ([081a1eb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/081a1ebeca5284cde26c105f71bd3347362453c1))
+* **detect:** Detect `_TZE200_zaabefnt` as ENGO ECB62-ZB ([#11371](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11371)) ([fc74a35](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc74a3515c40a45aa875000525f1cd9ac6f4f5b4))
+* **detect:** Detect `_TZE284_who1jxwd` as Novato ZIS-01P ([#11355](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11355)) ([a163b64](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a163b641091e1afaaa8afe14bca28777a98ba114))
+* **ignore:** enforce snake case for expose & option `name` & `property` ([#11370](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11370)) ([3f85611](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f8561196deeb710414b4122da22d9d36ec783dd))
+* ZBMicro: entity category 'config' for 'RF turbo mode' ([#11372](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11372)) ([80720c4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/80720c410d479e99f182b97fc516403d22ae8b1a))
+
 ## [25.113.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.112.0...v25.113.0) (2026-01-24)
 
 
