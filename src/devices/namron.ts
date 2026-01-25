@@ -241,8 +241,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "Zigbee dimmer TW 400W",
         ota: true,
-        extend: [m.light({configureReporting: true, colorTemp: {range: [160, 450]}})],
-        // colorTemp not tested
+        extend: [m.light({configureReporting: true, colorTemp: {range: [160, 450]}}), m.electricityMeter()],
     },
     {
         zigbeeModel: ["4512760"],
