@@ -8,7 +8,7 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_oahqgdig"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_oahqgdig", "_TZE200_zaabefnt"]),
         model: "ECB62-ZB",
         vendor: "ENGO",
         description: "Control box for underfloor heating system",
