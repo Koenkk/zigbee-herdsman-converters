@@ -2828,40 +2828,40 @@ const createAreaComposite = (areaName: string, property: string) => {
 
 const exposeDetectionAreas = () => {
     return e
-        .composite("Detection Areas", "mmwave_detection_areas", ea.STATE_SET)
+        .composite("mmwave_detection_areas", "mmwave_detection_areas", ea.STATE_SET)
         .withDescription(
             "Defines one or more active detection zones where the sensor reports movement or occupancy. Up to four detection zones can be set.",
         )
-        .withFeature(createAreaComposite("Area 1", "area1"))
-        .withFeature(createAreaComposite("Area 2", "area2"))
-        .withFeature(createAreaComposite("Area 3", "area3"))
-        .withFeature(createAreaComposite("Area 4", "area4"))
+        .withFeature(createAreaComposite("area_1", "area1"))
+        .withFeature(createAreaComposite("area_2", "area2"))
+        .withFeature(createAreaComposite("area_3", "area3"))
+        .withFeature(createAreaComposite("area_4", "area4"))
         .withCategory("config");
 };
 
 const exposeInterferenceAreas = () => {
     return e
-        .composite("Interference Areas", "mmwave_interference_areas", ea.STATE_SET)
+        .composite("mmwave_interference_areas", "mmwave_interference_areas", ea.STATE_SET)
         .withDescription(
             "Manually defines the coordinates of an interference area, which is an ignored zone where targets are not reported as present. Up to four zones can be defined.",
         )
-        .withFeature(createAreaComposite("Area 1", "area1"))
-        .withFeature(createAreaComposite("Area 2", "area2"))
-        .withFeature(createAreaComposite("Area 3", "area3"))
-        .withFeature(createAreaComposite("Area 4", "area4"))
+        .withFeature(createAreaComposite("area_1", "area1"))
+        .withFeature(createAreaComposite("area_2", "area2"))
+        .withFeature(createAreaComposite("area_3", "area3"))
+        .withFeature(createAreaComposite("area_4", "area4"))
         .withCategory("config");
 };
 
 const exposeStayAreas = () => {
     return e
-        .composite("Stay Areas", "mmwave_stay_areas", ea.STATE_SET)
+        .composite("mmwave_stay_areas", "mmwave_stay_areas", ea.STATE_SET)
         .withDescription(
             "Defines one or more stay areas where stationary presence should still be detected. Up to four stay zones can be configured.",
         )
-        .withFeature(createAreaComposite("Area 1", "area1"))
-        .withFeature(createAreaComposite("Area 2", "area2"))
-        .withFeature(createAreaComposite("Area 3", "area3"))
-        .withFeature(createAreaComposite("Area 4", "area4"))
+        .withFeature(createAreaComposite("area_1", "area1"))
+        .withFeature(createAreaComposite("area_2", "area2"))
+        .withFeature(createAreaComposite("area_3", "area3"))
+        .withFeature(createAreaComposite("area_4", "area4"))
         .withCategory("config");
 };
 
