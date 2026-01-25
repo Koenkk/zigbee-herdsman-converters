@@ -1,6 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 import type {ClusterOrRawPayload} from "zigbee-herdsman/dist/controller/tstype";
-import type {ParameterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
+import type {Parameter} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -467,7 +467,7 @@ const inovelliExtend = {
             commandsResponse: {},
         }),
     addCustomMMWaveClusterInovelli: () => {
-        const mmWaveCommandAreaParameters: ParameterDefinition[] = [
+        const mmWaveCommandAreaParameters: Parameter[] = [
             {name: "areaId", type: Zcl.DataType.UINT8, max: 3},
             {name: "xMin", type: Zcl.DataType.INT16, min: -600, max: 600},
             {name: "xMax", type: Zcl.DataType.INT16, min: -600, max: 600},
@@ -476,7 +476,7 @@ const inovelliExtend = {
             {name: "zMin", type: Zcl.DataType.INT16, min: -600, max: 600},
             {name: "zMax", type: Zcl.DataType.INT16, min: -600, max: 600},
         ];
-        const mmWaveCommandResponseAreaParameters: ParameterDefinition[] = [
+        const mmWaveCommandResponseAreaParameters: Parameter[] = [
             {name: "count", type: Zcl.DataType.UINT8},
             {name: "xMin1", type: Zcl.DataType.INT16},
             {name: "xMax1", type: Zcl.DataType.INT16},
@@ -2919,11 +2919,11 @@ export const definitions: DefinitionWithExtend[] = [
                 supportsButtonTaps: true,
             }),
             inovelliExtend.addCustomClusterInovelli(),
-            inovelliExtend.inovelliEnergyReset(),
             m.identify(),
+            inovelliExtend.inovelliEnergyReset(),
+            m.electricityMeter({energy: {divisor: 1000}}),
             m.temperature(),
             m.humidity(),
-            m.electricityMeter({energy: {divisor: 1000}}),
         ],
         ota: true,
     },
@@ -2944,8 +2944,8 @@ export const definitions: DefinitionWithExtend[] = [
                 supportsButtonTaps: true,
             }),
             inovelliExtend.addCustomClusterInovelli(),
-            inovelliExtend.inovelliEnergyReset(),
             m.identify(),
+            inovelliExtend.inovelliEnergyReset(),
             m.electricityMeter({
                 current: false,
                 voltage: false,
@@ -2977,8 +2977,8 @@ export const definitions: DefinitionWithExtend[] = [
             inovelliExtend.inovelliMMWave(),
             inovelliExtend.addCustomClusterInovelli(),
             inovelliExtend.addCustomMMWaveClusterInovelli(),
-            inovelliExtend.inovelliEnergyReset(),
             m.identify(),
+            inovelliExtend.inovelliEnergyReset(),
             m.electricityMeter({
                 energy: {divisor: 1000},
             }),
