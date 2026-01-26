@@ -569,7 +569,9 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("sensor_error", ea.STATE, ["normal", "E1", "E2"]).withDescription("Sensor error status"),
             e.child_lock(),
             e.enum("relay_mode", ea.STATE_SET, ["NO", "NC", "OFF"]).withDescription("Relay mode"),
-            e.enum("sensor_choose", ea.STATE_SET, ["internal", "floor_temp", "external", "external_on_off"]).withDescription("Sensor selection S1/S2"),
+            e
+                .enum("sensor_choose", ea.STATE_SET, ["internal", "floor_temp", "external", "external_on_off"])
+                .withDescription("Sensor selection S1/S2"),
             e
                 .numeric("holiday_temperature", ea.STATE_SET)
                 .withUnit("°C")
@@ -620,11 +622,21 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(45)
                 .withValueStep(0.5),
             e
-                .enum("control_algorithm", ea.STATE_SET, ["TPI_UFH", "TPI_RAD", "TPI_ELE", "HIS_02", "HIS_04", "HIS_06", "HIS_08", "HIS_10", "HIS_20", "HIS_30", "HIS_40"])
+                .enum("control_algorithm", ea.STATE_SET, [
+                    "TPI_UFH",
+                    "TPI_RAD",
+                    "TPI_ELE",
+                    "HIS_02",
+                    "HIS_04",
+                    "HIS_06",
+                    "HIS_08",
+                    "HIS_10",
+                    "HIS_20",
+                    "HIS_30",
+                    "HIS_40",
+                ])
                 .withDescription("Control algorithm"),
-            e
-                .enum("valve_protection", ea.STATE_SET, ["off", "on"])
-                .withLabel("Valve Protection"),
+            e.enum("valve_protection", ea.STATE_SET, ["off", "on"]).withLabel("Valve Protection"),
             e
                 .enum("comfort_warm_floor", ea.STATE_SET, ["OFF", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"])
                 .withDescription("Comfort warm floor setting"),
@@ -653,7 +665,16 @@ export const definitions: DefinitionWithExtend[] = [
                 [33, "holiday_days", tuya.valueConverter.raw],
                 [34, "humidity", tuya.valueConverter.raw],
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
-                [43, "sensor_choose", tuya.valueConverterBasic.lookup({internal: tuya.enum(0), floor_temp: tuya.enum(1), external: tuya.enum(2), external_on_off: tuya.enum(3)})],
+                [
+                    43,
+                    "sensor_choose",
+                    tuya.valueConverterBasic.lookup({
+                        internal: tuya.enum(0),
+                        floor_temp: tuya.enum(1),
+                        external: tuya.enum(2),
+                        external_on_off: tuya.enum(3),
+                    }),
+                ],
                 [44, "backlight", tuya.valueConverter.raw],
                 [
                     58,
@@ -715,7 +736,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "valve_protection",
                     tuya.valueConverterBasic.lookup({
                         off: tuya.enum(0),
-                        on: tuya.enum(1)
+                        on: tuya.enum(1),
                     }),
                 ],
             ],
