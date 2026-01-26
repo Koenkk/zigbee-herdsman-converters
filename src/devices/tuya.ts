@@ -17692,10 +17692,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.occupancy(),
             e.battery(),
-            e.numeric("pir_sensitivity", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(1)
-                .withDescription("PIR sensitivity (0=high, 1=low)"),
+            e.numeric("pir_sensitivity", ea.STATE_SET).withValueMin(0).withValueMax(1).withDescription("PIR sensitivity (0=high, 1=low)"),
         ],
     },
     {
