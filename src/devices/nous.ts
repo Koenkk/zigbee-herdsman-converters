@@ -10,48 +10,42 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
-   {
-    fingerprint: tuya.fingerprint("TS0601", ["_TZE284_sonkaxrd"]),
-    model: "E12",
-    vendor: "Nous",
-    description: "Zigbee carbon monoxide (CO) sensor",
-    extend: [tuya.modernExtend.tuyaBase({dp: true})],
-    exposes: [
-        e.enum("Co State", ea.STATE, ["alarm", "normal"])
-            .withDescription("CO alarm state (normal or alarm)"),
-        e.numeric("CO Value", ea.STATE)
-            .withUnit("ppm")
-            .withDescription("Current CO concentration"),
-        e.binary("Self Checking", ea.SET, true, false)
-            .withDescription("Triggers self-checking process (write true to start)"),
-        e.enum("Checking Result", ea.STATE, ["ok", "error"])
-            .withDescription("Result of self-checking"),
-        e.enum("Preheat", ea.STATE, ["off", "on"])
-            .withDescription("Sensor preheating status"),
-        e.enum("Fault", ea.STATE, ["normal", "fault"])
-            .withDescription("Sensor fault indicator"),
-        e.numeric("Lifecycle", ea.STATE)
-            .withUnit("days")
-            .withDescription("Sensor service life or usage counter"),
-        e.binary("Battery State", ea.STATE, true, false)
-            .withDescription("Battery low: true = low (replace soon), false = OK"),
-    ],
-    meta: {
-        tuyaDatapoints: [
-            [1, "Co State", tuya.valueConverterBasic.lookup({alarm: 0, normal: 1})],
-            [2, "CO Value", tuya.valueConverter.raw],
-            [8, "Self Checking", tuya.valueConverter.trueFalse0],
-            [9, "Checking Result", tuya.valueConverterBasic.lookup({ok: 0, error: 1})],
-            [10, "Preheat", tuya.valueConverterBasic.lookup({off: 0, on: 1})],
-            [11, "Fault", tuya.valueConverter.trueFalse1],
-            [12, "Lifecycle", tuya.valueConverter.raw],
-            [14, "Battery State", {
-                from: (v: number) => v <= 1,
-                to: (v: boolean) => v ? 0 : 2,
-            }],
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_sonkaxrd"]),
+        model: "E12",
+        vendor: "Nous",
+        description: "Zigbee carbon monoxide (CO) sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.enum("Co State", ea.STATE, ["alarm", "normal"]).withDescription("CO alarm state (normal or alarm)"),
+            e.numeric("CO Value", ea.STATE).withUnit("ppm").withDescription("Current CO concentration"),
+            e.binary("Self Checking", ea.SET, true, false).withDescription("Triggers self-checking process (write true to start)"),
+            e.enum("Checking Result", ea.STATE, ["ok", "error"]).withDescription("Result of self-checking"),
+            e.enum("Preheat", ea.STATE, ["off", "on"]).withDescription("Sensor preheating status"),
+            e.enum("Fault", ea.STATE, ["normal", "fault"]).withDescription("Sensor fault indicator"),
+            e.numeric("Lifecycle", ea.STATE).withUnit("days").withDescription("Sensor service life or usage counter"),
+            e.binary("Battery State", ea.STATE, true, false).withDescription("Battery low: true = low (replace soon), false = OK"),
         ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "Co State", tuya.valueConverterBasic.lookup({alarm: 0, normal: 1})],
+                [2, "CO Value", tuya.valueConverter.raw],
+                [8, "Self Checking", tuya.valueConverter.trueFalse0],
+                [9, "Checking Result", tuya.valueConverterBasic.lookup({ok: 0, error: 1})],
+                [10, "Preheat", tuya.valueConverterBasic.lookup({off: 0, on: 1})],
+                [11, "Fault", tuya.valueConverter.trueFalse1],
+                [12, "Lifecycle", tuya.valueConverter.raw],
+                [
+                    14,
+                    "Battery State",
+                    {
+                        from: (v: number) => v <= 1,
+                        to: (v: boolean) => (v ? 0 : 2),
+                    },
+                ],
+            ],
+        },
     },
-},
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_1di7ujzp"]),
         model: "E13",
