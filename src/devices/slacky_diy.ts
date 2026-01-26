@@ -84,6 +84,16 @@ const attrPlugSwitchTimeReload = 0xf004;
 const attrPlugSwitchProtectCtrl = 0xf005;
 const attrPlugSwitchAutoRestart = 0xf006;
 
+interface SlackyDiyOnOffCfg {
+    attributes: {
+        customSwitchType: number;
+        customRelayControl: number;
+        customSwitchModel: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     thermostat_custom_fw: {
         cluster: "hvacThermostat",
@@ -1552,7 +1562,27 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: localFromZigbeeThermostat,
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
-        // Should be empty, unless device can be controlled (e.g. lights, switches).
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
@@ -1597,7 +1627,27 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: localFromZigbeeThermostat,
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
-        // Should be empty, unless device can be controlled (e.g. lights, switches).
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
@@ -1668,7 +1718,27 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: localFromZigbeeThermostat,
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
-        // Should be empty, unless device can be controlled (e.g. lights, switches).
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
@@ -1749,7 +1819,27 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: localFromZigbeeThermostat,
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
-        // Should be empty, unless device can be controlled (e.g. lights, switches).
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
@@ -1829,7 +1919,27 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: localFromZigbeeThermostat,
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
-        // Should be empty, unless device can be controlled (e.g. lights, switches).
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
@@ -1893,6 +2003,27 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: localFromZigbeeThermostat,
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.binary("sound", ea.ALL, "On", "Off").withDescription("Sound On/Off"),
@@ -1949,7 +2080,27 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: localFromZigbeeThermostat,
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
-        // Should be empty, unless device can be controlled (e.g. lights, switches).
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
@@ -2021,6 +2172,27 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: localFromZigbeeThermostat,
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
@@ -2072,7 +2244,27 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: localFromZigbeeThermostat,
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
-        // Should be empty, unless device can be controlled (e.g. lights, switches).
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.binary("mode_child_lock", ea.ALL, "partial", "all").withDescription("Child lock mode - all/partial"),
@@ -2163,6 +2355,27 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: localFromZigbeeThermostat,
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
@@ -2222,7 +2435,27 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: localFromZigbeeThermostat,
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
-        // Should be empty, unless device can be controlled (e.g. lights, switches).
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
@@ -2275,7 +2508,27 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: localFromZigbeeThermostat,
         toZigbee: localToZigbeeThermostat,
         configure: configureCommon,
-        // Should be empty, unless device can be controlled (e.g. lights, switches).
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e.programming_operation_mode(["setpoint", "schedule"]).withDescription("Setpoint or Schedule mode"),
@@ -3003,6 +3256,76 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Reload time",
                 valueMin: 5,
                 valueMax: 60,
+            }),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["TSM1-0025-SlD"],
+        model: "TSM1-SlD",
+        vendor: "Slacky-DIY",
+        description: "Tuya switch module 1 gang with custom firmware",
+        extend: [
+            m.deviceAddCustomCluster("genOnOffSwitchCfg", {
+                ID: 0x0007,
+                attributes: {
+                    customSwitchType: {
+                        ID: 0xf000,
+                        type: 0x30,
+                        manufacturerCode: 0x6565,
+                        write: true,
+                        max: 0xff,
+                    },
+                    customRelayControl: {
+                        ID: 0xf001,
+                        type: 0x30,
+                        manufacturerCode: 0x6565,
+                        write: true,
+                        max: 0xff,
+                    },
+                    customSwitchModel: {
+                        ID: 0xf002,
+                        type: 0x30,
+                        manufacturerCode: 0x6565,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.onOff({powerOnBehavior: true}),
+            m.commandsOnOff(),
+            localActionExtend(),
+            m.enumLookup({
+                name: "switch_actions",
+                lookup: {off: 0, on: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+            m.enumLookup<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "switch_type",
+                lookup: {toggle: 0, momentary: 1, multifunction: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customSwitchType",
+                description: "Switch type",
+            }),
+            m.enumLookup<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "operation_mode",
+                lookup: {control_relay: 0, decoupled: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customRelayControl",
+                reporting: {min: 0, max: 65000, change: 0},
+                description: "Relay decoupled",
+            }),
+            m.enumLookup<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "switch_model",
+                lookup: {none: 0, model_1: 1, model_2: 2, model_3: 3, model_4: 4, model_5: 5},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customSwitchModel",
+                description: "Switch model",
             }),
         ],
         meta: {},

@@ -405,7 +405,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.voltage()],
     },
     {
         zigbeeModel: ["moisturev4"],

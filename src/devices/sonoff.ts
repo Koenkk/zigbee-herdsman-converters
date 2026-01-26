@@ -2591,6 +2591,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable/disable Radio power turbo mode",
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
+                entityCategory: "config",
             }),
             sonoffExtend.inchingControlSet(),
         ],

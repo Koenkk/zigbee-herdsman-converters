@@ -328,6 +328,8 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "MGM240P", manufacturerName: "SparkFun", applicationVersion: 200},
             {modelID: "MGM24", manufacturerName: "TubesZB", applicationVersion: 200},
             {modelID: "BM24", manufacturerName: "TubesZB", applicationVersion: 200},
+            {modelID: "EFR32MG21-V1", manufacturerName: "ZBGW7688", applicationVersion: 200},
+            {modelID: "EFR32MG21-V2", manufacturerName: "ZBGW7688", applicationVersion: 200},
         ],
         model: "Silabs series 2 router",
         vendor: "Silabs",
@@ -1268,5 +1270,13 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["MiCASAGasCounter"],
+        model: "MiCASAGasCounter",
+        vendor: "Custom devices (DiY)",
+        description: "Zigbee Gas counter",
+        ota: true,
+        extend: [m.gasMeter({cluster: "metering", power: false}), m.battery({voltage: true, lowStatus: true})],
     },
 ];
