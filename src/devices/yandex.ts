@@ -576,6 +576,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX-00518",
         vendor: "Yandex",
         description: "Thermostatic radiator valve",
+        ota: true,
         extend: [
             YandexCluster(manufacturerCodeNew),
             YandexThermostatCluster(manufacturerCodeNew),
@@ -666,6 +667,9 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "OFF if calibration needs to be performed",
                 entityCategory: "config",
                 reporting: {min: 0, max: 3600, change: 0},
+            }),
+            m.battery({
+                voltage: true,
             }),
         ],
     },
