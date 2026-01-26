@@ -17662,40 +17662,35 @@ export const definitions: DefinitionWithExtend[] = [
             }
         },
     },
-{
-    fingerprint: [
-        {
-            modelID: 'TS0601',
-            manufacturerName: '_TZE284_tre6haif',
-        },
-    ],
-    model: 'TS0601_pir_solar',
-    vendor: 'Tuya',
-    description: 'Solar PIR occupancy sensor',
-
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-
-    meta: {
-        tuyaDatapoints: [
-            // DP 1: occupancy (0 = occupied / motion, 1 = clear)
-            [1, 'occupancy', tuya.valueConverter.trueFalse0],
-
-            // DP 4: Battery %
-            [4, 'battery', tuya.valueConverter.raw],
-
-            // DP 9: Sensitivity (0 = high, 1 = low)
-            [9, 'pir_sensitivity', tuya.valueConverter.raw],
+    {
+        fingerprint: [
+            {
+                modelID: "TS0601",
+                manufacturerName: "_TZE284_tre6haif",
+            },
         ],
-    },
+        model: "TS0601_pir_solar",
+        vendor: "Tuya",
+        description: "Solar PIR occupancy sensor",
 
-    exposes: [
-        e.occupancy(),
-        e.battery(),
-        e.numeric('pir_sensitivity', ea.STATE_SET)
-            .withDescription('PIR sensitivity (0=high, 1=low)'),
-    ],
-},
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+
+        meta: {
+            tuyaDatapoints: [
+                // DP 1: occupancy (0 = occupied / motion, 1 = clear)
+                [1, "occupancy", tuya.valueConverter.trueFalse0],
+
+                // DP 4: Battery %
+                [4, "battery", tuya.valueConverter.raw],
+
+                // DP 9: Sensitivity (0 = high, 1 = low)
+                [9, "pir_sensitivity", tuya.valueConverter.raw],
+            ],
+        },
+
+        exposes: [e.occupancy(), e.battery(), e.numeric("pir_sensitivity", ea.STATE_SET).withDescription("PIR sensitivity (0=high, 1=low)")],
+    },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_uxllnywp"]),
         model: "RT_ZCZ03Z",
