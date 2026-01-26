@@ -17689,7 +17689,14 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
 
-        exposes: [e.occupancy(), e.battery(), e.numeric("pir_sensitivity", ea.STATE_SET).withDescription("PIR sensitivity (0=high, 1=low)")],
+        exposes: [
+            e.occupancy(),
+            e.battery(),
+            e.numeric("pir_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(1)
+                .withDescription("PIR sensitivity (0=high, 1=low)"),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_uxllnywp"]),
