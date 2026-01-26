@@ -259,11 +259,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS011F', ['_TZ3210_6cmeijtd']),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3210_6cmeijtd"]),
 
-        model: 'A11Z',
-        vendor: 'Nous',
-        description: 'Smart power strip 3 gang with energy monitoring & countdown',
+        model: "A11Z",
+        vendor: "Nous",
+        description: "Smart power strip 3 gang with energy monitoring & countdown",
 
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
@@ -271,7 +271,7 @@ export const definitions: DefinitionWithExtend[] = [
 
         meta: {
             multiEndpoint: true,
-            multiEndpointSkip: ['energy', 'current', 'voltage', 'power'],
+            multiEndpointSkip: ["energy", "current", "voltage", "power"],
         },
 
         extend: [
@@ -281,12 +281,11 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: true,
                 indicatorMode: true,
                 childLock: true,
-                endpoints: ['l1', 'l2', 'l3'],
+                endpoints: ["l1", "l2", "l3"],
             }),
 
             tuya.modernExtend.electricityMeasurementPoll({
-                metering: (device) => [100, 160, 192].includes(device.applicationVersion) ||
-                                      ["1.0.5"].includes(device.softwareBuildID),
+                metering: (device) => [100, 160, 192].includes(device.applicationVersion) || ["1.0.5"].includes(device.softwareBuildID),
             }),
         ],
 
@@ -295,7 +294,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             const endpoint = device.getEndpoint(1);
 
-            endpoint.saveClusterAttributeKeyValue('haElectricalMeasurement', {
+            endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
                 acCurrentDivisor: 1000,
                 acCurrentMultiplier: 1,
                 acVoltageDivisor: 10,
@@ -304,12 +303,12 @@ export const definitions: DefinitionWithExtend[] = [
                 acPowerMultiplier: 1,
             });
 
-            endpoint.saveClusterAttributeKeyValue('seMetering', {
+            endpoint.saveClusterAttributeKeyValue("seMetering", {
                 divisor: 100,
                 multiplier: 1,
             });
 
-            utils.attachOutputCluster(device, 'genOta');
+            utils.attachOutputCluster(device, "genOta");
             device.save();
         },
     },
