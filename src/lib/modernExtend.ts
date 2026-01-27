@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
+import type {Device} from "zigbee-herdsman/dist/controller/model";
 import type {
     ClusterOrRawAttributeKeys,
     PartialClusterOrRawWriteAttributes,
@@ -7,6 +8,7 @@ import type {
     TCustomClusterPayload,
 } from "zigbee-herdsman/dist/controller/tstype";
 import type {TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
+import {DataType} from "zigbee-herdsman/dist/zspec/zcl/definition/enums";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -1374,7 +1376,8 @@ export type ColorCtrlCommand =
     | "hue_move"
     | "hue_stop"
     | "move_to_saturation"
-    | "move_to_hue";
+    | "move_to_hue"
+    | "stop_move_step";
 export interface CommandsColorCtrl {
     commands?: ColorCtrlCommand[];
     bind?: boolean;
@@ -1401,6 +1404,7 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
             "hue_stop",
             "move_to_saturation",
             "move_to_hue",
+            "stop_move_step",
         ],
         bind = true,
         endpointNames = undefined,
@@ -1426,6 +1430,7 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
         fz.command_move_hue,
         fz.command_move_to_saturation,
         fz.command_move_to_hue,
+        fz.command_stop_move_step,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
@@ -1459,6 +1464,19 @@ export function lightingBallast(): ModernExtend {
 // #endregion
 
 // #region HVAC
+
+export function customLocalTemperatureCalibrationRange({min, max}: {min: number; max: number}): ModernExtend {
+    // Some devices have a custom range for localTemperatureCalibration attribute.
+    // To find the range for a specific device: https://github.com/Koenkk/zigbee2mqtt/issues/30448#issuecomment-3707495349
+    return deviceAddCustomCluster("hvacThermostat", {
+        ID: 0x0201,
+        attributes: {
+            localTemperatureCalibration: {ID: 0x0010, type: DataType.INT8, write: true, min: min * 10, max: max * 10, default: 0},
+        },
+        commands: {},
+        commandsResponse: {},
+    });
+}
 
 // #endregion
 
@@ -1638,7 +1656,7 @@ export interface IasArgs {
     zoneType: IasZoneType;
     zoneAttributes: IasZoneAttribute[];
     alarmTimeout?: boolean;
-    keepAliveTimeout?: number;
+    keepAliveTimeout?: (device: Device) => number;
     zoneStatusReporting?: boolean;
     description?: string;
     invertAlarm?: true;
@@ -1762,14 +1780,15 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                         payload = {[alarm2Name]: alarm2Payload, ...payload};
                         addTimeout ||= alarm2Payload;
                     }
-                    if (isChange && args.keepAliveTimeout > 0) {
+                    const keepAliveTimeout = args?.keepAliveTimeout?.(msg.device);
+                    if (isChange && keepAliveTimeout !== undefined && keepAliveTimeout > 0) {
                         // This sensor continuously sends occupation updates as long as motion is detected; (re)start a timeout
                         // each time we receive one, in case the clearance message gets lost. Normally, these kinds of sensors
                         // send a clearance message, so this is an additional safety measure.
                         clearTimeout(globalStore.getValue(msg.endpoint, "timeout"));
                         if (addTimeout) {
                             // At least one zone active
-                            const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), args.keepAliveTimeout * 1000);
+                            const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), keepAliveTimeout * 1000);
                             globalStore.putValue(msg.endpoint, "timeout", timer);
                         } else {
                             globalStore.clearValue(msg.endpoint, "timeout");
@@ -3213,6 +3232,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
     const exposes: Expose[] = <Expose[]>[];
     const fromZigbee = [];
     const toZigbee = [];
+    const onEvent: OnEvent.Handler[] = [];
     const configure: Configure[] = <Configure[]>[];
 
     const expose = e.climate().withLocalTemperature(undefined, localTemperature?.values?.description ?? undefined);
@@ -3238,9 +3258,15 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
     }
 
     if (localTemperatureCalibration) {
-        const {min, max, step} =
-            localTemperatureCalibration.values === true ? {min: -12.8, max: 12.8, step: 0.1} : localTemperatureCalibration.values;
+        const {min, max, step} = localTemperatureCalibration.values === true ? {min: -2.5, max: 2.5, step: 0.1} : localTemperatureCalibration.values;
         expose.withLocalTemperatureCalibration(min, max, step);
+
+        if (min !== -2.5 || max !== 2.5) {
+            // -2.5 - 2.5 is the default ZCL range, add a custom range if different.
+            const customRange = customLocalTemperatureCalibrationRange({min, max});
+            onEvent.push(...customRange.onEvent);
+            configure.push(...customRange.configure);
+        }
 
         if (!localTemperatureCalibration.toZigbee?.skip) {
             toZigbee.push(tz.thermostat_local_temperature_calibration);
@@ -3423,7 +3449,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
         }
     }
 
-    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    return {exposes, fromZigbee, toZigbee, configure, onEvent, isModernExtend: true};
 }
 
 // #endregion

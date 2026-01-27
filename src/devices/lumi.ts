@@ -3461,7 +3461,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval("1_HOUR")],
     },
     {
         zigbeeModel: ["lumi.plug.sacn02"],
@@ -4960,7 +4960,7 @@ export const definitions: DefinitionWithExtend[] = [
                 setpoints: {
                     values: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
                 },
-                localTemperatureCalibration: {values: true},
+                localTemperatureCalibration: {values: {min: -5, max: 5, step: 0.1}},
                 temperatureSetpointHold: true,
                 temperatureSetpointHoldDuration: true,
                 setpointsLimit: {
@@ -5062,11 +5062,12 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "position",
                 valueMin: 0,
                 valueMax: 100,
-                scale: 10,
+                scale: 1,
+                precision: 2,
                 unit: "%",
                 access: "STATE_GET",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0360, type: Zcl.DataType.UINT16},
+                attribute: {ID: 0x0360, type: Zcl.DataType.SINGLE_PREC},
                 description: "Position of the valve, 100% is fully open",
                 zigbeeCommandOptions: {manufacturerCode},
             }),

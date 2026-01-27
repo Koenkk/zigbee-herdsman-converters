@@ -6,11 +6,13 @@ import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
+import {setupConfigureForBinding} from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as sunricher from "../lib/sunricher";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
+import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from "../lib/utils";
 
 const NS = "zhc:sunricher";
 const e = exposes.presets;
@@ -97,7 +99,19 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    ZG2858A: {
+        cluster: "genBasic",
+        type: "write",
+        convert: (model, msg, publish, options, meta) => {
+            const number = msg.data["16389"];
+            const payload = {action: postfixWithEndpointName(`scene_${number}`, msg, model, meta)};
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter<"genBasic", undefined, "write">,
 };
+
 const tzLocal = {
     ZG9095B: {
         min_setpoint_deadband: {
@@ -149,6 +163,22 @@ const tzLocal = {
                 await entity.read("hvacThermostat", [0x1000], {manufacturerCode: 0x1224});
             },
         } satisfies Tz.Converter,
+    },
+};
+
+const sunricherModernExtend = {
+    zg2858A(): ModernExtend {
+        return {
+            exposes: [
+                e
+                    .enum("action", ea.STATE, ["scene_1", "scene_2", "scene_3", "scene_4", "scene_5", "scene_6"])
+                    .withDescription("Triggered action (e.g. a button click)")
+                    .withCategory("diagnostic"),
+            ],
+            fromZigbee: [fzLocal.ZG2858A],
+            isModernExtend: true,
+            configure: [setupConfigureForBinding("genBasic", "output")],
+        };
     },
 };
 
@@ -1415,6 +1445,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: ["color_temperature_move", "move_to_hue_and_saturation"],
             }),
             m.commandsScenes({commands: ["recall", "store"]}),
+            sunricherModernExtend.zg2858A(),
         ],
     },
     {
@@ -1671,6 +1702,19 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level],
         exposes: [e.action(["on", "off", "brightness_move_to_level"])],
         toZigbee: [],
+    },
+    {
+        zigbeeModel: ["ZG2803-RGB-CCT"],
+        model: "SR-ZG2803-G4-5C",
+        vendor: "Sunricher",
+        description: "4 groups remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4"]}),
+        ],
     },
     {
         fingerprint: [{modelID: "HK-SL-DIM-A", manufacturerName: "Sunricher", priority: 1}],

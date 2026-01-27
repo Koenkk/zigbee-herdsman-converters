@@ -559,6 +559,27 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["WISZB-134"],
+        model: "WISZB-134",
+        vendor: "Develco",
+        description: "Window/door sensor",
+        ota: true,
+        endpoint: () => ({default: 35}),
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]}),
+            m.battery({
+                voltageToPercentage: "3V_2100",
+                percentage: true,
+                voltage: true,
+                lowStatus: false,
+                voltageReporting: true,
+                percentageReporting: false,
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["WISZB-137"],
         model: "WISZB-137",
         vendor: "Develco",
