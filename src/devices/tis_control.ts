@@ -7,6 +7,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BEE PIR 1",
         vendor: "TIS Control",
         description: "PIR Sensor",
-        extend: [m.battery(), m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
     },
 ];
