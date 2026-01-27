@@ -23637,7 +23637,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("Excellux", ["DHT0001", "DHTA001"]),
-        model: "FEDHT-01",
+        model: "ZG-107TH",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "HT sensor with temperature and humidity",
@@ -23721,7 +23721,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("Excellux", ["NTCHT01"]),
-        model: "NTCHT-01",
+        model: "ZG-105NTH",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "Probe Temperature and ht(humidity and temperature) Sensor",
@@ -23846,7 +23846,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("Excellux", ["PIRIV01"]),
-        model: "PIRIV-01",
+        model: "ZG-104PLV",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "PIR motion sensor, vibration sensor, and light sensor",
@@ -23909,7 +23909,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("Excellux", ["CAT0001"]),
-        model: "Contact-01",
+        model: "ZG-102MV",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "contact sensor and vibration sensor",
@@ -23936,7 +23936,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("Excellux", ["DSS0010"]),
-        model: "Scene-Switc",
+        model: "ZG-101K",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "Scene switch",
@@ -23982,7 +23982,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("Excellux", ["VABRATE"]),
-        model: "VABRATE-01",
+        model: "ZG-103V",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "Vibration sensor",
