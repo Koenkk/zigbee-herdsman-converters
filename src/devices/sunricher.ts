@@ -1670,11 +1670,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
-        zigbeeModel: ["ON/OFF -M", "ON/OFF", "ZIGBEE-SWITCH"],
+        zigbeeModel: ["ON/OFF", "ZIGBEE-SWITCH"],
         model: "ZG9101SAC-HP-Switch",
         vendor: "Sunricher",
         description: "Zigbee AC in wall switch",
-        extend: [m.onOff({powerOnBehavior: false}), sunricher.extend.externalSwitchType()],
+        extend: [m.onOff({powerOnBehavior: false, configureReporting: true}), sunricher.extend.externalSwitchType()],
+    },
+    {
+        zigbeeModel: ["ON/OFF -M"],
+        model: "ZG9101SAC-HP-Switch-B",
+        vendor: "Sunricher",
+        description: "Zigbee AC in wall switch with metering",
+        extend: [m.onOff({powerOnBehavior: false, configureReporting: true}), sunricher.extend.externalSwitchType(), m.electricityMeter()],
     },
     {
         zigbeeModel: ["Micro Smart Dimmer", "SM311", "HK-SL-RDIM-A", "HK-SL-DIM-EU-A"],
