@@ -316,6 +316,7 @@ import {definitions as technicolor} from "./technicolor";
 import {definitions as terncy} from "./terncy";
 import {definitions as theLightGroup} from "./the_light_group";
 import {definitions as thirdReality} from "./third_reality";
+import {definitions as tisControl} from "./tis_control";
 import {definitions as titanProducts} from "./titan_products";
 import {definitions as tlwglobal} from "./tlwglobal";
 import {definitions as tnce} from "./tnce";
@@ -676,6 +677,7 @@ const definitions: DefinitionWithExtend[] = [
     ...terncy,
     ...theLightGroup,
     ...thirdReality,
+    ...tisControl,
     ...titanProducts,
     ...tlwglobal,
     ...tnce,
