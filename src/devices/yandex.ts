@@ -32,6 +32,7 @@ interface Yandex {
         interlock: {value: number};
         buttonMode: {value: number};
         displayFlip: {value: boolean};
+        windowDetection: {value: boolean};
     };
     commandResponses: never;
 }
@@ -171,6 +172,10 @@ function YandexCluster(manufacturerCode: number): ModernExtend {
             },
             displayFlip: {
                 ID: 0x09,
+                parameters: [{name: "value", type: Zcl.DataType.BOOLEAN}],
+            },
+            windowDetection: {
+                ID: 0x0a,
                 parameters: [{name: "value", type: Zcl.DataType.BOOLEAN}],
             },
         },
@@ -626,11 +631,12 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 zigbeeCommandOptions: {manufacturerCode: manufacturerCodeNew},
             }),
-            m.binary<"manuSpecificYandex", Yandex>({
+            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
                 name: "window_detection",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "manuSpecificYandex",
+                setCommand: "windowDetection",
                 attribute: "windowDetection",
                 description: "Enables/disables window detection on the device",
                 access: "ALL",
