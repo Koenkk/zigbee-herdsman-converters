@@ -977,7 +977,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with buttons",
         extend: [
-            m.battery(),
+            m.battery({voltage: true, voltageReporting: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
@@ -991,7 +991,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with scroll wheel",
         extend: [
-            m.battery(),
+            m.battery({voltage: true, voltageReporting: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_to_level"]}),
