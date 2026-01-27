@@ -55,6 +55,7 @@ const local = {
                     warnDIR2: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     warnDIR3: {ID: 0x0008, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     motDEtat: {ID: 0x0009, type: Zcl.DataType.CHAR_STR, write: true},
+                    tariffPeriod: {ID: 0x0010, type: Zcl.DataType.CHAR_STR, write: true},
                     currentPrice: {ID: 0x0200, type: Zcl.DataType.CHAR_STR, write: true},
                     currentIndexTarif: {ID: 0x0201, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                     currentDate: {ID: 0x0202, type: Zcl.DataType.CHAR_STR, write: true},
@@ -219,6 +220,7 @@ const fzLocal = {
                 /* 0x0007 */ "warnDIR2",
                 /* 0x0008 */ "warnDIR3",
                 /* 0x0009 */ "motDEtat",
+                /* 0x0010 */ "tariffPeriod",
                 /* 0x0200 */ "currentPrice",
                 /* 0x0201 */ "currentIndexTarif",
                 /* 0x0202 */ "currentDate",
@@ -1073,10 +1075,20 @@ const allPhaseData = [
     },
     {
         cluster: clustersDef._0xFF66,
+        att: "tariffPeriod",
+        reportable: true,
+        onlyProducer: false,
+        exposes: e.text("LTARF", ea.STATE).withProperty("tariff_period").withDescription("Current supplier price label"),
+    },
+    {
+        cluster: clustersDef._0xFF66,
         att: "currentPrice",
         reportable: false,
         onlyProducer: false,
-        exposes: e.text("LTARF", ea.STATE).withProperty("current_price").withDescription("Current supplier price label"),
+        exposes: e
+            .text("LTARF", ea.STATE)
+            .withProperty("current_price")
+            .withDescription("Current supplier price label (using deprecated polled attribute)"),
     },
     {
         cluster: clustersDef._0xFF66,
