@@ -6,6 +6,7 @@ import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 const fzLocal = {
     power: {
@@ -43,7 +44,9 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
+            tz.stelpro_peak_demand_event_icon,
             tz.stelpro_thermostat_outdoor_temperature,
+            tz.stelpro_time_sync,
         ],
         exposes: [
             e.local_temperature(),
@@ -56,6 +59,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature()
                 .withSystemMode(["heat"])
                 .withRunningState(["idle", "heat"]),
+            e
+                .numeric("peak_demand", ea.SET)
+                .withUnit("hours")
+                .withDescription("Set peak demand event icon for the specified number of hours")
+                .withValueMin(0)
+                .withValueMax(18),
+            e.composite("time_sync", "time_sync", ea.SET).withDescription("Sync the thermostat clock with the hub time"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
