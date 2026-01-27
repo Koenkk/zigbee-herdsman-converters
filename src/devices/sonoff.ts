@@ -1645,6 +1645,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SNZB-02WD",
         vendor: "SONOFF",
         description: "Waterproof (IP65) temperature and humidity sensor with screen",
+        ota: true,
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02wd", {
                 ID: 0xfc11,
