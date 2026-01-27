@@ -1717,6 +1717,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: [{modelID: "HK-SL-DIM-A", manufacturerName: "Sunricher", priority: 1}],
         zigbeeModel: ["HK-SL-DIM-A"],
         model: "SR-ZG9040A/ZG9041A-D",
         vendor: "Sunricher",
