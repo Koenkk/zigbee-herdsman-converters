@@ -24044,7 +24044,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.humidity(),
             e.illuminance(),
-            tuya.exposes.soilSampling(),
+            e
+                .numeric('report_period',ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(1200)
+                .withValueStep(5)
+                .withUnit('S')
+                .withDescription('sensor reporting period'),
             tuya.exposes.soilCalibration(),
             tuya.exposes.humidityCalibration(),
             e
@@ -24056,7 +24062,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Illuminance calibration"),
             tuya.exposes.temperatureCalibration(),
             tuya.exposes.soilWarning(),
-
+            e
+                .numeric("soil_fertility_calibration",ea.STATE_SET)
+                .withValueMin(-1000)
+                .withValueMax(1000)
+                .withValueStep(5)
+                .withUnit("μS/cm")
+                .withDescription("Soil Fertility Calibration"),
             e
                 .numeric("soil_fertility_set_v0", ea.STATE_SET)
                 .withValueMin(0)
@@ -24079,7 +24091,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [15, "battery", tuya.valueConverter.raw],
                 [101, "humidity", tuya.valueConverter.raw],
                 [102, "illuminance", tuya.valueConverter.raw],
-                [103, "soil_sampling", tuya.valueConverter.raw],
+                [103, "report_period", tuya.valueConverter.raw],
                 [104, "soil_calibration", tuya.valueConverter.raw],
                 [105, "humidity_calibration", tuya.valueConverter.raw],
                 [106, "illuminance_calibration", tuya.valueConverter.raw],
