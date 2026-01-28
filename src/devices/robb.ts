@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ROB_200-011-1",
         vendor: "ROBB",
         description: "Pro Zigbee Dimmer 400W",
-        extend: [m.light(), m.electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
     {
         zigbeeModel: ["ROB_200-081-0"],

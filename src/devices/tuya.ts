@@ -17663,6 +17663,25 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_tre6haif"]),
+        model: "TS0601_pir_solar",
+        vendor: "Tuya",
+        description: "Solar PIR occupancy sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        meta: {
+            tuyaDatapoints: [
+                [1, "occupancy", tuya.valueConverter.trueFalse0],
+                [4, "battery", tuya.valueConverter.raw],
+                [9, "pir_sensitivity", tuya.valueConverterBasic.lookup({high: 0, low: 1})],
+            ],
+        },
+        exposes: [
+            e.occupancy(),
+            e.battery(),
+            e.enum("pir_sensitivity", ea.STATE_SET, ["high", "low"]).withDescription("PIR sensitivity (0=high, 1=low)"),
+        ],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_uxllnywp"]),
         model: "RT_ZCZ03Z",
         vendor: "Tuya",

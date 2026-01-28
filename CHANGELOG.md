@@ -1,5 +1,28 @@
 # Changelog
 
+## [25.115.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.114.0...v25.115.0) (2026-01-27)
+
+
+### Features
+
+* **add:** TS0601_pir_solar ([#11392](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11392)) ([f2f07fe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f2f07fe3ff08fb2d88326270c03937675ea8d62c))
+* **add:** ZG9101SAC-HP-Switch-B ([#11396](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11396)) ([e91d091](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e91d0913aca84f1a4595326cc031a0c073fff40f))
+* SONOFF MINI-ZB2GS: expose `programmable_stepper_seq` ([#11381](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11381)) ([36ca943](https://github.com/Koenkk/zigbee-herdsman-converters/commit/36ca9432b55415ec737b967f255ea28c313e2202))
+* SONOFF SNZB-02WD: enable OTA ([#11380](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11380)) ([9e2ea62](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9e2ea62d4a89812dc87630d00512406dc6e90f3b))
+* TS0601_futurehome_thermostat: expose energy ([#11373](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11373)) ([8f5af3a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8f5af3a1e9dcacc6257f106267982d4ece64f7c6))
+
+
+### Bug Fixes
+
+* **detect:** Detect `TAFFETAS2 D1.00P1.63Z1.19` as Acova TAFFETAS2/PERCALE2 ([#11394](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11394)) ([fa27580](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fa275804bc45fe9506b427dd15de57437cb0b9b5))
+* **ignore:** bump the minor-patch group with 2 updates ([#11379](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11379)) ([0110358](https://github.com/Koenkk/zigbee-herdsman-converters/commit/011035880ebc8452df117450168cf5c34a52d03c))
+* Lumi MCCGQ12LM: remove OTA support ([#11390](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11390)) ([883a78b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/883a78be597df7f9bd4a155b1ba7bb24b47b4b4d))
+* Nous E12: fix battery state and carbon_monoxide https://github.com/Koenkk/zigbee2mqtt/issues/30659 ([ebb17b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ebb17b6458f252ae2d2c3db4df01abe6dc78f90b))
+* ROB_200-011-1: configure reporting ([#11386](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11386)) ([d245b72](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d245b729008170f6658893943af6b40a72accf55))
+* ShinaSystem GCM-300Z: fix `volume` values ([#11393](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11393)) ([bd885ea](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bd885ea861a00b48bcf5c4da0131217fd98ca1fb))
+* Sunricher: prioritize SR-ZG9040A/ZG9041A-D over Vesternet OEM ([#11281](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11281)) ([54bd087](https://github.com/Koenkk/zigbee-herdsman-converters/commit/54bd087ab2dc3b41672401a5b2d2cdeebd08de29))
+* Yandex YNDX-00518: fix battery and windowDetection ([#11389](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11389)) ([efff994](https://github.com/Koenkk/zigbee-herdsman-converters/commit/efff9944f55978355f59924155d586ccbed3b4a4))
+
 ## [25.114.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.113.0...v25.114.0) (2026-01-25)
 
 
