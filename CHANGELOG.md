@@ -1,5 +1,27 @@
 # Changelog
 
+## [25.116.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.115.0...v25.116.0) (2026-01-28)
+
+
+### Features
+
+* **add:** A-ZM12/24-4K ([#11405](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11405)) ([6af7e55](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6af7e55b8d0812d3e6e589e86bbeb85013c5f1e8))
+* **add:** BEE PIR 1 ([#11395](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11395)) ([78a852c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/78a852c31d2cc240823b96101e5322d48b4e51b7))
+* **add:** FWBulb03UK ([#11402](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11402)) ([2c14910](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2c14910b1666500f5f27dc60855a8ec5ad9b035a))
+* **add:** JKD-816COM-Z ([#11398](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11398)) ([dfbcb5f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dfbcb5fbc10ff8034cfa1f7ca5a0493b3d5fff81))
+* IKEA BILRESA: add voltage reading ([#11403](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11403)) ([999e67b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/999e67b1d616f9c9c28e1dab474168f13ff71182))
+* Inovelli: mmwave additions ([#9899](https://github.com/Koenkk/zigbee-herdsman-converters/issues/9899)) ([0fa8c98](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0fa8c987a68aa5f5ea6d3eddd2025721830cf144))
+* Slack DiY: update ElectricityMeter ([#11401](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11401)) ([ddf16cc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ddf16cc4a63d1297ea68d229697ef8944c624a7b))
+
+
+### Bug Fixes
+
+* **detect:** Detect `JETSTROM 40100 NA` as IKEA L2208 ([#11404](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11404)) ([f62a086](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f62a0861a0d1599842886a697d501a596c9411d5))
+* Eco-Dim.07/Eco-Dim.10: add new fingerprint https://github.com/Koenkk/zigbee2mqtt/issues/30838 ([4bea242](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4bea242e03b677e898c455f1f491b20af0dee604))
+* Excellux ZS-300TF: fix integartion ([#11407](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11407)) ([41b5e41](https://github.com/Koenkk/zigbee-herdsman-converters/commit/41b5e41d765697bab2b8fe7ac7311dbe0b293b1d))
+* MOES ZTS-EUR-C: fix cover switch position ([#11408](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11408)) ([fc1c935](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc1c935468b107e945145358bc3f60f8d06f50b8))
+* Sunricher: prioritize SR-ZG9101SAC-HP-SWITCH-2CH over Vesternet OEM ([#11400](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11400)) ([14e9638](https://github.com/Koenkk/zigbee-herdsman-converters/commit/14e9638700f526ab497b53914e7fb78bb9a69bc2))
+
 ## [25.115.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.114.0...v25.115.0) (2026-01-27)
 
 
