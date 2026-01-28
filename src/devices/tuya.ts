@@ -6117,7 +6117,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_4rbqgcuv",
             "_TZ3000_veu2v775",
             "_TZ3000_prits6g4",
-            "_TZ3000_afgzktgb",
         ]),
         model: "TS0001_switch_module",
         vendor: "Tuya",
