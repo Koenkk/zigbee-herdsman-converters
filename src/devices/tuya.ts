@@ -24094,9 +24094,9 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "gas", tuya.valueConverterBasic.lookup({alarm: true, normal: false})],
+                [1, "gas", tuya.valueConverter.raw],
                 [2, "gas_value", tuya.valueConverter.raw],
-                [18, "carbon_monoxide", tuya.valueConverterBasic.lookup({alarm: true, normal: false})],
+                [18, "carbon_monoxide", tuya.valueConverter.raw],
                 [19, "co", tuya.valueConverter.raw],
                 [16, "silence", tuya.valueConverter.raw],
                 [
