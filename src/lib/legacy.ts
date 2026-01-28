@@ -3100,6 +3100,7 @@ const fromZigbee = {
             let fixedValue = null;
             switch (dp) {
                 case dataPoints.coverPosition: {
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/11408
                     if (value >= 100 && value <= 127) {
                         fixedValue = 100;
                     } else if (value > 127 || value < 0) {
