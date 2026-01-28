@@ -3108,7 +3108,7 @@ const fromZigbee = {
                         fixedValue = value;
                     }
                     const invert = !isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
-                    const position = invert ? 100 - value : value;
+                    const position = invert ? 100 - fixedValue : fixedValue;
                     result = {position: position};
                     break;
                 }
