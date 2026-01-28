@@ -635,7 +635,7 @@ export class Climate extends Base {
         return this;
     }
 
-    withLocalTemperatureCalibration(min = -12.8, max = 12.7, step = 0.1, access = a.ALL) {
+    withLocalTemperatureCalibration(min = -2.5, max = 2.5, step = 0.1, access = a.ALL) {
         // For devices following the ZCL local_temperature_calibration is an int8, so min = -12.8 and max 12.7
         this.addFeature(
             new Numeric("local_temperature_calibration", access)

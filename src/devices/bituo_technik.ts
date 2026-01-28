@@ -62,6 +62,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
         extend: [
+            m.onOff({powerOnBehavior: false, description: "Toggle to 'On' to Zero the energy"}),
             m.electricityMeter({
                 fzElectricalMeasurement: bituo_fz.electrical_measurement,
                 producedEnergy: true,
@@ -152,6 +153,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
         extend: [
+            m.onOff({powerOnBehavior: false, description: "Toggle to 'On' to Zero the energy"}),
             m.electricityMeter({
                 fzElectricalMeasurement: bituo_fz.electrical_measurement,
                 acFrequency: true,
@@ -188,6 +190,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
         extend: [
+            m.onOff({powerOnBehavior: false, description: "Toggle to 'On' to Zero the energy"}),
             m.electricityMeter({
                 fzElectricalMeasurement: bituo_fz.electrical_measurement,
                 threePhase: true,

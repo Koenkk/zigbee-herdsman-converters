@@ -8,7 +8,7 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const {ewelinkAction, ewelinkBattery} = ewelinkModernExtend;
@@ -184,6 +184,7 @@ export interface SonoffEwelink {
         detachRelayMode: number;
         deviceWorkMode: number;
         detachRelayMode2: number;
+        motorTravelCalibrationAction: number;
         lackWaterCloseValveTimeout: number;
         motorTravelCalibrationStatus: number;
         motorRunStatus: number;
@@ -201,6 +202,7 @@ export interface SonoffEwelink {
         minBrightnessThreshold: number;
         transitionTime: number;
         dimmingLightRate: number;
+        programmableStepperSequence: number[];
     };
     commands: {
         protocolData: {data: number[]};
@@ -209,8 +211,8 @@ export interface SonoffEwelink {
 }
 
 const sonoffExtend = {
-    addCustomClusterEwelink: () =>
-        m.deviceAddCustomCluster("customClusterEwelink", {
+    addCustomClusterEwelink: () => {
+        return m.deviceAddCustomCluster("customClusterEwelink", {
             ID: 0xfc11,
             attributes: {
                 networkLed: {ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
@@ -231,6 +233,7 @@ const sonoffExtend = {
                 detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN, write: true},
                 deviceWorkMode: {ID: 0x0018, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 detachRelayMode2: {ID: 0x0019, type: Zcl.DataType.BITMAP8, write: true},
+                motorTravelCalibrationAction: {ID: 0x5001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 motorTravelCalibrationStatus: {ID: 0x5012, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 motorRunStatus: {ID: 0x5013, type: Zcl.DataType.UINT8, write: true, max: 0xff},
@@ -247,12 +250,157 @@ const sonoffExtend = {
                 minBrightnessThreshold: {ID: 0x4001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 dimmingLightRate: {ID: 0x4003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 transitionTime: {ID: 0x001f, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                programmableStepperSequence: {ID: 0x0022, type: Zcl.DataType.ARRAY, write: true},
             },
             commands: {
                 protocolData: {ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
             },
             commandsResponse: {},
-        }),
+        });
+    },
+    programmableStepperSequence(sequences: string[]): ModernExtend {
+        const stepComposite = (n: number) => {
+            return e
+                .composite(`step_${n}`, `step_${n}`, ea.ALL)
+                .withFeature(e.binary("enable_step", ea.ALL, true, false).withDescription("Enable/disable this step."))
+                .withFeature(e.binary("relay_outlet_1", ea.ALL, true, false).withDescription("Outlet 1 relay state."))
+                .withFeature(e.binary("relay_outlet_2", ea.ALL, true, false).withDescription("Outlet 2 relay state."));
+        };
+
+        const exposes = sequences.map((seq) => {
+            return e
+                .composite(`programmable_stepper_seq${seq}`, `programmable_stepper_seq${seq}`, ea.ALL)
+                .withDescription(`Configure programmable stepper sequence ${seq}.`)
+                .withFeature(e.binary("enable_stepper", ea.ALL, true, false).withDescription("Enable/disable the stepper sequence."))
+                .withFeature(
+                    e
+                        .numeric("switch_outlet", ea.ALL)
+                        .withValueMin(1)
+                        .withValueMax(2)
+                        .withValueStep(1)
+                        .withDescription("The outlet channel of the external trigger switch bound to this sequence."),
+                )
+                .withFeature(e.binary("enable_double_press", ea.ALL, true, false).withDescription("Enable/disable double press to switch steps."))
+                .withFeature(
+                    e
+                        .numeric("double_press_interval", ea.ALL)
+                        .withValueMin(0)
+                        .withValueMax(32767)
+                        .withValueStep(1)
+                        .withUnit("ms")
+                        .withDescription("Set the double press interval for step switching."),
+                )
+                .withFeature(stepComposite(1))
+                .withFeature(stepComposite(2))
+                .withFeature(stepComposite(3))
+                .withFeature(stepComposite(4));
+        });
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [...sequences.map((seq) => `programmable_stepper_seq${seq}`)],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+
+                    const array: Uint8Array = new Uint8Array(11);
+
+                    // ZCL Array
+                    array[0] = 0x01;
+                    array[1] = 9;
+                    array[2] = 1;
+
+                    // Sequence configs
+                    const seqStr = key.replace("programmable_stepper_seq", "");
+                    const seqIndex = Number.parseInt(seqStr as string, 10) - 1;
+
+                    array[3] = (value.enable_stepper ? 0x80 : 0x00) | (seqIndex & 0x7f);
+                    array[4] = (value.switch_outlet - 1) & 0xff;
+                    array[5] = (value.enable_double_press ? 0x80 : 0x00) | ((value.double_press_interval >> 8) & 0x7f);
+                    array[6] = value.double_press_interval & 0xff;
+
+                    // Steps
+                    for (let i = 0; i < 4; i++) {
+                        const step = value[`step_${i + 1}`] ?? {};
+                        array[7 + i] = (step.enable_step ? 0x80 : 0x00) | (step.relay_outlet_1 ? 0x01 : 0x00) | (step.relay_outlet_2 ? 0x02 : 0x00);
+                    }
+
+                    await entity.write(
+                        "customClusterEwelink",
+                        {
+                            [0x0022]: {
+                                value: {
+                                    elementType: 0x20,
+                                    elements: array,
+                                },
+                                type: 0x48,
+                            },
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
+
+                    return {
+                        state: {
+                            [key]: value,
+                        },
+                    };
+                },
+            },
+        ];
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffEwelink, ["attributeReport"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport"],
+                convert: (model, msg) => {
+                    if (!msg.data?.programmableStepperSequence) {
+                        return;
+                    }
+
+                    const array = new Uint8Array(msg.data.programmableStepperSequence);
+                    if (array[0] !== 0x01) {
+                        return;
+                    }
+
+                    const seqCount = array[2];
+                    const seqDataOffset = 3;
+                    const result: KeyValueAny = {};
+
+                    for (let i = 0; i < seqCount; i++) {
+                        const offset = seqDataOffset + i * 8;
+
+                        // Steps
+                        const steps: KeyValueAny = {};
+                        for (let j = 0; j < 4; j++) {
+                            const currentBuffer = array[offset + 4 + j];
+                            steps[`step_${j + 1}`] = {
+                                enable_step: !!(currentBuffer & 0x80),
+                                relay_outlet_1: !!(currentBuffer & 0x01),
+                                relay_outlet_2: !!(currentBuffer & 0x02),
+                            };
+                        }
+
+                        // Sequence configs
+                        const seqNum = (array[offset] & 0x7f) + 1;
+                        result[`programmable_stepper_seq${seqNum}`] = {
+                            enable_stepper: !!(array[offset] & 0x80),
+                            switch_outlet: array[offset + 1] + 1,
+                            enable_double_press: !!(array[offset + 2] & 0x80),
+                            double_press_interval: ((array[offset + 2] & 0x7f) << 8) | array[offset + 3],
+                            ...steps,
+                        };
+                    }
+                    return result;
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
     inchingControlSet: (args: ExternalInchingAgs = {}, maxTime = 3599.5): ModernExtend => {
         const {endpointNames = undefined} = args;
         const clusterName = "customClusterEwelink";
@@ -353,6 +501,7 @@ const sonoffExtend = {
             "e.g. '04:00/20 10:00/25' will result in the temperature being set to 20°C at 04:00 until 10:00, when it will change to 25°C.";
 
         const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
+        type DayName = (typeof days)[number];
 
         const exposes = days.map((day) => e.text(`weekly_schedule_${day}`, ea.STATE_SET).withCategory("config").withDescription(scheduleDescription));
 
@@ -386,71 +535,142 @@ const sonoffExtend = {
             } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
         ];
 
+        // Helper function to parse and validate a schedule string
+        const parseScheduleString = (scheduleValue: string, dayName: string) => {
+            // Transition format: HH:mm/temperature
+            const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.5)?)$/;
+
+            const rawTransitions = scheduleValue.split(" ").sort();
+
+            if (rawTransitions.length > 6) {
+                throw new Error(`Invalid schedule for ${dayName}: days must have no more than 6 transitions`);
+            }
+
+            const transitions = [];
+
+            for (const transition of rawTransitions) {
+                const matches = transition.match(transitionRegex);
+
+                if (!matches) {
+                    throw new Error(
+                        `Invalid schedule for ${dayName}: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
+                    );
+                }
+
+                const hour = Number.parseInt(matches[1], 10);
+                const mins = Number.parseInt(matches[2], 10);
+                const temp = Number.parseFloat(matches[3]);
+
+                if (temp < 4 || temp > 35) {
+                    throw new Error(`Invalid schedule for ${dayName}: temperature value must be between 4-35 (inclusive), found: ${temp}`);
+                }
+
+                transitions.push({
+                    transitionTime: hour * 60 + mins,
+                    heatSetpoint: Math.round(temp * 100),
+                });
+            }
+
+            if (transitions[0].transitionTime !== 0) {
+                throw new Error(`Invalid schedule for ${dayName}: the first transition of each day should start at 00:00`);
+            }
+
+            return {
+                numoftrans: rawTransitions.length,
+                transitions,
+            };
+        };
+
+        // Helper function to get day bit from day name
+        const getDayBit = (dayName: string): number => {
+            const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayName, null);
+            if (dayKey === null) {
+                throw new Error(`Invalid schedule: invalid day name, found: ${dayName}`);
+            }
+            return Number(dayKey);
+        };
+
+        // Helper function to send setWeeklySchedule command
+        const sendScheduleCommand = async (
+            entity: Parameters<Tz.Converter["convertSet"]>[0],
+            dayofweek: number,
+            numoftrans: number,
+            transitions: Array<{transitionTime: number; heatSetpoint: number}>,
+            meta: Parameters<Tz.Converter["convertSet"]>[3],
+        ) => {
+            await entity.command(
+                "hvacThermostat",
+                "setWeeklySchedule",
+                {
+                    dayofweek,
+                    numoftrans,
+                    mode: 1 << 0, // heat
+                    transitions,
+                },
+                utils.getOptions(meta.mapped, entity),
+            );
+        };
+
         const toZigbee: Tz.Converter[] = [
+            // Single/multi day converter with batching support
             {
                 key: days.map((day) => `weekly_schedule_${day}`),
                 convertSet: async (entity, key, value, meta) => {
-                    // Transition format: HH:mm/temperature
-                    const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.5)?)$/;
-
                     utils.assertString(value, key);
 
-                    // Extract day name from key (e.g., "weekly_schedule_monday" -> "monday")
-                    const dayOfWeekName = key.replace("weekly_schedule_", "");
-                    const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayOfWeekName, null);
+                    // Extract all weekly_schedule keys from the message (if message exists)
+                    const message = meta.message as Record<string, unknown> | null;
+                    const scheduleKeys = message
+                        ? Object.keys(message).filter(
+                              (k) => k.startsWith("weekly_schedule_") && days.includes(k.replace("weekly_schedule_", "") as DayName),
+                          )
+                        : [];
 
-                    if (dayKey === null) {
-                        throw new Error(`Invalid schedule: invalid day name, found: ${dayOfWeekName}`);
+                    // For single-key messages or when message is not available, process normally (original behavior)
+                    if (scheduleKeys.length <= 1) {
+                        const dayName = key.replace("weekly_schedule_", "");
+                        const dayBit = getDayBit(dayName);
+                        const parsed = parseScheduleString(value, dayName);
+
+                        await sendScheduleCommand(entity, 1 << dayBit, parsed.numoftrans, parsed.transitions, meta);
+
+                        return {state: {[key]: value}};
                     }
 
-                    const dayOfWeekBit = Number(dayKey);
+                    // Process all schedule keys from the message with batching
+                    // Group days by their schedule string to optimize Zigbee commands
+                    const scheduleGroups = new Map<string, string[]>();
+                    for (const scheduleKey of scheduleKeys) {
+                        const dayName = scheduleKey.replace("weekly_schedule_", "");
+                        const schedule = message[scheduleKey] as string;
+                        utils.assertString(schedule, scheduleKey);
 
-                    const rawTransitions = value.split(" ").sort();
-
-                    if (rawTransitions.length > 6) {
-                        throw new Error("Invalid schedule: days must have no more than 6 transitions");
+                        const existing = scheduleGroups.get(schedule);
+                        if (existing) {
+                            existing.push(dayName);
+                        } else {
+                            scheduleGroups.set(schedule, [dayName]);
+                        }
                     }
 
-                    const transitions = [];
+                    const stateUpdates: Record<string, string> = {};
 
-                    for (const transition of rawTransitions) {
-                        const matches = transition.match(transitionRegex);
+                    // Send one command per unique schedule, combining days with identical schedules
+                    for (const [schedule, daysWithSchedule] of scheduleGroups) {
+                        // Parse and validate the schedule (only need to do once per unique schedule)
+                        const parsed = parseScheduleString(schedule, daysWithSchedule.join(", "));
 
-                        if (!matches) {
-                            throw new Error(
-                                `Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
-                            );
+                        // Build dayofweek bitmask for all days with this schedule
+                        let dayofweek = 0;
+                        for (const dayName of daysWithSchedule) {
+                            dayofweek |= 1 << getDayBit(dayName);
+                            stateUpdates[`weekly_schedule_${dayName}`] = schedule;
                         }
 
-                        const hour = Number.parseInt(matches[1], 10);
-                        const mins = Number.parseInt(matches[2], 10);
-                        const temp = Number.parseFloat(matches[3]);
-
-                        if (temp < 4 || temp > 35) {
-                            throw new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temp}`);
-                        }
-
-                        transitions.push({
-                            transitionTime: hour * 60 + mins,
-                            heatSetpoint: Math.round(temp * 100),
-                        });
+                        await sendScheduleCommand(entity, dayofweek, parsed.numoftrans, parsed.transitions, meta);
                     }
 
-                    if (transitions[0].transitionTime !== 0) {
-                        throw new Error("Invalid schedule: the first transition of each day should start at 00:00");
-                    }
-
-                    await entity.command(
-                        "hvacThermostat",
-                        "setWeeklySchedule",
-                        {
-                            dayofweek: 1 << Number(dayOfWeekBit),
-                            numoftrans: rawTransitions.length,
-                            mode: 1 << 0, // heat
-                            transitions,
-                        },
-                        utils.getOptions(meta.mapped, entity),
-                    );
+                    return {state: stateUpdates};
                 },
             },
         ];
@@ -1571,6 +1791,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SNZB-02WD",
         vendor: "SONOFF",
         description: "Waterproof (IP65) temperature and humidity sensor with screen",
+        ota: true,
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02wd", {
                 ID: 0xfc11,
@@ -2100,6 +2321,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_running_state,
         ],
         extend: [
+            m.customLocalTemperatureCalibrationRange({min: -12.7, max: 12.7}),
             m.deviceAddCustomCluster("customSonoffTrvzb", {
                 ID: 0xfc11,
                 attributes: {
@@ -2516,6 +2738,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable/disable Radio power turbo mode",
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
+                entityCategory: "config",
             }),
             sonoffExtend.inchingControlSet(),
         ],
@@ -2857,6 +3080,20 @@ export const definitions: DefinitionWithExtend[] = [
             sonoffExtend.addCustomClusterEwelink(),
             m.windowCovering({controls: ["lift"], coverInverted: false}),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "motor_travel_calibration_action",
+                lookup: {
+                    start_automatic: 2,
+                    start_manual: 3,
+                    clear: 4,
+                    manual_2_fully_opened: 7,
+                    manual_3_fully_closed: 8,
+                },
+                cluster: "customClusterEwelink",
+                attribute: "motorTravelCalibrationAction",
+                description: "Calibrates the motor stroke, or clears the current one.",
+                access: "ALL",
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "motor_travel_calibration_status",
                 lookup: {Uncalibrated: 0, Calibrated: 1},
                 cluster: "customClusterEwelink",
@@ -2949,6 +3186,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 2,
                 endpointNames: ["l1", "l2"],
             }),
+            sonoffExtend.programmableStepperSequence(["1", "2", "3", "4"]),
         ],
 
         configure: async (device, coordinatorEndpoint) => {

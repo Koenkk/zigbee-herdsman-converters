@@ -8,6 +8,13 @@ const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["eco-dim13-zigbee"],
+        model: "ECO-DIM.13",
+        vendor: "EcoDim",
+        description: "Dimmer",
+        extend: [m.light()],
+    },
+    {
         zigbeeModel: ["Eco-Dim.05 Zigbee", "eco-dim05-zigbee"],
         fingerprint: [
             {
@@ -49,6 +56,15 @@ export const definitions: DefinitionWithExtend[] = [
                 modelID: "EcoDim-Zigbee 3.0",
                 endpoints: [
                     {ID: 1, profileID: 260, deviceID: 257, inputClusters: [0, 3, 4, 5, 6, 8, 2821, 4096], outputClusters: [25]},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
+            {
+                type: "Router",
+                manufacturerName: "EcoDim BV",
+                modelID: "EcoDim-Zigbee 3.0",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 257, inputClusters: [0, 3, 4, 5, 6, 8, 4096], outputClusters: [25]},
                     {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
                 ],
             },

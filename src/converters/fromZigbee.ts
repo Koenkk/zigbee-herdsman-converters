@@ -812,6 +812,16 @@ export const metering: Fz.Converter<"seMetering", undefined, ["attributeReport",
             const property = postfixWithEndpointName("energy_tier_2", msg, model, meta);
             payload[property] = value * (factor ?? 1);
         }
+        if (msg.data.currentTier3SummDelivered !== undefined) {
+            const value = msg.data.currentTier3SummDelivered;
+            const property = postfixWithEndpointName("energy_tier_3", msg, model, meta);
+            payload[property] = value * (factor ?? 1);
+        }
+        if (msg.data.currentTier4SummDelivered !== undefined) {
+            const value = msg.data.currentTier4SummDelivered;
+            const property = postfixWithEndpointName("energy_tier_4", msg, model, meta);
+            payload[property] = value * (factor ?? 1);
+        }
         if (msg.data.currentTier1SummReceived !== undefined) {
             const value = msg.data.currentTier1SummReceived;
             const property = postfixWithEndpointName("produced_energy_tier_1", msg, model, meta);
@@ -1511,6 +1521,16 @@ export const command_move_color_temperature: Fz.Converter<"lightingColorCtrl", u
         const direction = utils.getFromLookup(msg.data.movemode, {0: "stop", 1: "up", 3: "down"});
         const action = postfixWithEndpointName(`color_temperature_move_${direction}`, msg, model, meta);
         const payload = {action, action_rate: msg.data.rate, action_minimum: msg.data.minimum, action_maximum: msg.data.maximum};
+        addActionGroup(payload, msg, model);
+        return payload;
+    },
+};
+export const command_stop_move_step: Fz.Converter<"lightingColorCtrl", undefined, "commandStopMoveStep"> = {
+    cluster: "lightingColorCtrl",
+    type: "commandStopMoveStep",
+    convert: (model, msg, publish, options, meta) => {
+        if (hasAlreadyProcessedMessage(msg, model)) return;
+        const payload = {action: postfixWithEndpointName("stop_move_step", msg, model, meta)};
         addActionGroup(payload, msg, model);
         return payload;
     },

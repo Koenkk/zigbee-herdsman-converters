@@ -1218,6 +1218,7 @@ export const light_onoff_brightness: Tz.Converter = {
         const transition = utils.getTransition(entity, "brightness", meta);
         const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, "turnsOffAtBrightness1", "allEqual", false);
         const moveToLevelWithOnOffDisable = utils.getMetaValue(entity, meta.mapped, "moveToLevelWithOnOffDisable", "allEqual", false);
+        const omitOptionalLevelParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelParams", "allEqual", false);
         let state = message.state !== undefined ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
         let brightness: number;
 
@@ -1350,27 +1351,47 @@ export const light_onoff_brightness: Tz.Converter = {
 
             if (typeof meta.state.state === "string" && meta.state.state.toLowerCase() !== targetState) {
                 if (targetState === "on") {
-                    await entity.command(
-                        "genLevelCtrl",
-                        "moveToLevel",
-                        {level: Number(brightness), transtime: transition.time, optionsMask: 0, optionsOverride: 0},
-                        utils.getOptions(meta.mapped, entity),
-                    );
+                    const payload = {level: Number(brightness), transtime: transition.time} as {
+                        level: number;
+                        transtime: number;
+                        optionsMask?: number;
+                        optionsOverride?: number;
+                    };
+                    if (!omitOptionalLevelParams) {
+                        payload.optionsMask = 0;
+                        payload.optionsOverride = 0;
+                    }
+                    await entity.command("genLevelCtrl", "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
                 }
                 await on_off.convertSet(entity, "state", state, meta);
             } else {
-                await entity.command(
-                    "genLevelCtrl",
-                    "moveToLevel",
-                    {level: Number(brightness), transtime: transition.time, optionsMask: 0, optionsOverride: 0},
-                    utils.getOptions(meta.mapped, entity),
-                );
+                const payload = {level: Number(brightness), transtime: transition.time} as {
+                    level: number;
+                    transtime: number;
+                    optionsMask?: number;
+                    optionsOverride?: number;
+                };
+                if (!omitOptionalLevelParams) {
+                    payload.optionsMask = 0;
+                    payload.optionsOverride = 0;
+                }
+                await entity.command("genLevelCtrl", "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
             }
         } else {
+            const payload = {level: Number(brightness), transtime: transition.time} as {
+                level: number;
+                transtime: number;
+                optionsMask?: number;
+                optionsOverride?: number;
+            };
+            if (!omitOptionalLevelParams) {
+                payload.optionsMask = 0;
+                payload.optionsOverride = 0;
+            }
             await entity.command(
                 "genLevelCtrl",
                 state === null ? "moveToLevel" : "moveToLevelWithOnOff",
-                {level: Number(brightness), transtime: transition.time, optionsMask: 0, optionsOverride: 0},
+                payload,
                 utils.getOptions(meta.mapped, entity),
             );
         }
@@ -2056,6 +2077,38 @@ export const currentsummdelivered: Tz.Converter = {
         utils.assertEndpoint(entity);
         const ep = determineEndpoint(entity, meta, "seMetering");
         await ep.read("seMetering", ["currentSummDelivered"]);
+    },
+};
+export const currenttier1summdelivered: Tz.Converter = {
+    key: ["energy_tier_1"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier1SummDelivered"]);
+    },
+};
+export const currenttier2summdelivered: Tz.Converter = {
+    key: ["energy_tier_2"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier2SummDelivered"]);
+    },
+};
+export const currenttier3summdelivered: Tz.Converter = {
+    key: ["energy_tier_3"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier3SummDelivered"]);
+    },
+};
+export const currenttier4summdelivered: Tz.Converter = {
+    key: ["energy_tier_4"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier4SummDelivered"]);
     },
 };
 export const currentsummreceived: Tz.Converter = {
