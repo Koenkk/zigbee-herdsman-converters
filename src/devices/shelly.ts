@@ -779,6 +779,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.temperature(), m.humidity()],
     },
     {
+        fingerprint: [{modelID: "BLU H&T Display ZB", manufacturerName: "Shelly"}],
+        model: "SBHT-103C",
+        vendor: "Shelly",
+        description: "BLU H&T display Zigbee",
+        extend: [m.battery(), m.temperature(), m.humidity()],
+    },
+    {
         fingerprint: [{modelID: "BLU Remote Control ZB", manufacturerName: "Shelly"}],
         model: "SBRC-005B-B",
         vendor: "Shelly",
