@@ -812,6 +812,16 @@ export const metering: Fz.Converter<"seMetering", undefined, ["attributeReport",
             const property = postfixWithEndpointName("energy_tier_2", msg, model, meta);
             payload[property] = value * (factor ?? 1);
         }
+        if (msg.data.currentTier3SummDelivered !== undefined) {
+            const value = msg.data.currentTier3SummDelivered;
+            const property = postfixWithEndpointName("energy_tier_3", msg, model, meta);
+            payload[property] = value * (factor ?? 1);
+        }
+        if (msg.data.currentTier4SummDelivered !== undefined) {
+            const value = msg.data.currentTier4SummDelivered;
+            const property = postfixWithEndpointName("energy_tier_4", msg, model, meta);
+            payload[property] = value * (factor ?? 1);
+        }
         if (msg.data.currentTier1SummReceived !== undefined) {
             const value = msg.data.currentTier1SummReceived;
             const property = postfixWithEndpointName("produced_energy_tier_1", msg, model, meta);

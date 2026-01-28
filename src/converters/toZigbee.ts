@@ -2079,6 +2079,38 @@ export const currentsummdelivered: Tz.Converter = {
         await ep.read("seMetering", ["currentSummDelivered"]);
     },
 };
+export const currenttier1summdelivered: Tz.Converter = {
+    key: ["energy_tier_1"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier1SummDelivered"]);
+    },
+};
+export const currenttier2summdelivered: Tz.Converter = {
+    key: ["energy_tier_2"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier2SummDelivered"]);
+    },
+};
+export const currenttier3summdelivered: Tz.Converter = {
+    key: ["energy_tier_3"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier3SummDelivered"]);
+    },
+};
+export const currenttier4summdelivered: Tz.Converter = {
+    key: ["energy_tier_4"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier4SummDelivered"]);
+    },
+};
 export const currentsummreceived: Tz.Converter = {
     key: ["produced_energy"],
     convertGet: async (entity, key, meta) => {
