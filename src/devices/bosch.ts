@@ -227,14 +227,14 @@ const boschExtend = {
             e.numeric("temperature", ea.STATE).withValueMin(0).withValueMax(65).withValueStep(0.1).withUnit("°C").withDescription("Temperature"),
             e.numeric("humidity", ea.STATE).withValueMin(0).withValueMax(100).withValueStep(0.1).withUnit("%").withDescription("Relative humidity"),
             e
-                .numeric("co2", ea.STATE)
+                .numeric("eco2", ea.STATE)
                 .withValueMin(500)
                 .withValueMax(5500)
                 .withValueStep(1)
                 .withLabel("eCO₂")
                 .withUnit("ppm")
                 .withDescription("TVOC-derived CO₂-equivalent"),
-            e.numeric("aqi", ea.STATE).withValueMin(0).withValueMax(500).withValueStep(1).withLabel("AQI").withDescription("Air Quality Index"),
+            e.numeric("aqi", ea.STATE).withValueMin(0).withValueMax(500).withValueStep(1).withLabel("IAQ").withDescription("Index for Air Quality"),
             e.illuminance(),
             e
                 .numeric("battery", ea.STATE)
