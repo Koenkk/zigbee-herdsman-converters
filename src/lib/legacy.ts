@@ -3097,10 +3097,19 @@ const fromZigbee = {
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             let result = null;
+            let fixedValue = null;
             switch (dp) {
                 case dataPoints.coverPosition: {
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/11408
+                    if (value >= 100 && value <= 127) {
+                        fixedValue = 100;
+                    } else if (value > 127 || value < 0) {
+                        fixedValue = 0;
+                    } else {
+                        fixedValue = value;
+                    }
                     const invert = !isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
-                    const position = invert ? 100 - value : value;
+                    const position = invert ? 100 - fixedValue : fixedValue;
                     result = {position: position};
                     break;
                 }
