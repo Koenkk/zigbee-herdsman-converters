@@ -234,7 +234,7 @@ const boschExtend = {
                 .withLabel("eCO₂")
                 .withUnit("ppm")
                 .withDescription("TVOC-derived CO₂-equivalent"),
-            e.numeric("iaq", ea.STATE).withValueMin(0).withValueMax(500).withValueStep(1).withLabel("IAQ").withDescription("Index for Air Quality"),
+            e.numeric("aqi", ea.STATE).withValueMin(0).withValueMax(500).withValueStep(1).withLabel("IAQ").withDescription("Index for Air Quality"),
             e.illuminance(),
             e
                 .numeric("battery", ea.STATE)
