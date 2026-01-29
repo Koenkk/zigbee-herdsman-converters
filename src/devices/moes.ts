@@ -1088,7 +1088,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withLocalTemperature(ea.STATE)
-                .withSetpoint("current_heating_setpoint", 0.5, 30, 0.5, ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 0, 30, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
                 .withPreset(["auto", "manual", "holiday"])
                 .withRunningState(["idle", "heat"], ea.STATE),
