@@ -7,7 +7,7 @@ import {findByDevice} from "../src/index";
 import type {Definition, DefinitionMeta, Fz, Zh} from "../src/lib/types";
 import * as utils from "../src/lib/utils";
 
-interface MockEndpointArgs {
+export interface MockEndpointArgs {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ID?: number;
     profileID?: number;
@@ -67,6 +67,7 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         ID: args.ID ?? 1,
         profileID: args.profileID ?? 1,
         deviceID: args.deviceID ?? 1,
+        deviceIeeeAddress: "0x12345678",
         // @ts-expect-error ignore
         constructor: {name: "Endpoint"},
         bind: vi.fn(),
@@ -107,7 +108,8 @@ const DefaultTz = [
 export type AssertDefinitionArgs = {
     device: Zh.Device;
     meta: DefinitionMeta | undefined;
-    fromZigbee: Fz.Converter[];
+    // biome-ignore lint/suspicious/noExplicitAny: generic
+    fromZigbee: Fz.Converter<any, any, any>[];
     toZigbee: string[];
     exposes: string[];
     bind: {[s: number]: string[]};

@@ -567,8 +567,10 @@ const tzLocal = {
                         // We convert the former into the latter.
                         const c = libColor.Color.fromConverterArg(meta.message.color);
                         if (c.isRGB()) {
+                            const gamut = libColor.getDeviceGamut(Array.isArray(meta.mapped) ? meta.mapped[0] : meta.mapped);
+
                             // https://github.com/Koenkk/zigbee2mqtt/issues/13421#issuecomment-1426044963
-                            c.hsv = c.rgb.gammaCorrected().toXY().toHSV();
+                            c.hsv = c.rgb.toXY(gamut).toHSV(gamut);
                         }
                         const color = c.hsv;
 
@@ -598,9 +600,11 @@ const tzLocal = {
                 }
             }
 
+            const gamut = libColor.getDeviceGamut(Array.isArray(meta.mapped) ? meta.mapped[0] : meta.mapped);
+
             // If we're in white mode, calculate a matching display color for the set color temperature. This also kind
             // of works in the other direction.
-            Object.assign(newState, libColor.syncColorState(newState, meta.state, entity, meta.options));
+            Object.assign(newState, libColor.syncColorState(newState, meta.state, entity, meta.options, undefined, gamut));
 
             return {state: newState};
         },
@@ -627,10 +631,15 @@ const tzLocal = {
                 if (color.isXY()) {
                     newState.color = color.xy;
                 } else {
-                    newState.color = color.rgb.gammaCorrected().toXY().rounded(4);
+                    const gamut = libColor.getDeviceGamut(Array.isArray(meta.mapped) ? meta.mapped[0] : meta.mapped);
+
+                    newState.color = color.rgb.toXY(gamut).rounded(4);
                 }
+
+                const gamut = libColor.getDeviceGamut(Array.isArray(meta.mapped) ? meta.mapped[0] : meta.mapped);
+
                 return {
-                    state: libColor.syncColorState(newState, meta.state, entity, meta.options) as KeyValue,
+                    state: libColor.syncColorState(newState, meta.state, entity, meta.options, undefined, gamut),
                 };
             }
             return await tz.light_color.convertSet(entity, key, value, meta);
