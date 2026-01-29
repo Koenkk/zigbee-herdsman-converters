@@ -1,5 +1,21 @@
 # Changelog
 
+## [25.117.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.116.0...v25.117.0) (2026-01-29)
+
+
+### Features
+
+* **add:** SBHT-103C ([#11376](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11376)) ([85b857b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/85b857b43bbb21c1828fcf23e07b4e5221f3fc4a))
+
+
+### Bug Fixes
+
+* Bosch Twinguard 8750001213: Rename expose `co2` to `eco2` ([#11410](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11410)) ([bc6eb3e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc6eb3ee0ea123579b7f571a3fc7e201762e6c47))
+* **detect:** Detect `_TZ3000_xwuveizv` as Zemismart ZMR4_1 ([#11411](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11411)) ([b959287](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b9592871272941c83e0765ef2389b5121e3e46b6))
+* **detect:** Detect `_TZ3210_pdqu9pot` as Oz Smart Things DL41-03-10-R-ZB ([#11413](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11413)) ([ac96f49](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ac96f4968995b285af3a37125ef7dc7b8c8f8ea2))
+* Moes SH4-ZB: change min `current_heating_setpoint` to `0` https://github.com/Koenkk/zigbee2mqtt/issues/30844 ([3b6f714](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3b6f71433b987d09ff0307463bee70d8a8224b8e))
+* Tuya TS130F: fix `currentPositionLiftPercentage` not writable https://github.com/Koenkk/zigbee2mqtt/issues/30563 ([782dc06](https://github.com/Koenkk/zigbee-herdsman-converters/commit/782dc06389cc7e7e2ef445606a0e263bd37ce536))
+
 ## [25.116.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.115.0...v25.116.0) (2026-01-28)
 
 
