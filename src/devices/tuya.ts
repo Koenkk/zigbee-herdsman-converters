@@ -3696,6 +3696,45 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    /**
+     * TS0601 SOS Panic Button
+     *
+     * Notes:
+     * - Device reports a latched emergency state
+     * - No reset datapoint is provided by the firmware
+     */
+
+    {
+        fingerprint: [
+            {
+                modelID: "TS0601",
+                manufacturerName: "_TZE284_2baujqot",
+            },
+        ],
+
+        model: "TS0601_sos",
+        vendor: "Tuya",
+        description: "SOS Panic Button",
+
+        fromZigbee: [tuya.fz.datapoints],
+
+        toZigbee: [],
+
+        configure: tuya.configureMagicPacket,
+
+        exposes: [
+            e.binary("emergency", ea.STATE, true, false)
+                .withDescription("Emergency state (latched by device)"),
+            e.battery(),
+        ],
+
+        meta: {
+            tuyaDatapoints: [
+                [23, "emergency", tuya.valueConverter.raw],
+                [3, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
     {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_ip2akl4w",
