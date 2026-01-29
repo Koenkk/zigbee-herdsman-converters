@@ -3719,10 +3719,7 @@ export const definitions: DefinitionWithExtend[] = [
 
         configure: tuya.configureMagicPacket,
 
-        exposes: [
-            e.action(["emergency"]),
-            e.battery(),
-        ],
+        exposes: [e.action(["emergency"]), e.battery()],
 
         meta: {
             tuyaDatapoints: [
