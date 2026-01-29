@@ -1930,30 +1930,79 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee wall thermostat (air/internal temperature priority)",
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: (device, options) => {
-            // Helper for schedule exposes
-            const exposesLocalSchedule = {
-                hour: (name: string) => e.numeric(name, ea.STATE_SET).withValueMin(0).withValueMax(23),
-                minute: (name: string) => e.numeric(name, ea.STATE_SET).withValueMin(0).withValueMax(59),
-                program_temperature: (name: string) => e.numeric(name, ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(35),
+            // Period descriptions for user-friendly display
+            const WEEKDAY_PERIODS = [
+                {id: 1, desc: "☀️ Get up in the morning"},
+                {id: 2, desc: "🏠➡️ Go out in the morning"},
+                {id: 3, desc: "🏠🍴⬅️ Back home in the noon"},
+                {id: 4, desc: "🏠🍴➡️ Go out in the noon"},
+                {id: 5, desc: "🏠⬅️ Back home in the evening"},
+                {id: 6, desc: "🌙 Sleep at night"},
+            ];
+
+            const WEEKEND_PERIODS = [
+                {id: 1, desc: "☀️ Get up"},
+                {id: 2, desc: "🌙 Sleep"},
+            ];
+
+            const SCHEDULE_DEFAULTS = {
+                weekday: [
+                    {hour: 6, minute: 0, temp: 20},
+                    {hour: 8, minute: 0, temp: 16},
+                    {hour: 11, minute: 30, temp: 20},
+                    {hour: 12, minute: 30, temp: 16},
+                    {hour: 17, minute: 0, temp: 20},
+                    {hour: 22, minute: 0, temp: 16},
+                ],
+                weekend: [
+                    {hour: 8, minute: 0, temp: 20},
+                    {hour: 23, minute: 0, temp: 16},
+                ],
             };
 
-            // Build weekly programming expose (6 weekday periods + 2 weekend periods)
-            const weeklyProgramExpose = e
-                .composite("weekly_programming", "weekly_programming", ea.STATE_SET)
-                .withDescription("Time of day and setpoint in weekly programming mode");
+            // Generate schedule exposes
+            const scheduleExposes: ReturnType<typeof e.numeric>[] = [];
 
-            for (let i = 1; i <= 6; i++) {
-                weeklyProgramExpose
-                    .withFeature(exposesLocalSchedule.hour(`weekdays_program_${i}_hour`))
-                    .withFeature(exposesLocalSchedule.minute(`weekdays_program_${i}_minute`))
-                    .withFeature(exposesLocalSchedule.program_temperature(`weekdays_program_${i}_temperature`));
+            for (let i = 0; i < 6; i++) {
+                const num = i + 1;
+                const period = WEEKDAY_PERIODS[i];
+                const def = SCHEDULE_DEFAULTS.weekday[i];
+
+                scheduleExposes.push(
+                    e.numeric(`weekday_${num}_hour`, ea.STATE_SET)
+                        .withValueMin(0).withValueMax(23).withValueStep(1)
+                        .withPreset("default", def.hour, "Default value")
+                        .withDescription(`Weekday P${num} ${period.desc} - Hour`),
+                    e.numeric(`weekday_${num}_minute`, ea.STATE_SET)
+                        .withValueMin(0).withValueMax(59).withValueStep(1)
+                        .withPreset("default", def.minute, "Default value")
+                        .withDescription(`Weekday P${num} ${period.desc} - Minute`),
+                    e.numeric(`weekday_${num}_temp`, ea.STATE_SET)
+                        .withUnit("°C").withValueMin(5).withValueMax(35).withValueStep(0.5)
+                        .withPreset("default", def.temp, "Default value")
+                        .withDescription(`Weekday P${num} ${period.desc} - Temperature`),
+                );
             }
 
-            for (let i = 1; i <= 2; i++) {
-                weeklyProgramExpose
-                    .withFeature(exposesLocalSchedule.hour(`weekend_program_${i}_hour`))
-                    .withFeature(exposesLocalSchedule.minute(`weekend_program_${i}_minute`))
-                    .withFeature(exposesLocalSchedule.program_temperature(`weekend_program_${i}_temperature`));
+            for (let i = 0; i < 2; i++) {
+                const num = i + 1;
+                const period = WEEKEND_PERIODS[i];
+                const def = SCHEDULE_DEFAULTS.weekend[i];
+
+                scheduleExposes.push(
+                    e.numeric(`weekend_${num}_hour`, ea.STATE_SET)
+                        .withValueMin(0).withValueMax(23).withValueStep(1)
+                        .withPreset("default", def.hour, "Default value")
+                        .withDescription(`Weekend P${num} ${period.desc} - Hour`),
+                    e.numeric(`weekend_${num}_minute`, ea.STATE_SET)
+                        .withValueMin(0).withValueMax(59).withValueStep(1)
+                        .withPreset("default", def.minute, "Default value")
+                        .withDescription(`Weekend P${num} ${period.desc} - Minute`),
+                    e.numeric(`weekend_${num}_temp`, ea.STATE_SET)
+                        .withUnit("°C").withValueMin(5).withValueMax(35).withValueStep(0.5)
+                        .withPreset("default", def.temp, "Default value")
+                        .withDescription(`Weekend P${num} ${period.desc} - Temperature`),
+                );
             }
 
             return [
@@ -1986,6 +2035,11 @@ export const definitions: DefinitionWithExtend[] = [
                     .binary("valve_state", ea.STATE, "OPEN", "CLOSED")
                     .withDescription("Valve state"),
 
+                // Fault alarm
+                e
+                    .enum("fault_alarm", ea.STATE, ["none", "e1", "e2", "e3", "e1_e2", "e1_e3", "e2_e3", "e1_e2_e3"])
+                    .withDescription("Fault alarm status"),
+
                 // Sensor selection
                 e
                     .enum("sensor", ea.STATE_SET, ["internal", "external", "both"])
@@ -1996,14 +2050,14 @@ export const definitions: DefinitionWithExtend[] = [
                     .enum("temperature_scale", ea.STATE_SET, ["celsius", "fahrenheit"])
                     .withDescription("Temperature scale (WARNING: converter only supports Celsius datapoints)"),
 
-                // Backlight - FIXED: Using numeric strings like working version
+                // Backlight brightness
                 e
-                    .enum("backlight_brightness", ea.STATE_SET, [0, 20, 50, 100])
-                    .withDescription("Backlight brightness percentage"),
+                    .enum("backlight_brightness", ea.STATE_SET, ["off", "low", "medium", "high"])
+                    .withDescription("Backlight brightness"),
 
                 // Antifreeze
                 e
-                    .binary("antifreeze", ea.STATE_SET, "OFF", "ON")
+                    .binary("antifreeze", ea.STATE_SET, "ON", "OFF")
                     .withDescription("Antifreeze mode"),
 
                 // Temperature limits
@@ -2045,8 +2099,13 @@ export const definitions: DefinitionWithExtend[] = [
                     .enum("program_mode", ea.STATE_SET, ["off", "weekend", "single_break", "no_day_off"])
                     .withDescription("Weekly programming mode type"),
 
-                // Weekly schedule programming (at the end)
-                weeklyProgramExpose,
+                // Factory reset
+                e
+                    .binary("factory_reset", ea.SET, "ON", "OFF")
+                    .withDescription("Factory reset (use with caution)"),
+
+                // Schedule exposes - individual fields for each period
+                ...scheduleExposes,
             ];
         },
         meta: {
@@ -2072,13 +2131,28 @@ export const definitions: DefinitionWithExtend[] = [
                     3,
                     "backlight_brightness",
                     tuya.valueConverterBasic.lookup({
-                        0: tuya.enum(0),
-                        20: tuya.enum(1),
-                        50: tuya.enum(2),
-                        100: tuya.enum(3),
+                        off: tuya.enum(0),
+                        low: tuya.enum(1),
+                        medium: tuya.enum(2),
+                        high: tuya.enum(3),
                     }),
                 ],
-                [19, "local_temperature_calibration", tuya.valueConverter.localTemperatureCalibration],
+                [19, "local_temperature_calibration", tuya.valueConverter.raw],
+                [
+                    20,
+                    "fault_alarm",
+                    {
+                        from: (v: number) => {
+                            if (v === 0) return "none";
+                            const faults: string[] = [];
+                            if (v & 1) faults.push("e1");
+                            if (v & 2) faults.push("e2");
+                            if (v & 4) faults.push("e3");
+                            return faults.join("_") || "none";
+                        },
+                    },
+                ],
+                [28, "factory_reset", tuya.valueConverter.onOff],
                 [
                     32,
                     "sensor",
@@ -2140,53 +2214,115 @@ export const definitions: DefinitionWithExtend[] = [
                 [111, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [114, "max_temperature_limit", tuya.valueConverter.divideBy10],
                 [116, "min_temperature_limit", tuya.valueConverter.divideBy10],
+                // Weekly programming DP 108 - read converter
                 [
                     108,
-                    "weekly_programming",
+                    null,
                     {
-                        from: (value) => {
-                            // Decode schedule from device (24 bytes: 6 weekday periods + 2 weekend periods)
+                        from: (value: number[] | Buffer) => {
                             const arr = Array.isArray(value) ? value : Array.from(value);
+                            if (!arr || arr.length < 24) return null;
+
+                            // Initialize cache if not exists
+                            // @ts-expect-error global cache
+                            if (!globalThis.zhtS01ScheduleCache) {
+                                // @ts-expect-error global cache
+                                globalThis.zhtS01ScheduleCache = {
+                                    weekday_1_hour: 6, weekday_1_minute: 0, weekday_1_temp: 20,
+                                    weekday_2_hour: 8, weekday_2_minute: 0, weekday_2_temp: 16,
+                                    weekday_3_hour: 11, weekday_3_minute: 30, weekday_3_temp: 20,
+                                    weekday_4_hour: 12, weekday_4_minute: 30, weekday_4_temp: 16,
+                                    weekday_5_hour: 17, weekday_5_minute: 0, weekday_5_temp: 20,
+                                    weekday_6_hour: 22, weekday_6_minute: 0, weekday_6_temp: 16,
+                                    weekend_1_hour: 8, weekend_1_minute: 0, weekend_1_temp: 20,
+                                    weekend_2_hour: 23, weekend_2_minute: 0, weekend_2_temp: 16,
+                                };
+                            }
+                            // @ts-expect-error global cache
+                            const cache = globalThis.zhtS01ScheduleCache as Record<string, number>;
                             const result: Record<string, number> = {};
 
                             // 6 weekday periods (18 bytes)
                             for (let i = 0; i < 6; i++) {
-                                result[`weekdays_program_${i + 1}_hour`] = arr[i * 3 + 0];
-                                result[`weekdays_program_${i + 1}_minute`] = arr[i * 3 + 1];
-                                result[`weekdays_program_${i + 1}_temperature`] = arr[i * 3 + 2];
+                                const num = i + 1;
+                                result[`weekday_${num}_hour`] = arr[i * 3];
+                                result[`weekday_${num}_minute`] = arr[i * 3 + 1];
+                                result[`weekday_${num}_temp`] = arr[i * 3 + 2];
+                                cache[`weekday_${num}_hour`] = arr[i * 3];
+                                cache[`weekday_${num}_minute`] = arr[i * 3 + 1];
+                                cache[`weekday_${num}_temp`] = arr[i * 3 + 2];
                             }
 
                             // 2 weekend periods (6 bytes)
                             for (let i = 0; i < 2; i++) {
-                                result[`weekend_program_${i + 1}_hour`] = arr[18 + i * 3 + 0];
-                                result[`weekend_program_${i + 1}_minute`] = arr[18 + i * 3 + 1];
-                                result[`weekend_program_${i + 1}_temperature`] = arr[18 + i * 3 + 2];
+                                const num = i + 1;
+                                result[`weekend_${num}_hour`] = arr[18 + i * 3];
+                                result[`weekend_${num}_minute`] = arr[18 + i * 3 + 1];
+                                result[`weekend_${num}_temp`] = arr[18 + i * 3 + 2];
+                                cache[`weekend_${num}_hour`] = arr[18 + i * 3];
+                                cache[`weekend_${num}_minute`] = arr[18 + i * 3 + 1];
+                                cache[`weekend_${num}_temp`] = arr[18 + i * 3 + 2];
                             }
 
                             return result;
                         },
-                        to: (entityValue: Record<string, number>) => {
-                            // Encode schedule to send to device
-                            const arr: number[] = [];
-
-                            // 6 weekday periods
-                            for (let i = 1; i <= 6; i++) {
-                                arr.push(entityValue[`weekdays_program_${i}_hour`] ?? 0);
-                                arr.push(entityValue[`weekdays_program_${i}_minute`] ?? 0);
-                                arr.push(entityValue[`weekdays_program_${i}_temperature`] ?? 16);
-                            }
-
-                            // 2 weekend periods
-                            for (let i = 1; i <= 2; i++) {
-                                arr.push(entityValue[`weekend_program_${i}_hour`] ?? 0);
-                                arr.push(entityValue[`weekend_program_${i}_minute`] ?? 0);
-                                arr.push(entityValue[`weekend_program_${i}_temperature`] ?? 16);
-                            }
-
-                            return arr;
-                        },
                     },
                 ],
+                // Individual schedule field converters for DP 108
+                ...(() => {
+                    const getCache = (): Record<string, number> => {
+                        // @ts-expect-error global cache
+                        if (!globalThis.zhtS01ScheduleCache) {
+                            // @ts-expect-error global cache
+                            globalThis.zhtS01ScheduleCache = {
+                                weekday_1_hour: 6, weekday_1_minute: 0, weekday_1_temp: 20,
+                                weekday_2_hour: 8, weekday_2_minute: 0, weekday_2_temp: 16,
+                                weekday_3_hour: 11, weekday_3_minute: 30, weekday_3_temp: 20,
+                                weekday_4_hour: 12, weekday_4_minute: 30, weekday_4_temp: 16,
+                                weekday_5_hour: 17, weekday_5_minute: 0, weekday_5_temp: 20,
+                                weekday_6_hour: 22, weekday_6_minute: 0, weekday_6_temp: 16,
+                                weekend_1_hour: 8, weekend_1_minute: 0, weekend_1_temp: 20,
+                                weekend_2_hour: 23, weekend_2_minute: 0, weekend_2_temp: 16,
+                            };
+                        }
+                        // @ts-expect-error global cache
+                        return globalThis.zhtS01ScheduleCache as Record<string, number>;
+                    };
+
+                    const createScheduleFieldConverter = (field: string) => ({
+                        to: (value: number) => {
+                            const cache = getCache();
+                            cache[field] = value;
+
+                            // Build buffer from cache
+                            const buffer: number[] = [];
+                            for (let i = 1; i <= 6; i++) {
+                                buffer.push(cache[`weekday_${i}_hour`] || 0);
+                                buffer.push(cache[`weekday_${i}_minute`] || 0);
+                                buffer.push(cache[`weekday_${i}_temp`] || 20);
+                            }
+                            for (let i = 1; i <= 2; i++) {
+                                buffer.push(cache[`weekend_${i}_hour`] || 0);
+                                buffer.push(cache[`weekend_${i}_minute`] || 0);
+                                buffer.push(cache[`weekend_${i}_temp`] || 20);
+                            }
+                            return buffer;
+                        },
+                    });
+
+                    const fields: [number, string, ReturnType<typeof createScheduleFieldConverter>][] = [];
+                    for (let i = 1; i <= 6; i++) {
+                        fields.push([108, `weekday_${i}_hour`, createScheduleFieldConverter(`weekday_${i}_hour`)]);
+                        fields.push([108, `weekday_${i}_minute`, createScheduleFieldConverter(`weekday_${i}_minute`)]);
+                        fields.push([108, `weekday_${i}_temp`, createScheduleFieldConverter(`weekday_${i}_temp`)]);
+                    }
+                    for (let i = 1; i <= 2; i++) {
+                        fields.push([108, `weekend_${i}_hour`, createScheduleFieldConverter(`weekend_${i}_hour`)]);
+                        fields.push([108, `weekend_${i}_minute`, createScheduleFieldConverter(`weekend_${i}_minute`)]);
+                        fields.push([108, `weekend_${i}_temp`, createScheduleFieldConverter(`weekend_${i}_temp`)]);
+                    }
+                    return fields;
+                })(),
             ],
         },
     },
