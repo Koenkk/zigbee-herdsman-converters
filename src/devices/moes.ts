@@ -1969,16 +1969,26 @@ export const definitions: DefinitionWithExtend[] = [
                 const def = SCHEDULE_DEFAULTS.weekday[i];
 
                 scheduleExposes.push(
-                    e.numeric(`weekday_${num}_hour`, ea.STATE_SET)
-                        .withValueMin(0).withValueMax(23).withValueStep(1)
+                    e
+                        .numeric(`weekday_${num}_hour`, ea.STATE_SET)
+                        .withValueMin(0)
+                        .withValueMax(23)
+                        .withValueStep(1)
                         .withPreset("default", def.hour, "Default value")
                         .withDescription(`Weekday P${num} ${period.desc} - Hour`),
-                    e.numeric(`weekday_${num}_minute`, ea.STATE_SET)
-                        .withValueMin(0).withValueMax(59).withValueStep(1)
+                    e
+                        .numeric(`weekday_${num}_minute`, ea.STATE_SET)
+                        .withValueMin(0)
+                        .withValueMax(59)
+                        .withValueStep(1)
                         .withPreset("default", def.minute, "Default value")
                         .withDescription(`Weekday P${num} ${period.desc} - Minute`),
-                    e.numeric(`weekday_${num}_temp`, ea.STATE_SET)
-                        .withUnit("°C").withValueMin(5).withValueMax(35).withValueStep(0.5)
+                    e
+                        .numeric(`weekday_${num}_temp`, ea.STATE_SET)
+                        .withUnit("°C")
+                        .withValueMin(5)
+                        .withValueMax(35)
+                        .withValueStep(0.5)
                         .withPreset("default", def.temp, "Default value")
                         .withDescription(`Weekday P${num} ${period.desc} - Temperature`),
                 );
@@ -1990,16 +2000,26 @@ export const definitions: DefinitionWithExtend[] = [
                 const def = SCHEDULE_DEFAULTS.weekend[i];
 
                 scheduleExposes.push(
-                    e.numeric(`weekend_${num}_hour`, ea.STATE_SET)
-                        .withValueMin(0).withValueMax(23).withValueStep(1)
+                    e
+                        .numeric(`weekend_${num}_hour`, ea.STATE_SET)
+                        .withValueMin(0)
+                        .withValueMax(23)
+                        .withValueStep(1)
                         .withPreset("default", def.hour, "Default value")
                         .withDescription(`Weekend P${num} ${period.desc} - Hour`),
-                    e.numeric(`weekend_${num}_minute`, ea.STATE_SET)
-                        .withValueMin(0).withValueMax(59).withValueStep(1)
+                    e
+                        .numeric(`weekend_${num}_minute`, ea.STATE_SET)
+                        .withValueMin(0)
+                        .withValueMax(59)
+                        .withValueStep(1)
                         .withPreset("default", def.minute, "Default value")
                         .withDescription(`Weekend P${num} ${period.desc} - Minute`),
-                    e.numeric(`weekend_${num}_temp`, ea.STATE_SET)
-                        .withUnit("°C").withValueMin(5).withValueMax(35).withValueStep(0.5)
+                    e
+                        .numeric(`weekend_${num}_temp`, ea.STATE_SET)
+                        .withUnit("°C")
+                        .withValueMin(5)
+                        .withValueMax(35)
+                        .withValueStep(0.5)
                         .withPreset("default", def.temp, "Default value")
                         .withDescription(`Weekend P${num} ${period.desc} - Temperature`),
                 );
@@ -2228,14 +2248,30 @@ export const definitions: DefinitionWithExtend[] = [
                             if (!globalThis.zhtS01ScheduleCache) {
                                 // @ts-expect-error global cache
                                 globalThis.zhtS01ScheduleCache = {
-                                    weekday_1_hour: 6, weekday_1_minute: 0, weekday_1_temp: 20,
-                                    weekday_2_hour: 8, weekday_2_minute: 0, weekday_2_temp: 16,
-                                    weekday_3_hour: 11, weekday_3_minute: 30, weekday_3_temp: 20,
-                                    weekday_4_hour: 12, weekday_4_minute: 30, weekday_4_temp: 16,
-                                    weekday_5_hour: 17, weekday_5_minute: 0, weekday_5_temp: 20,
-                                    weekday_6_hour: 22, weekday_6_minute: 0, weekday_6_temp: 16,
-                                    weekend_1_hour: 8, weekend_1_minute: 0, weekend_1_temp: 20,
-                                    weekend_2_hour: 23, weekend_2_minute: 0, weekend_2_temp: 16,
+                                    weekday_1_hour: 6,
+                                    weekday_1_minute: 0,
+                                    weekday_1_temp: 20,
+                                    weekday_2_hour: 8,
+                                    weekday_2_minute: 0,
+                                    weekday_2_temp: 16,
+                                    weekday_3_hour: 11,
+                                    weekday_3_minute: 30,
+                                    weekday_3_temp: 20,
+                                    weekday_4_hour: 12,
+                                    weekday_4_minute: 30,
+                                    weekday_4_temp: 16,
+                                    weekday_5_hour: 17,
+                                    weekday_5_minute: 0,
+                                    weekday_5_temp: 20,
+                                    weekday_6_hour: 22,
+                                    weekday_6_minute: 0,
+                                    weekday_6_temp: 16,
+                                    weekend_1_hour: 8,
+                                    weekend_1_minute: 0,
+                                    weekend_1_temp: 20,
+                                    weekend_2_hour: 23,
+                                    weekend_2_minute: 0,
+                                    weekend_2_temp: 16,
                                 };
                             }
                             // @ts-expect-error global cache
@@ -2275,14 +2311,30 @@ export const definitions: DefinitionWithExtend[] = [
                         if (!globalThis.zhtS01ScheduleCache) {
                             // @ts-expect-error global cache
                             globalThis.zhtS01ScheduleCache = {
-                                weekday_1_hour: 6, weekday_1_minute: 0, weekday_1_temp: 20,
-                                weekday_2_hour: 8, weekday_2_minute: 0, weekday_2_temp: 16,
-                                weekday_3_hour: 11, weekday_3_minute: 30, weekday_3_temp: 20,
-                                weekday_4_hour: 12, weekday_4_minute: 30, weekday_4_temp: 16,
-                                weekday_5_hour: 17, weekday_5_minute: 0, weekday_5_temp: 20,
-                                weekday_6_hour: 22, weekday_6_minute: 0, weekday_6_temp: 16,
-                                weekend_1_hour: 8, weekend_1_minute: 0, weekend_1_temp: 20,
-                                weekend_2_hour: 23, weekend_2_minute: 0, weekend_2_temp: 16,
+                                weekday_1_hour: 6,
+                                weekday_1_minute: 0,
+                                weekday_1_temp: 20,
+                                weekday_2_hour: 8,
+                                weekday_2_minute: 0,
+                                weekday_2_temp: 16,
+                                weekday_3_hour: 11,
+                                weekday_3_minute: 30,
+                                weekday_3_temp: 20,
+                                weekday_4_hour: 12,
+                                weekday_4_minute: 30,
+                                weekday_4_temp: 16,
+                                weekday_5_hour: 17,
+                                weekday_5_minute: 0,
+                                weekday_5_temp: 20,
+                                weekday_6_hour: 22,
+                                weekday_6_minute: 0,
+                                weekday_6_temp: 16,
+                                weekend_1_hour: 8,
+                                weekend_1_minute: 0,
+                                weekend_1_temp: 20,
+                                weekend_2_hour: 23,
+                                weekend_2_minute: 0,
+                                weekend_2_temp: 16,
                             };
                         }
                         // @ts-expect-error global cache
