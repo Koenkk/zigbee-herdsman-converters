@@ -3722,11 +3722,7 @@ export const definitions: DefinitionWithExtend[] = [
 
         configure: tuya.configureMagicPacket,
 
-        exposes: [
-            e.binary("emergency", ea.STATE, true, false)
-                .withDescription("Emergency state (latched by device)"),
-            e.battery(),
-        ],
+        exposes: [e.binary("emergency", ea.STATE, true, false).withDescription("Emergency state (latched by device)"), e.battery()],
 
         meta: {
             tuyaDatapoints: [
