@@ -1,5 +1,6 @@
 import {TextDecoder, TextEncoder} from "node:util";
 import {Zcl} from "zigbee-herdsman";
+import {DataType} from "zigbee-herdsman/dist/zspec/zcl";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as libColor from "../lib/color";
@@ -4237,6 +4238,16 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.tz.switch_type_curtain,
         ],
         meta: {coverInverted: true},
+        extend: [
+            m.deviceAddCustomCluster("closuresWindowCovering", {
+                ID: 0x0102,
+                attributes: {
+                    currentPositionLiftPercentage: {ID: 0x0008, type: DataType.UINT8, report: true, scene: true, max: 100, default: 0, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         whiteLabel: [
             tuya.whitelabel("BSEED", "EC-GL86ZPCRS31", "Curtain/blind switch", ["_TZ3000_bs93npae"]),
             tuya.whitelabel("Danor", "SK-Z802C-US", "Smart curtain/shutter switch", ["_TZ3000_8h7wgocw"]),
