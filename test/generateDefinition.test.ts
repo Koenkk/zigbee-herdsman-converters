@@ -477,4 +477,61 @@ export default {
             `,
         });
     });
+
+    test("Electricity DC meter", async () => {
+        const attributes = {
+            haElectricalMeasurement: {
+                measurementType: 1 << 6,
+                dcPowerDivisor: 10000,
+                dcPowerMultiplier: 1,
+                dcCurrentDivisor: 1000,
+                dcCurrentMultiplier: 1,
+                dcVoltageDivisor: 100,
+                dcVoltageMultiplier: 1,
+            },
+        };
+
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "dc",
+                endpoints: [{ID: 2, inputClusters: ["haElectricalMeasurement"], attributes}],
+            }),
+            meta: undefined,
+            fromZigbee: [fz.electrical_measurement],
+            toZigbee: ["voltage", "current", "power"],
+            exposes: ["current", "power", "voltage"],
+            bind: {2: ["haElectricalMeasurement"]},
+            read: {
+                2: [
+                    ["haElectricalMeasurement", ["dcPowerDivisor", "dcPowerMultiplier"]],
+                    ["haElectricalMeasurement", ["dcVoltageDivisor", "dcVoltageMultiplier"]],
+                    ["haElectricalMeasurement", ["dcCurrentDivisor", "dcCurrentMultiplier"]],
+                    ["haElectricalMeasurement", ["dcPower", "dcVoltage", "dcCurrent"]],
+                ],
+            },
+            configureReporting: {
+                2: [
+                    [
+                        "haElectricalMeasurement",
+                        [
+                            reportingItem("dcPower", 10, 65000, 1000),
+                            reportingItem("dcVoltage", 10, 65000, 10),
+                            reportingItem("dcCurrent", 10, 65000, 100),
+                        ],
+                    ],
+                ],
+            },
+            externalDefinitionSource: `
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
+
+export default {
+    zigbeeModel: ['dc'],
+    model: 'dc',
+    vendor: '',
+    description: 'Automatically generated definition',
+    extend: [m.electricityMeter({"cluster":"electrical","electricalMeasurementType":"dc","endpointNames":["2"]})],
+};
+            `,
+        });
+    });
 });
