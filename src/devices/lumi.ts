@@ -972,7 +972,7 @@ export const definitions: DefinitionWithExtend[] = [
             // set "event" mode
             await endpoint1.write("manuSpecificLumi", {mode: 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [lumiPreventReset()],
+        extend: [lumiZigbeeOTA(), lumiPreventReset()],
     },
     {
         zigbeeModel: ["lumi.ctrl_neutral1"],
