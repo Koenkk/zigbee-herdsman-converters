@@ -3698,6 +3698,20 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_2baujqot"]),
+        model: "TS0601_sos",
+        vendor: "Tuya",
+        description: "SOS panic button",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [e.action(["emergency"]), e.battery()],
+        meta: {
+            tuyaDatapoints: [
+                [23, "action", tuya.valueConverter.static("emergency")],
+                [3, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_ip2akl4w",
             "_TZE200_1agwnems",
