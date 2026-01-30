@@ -316,9 +316,9 @@ describe("ModernExtend", () => {
             ],
             exposes: [
                 "action",
-                "effect",
-                "effect",
-                "effect",
+                "effect_l1",
+                "effect_l2",
+                "effect_s1",
                 "light_l1(state,brightness)",
                 "light_l2(state,brightness)",
                 "light_s1(state,brightness)",
