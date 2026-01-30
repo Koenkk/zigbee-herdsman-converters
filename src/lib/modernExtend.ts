@@ -2284,15 +2284,9 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement];
 
-        // Converters added here are correct, but key names for AC and DC values are the same.
-        // This means that in case `args.electricalMeasurementType === "both"` -
-        // I think only DC values can be read.
-        toZigbee = [];
-        if (args.electricalMeasurementType === "ac" || args.electricalMeasurementType === "both") {
-            toZigbee.push(tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.frequency, tz.powerfactor);
-        }
-        if (args.electricalMeasurementType === "dc" || args.electricalMeasurementType === "both") {
-            toZigbee.push(tz.dcvoltage, tz.dccurrent, tz.dcpower);
+        toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.frequency, tz.powerfactor];
+        if (args.electricalMeasurementType === "dc") {
+            toZigbee = [tz.dcvoltage, tz.dccurrent, tz.dcpower];
         }
 
         delete configureLookup.seMetering;

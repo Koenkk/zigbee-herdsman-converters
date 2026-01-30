@@ -499,7 +499,7 @@ export default {
             meta: undefined,
             fromZigbee: [fz.electrical_measurement],
             toZigbee: ["voltage", "current", "power"],
-            exposes: ["current", "power", "voltage"],
+            exposes: ["current_2", "power_2", "voltage_2"],
             bind: {2: ["haElectricalMeasurement"]},
             read: {
                 2: [

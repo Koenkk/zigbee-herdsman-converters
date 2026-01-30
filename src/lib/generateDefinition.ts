@@ -361,17 +361,10 @@ async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoin
         const measurementType = await getClusterAttributeValue(endpoint, "haElectricalMeasurement", "measurementType", 0);
         // MeasurementType will have bit on index 6 set for DC measurement.
         const isDCMeasureType = ((measurementType >> 6) & 1) === 1;
-        // Any of the first 6 bits would mean AC measurements.
-        const isACMeasureType = (measurementType & 0b111111) !== 0;
 
+        args.electricalMeasurementType = "ac";
         if (isDCMeasureType) {
             args.electricalMeasurementType = "dc";
-        }
-        if (isACMeasureType) {
-            args.electricalMeasurementType = "ac";
-        }
-        if (isDCMeasureType && isACMeasureType) {
-            args.electricalMeasurementType = "both";
         }
     }
 
