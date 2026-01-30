@@ -284,7 +284,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.occupancy(),
             m.illuminance(),
             m.deviceAddCustomCluster("3r60gRadarSpecialCluster", {
-                ID: 0x042E,
+                ID: 0x042e,
                 manufacturerCode: 0x1407,
                 attributes: {
                     volatileCrganiccCompounds: {ID: 0x0000, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
