@@ -1484,7 +1484,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), m.onOff({endpointNames: ["l1", "l2", "l3", "l4", "l5"]})],
     },
     {
-        zigbeeModel: ["ON/OFF(2CH)"],
+        fingerprint: [{modelID: "ON/OFF(2CH)", manufacturerName: "Sunricher", priority: 1}],
         model: "SR-ZG9101SAC-HP-SWITCH-2CH",
         vendor: "Sunricher",
         description: "Zigbee 2 channels switch",
@@ -1670,11 +1670,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
-        zigbeeModel: ["ON/OFF -M", "ON/OFF", "ZIGBEE-SWITCH"],
+        zigbeeModel: ["ON/OFF", "ZIGBEE-SWITCH"],
         model: "ZG9101SAC-HP-Switch",
         vendor: "Sunricher",
         description: "Zigbee AC in wall switch",
-        extend: [m.onOff({powerOnBehavior: false}), sunricher.extend.externalSwitchType()],
+        extend: [m.onOff({powerOnBehavior: false, configureReporting: true}), sunricher.extend.externalSwitchType()],
+    },
+    {
+        zigbeeModel: ["ON/OFF -M"],
+        model: "ZG9101SAC-HP-Switch-B",
+        vendor: "Sunricher",
+        description: "Zigbee AC in wall switch with metering",
+        extend: [m.onOff({powerOnBehavior: false, configureReporting: true}), sunricher.extend.externalSwitchType(), m.electricityMeter()],
     },
     {
         zigbeeModel: ["Micro Smart Dimmer", "SM311", "HK-SL-RDIM-A", "HK-SL-DIM-EU-A"],
@@ -1717,7 +1724,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["HK-SL-DIM-A"],
+        fingerprint: [{modelID: "HK-SL-DIM-A", manufacturerName: "Sunricher", priority: 1}],
         model: "SR-ZG9040A/ZG9041A-D",
         vendor: "Sunricher",
         description: "Zigbee micro smart dimmer",

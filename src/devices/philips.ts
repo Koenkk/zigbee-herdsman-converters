@@ -3506,13 +3506,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
-        zigbeeModel: ["929004608001"],
-        model: "929004608001",
-        vendor: "Philips",
-        description: "Hue OmniGlow lightstrip 3m",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
-    },
-    {
         zigbeeModel: ["929004608004"],
         model: "929004608004",
         vendor: "Philips",
@@ -3520,17 +3513,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
     },
     {
-        zigbeeModel: ["929004608101"],
-        model: "929004608101",
+        zigbeeModel: ["929004608001", "929004608101", "929004608201"],
+        model: "929004608001",
         vendor: "Philips",
-        description: "Hue OmniGlow lightstrip 5m",
-        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
-        zigbeeModel: ["929004608201"],
-        model: "929004608201",
-        vendor: "Philips",
-        description: "Hue OmniGlow lightstrip 10m",
+        description: "Hue OmniGlow lightstrip (3m)",
+        whiteLabel: [
+            {model: "929004608101", vendor: "Philips", description: "Hue OmniGlow lightstrip (5m)", fingerprint: [{modelID: "929004608101"}]},
+            {model: "929004608201", vendor: "Philips", description: "Hue OmniGlow lightstrip (10m)", fingerprint: [{modelID: "929004608201"}]},
+        ],
         extend: [
             philips.m.light({
                 colorTemp: {range: [50, 1000]},
@@ -4888,6 +4878,33 @@ export const definitions: DefinitionWithExtend[] = [
                 vendor: "Philips",
                 description: "Hue White and Color Lightstrip Ultra Bright (10m)",
                 fingerprint: [{modelID: "929004276802"}],
+            },
+        ],
+        extend: [
+            philips.m.light({
+                colorTemp: {range: [50, 1000]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+                gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["929004276902", "929004277002", "929004277102"],
+        model: "929004276902",
+        vendor: "Philips",
+        description: "Hue Neon Outdoor Lightstrip (3m)",
+        whiteLabel: [
+            {
+                model: "929004277002",
+                vendor: "Philips",
+                description: "Hue Neon Outdoor Lightstrip (5m)",
+                fingerprint: [{modelID: "929004277002"}],
+            },
+            {
+                model: "929004277102",
+                vendor: "Philips",
+                description: "Hue Neon Outdoor Lightstrip (10m)",
+                fingerprint: [{modelID: "929004277102"}],
             },
         ],
         extend: [

@@ -1,10 +1,11 @@
+import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
-import type {Definition, DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
+//import * as globalStore from "../lib/store";
+import type {Configure, Definition, DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 //import {logger} from "../lib/logger";
@@ -89,6 +90,19 @@ interface SlackyDiyOnOffCfg {
         customSwitchType: number;
         customRelayControl: number;
         customSwitchModel: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SlackyDiySeMetering {
+    attributes: {
+        deviceModel: number;
+        deviceAddress: number;
+        readPeriod: number;
+        dateRelease: string;
+        deviceName: string;
+        devicePassword: string;
     };
     commands: never;
     commandResponses: never;
@@ -793,6 +807,45 @@ const energyResetExtend = {
     },
 };
 
+function electricityDeviceModel(args: m.EnumLookupArgs<"seMetering", SlackyDiySeMetering>): ModernExtend {
+    const {name, lookup, cluster, attribute, zigbeeCommandOptions} = args;
+    const attributeKey = utils.isString(attribute) ? attribute : attribute.ID;
+    const access = ea[args.access ?? "ALL"];
+    const mExtend = m.enumLookup(args);
+
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: [name],
+            convertSet:
+                access & ea.SET
+                    ? async (entity, key, value, meta) => {
+                          const payloadValue = utils.getFromLookup(value, lookup);
+                          const payload = utils.isString(attribute)
+                              ? {[attribute]: payloadValue}
+                              : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
+                          const ep = utils.determineEndpoint(entity, meta, cluster);
+                          await ep.write(cluster, payload as PartialClusterOrRawWriteAttributes<"seMetering">, zigbeeCommandOptions);
+                          await ep.read("seMetering", ["divisor", "multiplier"]);
+                          await ep.read("haElectricalMeasurement", ["acPowerDivisor", "acPowerMultiplier"]);
+                          await ep.read("haElectricalMeasurement", ["acCurrentDivisor", "acCurrentMultiplier"]);
+                          await ep.read("haElectricalMeasurement", ["acVoltageDivisor", "acVoltageMultiplier"]);
+                          return {state: {[key]: value}};
+                      }
+                    : undefined,
+            convertGet:
+                access & ea.GET
+                    ? async (entity, key, meta) => {
+                          await utils
+                              .determineEndpoint(entity, meta, cluster)
+                              .read(cluster, [attributeKey] as ClusterOrRawAttributeKeys<"seMetering">, zigbeeCommandOptions);
+                      }
+                    : undefined,
+        },
+    ];
+
+    return {...mExtend, toZigbee, isModernExtend: true};
+}
+
 const electricityMeterExtend = {
     elMeter: (): ModernExtend => {
         const exposes: Expose[] = [
@@ -811,24 +864,14 @@ const electricityMeterExtend = {
             e.numeric("device_measurement_preset", ea.ALL).withDescription("Measurement Period").withValueMin(1).withValueMax(255),
         ];
         const toZigbee: Tz.Converter[] = [
-            {
-                key: ["energy_tier_1", "energy_tier_2", "energy_tier_3", "energy_tier_4"],
-                convertGet: async (entity, key, meta) => {
-                    await entity.read("seMetering", [
-                        "currentTier1SummDelivered",
-                        "currentTier2SummDelivered",
-                        "currentTier3SummDelivered",
-                        "currentTier4SummDelivered",
-                    ]);
-                },
-                convertSet: async (entity, key, value, meta) => {
-                    return await null;
-                },
-            },
+            tz.currenttier1summdelivered,
+            tz.currenttier2summdelivered,
+            tz.currenttier3summdelivered,
+            tz.currenttier4summdelivered,
             {
                 key: ["model_name"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read("seMetering", [attrElCityMeterModelName]);
+                    await entity.read<"seMetering", SlackyDiySeMetering>("seMetering", ["deviceName"]);
                 },
                 convertSet: async (entity, key, value, meta) => {
                     return await null;
@@ -846,7 +889,7 @@ const electricityMeterExtend = {
             {
                 key: ["date_release"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read("seMetering", [attrElCityMeterDateRelease]);
+                    await entity.read<"seMetering", SlackyDiySeMetering>("seMetering", ["dateRelease"]);
                 },
                 convertSet: async (entity, key, value, meta) => {
                     return await null;
@@ -864,8 +907,8 @@ const electricityMeterExtend = {
             {
                 key: ["device_address_preset"],
                 convertSet: async (entity, key, value, meta) => {
-                    const device_address_preset = value;
-                    await entity.write("seMetering", {[attrElCityMeterAddressPreset]: {value: device_address_preset, type: 0x23}});
+                    const device_address_preset = value as number;
+                    await entity.write<"seMetering", SlackyDiySeMetering>("seMetering", {deviceAddress: device_address_preset});
                     return {readAfterWriteTime: 250, state: {device_address_preset: value}};
                 },
             },
@@ -873,141 +916,36 @@ const electricityMeterExtend = {
                 key: ["device_password_preset"],
                 convertSet: async (entity, key, value, meta) => {
                     const device_password_preset = value.toString();
-                    await entity.write("seMetering", {[attrElCityMeterPasswordPreset]: {value: device_password_preset, type: 0x41}});
+                    await entity.write<"seMetering", SlackyDiySeMetering>("seMetering", {devicePassword: device_password_preset});
                     return {readAfterWriteTime: 250, state: {device_password_preset: value}};
                 },
             },
             {
                 key: ["device_measurement_preset"],
                 convertSet: async (entity, key, value, meta) => {
-                    const device_measurement_preset = value;
-                    await entity.write("seMetering", {[attrElCityMeterMeasurementPreset]: {value: device_measurement_preset, type: 0x20}});
+                    const device_measurement_preset = value as number;
+                    await entity.write<"seMetering", SlackyDiySeMetering>("seMetering", {readPeriod: device_measurement_preset});
                     return {readAfterWriteTime: 250, state: {device_measurement_preset: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read("seMetering", [attrElCityMeterMeasurementPreset]);
+                    await entity.read<"seMetering", SlackyDiySeMetering>("seMetering", ["readPeriod"]);
                 },
             },
         ];
         const fromZigbee = [
+            fz.metering,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
-                    if (msg.data.divisor !== undefined) {
-                        const energyDivisor = msg.data.divisor;
-                        globalStore.putValue(meta.device, "energyDivisor", energyDivisor);
-                        result.e_divisor = energyDivisor;
-                    }
-                    return result;
-                },
-            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
-            {
-                cluster: "seMetering",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValueAny = {};
-                    if (msg.data.multiplier !== undefined) {
-                        const energyMultiplier = msg.data.multiplier;
-                        globalStore.putValue(meta.device, "energyMultiplier", energyMultiplier);
-                        result.e_multiplier = energyMultiplier;
-                    }
-                    return result;
-                },
-            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
-            {
-                cluster: "seMetering",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValueAny = {};
-                    if (msg.data.currentTier1SummDelivered !== undefined) {
-                        let energyDivisor = globalStore.getValue(meta.device, "energyDivisor");
-                        let energyMultiplier = globalStore.getValue(meta.device, "energyMultiplier");
-                        if (energyDivisor === undefined) {
-                            energyDivisor = 1;
-                        }
-                        if (energyMultiplier === undefined) {
-                            energyMultiplier = 1;
-                        }
-                        const data = msg.data.currentTier1SummDelivered;
-                        result.energy_tier_1 = (data / energyDivisor) * energyMultiplier;
-                    }
-                    return result;
-                },
-            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
-            {
-                cluster: "seMetering",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValueAny = {};
-                    if (msg.data.currentTier2SummDelivered !== undefined) {
-                        let energyDivisor = globalStore.getValue(meta.device, "energyDivisor");
-                        let energyMultiplier = globalStore.getValue(meta.device, "energyMultiplier");
-                        if (energyDivisor === undefined) {
-                            energyDivisor = 1;
-                        }
-                        if (energyMultiplier === undefined) {
-                            energyMultiplier = 1;
-                        }
-                        const data = msg.data.currentTier2SummDelivered;
-                        result.energy_tier_2 = (data / energyDivisor) * energyMultiplier;
-                    }
-                    return result;
-                },
-            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
-            {
-                cluster: "seMetering",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValueAny = {};
-                    if (msg.data.currentTier3SummDelivered !== undefined) {
-                        let energyDivisor = globalStore.getValue(meta.device, "energyDivisor");
-                        let energyMultiplier = globalStore.getValue(meta.device, "energyMultiplier");
-                        if (energyDivisor === undefined) {
-                            energyDivisor = 1;
-                        }
-                        if (energyMultiplier === undefined) {
-                            energyMultiplier = 1;
-                        }
-                        const data = msg.data.currentTier3SummDelivered;
-                        result.energy_tier_3 = (data / energyDivisor) * energyMultiplier;
-                    }
-                    return result;
-                },
-            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
-            {
-                cluster: "seMetering",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValueAny = {};
-                    if (msg.data.currentTier4SummDelivered !== undefined) {
-                        let energyDivisor = globalStore.getValue(meta.device, "energyDivisor");
-                        let energyMultiplier = globalStore.getValue(meta.device, "energyMultiplier");
-                        if (energyDivisor === undefined) {
-                            energyDivisor = 1;
-                        }
-                        if (energyMultiplier === undefined) {
-                            energyMultiplier = 1;
-                        }
-                        const data = msg.data.currentTier4SummDelivered;
-                        result.energy_tier_4 = (data / energyDivisor) * energyMultiplier;
-                    }
-                    return result;
-                },
-            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
-            {
-                cluster: "seMetering",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValueAny = {};
-                    if (msg.data[attrElCityMeterModelName] !== undefined) {
-                        const data = msg.data[attrElCityMeterModelName];
+                    if (msg.data.deviceName !== undefined) {
+                        const data = msg.data.deviceName;
                         result.model_name = data.toString();
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"seMetering", SlackyDiySeMetering, ["attributeReport", "readResponse"]>,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -1025,13 +963,13 @@ const electricityMeterExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
-                    if (msg.data[attrElCityMeterDateRelease] !== undefined) {
-                        const data = msg.data[attrElCityMeterDateRelease];
+                    if (msg.data.dateRelease !== undefined) {
+                        const data = msg.data.dateRelease;
                         result.date_release = data.toString();
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"seMetering", SlackyDiySeMetering, ["attributeReport", "readResponse"]>,
             {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
@@ -1064,18 +1002,114 @@ const electricityMeterExtend = {
                 type: ["readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
-                    if (msg.data[attrElCityMeterMeasurementPreset] !== undefined) {
-                        const data = Number.parseInt(msg.data[attrElCityMeterMeasurementPreset] as string, 10);
-                        result.device_measurement_preset = data;
+                    if (msg.data.readPeriod !== undefined) {
+                        result.device_measurement_preset = msg.data.readPeriod; //data;
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"seMetering", undefined, ["readResponse"]>,
+            } satisfies Fz.Converter<"seMetering", SlackyDiySeMetering, ["readResponse"]>,
+        ];
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint1 = device.getEndpoint(1);
+                await endpoint1.read("seMetering", ["currentTier1SummDelivered"]);
+                await endpoint1.read("seMetering", ["currentTier2SummDelivered"]);
+                await endpoint1.read("seMetering", ["currentTier3SummDelivered"]);
+                await endpoint1.read("seMetering", ["currentTier4SummDelivered"]);
+                await endpoint1.read("seMetering", ["meterSerialNumber"]);
+                await endpoint1.read<"seMetering", SlackyDiySeMetering>("seMetering", ["deviceName"]);
+                await endpoint1.read<"seMetering", SlackyDiySeMetering>("seMetering", ["readPeriod"]);
+                await endpoint1.read<"seMetering", SlackyDiySeMetering>("seMetering", ["deviceModel"]);
+                await endpoint1.read<"seMetering", SlackyDiySeMetering>("seMetering", ["dateRelease"]);
+                await endpoint1.read("seMetering", ["remainingBattLife", "status"]);
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["seMetering"]);
+                await endpoint1.configureReporting("seMetering", [
+                    {
+                        attribute: "currentTier1SummDelivered",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: 3600,
+                        reportableChange: 0,
+                    },
+                ]);
+                await endpoint1.configureReporting("seMetering", [
+                    {
+                        attribute: "currentTier2SummDelivered",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: 3600,
+                        reportableChange: 0,
+                    },
+                ]);
+                await endpoint1.configureReporting("seMetering", [
+                    {
+                        attribute: "currentTier3SummDelivered",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: 3600,
+                        reportableChange: 0,
+                    },
+                ]);
+                await endpoint1.configureReporting("seMetering", [
+                    {
+                        attribute: "currentTier4SummDelivered",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: 3600,
+                        reportableChange: 0,
+                    },
+                ]);
+                await endpoint1.configureReporting("seMetering", [
+                    {
+                        attribute: "currentSummDelivered",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: 3600,
+                        reportableChange: 0,
+                    },
+                ]);
+                await endpoint1.configureReporting("seMetering", [
+                    {
+                        attribute: "status",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: 3600,
+                        reportableChange: 0,
+                    },
+                ]);
+                await endpoint1.configureReporting("seMetering", [
+                    {
+                        attribute: "remainingBattLife",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: 3600,
+                        reportableChange: 0,
+                    },
+                ]);
+                await endpoint1.configureReporting("seMetering", [
+                    {
+                        attribute: "meterSerialNumber",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: 3600,
+                        reportableChange: 0,
+                    },
+                ]);
+                await endpoint1.configureReporting<"seMetering", SlackyDiySeMetering>("seMetering", [
+                    {
+                        attribute: "dateRelease",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: 3600,
+                        reportableChange: 0,
+                    },
+                ]);
+                await endpoint1.configureReporting<"seMetering", SlackyDiySeMetering>("seMetering", [
+                    {
+                        attribute: "deviceName",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: 3600,
+                        reportableChange: 0,
+                    },
+                ]);
+            },
         ];
         return {
             exposes,
             fromZigbee,
             toZigbee,
+            configure,
             isModernExtend: true,
         };
     },
@@ -1383,73 +1417,51 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Electricity Meter TLSR8258",
         vendor: "Slacky-DIY",
         description: "Electricity Meter via optical port",
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await endpoint1.read("seMetering", ["remainingBattLife", "status", attrElCityMeterMeasurementPreset]);
-            await endpoint1.read("seMetering", ["divisor"]);
-            await endpoint1.read("seMetering", ["multiplier"]);
-            await endpoint1.read("seMetering", ["currentTier1SummDelivered"]);
-            await endpoint1.read("seMetering", ["currentTier2SummDelivered"]);
-            await endpoint1.read("seMetering", ["currentTier3SummDelivered"]);
-            await endpoint1.read("seMetering", ["currentTier4SummDelivered"]);
-            await endpoint1.read("seMetering", ["currentSummDelivered"]);
-            await endpoint1.read("seMetering", ["meterSerialNumber"]);
-            await endpoint1.read("seMetering", [attrElCityMeterMeasurementPreset]);
-            await endpoint1.read("seMetering", [attrElCityMeterModelName]);
-            //            await endpoint1.read("haElectricalMeasurement", ["acVoltageDivisor"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["acVoltageMultiplier"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["rmsVoltage"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["acCurrentDivisor"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["acCurrentMultiplier"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["instantaneousLineCurrent"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["acPowerDivisor"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["acPowerMultiplier"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["apparentPower"]);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["seMetering", "haElectricalMeasurement", "genDeviceTempCfg"]);
-            const payload_tier1 = [{attribute: {ID: 0x0100, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
-            await endpoint1.configureReporting("seMetering", payload_tier1);
-            const payload_tier2 = [{attribute: {ID: 0x0102, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
-            await endpoint1.configureReporting("seMetering", payload_tier2);
-            const payload_tier3 = [{attribute: {ID: 0x0104, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
-            await endpoint1.configureReporting("seMetering", payload_tier3);
-            const payload_tier4 = [{attribute: {ID: 0x0106, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
-            await endpoint1.configureReporting("seMetering", payload_tier4);
-            await reporting.currentSummDelivered(endpoint1, {min: 0, max: 300, change: 0});
-            const payload_status = [{attribute: {ID: 0x0200, type: 0x18}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
-            await endpoint1.configureReporting("seMetering", payload_status);
-            const payload_battery_life = [
-                {attribute: {ID: 0x0201, type: 0x20}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
-            ];
-            await endpoint1.configureReporting("seMetering", payload_battery_life);
-            const payload_serial_number = [
-                {attribute: {ID: 0x0308, type: 0x41}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
-            ];
-            await endpoint1.configureReporting("seMetering", payload_serial_number);
-            const payload_date_release = [
-                {attribute: {ID: attrElCityMeterDateRelease, type: 0x41}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
-            ];
-            await endpoint1.configureReporting("seMetering", payload_date_release);
-            const payload_model_name = [
-                {attribute: {ID: attrElCityMeterModelName, type: 0x41}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
-            ];
-            await endpoint1.configureReporting("seMetering", payload_model_name);
-            //            await reporting.rmsVoltage(endpoint1, {min: 0, max: 300, change: 0});
-            //            const payload_current = [
-            //                {attribute: {ID: 0x0501, type: 0x21}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
-            //            ];
-            //            await endpoint1.configureReporting("haElectricalMeasurement", payload_current);
-            //            await reporting.apparentPower(endpoint1, {min: 0, max: 300, change: 0});
-            const payload_temperature = [
-                {attribute: {ID: 0x0000, type: 0x29}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
-            ];
-            await endpoint1.configureReporting("genDeviceTempCfg", payload_temperature);
-        },
         extend: [
+            m.deviceAddCustomCluster("seMetering", {
+                ID: 0x0702,
+                attributes: {
+                    deviceModel: {
+                        ID: attrElCityMeterModelPreset,
+                        type: 0x30,
+                        write: true,
+                        max: 0xff,
+                    },
+                    deviceAddress: {
+                        ID: attrElCityMeterAddressPreset,
+                        type: 0x23,
+                        write: true,
+                        max: 0xffffffff,
+                    },
+                    readPeriod: {
+                        ID: attrElCityMeterMeasurementPreset,
+                        type: 0x20,
+                        write: true,
+                        max: 0xff,
+                    },
+                    dateRelease: {
+                        ID: attrElCityMeterDateRelease,
+                        type: 0x41,
+                    },
+                    deviceName: {
+                        ID: attrElCityMeterModelName,
+                        type: 0x41,
+                    },
+                    devicePassword: {
+                        ID: attrElCityMeterPasswordPreset,
+                        write: true,
+                        type: 0x41,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
             m.deviceTemperature(),
             m.electricityMeter(),
             electricityMeterExtend.elMeter(),
-            m.enumLookup({
+            electricityDeviceModel({
                 name: "device_model_preset",
+                access: "STATE_SET",
                 lookup: {
                     no_device: 0,
                     "KASKAD-1-MT (MIRTEK)": 1,
@@ -1462,7 +1474,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "NARTIS-I100": 8,
                 },
                 cluster: "seMetering",
-                attribute: {ID: attrElCityMeterModelPreset, type: 0x30},
+                attribute: "deviceModel",
                 description: "Device Model",
             }),
         ],
@@ -1473,79 +1485,57 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ElectricityMeter-ABC-DIY",
         vendor: "Slacky-DIY",
         description: "Three phase Electricity Meter via optical port",
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await endpoint1.read("seMetering", ["remainingBattLife", "status", attrElCityMeterMeasurementPreset]);
-            await endpoint1.read("seMetering", ["divisor"]);
-            await endpoint1.read("seMetering", ["multiplier"]);
-            await endpoint1.read("seMetering", ["currentTier1SummDelivered"]);
-            await endpoint1.read("seMetering", ["currentTier2SummDelivered"]);
-            await endpoint1.read("seMetering", ["currentTier3SummDelivered"]);
-            await endpoint1.read("seMetering", ["currentTier4SummDelivered"]);
-            await endpoint1.read("seMetering", ["currentSummDelivered"]);
-            await endpoint1.read("seMetering", ["meterSerialNumber"]);
-            await endpoint1.read("seMetering", [attrElCityMeterMeasurementPreset]);
-            await endpoint1.read("seMetering", [attrElCityMeterModelName]);
-            //            await endpoint1.read("haElectricalMeasurement", ["acVoltageDivisor"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["acVoltageMultiplier"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["rmsVoltage"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["acCurrentDivisor"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["acCurrentMultiplier"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["instantaneousLineCurrent"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["acPowerDivisor"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["acPowerMultiplier"]);
-            //            await endpoint1.read("haElectricalMeasurement", ["apparentPower"]);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["seMetering", "haElectricalMeasurement", "genDeviceTempCfg"]);
-            const payload_tier1 = [{attribute: {ID: 0x0100, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
-            await endpoint1.configureReporting("seMetering", payload_tier1);
-            const payload_tier2 = [{attribute: {ID: 0x0102, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
-            await endpoint1.configureReporting("seMetering", payload_tier2);
-            const payload_tier3 = [{attribute: {ID: 0x0104, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
-            await endpoint1.configureReporting("seMetering", payload_tier3);
-            const payload_tier4 = [{attribute: {ID: 0x0106, type: 0x25}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
-            await endpoint1.configureReporting("seMetering", payload_tier4);
-            await reporting.currentSummDelivered(endpoint1, {min: 0, max: 300, change: 0});
-            const payload_status = [{attribute: {ID: 0x0200, type: 0x18}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0}];
-            await endpoint1.configureReporting("seMetering", payload_status);
-            const payload_battery_life = [
-                {attribute: {ID: 0x0201, type: 0x20}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
-            ];
-            await endpoint1.configureReporting("seMetering", payload_battery_life);
-            const payload_serial_number = [
-                {attribute: {ID: 0x0308, type: 0x41}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
-            ];
-            await endpoint1.configureReporting("seMetering", payload_serial_number);
-            const payload_date_release = [
-                {attribute: {ID: attrElCityMeterDateRelease, type: 0x41}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
-            ];
-            await endpoint1.configureReporting("seMetering", payload_date_release);
-            const payload_model_name = [
-                {attribute: {ID: attrElCityMeterModelName, type: 0x41}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
-            ];
-            await endpoint1.configureReporting("seMetering", payload_model_name);
-            //            await reporting.rmsVoltage(endpoint1, {min: 0, max: 300, change: 0});
-            //            const payload_current = [
-            //                {attribute: {ID: 0x0501, type: 0x21}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
-            //            ];
-            //            await endpoint1.configureReporting("haElectricalMeasurement", payload_current);
-            //            await reporting.apparentPower(endpoint1, {min: 0, max: 300, change: 0});
-            const payload_temperature = [
-                {attribute: {ID: 0x0000, type: 0x29}, minimumReportInterval: 0, maximumReportInterval: 300, reportableChange: 0},
-            ];
-            await endpoint1.configureReporting("genDeviceTempCfg", payload_temperature);
-        },
         extend: [
+            m.deviceAddCustomCluster("seMetering", {
+                ID: 0x0702,
+                attributes: {
+                    deviceModel: {
+                        ID: attrElCityMeterModelPreset,
+                        type: 0x30,
+                        write: true,
+                        max: 0xff,
+                    },
+                    deviceAddress: {
+                        ID: attrElCityMeterAddressPreset,
+                        type: 0x23,
+                        write: true,
+                        max: 0xffffffff,
+                    },
+                    readPeriod: {
+                        ID: attrElCityMeterMeasurementPreset,
+                        type: 0x20,
+                        write: true,
+                        max: 0xff,
+                    },
+                    dateRelease: {
+                        ID: attrElCityMeterDateRelease,
+                        type: 0x41,
+                    },
+                    deviceName: {
+                        ID: attrElCityMeterModelName,
+                        type: 0x41,
+                    },
+                    devicePassword: {
+                        ID: attrElCityMeterPasswordPreset,
+                        write: true,
+                        type: 0x41,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
             m.deviceTemperature(),
             m.electricityMeter({threePhase: true}),
             electricityMeterExtend.elMeter(),
-            m.enumLookup({
+            electricityDeviceModel({
                 name: "device_model_preset",
+                access: "STATE_SET",
                 lookup: {
                     no_device: 0,
                     "NARTIS-I300": 1,
                 },
                 cluster: "seMetering",
-                attribute: {ID: attrElCityMeterModelPreset, type: 0x30},
+                attribute: "deviceModel",
                 description: "Device Model",
             }),
         ],

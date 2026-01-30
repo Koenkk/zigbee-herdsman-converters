@@ -1,10 +1,26 @@
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const localValueConverters = {
+    energyMonotonic: {
+        from: (value: number, meta: Fz.Meta) => {
+            const scaled = tuya.valueConverter.divideBy100.from(value);
+            const lastValue = meta.device.meta.energy ?? 0;
+            if (scaled < lastValue && scaled !== 0) {
+                // Erraneous reading that is less than previous readings (and not a reset to 0), ignore it.
+                return lastValue;
+            }
+
+            meta.device.meta.energy = scaled;
+            return scaled;
+        },
+    },
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -40,6 +56,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1),
             e.child_lock(),
             e.window_detection(),
+            e.energy(),
             e
                 .numeric("hysteresis", ea.STATE_SET)
                 .withUnit("°C")
@@ -76,6 +93,8 @@ export const definitions: DefinitionWithExtend[] = [
                 // connecteTempProgram: 105
                 [106, "window_detection", tuya.valueConverter.onOff],
                 [107, "max_temperature_protection", tuya.valueConverter.raw],
+                // Reported as a monotonically increasing counter while heating, using unit 0.01 kWh.
+                [123, "energy", localValueConverters.energyMonotonic],
             ],
         },
     },
