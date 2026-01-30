@@ -654,18 +654,16 @@ const inovelliExtend = {
     },
     inovelliLight: ({splitValuesByEndpoint = false}: {splitValuesByEndpoint?: boolean} = {}) => {
         // biome-ignore lint/suspicious/noExplicitAny: generic
-        const fromZigbee: Fz.Converter<any, any, any>[] = [];
-        const bindingList = ["genOnOff"];
+        const fromZigbee: Fz.Converter<any, any, any>[] = [fzLocal.on_off_for_endpoint(1, "state"), fzLocal.brightness];
 
         if (!splitValuesByEndpoint) {
-            fromZigbee.push(fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior);
-            bindingList.push("genLevelCtrl");
+            fromZigbee.push(fz.level_config, fz.power_on_behavior);
         }
 
         const configure: Configure[] = [
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
-                await reporting.bind(endpoint, coordinatorEndpoint, bindingList);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
                 await reporting.onOff(endpoint);
             },
         ];
@@ -686,36 +684,17 @@ const inovelliExtend = {
         } as ModernExtend;
     },
     inovelliFan: ({endpointId, splitValuesByEndpoint = false}: {endpointId: number; splitValuesByEndpoint?: boolean}) => {
-        // biome-ignore lint/suspicious/noExplicitAny: generic
-        const fromZigbee: Fz.Converter<any, any, any>[] = [fzLocal.fan_mode(endpointId), fzLocal.breeze_mode(endpointId)];
-        const toZigbee: Tz.Converter[] = [tzLocal.fan_mode(endpointId), tzLocal.breezeMode(endpointId)];
-        const exposes: Expose[] = [e.fan().withState("fan_state").withModes(Object.keys(FAN_MODES)), exposeBreezeMode()];
-        const bindingList = ["genOnOff"];
-
-        if (!splitValuesByEndpoint) {
-            fromZigbee.push(fzLocal.fan_state);
-            toZigbee.push(tzLocal.fan_state);
-            bindingList.push("genLevelCtrl");
-        }
-
-        const configure: Configure[] = [
-            async (device, coordinatorEndpoint, definition) => {
-                const endpoint = device.getEndpoint(1);
-                await reporting.bind(endpoint, coordinatorEndpoint, bindingList);
-                await reporting.onOff(endpoint);
-
-                if (splitValuesByEndpoint) {
-                    const endpoint2 = device.getEndpoint(2);
-                    await reporting.bind(endpoint2, coordinatorEndpoint, bindingList);
-                    await reporting.onOff(endpoint2);
-                }
-            },
-        ];
         return {
-            fromZigbee,
-            toZigbee,
-            exposes,
-            configure,
+            fromZigbee: [fzLocal.fan_mode(endpointId), fzLocal.breeze_mode(endpointId), fzLocal.fan_state(endpointId)],
+            toZigbee: [tzLocal.fan_mode(endpointId), tzLocal.breezeMode(endpointId), tzLocal.fan_state(endpointId)],
+            exposes: [e.fan().withState("fan_state").withModes(Object.keys(FAN_MODES)), exposeBreezeMode()],
+            configure: [
+                async (device, coordinatorEndpoint, definition) => {
+                    const endpoint = device.getEndpoint(endpointId);
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
+                    await reporting.onOff(endpoint);
+                },
+            ],
             isModernExtend: true,
         } as ModernExtend;
     },
@@ -2350,65 +2329,33 @@ const tzLocal = {
                 await endpoint.read("genLevelCtrl", ["currentLevel"]);
             },
         }) satisfies Tz.Converter,
-    fan_state: {
-        key: ["fan_state"],
-        convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.fan_state != null ? meta.message.fan_state.toString().toLowerCase() : null;
-            utils.validateValue(state, ["toggle", "off", "on"]);
-
-            await entity.command("genOnOff", state as "toggle" | "off" | "on", {}, utils.getOptions(meta.mapped, entity));
-            if (state === "toggle") {
-                const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
-                return currentState ? {state: {fan_state: currentState === "OFF" ? "ON" : "OFF"}} : {};
-            }
-            return {state: {fan_state: state.toString().toUpperCase()}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read("genOnOff", ["onOff"]);
-        },
-    } satisfies Tz.Converter,
-
-    /**
-     * On the VZM36, When turning the fan on and off, we must ensure that we are sending these
-     * commands to endpoint 2 on the canopy module.
-     */
-    vzm36_fan_on_off: {
-        key: ["fan_state", "on_time", "off_wait_time"],
-        convertSet: async (entity, key, value, meta) => {
-            const endpoint = meta.device.getEndpoint(2);
-
-            // is entity an endpoint, or just the device? may need to get the actual endpoint..
-            utils.assertEndpoint(entity);
-            const state = typeof meta.message.fan_state === "string" ? meta.message.fan_state.toLowerCase() : null;
-            utils.validateValue(state, ["toggle", "off", "on"]);
-
-            if (state === "on" && (meta.message.on_time != null || meta.message.off_wait_time != null)) {
-                const onTime = meta.message.on_time != null ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
-
-                if (typeof onTime !== "number") {
-                    throw new Error("The on_time value must be a number!");
+    fan_state: (endpointId?: number) =>
+        ({
+            key: ["fan_state", "on_time", "off_wait_time"],
+            convertSet: async (entity, key, value, meta) => {
+                const targetEntity = endpointId != null ? meta.device.getEndpoint(endpointId) : entity;
+                const localMeta = {
+                    ...meta,
+                    message: {
+                        ...meta.message,
+                        state: meta.message.fan_state,
+                    },
+                    state: {
+                        ...meta.state,
+                        state: meta.state.fan_state,
+                    },
+                };
+                const result = (await tz.on_off.convertSet(targetEntity, key, value, localMeta)) as KeyValueAny;
+                if (result?.state?.state != null) {
+                    return {state: {fan_state: result.state.state}};
                 }
-                if (typeof offWaitTime !== "number") {
-                    throw new Error("The off_wait_time value must be a number!");
-                }
-
-                const payload = {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
-                await endpoint.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
-            } else {
-                await endpoint.command("genOnOff", state as "toggle" | "off" | "on", {}, utils.getOptions(meta.mapped, endpoint));
-                if (state === "toggle") {
-                    const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
-                    return currentState ? {state: {fan_state: currentState === "OFF" ? "ON" : "OFF"}} : {};
-                }
-                return {state: {fan_state: state.toUpperCase()}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            const endpoint = meta.device.getEndpoint(2);
-            await endpoint.read("genOnOff", ["onOff"]);
-        },
-    } satisfies Tz.Converter,
+                return result ?? {};
+            },
+            convertGet: async (entity, key, meta) => {
+                const targetEntity = endpointId != null ? meta.device.getEndpoint(endpointId) : entity;
+                await tz.on_off.convertGet(targetEntity, key, meta);
+            },
+        }) satisfies Tz.Converter,
     breezeMode: (endpointId: number) =>
         ({
             key: ["breezeMode"],
@@ -2532,16 +2479,31 @@ const fzLocal = {
                 return msg.data;
             },
         }) satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
-    fan_state: {
-        cluster: "genOnOff",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.onOff !== undefined) {
+    fan_state: (endpointId?: number) =>
+        ({
+            cluster: "genOnOff",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.onOff === undefined) {
+                    return msg.data;
+                }
+                if (endpointId != null && msg.endpoint.ID !== endpointId) {
+                    return msg.data;
+                }
                 return {fan_state: msg.data.onOff === 1 ? "ON" : "OFF"};
-            }
-            return msg.data;
-        },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+            },
+        }) satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    on_off_for_endpoint: (endpointId: number, stateKey: string) =>
+        ({
+            cluster: "genOnOff",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.endpoint.ID !== endpointId || msg.data.onOff === undefined) {
+                    return msg.data;
+                }
+                return {[stateKey]: msg.data.onOff === 1 ? "ON" : "OFF"};
+            },
+        }) satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     brightness: {
         cluster: "genLevelCtrl",
         type: ["attributeReport", "readResponse"],
@@ -2605,23 +2567,6 @@ const fzLocal = {
                 }
             },
         }) satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["attributeReport", "readResponse"]>,
-    vzm36_fan_light_state: {
-        cluster: "genOnOff",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID === 1) {
-                if (msg.data.onOff !== undefined) {
-                    return {state: msg.data.onOff === 1 ? "ON" : "OFF"};
-                }
-            } else if (msg.endpoint.ID === 2) {
-                if (msg.data.onOff !== undefined) {
-                    return {fan_state: msg.data.onOff === 1 ? "ON" : "OFF"};
-                }
-            } else {
-                return msg.data;
-            }
-        },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     led_effect_complete: {
         cluster: INOVELLI_CLUSTER_NAME,
         type: ["commandLedEffectComplete"],
@@ -3009,10 +2954,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VZM36",
         vendor: "Inovelli",
         description: "Fan canopy module",
-        fromZigbee: [fzLocal.brightness, fzLocal.vzm36_fan_light_state],
-        toZigbee: [
-            tzLocal.vzm36_fan_on_off, // Need to use VZM36 specific converter
-        ],
+        fromZigbee: [],
+        toZigbee: [],
         extend: [
             inovelliExtend.inovelliLight({splitValuesByEndpoint: true}),
             inovelliExtend.inovelliFan({endpointId: 2, splitValuesByEndpoint: true}),
