@@ -1088,7 +1088,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withLocalTemperature(ea.STATE)
-                .withSetpoint("current_heating_setpoint", 0.5, 30, 0.5, ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 0, 30, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
                 .withPreset(["auto", "manual", "holiday"])
                 .withRunningState(["idle", "heat"], ea.STATE),
@@ -1262,7 +1262,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Tuya", "iH-F8260", "Universal smart IR remote control", ["_TZ3290_gnl5a6a5xvql7c2a", "_TZ3290_785fbxik"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_cjfmu5he", "_TZ3000_mq4wujmp", "_TZ3000_5af5r192"]),
+        fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_cjfmu5he", "_TZ3000_mq4wujmp", "_TZ3000_5af5r192", "_TZ3000_ogjpfoyn"]),
         model: "ZWV-YC",
         vendor: "Moes",
         description: "Water valve",
@@ -1592,11 +1592,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xtrnjaoz", "_TZE200_xtrnjaoz"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xtrnjaoz", "_TZE200_xtrnjaoz", "_TZE284_8whfphjv"]),
         model: "GM25TEQ-TYZ-2/25",
         vendor: "Moes",
         description: "Roller Shade Blinds Motor for 38mm Tube",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        whiteLabel: [tuya.whitelabel("Tuya", "GM35TEQ-TYZ-2/25", "Roller Shade Blinds Motor for 38mm Tube", ["_TZE284_8whfphjv"])],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Set the motor direction"),
@@ -1799,16 +1800,16 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
-        exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold"])],
+        exposes: [e.battery(), e.action(["single", "double", "hold"])],
         meta: {
             tuyaDatapoints: [
                 [
                     1,
                     "action",
                     tuya.valueConverterBasic.lookup({
-                        "1_single": 0,
-                        "1_double": 1,
-                        "1_hold": 2,
+                        single: 0,
+                        double: 1,
+                        hold: 2,
                     }),
                 ],
             ],
@@ -1885,6 +1886,306 @@ export const definitions: DefinitionWithExtend[] = [
                         "3_double": 1,
                         "3_hold": 2,
                     }),
+                ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_qoi1aqxg"]),
+        model: "FWJZCEH18A001",
+        vendor: "Moes",
+        description: "Roller blind motor 17mm/25mm/28mm",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [9, "position", tuya.valueConverter.coverPosition],
+                [8, "position", tuya.valueConverter.coverPosition],
+                [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [13, "battery", {from: (v: string) => Buffer.from(v, "base64").readUInt32BE(0)}],
+                [
+                    16,
+                    "border",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                        up_delete: tuya.enum(2),
+                        down_delete: tuya.enum(3),
+                        remove_top_bottom: tuya.enum(4),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rlytpmij"]),
+        model: "ZHT-S01",
+        vendor: "Moes",
+        description: "Zigbee wall thermostat (air/internal temperature priority)",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        exposes: (device, options) => {
+            // Helper for schedule exposes
+            const exposesLocalSchedule = {
+                hour: (name: string) => e.numeric(name, ea.STATE_SET).withValueMin(0).withValueMax(23),
+                minute: (name: string) => e.numeric(name, ea.STATE_SET).withValueMin(0).withValueMax(59),
+                program_temperature: (name: string) => e.numeric(name, ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(35),
+            };
+
+            // Build weekly programming expose (6 weekday periods + 2 weekend periods)
+            const weeklyProgramExpose = e
+                .composite("weekly_programming", "weekly_programming", ea.STATE_SET)
+                .withDescription("Time of day and setpoint in weekly programming mode");
+
+            for (let i = 1; i <= 6; i++) {
+                weeklyProgramExpose
+                    .withFeature(exposesLocalSchedule.hour(`weekdays_program_${i}_hour`))
+                    .withFeature(exposesLocalSchedule.minute(`weekdays_program_${i}_minute`))
+                    .withFeature(exposesLocalSchedule.program_temperature(`weekdays_program_${i}_temperature`));
+            }
+
+            for (let i = 1; i <= 2; i++) {
+                weeklyProgramExpose
+                    .withFeature(exposesLocalSchedule.hour(`weekend_program_${i}_hour`))
+                    .withFeature(exposesLocalSchedule.minute(`weekend_program_${i}_minute`))
+                    .withFeature(exposesLocalSchedule.program_temperature(`weekend_program_${i}_temperature`));
+            }
+
+            return [
+                // Child lock
+                e.child_lock(),
+
+                // System mode separate expose (clearer in UI)
+                e
+                    .enum("system_mode", ea.STATE_SET, ["off", "heat"])
+                    .withDescription("Thermostat system mode (device enabled/disabled)"),
+
+                // Main climate control
+                e
+                    .climate()
+                    .withPreset(["manual", "auto", "eco"])
+                    .withRunningState(["idle", "heat"], ea.STATE)
+                    .withSystemMode(["off", "heat"], ea.STATE)
+                    .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                    .withLocalTemperature(ea.STATE) // DP 117 (Air/Internal sensor)
+                    .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
+
+                // Floor temperature (secondary sensor)
+                e
+                    .numeric("floor_temperature", ea.STATE)
+                    .withUnit("°C")
+                    .withDescription("Temperature from floor sensor (secondary)"),
+
+                // Valve state
+                e
+                    .binary("valve_state", ea.STATE, "OPEN", "CLOSED")
+                    .withDescription("Valve state"),
+
+                // Sensor selection
+                e
+                    .enum("sensor", ea.STATE_SET, ["internal", "external", "both"])
+                    .withDescription("Temperature sensor selection"),
+
+                // Temperature scale
+                e
+                    .enum("temperature_scale", ea.STATE_SET, ["celsius", "fahrenheit"])
+                    .withDescription("Temperature scale (WARNING: converter only supports Celsius datapoints)"),
+
+                // Backlight - FIXED: Using numeric strings like working version
+                e
+                    .enum("backlight_brightness", ea.STATE_SET, [0, 20, 50, 100])
+                    .withDescription("Backlight brightness percentage"),
+
+                // Antifreeze
+                e
+                    .binary("antifreeze", ea.STATE_SET, "OFF", "ON")
+                    .withDescription("Antifreeze mode"),
+
+                // Temperature limits
+                e
+                    .numeric("min_temperature_limit", ea.STATE_SET)
+                    .withValueMin(5)
+                    .withValueMax(20)
+                    .withValueStep(1)
+                    .withUnit("°C")
+                    .withDescription("Minimum temperature limit"),
+                e
+                    .numeric("max_temperature_limit", ea.STATE_SET)
+                    .withValueMin(30)
+                    .withValueMax(70)
+                    .withValueStep(1)
+                    .withUnit("°C")
+                    .withDescription("Maximum temperature limit"),
+
+                // Temperature hysteresis/deadzone
+                e
+                    .numeric("deadzone_temperature", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withValueMin(0.5)
+                    .withValueMax(3.0)
+                    .withValueStep(0.5)
+                    .withDescription("Temperature hysteresis/deadzone"),
+
+                // ECO mode temperature
+                e
+                    .numeric("eco_temperature", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withValueMin(5)
+                    .withValueMax(35)
+                    .withValueStep(1)
+                    .withDescription("ECO mode temperature setting"),
+
+                // Program mode
+                e
+                    .enum("program_mode", ea.STATE_SET, ["off", "weekend", "single_break", "no_day_off"])
+                    .withDescription("Weekly programming mode type"),
+
+                // Weekly schedule programming (at the end)
+                weeklyProgramExpose,
+            ];
+        },
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "system_mode",
+                    {
+                        from: (value: boolean) => (value === true ? "heat" : "off"),
+                        to: (value: string) => value === "heat",
+                    },
+                ],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        manual: tuya.enum(1),
+                        eco: tuya.enum(2),
+                    }),
+                ],
+                [
+                    3,
+                    "backlight_brightness",
+                    tuya.valueConverterBasic.lookup({
+                        0: tuya.enum(0),
+                        20: tuya.enum(1),
+                        50: tuya.enum(2),
+                        100: tuya.enum(3),
+                    }),
+                ],
+                [19, "local_temperature_calibration", tuya.valueConverter.localTemperatureCalibration],
+                [
+                    32,
+                    "sensor",
+                    tuya.valueConverterBasic.lookup({
+                        internal: tuya.enum(0),
+                        external: tuya.enum(1),
+                        both: tuya.enum(2),
+                    }),
+                ],
+                [39, "child_lock", tuya.valueConverter.lockUnlock],
+                [
+                    46,
+                    "temperature_scale",
+                    tuya.valueConverterBasic.lookup({
+                        celsius: tuya.enum(0),
+                        fahrenheit: tuya.enum(1),
+                    }),
+                ],
+                [
+                    47,
+                    "running_state",
+                    tuya.valueConverterBasic.lookup({
+                        heat: tuya.enum(0),
+                        idle: tuya.enum(1),
+                    }),
+                ],
+                [
+                    47,
+                    "valve_state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        CLOSED: tuya.enum(1),
+                    }),
+                ],
+                // === STANDARD SENSOR MAPPING (AIR/INTERNAL PRIORITY) ===
+                [117, "local_temperature", tuya.valueConverter.divideBy10],
+                [101, "floor_temperature", tuya.valueConverter.divideBy10],
+                // ========================================================
+                [
+                    103,
+                    "antifreeze",
+                    {
+                        from: (value: boolean) => (value === true ? "ON" : "OFF"),
+                        to: (value: string) => value === "ON",
+                    },
+                ],
+                [
+                    104,
+                    "program_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        weekend: tuya.enum(1),
+                        single_break: tuya.enum(2),
+                        no_day_off: tuya.enum(3),
+                    }),
+                ],
+                [106, "deadzone_temperature", tuya.valueConverter.divideBy10],
+                [107, "eco_temperature", tuya.valueConverter.raw],
+                [111, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [114, "max_temperature_limit", tuya.valueConverter.divideBy10],
+                [116, "min_temperature_limit", tuya.valueConverter.divideBy10],
+                [
+                    108,
+                    "weekly_programming",
+                    {
+                        from: (value) => {
+                            // Decode schedule from device (24 bytes: 6 weekday periods + 2 weekend periods)
+                            const arr = Array.isArray(value) ? value : Array.from(value);
+                            const result: Record<string, number> = {};
+
+                            // 6 weekday periods (18 bytes)
+                            for (let i = 0; i < 6; i++) {
+                                result[`weekdays_program_${i + 1}_hour`] = arr[i * 3 + 0];
+                                result[`weekdays_program_${i + 1}_minute`] = arr[i * 3 + 1];
+                                result[`weekdays_program_${i + 1}_temperature`] = arr[i * 3 + 2];
+                            }
+
+                            // 2 weekend periods (6 bytes)
+                            for (let i = 0; i < 2; i++) {
+                                result[`weekend_program_${i + 1}_hour`] = arr[18 + i * 3 + 0];
+                                result[`weekend_program_${i + 1}_minute`] = arr[18 + i * 3 + 1];
+                                result[`weekend_program_${i + 1}_temperature`] = arr[18 + i * 3 + 2];
+                            }
+
+                            return result;
+                        },
+                        to: (entityValue: Record<string, number>) => {
+                            // Encode schedule to send to device
+                            const arr: number[] = [];
+
+                            // 6 weekday periods
+                            for (let i = 1; i <= 6; i++) {
+                                arr.push(entityValue[`weekdays_program_${i}_hour`] ?? 0);
+                                arr.push(entityValue[`weekdays_program_${i}_minute`] ?? 0);
+                                arr.push(entityValue[`weekdays_program_${i}_temperature`] ?? 16);
+                            }
+
+                            // 2 weekend periods
+                            for (let i = 1; i <= 2; i++) {
+                                arr.push(entityValue[`weekend_program_${i}_hour`] ?? 0);
+                                arr.push(entityValue[`weekend_program_${i}_minute`] ?? 0);
+                                arr.push(entityValue[`weekend_program_${i}_temperature`] ?? 16);
+                            }
+
+                            return arr;
+                        },
+                    },
                 ],
             ],
         },

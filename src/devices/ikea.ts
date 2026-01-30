@@ -455,7 +455,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), m.identify()],
     },
     {
-        zigbeeModel: ["JETSTROM 40100"],
+        zigbeeModel: ["JETSTROM 40100", "JETSTROM 40100 NA"],
         model: "L2208",
         vendor: "IKEA",
         description: "JETSTROM ceiling light panel, white spectrum, 100x40 cm",
@@ -597,12 +597,70 @@ export const definitions: DefinitionWithExtend[] = [
         description: "KAJPLATS white spectrum light",
         extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
+    // KAJPLATS models and firmware updates:
+    // https://webui.dcl.csa-iot.org/models
     {
         // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3697342174
         zigbeeModel: ["KAJPLATS E27 WS globe 470lm"],
         model: "LED2406G4",
         vendor: "IKEA",
         description: "KAJPLATS E27 bulb, white spectrum, globe, opal, 470 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS E27 WS globe 1055lm"],
+        model: "LED2407G8",
+        vendor: "IKEA",
+        description: "KAJPLATS E27 bulb, white spectrum, globe, opal, 1055 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS GU10 WS 575lm"],
+        model: "LED2403R5/LED2403R5NA",
+        vendor: "IKEA",
+        description: "KAJPLATS GU10 bulb, white spectrum, 575 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS E27 WS globe 1521lm"],
+        model: "LED2408G10",
+        vendor: "IKEA",
+        description: "KAJPLATS E27 bulb, white spectrum, globe, opal, 1521 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS E14 WS globe 806lm"],
+        model: "LED2404G6",
+        vendor: "IKEA",
+        description: "KAJPLATS E14 bulb, white spectrum, globe, opal, 806 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS E27 CWS globe 1055lm"],
+        model: "LED2405G8",
+        vendor: "IKEA",
+        description: "KAJPLATS E27 bulb, color/white spectrum, globe, opal, 1055 lm",
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS E14 CWS globe 806lm"],
+        model: "LED2409G6",
+        vendor: "IKEA",
+        description: "KAJPLATS E14 bulb, color/white spectrum, globe, opal, 806 lm",
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS GU10 CWS 575lm"],
+        model: "LED2410R5/LED2410R5NA",
+        vendor: "IKEA",
+        description: "KAJPLATS GU10 bulb, color/white spectrum, 470/575 lm",
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS E14 WS B38 CL 470lm"],
+        model: "LED2402C3",
+        vendor: "IKEA",
+        description: "KAJPLATS E14 bulb, white spectrum, candle, clear, 470 lm",
         extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
@@ -619,6 +677,55 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LED2411G3",
         vendor: "IKEA",
         description: "KAJPLATS E27 bulb, white spectrum, globe, clear, 470 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS E26 WS globe 450lm"],
+        model: "LED2406G4NA",
+        vendor: "IKEA",
+        description: "KAJPLATS E26 bulb, white spectrum, globe, opal, 450 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS E26 WS globe 1100lm"],
+        model: "LED2407G8NA",
+        vendor: "IKEA",
+        description: "KAJPLATS E26 bulb, white spectrum, globe, opal, 1100 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS E26 WS globe 1600lm"],
+        model: "LED2408G10NA",
+        vendor: "IKEA",
+        description: "KAJPLATS E26 bulb, white spectrum, globe, opal, 1600 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS E12 WS globe 800lm"],
+        model: "LED2404G6NA",
+        vendor: "IKEA",
+        description: "KAJPLATS E12 bulb, white spectrum, globe, opal, 800 lm",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS E26 CWS globe 1100lm"],
+        model: "LED2405G8NA",
+        vendor: "IKEA",
+        description: "KAJPLATS E26 bulb, color/white spectrum, globe, opal, 1100 lm",
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS E12 CWS globe 800lm"],
+        model: "LED2409G6NA",
+        vendor: "IKEA",
+        description: "KAJPLATS E12 bulb, color/white spectrum, globe, opal, 800 lm",
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
+        zigbeeModel: ["KAJPLATS E12 WS B38 CL 450lm"],
+        model: "LED2402C3NA",
+        vendor: "IKEA",
+        description: "KAJPLATS E12 bulb, white spectrum, candle, clear, 450 lm",
         extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
@@ -870,7 +977,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with buttons",
         extend: [
-            m.battery(),
+            m.battery({voltage: true, voltageReporting: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
@@ -884,7 +991,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with scroll wheel",
         extend: [
-            m.battery(),
+            m.battery({voltage: true, voltageReporting: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_to_level"]}),
@@ -893,7 +1000,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Remote Control N2"],
-        model: "E2001/E2002",
+        model: "E2001/E2002/E2313",
         vendor: "IKEA",
         description: "STYRBAR remote control",
         extend: [

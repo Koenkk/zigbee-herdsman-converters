@@ -1,4 +1,5 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
+import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
@@ -23,6 +24,17 @@ interface ShellyRPC {
         rxCtl: number;
     };
     commands: never;
+    commandResponses: never;
+}
+
+interface ShellyTRVManualMode {
+    attributes: {
+        manualMode: number;
+        position: number;
+    };
+    commands: {
+        calibrate: Record<string, never>;
+    };
     commandResponses: never;
 }
 
@@ -765,5 +777,119 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "Humidity & temperature sensor",
         extend: [m.battery(), m.temperature(), m.humidity()],
+    },
+    {
+        fingerprint: [{modelID: "BLU H&T Display ZB", manufacturerName: "Shelly"}],
+        model: "SBHT-103C",
+        vendor: "Shelly",
+        description: "BLU H&T display Zigbee",
+        extend: [m.battery(), m.temperature(), m.humidity()],
+    },
+    {
+        fingerprint: [{modelID: "BLU Remote Control ZB", manufacturerName: "Shelly"}],
+        model: "SBRC-005B-B",
+        vendor: "Shelly",
+        description: "BLU Remote Control ZB",
+        exposes: [
+            e.action(["on", "off", "brightness_step_up", "brightness_step_down"]),
+            e.numeric("action_group", ea.STATE).withDescription("Group ID associated with the action command."),
+            e.numeric("action_step_size", ea.STATE).withDescription("Step size value used for brightness step actions."),
+            e.numeric("action_transition_time", ea.STATE).withDescription("Transition time in seconds for the action."),
+        ],
+        extend: [
+            m.battery(),
+            m.commandsOnOff({commands: ["on", "off"]}),
+            m.commandsLevelCtrl({commands: ["brightness_step_up", "brightness_step_down"]}),
+            m.identify(),
+        ],
+    },
+    {
+        zigbeeModel: ["BLU TRV"],
+        model: "SBTR-001AEU",
+        vendor: "Shelly",
+        description: "Thermostatic radiator valve",
+        fromZigbee: [
+            fz.thermostat,
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    if (msg.data.alarmMask !== undefined) {
+                        const alarmMask = msg.data.alarmMask;
+                        result.calibration_ok = !((alarmMask & (1 << 2)) > 0);
+                    }
+                    return result;
+                },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["calibrate"],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.command<"shellyTRVManualMode", "calibrate", ShellyTRVManualMode>(
+                        "shellyTRVManualMode",
+                        "calibrate",
+                        {},
+                        {manufacturerCode: Zcl.ManufacturerCode.SHELLY},
+                    );
+                },
+            },
+        ],
+        exposes: [
+            e.binary("calibration_ok", ea.STATE, true, false).withDescription("Calibration OK").withCategory("diagnostic"),
+            e.enum("calibrate", ea.SET, ["trigger"]).withDescription("Trigger valve calibration").withCategory("config"),
+        ],
+        extend: [
+            m.battery(),
+            m.thermostat({
+                localTemperatureCalibration: {values: {min: -10, max: 10, step: 0.1}},
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 4, max: 30, step: 0.1},
+                        unoccupiedHeatingSetpoint: {min: 4, max: 30, step: 0.1},
+                    },
+                },
+                setpointsLimit: {
+                    minHeatSetpointLimit: {min: 4, max: 30, step: 0.1},
+                    maxHeatSetpointLimit: {min: 4, max: 30, step: 0.1},
+                },
+                systemMode: {values: ["off", "auto", "heat"]},
+                piHeatingDemand: {values: true},
+            }),
+            m.deviceAddCustomCluster("shellyTRVManualMode", {
+                ID: 0xfc24,
+                manufacturerCode: Zcl.ManufacturerCode.SHELLY,
+                attributes: {
+                    manualMode: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    position: {ID: 0x0001, type: Zcl.DataType.UINT8},
+                },
+                commands: {
+                    calibrate: {ID: 0x0000, parameters: []},
+                },
+                commandsResponse: {},
+            }),
+            m.binary({
+                name: "manual_mode",
+                cluster: "shellyTRVManualMode",
+                attribute: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                description: "Manual mode (0 = auto, 1 = manual)",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "valve_position",
+                cluster: "shellyTRVManualMode",
+                attribute: {ID: 0x0001, type: Zcl.DataType.UINT8},
+                valueMin: 0,
+                valueMax: 100,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                description: "Valve position (0-100%)",
+                unit: "%",
+                access: "ALL",
+            }),
+            m.identify(),
+        ],
     },
 ];
