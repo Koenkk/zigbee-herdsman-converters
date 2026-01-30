@@ -14472,6 +14472,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_nvxorhcj",
             "_TZE204_tdhnhhiy",
             "_TZE204_ad2jkxwh",
+            "_TZE204_72bewjky",
         ]),
         model: "TS0601_switch_8",
         vendor: "ZYXH",
