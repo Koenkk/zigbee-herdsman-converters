@@ -165,7 +165,7 @@ export default {
             endpoints: {"1": 1, "2": 2},
             fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off],
             toZigbee: ["temperature", "state", "on_time", "off_wait_time"],
-            exposes: ["switch(state)", "temperature", "temperature"],
+            exposes: ["switch(state)", "temperature_1", "temperature_2"],
             bind: {1: ["msTemperatureMeasurement", "genOnOff"], 2: ["msTemperatureMeasurement"]},
             read: {
                 1: [
