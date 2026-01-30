@@ -13260,13 +13260,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_fan_5_levels_and_light_5_levels",
         vendor: "Tuya",
         description: "Fan with 5 levels and light with 5 levels",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.light_brightness(),
             e.binary("fan_state", ea.STATE_SET, "ON", "OFF").withDescription("Fan on/off"),
-            e.enum("fan_speed", ea.STATE_SET, ["1", "2", "3", "4", "5"]).withDescription("Fan speed (1=slowest, 5=fastest)"),
+            e.numeric("fan_speed", ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1).withDescription("Fan speed (1=slowest, 5=fastest)"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -13275,11 +13273,11 @@ export const definitions: DefinitionWithExtend[] = [
                     6,
                     "fan_speed",
                     tuya.valueConverterBasic.lookup({
-                        "1": 300,
-                        "2": 410,
-                        "3": 520,
-                        "4": 650,
-                        "5": 1000,
+                        1: 300,
+                        2: 410,
+                        3: 520,
+                        4: 650,
+                        5: 1000,
                     }),
                 ],
                 [104, "state", tuya.valueConverter.onOff],
