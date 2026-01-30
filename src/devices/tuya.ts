@@ -15105,7 +15105,8 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.pressure(),
             e.temperature(),
-            e.numeric("display_brightness", ea.STATE_SET)
+            e
+                .numeric("display_brightness", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(8)
                 .withValueStep(1)
