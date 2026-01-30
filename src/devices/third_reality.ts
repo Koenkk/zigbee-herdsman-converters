@@ -30,6 +30,14 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
+interface ThirdRadarSpecialCluster {
+    attributes: {
+        volatileCrganiccCompounds: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface ThirdBlindGen2 {
     attributes: {
         infraredEnable: number;
@@ -275,15 +283,22 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.occupancy(),
             m.illuminance(),
-            m.numeric({
+            m.deviceAddCustomCluster("3r60gRadarSpecialCluster", {
+                ID: 0x042e,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    volatileCrganiccCompounds: {ID: 0x0000, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"3r60gRadarSpecialCluster", ThirdRadarSpecialCluster>({
                 name: "volatile_organic_compounds",
-                access: "STATE_GET",
-                cluster: "msFormaldehyde",
-                attribute: "measuredValue",
-                unit: "ppm",
-                scale: 1000,
-                precision: 2,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "volatileCrganiccCompounds",
+                unit: "ppb",
                 description: "Measured VOC value",
+                access: "STATE_GET",
             }),
             m.light({
                 color: {modes: ["xy"], enhancedHue: true},
