@@ -4,6 +4,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 import {assertObject, determineEndpoint, sleep} from "../lib/utils";
 
 const e = exposes.presets;
@@ -518,6 +519,45 @@ const shellyModernExtend = {
     },
 };
 
+const fzLocal = {
+    one_button_events: {
+        cluster: "genOnOff",
+        type: ["commandToggle"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(msg.endpoint.ID, {1: "single", 2: "double", 3: "triple"});
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandToggle"]>,
+
+    four_buttons_single_events: {
+        cluster: "genOnOff",
+        type: ["commandOn", "commandOff"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.type}`, {
+                "1_commandOn": "1_single",
+                "1_commandOff": "2_single",
+                "2_commandOn": "3_single",
+                "2_commandOff": "4_single",
+            });
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
+
+    four_buttons_hold_events: {
+        cluster: "genLevelCtrl",
+        type: ["commandStep"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.stepmode}`, {
+                "1_0": "1_hold",
+                "1_1": "2_hold",
+                "2_0": "3_hold",
+                "2_1": "4_hold",
+            });
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandStep"]>,
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Mini1", "1 Mini"],
@@ -802,6 +842,34 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsLevelCtrl({commands: ["brightness_step_up", "brightness_step_down"]}),
             m.identify(),
         ],
+    },
+    {
+        fingerprint: [{modelID: "BLU Button Tough 1 ZB", manufacturerName: "Shelly"}],
+        model: "SBBT-102C",
+        vendor: "Shelly",
+        description: "BLU Button Tough 1 ZB",
+        fromZigbee: [fzLocal.one_button_events],
+        exposes: [e.action(["single", "double", "triple"])],
+        extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}), m.identify()],
+    },
+    {
+        fingerprint: [{modelID: "BLU RC Button 4 ZB", manufacturerName: "Shelly"}],
+        model: "SBBT-104CUS",
+        vendor: "Shelly",
+        description: "BLU RC Button 4 ZB",
+        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events],
+        exposes: [e.action(["1_single", "2_single", "3_single", "4_single", "1_hold", "2_hold", "3_hold", "4_hold"])],
+        extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
+    },
+    {
+        zigbeeModel: ["BLU Wall Switch 4 ZB"],
+        model: "SBBT-004CEU",
+        vendor: "Shelly",
+        description: "BLU Wall Switch 4 ZB",
+        whiteLabel: [{vendor: "Shelly", model: "SBBT-104CEU", description: "BLU Wall Switch 4 ZB DK"}],
+        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events],
+        exposes: [e.action(["1_single", "2_single", "3_single", "4_single", "1_hold", "2_hold", "3_hold", "4_hold"])],
+        extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
     },
     {
         zigbeeModel: ["BLU TRV"],
