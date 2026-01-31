@@ -2298,6 +2298,16 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["CK-BL702-MWS-01(7016)"],
+        model: "CK-BL702-MWS-01(7016)",
+        vendor: "SONOFF",
+        description: "Zigbee occupancy sensor",
+        extend: [
+            m.occupancy(),
+        ],
+        ota: true,
+    },
+    {
         zigbeeModel: ["TRVZB"],
         model: "TRVZB",
         vendor: "SONOFF",
