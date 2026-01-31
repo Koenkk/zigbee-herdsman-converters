@@ -5430,9 +5430,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Aqara H2 EU shutter switch",
         fromZigbee: [fz.cover_position_tilt, fzLocal.aqara_h2_shutter_multistate_input],
         toZigbee: [],
-        exposes: [
-            e.action(["button_top_right_single", "button_bottom_right_single"]).withDescription("Single press actions from right buttons"),
-        ],
+        exposes: [e.action(["button_top_right_single", "button_bottom_right_single"]).withDescription("Single press actions from right buttons")],
         extend: [m.windowCovering({controls: ["lift"]})],
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint) => {
