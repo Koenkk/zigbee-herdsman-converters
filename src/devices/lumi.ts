@@ -64,6 +64,26 @@ const {
 const NS = "zhc:lumi";
 const {manufacturerCode} = lumi;
 
+const fzLocal = {
+    aqara_h2_shutter_multistate_input: {
+        cluster: "genMultistateInput",
+        type: ["attributeReport", "readResponse"] as const,
+        convert: (model, msg, publish, options, meta) => {
+            const endpoint = msg.endpoint.ID;
+            const value = msg.data.presentValue;
+            const buttonMap: {[key: number]: string} = {
+                3: "button_top_right",
+                4: "button_bottom_right",
+            };
+            if (buttonMap[endpoint] !== undefined && value === 1) {
+                const action = `${buttonMap[endpoint]}_single`;
+                return {action};
+            }
+            return null;
+        },
+    },
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["lumi.flood.acn001"],
@@ -5402,5 +5422,30 @@ export const definitions: DefinitionWithExtend[] = [
             m.quirkCheckinInterval("1_HOUR"),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
         ],
+    },
+    {
+        zigbeeModel: ["lumi.switch.aeu003"],
+        model: "DS-K02D/DS-K02E",
+        vendor: "Aqara",
+        description: "Aqara H2 EU shutter switch",
+        fromZigbee: [fz.cover_position_tilt, fzLocal.aqara_h2_shutter_multistate_input],
+        toZigbee: [],
+        exposes: [
+            e.action(["button_top_right_single", "button_bottom_right_single"]).withDescription("Single press actions from right buttons"),
+        ],
+        extend: [m.windowCovering({controls: ["lift"]})],
+        meta: {coverInverted: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint3 = device.getEndpoint(3);
+            const endpoint4 = device.getEndpoint(4);
+            await endpoint3.bind("genMultistateInput", coordinatorEndpoint);
+            await endpoint4.bind("genMultistateInput", coordinatorEndpoint);
+            await endpoint3.configureReporting("genMultistateInput", [
+                {attribute: "presentValue", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
+            ]);
+            await endpoint4.configureReporting("genMultistateInput", [
+                {attribute: "presentValue", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
+            ]);
+        },
     },
 ];
