@@ -217,6 +217,7 @@ import {definitions as nexelec} from "./nexelec";
 import {definitions as niko} from "./niko";
 import {definitions as ninjaBlocks} from "./ninja_blocks";
 import {definitions as niviss} from "./niviss";
+import {definitions as nobo} from "./nobo";
 import {definitions as nodon} from "./nodon";
 import {definitions as nordtronic} from "./nordtronic";
 import {definitions as nous} from "./nous";
@@ -581,6 +582,7 @@ const definitions: DefinitionWithExtend[] = [
     ...nodon,
     ...nordtronic,
     ...nous,
+    ...nobo,
     ...novo,
     ...nue3a,
     ...nyce,
