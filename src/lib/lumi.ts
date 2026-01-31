@@ -3878,6 +3878,9 @@ export const fromZigbee = {
             if (["WS-USC02", "WS-USC04"].includes(model.model)) {
                 buttonLookup = {41: "top", 42: "bottom", 51: "both"};
             }
+            if (["DS-K02D", "DS-K02E"].includes(model.model)) {
+                buttonLookup = {3: "top_right", 4: "bottom_right"};
+            }
 
             const action = actionLookup[msg.data.presentValue];
 

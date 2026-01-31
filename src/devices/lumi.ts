@@ -6,7 +6,7 @@ import {logger} from "../lib/logger";
 import * as lumi from "../lib/lumi";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -63,26 +63,6 @@ const {
 
 const NS = "zhc:lumi";
 const {manufacturerCode} = lumi;
-
-const fzLocal = {
-    aqara_h2_shutter_multistate_input: {
-        cluster: "genMultistateInput",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const endpoint = msg.endpoint.ID;
-            const value = msg.data.presentValue;
-            const buttonMap: {[key: number]: string} = {
-                3: "button_top_right",
-                4: "button_bottom_right",
-            };
-            if (buttonMap[endpoint] !== undefined && value === 1) {
-                const action = `${buttonMap[endpoint]}_single`;
-                return {action};
-            }
-            return null;
-        },
-    } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
-};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -5428,9 +5408,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DS-K02D/DS-K02E",
         vendor: "Aqara",
         description: "Aqara H2 EU shutter switch",
-        fromZigbee: [fz.cover_position_tilt, fzLocal.aqara_h2_shutter_multistate_input],
+        fromZigbee: [fz.cover_position_tilt, lumi.fromZigbee.lumi_action_multistate],
         toZigbee: [],
-        exposes: [e.action(["button_top_right_single", "button_bottom_right_single"]).withDescription("Single press actions from right buttons")],
+        exposes: [
+            e.action([
+                "single_top_right",
+                "single_bottom_right",
+                "double_top_right",
+                "double_bottom_right",
+                "hold_top_right",
+                "hold_bottom_right",
+                "release_top_right",
+                "release_bottom_right",
+            ]),
+        ],
         extend: [m.windowCovering({controls: ["lift"]})],
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint) => {
