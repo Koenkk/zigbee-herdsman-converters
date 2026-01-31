@@ -67,7 +67,7 @@ const {manufacturerCode} = lumi;
 const fzLocal = {
     aqara_h2_shutter_multistate_input: {
         cluster: "genMultistateInput",
-        type: ["attributeReport", "readResponse"] as const,
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const endpoint = msg.endpoint.ID;
             const value = msg.data.presentValue;
@@ -81,7 +81,7 @@ const fzLocal = {
             }
             return null;
         },
-    },
+    } satisfies Fz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
