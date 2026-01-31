@@ -972,7 +972,7 @@ export const definitions: DefinitionWithExtend[] = [
             // set "event" mode
             await endpoint1.write("manuSpecificLumi", {mode: 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [lumiPreventReset()],
+        extend: [lumiZigbeeOTA(), lumiPreventReset()],
     },
     {
         zigbeeModel: ["lumi.ctrl_neutral1"],
@@ -3461,7 +3461,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval("1_HOUR")],
     },
     {
         zigbeeModel: ["lumi.plug.sacn02"],

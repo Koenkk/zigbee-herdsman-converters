@@ -57,6 +57,14 @@ const awox_level_ctrl: Fz.Converter<"genLevelCtrl", undefined, ["raw"]> = {
     },
 };
 
+const awox_scenes_raw: Fz.Converter<"genScenes", undefined, ["raw"]> = {
+    cluster: "genScenes",
+    type: ["raw"],
+    convert: (model, msg, publish, options, meta) => {
+        return {action: `recall_${msg.data[msg.data.length - 1]}`};
+    },
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["ESMLFzm_w6_Dimm"],
@@ -116,6 +124,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_step_color_temperature, // Now handled by fz.command_step_color_temperature
             awox_color_ctrl, // Always at the end to prioritize specific actions.
             awox_level_ctrl,
+            awox_scenes_raw,
         ],
         toZigbee: [],
         exposes: [
@@ -154,8 +163,8 @@ export const definitions: DefinitionWithExtend[] = [
                 // "color_temp_cold",
                 "light_movement", // This specific action is kept as it's handled by awox_remote_actions
                 "refresh", // This specific action is kept as it's handled by awox_remote_actions
-                "scene_1", // These actions are handled by fz.command_recall, not awox_remote_actions
-                "scene_2", // Same
+                "recall_1", // These actions are handled by fz.command_recall, not awox_remote_actions
+                "recall_2", // Same
             ]),
         ],
     },
