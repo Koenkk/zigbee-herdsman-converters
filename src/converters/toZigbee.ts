@@ -2188,6 +2188,27 @@ export const accurrent_neutral: Tz.Converter = {
         await ep.read("haElectricalMeasurement", ["neutralCurrent"]);
     },
 };
+export const dccurrent: Tz.Converter = {
+    key: ["current"],
+    convertGet: async (entity, key, meta) => {
+        const ep = determineEndpoint(entity, meta, "haElectricalMeasurement");
+        await ep.read("haElectricalMeasurement", ["dcCurrent"]);
+    },
+};
+export const dcvoltage: Tz.Converter = {
+    key: ["voltage"],
+    convertGet: async (entity, key, meta) => {
+        const ep = determineEndpoint(entity, meta, "haElectricalMeasurement");
+        await ep.read("haElectricalMeasurement", ["dcVoltage"]);
+    },
+};
+export const dcpower: Tz.Converter = {
+    key: ["power"],
+    convertGet: async (entity, key, meta) => {
+        const ep = determineEndpoint(entity, meta, "haElectricalMeasurement");
+        await ep.read("haElectricalMeasurement", ["dcPower"]);
+    },
+};
 export const temperature: Tz.Converter = {
     key: ["temperature"],
     convertGet: async (entity, key, meta) => {
