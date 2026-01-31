@@ -1,5 +1,17 @@
 # Changelog
 
+## [25.120.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.119.0...v25.120.0) (2026-01-31)
+
+
+### Features
+
+* **add:** SPC-IZ, SWT-IZ ([#11378](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11378)) ([001d420](https://github.com/Koenkk/zigbee-herdsman-converters/commit/001d420b7400687cbea7d8fb74203296712514f9))
+
+
+### Bug Fixes
+
+* **ignore:** fix 5629dd048e68d06f35739183b97425ce26acb5c7 ([ce8d115](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ce8d1157a9ef945b81bb946ec8b291babed56de8))
+
 ## [25.119.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.118.0...v25.119.0) (2026-01-31)
 
 
