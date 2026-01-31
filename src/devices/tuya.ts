@@ -5865,7 +5865,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaOnOff({
                 switchType: true,
                 powerOnBehavior2: true,
-                backlightModeOffOn: true,
+                backlightModeOffOn: (m) => m !== "_TZ3000_criiahcg",
                 indicatorMode: true,
                 onOffCountdown: true,
                 inchingSwitch: true,
@@ -5890,6 +5890,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("PSMART", "T462", "2 Gang switch with backlight, countdown, inching", ["_TZ3000_wnzoyohq"]),
             tuya.whitelabel("Nova Digital", "FZB-2", "2-Gang switch with backlight, countdown and inching", ["_TZ3000_5ksufhqi"]),
             tuya.whitelabel("iHseno", "_TZ3000_zxrfobzw", "2-gang touch switch", ["_TZ3000_zxrfobzw"]),
+            tuya.whitelabel("Moes", "ZM4LT2", "2-gang switch module", ["_TZ3000_criiahcg"]),
             tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", ["_TZ3000_lugaswf8", "_TZ3000_nuenzetq", "_TZ3000_ruldv5dt"]),
         ],
     },
@@ -5918,6 +5919,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_66fekqhh",
             "_TZ3000_ok0ggpk7",
             "_TZ3000_aknpkt02",
+            "_TZ3000_nwidmc4n",
             "_TZ3000_pfc7i3kt",
         ]),
         model: "TS0003_switch_3_gang_with_backlight",
@@ -6020,6 +6022,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_lvhy15ix",
             "_TZ3000_mhhxxjrs",
             "_TZ3000_iv4eq7eh",
+            "_TZ3000_mzcp0of6",
         ]),
         model: "TS0003_switch_module_2",
         vendor: "Tuya",
@@ -6029,6 +6032,7 @@ export const definitions: DefinitionWithExtend[] = [
                 switchType: true,
                 onOffCountdown: true,
                 indicatorMode: true,
+                inchingSwitch: (m) => m === "_TZ3000_mzcp0of6",
                 endpoints: ["l1", "l2", "l3"],
             }),
         ],
@@ -6045,6 +6049,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("AVATTO", "ZWSM16-3-Zigbee", "3 gang switch module", ["_TZ3000_hbic3ka3", "_TZ3000_iv4eq7eh"]),
             tuya.whitelabel("iHseno", "_TZ3000_mhhxxjrs", "3 gang switch module", ["_TZ3000_mhhxxjrs"]),
+            tuya.whitelabel("Moes", "ZM$LT3", "3-gang switch module", ["_TZ3000_mzcp0of6"]),
         ],
     },
     {
@@ -6143,6 +6148,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_4rbqgcuv",
             "_TZ3000_veu2v775",
             "_TZ3000_prits6g4",
+            "_TZ3000_xfxpoxe0",
             "_TZ3000_afgzktgb",
         ]),
         model: "TS0001_switch_module",
@@ -6153,6 +6159,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Moes", model: "ZM-104-M"},
             tuya.whitelabel("AVATTO", "ZWSM16-1-Zigbee", "1 gang switch module", ["_TZ3000_4rbqgcuv"]),
             tuya.whitelabel("AVATTO", "ZBTS60-01", "1 gang switch module with backlight", ["_TZ3000_xfxpoxe0"]),
+            tuya.whitelabel("Moes", "ZM4LT1", "1-gang switch module", ["_TZ3000_afgzktgb"]),
         ],
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
@@ -6162,6 +6169,7 @@ export const definitions: DefinitionWithExtend[] = [
                 indicatorMode: (m) => m !== "_TZ3000_xfxpoxe0",
                 powerOutageMemory: true,
                 backlightModeOffOn: (m) => m === "_TZ3000_xfxpoxe0",
+                inchingSwitch: (m) => m === "_TZ3000_afgzktgb",
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -16705,7 +16713,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_5ajpkyq6", "_TZ3000_knoj8lpk", "_TZ3000_3n2minvf"]),
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_5ajpkyq6", "_TZ3000_knoj8lpk", "_TZ3000_3n2minvf", "_TZ3000_tyg4yiat"]),
         model: "TS0004_switch_module_2",
         vendor: "Tuya",
         description: "4 gang switch module",
@@ -16714,6 +16722,7 @@ export const definitions: DefinitionWithExtend[] = [
                 switchType: true,
                 onOffCountdown: true,
                 indicatorMode: true,
+                inchingSwitch: (m) => m === "_TZ3000_tyg4yiat",
                 endpoints: ["l1", "l2", "l3", "l4"],
             }),
         ],
@@ -16730,6 +16739,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         whiteLabel: [
             tuya.whitelabel("AVATTO", "ZWSM16-4-Zigbee", "4 gang switch module", ["_TZ3000_5ajpkyq6", "_TZ3000_3n2minvf"]),
+            tuya.whitelabel("Moes", "ZM4LT4", "4-gang switch module", ["_TZ3000_tyg4yiat"]),
             tuya.whitelabel("iHseno", "_TZ3000_knoj8lpk", "4 gang switch module", ["_TZ3000_knoj8lpk"]),
         ],
     },
