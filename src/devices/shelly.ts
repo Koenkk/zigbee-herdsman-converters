@@ -101,7 +101,7 @@ function calculateHeatStress(
     const cooled = base - (windMs || 0) / 2;
     const adjusted = cooled - ((precipitation || 0) > 0 ? 3 : 0);
     const scaled = (adjusted - 18) / (42 - 18);
-    const sigmoid = 1 / (1 + Math.pow(2.71828, -4 * (scaled - 0.5)));
+    const sigmoid = 1 / (1 + Math.E ** (-4 * (scaled - 0.5)));
     return Math.max(Math.round(sigmoid * 100), 0);
 }
 
@@ -810,9 +810,9 @@ const ws90FzLocal = {
         cluster: "msTemperatureMeasurement",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            const data = msg.data as {measuredValue?: number};
+            const data = msg.data as KeyValue;
             if (data.measuredValue !== undefined) {
-                const temperature = data.measuredValue / 100;
+                const temperature = (data.measuredValue as number) / 100;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {temperature});
                 return {temperature, ...calculated};
             }
@@ -822,9 +822,9 @@ const ws90FzLocal = {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            const data = msg.data as {measuredValue?: number};
+            const data = msg.data as KeyValue;
             if (data.measuredValue !== undefined) {
-                const humidity = data.measuredValue / 100;
+                const humidity = (data.measuredValue as number) / 100;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {humidity});
                 return {humidity, ...calculated};
             }
@@ -834,9 +834,9 @@ const ws90FzLocal = {
         cluster: "msPressureMeasurement",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            const data = msg.data as {measuredValue?: number};
+            const data = msg.data as KeyValue;
             if (data.measuredValue !== undefined) {
-                const pressure = data.measuredValue;
+                const pressure = data.measuredValue as number;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {pressure});
                 return {pressure, ...calculated};
             }
@@ -846,10 +846,10 @@ const ws90FzLocal = {
         cluster: "msIlluminanceMeasurement",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            const data = msg.data as {measuredValue?: number};
+            const data = msg.data as KeyValue;
             if (data.measuredValue !== undefined) {
-                const illuminance =
-                    data.measuredValue > 0 ? Math.round(Math.pow(10, (data.measuredValue - 1) / 10000)) : 0;
+                const measuredValue = data.measuredValue as number;
+                const illuminance = measuredValue > 0 ? Math.round(Math.pow(10, (measuredValue - 1) / 10000)) : 0;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {illuminance});
                 return {illuminance, ...calculated};
             }
@@ -859,9 +859,9 @@ const ws90FzLocal = {
         cluster: "shellyWS90UV",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            const data = msg.data as {uv_index?: number};
+            const data = msg.data as KeyValue;
             if (data.uv_index !== undefined) {
-                return {uv_index: data.uv_index / 10};
+                return {uv_index: (data.uv_index as number) / 10};
             }
         },
     },
@@ -869,12 +869,12 @@ const ws90FzLocal = {
         cluster: "shellyWS90Wind",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            const data = msg.data as {wind_speed?: number; wind_direction?: number; gust_speed?: number};
-            const payload: {[key: string]: number} = {};
-            if (data.wind_speed !== undefined) payload.wind_speed = data.wind_speed / 10;
-            if (data.wind_direction !== undefined) payload.wind_direction = data.wind_direction / 10;
-            if (data.gust_speed !== undefined) payload.gust_speed = data.gust_speed / 10;
-            const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, payload);
+            const data = msg.data as KeyValue;
+            const payload: KeyValue = {};
+            if (data.wind_speed !== undefined) payload.wind_speed = (data.wind_speed as number) / 10;
+            if (data.wind_direction !== undefined) payload.wind_direction = (data.wind_direction as number) / 10;
+            if (data.gust_speed !== undefined) payload.gust_speed = (data.gust_speed as number) / 10;
+            const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, payload as {[key: string]: number});
             return {...payload, ...calculated};
         },
     },
@@ -882,15 +882,15 @@ const ws90FzLocal = {
         cluster: "shellyWS90Rain",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            const data = msg.data as {rain_status?: number; precipitation?: number};
-            const payload: {[key: string]: number | boolean} = {};
+            const data = msg.data as KeyValue;
+            const payload: KeyValue = {};
             if (data.rain_status !== undefined) payload.rain_status = Boolean(data.rain_status);
             if (data.precipitation !== undefined) {
-                payload.precipitation = data.precipitation / 10;
+                payload.precipitation = (data.precipitation as number) / 10;
                 const rainRate = calculateRainRate(msg.device.ieeeAddr, payload.precipitation as number);
                 if (rainRate !== null) payload.rain_rate = rainRate;
             }
-            const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, payload);
+            const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, payload as {[key: string]: number | boolean});
             return {...payload, ...calculated};
         },
     },
