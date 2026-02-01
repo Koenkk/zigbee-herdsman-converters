@@ -2271,6 +2271,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
+        zigbeeModel: ["LWS003"],
+        model: "9290031509",
+        vendor: "Philips",
+        description: "Hue white PAR38 outdoor",
+        extend: [philips.m.light()],
+    },
+    {
         zigbeeModel: ["LLC010"],
         model: "7199960PH",
         vendor: "Philips",
