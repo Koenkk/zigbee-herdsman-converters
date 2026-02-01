@@ -1,5 +1,25 @@
 # Changelog
 
+## [25.121.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.120.0...v25.121.0) (2026-02-01)
+
+
+### Features
+
+* **add:** 1005314 ([#11440](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11440)) ([87466c8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/87466c8a00e6617431503ee5198bc343028bfc8a))
+* **add:** 9290031509 ([#11433](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11433)) ([1380fb3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1380fb3cb89273a16b31c4d578993e37178ca521))
+* **add:** MG1_5RZ ([#11439](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11439)) ([618b5b4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/618b5b475389c86054b64374ba902e13456648d4))
+* **add:** ZBPB10BK ([#11436](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11436)) ([53840c2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/53840c23d0b210ba48e78286997e1a16b9339ad0))
+* **add:** ZNDDQDQ13LM ([#11441](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11441)) ([23e88bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/23e88bbab402d9bd04fecf8a6988d6d369fd2c72))
+* Moes ZHT-S01: improve schedule handling ([#11416](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11416)) ([40f99ea](https://github.com/Koenkk/zigbee-herdsman-converters/commit/40f99ead11fc0b73c68fe98cfa7dc9e9fb133108))
+* Schneider Electric EKO07259: remove attributes not present and implement Schneider Electric custom clusters and attributes ([#11438](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11438)) ([3de6229](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3de62291767fed0a5172035c95031c9d64d4a954))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_wzre8hu2` as Tuya TS0601_cover_1 https://github.com/Koenkk/zigbee2mqtt/issues/27188 ([6aa42a2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6aa42a27fc91b30caca7738a5db086e7c6b64f99))
+* OSRAM 4058075816459: fix action for the long-press ([#11375](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11375)) ([825b8f3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/825b8f3659ced77911d666050c3642765f055df8))
+* SONOFF SNZB-06P: fix occupancy_timeout description ([#11435](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11435)) ([440c27a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/440c27a33f010d1a4fc87d3f6b666ada58bc5d20))
+
 ## [25.120.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.119.0...v25.120.0) (2026-01-31)
 
 
