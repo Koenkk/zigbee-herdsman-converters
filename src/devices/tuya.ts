@@ -4764,6 +4764,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_p3fph1go",
             "_TZ3000_9r5jaajv",
             "_TZ3000_nxdziqzc",
+            "_TZ3000_irwuzilv",
         ]),
         model: "TS0215A_sos",
         vendor: "Tuya",
@@ -4774,6 +4775,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Tuya", "BT400B", "Zigbee Panic Button", ["_TZ3000_0dumfk2z"]),
             tuya.whitelabel("Woox", "R7052", "Smart SOS button", ["_TZ3000_ssp0maqm"]),
+            tuya.whitelabel("Nedis", "ZBPB10BK", "Smart Zigbee SOS / Panic Button", ["_TZ3000_irwuzilv"]),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
