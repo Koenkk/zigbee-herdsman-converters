@@ -1930,19 +1930,18 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee wall thermostat (air/internal temperature priority)",
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: (device, options) => {
-            // Period descriptions for user-friendly display
             const WEEKDAY_PERIODS = [
-                {id: 1, desc: "☀️ Get up in the morning"},
-                {id: 2, desc: "🏠➡️ Go out in the morning"},
-                {id: 3, desc: "🏠🍴⬅️ Back home in the noon"},
-                {id: 4, desc: "🏠🍴➡️ Go out in the noon"},
-                {id: 5, desc: "🏠⬅️ Back home in the evening"},
-                {id: 6, desc: "🌙 Sleep at night"},
+                {id: 1, desc: "get_up_in_the_morning"},
+                {id: 2, desc: "go_out_in_the_morning"},
+                {id: 3, desc: "back_home_in_the_noon"},
+                {id: 4, desc: "go_out_in_the_noon"},
+                {id: 5, desc: "back_home_in_the_evening"},
+                {id: 6, desc: "sleep_at_night"},
             ];
 
             const WEEKEND_PERIODS = [
-                {id: 1, desc: "☀️ Get up"},
-                {id: 2, desc: "🌙 Sleep"},
+                {id: 1, desc: "get_up"},
+                {id: 2, desc: "sleep"},
             ];
 
             const SCHEDULE_DEFAULTS = {
