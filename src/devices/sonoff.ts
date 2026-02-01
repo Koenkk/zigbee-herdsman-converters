@@ -2301,7 +2301,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MG1_5RZ"],
         model: "MG1_5RZ",
         vendor: "SONOFF",
-        description: "MG1-5RZ Zigbee human presence radar (5.8 GHz)",
+        description: "Zigbee human presence radar (5.8 GHz)",
         extend: [
             m.occupancy({reporting: false}),
             m.numeric({
