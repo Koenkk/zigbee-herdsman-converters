@@ -3,7 +3,7 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
-import type {Configure, Definition, DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Publish, Tz, Zh} from "../lib/types";
+import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {assertObject, determineEndpoint, sleep} from "../lib/utils";
 
@@ -59,8 +59,8 @@ function calculateDewPoint(T: number | undefined, RH: number | undefined): numbe
     if (T === undefined || RH === undefined || RH <= 0) return null;
     const a = 17.27;
     const b = 237.7;
-    const alpha = Math.log(((a * T) / (b + T)) + (RH / 100));
-    return Math.round(((b * alpha) / (a - alpha)) * 10) / 10;
+    const alpha = Math.log(a * T / (b + T) + RH / 100);
+    return Math.round((b * alpha) / (a - alpha) * 10) / 10;
 }
 
 /**
@@ -70,7 +70,7 @@ function calculateHumidex(T: number | undefined, RH: number | undefined): number
     if (T === undefined || RH === undefined) return null;
     const dewPoint = calculateDewPoint(T, RH);
     if (dewPoint === null) return null;
-    const ee = 6.11 * Math.exp(5417.7530 * ((1 / 273.15) - (1 / (273.15 + dewPoint))));
+    const ee = 6.11 * Math.exp(5417.753 * (1 / 273.15 - 1 / (273.15 + dewPoint)));
     return Math.round((T + 0.5555 * (ee - 10)) * 10) / 10;
 }
 
@@ -97,8 +97,8 @@ function calculateHeatStress(
 ): number | null {
     if (T === undefined) return null;
     const solar = (lux || 0) / 100;
-    const base = T + (solar / 100) + ((RH || 0) / 10);
-    const cooled = base - ((windMs || 0) / 2);
+    const base = T + solar / 100 + (RH || 0) / 10;
+    const cooled = base - (windMs || 0) / 2;
     const adjusted = cooled - ((precipitation || 0) > 0 ? 3 : 0);
     const scaled = (adjusted - 18) / (42 - 18);
     const sigmoid = 1 / (1 + Math.pow(2.71828, -4 * (scaled - 0.5)));
@@ -809,40 +809,40 @@ const ws90FzLocal = {
     temperature: {
         cluster: "msTemperatureMeasurement",
         type: ["attributeReport", "readResponse"] as const,
-        convert: (model: Definition, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.data.measuredValue !== undefined) {
                 const temperature = msg.data.measuredValue / 100;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {temperature});
                 return {temperature, ...calculated};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msTemperatureMeasurement">,
     humidity: {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"] as const,
-        convert: (model: Definition, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.data.measuredValue !== undefined) {
                 const humidity = msg.data.measuredValue / 100;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {humidity});
                 return {humidity, ...calculated};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msRelativeHumidity">,
     pressure: {
         cluster: "msPressureMeasurement",
         type: ["attributeReport", "readResponse"] as const,
-        convert: (model: Definition, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.data.measuredValue !== undefined) {
                 const pressure = msg.data.measuredValue;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {pressure});
                 return {pressure, ...calculated};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msPressureMeasurement">,
     illuminance: {
         cluster: "msIlluminanceMeasurement",
         type: ["attributeReport", "readResponse"] as const,
-        convert: (model: Definition, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.data.measuredValue !== undefined) {
                 const illuminance =
                     msg.data.measuredValue > 0 ? Math.round(Math.pow(10, (msg.data.measuredValue - 1) / 10000)) : 0;
@@ -850,20 +850,20 @@ const ws90FzLocal = {
                 return {illuminance, ...calculated};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"msIlluminanceMeasurement">,
     uv: {
         cluster: "shellyWS90UV",
         type: ["attributeReport", "readResponse"] as const,
-        convert: (model: Definition, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.data.uv_index !== undefined) {
                 return {uv_index: msg.data.uv_index / 10};
             }
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"shellyWS90UV">,
     wind: {
         cluster: "shellyWS90Wind",
         type: ["attributeReport", "readResponse"] as const,
-        convert: (model: Definition, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => {
+        convert: (model, msg, publish, options, meta) => {
             const data = msg.data;
             const payload: {[key: string]: number} = {};
             if (data.wind_speed !== undefined) payload.wind_speed = data.wind_speed / 10;
@@ -872,11 +872,11 @@ const ws90FzLocal = {
             const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, payload);
             return {...payload, ...calculated};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"shellyWS90Wind">,
     rain: {
         cluster: "shellyWS90Rain",
         type: ["attributeReport", "readResponse"] as const,
-        convert: (model: Definition, msg: Fz.Message, publish: Publish, options: KeyValue, meta: Fz.Meta) => {
+        convert: (model, msg, publish, options, meta) => {
             const data = msg.data;
             const payload: {[key: string]: number | boolean} = {};
             if (data.rain_status !== undefined) payload.rain_status = Boolean(data.rain_status);
@@ -888,7 +888,7 @@ const ws90FzLocal = {
             const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, payload);
             return {...payload, ...calculated};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"shellyWS90Rain">,
 };
 
 // =============================================================================
@@ -1057,24 +1057,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("pressure_trend", ea.STATE).withUnit("hPa/h").withDescription("Pressure change rate (negative = falling)"),
             e.text("weather_condition", ea.STATE).withDescription("Weather condition (sunny, rainy, snowy, cloudy, etc.)"),
         ],
-        meta: {
-            homeassistant: {
-                wind_speed: {device_class: "wind_speed", state_class: "measurement", icon: "mdi:weather-windy"},
-                wind_direction: {state_class: "measurement", icon: "mdi:compass-outline"},
-                gust_speed: {device_class: "wind_speed", state_class: "measurement", icon: "mdi:weather-windy-variant"},
-                precipitation: {device_class: "precipitation", state_class: "total_increasing", icon: "mdi:weather-rainy"},
-                uv_index: {state_class: "measurement", icon: "mdi:white-balance-sunny"},
-                rain_status: {device_class: "moisture", icon: "mdi:weather-pouring"},
-                dew_point: {device_class: "temperature", state_class: "measurement", icon: "mdi:thermometer-water"},
-                humidex: {device_class: "temperature", state_class: "measurement", icon: "mdi:thermometer-alert"},
-                wind_chill: {device_class: "temperature", state_class: "measurement", icon: "mdi:snowflake-thermometer"},
-                heat_stress: {state_class: "measurement", icon: "mdi:weather-sunny-alert"},
-                apparent_temperature: {device_class: "temperature", state_class: "measurement", icon: "mdi:thermometer-lines"},
-                rain_rate: {device_class: "precipitation_intensity", state_class: "measurement", icon: "mdi:weather-pouring"},
-                pressure_trend: {state_class: "measurement", icon: "mdi:trending-up"},
-                weather_condition: {icon: "mdi:weather-partly-cloudy"},
-            },
-        },
         extend: [
             m.battery(),
             m.temperature(),
