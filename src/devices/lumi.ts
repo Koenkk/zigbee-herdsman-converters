@@ -2958,7 +2958,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lumiZigbeeOTA(), lumiLight({colorTemp: true, powerOutageMemory: "switch"})],
     },
     {
-        zigbeeModel: ["lumi.light.acn026", "lumi.light.acn024", "lumi.light.acn025"],
+        zigbeeModel: ["lumi.dimmer.acn005"],
+        model: "ZNDDQDQ13LM",
+        vendor: "Aqara",
+        description: "T1 light strip controller",
+        extend: [lumiZigbeeOTA(), lumiLight({colorTemp: true, powerOutageMemory: "switch"})],
+    },
+    {
+        zigbeeModel: ["lumi.light.acn026", "lumi.light.acn024", "lumi.light.acn025", "lumi.light.acn023"],
         model: "SSWQD03LM",
         vendor: "Aqara",
         description: "Spotlight T2",
