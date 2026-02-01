@@ -3,7 +3,7 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
-import type {Configure, Definition, DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
+import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {assertObject, determineEndpoint, sleep} from "../lib/utils";
 
@@ -809,13 +809,7 @@ const ws90FzLocal = {
     temperature: {
         cluster: "msTemperatureMeasurement",
         type: ["attributeReport", "readResponse"],
-        convert: (
-            model: Definition,
-            msg: Fz.Message<"msTemperatureMeasurement">,
-            publish: Fz.Publish,
-            options: KeyValue,
-            meta: Fz.Meta,
-        ) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.data.measuredValue !== undefined) {
                 const temperature = msg.data.measuredValue / 100;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {temperature});
@@ -826,13 +820,7 @@ const ws90FzLocal = {
     humidity: {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"],
-        convert: (
-            model: Definition,
-            msg: Fz.Message<"msRelativeHumidity">,
-            publish: Fz.Publish,
-            options: KeyValue,
-            meta: Fz.Meta,
-        ) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.data.measuredValue !== undefined) {
                 const humidity = msg.data.measuredValue / 100;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {humidity});
@@ -843,13 +831,7 @@ const ws90FzLocal = {
     pressure: {
         cluster: "msPressureMeasurement",
         type: ["attributeReport", "readResponse"],
-        convert: (
-            model: Definition,
-            msg: Fz.Message<"msPressureMeasurement">,
-            publish: Fz.Publish,
-            options: KeyValue,
-            meta: Fz.Meta,
-        ) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.data.measuredValue !== undefined) {
                 const pressure = msg.data.measuredValue;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {pressure});
@@ -860,13 +842,7 @@ const ws90FzLocal = {
     illuminance: {
         cluster: "msIlluminanceMeasurement",
         type: ["attributeReport", "readResponse"],
-        convert: (
-            model: Definition,
-            msg: Fz.Message<"msIlluminanceMeasurement">,
-            publish: Fz.Publish,
-            options: KeyValue,
-            meta: Fz.Meta,
-        ) => {
+        convert: (model, msg, publish, options, meta) => {
             if (msg.data.measuredValue !== undefined) {
                 const measuredValue = msg.data.measuredValue;
                 const illuminance = measuredValue > 0 ? Math.round(Math.pow(10, (measuredValue - 1) / 10000)) : 0;
@@ -875,22 +851,20 @@ const ws90FzLocal = {
             }
         },
     } satisfies Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]>,
-    // biome-ignore lint/suspicious/noExplicitAny: shellyWS90UV is a custom cluster not in type registry
     uv: {
         cluster: "shellyWS90UV",
         type: ["attributeReport", "readResponse"],
-        convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
+        convert: (model, msg, publish, options, meta) => {
             const data = msg.data as KeyValue;
             if (data.uv_index !== undefined) {
                 return {uv_index: (data.uv_index as number) / 10};
             }
         },
-    },
-    // biome-ignore lint/suspicious/noExplicitAny: shellyWS90Wind is a custom cluster not in type registry
+    } as Fz.Converter<string, undefined, string[]>,
     wind: {
         cluster: "shellyWS90Wind",
         type: ["attributeReport", "readResponse"],
-        convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
+        convert: (model, msg, publish, options, meta) => {
             const data = msg.data as KeyValue;
             const payload: KeyValue = {};
             if (data.wind_speed !== undefined) payload.wind_speed = (data.wind_speed as number) / 10;
@@ -899,12 +873,11 @@ const ws90FzLocal = {
             const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, payload as {[key: string]: number});
             return {...payload, ...calculated};
         },
-    },
-    // biome-ignore lint/suspicious/noExplicitAny: shellyWS90Rain is a custom cluster not in type registry
+    } as Fz.Converter<string, undefined, string[]>,
     rain: {
         cluster: "shellyWS90Rain",
         type: ["attributeReport", "readResponse"],
-        convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
+        convert: (model, msg, publish, options, meta) => {
             const data = msg.data as KeyValue;
             const payload: KeyValue = {};
             if (data.rain_status !== undefined) payload.rain_status = Boolean(data.rain_status);
@@ -916,7 +889,7 @@ const ws90FzLocal = {
             const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, payload as {[key: string]: number | boolean});
             return {...payload, ...calculated};
         },
-    },
+    } as Fz.Converter<string, undefined, string[]>,
 };
 
 // =============================================================================
