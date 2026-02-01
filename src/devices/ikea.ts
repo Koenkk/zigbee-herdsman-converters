@@ -455,7 +455,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterManuSpecificIkeaUnknown(), ikeaLight(), m.identify()],
     },
     {
-        zigbeeModel: ["JETSTROM 40100"],
+        zigbeeModel: ["JETSTROM 40100", "JETSTROM 40100 NA"],
         model: "L2208",
         vendor: "IKEA",
         description: "JETSTROM ceiling light panel, white spectrum, 100x40 cm",
@@ -977,7 +977,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with buttons",
         extend: [
-            m.battery(),
+            m.battery({voltage: true, voltageReporting: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
@@ -991,7 +991,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with scroll wheel",
         extend: [
-            m.battery(),
+            m.battery({voltage: true, voltageReporting: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_to_level"]}),

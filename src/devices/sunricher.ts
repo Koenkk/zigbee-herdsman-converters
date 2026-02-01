@@ -1484,7 +1484,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), m.onOff({endpointNames: ["l1", "l2", "l3", "l4", "l5"]})],
     },
     {
-        zigbeeModel: ["ON/OFF(2CH)"],
+        fingerprint: [{modelID: "ON/OFF(2CH)", manufacturerName: "Sunricher", priority: 1}],
         model: "SR-ZG9101SAC-HP-SWITCH-2CH",
         vendor: "Sunricher",
         description: "Zigbee 2 channels switch",
@@ -1725,7 +1725,6 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: "HK-SL-DIM-A", manufacturerName: "Sunricher", priority: 1}],
-        zigbeeModel: ["HK-SL-DIM-A"],
         model: "SR-ZG9040A/ZG9041A-D",
         vendor: "Sunricher",
         description: "Zigbee micro smart dimmer",
