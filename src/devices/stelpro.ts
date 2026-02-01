@@ -46,10 +46,8 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_running_state,
             tz.stelpro_peak_demand_event_icon,
             tz.stelpro_thermostat_outdoor_temperature,
-            tz.stelpro_time_sync,
         ],
         exposes: [
-            e.local_temperature(),
             e.keypad_lockout(),
             e.power(),
             e.energy(),
@@ -60,12 +58,17 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSystemMode(["heat"])
                 .withRunningState(["idle", "heat"]),
             e
-                .numeric("peak_demand", ea.SET)
+                .numeric("peak_demand_icon", ea.SET)
                 .withUnit("hours")
                 .withDescription("Set peak demand event icon for the specified number of hours")
                 .withValueMin(0)
                 .withValueMax(18),
-            e.composite("time_sync", "time_sync", ea.SET).withDescription("Sync the thermostat clock with the hub time"),
+            e
+                .numeric("outdoor_temperature_display", ea.SET)
+                .withUnit("°C")
+                .withDescription("Outdoor temperature displayed on the thermostat")
+                .withValueMin(-32)
+                .withValueMax(199),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);

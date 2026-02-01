@@ -3483,7 +3483,7 @@ export const eurotronic_mirror_display: Tz.Converter = {
     },
 };
 export const stelpro_peak_demand_event_icon: Tz.Converter = {
-    key: ["peak_demand"],
+    key: ["peak_demand_icon"],
     convertSet: async (entity, key, value, meta) => {
         const hours = Number(value);
         const seconds = hours * 3600;
@@ -3498,25 +3498,18 @@ export const stelpro_peak_demand_event_icon: Tz.Converter = {
             },
         };
 
-        await entity.write("hvacThermostat", payload, manufacturerOptions.stelpro);
-
+        await entity.write("hvacThermostat", payload);
         return {state: {[key]: hours}};
     },
 };
 export const stelpro_thermostat_outdoor_temperature: Tz.Converter = {
-    key: ["thermostat_outdoor_temperature"],
+    key: ["outdoor_temperature_display"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertNumber(value, key);
-        if (value > -100 && value < 100) {
-            await entity.write("hvacThermostat", {StelproOutdoorTemp: value * 100});
+        if (value < -32 || value > 119) {
+            throw new Error("Outdoor temperature must be between -32 and 119 degrees Celsius");
         }
-    },
-};
-export const stelpro_time_sync: Tz.Converter = {
-    key: ["time_sync"],
-    convertSet: async (entity, key, value, meta) => {
-        const zigbeeEpoch = Math.floor((Date.now() - Date.UTC(2000, 0, 1)) / 1000);
-        await entity.write("genTime", {localTime: zigbeeEpoch});
+        await entity.write("hvacThermostat", {StelproOutdoorTemp: value * 100});
     },
 };
 export const DTB190502A1_LED: Tz.Converter = {
