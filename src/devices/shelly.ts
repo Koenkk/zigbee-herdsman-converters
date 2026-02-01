@@ -810,61 +810,66 @@ const ws90FzLocal = {
         cluster: "msTemperatureMeasurement",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.measuredValue !== undefined) {
-                const temperature = msg.data.measuredValue / 100;
+            const data = msg.data as {measuredValue?: number};
+            if (data.measuredValue !== undefined) {
+                const temperature = data.measuredValue / 100;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {temperature});
                 return {temperature, ...calculated};
             }
         },
-    } satisfies Fz.Converter<"msTemperatureMeasurement">,
+    },
     humidity: {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.measuredValue !== undefined) {
-                const humidity = msg.data.measuredValue / 100;
+            const data = msg.data as {measuredValue?: number};
+            if (data.measuredValue !== undefined) {
+                const humidity = data.measuredValue / 100;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {humidity});
                 return {humidity, ...calculated};
             }
         },
-    } satisfies Fz.Converter<"msRelativeHumidity">,
+    },
     pressure: {
         cluster: "msPressureMeasurement",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.measuredValue !== undefined) {
-                const pressure = msg.data.measuredValue;
+            const data = msg.data as {measuredValue?: number};
+            if (data.measuredValue !== undefined) {
+                const pressure = data.measuredValue;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {pressure});
                 return {pressure, ...calculated};
             }
         },
-    } satisfies Fz.Converter<"msPressureMeasurement">,
+    },
     illuminance: {
         cluster: "msIlluminanceMeasurement",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.measuredValue !== undefined) {
+            const data = msg.data as {measuredValue?: number};
+            if (data.measuredValue !== undefined) {
                 const illuminance =
-                    msg.data.measuredValue > 0 ? Math.round(Math.pow(10, (msg.data.measuredValue - 1) / 10000)) : 0;
+                    data.measuredValue > 0 ? Math.round(Math.pow(10, (data.measuredValue - 1) / 10000)) : 0;
                 const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, {illuminance});
                 return {illuminance, ...calculated};
             }
         },
-    } satisfies Fz.Converter<"msIlluminanceMeasurement">,
+    },
     uv: {
         cluster: "shellyWS90UV",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.uv_index !== undefined) {
-                return {uv_index: msg.data.uv_index / 10};
+            const data = msg.data as {uv_index?: number};
+            if (data.uv_index !== undefined) {
+                return {uv_index: data.uv_index / 10};
             }
         },
-    } satisfies Fz.Converter<"shellyWS90UV">,
+    },
     wind: {
         cluster: "shellyWS90Wind",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            const data = msg.data;
+            const data = msg.data as {wind_speed?: number; wind_direction?: number; gust_speed?: number};
             const payload: {[key: string]: number} = {};
             if (data.wind_speed !== undefined) payload.wind_speed = data.wind_speed / 10;
             if (data.wind_direction !== undefined) payload.wind_direction = data.wind_direction / 10;
@@ -872,12 +877,12 @@ const ws90FzLocal = {
             const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, payload);
             return {...payload, ...calculated};
         },
-    } satisfies Fz.Converter<"shellyWS90Wind">,
+    },
     rain: {
         cluster: "shellyWS90Rain",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            const data = msg.data;
+            const data = msg.data as {rain_status?: number; precipitation?: number};
             const payload: {[key: string]: number | boolean} = {};
             if (data.rain_status !== undefined) payload.rain_status = Boolean(data.rain_status);
             if (data.precipitation !== undefined) {
@@ -888,7 +893,7 @@ const ws90FzLocal = {
             const calculated = updateWS90CalculatedValues(msg.device.ieeeAddr, payload);
             return {...payload, ...calculated};
         },
-    } satisfies Fz.Converter<"shellyWS90Rain">,
+    },
 };
 
 // =============================================================================
