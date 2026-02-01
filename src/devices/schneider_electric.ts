@@ -42,6 +42,64 @@ interface SchneiderVisaConfig {
     commandResponses: never;
 }
 
+interface SchneiderUserInterfaceCfgCluster {
+    attributes: {
+        displayBrightnessActive: number;
+        displayBrightnessInactive: number;
+        displayActiveTimeout: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SchneiderMeteringCluster {
+    attributes: {
+        fixedLoadDemand: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SchneiderThermostatCluster {
+    attributes: {
+        controlStatus: number;
+        localTemperatureSourceSelect: number;
+        controlType: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SchneiderHeatingCoolingOutputCluster {
+    attributes: {
+        measuredTemperature: number;
+        absMinHeatTemperatureLimit: number;
+        absMaxHeatTemperatureLimit: number;
+        absMinCoolTemperatureLimit: number;
+        absMaxCoolTemperatureLimit: number;
+        minHeatTemperatureLimit: number;
+        maxHeatTemperatureLimit: number;
+        minCoolTemperatureLimit: number;
+        maxCoolTemperatureLimit: number;
+        heatTemperatureHighLimit: number;
+        heatTemperatureLowLimit: number;
+        coolTemperatureHighLimit: number;
+        coolTemperatureLowLimit: number;
+        coolingOutputMode: number;
+        heatingOutputMode: number;
+        maximumIdleTime: number;
+        antiIdleExerciseTime: number;
+        preferredExerciseTime: number;
+        minOffTime: number;
+        minOnTime: number;
+        maxOverallDutyCycle: number;
+        overallDutyCyclePeriod: number;
+        clusterRevision: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 function indicatorMode(endpoint?: string) {
     let description = "Set Indicator Mode.";
     if (endpoint) {
@@ -442,6 +500,23 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    heatingOutputMode: () =>
+        m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
+            name: "heating_output_mode",
+            cluster: "heatingCoolingOutputClusterServer",
+            attribute: "heatingOutputMode",
+            description:
+                "On devices with alternate heating output types, this selects which should be used to control the heating unit. This attribute is (mistakenly) also called pilot_mode on some devices.",
+            entityCategory: "config",
+            access: "ALL",
+            lookup: {
+                Disabled: 0,
+                Relay: 1,
+                OpenTherm: 2,
+                "Fil Pilote": 3,
+                "Relay NC": 4,
+            },
+        }),
     addHvacUserInterfaceCfgCustomAttributes: () =>
         m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
             ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
@@ -454,10 +529,10 @@ const schneiderElectricExtend = {
             commandsResponse: {},
         }),
     displayBrightnessActive: () =>
-        m.numeric({
+        m.numeric<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>({
             name: "display_brightness_active",
             cluster: "hvacUserInterfaceCfg",
-            attribute: {ID: 0xe000, type: Zcl.DataType.UINT8},
+            attribute: "displayBrightnessActive",
             description: "Sets brightness of the temperature display during active state",
             entityCategory: "config",
             unit: "%",
@@ -467,10 +542,10 @@ const schneiderElectricExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         }),
     displayBrightnessInactive: () =>
-        m.numeric({
+        m.numeric<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>({
             name: "display_brightness_inactive",
             cluster: "hvacUserInterfaceCfg",
-            attribute: {ID: 0xe001, type: Zcl.DataType.UINT8},
+            attribute: "displayBrightnessInactive",
             description: "Sets brightness of the temperature display during inactive state",
             entityCategory: "config",
             unit: "%",
@@ -480,16 +555,109 @@ const schneiderElectricExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         }),
     displayActiveTimeout: () =>
-        m.numeric({
+        m.numeric<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>({
             name: "display_active_timeout",
             cluster: "hvacUserInterfaceCfg",
-            attribute: {ID: 0xe002, type: Zcl.DataType.UINT16},
+            attribute: "displayActiveTimeout",
             description: "Sets timeout of the temperature display active state",
             entityCategory: "config",
             unit: "seconds",
             valueMin: 5,
             valueMax: 600,
             valueStep: 5,
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        }),
+    customMeteringCluster: () =>
+        m.deviceAddCustomCluster("seMetering", {
+            ID: Zcl.Clusters.seMetering.ID,
+            attributes: {
+                fixedLoadDemand: {
+                    ID: 0x4510,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                    write: true,
+                    max: 0x7fffff,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    fixedLoadDemand: () =>
+        m.numeric<"seMetering", SchneiderMeteringCluster>({
+            name: "fixed_load_demand",
+            cluster: "seMetering",
+            attribute: "fixedLoadDemand",
+            description: "This attribute specifies the demand of a switched load when it is energised",
+            entityCategory: "config",
+            unit: "W",
+            valueMin: 1,
+            valueMax: 3600,
+            valueStep: 1,
+        }),
+    customThermostatCluster: () =>
+        m.deviceAddCustomCluster("hvacThermostat", {
+            ID: Zcl.Clusters.hvacThermostat.ID,
+            attributes: {
+                controlStatus: {
+                    ID: 0xe211,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                localTemperatureSourceSelect: {
+                    ID: 0xe212,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                    write: true,
+                    max: 0xfe,
+                },
+                controlType: {
+                    ID: 0xe213,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                    write: true,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    controlStatus: () =>
+        m.enumLookup<"hvacThermostat", SchneiderThermostatCluster>({
+            name: "control_status",
+            cluster: "hvacThermostat",
+            attribute: "controlStatus",
+            description: "This indicates the status of the thermostat and allows reporting of abnormal and fault conditions.",
+            entityCategory: "diagnostic",
+            access: "STATE",
+            lookup: {
+                "Normal Operation": 0x00,
+                "No Temperature": 0x20,
+                "Remote Demand Override": 0x40,
+                "Window Open": 0x41,
+                "Local Force On": 0x61,
+                Maintenance: 0x82,
+                "Output Temporal Limit": 0x83,
+                "Sensor Fault": 0x84,
+            },
+        }),
+    localTemperatureSourceSelect: () =>
+        m.enumLookup<"hvacThermostat", SchneiderThermostatCluster>({
+            name: "local_temperature_source_select",
+            cluster: "hvacThermostat",
+            attribute: "localTemperatureSourceSelect",
+            description: "On devices with more than one temperature input, this selects which should be used for LocalTemperature.",
+            entityCategory: "config",
+            lookup: {Ambient: 2, External: 3},
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        }),
+    controlType: () =>
+        m.enumLookup<"hvacThermostat", SchneiderThermostatCluster>({
+            name: "control_type",
+            cluster: "hvacThermostat",
+            attribute: "controlType",
+            description:
+                "0 (On/Off), 1 (PI) and 0xff (None) supported. This specifies the type of control algorithm to be used to regulate temperature.",
+            entityCategory: "config",
+            lookup: {"On/Off": 0, PI: 1, None: 0xff},
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         }),
 };
@@ -1893,6 +2061,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart thermostat",
         extend: [
             m.thermostat({
+                localTemperature: {
+                    values: {
+                        description: "The temperature measured by the selected sensor (see 'Local temperature source select', Ambient or External).",
+                    },
+                },
                 setpoints: {
                     values: {
                         occupiedHeatingSetpoint: {min: 4, max: 40, step: 0.5},
@@ -1905,77 +2078,37 @@ export const definitions: DefinitionWithExtend[] = [
                 systemMode: {
                     values: ["off", "heat"],
                 },
-                runningState: {
-                    values: ["idle", "heat"],
-                },
                 piHeatingDemand: {
                     values: ea.STATE_GET,
                 },
             }),
-            m.occupancy(),
             m.electricityMeter({
+                cluster: "metering",
                 voltage: false,
                 current: false,
                 configureReporting: true,
-                cluster: "metering",
+                energy: {divisor: 1000, multiplier: 1},
             }),
-            m.numeric({
-                name: "fixed_load_demand",
-                cluster: "seMetering",
-                attribute: {ID: 0x4510, type: Zcl.DataType.UINT24},
-                description: "This attribute specifies the demand of a switched load when it is energised",
-                entityCategory: "config",
-                unit: "W",
-                valueMin: 1,
-                valueMax: 3600,
-                valueStep: 1,
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-                reporting: {min: 0, max: 3600, change: 10},
-            }),
-            m.numeric({
-                name: "display_brightness_active",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0xe000, type: Zcl.DataType.UINT8},
-                description: "Sets brightness of the temperature display during active state",
-                entityCategory: "config",
-                unit: "%",
-                valueMin: 1,
-                valueMax: 100,
-                valueStep: 1,
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-            }),
-            m.numeric({
-                name: "display_brightness_inactive",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0xe001, type: Zcl.DataType.UINT8},
-                description: "Sets brightness of the temperature display during inactive state",
-                entityCategory: "config",
-                unit: "%",
-                valueMin: 0,
-                valueMax: 100,
-                valueStep: 1,
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-            }),
-            m.numeric({
-                name: "display_active_timeout",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0xe002, type: Zcl.DataType.UINT16},
-                description: "Sets timeout of the temperature display active state",
-                entityCategory: "config",
-                unit: "seconds",
-                valueMin: 5,
-                valueMax: 3600,
-                valueStep: 5,
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-            }),
+            schneiderElectricExtend.customMeteringCluster(),
+            schneiderElectricExtend.fixedLoadDemand(),
+            schneiderElectricExtend.addHvacUserInterfaceCfgCustomAttributes(),
+            schneiderElectricExtend.displayBrightnessActive(),
+            schneiderElectricExtend.displayBrightnessInactive(),
+            schneiderElectricExtend.displayActiveTimeout(),
+            schneiderElectricExtend.customThermostatCluster(),
+            schneiderElectricExtend.localTemperatureSourceSelect(),
+            schneiderElectricExtend.controlType(),
+            schneiderElectricExtend.controlStatus(),
+            schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
             m.enumLookup({
-                name: "local_temperature_source_select",
-                cluster: "hvacThermostat",
-                attribute: {ID: 0xe212, type: Zcl.DataType.UINT8},
-                description: "On devices with more than one temperature input, this selects which should be used for LocalTemperature.",
+                name: "heating_output_mode",
+                cluster: 0xff23, // heatingCoolingOutputClusterServer
+                attribute: {ID: 0x0031, type: Zcl.DataType.ENUM8},
+                description:
+                    "On devices with alternate heating output types, this selects which should be used to control the heating unit. This attribute is (mistakenly) also called pilot_mode on some devices.",
                 entityCategory: "config",
-                lookup: {Ambient: 2, External: 3},
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                access: "ALL",
+                lookup: {Disabled: 0, Relay: 1},
             }),
             m.enumLookup({
                 name: "temperature_sensor_type",
