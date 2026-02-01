@@ -1683,7 +1683,7 @@ export const command_move_hue: Fz.Converter<"lightingColorCtrl", undefined, "com
     type: "commandMoveHue",
     convert: (model, msg, publish, options, meta) => {
         if (hasAlreadyProcessedMessage(msg, model)) return;
-        const movestop = msg.data.movemode === 1 ? "move" : "stop";
+        const movestop = msg.data.movemode === 1 ? "move" : msg.data.movemode === 3 ? "down" : "stop";
         const action = postfixWithEndpointName(`hue_${movestop}`, msg, model, meta);
         const payload = {action, action_rate: msg.data.rate};
         addActionGroup(payload, msg, model);
