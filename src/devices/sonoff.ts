@@ -2274,7 +2274,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "occupancy_timeout",
                 cluster: 0x0406,
                 attribute: {ID: 0x0020, type: 0x21},
-                description: "Unoccupied to occupied delay",
+                description: "Occupied to unoccupied delay",
                 valueMin: 15,
                 valueMax: 65535,
             }),
