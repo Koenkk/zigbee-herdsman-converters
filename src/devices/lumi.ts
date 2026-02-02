@@ -972,7 +972,7 @@ export const definitions: DefinitionWithExtend[] = [
             // set "event" mode
             await endpoint1.write("manuSpecificLumi", {mode: 1}, {manufacturerCode: manufacturerCode, disableResponse: true});
         },
-        extend: [lumiPreventReset()],
+        extend: [lumiZigbeeOTA(), lumiPreventReset()],
     },
     {
         zigbeeModel: ["lumi.ctrl_neutral1"],
@@ -2958,7 +2958,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lumiZigbeeOTA(), lumiLight({colorTemp: true, powerOutageMemory: "switch"})],
     },
     {
-        zigbeeModel: ["lumi.light.acn026", "lumi.light.acn024", "lumi.light.acn025"],
+        zigbeeModel: ["lumi.dimmer.acn005"],
+        model: "ZNDDQDQ13LM",
+        vendor: "Aqara",
+        description: "T1 light strip controller",
+        extend: [lumiZigbeeOTA(), lumiLight({colorTemp: true, powerOutageMemory: "switch"})],
+    },
+    {
+        zigbeeModel: ["lumi.light.acn026", "lumi.light.acn024", "lumi.light.acn025", "lumi.light.acn023"],
         model: "SSWQD03LM",
         vendor: "Aqara",
         description: "Spotlight T2",
@@ -3461,7 +3468,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.contact(), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        extend: [m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA()],
+        extend: [m.quirkCheckinInterval("1_HOUR")],
     },
     {
         zigbeeModel: ["lumi.plug.sacn02"],
@@ -4528,6 +4535,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["lumi.switch.agl010"],
+        whiteLabel: [{model: "WS-K08D", vendor: "Aqara"}],
         model: "WS-K08E",
         vendor: "Aqara",
         description: "Light switch H2 EU (double rocker)",
@@ -4959,7 +4967,7 @@ export const definitions: DefinitionWithExtend[] = [
                 setpoints: {
                     values: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
                 },
-                localTemperatureCalibration: {values: true},
+                localTemperatureCalibration: {values: {min: -5, max: 5, step: 0.1}},
                 temperatureSetpointHold: true,
                 temperatureSetpointHoldDuration: true,
                 setpointsLimit: {
@@ -5061,11 +5069,12 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "position",
                 valueMin: 0,
                 valueMax: 100,
-                scale: 10,
+                scale: 1,
+                precision: 2,
                 unit: "%",
                 access: "STATE_GET",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0360, type: Zcl.DataType.UINT16},
+                attribute: {ID: 0x0360, type: Zcl.DataType.SINGLE_PREC},
                 description: "Position of the valve, 100% is fully open",
                 zigbeeCommandOptions: {manufacturerCode},
             }),

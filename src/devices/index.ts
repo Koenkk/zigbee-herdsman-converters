@@ -217,6 +217,7 @@ import {definitions as nexelec} from "./nexelec";
 import {definitions as niko} from "./niko";
 import {definitions as ninjaBlocks} from "./ninja_blocks";
 import {definitions as niviss} from "./niviss";
+import {definitions as nobo} from "./nobo";
 import {definitions as nodon} from "./nodon";
 import {definitions as nordtronic} from "./nordtronic";
 import {definitions as nous} from "./nous";
@@ -316,6 +317,7 @@ import {definitions as technicolor} from "./technicolor";
 import {definitions as terncy} from "./terncy";
 import {definitions as theLightGroup} from "./the_light_group";
 import {definitions as thirdReality} from "./third_reality";
+import {definitions as tisControl} from "./tis_control";
 import {definitions as titanProducts} from "./titan_products";
 import {definitions as tlwglobal} from "./tlwglobal";
 import {definitions as tnce} from "./tnce";
@@ -358,6 +360,7 @@ import {definitions as zemismart} from "./zemismart";
 import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
 import {definitions as zipato} from "./zipato";
+import {definitions as zunzunbee} from "./zunzunbee";
 
 const definitions: DefinitionWithExtend[] = [
     ...acova,
@@ -579,6 +582,7 @@ const definitions: DefinitionWithExtend[] = [
     ...nodon,
     ...nordtronic,
     ...nous,
+    ...nobo,
     ...novo,
     ...nue3a,
     ...nyce,
@@ -675,6 +679,7 @@ const definitions: DefinitionWithExtend[] = [
     ...terncy,
     ...theLightGroup,
     ...thirdReality,
+    ...tisControl,
     ...titanProducts,
     ...tlwglobal,
     ...tnce,
@@ -716,6 +721,7 @@ const definitions: DefinitionWithExtend[] = [
     ...zen,
     ...zigbeetlc,
     ...zipato,
+    ...zunzunbee,
     ...qa,
     ...engo,
     ...vsmart,
