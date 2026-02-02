@@ -23985,23 +23985,23 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("Excellux", ["PIRIV01"]),
-        model: "PIRIV-01",
+        model: "ZG-104PLV",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "PIR motion sensor, vibration sensor, and light sensor",
         exposes: [
-            e.enum("presence_state", ea.STATE, ["true", "false"]).withDescription("Presence state,true:motion detected,false:no motion"),
-            e.binary("vibration", ea.STATE, true, false).withDescription("Vibration state,true:vibration detected,false:no vibration"),
-            e.enum("illumiance_warning", ea.STATE, ["none", "low", "high"]).withDescription("Illuminance warning level,low:low,high:high,none"),
+            e.enum("presence", ea.STATE, ["true", "false"]).withDescription("Presence state, true: motion detected, false: no motion"),
+            e.binary("vibration", ea.STATE, true, false).withDescription("Vibration state, true: vibration detected, false: no vibration"),
+            e.enum("illuminance_warning", ea.STATE, ["none", "low", "high"]).withDescription("Illuminance warning level"),
             e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
-            e.numeric("illumiance", ea.STATE).withValueMin(0).withValueMax(10000).withValueStep(1).withUnit("lux").withDescription("Illuminance"),
+            e.numeric("illuminance", ea.STATE).withValueMin(0).withValueMax(10000).withValueStep(1).withUnit("lux").withDescription("Illuminance"),
             e
                 .numeric("sampling_interval", ea.STATE_SET)
                 .withValueMin(5)
                 .withValueMax(1200)
                 .withValueStep(5)
-                .withUnit("S")
-                .withDescription("sampling illumiance interval"),
+                .withUnit("s")
+                .withDescription("Sampling illuminance interval"),
             e
                 .numeric("vibration_sensitivity", ea.STATE_SET)
                 .withValueMin(0)
@@ -24034,7 +24034,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [4, "battery", tuya.valueConverter.raw],
-                [1, "presence_state", tuya.valueConverterBasic.lookup({true: tuya.enum(1), false: tuya.enum(0)})],
+                [1, "presence", tuya.valueConverterBasic.lookup({true: tuya.enum(1), false: tuya.enum(0)})],
                 [3, "vibration", tuya.valueConverter.raw],
                 [6, "vibration_sensitivity", tuya.valueConverter.raw],
                 [20, "illumiance", tuya.valueConverter.raw],
