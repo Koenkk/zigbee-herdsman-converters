@@ -201,7 +201,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.numeric("load_estimate", ea.STATE_GET).withDescription("Load estimate on this radiator").withValueMin(-8000).withValueMax(3600),
                 e.binary("preheat_status", ea.STATE_GET, true, false).withDescription("Specific for pre-heat running in Zigbee Weekly Schedule mode"),
                 e
-                    .enum("adaptation_run_status", ea.STATE_GET, ["none", "in_progress", "found", "lost"])
+                    .enum("adaptation_run_status", ea.STATE_GET, ["none", "in_progress", "found", "lost", "lost_in_progress"])
                     .withDescription(
                         "Status of adaptation run: None (before first run), In Progress, Valve Characteristic Found, Valve Characteristic Lost",
                     ),
