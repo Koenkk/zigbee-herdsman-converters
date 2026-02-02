@@ -24048,13 +24048,13 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("Excellux", ["CAT0001"]),
-        model: "Contact-01",
+        model: "ZG-102MV",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        description: "contact sensor and vibration sensor",
+        description: "Contact sensor and vibration sensor",
         exposes: [
             e.contact(),
-            e.binary("vibration", ea.STATE, true, false).withDescription("Vibration state,true:vibration detected,false:no vibration"),
+            e.binary("vibration", ea.STATE, true, false).withDescription("Vibration state, true: vibration detected, false: no vibration"),
             e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
             e
                 .numeric("vibration_sensitivity", ea.STATE_SET)
