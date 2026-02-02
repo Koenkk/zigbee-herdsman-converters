@@ -24,117 +24,74 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
             const data = msg.data;
+            const isPro = model.model === "4512776/4512777";
+
             if (data[0x1000] !== undefined) {
-                // OperateDisplayBrightnesss
-                result.display_brightnesss = data[0x1000];
+                // OperateDisplayBrightness
+                if (isPro) {
+                    result.display_brightness = data[0x1000];
+                } else {
+                    result.display_brightnesss = data[0x1000];
+                }
             }
             if (data[0x1001] !== undefined) {
                 // DisplayAutoOffActivation
-                const lookup = {0: "deactivated", 1: "activated"};
-                result.display_auto_off = utils.getFromLookup(data[0x1001], lookup);
+                if (isPro) {
+                    result.display_auto_off = data[0x1001] === 1;
+                } else {
+                    const lookup = {0: "deactivated", 1: "activated"};
+                    result.display_auto_off = utils.getFromLookup(data[0x1001], lookup);
+                }
             }
             if (data[0x1004] !== undefined) {
-                // PowerUpStatus
+                // PowerUpStatus (non-PRO only)
                 const lookup = {0: "manual", 1: "last_state"};
                 result.power_up_status = utils.getFromLookup(data[0x1004], lookup);
             }
             if (data[0x1009] !== undefined) {
                 // WindowOpenCheck
-                // According to manual 0: enable, 1: disable
-                // According to real life testing 0: disable, 1: enable
-                result.window_detection = data[0x1009] === 1;
+                if (isPro) {
+                    // PRO: 0=enable, 1=disable
+                    result.window_open_detection = data[0x1009] === 0;
+                } else {
+                    // Non-PRO: According to real life testing 0: disable, 1: enable
+                    result.window_detection = data[0x1009] === 1;
+                }
             }
             if (data[0x100a] !== undefined) {
-                // Hysterersis
-                result.hysterersis = utils.precisionRound(data[0x100a] as number, 2) / 10;
+                // Hysteresis
+                const value = utils.precisionRound(data[0x100a] as number, 2) / 10;
+                if (isPro) {
+                    result.hysteresis = value;
+                } else {
+                    result.hysterersis = value;
+                }
             }
             if (data[0x100b] !== undefined) {
                 // WindowOpen, 0: Window is not opened, 1: Window is opened
                 result.window_open = data[0x100b] === 1;
             }
-            return result;
-        },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
-    namron_panelheater_pro: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data;
-            const result: KeyValue = {};
-
-            // Hysteresis (0x100A) – 0.1°C
-            if (data[0x100a] !== undefined) {
-                result.hysteresis = (data[0x100a] as number) / 10.0;
-            }
-
-            // Window open detect enable/disable (0x1009, 0=enable, 1=disable)
-            if (data[0x1009] !== undefined) {
-                result.window_open_detection = data[0x1009] === 0;
-            }
-
-            // Window open flag (0x100B, 0/1)
-            if (data[0x100b] !== undefined) {
-                result.window_open = data[0x100b] === 1;
-            }
-
-            // Display brightness (0x1000), 1–7 (read-only)
-            if (data[0x1000] !== undefined) {
-                result.display_brightness = data[0x1000];
-            }
-
-            // Display auto off (0x1001), 0=off, 1=on
-            if (data[0x1001] !== undefined) {
-                result.display_auto_off = data[0x1001] === 1;
-            }
-
-            // System control method (0x2009): 0=PID, 1=Hysteresis
+            // PRO-specific attributes
             if (data[0x2009] !== undefined) {
+                // System control method: 0=PID, 1=Hysteresis
                 result.control_method = data[0x2009] === 0 ? "pid" : "hysteresis";
             }
-
-            // Adaptive function AS (0x100C): 0=Enable, 1=Disable
             if (data[0x100c] !== undefined) {
+                // Adaptive function AS: 0=Enable, 1=Disable
                 result.adaptive_function = data[0x100c] === 0;
             }
-
-            // PID (0x2006 / 0x2008 / 0x2007)
             if (data[0x2006] !== undefined) {
                 result.pid_kp = (data[0x2006] as number) / 1000.0;
-            }
-            if (data[0x2008] !== undefined) {
-                result.pid_ki = (data[0x2008] as number) / 1000.0;
             }
             if (data[0x2007] !== undefined) {
                 result.pid_kd = (data[0x2007] as number) / 1000.0;
             }
-
+            if (data[0x2008] !== undefined) {
+                result.pid_ki = (data[0x2008] as number) / 1000.0;
+            }
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
-    namron_panelheater_pro_metering: {
-        cluster: "seMetering",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const data = msg.data;
-
-            // Energy (currentSummDelivered) - device reports 10x too high
-            if (data.currentSummDelivered !== undefined) {
-                let value = data.currentSummDelivered;
-                if (Array.isArray(value)) {
-                    value = value[0] * 0x100000000 + value[1];
-                }
-                result.energy = (value as number) / 10;
-            }
-
-            // Power (instantaneousDemand) - use standard divisor
-            if (data.instantaneousDemand !== undefined) {
-                result.power = data.instantaneousDemand;
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
     namron_thermostat2: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -1408,13 +1365,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512776/4512777",
         vendor: "Namron",
         description: "Zigbee thermostat for panel heater PRO (white 4512776 / black 4512777)",
-        fromZigbee: [
-            fz.thermostat,
-            fz.electrical_measurement,
-            fzLocal.namron_panelheater_pro_metering,
-            fzLocal.namron_panelheater_pro,
-            fz.namron_hvac_user_interface,
-        ],
+        extend: [m.electricityMeter({cluster: "metering", energy: {divisor: 10}})],
+        fromZigbee: [fz.thermostat, fzLocal.namron_panelheater, fz.namron_hvac_user_interface],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
@@ -1465,37 +1417,16 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withDescription("Display brightness (read-only, set on the heater)"),
             e.binary("display_auto_off", ea.ALL, true, false).withDescription("Display auto off after 30s without interaction"),
-            e.power(),
-            e.energy(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                "genBasic",
-                "genIdentify",
-                "hvacThermostat",
-                "hvacUserInterfaceCfg",
-                "seMetering",
-                "haElectricalMeasurement",
-            ]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genIdentify", "hvacThermostat", "hvacUserInterfaceCfg"]);
 
             await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
 
             await endpoint.read("hvacThermostat", ["localTemp", "occupiedHeatingSetpoint", "systemMode"]);
-
-            try {
-                await endpoint.read("haElectricalMeasurement", ["activePower"]);
-            } catch {
-                // Ignore
-            }
-
-            try {
-                await endpoint.read("seMetering", ["currentSummDelivered", "multiplier", "divisor"]);
-            } catch {
-                // Ignore
-            }
 
             // Proprietary attrs including display, window, PID, control_method, adaptive
             try {
