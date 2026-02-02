@@ -3564,6 +3564,7 @@ export const boschThermostatExtend = {
             exposes: exposes,
             fromZigbee: thermostat.fromZigbee,
             toZigbee: thermostat.toZigbee,
+            onEvent: thermostat.onEvent,
             configure: thermostat.configure,
             isModernExtend: true,
         };
@@ -3622,6 +3623,7 @@ export const boschThermostatExtend = {
         const exposes: (Expose | DefinitionExposesFunction)[] = thermostat.exposes;
         const fromZigbee = thermostat.fromZigbee;
         const toZigbee: Tz.Converter[] = thermostat.toZigbee;
+        const onEvent = thermostat.onEvent;
         let configure: Configure[] = thermostat.configure;
 
         // Add converters for custom running state
@@ -3640,6 +3642,7 @@ export const boschThermostatExtend = {
             fromZigbee,
             toZigbee,
             configure,
+            onEvent,
             isModernExtend: true,
         };
     },
