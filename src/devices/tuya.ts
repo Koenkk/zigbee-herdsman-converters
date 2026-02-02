@@ -2545,6 +2545,30 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_it9utkro"]),
+        model: 'PM2.5_airbox',
+        vendor: 'Tuya',
+        description: 'PM2.5 Air quality sensor',
+        extend: [tuya.modernExtend.tuyaBase({dp: true,}),],
+        exposes: [
+            e.pm25().withValueMin(0).withValueMax(999).withValueStep(1),
+            e.temperature(),
+            e.humidity(),
+            e.co2(),
+            e.numeric("voc_value",ea.STATE).withUnit("ppb"),
+            e.numeric("formaldehyd_value",ea.STATE).withUnit("µg/m³")], 
+        meta: {
+            tuyaDatapoints: [
+                [2, "co2", tuya.valueConverter.raw],
+                [18, "temperature", tuya.valueConverter.divideBy10],
+                [19, "humidity", tuya.valueConverter.divideBy10],
+		        [20, "co2", tuya.valueConverter.raw],
+                [21, "voc_value", tuya.valueConverter.divideBy100],
+                [22, "formaldehyd_value", tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rbbx5mfq", "_TZE204_rbbx5mfq"]),
         model: "TS0601_illuminance_temperature_humidity_sensor_2",
         vendor: "Tuya",
