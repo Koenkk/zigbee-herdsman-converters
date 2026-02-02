@@ -1775,6 +1775,7 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
     );
 
     if (device.applicationVersion > 15) {
+        // @ts-expect-error ignore
         myExpose = myExpose.map((e) => {
             // For recent firmwares, use the reportable tariffPeriod attribute
             // instead of the old polled currentPrice and
