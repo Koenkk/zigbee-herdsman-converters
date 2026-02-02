@@ -23775,9 +23775,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("Excellux", ["DHT0001", "DHTA001"]),
         model: "DHT0001",
         vendor: "Excellux",
-        whiteLabel: [
-            {vendor: "Excellux", model: "DHTA001", fingerprint: tuya.fingerprint("Excellux", ["DHTA001"])},
-        ],
+        whiteLabel: [{vendor: "Excellux", model: "DHTA001", fingerprint: tuya.fingerprint("Excellux", ["DHTA001"])}],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "Temperature and humidity sensor",
         exposes: [
