@@ -1417,7 +1417,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "Namron Zigbee panelovn PRO hvit (4512776)",
         whiteLabel: [{vendor: "Namron", model: "4512777", description: "Namron Zigbee panelovn PRO sort (4512777)"}],
-        fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fzPro, fzNamronMetering],
+        fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fz.Pro, fz.NamronMetering],
         extend: [m.electricityMeter({voltage: false, current: false}), namronPanelHeaterProExtend()],
     },
     {
