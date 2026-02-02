@@ -236,7 +236,32 @@ const namronPanelHeaterProExtend = (): ModernExtend => {
             return result;
         },
     };
+ const fzNamronMetering: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
+        cluster: "seMetering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            const data = msg.data;
 
+            if (data.currentSummDelivered != null) {
+                let value = data.currentSummDelivered as unknown;
+
+                // Z2M kan gi dette som [high32, low32]
+                if (Array.isArray(value)) {
+                    value = (value[0] * 0x100000000) + value[1];
+                }
+
+                // Device reports 10x too high
+                result.energy = (value as number) / 10;
+            }
+
+            if (data.instantaneousDemand != null) {
+                result.power = data.instantaneousDemand as number;
+            }
+
+            return result;
+        },
+    };
     const tzPro: Tz.Converter = {
         key: [
             "state",
@@ -1387,11 +1412,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["Panel Heater PRO"],
+        zigbeeModel: ["Panel Heater"],
         model: "4512776",
         vendor: "Namron",
         description: "Namron Zigbee panelovn PRO hvit (4512776)",
         whiteLabel: [{vendor: "Namron", model: "4512777", description: "Namron Zigbee panelovn PRO sort (4512777)"}],
+        fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fzPro, fzNamronMetering],
         extend: [m.electricityMeter({voltage: false, current: false}), namronPanelHeaterProExtend()],
     },
     {
