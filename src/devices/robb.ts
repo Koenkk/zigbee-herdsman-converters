@@ -126,8 +126,15 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ROB_200-030-0"],
         model: "ROB_200-030-0",
         vendor: "ROBB",
-        description: "Zigbee AC in wall switch 400W (2-wire)",
+        description: "Zigbee AC in wall switch 400W (2-wire) (push switch)",
         extend: [m.onOff()],
+    },
+        {
+        zigbeeModel: ['ROB_200-030-1'],
+        model: 'ROB_200-030-1',
+        vendor: 'ROBB',
+        description: "Zigbee AC in wall switch 400W (2-wire) (normal switch)",
+        extend: [m.onOff({"powerOnBehavior":false})],
     },
     {
         zigbeeModel: ["ROB_200-014-0"],
