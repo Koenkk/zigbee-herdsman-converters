@@ -23787,7 +23787,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("humidity_warning", ea.STATE, ["none", "low", "high"])
                 .withDescription("Humidity warning. Low: humidity is lower than v0 and v1. High: humidity is higher than v0 and v1"),
-            e.battery()
+            e.battery(),
             e.temperature(),
             e.humidity(),
             e
@@ -23876,7 +23876,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("humidity_warning", ea.STATE, ["none", "low", "high"])
                 .withDescription("Humidity warning. Low: humidity is lower than v0 and v1. High: humidity is higher than v0 and v1"),
-            e.battery()
+            e.battery(),
             e
                 .numeric("probe_temperature", ea.STATE)
                 .withValueMin(-40)
