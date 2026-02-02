@@ -24075,7 +24075,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("Excellux", ["DSS0010"]),
-        model: "Scene-Switc",
+        model: "ZG-101K",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "Scene switch",
