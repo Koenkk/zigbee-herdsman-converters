@@ -236,7 +236,7 @@ const namronPanelHeaterProExtend = (): ModernExtend => {
             return result;
         },
     };
- const fzNamronMetering: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
+ const fz.NamronMetering: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
         cluster: "seMetering",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
