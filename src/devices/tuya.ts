@@ -24121,7 +24121,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("Excellux", ["VABRATE"]),
-        model: "VABRATE-01",
+        model: "ZG-103V",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "Vibration sensor",
