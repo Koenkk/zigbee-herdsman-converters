@@ -23857,22 +23857,22 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("Excellux", ["NTCHT01"]),
-        model: "NTCHT-01",
+        model: "ZG-105NTH",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        description: "Probe Temperature and ht(humidity and temperature) Sensor",
+        description: "Temperature and humidity sensor with probe",
         exposes: [
             e
                 .enum("probe_temperature_warning", ea.STATE, ["none", "low", "high"])
                 .withDescription(
-                    "Probe temperature sensor warning.low :temperature is lower than v0 and v1.high:temperature is higher than v0 and v1",
+                    "Probe temperature sensor warning. Low: temperature is lower than v0 and v1. High: temperature is higher than v0 and v1",
                 ),
             e
                 .enum("temperature_warning", ea.STATE, ["none", "low", "high"])
-                .withDescription("Temperature warning.low :temperature is lower than v0 and v1.high:temperature is higher than v0 and v1"),
+                .withDescription("Temperature warning. Low: temperature is lower than v0 and v1. High: temperature is higher than v0 and v1"),
             e
                 .enum("humidity_warning", ea.STATE, ["none", "low", "high"])
-                .withDescription("Humidity warning.low :humidity is lower than v0 and v1.high:humidity is higher than v0 and v1"),
+                .withDescription("Humidity warning. Low: humidity is lower than v0 and v1. High: humidity is higher than v0 and v1"),
             e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
             e
                 .numeric("probe_temperature", ea.STATE)
@@ -23889,8 +23889,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(5)
                 .withValueMax(1200)
                 .withValueStep(5)
-                .withUnit("S")
-                .withDescription("sampling interval"),
+                .withUnit("s")
+                .withDescription("Sampling interval"),
 
             e
                 .numeric("probe_temperature_calibration", ea.STATE_SET)
