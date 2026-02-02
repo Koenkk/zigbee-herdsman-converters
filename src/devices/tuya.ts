@@ -23787,7 +23787,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("humidity_warning", ea.STATE, ["none", "low", "high"])
                 .withDescription("Humidity warning. Low: humidity is lower than v0 and v1. High: humidity is higher than v0 and v1"),
-            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
+            e.battery()
             e.temperature(),
             e.humidity(),
             e
@@ -23876,7 +23876,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("humidity_warning", ea.STATE, ["none", "low", "high"])
                 .withDescription("Humidity warning. Low: humidity is lower than v0 and v1. High: humidity is higher than v0 and v1"),
-            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
+            e.battery()
             e
                 .numeric("probe_temperature", ea.STATE)
                 .withValueMin(-40)
@@ -23993,7 +23993,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("presence", ea.STATE, ["true", "false"]).withDescription("Presence state, true: motion detected, false: no motion"),
             e.binary("vibration", ea.STATE, true, false).withDescription("Vibration state, true: vibration detected, false: no vibration"),
             e.enum("illuminance_warning", ea.STATE, ["none", "low", "high"]).withDescription("Illuminance warning level"),
-            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
+            e.battery(),
             e.numeric("illuminance", ea.STATE).withValueMin(0).withValueMax(10000).withValueStep(1).withUnit("lux").withDescription("Illuminance"),
             e
                 .numeric("sampling_interval", ea.STATE_SET)
@@ -24007,7 +24007,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(50)
                 .withValueStep(1)
-                .withUnit("times")
                 .withDescription("Vibration sensitivity"),
             e
                 .numeric("illumiance_v0", ea.STATE_SET)
@@ -24055,13 +24054,12 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.contact(),
             e.binary("vibration", ea.STATE, true, false).withDescription("Vibration state, true: vibration detected, false: no vibration"),
-            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
+            e.battery(),
             e
                 .numeric("vibration_sensitivity", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(50)
                 .withValueStep(1)
-                .withUnit("times")
                 .withDescription("Vibration sensitivity"),
         ],
         meta: {
@@ -24089,7 +24087,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.tuya_operation_mode,
         ],
         exposes: [
-            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
+            e.battery(),
             e.action([
                 "single",
                 "double",
@@ -24133,7 +24131,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(50)
                 .withValueStep(1)
-                .withUnit("times")
                 .withDescription("Vibration sensitivity"),
         ],
         meta: {
