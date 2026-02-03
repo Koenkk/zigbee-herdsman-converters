@@ -19,9 +19,9 @@ const fzLocal = {
                 msg.data.batteryPercentageRemaining !== undefined &&
                 msg.data.batteryPercentageRemaining < 255
             ) {
-                // 2.5.3_r20 don't comply with Zigbee spec and reports battery as 0-100.
-                // Newer firmware has already this issue fixed.
-                const dontDividePercentage = meta.device.softwareBuildID == "2.5.3_r20";
+                // 2.5.3_r20 fw doesn't comply with Zigbee spec and reports battery as 0-100.
+                // Newer firmware has already this issue fixed and reports battery as 0-200.
+                const dontDividePercentage = meta.device.softwareBuildID === "2.5.3_r20";
                 let percentage = msg.data.batteryPercentageRemaining;
                 percentage = dontDividePercentage ? percentage : percentage / 2;
                 payload.battery = precisionRound(percentage, 2);
