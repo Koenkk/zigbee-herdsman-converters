@@ -91,6 +91,15 @@ interface ThirdAirPressureSensor {
     commandResponses: never;
 }
 
+interface Third24gRadar {
+    attributes: {
+        seniorSensitive: number;
+        seniorCalibration: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     thirdreality_acceleration: {
         cluster: "3rVirationSpecialcluster",
@@ -1059,6 +1068,45 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "3rAirsensorSpecialCluster",
                 attribute: "sendCommandDownThreshold",
                 description: "Reports sudden air-pressure changes. Pressure rise and fall alerts can be enabled separately. Threshold adjustable.",
+                access: "ALL",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["3RPS01083Z"],
+        model: "3RPS01083Z",
+        vendor: "Third Reality",
+        description: 'Smart Presence Sensor R2',
+        extend: [
+            m.battery(), 
+            m.iasZoneAlarm({"zoneType":"generic","zoneAttributes":["alarm_1"]}),
+            m.deviceAddCustomCluster("3r24gRadarcluster", {
+                ID: 0xff01,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    seniorSensitive: {ID: 0x0060, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    seniorCalibration: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.binary<"3r24gRadarcluster", Third24gRadar>({
+                name: "senior_calibation",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3r24gRadarcluster",
+                attribute: "seniorCalibration",
+                description: "senior calibationit",
+                access: "ALL",
+            }),
+            m.numeric<"3r24gRadarcluster", Third24gRadar>({
+                name: "senior_sensitive",
+                valueMin: 1,
+                valueMax: 5,
+                cluster: "3r24gRadarcluster",
+                attribute: "seniorSensitive",
+                description: "senior sensitive",
                 access: "ALL",
             }),
         ],
