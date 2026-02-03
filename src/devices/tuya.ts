@@ -442,10 +442,12 @@ const bindSlotTS0601SmartSceneKnob = async (entity: Zh.Endpoint | Zh.Group, slot
     await tuya.sendDataPointRaw(entity as Zh.Endpoint, 102, payload, "dataRequest", 0x10 + (slot - 1));
 };
 
-const trv603ScheduleConverter = (dayNumber: number): tuya.ValueConverter => {
+const trv603ScheduleConverter = (dayNumber: number): tuya.valueConverter => {
     return {
-        from: (value: any) => {
-            const buf = Buffer.isBuffer(value) ? value : Buffer.from(value.data || value);
+        from: (value: unknown) => {
+            const buf = Buffer.isBuffer(value) ? value :
+                        (Array.isArray(value) ? Buffer.from(value) :
+                        (value && typeof value === 'object' && 'data' in value) ? Buffer.from((value as {data: number[]}).data) : null);
             if (!buf || buf.length < 17) return;
             const schedule = [];
             for (let i = 1; i <= 13; i += 4) { 
@@ -3749,7 +3751,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "running_state", tuya.valueConverterBasic.lookup({idle: tuya.enum(0), heat: tuya.enum(1)})],
                 [4, "current_heating_setpoint", {
                     from: (value: number) => value / 10,
-                    to: (value: number, meta: any) => {
+                    to: (value: number, meta: tuya.ValueConverterMeta) => {
                         const currentPreset = meta.state.preset;
                         let newValue = value;
                         if (newValue < 5) newValue = 5;
