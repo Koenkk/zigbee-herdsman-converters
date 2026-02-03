@@ -842,6 +842,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
         extend: [m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        meta: {alternateBacklightAutoDim: true},
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -962,6 +963,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
         extend: [m.electricityMeter()],
+        meta: {alternateBacklightAutoDim: true},
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
