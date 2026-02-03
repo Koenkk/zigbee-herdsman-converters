@@ -1266,7 +1266,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZWV-YC",
         vendor: "Moes",
         description: "Water valve",
-        extend: [m.battery(), m.onOff({powerOnBehavior: false})],
+        extend: [m.battery(), m.onOff({powerOnBehavior: false, configureReporting: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0011", ["_TZ3000_hhiodade"]),
