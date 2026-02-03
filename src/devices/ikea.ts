@@ -673,7 +673,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3697858054
-        zigbeeModel: ["KAJPLATS E27 WS G60 clear 470lm"],
+        zigbeeModel: ["KAJPLATS E27 WS G60 clear 470lm", "KAJPLATS E27 470lm smart WS"],
         model: "LED2411G3",
         vendor: "IKEA",
         description: "KAJPLATS E27 bulb, white spectrum, globe, clear, 470 lm",
