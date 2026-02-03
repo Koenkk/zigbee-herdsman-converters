@@ -225,6 +225,10 @@ export interface DefinitionMeta {
      * Never use a transition when transitioning to off (even when specified)
      */
     noOffTransitionWhenOff?: boolean | ((entity: Zh.Endpoint) => boolean);
+    /**
+     * Manufacturer specific
+     */
+    sinopeAlternateBacklightAutoDim?: boolean;
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void> | void;
