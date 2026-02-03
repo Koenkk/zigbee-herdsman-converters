@@ -3759,8 +3759,8 @@ export const definitions: DefinitionWithExtend[] = [
                     "current_heating_setpoint",
                     {
                         from: (value: number) => value / 10,
-                        to: (value: number, meta: tuya.ValueConverterMeta) => {
-                            const currentPreset = meta.state.preset;
+                        to: (value: number, meta: Tz.Meta) => {
+                            const currentPreset = meta.state.preset as string;
                             let newValue = value;
                             if (newValue < 5) newValue = 5;
                             if (currentPreset === "leave" && newValue > 15) newValue = 15;
