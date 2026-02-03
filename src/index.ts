@@ -73,7 +73,6 @@ export {
     Tz,
     type OnEvent,
 };
-export {getConfigureKey} from "./lib/configureKey";
 export {setLogger} from "./lib/logger";
 export {clear as clearGlobalStore} from "./lib/store";
 

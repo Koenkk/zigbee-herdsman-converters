@@ -398,6 +398,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue white dimmer 1-10V",
         extend: [philips.m.light()],
+        version: "0.0.1",
     },
     {
         zigbeeModel: ["929003055801", "929004611401", "929004611501_01", "929004611501_02", "929004611501_03"],
