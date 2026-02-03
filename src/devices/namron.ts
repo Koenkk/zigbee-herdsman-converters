@@ -2194,21 +2194,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
 
-        // Sørg for state/brightness uten m.light (så vi unngår effect/dobbel)
-        fromZigbee: [fz.on_off, fz.brightness],
-
-        toZigbee: [
-            tz.on_off,
-            tzLocalSimplifyDimmer4512791.brightness_clamped,
-
-            tzLocalSimplifyDimmer4512791.min_brightness,
-            tzLocalSimplifyDimmer4512791.max_brightness,
-            tzLocalSimplifyDimmer4512791.dimming_speed,
-
-            // Re-use built-in (sets genLevelCtrl.onLevel)
-            tz.level_config,
-        ],
-
         exposes: [
             e.light_brightness(),
 
