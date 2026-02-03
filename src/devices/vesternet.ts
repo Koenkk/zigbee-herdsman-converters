@@ -4,9 +4,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
-import {
-    precisionRound,
-} from "../lib/utils";
+import {precisionRound} from "../lib/utils";
 
 const e = exposes.presets;
 const fzLocal = {
@@ -15,10 +13,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
-            if (
-                msg.data.batteryPercentageRemaining !== undefined &&
-                msg.data.batteryPercentageRemaining < 255
-            ) {
+            if (msg.data.batteryPercentageRemaining !== undefined && msg.data.batteryPercentageRemaining < 255) {
                 // 2.5.3_r20 fw doesn't comply with Zigbee spec and reports battery as 0-100.
                 // Newer firmware has already this issue fixed and reports battery as 0-200.
                 const dontDividePercentage = meta.device.softwareBuildID === "2.5.3_r20";
@@ -31,7 +26,6 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
 };
-
 
 export const definitions: DefinitionWithExtend[] = [
     {
