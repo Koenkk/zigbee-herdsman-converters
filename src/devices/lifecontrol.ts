@@ -12,7 +12,7 @@ function airQuality(): ModernExtend {
             cluster: "msTemperatureMeasurement",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
-                const temperature = ( - ( msg.data.measuredValue < -1000 ? msg.data.measuredValue + 32767) * 5 / 3 : msg.data.measuredValue ) / 100.0;
+                const temperature = ( msg.data.measuredValue < -1000 ? ( - ( msg.data.measuredValue + 32767 ) * 5 / 3) : msg.data.measuredValue ) / 100.0;
                 const humidity = msg.data.minMeasuredValue / 100.0;
                 const eco2 = msg.data.maxMeasuredValue;
                 const voc = msg.data.tolerance;
