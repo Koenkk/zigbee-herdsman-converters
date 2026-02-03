@@ -68,9 +68,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {modelID: "ZGRC-KEY-013", softwareBuildID: "2.5.3_r20"},
-        ],
+        fingerprint: [{modelID: "ZGRC-KEY-013", softwareBuildID: "2.5.3_r20"}],
         model: "VES-ZB-REM-013",
         vendor: "Vesternet",
         description: "Zigbee remote control - 12 button",
