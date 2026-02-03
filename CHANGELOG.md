@@ -1,5 +1,31 @@
 # Changelog
 
+## [25.122.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.121.0...v25.122.0) (2026-02-03)
+
+
+### Features
+
+* **add:** 4512776/4512777 ([#11450](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11450)) ([12b68a3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/12b68a33aee07504e96f5ef95e5cbbd0376a991a))
+* **add:** PM2.5_airbox ([#11446](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11446)) ([e8607ac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8607acc25483292da24c1481cd39bbdc4879513))
+* **add:** ROB_200-030-1 ([#11447](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11447)) ([05a1b44](https://github.com/Koenkk/zigbee-herdsman-converters/commit/05a1b447a9cb31650cc462ba490383940af6cf90))
+* LiXee ZLinky: use reportable attribute for pricing period (LTARF) ([#10903](https://github.com/Koenkk/zigbee-herdsman-converters/issues/10903)) ([4741ae3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4741ae39c2b76ef958a386dfd15c2e05ce5bd568))
+* Schneider Electric 545D6102: add support for indicators and switch actions ([#11458](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11458)) ([9e2b5a9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9e2b5a92a10d9edd444fad8f65149ec524330de1))
+* Shelly WS90: expose more sensors ([#11437](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11437)) ([a46e4d5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a46e4d567cddabfb3d9001d760d56605cde9bbb1))
+* Zemismart ZMS-206US-X: add support for setting switches names with UTF8 support ([#11455](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11455)) ([2aef20e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2aef20e208304f4c655b76f63a0108208adfbd46))
+
+
+### Bug Fixes
+
+* Bosch BTH-RA: fix `local_temperature_calibration` range https://github.com/Koenkk/zigbee2mqtt/issues/30901 ([f6a7124](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f6a7124666721ad18e12ab25537cc85d15cbc2ef))
+* **detect:** Detect `_TZ3210_nhqka112` as Tuya TS011F_plug_2 https://github.com/Koenkk/zigbee2mqtt/issues/30889 ([90d7445](https://github.com/Koenkk/zigbee-herdsman-converters/commit/90d744546bcf56c3acfaf8545cee1ed7f360eb4f))
+* **detect:** Detect `_TZE200_k1tumq4t` as Tuya TV02-Zigbee ([#11449](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11449)) ([60a3d6b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/60a3d6bf0b9d31323915ce59781dfb6a88fbb74b))
+* **detect:** Detect `_TZE284_kdqrazmy` as Tuya TS0601_temperature_humidity_sensor_3 https://github.com/Koenkk/zigbee2mqtt/issues/30927 ([4a07153](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4a0715353be6f7a0a7bb27c3488a75b386de75cd))
+* **detect:** Detect `_TZE284_ozf4e02o` as Merrytek MSA201Z https://github.com/Koenkk/zigbee2mqtt/issues/30930 ([6d7ad91](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6d7ad9185f184f14239dd047a4176772095585f3))
+* **detect:** Detect `KAJPLATS E27 470lm smart WS` as IKEA LED2411G3 ([#11453](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11453)) ([3175817](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3175817f7f7bdb876604167ec75cafaa2cf2b712))
+* **ignore:** bump the minor-patch group with 2 updates ([#11445](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11445)) ([00c3fcf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/00c3fcfeb4c5c801ff2fe981fe974cd761460ec2))
+* Sinope TH1123ZB-G2 and TH1124ZB-G2: swap sensing and off values for backlight dimming modes ([#11454](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11454)) ([f24264c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f24264cef1482e8e4b6d8f521b3d5d29b18f51ed))
+* Vesterent VES-ZB-REM-013: fix battery % divided by 2 ([#11457](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11457)) ([d98005b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d98005b7686e9b2f9b1d81a37a34467141bd964f))
+
 ## [25.121.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.120.0...v25.121.0) (2026-02-01)
 
 
