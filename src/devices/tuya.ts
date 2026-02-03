@@ -445,17 +445,21 @@ const bindSlotTS0601SmartSceneKnob = async (entity: Zh.Endpoint | Zh.Group, slot
 const trv603ScheduleConverter = (dayNumber: number): tuya.valueConverter => {
     return {
         from: (value: unknown) => {
-            const buf = Buffer.isBuffer(value) ? value :
-                        (Array.isArray(value) ? Buffer.from(value) :
-                        (value && typeof value === 'object' && 'data' in value) ? Buffer.from((value as {data: number[]}).data) : null);
+            const buf = Buffer.isBuffer(value)
+                ? value
+                : Array.isArray(value)
+                  ? Buffer.from(value)
+                  : value && typeof value === "object" && "data" in value
+                    ? Buffer.from((value as {data: number[]}).data)
+                    : null;
             if (!buf || buf.length < 17) return;
             const schedule = [];
-            for (let i = 1; i <= 13; i += 4) { 
+            for (let i = 1; i <= 13; i += 4) {
                 const hh = buf[i];
                 const mm = buf[i + 1];
                 const tempRaw = (buf[i + 2] << 8) | buf[i + 3];
                 const temp = (tempRaw / 10).toFixed(1);
-                if (hh > 23 || mm > 59) return; 
+                if (hh > 23 || mm > 59) return;
                 schedule.push(`${hh.toString().padStart(2, "0")}:${mm.toString().padStart(2, "0")}/${temp}`);
             }
             return schedule.join(" ");
@@ -468,12 +472,12 @@ const trv603ScheduleConverter = (dayNumber: number): tuya.valueConverter => {
                 if (index < 4) {
                     const [time, temp] = part.split("/");
                     const [hh, mm] = time.split(":");
-                    const offset = 1 + (index * 4);
-                    const tempVal = Math.round(parseFloat(temp) * 10);
-                    buf[offset] = parseInt(hh, 10);
-                    buf[offset + 1] = parseInt(mm, 10);
-                    buf[offset + 2] = (tempVal >> 8) & 0xFF;
-                    buf[offset + 3] = tempVal & 0xFF;
+                    const offset = 1 + index * 4;
+                    const tempVal = Math.round(Number.parseFloat(temp) * 10);
+                    buf[offset] = Number.parseInt(hh, 10);
+                    buf[offset + 1] = Number.parseInt(mm, 10);
+                    buf[offset + 2] = (tempVal >> 8) & 0xff;
+                    buf[offset + 3] = tempVal & 0xff;
                 }
             });
             return Array.from(buf);
@@ -3737,7 +3741,8 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery().withUnit("%"),
             e.child_lock(),
-            e.climate()
+            e
+                .climate()
                 .withPreset(["auto", "manual", "leave"])
                 .withSetpoint("current_heating_setpoint", 5, 40, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
@@ -3749,22 +3754,30 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [2, "preset", tuya.valueConverterBasic.lookup({auto: tuya.enum(0), manual: tuya.enum(1), leave: tuya.enum(2)})],
                 [3, "running_state", tuya.valueConverterBasic.lookup({idle: tuya.enum(0), heat: tuya.enum(1)})],
-                [4, "current_heating_setpoint", {
-                    from: (value: number) => value / 10,
-                    to: (value: number, meta: tuya.ValueConverterMeta) => {
-                        const currentPreset = meta.state.preset;
-                        let newValue = value;
-                        if (newValue < 5) newValue = 5;
-                        if (currentPreset === "leave" && newValue > 15) newValue = 15;
-                        return Math.round(newValue * 10);
-                    }
-                }],
-                [5, "local_temperature", {
-                    from: (value: number) => (value > 32767 ? value - 65536 : value) / 10,
-                    to: (value: number) => Math.round(value * 10)
-                }],
+                [
+                    4,
+                    "current_heating_setpoint",
+                    {
+                        from: (value: number) => value / 10,
+                        to: (value: number, meta: tuya.ValueConverterMeta) => {
+                            const currentPreset = meta.state.preset;
+                            let newValue = value;
+                            if (newValue < 5) newValue = 5;
+                            if (currentPreset === "leave" && newValue > 15) newValue = 15;
+                            return Math.round(newValue * 10);
+                        },
+                    },
+                ],
+                [
+                    5,
+                    "local_temperature",
+                    {
+                        from: (value: number) => (value > 32767 ? value - 65536 : value) / 10,
+                        to: (value: number) => Math.round(value * 10),
+                    },
+                ],
                 [6, "battery", tuya.valueConverter.raw],
-                [7, "child_lock", tuya.valueConverterBasic.lookup({"LOCK": false, "UNLOCK": true})],
+                [7, "child_lock", tuya.valueConverterBasic.lookup({LOCK: false, UNLOCK: true})],
                 [28, "schedule_monday", trv603ScheduleConverter(1)],
                 [29, "schedule_tuesday", trv603ScheduleConverter(2)],
                 [30, "schedule_wednesday", trv603ScheduleConverter(3)],
