@@ -277,7 +277,7 @@ const boschExtend = {
                         const iaq = utils.toNumber(msg.data.airpurity);
                         result.aqi = iaq;
                         const factorCo2 = 10;
-                        result.co2 = iaq * factorCo2 + 500;
+                        result.eco2 = iaq * factorCo2 + 500;
                     }
                     if (msg.data.temperature !== undefined) {
                         result.temperature = utils.toNumber(msg.data.temperature) / 100.0;

@@ -267,6 +267,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             m.onOff({endpointNames: ["l1", "l2", "l3"], powerOnBehavior: false}),
             m.electricityMeter(),
+            tuya.modernExtend.tuyaMagicPacket(),
         ],
     },
 ];
