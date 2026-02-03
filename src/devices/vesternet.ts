@@ -115,7 +115,7 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
         ],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}, publishDuplicateTransaction: true},
+        meta: {multiEndpoint: true, battery: {dontDividePercentage: false}, publishDuplicateTransaction: true},
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9001K12-DIM-Z4"}],
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "genScenes", "genPowerCfg"]);
