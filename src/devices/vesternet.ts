@@ -3,9 +3,35 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
+import {
+    precisionRound,
+} from "../lib/utils";
 
 const e = exposes.presets;
+const fzLocal = {
+    battery_ves_zb_rem_013: {
+        cluster: "genPowerCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            if (
+                msg.data.batteryPercentageRemaining !== undefined &&
+                msg.data.batteryPercentageRemaining < 255
+            ) {
+                // 2.5.3_r20 don't comply with Zigbee spec and reports battery as 0-100.
+                // Newer firmware has already this issue fixed.
+                const dontDividePercentage = meta.device.softwareBuildID == "2.5.3_r20";
+                let percentage = msg.data.batteryPercentageRemaining;
+                percentage = dontDividePercentage ? percentage : percentage / 2;
+                payload.battery = precisionRound(percentage, 2);
+            }
+
+            return payload;
+        },
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
+};
+
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -68,69 +94,15 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "ZGRC-KEY-013", softwareBuildID: "2.5.3_r20"}],
-        model: "VES-ZB-REM-013",
-        vendor: "Vesternet",
-        description: "Zigbee remote control - 12 button",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_recall, fz.battery],
-        exposes: [
-            e.battery(),
-            e.action([
-                "on_1",
-                "off_1",
-                "stop_1",
-                "brightness_move_up_1",
-                "brightness_move_down_1",
-                "brightness_stop_1",
-                "on_2",
-                "off_2",
-                "stop_2",
-                "brightness_move_up_2",
-                "brightness_move_down_2",
-                "brightness_stop_2",
-                "on_3",
-                "off_3",
-                "stop_3",
-                "brightness_move_up_3",
-                "brightness_move_down_3",
-                "brightness_stop_3",
-                "on_4",
-                "off_4",
-                "stop_4",
-                "brightness_move_up_4",
-                "brightness_move_down_4",
-                "brightness_stop_4",
-                "recall_1_1",
-                "recall_1_2",
-                "recall_1_3",
-                "recall_1_4",
-                "recall_2_1",
-                "recall_2_2",
-                "recall_2_3",
-                "recall_2_4",
-            ]),
-        ],
-        toZigbee: [],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: false}, publishDuplicateTransaction: true},
-        whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9001K12-DIM-Z4"}],
-        configure: async (device, coordinatorEndpoint) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "genScenes", "genPowerCfg"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "genScenes"]);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "genScenes"]);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "genScenes"]);
-            await reporting.batteryPercentageRemaining(device.getEndpoint(1));
-        },
-    },
-    // Starting with 2.7.6_r25 firmware, the device reports batteries as 0-200, so no division is required.
-    {
         fingerprint: [
+            {modelID: "ZGRC-KEY-013", softwareBuildID: "2.5.3_r20"},
             {modelID: "ZGRC-KEY-013", softwareBuildID: "2.7.6_r25"},
             {modelID: "ZGRC-KEY-013", softwareBuildID: "2.7.6_r27"},
         ],
         model: "VES-ZB-REM-013",
         vendor: "Vesternet",
         description: "Zigbee remote control - 12 button",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_recall, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_recall, fzLocal.battery_ves_zb_rem_013],
         exposes: [
             e.battery(),
             e.action([
@@ -169,7 +141,7 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
         ],
         toZigbee: [],
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: false}, publishDuplicateTransaction: true},
+        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}, publishDuplicateTransaction: true},
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG9001K12-DIM-Z4"}],
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "genScenes", "genPowerCfg"]);
