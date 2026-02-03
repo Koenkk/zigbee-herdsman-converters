@@ -442,7 +442,7 @@ const bindSlotTS0601SmartSceneKnob = async (entity: Zh.Endpoint | Zh.Group, slot
     await tuya.sendDataPointRaw(entity as Zh.Endpoint, 102, payload, "dataRequest", 0x10 + (slot - 1));
 };
 
-const trv603ScheduleConverter = (dayNumber: number): tuya.valueConverter => {
+const trv603ScheduleConverter = (dayNumber: number) => {
     return {
         from: (value: unknown) => {
             const buf = Buffer.isBuffer(value)
