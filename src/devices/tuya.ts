@@ -8664,6 +8664,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_rtcrrvia",
             "_TZ3000_ysiog9xi",
             "_TZ3000_o1jzcxou",
+            "_TZ3210_nhqka112", // https://github.com/Koenkk/zigbee2mqtt/issues/30889
         ]),
         model: "TS011F_plug_2",
         description: "Smart plug (without power monitoring)",
