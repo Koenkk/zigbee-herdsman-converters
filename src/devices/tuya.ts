@@ -23084,10 +23084,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ajuasrmx", "_TZE200_hyhl5y36"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ajuasrmx", "_TZE200_hyhl5y36", "_TZE284_ozf4e02o"]),
         model: "MSA201Z",
         vendor: "Merrytek",
-        description: "24 GHz human presence sensor (TS0601, _TZE284_ajuasrmx)",
+        description: "24 GHz human presence sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("state", ea.STATE, ["absence", "presence", "disabled"]).withLabel("Status"),
