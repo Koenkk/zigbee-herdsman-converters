@@ -51,13 +51,13 @@ const fzLocal = {
                 result.main_cycle_output = utils.getFromLookup(msg.data.SinopeMainCycleOutput, cycleOutputLookup);
             }
             if (msg.data["1026"] !== undefined) {
-                const lookup = utils.getMetaValue(entity, meta.mapped, "alternateBacklightAutoDim", "allEqual", false)
+                const lookup = utils.getMetaValue(msg.endpoint, model, "sinopeAlternateBacklightAutoDim", "allEqual", false)
                     ? {0: "on_demand", 1: "off", 2: "sensing"}
                     : {0: "on_demand", 1: "sensing", 2: "off"};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data["1026"], lookup);
             }
             if (msg.data.SinopeBacklight !== undefined) {
-                const lookup = utils.getMetaValue(entity, meta.mapped, "alternateBacklightAutoDim", "allEqual", false)
+                const lookup = utils.getMetaValue(msg.endpoint, model, "sinopeAlternateBacklightAutoDim", "allEqual", false)
                     ? {0: "on_demand", 1: "off", 2: "sensing"}
                     : {0: "on_demand", 1: "sensing", 2: "off"};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data.SinopeBacklight, lookup);
@@ -842,7 +842,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
         extend: [m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
-        meta: {alternateBacklightAutoDim: true},
+        meta: {sinopeAlternateBacklightAutoDim: true},
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -963,7 +963,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
         extend: [m.electricityMeter()],
-        meta: {alternateBacklightAutoDim: true},
+        meta: {sinopeAlternateBacklightAutoDim: true},
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
