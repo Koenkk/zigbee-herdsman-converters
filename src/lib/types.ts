@@ -303,7 +303,7 @@ type DefinitionFeatures = {
     exposes: DefinitionExposes;
 };
 
-export type Definition = DefinitionMatcher & DefinitionBase & DefinitionConfig & DefinitionFeatures;
+export type Definition = DefinitionMatcher & DefinitionBase & DefinitionConfig & DefinitionFeatures & {version: string};
 
 export type DefinitionWithExtend = DefinitionMatcher &
     DefinitionBase &

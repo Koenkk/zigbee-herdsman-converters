@@ -402,10 +402,10 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             };
         }
 
-        return {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, options, ...definitionWithoutExtend};
+        return {version: "0.0.0", toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, options, ...definitionWithoutExtend};
     }
 
-    return {...definition};
+    return {version: "0.0.0", ...definition};
 }
 
 export function prepareDefinition(definition: DefinitionWithExtend): Definition {
