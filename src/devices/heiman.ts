@@ -1214,7 +1214,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ["WaterSensor-N", "WaterSensor-EM", "WaterSensor-N-3.0", "WaterSensor-EF-3.0", "WATER_TPV13"],
+        zigbeeModel: ["WaterSensor-N", "WaterSensor-EM", "WaterSensor-N-3.0", "WaterSensor-EF-3.0", "WATER_TPV13", "TY0207"],
         model: "HS1WL/HS3WL",
         vendor: "Heiman",
         description: "Water leakage sensor",
