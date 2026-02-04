@@ -2012,7 +2012,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => ({default: 1}),
     },
     {
-        zigbeeModel: ["HS8MIS-80-EF1-3.0"],
+        zigbeeModel: ["HS8MIS-86-EF1-3.0"],
         model: "HS8MLS-EF1-3.0",
         vendor: "Heiman",
         description: "PIR sensor with night light",
