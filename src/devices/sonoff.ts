@@ -98,6 +98,7 @@ interface SonoffTrvzb {
         temporaryMode: number;
         temporaryModeTime: number;
         temporaryModeTemp: number;
+        smartTemControl: number;
     };
     commands: never;
     commandResponses: never;
@@ -257,6 +258,66 @@ const sonoffExtend = {
             },
             commandsResponse: {},
         });
+    },
+    smartTemControl(): ModernExtend {
+        const expose = e
+            .enum("smart_temperature_control", ea.ALL, ["off", "precision", "smart"])
+            .withDescription("Manual mode: off or precision (same effect), Smart mode: automatic temperature control");
+
+        const modeToValue: Record<string, number> = {
+            off: 0x00,
+            precision: 0x00, // 0x01 is for device reporting only, use 0x00 for control
+            smart: 0x02,
+        };
+        const valueToMode: Record<number, string> = {
+            [0x00]: "off",
+            [0x01]: "precision",
+            [0x02]: "smart",
+        };
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["smart_temperature_control"],
+                convertSet: async (entity, key, value, meta) => {
+                    const smartTemControl = modeToValue[value as string] ?? 0x00;
+
+                    await entity.write<"customSonoffTrvzb", SonoffTrvzb>("customSonoffTrvzb", {smartTemControl}).catch((err) => console.error(err));
+
+                    return {
+                        state: {
+                            [key]: value,
+                        },
+                    };
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity
+                        .read<"customSonoffTrvzb", SonoffTrvzb>("customSonoffTrvzb", ["smartTemControl"], utils.getOptions(meta.mapped, entity))
+                        .catch((err) => console.error(err));
+                },
+            },
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: "customSonoffTrvzb",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if ("smartTemControl" in msg.data) {
+                        const rawValue = msg.data.smartTemControl;
+                        return {
+                            smart_temperature_control: valueToMode[rawValue] ?? "off",
+                        };
+                    }
+                },
+            } satisfies Fz.Converter<"customSonoffTrvzb", SonoffTrvzb, ["attributeReport", "readResponse"]>,
+        ];
+
+        return {
+            exposes: [expose],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
     },
     programmableStepperSequence(sequences: string[]): ModernExtend {
         const stepComposite = (n: number) => {
@@ -2388,6 +2449,7 @@ export const definitions: DefinitionWithExtend[] = [
                         write: true,
                         max: 0xff,
                     },
+                    smartTemControl: {ID: 0x6017, type: Zcl.DataType.BITMAP8, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -2579,6 +2641,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.weeklySchedule(),
             m.customTimeResponse("1970_UTC"),
+            sonoffExtend.smartTemControl(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
