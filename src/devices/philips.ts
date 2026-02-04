@@ -3513,19 +3513,15 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
-        zigbeeModel: ["929004608004"],
-        model: "929004608004",
-        vendor: "Philips",
-        description: "Hue OmniGlow lightstrip",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
-    },
-    {
-        zigbeeModel: ["929004608001", "929004608101", "929004608201"],
+        zigbeeModel: ["929004608001", "929004608003", "929004608004", "929004608101", "929004608103", "929004608201"],
         model: "929004608001",
         vendor: "Philips",
         description: "Hue OmniGlow lightstrip (3m)",
         whiteLabel: [
+            {model: "929004608003", vendor: "Philips", description: "Hue OmniGlow lightstrip AU (3m)", fingerprint: [{modelID: "929004608003"}]},
+            {model: "929004608004", vendor: "Philips", description: "Hue OmniGlow lightstrip US (10ft)", fingerprint: [{modelID: "929004608004"}]},
             {model: "929004608101", vendor: "Philips", description: "Hue OmniGlow lightstrip (5m)", fingerprint: [{modelID: "929004608101"}]},
+            {model: "929004608103", vendor: "Philips", description: "Hue OmniGlow lightstrip AU (5m)", fingerprint: [{modelID: "929004608103"}]},
             {model: "929004608201", vendor: "Philips", description: "Hue OmniGlow lightstrip (10m)", fingerprint: [{modelID: "929004608201"}]},
         ],
         extend: [
