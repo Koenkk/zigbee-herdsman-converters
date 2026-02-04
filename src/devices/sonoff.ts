@@ -8,7 +8,7 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const {ewelinkAction, ewelinkBattery} = ewelinkModernExtend;
@@ -184,6 +184,7 @@ export interface SonoffEwelink {
         detachRelayMode: number;
         deviceWorkMode: number;
         detachRelayMode2: number;
+        motorTravelCalibrationAction: number;
         lackWaterCloseValveTimeout: number;
         motorTravelCalibrationStatus: number;
         motorRunStatus: number;
@@ -201,6 +202,7 @@ export interface SonoffEwelink {
         minBrightnessThreshold: number;
         transitionTime: number;
         dimmingLightRate: number;
+        programmableStepperSequence: number[];
     };
     commands: {
         protocolData: {data: number[]};
@@ -209,8 +211,8 @@ export interface SonoffEwelink {
 }
 
 const sonoffExtend = {
-    addCustomClusterEwelink: () =>
-        m.deviceAddCustomCluster("customClusterEwelink", {
+    addCustomClusterEwelink: () => {
+        return m.deviceAddCustomCluster("customClusterEwelink", {
             ID: 0xfc11,
             attributes: {
                 networkLed: {ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
@@ -231,6 +233,7 @@ const sonoffExtend = {
                 detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN, write: true},
                 deviceWorkMode: {ID: 0x0018, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 detachRelayMode2: {ID: 0x0019, type: Zcl.DataType.BITMAP8, write: true},
+                motorTravelCalibrationAction: {ID: 0x5001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 motorTravelCalibrationStatus: {ID: 0x5012, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 motorRunStatus: {ID: 0x5013, type: Zcl.DataType.UINT8, write: true, max: 0xff},
@@ -247,12 +250,157 @@ const sonoffExtend = {
                 minBrightnessThreshold: {ID: 0x4001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 dimmingLightRate: {ID: 0x4003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 transitionTime: {ID: 0x001f, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                programmableStepperSequence: {ID: 0x0022, type: Zcl.DataType.ARRAY, write: true},
             },
             commands: {
                 protocolData: {ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
             },
             commandsResponse: {},
-        }),
+        });
+    },
+    programmableStepperSequence(sequences: string[]): ModernExtend {
+        const stepComposite = (n: number) => {
+            return e
+                .composite(`step_${n}`, `step_${n}`, ea.ALL)
+                .withFeature(e.binary("enable_step", ea.ALL, true, false).withDescription("Enable/disable this step."))
+                .withFeature(e.binary("relay_outlet_1", ea.ALL, true, false).withDescription("Outlet 1 relay state."))
+                .withFeature(e.binary("relay_outlet_2", ea.ALL, true, false).withDescription("Outlet 2 relay state."));
+        };
+
+        const exposes = sequences.map((seq) => {
+            return e
+                .composite(`programmable_stepper_seq${seq}`, `programmable_stepper_seq${seq}`, ea.ALL)
+                .withDescription(`Configure programmable stepper sequence ${seq}.`)
+                .withFeature(e.binary("enable_stepper", ea.ALL, true, false).withDescription("Enable/disable the stepper sequence."))
+                .withFeature(
+                    e
+                        .numeric("switch_outlet", ea.ALL)
+                        .withValueMin(1)
+                        .withValueMax(2)
+                        .withValueStep(1)
+                        .withDescription("The outlet channel of the external trigger switch bound to this sequence."),
+                )
+                .withFeature(e.binary("enable_double_press", ea.ALL, true, false).withDescription("Enable/disable double press to switch steps."))
+                .withFeature(
+                    e
+                        .numeric("double_press_interval", ea.ALL)
+                        .withValueMin(0)
+                        .withValueMax(32767)
+                        .withValueStep(1)
+                        .withUnit("ms")
+                        .withDescription("Set the double press interval for step switching."),
+                )
+                .withFeature(stepComposite(1))
+                .withFeature(stepComposite(2))
+                .withFeature(stepComposite(3))
+                .withFeature(stepComposite(4));
+        });
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [...sequences.map((seq) => `programmable_stepper_seq${seq}`)],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+
+                    const array: Uint8Array = new Uint8Array(11);
+
+                    // ZCL Array
+                    array[0] = 0x01;
+                    array[1] = 9;
+                    array[2] = 1;
+
+                    // Sequence configs
+                    const seqStr = key.replace("programmable_stepper_seq", "");
+                    const seqIndex = Number.parseInt(seqStr as string, 10) - 1;
+
+                    array[3] = (value.enable_stepper ? 0x80 : 0x00) | (seqIndex & 0x7f);
+                    array[4] = (value.switch_outlet - 1) & 0xff;
+                    array[5] = (value.enable_double_press ? 0x80 : 0x00) | ((value.double_press_interval >> 8) & 0x7f);
+                    array[6] = value.double_press_interval & 0xff;
+
+                    // Steps
+                    for (let i = 0; i < 4; i++) {
+                        const step = value[`step_${i + 1}`] ?? {};
+                        array[7 + i] = (step.enable_step ? 0x80 : 0x00) | (step.relay_outlet_1 ? 0x01 : 0x00) | (step.relay_outlet_2 ? 0x02 : 0x00);
+                    }
+
+                    await entity.write(
+                        "customClusterEwelink",
+                        {
+                            [0x0022]: {
+                                value: {
+                                    elementType: 0x20,
+                                    elements: array,
+                                },
+                                type: 0x48,
+                            },
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
+
+                    return {
+                        state: {
+                            [key]: value,
+                        },
+                    };
+                },
+            },
+        ];
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffEwelink, ["attributeReport"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport"],
+                convert: (model, msg) => {
+                    if (!msg.data?.programmableStepperSequence) {
+                        return;
+                    }
+
+                    const array = new Uint8Array(msg.data.programmableStepperSequence);
+                    if (array[0] !== 0x01) {
+                        return;
+                    }
+
+                    const seqCount = array[2];
+                    const seqDataOffset = 3;
+                    const result: KeyValueAny = {};
+
+                    for (let i = 0; i < seqCount; i++) {
+                        const offset = seqDataOffset + i * 8;
+
+                        // Steps
+                        const steps: KeyValueAny = {};
+                        for (let j = 0; j < 4; j++) {
+                            const currentBuffer = array[offset + 4 + j];
+                            steps[`step_${j + 1}`] = {
+                                enable_step: !!(currentBuffer & 0x80),
+                                relay_outlet_1: !!(currentBuffer & 0x01),
+                                relay_outlet_2: !!(currentBuffer & 0x02),
+                            };
+                        }
+
+                        // Sequence configs
+                        const seqNum = (array[offset] & 0x7f) + 1;
+                        result[`programmable_stepper_seq${seqNum}`] = {
+                            enable_stepper: !!(array[offset] & 0x80),
+                            switch_outlet: array[offset + 1] + 1,
+                            enable_double_press: !!(array[offset + 2] & 0x80),
+                            double_press_interval: ((array[offset + 2] & 0x7f) << 8) | array[offset + 3],
+                            ...steps,
+                        };
+                    }
+                    return result;
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
     inchingControlSet: (args: ExternalInchingAgs = {}, maxTime = 3599.5): ModernExtend => {
         const {endpointNames = undefined} = args;
         const clusterName = "customClusterEwelink";
@@ -1643,6 +1791,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SNZB-02WD",
         vendor: "SONOFF",
         description: "Waterproof (IP65) temperature and humidity sensor with screen",
+        ota: true,
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02wd", {
                 ID: 0xfc11,
@@ -2125,7 +2274,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "occupancy_timeout",
                 cluster: 0x0406,
                 attribute: {ID: 0x0020, type: 0x21},
-                description: "Unoccupied to occupied delay",
+                description: "Occupied to unoccupied delay",
                 valueMin: 15,
                 valueMax: 65535,
             }),
@@ -2147,6 +2296,39 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["MG1_5RZ"],
+        model: "MG1_5RZ",
+        vendor: "SONOFF",
+        description: "Zigbee human presence radar (5.8 GHz)",
+        extend: [
+            m.occupancy({reporting: false}),
+            m.numeric({
+                name: "occupied_to_unoccupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0020, type: 0x21},
+                description: "Ultrasonic occupied → unoccupied delay (seconds)",
+                valueMin: 60,
+                valueMax: 65535,
+            }),
+            m.numeric({
+                name: "unoccupied_to_occupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0021, type: 0x21},
+                description: "Ultrasonic unoccupied → occupied delay (seconds)",
+                valueMin: 0,
+                valueMax: 65535,
+            }),
+            m.enumLookup({
+                name: "occupancy_sensitivity",
+                lookup: {low: 1, medium: 2, high: 3},
+                cluster: 0x0406,
+                attribute: {ID: 0x0022, type: 0x20},
+                description: "Sensitivity of human presence detection",
+            }),
+        ],
+        ota: false,
     },
     {
         zigbeeModel: ["TRVZB"],
@@ -2172,6 +2354,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_running_state,
         ],
         extend: [
+            m.customLocalTemperatureCalibrationRange({min: -12.7, max: 12.7}),
             m.deviceAddCustomCluster("customSonoffTrvzb", {
                 ID: 0xfc11,
                 attributes: {
@@ -2588,6 +2771,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable/disable Radio power turbo mode",
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
+                entityCategory: "config",
             }),
             sonoffExtend.inchingControlSet(),
         ],
@@ -2929,6 +3113,20 @@ export const definitions: DefinitionWithExtend[] = [
             sonoffExtend.addCustomClusterEwelink(),
             m.windowCovering({controls: ["lift"], coverInverted: false}),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "motor_travel_calibration_action",
+                lookup: {
+                    start_automatic: 2,
+                    start_manual: 3,
+                    clear: 4,
+                    manual_2_fully_opened: 7,
+                    manual_3_fully_closed: 8,
+                },
+                cluster: "customClusterEwelink",
+                attribute: "motorTravelCalibrationAction",
+                description: "Calibrates the motor stroke, or clears the current one.",
+                access: "ALL",
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "motor_travel_calibration_status",
                 lookup: {Uncalibrated: 0, Calibrated: 1},
                 cluster: "customClusterEwelink",
@@ -3021,6 +3219,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 2,
                 endpointNames: ["l1", "l2"],
             }),
+            sonoffExtend.programmableStepperSequence(["1", "2", "3", "4"]),
         ],
 
         configure: async (device, coordinatorEndpoint) => {

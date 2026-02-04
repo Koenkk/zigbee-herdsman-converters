@@ -51,11 +51,15 @@ const fzLocal = {
                 result.main_cycle_output = utils.getFromLookup(msg.data.SinopeMainCycleOutput, cycleOutputLookup);
             }
             if (msg.data["1026"] !== undefined) {
-                const lookup = {0: "on_demand", 1: "sensing", 2: "off"};
+                const lookup = utils.getMetaValue(msg.endpoint, model, "sinopeAlternateBacklightAutoDim", "allEqual", false)
+                    ? {0: "on_demand", 1: "off", 2: "sensing"}
+                    : {0: "on_demand", 1: "sensing", 2: "off"};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data["1026"], lookup);
             }
             if (msg.data.SinopeBacklight !== undefined) {
-                const lookup = {0: "on_demand", 1: "sensing", 2: "off"};
+                const lookup = utils.getMetaValue(msg.endpoint, model, "sinopeAlternateBacklightAutoDim", "allEqual", false)
+                    ? {0: "on_demand", 1: "off", 2: "sensing"}
+                    : {0: "on_demand", 1: "sensing", 2: "off"};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data.SinopeBacklight, lookup);
             }
             if (msg.data["1028"] !== undefined) {
@@ -265,7 +269,9 @@ const tzLocal = {
     backlight_autodim: {
         key: ["backlight_auto_dim"],
         convertSet: async (entity, key, value, meta) => {
-            const sinopeBacklightParam = {0: "on_demand", 1: "sensing", 2: "off"};
+            const sinopeBacklightParam = utils.getMetaValue(entity, meta.mapped, "alternateBacklightAutoDim", "allEqual", false)
+                ? {0: "on_demand", 1: "off", 2: "sensing"}
+                : {0: "on_demand", 1: "sensing", 2: "off"};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value as number, Number);
             await entity.write("hvacThermostat", {SinopeBacklight}, manuSinope);
             return {state: {backlight_auto_dim: value}};
@@ -676,7 +682,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("temperature_display_mode", ea.ALL, ["celsius", "fahrenheit"])
                 .withDescription("The temperature format displayed on the thermostat screen"),
             e.enum("time_format", ea.ALL, ["24h", "12h"]).withDescription("The time format featured on the thermostat display"),
-            e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing"]).withDescription("Control backlight dimming behavior"),
+            e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "off"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
             e.enum("main_cycle_output", ea.ALL, ["15_sec", "15_min"]).withDescription("The length of the control cycle: 15_sec=normal 15_min=fan"),
             e
@@ -836,6 +842,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
         extend: [m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        meta: {sinopeAlternateBacklightAutoDim: true},
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -956,6 +963,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
         extend: [m.electricityMeter()],
+        meta: {sinopeAlternateBacklightAutoDim: true},
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
