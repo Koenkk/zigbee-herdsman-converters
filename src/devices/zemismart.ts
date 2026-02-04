@@ -56,12 +56,17 @@ const valueConverterLocal = {
         to: (v: string, meta: Tz.Meta) => {
             const stringValue = String(v ?? "");
             const limitedString = stringValue.slice(0, 12);
-            return limitedString.split("").map((char) => char.charCodeAt(0));
+            const encoder = new TextEncoder();
+            const uint8Array = encoder.encode(limitedString);
+            const numberArray = Array.from(uint8Array);
+            return numberArray;
         },
         from: (v: number, meta: Fz.Meta) => {
-            return Object.values(v)
-                .map((code) => String.fromCharCode(code))
-                .join("");
+            const data = Object.values(v);
+            const uint8Array = new Uint8Array(data);
+            const decoder = new TextDecoder("utf-8");
+            const decodedString = decoder.decode(uint8Array);
+            return decodedString;
         },
     },
     cycleSchedule: {
