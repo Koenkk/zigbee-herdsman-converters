@@ -1378,7 +1378,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        zigbeeModel: ["E_Socket"],
+        zigbeeModel: ["E_Socket", "E8331510SSZB_C1"],
         model: "HS2ESK-E",
         vendor: "Heiman",
         description: "Smart in wall plug",
@@ -1642,7 +1642,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: "IRControl-EM", manufacturerName: "HEIMAN"}],
-        model: "HS2IRC",
+        model: "HS1IRC",
         vendor: "Heiman",
         description: "Smart IR Control",
         extend: [addCustomClusterHeimanSpecificInfraRedRemote()],
@@ -1653,6 +1653,20 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanSpecificInfraRedRemote"]);
             await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        fingerprint: [{modelID: "IRControl2-EF-3.0", manufacturerName: "HEIMAN"}],
+        model: "HS2IRC",
+        vendor: "Heiman",
+        description: "Smart IR Control",
+        extend: [addCustomClusterHeimanSpecificInfraRedRemote()],
+        fromZigbee: [fz.heiman_ir_remote],
+        toZigbee: [tz.heiman_ir_remote],
+        exposes: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["heimanSpecificInfraRedRemote"]);
         },
     },
     {
@@ -1718,6 +1732,24 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.deviceTemperature(device.getEndpoint(1));
         },
         exposes: [e.switch().withEndpoint("left"), e.switch().withEndpoint("center"), e.switch().withEndpoint("right"), e.device_temperature()],
+    },
+    {
+        zigbeeModel: ["RelayModule-EF-3.0"],
+        model: "Relay module",
+        vendor: "Heiman",
+        description: "Smart Relay module - 2 gang with neutral wire",
+        fromZigbee: [fz.on_off, fz.device_temperature],
+        toZigbee: [tz.on_off],
+        endpoint: (device) => {
+            return {left: 1, right: 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genDeviceTempCfg"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.deviceTemperature(device.getEndpoint(1));
+        },
+        exposes: [e.switch().withEndpoint("left"), e.switch().withEndpoint("right"), e.device_temperature()],
     },
     {
         zigbeeModel: ["TemperLight"],
@@ -1910,6 +1942,103 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Occupied to unoccupied delay",
                 valueMin: 60,
                 valueMax: 3600,
+                access: "ALL",
+            }),
+        ],
+        fromZigbee: [],
+        toZigbee: [],
+        ota: true,
+        exposes: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                "msOccupancySensing",
+                "msIlluminanceMeasurement",
+                "heimanClusterRadar",
+                "haDiagnostic",
+            ]);
+            await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
+            await endpoint.read("msOccupancySensing", ["ultrasonicOToUDelay"]);
+            await endpoint.read("heimanClusterRadar", [0xf001, 0xf002], {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD});
+        },
+        endpoint: (device) => ({default: 1}),
+    },
+    {
+        zigbeeModel: ["HS8MIS-EF1-3.0"],
+        model: "HS8MIS-EF1-3.0",
+        vendor: "Heiman",
+        description: "PIR sensor",
+        extend: [
+            m.occupancy(),
+            heimanExtend.heimanClusterRadar(),
+            heimanExtend.heimanClusterRadarActiveIndicatorExtend(),
+            heimanExtend.heimanClusterLegacyIlluminanceExtend(),
+
+            m.numeric({
+                name: "radar_delay_time",
+                cluster: 0x0406,
+                attribute: {ID: 0x0010, type: 0x21},
+                description: "Occupied to unoccupied delay",
+                valueMin: 60,
+                valueMax: 3600,
+                access: "ALL",
+            }),
+
+            m.enumLookup({
+                name: "sensitivity",
+                lookup: {high: 0, medium: 1, low: 2},
+                cluster: "heimanClusterRadar",
+                attribute: {ID: 0xf002, type: Zcl.DataType.UINT8},
+                description: "sensitivity for PIR sensor",
+                access: "ALL",
+            }),
+        ],
+        fromZigbee: [],
+        toZigbee: [],
+        ota: true,
+        exposes: [],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                "msOccupancySensing",
+                "msIlluminanceMeasurement",
+                "heimanClusterRadar",
+                "haDiagnostic",
+            ]);
+            await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
+            await endpoint.read("msOccupancySensing", ["ultrasonicOToUDelay"]);
+            await endpoint.read("heimanClusterRadar", [0xf001, 0xf002], {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD});
+        },
+        endpoint: (device) => ({default: 1}),
+    },
+    {
+        zigbeeModel: ["HS8MIS-80-EF1-3.0"],
+        model: "HS8MLS-EF1-3.0",
+        vendor: "Heiman",
+        description: "PIR sensor with night light",
+        extend: [
+            m.occupancy(),
+            m.onOff(),
+            heimanExtend.heimanClusterRadar(),
+            heimanExtend.heimanClusterRadarSensitivityExtend(),
+            heimanExtend.heimanClusterLegacyIlluminanceExtend(),
+
+            m.numeric({
+                name: "radar_delay_time",
+                cluster: 0x0406,
+                attribute: {ID: 0x0010, type: 0x21},
+                description: "Occupied to unoccupied delay",
+                valueMin: 60,
+                valueMax: 3600,
+                access: "ALL",
+            }),
+
+            m.enumLookup({
+                name: "sensitivity",
+                lookup: {high: 0, medium: 1, low: 2},
+                cluster: "heimanClusterRadar",
+                attribute: {ID: 0xf002, type: Zcl.DataType.UINT8},
+                description: "sensitivity for PIR sensor",
                 access: "ALL",
             }),
         ],
