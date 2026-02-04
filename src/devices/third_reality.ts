@@ -93,8 +93,8 @@ interface ThirdAirPressureSensor {
 
 interface Third24gRadar {
     attributes: {
-        seniorSensitive: number;
-        seniorCalibration: number;
+        sensorSensitive: number;
+        sensorCalibration: number;
     };
     commands: never;
     commandResponses: never;
