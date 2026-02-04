@@ -1101,7 +1101,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
             m.numeric<"3r24gRadarcluster", Third24gRadar>({
-                name: "senior_sensitive",
+                name: "sensor_sensitive",
                 valueMin: 1,
                 valueMax: 5,
                 cluster: "3r24gRadarcluster",
