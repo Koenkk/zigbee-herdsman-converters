@@ -1471,7 +1471,17 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 3, s1: 21, s2: 22, s3: 23, s4: 24};
         },
         meta: {multiEndpoint: true},
-        extend: [m.light({endpointNames: ["l1"], configureReporting: true, levelConfig: {}})],
+        extend: [
+            m.light({endpointNames: ["l1"], configureReporting: true, levelConfig: {}}),
+            indicatorMode("s1"),
+            indicatorMode("s2"),
+            indicatorMode("s3"),
+            indicatorMode("s4"),
+            switchActions("s1"),
+            switchActions("s2"),
+            switchActions("s3"),
+            switchActions("s4"),
+        ],
         exposes: [
             e
                 .numeric("ballast_minimum_level", ea.ALL)
