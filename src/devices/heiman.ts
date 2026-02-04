@@ -1670,7 +1670,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["HS2SW1L-EF-3.0", "HS2SW1L-EFR-3.0", "HS2SW1A-N"],
+        zigbeeModel: ["HS2SW1L-EF-3.0", "HS2SW1L-EFR-3.0", "HS2SW1A-N", "HS6SW1A-W-EF-3.0", "HS5SW1A-W-EF-3.0"],
         fingerprint: [
             {modelID: "HS2SW1A-EF-3.0", manufacturerName: "HEIMAN"},
             {modelID: "HS2SW1A-EFR-3.0", manufacturerName: "HEIMAN"},
@@ -1689,7 +1689,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch(), e.device_temperature()],
     },
     {
-        zigbeeModel: ["HS2SW2L-EF-3.0", "HS2SW2L-EFR-3.0", "HS2SW2A-N"],
+        zigbeeModel: ["HS2SW2L-EF-3.0", "HS2SW2L-EFR-3.0", "HS2SW2A-N", "HS6SW2A-W-EF-3.0", "HS5SW2A-W-EF-3.0"],
         fingerprint: [
             {modelID: "HS2SW2A-EF-3.0", manufacturerName: "HEIMAN"},
             {modelID: "HS2SW2A-EFR-3.0", manufacturerName: "HEIMAN"},
@@ -1711,7 +1711,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch().withEndpoint("left"), e.switch().withEndpoint("right"), e.device_temperature()],
     },
     {
-        zigbeeModel: ["HS2SW3L-EF-3.0", "HS2SW3L-EFR-3.0", "HS2SW3A-N"],
+        zigbeeModel: ["HS2SW3L-EF-3.0", "HS2SW3L-EFR-3.0", "HS2SW3A-N", "HS6SW3A-W-EF-3.0", "HS5SW3A-W-EF-3.0"],
         fingerprint: [
             {modelID: "HS2SW3A-EF-3.0", manufacturerName: "HEIMAN"},
             {modelID: "HS2SW3A-EFR-3.0", manufacturerName: "HEIMAN"},
@@ -2020,7 +2020,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.occupancy(),
             m.onOff(),
             heimanExtend.heimanClusterRadar(),
-            heimanExtend.heimanClusterRadarSensitivityExtend(),
+            heimanExtend.heimanClusterRadarActiveIndicatorExtend(),
             heimanExtend.heimanClusterLegacyIlluminanceExtend(),
 
             m.numeric({
