@@ -281,13 +281,13 @@ type DefinitionBase = {
 
 type DefinitionConfig = {
     endpoint?: (device: Zh.Device) => {[s: string]: number};
-   /**
-    * Semver version of the definition.
-    * Changing this from one ZHC version to another, informs the application that it should trigger specific behavior (migration-like):
-    * - major: reserved for future use
-    * - minor: reserved for future use
-    * - patch: the application should re-`configure` the device
-    */
+    /**
+     * Semver version of the definition.
+     * Changing this from one ZHC version to another, informs the application that it should trigger specific behavior (migration-like):
+     * - major: reserved for future use
+     * - minor: reserved for future use
+     * - patch: the application should re-`configure` the device
+     */
     version?: `0.0.${number}`;
     configure?: Configure;
     options?: Option[];
