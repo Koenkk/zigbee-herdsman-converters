@@ -1,5 +1,33 @@
 # Changelog
 
+## [26.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.122.0...v26.0.0) (2026-02-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* Add re-configure mechanism through `definition.version` ([#11148](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11148))
+
+### Features
+
+* **add:** 929004608003, 929004608103 ([#11468](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11468)) ([ca4a313](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ca4a3136dd7b2b66f6855b6fd050dc8c10fb3d0e))
+* **add:** TRV603 ([#11463](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11463)) ([d4f085c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d4f085c94393464810f2746c0ebfb76d59454b02))
+
+
+### Bug Fixes
+
+* Add re-configure mechanism through `definition.version` ([#11148](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11148)) ([2192bbb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2192bbb08af16ed41c9820d5c141c4bb0c172c96))
+* **detect:** Detect `_TZE200_tgeqdjgk` as Tuya TS0601_knob_dimmer_switch https://github.com/Koenkk/zigbee2mqtt/issues/30955 ([f55a0c1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f55a0c1bca84d4631050e9739cebacd8841e7904))
+* **detect:** Detect `_TZE284_68utemio` as Zemismart ZN2S-US1-SD and `_TZE284_dmckrsxg` as Zemismart ZMS-206EU-2 ([#11469](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11469)) ([08e0703](https://github.com/Koenkk/zigbee-herdsman-converters/commit/08e0703f34f95a8965cde42155b3aaa4384a1b14))
+* **detect:** Detect `1740547P0` as Philips 9290018216 https://github.com/Koenkk/zigbee2mqtt/issues/30958 ([a27d68c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a27d68cba1474cd2efc20805e5a78a1b6e83c430))
+* **detect:** Detect `TZE204_7sjncirf` as Tuya TS0601_switch_10 ([#11460](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11460)) ([c5a49ed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c5a49ed40770d3f9389d1f06cbe103a1d727a82b))
+* **ignore:** fix 82d33783fd4cc926e6d1e93ad64c0fb0eccdd1a3 ([89fe64e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/89fe64e691151fea1614cf26c75a4ab628bc9510))
+* **ignore:** fix a46e4d567cddabfb3d9001d760d56605cde9bbb1 ([#11470](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11470)) ([d1de85b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d1de85ba2d79cdca8b856ada04f56b36f72d4e82))
+* Inovelli VZM36: improve integration ([#11420](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11420)) ([e841cb8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e841cb84b951c7041aa5a2356c8ecd58a165231d))
+* LifeControl MCLH-08: fix invalid temperature value  ([#11459](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11459)) ([4c11411](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4c11411cdb1b8125c260bdd77c1aec45a57d6d88))
+* Moes ZWV-YC: enable on/off reporting ([#11462](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11462)) ([ee6bf8e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ee6bf8e8f592af5152ed512d234356e4b8e0d56c))
+* Set `indicator_mode` `category` to `config` ([#11461](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11461)) ([ca2f532](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ca2f5321a7ec4380b3a7c1e00402f75e7deb93d9))
+* Tuya `_TZB210_417ikxay`: fix cannot maintain last RGB color when turn off then on https://github.com/Koenkk/zigbee2mqtt/issues/30584 ([82d3378](https://github.com/Koenkk/zigbee-herdsman-converters/commit/82d33783fd4cc926e6d1e93ad64c0fb0eccdd1a3))
+
 ## [25.122.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.121.0...v25.122.0) (2026-02-03)
 
 
