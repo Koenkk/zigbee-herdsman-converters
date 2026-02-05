@@ -288,7 +288,7 @@ type DefinitionConfig = {
     * - minor: reserved for future use
     * - patch: the application should re-`configure` the device
     */
-    version?: string;
+    version?: `0.0.${number}`;
     configure?: Configure;
     options?: Option[];
     meta?: DefinitionMeta;
