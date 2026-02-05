@@ -303,7 +303,7 @@ type DefinitionFeatures = {
     exposes: DefinitionExposes;
 };
 
-export type Definition = DefinitionMatcher & DefinitionBase & DefinitionConfig & DefinitionFeatures & {version: string};
+export type Definition = DefinitionMatcher & DefinitionBase & DefinitionConfig & DefinitionFeatures & NonNullable<Pick<DefinitionConfig, "version">>;
 
 export type DefinitionWithExtend = DefinitionMatcher &
     DefinitionBase &
