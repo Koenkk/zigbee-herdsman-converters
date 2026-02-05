@@ -3454,7 +3454,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
             configure.push(
                 setupConfigureForReporting("hvacThermostat", "ctrlSeqeOfOper", {
                     config: ctrlSeqeOfOper.configure?.reporting ?? repConfigChange0,
-                    access: ctrlSeqeOfOper.configure?.access ?? ea.STATE_GET,
+                    access: ctrlSeqeOfOper.configure?.access ?? ea.ALL,
                 }),
             );
         }
