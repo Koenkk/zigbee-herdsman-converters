@@ -6,7 +6,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["WAV Smart Receiver"],
         model: "T-TWAV-60W-PSR",
         vendor: "Task Lighting",
-        description: "Task Lighting WAV Smart Receiver LED lighting controller",
+        description: "WAV smart receiver LED lighting controller",
         extend: [m.light({colorTemp: {range: [150, 500]}, color: true})],
     },
 ];
