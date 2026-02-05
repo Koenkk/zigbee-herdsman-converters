@@ -1080,7 +1080,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart presence sensor R2",
         extend: [
             m.battery(),
-            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1"]}),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
             m.deviceAddCustomCluster("3r24gRadarcluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
