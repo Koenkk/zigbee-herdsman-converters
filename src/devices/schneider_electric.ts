@@ -744,8 +744,7 @@ const schneiderElectricExtend = {
             name: "control_type",
             cluster: "hvacThermostat",
             attribute: "controlType",
-            description:
-                "'On/Off', 'PI' and 'None' supported. This specifies the type of control algorithm to be used to regulate temperature.",
+            description: "'On/Off', 'PI' and 'None' supported. This specifies the type of control algorithm to be used to regulate temperature.",
             entityCategory: "config",
             lookup: {"On/Off": 0, PI: 1, None: 0xff},
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
