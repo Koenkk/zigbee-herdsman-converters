@@ -98,7 +98,7 @@ interface SonoffTrvzb {
         temporaryMode: number;
         temporaryModeTime: number;
         temporaryModeTemp: number;
-        smartTemControl: number;
+        smartTempControl: number;
     };
     commands: never;
     commandResponses: never;
