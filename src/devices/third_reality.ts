@@ -1077,7 +1077,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RPS01083Z"],
         model: "3RPS01083Z",
         vendor: "Third Reality",
-        description: "Smart Presence Sensor R2",
+        description: "Smart presence sensor R2",
         extend: [
             m.battery(),
             m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1"]}),
