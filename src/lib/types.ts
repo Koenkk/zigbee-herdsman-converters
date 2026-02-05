@@ -281,9 +281,13 @@ type DefinitionBase = {
 
 type DefinitionConfig = {
     endpoint?: (device: Zh.Device) => {[s: string]: number};
-    // When changed, the host application (e.g. Z2M) should re-configure the device.
-    // Currently only the PATCH version is used, MAJOR.MINOR are reserved.
-    // So the value should starts with `0.0.` for now.
+   /**
+    * Semver version of the definition.
+    * Changing this from one ZHC version to another, informs the application that it should trigger specific behavior (migration-like):
+    * - major: reserved for future use
+    * - minor: reserved for future use
+    * - patch: the application should re-`configure` the device
+    */
     version?: string;
     configure?: Configure;
     options?: Option[];
