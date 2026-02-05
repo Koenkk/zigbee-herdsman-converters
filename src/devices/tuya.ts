@@ -442,6 +442,49 @@ const bindSlotTS0601SmartSceneKnob = async (entity: Zh.Endpoint | Zh.Group, slot
     await tuya.sendDataPointRaw(entity as Zh.Endpoint, 102, payload, "dataRequest", 0x10 + (slot - 1));
 };
 
+const trv603ScheduleConverter = (dayNumber: number) => {
+    return {
+        from: (value: unknown) => {
+            const buf = Buffer.isBuffer(value)
+                ? value
+                : Array.isArray(value)
+                  ? Buffer.from(value)
+                  : value && typeof value === "object" && "data" in value
+                    ? Buffer.from((value as {data: number[]}).data)
+                    : null;
+            if (!buf || buf.length < 17) return;
+            const schedule = [];
+            for (let i = 1; i <= 13; i += 4) {
+                const hh = buf[i];
+                const mm = buf[i + 1];
+                const tempRaw = (buf[i + 2] << 8) | buf[i + 3];
+                const temp = (tempRaw / 10).toFixed(1);
+                if (hh > 23 || mm > 59) return;
+                schedule.push(`${hh.toString().padStart(2, "0")}:${mm.toString().padStart(2, "0")}/${temp}`);
+            }
+            return schedule.join(" ");
+        },
+        to: (value: string) => {
+            const parts = value.split(" ");
+            const buf = Buffer.alloc(17);
+            buf[0] = dayNumber;
+            parts.forEach((part, index) => {
+                if (index < 4) {
+                    const [time, temp] = part.split("/");
+                    const [hh, mm] = time.split(":");
+                    const offset = 1 + index * 4;
+                    const tempVal = Math.round(Number.parseFloat(temp) * 10);
+                    buf[offset] = Number.parseInt(hh, 10);
+                    buf[offset + 1] = Number.parseInt(mm, 10);
+                    buf[offset + 2] = (tempVal >> 8) & 0xff;
+                    buf[offset + 3] = tempVal & 0xff;
+                }
+            });
+            return Array.from(buf);
+        },
+    };
+};
+
 const tzLocal = {
     ts0049_countdown: {
         key: ["water_countdown"],
@@ -3114,7 +3157,10 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         // https://github.com/Koenkk/zigbee2mqtt/issues/30584
-        meta: {moveToLevelWithOnOffDisable: (e) => e.getDevice().manufacturerName === "_TZB210_uoiqhjqe"},
+        meta: {
+            moveToLevelWithOnOffDisable: (e) =>
+                e.getDevice().manufacturerName === "_TZB210_uoiqhjqe" || e.getDevice().manufacturerName === "_TZB210_417ikxay",
+        },
         toZigbee: [tzLocal.TS0505B_1_transitionFixesOnOffBrightness],
         configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
@@ -3690,6 +3736,62 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_noixx2uz"]),
+        model: "TRV603",
+        vendor: "Tuya",
+        description: "Thermostatic Radiator Valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        exposes: [
+            e.battery().withUnit("%"),
+            e.child_lock(),
+            e
+                .climate()
+                .withPreset(["auto", "manual", "leave"])
+                .withSetpoint("current_heating_setpoint", 5, 40, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(["heat"], ea.STATE)
+                .withRunningState(["idle", "heat"], ea.STATE),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [2, "preset", tuya.valueConverterBasic.lookup({auto: tuya.enum(0), manual: tuya.enum(1), leave: tuya.enum(2)})],
+                [3, "running_state", tuya.valueConverterBasic.lookup({idle: tuya.enum(0), heat: tuya.enum(1)})],
+                [
+                    4,
+                    "current_heating_setpoint",
+                    {
+                        from: (value: number) => value / 10,
+                        to: (value: number, meta: Tz.Meta) => {
+                            const currentPreset = meta.state.preset as string;
+                            let newValue = value;
+                            if (newValue < 5) newValue = 5;
+                            if (currentPreset === "leave" && newValue > 15) newValue = 15;
+                            return Math.round(newValue * 10);
+                        },
+                    },
+                ],
+                [
+                    5,
+                    "local_temperature",
+                    {
+                        from: (value: number) => (value > 32767 ? value - 65536 : value) / 10,
+                        to: (value: number) => Math.round(value * 10),
+                    },
+                ],
+                [6, "battery", tuya.valueConverter.raw],
+                [7, "child_lock", tuya.valueConverterBasic.lookup({LOCK: false, UNLOCK: true})],
+                [28, "schedule_monday", trv603ScheduleConverter(1)],
+                [29, "schedule_tuesday", trv603ScheduleConverter(2)],
+                [30, "schedule_wednesday", trv603ScheduleConverter(3)],
+                [31, "schedule_thursday", trv603ScheduleConverter(4)],
+                [32, "schedule_friday", trv603ScheduleConverter(5)],
+                [33, "schedule_saturday", trv603ScheduleConverter(6)],
+                [34, "schedule_sunday", trv603ScheduleConverter(7)],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_nt4pquef"]),
         model: "SGS02Z",
         vendor: "Tuya",
@@ -3764,6 +3866,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_m1cvyneb",
             "_TZE200_0hb4rdnp",
             "_TZE200_gne0e6mk",
+            "_TZE284_68utemio",
         ]),
         model: "TS0601_dimmer_1_gang_1",
         vendor: "Tuya",
@@ -3807,7 +3910,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Moes", "ZS-SR-EUD-1", "Star ring smart dimmer switch 1 gang", ["_TZE204_hlx9tnzb"]),
             tuya.whitelabel("Moes", "MS-105Z", "Smart Dimmer module", ["_TZE200_la2c2uo9"]),
             tuya.whitelabel("Mercator Ikuü", "SSWM-DIMZ", "Switch Mechanism", ["_TZE200_9cxuhakf"]),
-            tuya.whitelabel("Zemismart", "ZN2S-US1-SD", "Single gang dimmer", ["_TZE204_68utemio"]),
+            tuya.whitelabel("Zemismart", "ZN2S-US1-SD", "Single gang dimmer", ["_TZE204_68utemio", "_TZE284_68utemio"]),
             tuya.whitelabel("Mercator Ikuü", "SSWRM-ZB", "Rotary dimmer mechanism", ["_TZE200_a0syesf5"]),
             tuya.whitelabel("Lonsonho", "EDM-1ZBB-EU", "Smart Dimmer Switch", ["_TZE200_0nauxa0p"]),
             tuya.whitelabel("ION Industries", "ID200W-ZIGB", "LED Zigbee Dimmer", ["_TZE200_ykgar0ow", "_TZE200_4mh6tyyo"]),
@@ -14663,7 +14766,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7sjncirf"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7sjncirf", "TZE204_7sjncirf"]),
         model: "TS0601_switch_10",
         vendor: "Tuya",
         description: "10 gang switch",
@@ -21171,7 +21274,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "HOBEIAN", model: "ZG-305Z", fingerprint: [{modelID: "ZG-305Z"}]}],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_tgeqdjgk"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_tgeqdjgk", "_TZE200_tgeqdjgk"]),
         model: "TS0601_knob_dimmer_switch",
         vendor: "Tuya",
         description: "Dimmer knob with two lights",
