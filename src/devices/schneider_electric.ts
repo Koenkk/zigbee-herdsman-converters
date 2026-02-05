@@ -2215,7 +2215,7 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.thermostatApplication(),
             schneiderElectricExtend.heatingEmitter(),
             schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
-            m.enumLookup({
+            m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
                 name: "heating_output_mode",
                 cluster: 0xff23, // heatingCoolingOutputClusterServer
                 attribute: "heatingOutputMode",
@@ -2244,7 +2244,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
             }),
-            m.enumLookup({
+            m.enumLookup<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
                 name: "temperature_sensor_type",
                 cluster: "msTemperatureMeasurement",
                 attribute: "temperatureSensorType",
