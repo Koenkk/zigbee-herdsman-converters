@@ -2215,10 +2215,10 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.thermostatApplication(),
             schneiderElectricExtend.heatingEmitter(),
             schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
-            m.enumLookup({
+            m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
                 name: "heating_output_mode",
-                cluster: 0xff23, // heatingCoolingOutputClusterServer
-                attribute: {ID: 0x0031, type: Zcl.DataType.ENUM8},
+                cluster: "heatingCoolingOutputClusterServer",
+                attribute: "heatingOutputMode",
                 description:
                     "On devices with alternate heating output types, this selects which should be used to control the heating unit. This attribute is (mistakenly) also called pilot_mode on some devices.",
                 entityCategory: "config",
@@ -2269,7 +2269,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacUserInterfaceCfg",
                 attribute: "tempDisplayMode",
                 description: "The unit of the temperature displayed on the device screen. Celsius is the only supported unit.",
-                entityCategory: "diagnostic",
+                entityCategory: "config",
             }),
             m.binary({
                 name: "child_lock",
