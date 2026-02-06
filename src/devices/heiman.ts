@@ -1689,7 +1689,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch(), e.device_temperature()],
     },
     {
-        zigbeeModel: ["HS2SW2L-EF-3.0", "HS2SW2L-EFR-3.0", "HS2SW2A-N", "HS6SW2A-W-EF-3.0", "HS5SW2A-W-EF-3.0", "RT0102" ],
+        zigbeeModel: ["HS2SW2L-EF-3.0", "HS2SW2L-EFR-3.0", "HS2SW2A-N", "HS6SW2A-W-EF-3.0", "HS5SW2A-W-EF-3.0", "RT0102"],
         fingerprint: [
             {modelID: "HS2SW2A-EF-3.0", manufacturerName: "HEIMAN"},
             {modelID: "HS2SW2A-EFR-3.0", manufacturerName: "HEIMAN"},
@@ -1738,7 +1738,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS1RM-EF",
         vendor: "Heiman",
         description: "Smart Relay module - 2 gang with neutral wire",
-        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ["l1", "l2"]}), m.temperature() ],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ["l1", "l2"]}), m.temperature()],
         fromZigbee: [],
         toZigbee: [],
         meta: {multiEndpoint: true},
