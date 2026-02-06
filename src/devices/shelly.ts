@@ -785,7 +785,7 @@ const shellyModernExtend = {
                     if (msg.data.measuredValue !== undefined) {
                         const temperature = msg.data.measuredValue / 100;
                         const calculated = updateWS90CalculatedValues(msg.device, {temperature});
-                        return {temperature, ...calculated};
+                        return calculated; // Only calculated values; m.temperature() handles base temperature
                     }
                 },
             },
@@ -796,7 +796,7 @@ const shellyModernExtend = {
                     if (msg.data.measuredValue !== undefined) {
                         const humidity = msg.data.measuredValue / 100;
                         const calculated = updateWS90CalculatedValues(msg.device, {humidity});
-                        return {humidity, ...calculated};
+                        return calculated; // Only calculated values; m.humidity() handles base humidity
                     }
                 },
             },
@@ -805,9 +805,9 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data.measuredValue !== undefined) {
-                        const pressure = msg.data.measuredValue;
+                        const pressure = msg.data.measuredValue / 10;
                         const calculated = updateWS90CalculatedValues(msg.device, {pressure});
-                        return {pressure, ...calculated};
+                        return calculated; // Only calculated values; m.pressure() handles base pressure
                     }
                 },
             },
@@ -819,7 +819,7 @@ const shellyModernExtend = {
                         const measuredValue = msg.data.measuredValue;
                         const illuminance = measuredValue > 0 ? Math.round(10 ** ((measuredValue - 1) / 10000)) : 0;
                         const calculated = updateWS90CalculatedValues(msg.device, {illuminance});
-                        return {illuminance, ...calculated};
+                        return calculated; // Only calculated values; m.illuminance() handles base illuminance
                     }
                 },
             },
@@ -829,7 +829,9 @@ const shellyModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
                     if (data.uv_index !== undefined) {
-                        return {uv_index: (data.uv_index as number) / 10};
+                        const uv_index = (data.uv_index as number) / 10;
+                        const calculated = updateWS90CalculatedValues(msg.device, {uv_index});
+                        return calculated; // Only return calculated values, m.numeric() handles uv_index
                     }
                 },
             },
@@ -838,12 +840,12 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    const payload: KeyValue = {};
+                    const payload: {[key: string]: number} = {};
                     if (data.wind_speed !== undefined) payload.wind_speed = (data.wind_speed as number) / 10;
                     if (data.wind_direction !== undefined) payload.wind_direction = (data.wind_direction as number) / 10;
                     if (data.gust_speed !== undefined) payload.gust_speed = (data.gust_speed as number) / 10;
-                    const calculated = updateWS90CalculatedValues(msg.device, payload as {[key: string]: number});
-                    return {...payload, ...calculated};
+                    const calculated = updateWS90CalculatedValues(msg.device, payload);
+                    return calculated; // Only calculated values; m.numeric() handles base wind values
                 },
             },
             {
@@ -851,17 +853,26 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    const payload: KeyValue = {};
+                    const payload: {[key: string]: number | boolean} = {};
                     if (data.rain_status !== undefined) payload.rain_status = Boolean(data.rain_status);
                     if (data.precipitation !== undefined) {
                         payload.precipitation = (data.precipitation as number) / 10;
-                        const ws90Meta = getWS90Meta(msg.device);
-                        const rainRate = calculateRainRate(ws90Meta, payload.precipitation as number);
-                        if (rainRate !== null) payload.rain_rate = rainRate;
-                        msg.device.save();
                     }
-                    const calculated = updateWS90CalculatedValues(msg.device, payload as {[key: string]: number | boolean});
-                    return {...payload, ...calculated};
+
+                    // Calculate rain_rate (it's a calculated value, not a base sensor value)
+                    const ws90Meta = getWS90Meta(msg.device);
+                    const rainRate = calculateRainRate(ws90Meta, payload.precipitation as number | undefined);
+                    const rain_rate = rainRate !== null ? rainRate : 0;
+
+                    // Update state with precipitation and rain_rate
+                    const stateUpdate = {...payload, rain_rate};
+                    const calculated = updateWS90CalculatedValues(msg.device, stateUpdate);
+
+                    // Include rain_rate in calculated values
+                    calculated.rain_rate = rain_rate;
+
+                    msg.device.save();
+                    return calculated; // Only calculated values; m.binary()/m.numeric() handle base rain values
                 },
             },
         ];
