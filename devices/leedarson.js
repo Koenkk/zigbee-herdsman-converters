@@ -63,8 +63,8 @@ module.exports = [
         exposes: [
             exposes.light().withBrightness().withColorTemp([153, 370]),
             // Nuevos controles en la interfaz
-            exposes.numeric('on_transition_time', exposes.access.ALL).withValueMin(0).withValueMax(60).withDescription('Tiempo de fundido al encender (1/10 seg)'),
-            exposes.numeric('off_transition_time', exposes.access.ALL).withValueMin(0).withValueMax(60).withDescription('Tiempo de fundido al apagar (1/10 seg)')
+            exposes.numeric('on_transition_time', exposes.access.ALL).withValueMin(0).withValueMax(60).withDescription('On transition time (1/10 seg)'),
+            exposes.numeric('off_transition_time', exposes.access.ALL).withValueMin(0).withValueMax(60).withDescription('Off transition time (1/10 seg)')
         ],
         endpoint: (device) => { return {default: 1}; },
     },
