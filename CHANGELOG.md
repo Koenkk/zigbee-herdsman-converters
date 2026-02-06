@@ -1,5 +1,26 @@
 # Changelog
 
+## [26.1.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.0.0...v26.1.0) (2026-02-06)
+
+
+### Features
+
+* **add:** 3RPS01083Z ([#11456](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11456)) ([df275f2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/df275f2caef5d27658a72f9a72e9c89d524c3881))
+* **add:** HS8MIS, HS8MLS, HS2IRC, HS2RM ([#11465](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11465)) ([68efbfd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/68efbfd8a1cf91faf695c7dac1a2f53ea9e372f2))
+* **add:** T-TWAV-60W-PSR ([#11464](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11464)) ([0438dff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0438dff9d8e5b56745a67a744e5a751a4220f2f9))
+
+
+### Bug Fixes
+
+* AVATTO ZWSH16: fix battery % ([#11479](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11479)) ([ecc484f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ecc484faf4c0717e8f3bd018c4822eac1dabd78b))
+* **ignore:** Allow passing custom fzConverter to `enumLookup` https://github.com/Koenkk/zigbee-herdsman-converters/pull/11466 ([3aac9b3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3aac9b3e9009b61f188bce2db1a9d7819df0ed8c))
+* **ignore:** Fix WS90 pressure, rain_rate, and wind_chill issues ([#11482](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11482)) ([4c976a2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4c976a2f593c92802f2f78ab622a44f824dbd129))
+* **ignore:** Sinope TH1123ZB-G2 and TH1124ZB-G2: swap sensing and off values for backlight dimming modes Koenkk/zigbee2mqtt[#29828](https://github.com/Koenkk/zigbee-herdsman-converters/issues/29828) ([#11478](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11478)) ([1f41e85](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1f41e85e321ed9f78f2618caa46a42f30918530b))
+* Inovelli: fix data type for internalTemperature ([#11475](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11475)) ([d0e504e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d0e504edd039215a98286ea266f91d456c1a71ea))
+* Legrand: fix typo in vendor name ([#11480](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11480)) ([1089913](https://github.com/Koenkk/zigbee-herdsman-converters/commit/10899134f5a9cfe7bdbd763d3de13c3bc2a8dbe3))
+* Thermostats: set `control_sequence_of_operation` to level to ea.ALL ([#11476](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11476)) ([60d2baf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/60d2baf424ea28654822172ce7dbe331c725a2a9))
+* TOMZN DDS238-1-Z1: fix energy value divided by 10 https://github.com/Koenkk/zigbee2mqtt/issues/30973 ([e243c08](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e243c08c8fb64155a824869b1030c6aba7809d76))
+
 ## [26.0.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v25.122.0...v26.0.0) (2026-02-05)
 
 

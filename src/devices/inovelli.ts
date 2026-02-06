@@ -371,7 +371,7 @@ const inovelliExtend = {
                 dimmingMode: {ID: 0x001a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 nonNeutralAuxMediumGear: {ID: 0x001e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 nonNeutralAuxLowGear: {ID: 0x001f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                internalTemperature: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                internalTemperature: {ID: 0x0020, type: Zcl.DataType.INT8, write: true, max: 0xff},
                 overheat: {ID: 0x0021, type: Zcl.DataType.BOOLEAN, write: true},
                 otaImageType: {ID: 0x0022, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 buttonDelay: {ID: 0x0032, type: Zcl.DataType.UINT8, write: true, max: 0xff},
@@ -1038,7 +1038,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     internalTemperature: {
         ID: 32,
-        dataType: Zcl.DataType.UINT8,
+        dataType: Zcl.DataType.INT8,
         min: 0,
         max: 127,
         readOnly: true,

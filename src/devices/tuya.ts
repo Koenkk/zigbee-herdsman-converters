@@ -23587,7 +23587,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],
-                [17, "energy", tuya.valueConverter.divideBy1000],
+                [17, "energy", tuya.valueConverter.divideBy100],
                 [18, "current", tuya.valueConverter.divideBy1000],
                 [19, "power", tuya.valueConverter.divideBy10],
                 [20, "voltage", tuya.valueConverter.divideBy10],
