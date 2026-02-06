@@ -2215,10 +2215,10 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.thermostatApplication(),
             schneiderElectricExtend.heatingEmitter(),
             schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
-            m.enumLookup<number, SchneiderHeatingCoolingOutputCluster>({
+            m.enumLookup({
                 name: "heating_output_mode",
                 cluster: 0xff23, // heatingCoolingOutputClusterServer
-                attribute: "heatingOutputMode",
+                attribute: {ID: 0x0031, type: Zcl.DataType.ENUM8},
                 description:
                     "On devices with alternate heating output types, this selects which should be used to control the heating unit. This attribute is (mistakenly) also called pilot_mode on some devices.",
                 entityCategory: "config",
