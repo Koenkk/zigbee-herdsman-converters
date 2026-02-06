@@ -19,7 +19,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "temperature", tuya.valueConverter.divideBy10],
                 [2, "humidity", tuya.valueConverter.raw],
-                [4, "battery", tuya.valueConverter.raw]
+                [4, "battery", tuya.valueConverter.raw],
                 [9, "temperature_unit", tuya.valueConverter.temperatureUnit],
             ],
         },
