@@ -302,7 +302,7 @@ const sonoffExtend = {
                 cluster: "customSonoffTrvzb",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if ("smartTemControl" in msg.data) {
+                    if ("smartTempControl" in msg.data) {
                         const rawValue = msg.data.smartTemControl;
                         return {
                             smart_temperature_control: valueToMode[rawValue] ?? "off",
