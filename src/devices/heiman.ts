@@ -1015,7 +1015,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
-        zigbeeModel: ["PIRSensor-N", "PIRSensor-EM", "PIRSensor-EF-3.0", "PIR_TPV13"],
+        zigbeeModel: ["PIRSensor-N", "PIRSensor-N-3.0", "PIRSensor-EM", "PIRSensor-EF-3.0", "PIR_TPV13"],
         model: "HS3MS",
         vendor: "Heiman",
         description: "Smart motion sensor",
@@ -1075,7 +1075,7 @@ export const definitions: DefinitionWithExtend[] = [
             "SMOK_HV14",
             "SMOK_YDLV10N",
         ],
-        model: "HS1SA",
+        model: "HS1SA-E",
         vendor: "Heiman",
         description: "Smoke detector",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
@@ -1689,7 +1689,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch(), e.device_temperature()],
     },
     {
-        zigbeeModel: ["HS2SW2L-EF-3.0", "HS2SW2L-EFR-3.0", "HS2SW2A-N", "HS6SW2A-W-EF-3.0", "HS5SW2A-W-EF-3.0"],
+        zigbeeModel: ["HS2SW2L-EF-3.0", "HS2SW2L-EFR-3.0", "HS2SW2A-N", "HS6SW2A-W-EF-3.0", "HS5SW2A-W-EF-3.0", "RT0102" ],
         fingerprint: [
             {modelID: "HS2SW2A-EF-3.0", manufacturerName: "HEIMAN"},
             {modelID: "HS2SW2A-EFR-3.0", manufacturerName: "HEIMAN"},
@@ -1735,21 +1735,18 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["RelayModule-EF-3.0"],
-        model: "Relay module",
+        model: "HS1RM-EF",
         vendor: "Heiman",
         description: "Smart Relay module - 2 gang with neutral wire",
-        fromZigbee: [fz.on_off, fz.device_temperature],
-        toZigbee: [tz.on_off],
-        endpoint: (device) => {
-            return {left: 1, right: 2};
-        },
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ["l1", "l2"]}), m.temperature() ],
+        fromZigbee: [],
+        toZigbee: [],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genDeviceTempCfg"]);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.deviceTemperature(device.getEndpoint(1));
         },
-        exposes: [e.switch().withEndpoint("left"), e.switch().withEndpoint("right"), e.device_temperature()],
+        exposes: [],
     },
     {
         zigbeeModel: ["TemperLight"],
@@ -2168,7 +2165,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["HS1SA-EF-3.0"],
-        model: "HS1SA-E",
+        model: "HS1SA-EF",
         vendor: "Heiman",
         description: "Smoke detector",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fzLocal.heimanClusterSpecialfz],
