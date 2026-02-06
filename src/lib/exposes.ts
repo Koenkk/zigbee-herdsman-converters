@@ -745,6 +745,13 @@ export class Climate extends Base {
         return this;
     }
 
+    withSetpointChangeSource(access = a.STATE) {
+        this.addFeature(
+            new Enum("setpoint_change_source", access, ["manual", "schedule", "externally"]).withDescription("Source of the current setpoint change"),
+        );
+        return this;
+    }
+
     withAcLouverPosition(positions: string[], access = a.ALL) {
         const allowed = ["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"];
         positions.forEach((m) => {
