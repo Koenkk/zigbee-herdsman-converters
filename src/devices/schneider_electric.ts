@@ -2215,7 +2215,7 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.thermostatApplication(),
             schneiderElectricExtend.heatingEmitter(),
             schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
-            m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
+            m.enumLookup<number, SchneiderHeatingCoolingOutputCluster>({
                 name: "heating_output_mode",
                 cluster: 0xff23, // heatingCoolingOutputClusterServer
                 attribute: "heatingOutputMode",
