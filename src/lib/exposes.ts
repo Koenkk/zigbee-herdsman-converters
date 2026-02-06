@@ -736,6 +736,15 @@ export class Climate extends Base {
         return this;
     }
 
+    withProgrammingOperationMode(modes: string[], access = a.ALL) {
+        const allowed = ["setpoint", "schedule", "schedule_with_preheat", "eco"];
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
+        this.addFeature(presets.programming_operation_mode(modes).withAccess(access));
+        return this;
+    }
+
     withAcLouverPosition(positions: string[], access = a.ALL) {
         const allowed = ["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"];
         positions.forEach((m) => {
