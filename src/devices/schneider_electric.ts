@@ -2217,7 +2217,7 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
             m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
                 name: "heating_output_mode",
-                cluster: "heatingCoolingOutputClusterServer",
+                cluster: 0xff23, // heatingCoolingOutputClusterServer
                 attribute: "heatingOutputMode",
                 description:
                     "On devices with alternate heating output types, this selects which should be used to control the heating unit. This attribute is (mistakenly) also called pilot_mode on some devices.",
