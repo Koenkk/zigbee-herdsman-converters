@@ -502,7 +502,7 @@ const schneiderElectricExtend = {
         return extend;
     },
     addHeatingCoolingOutputClusterServer: () =>
-        m.deviceAddCustomCluster("HeatingCoolingOutputClusterServer", {
+        m.deviceAddCustomCluster("heatingCoolingOutputClusterServer", {
             ID: 0xff23,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
@@ -519,8 +519,8 @@ const schneiderElectricExtend = {
                 heatTemperatureLowLimit: {ID: 0x0021, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
                 coolTemperatureHighLimit: {ID: 0x0022, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
                 coolTemperatureLowLimit: {ID: 0x0023, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
-                coolingOutputMode: {ID: 0x0030, type: Zcl.DataType.ENUM8, write: true, max: 0x1},
-                heatingOutputMode: {ID: 0x0031, type: Zcl.DataType.ENUM8, write: true, max: 0x1},
+                coolingOutputMode: {ID: 0x0030, type: Zcl.DataType.ENUM8, write: true},
+                heatingOutputMode: {ID: 0x0031, type: Zcl.DataType.ENUM8, write: true},
                 maximumIdleTime: {ID: 0x0041, type: Zcl.DataType.UINT16, write: true, max: 8784},
                 antiIdleExerciseTime: {ID: 0x0042, type: Zcl.DataType.UINT16, write: true, max: 3600},
                 preferredExerciseTime: {ID: 0x0043, type: Zcl.DataType.UINT16, write: true, max: 1439},
@@ -683,15 +683,15 @@ const schneiderElectricExtend = {
                 localTemperatureSourceSelect: {
                     ID: 0xe212,
                     type: Zcl.DataType.UINT8,
-                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                     write: true,
                     max: 0xfe,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
                 controlType: {
                     ID: 0xe213,
                     type: Zcl.DataType.ENUM8,
-                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                     write: true,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
                 thermostatApplication: {
                     ID: 0xe216,
@@ -2215,10 +2215,10 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.thermostatApplication(),
             schneiderElectricExtend.heatingEmitter(),
             schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
-            m.enumLookup({
+            m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
                 name: "heating_output_mode",
-                cluster: 0xff23, // heatingCoolingOutputClusterServer
-                attribute: {ID: 0x0031, type: Zcl.DataType.ENUM8}, // "heatingOutputMode"
+                cluster: "heatingCoolingOutputClusterServer",
+                attribute: "heatingOutputMode",
                 description:
                     "On devices with alternate heating output types, this selects which should be used to control the heating unit. This attribute is (mistakenly) also called pilot_mode on some devices.",
                 entityCategory: "config",
@@ -2265,11 +2265,11 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "temperature_display_mode",
-                lookup: {celsius: 0, fahrenheit: 1},
+                lookup: {celsius: 0},
                 cluster: "hvacUserInterfaceCfg",
                 attribute: "tempDisplayMode",
-                description: "The unit of the temperature displayed on the device screen.",
-                entityCategory: "config",
+                description: "The unit of the temperature displayed on the device screen. Celsius is the only supported unit.",
+                entityCategory: "diagnostic",
             }),
             m.binary({
                 name: "child_lock",
