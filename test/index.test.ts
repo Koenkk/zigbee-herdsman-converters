@@ -2,14 +2,7 @@ import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
 import {describe, expect, it, vi} from "vitest";
-import {
-    addExternalDefinition,
-    type Definition,
-    findByDevice,
-    getConfigureKey,
-    postProcessConvertedFromZigbeeMessage,
-    removeExternalDefinitions,
-} from "../src/index";
+import {addExternalDefinition, findByDevice, postProcessConvertedFromZigbeeMessage, removeExternalDefinitions} from "../src/index";
 import {access, Composite, Enum, List, Numeric, presets} from "../src/lib/exposes";
 import {mockDevice} from "./utils";
 
@@ -487,48 +480,6 @@ describe("ZHC", () => {
         };
         const actual = presets.light_brightness_colorxy().withEndpoint("rgb");
         expect(expected).toStrictEqual(JSON.parse(JSON.stringify(actual)));
-    });
-
-    describe("configure key", () => {
-        const mockDefinition = (configure: Definition["configure"]): Definition => ({
-            zigbeeModel: ["abcd"],
-            model: "abcd",
-            vendor: "efg",
-            description: "abcd efg",
-            fromZigbee: [],
-            toZigbee: [],
-            exposes: [],
-            configure,
-        });
-
-        it("calculates", () => {
-            expect(
-                getConfigureKey(
-                    mockDefinition(() => {
-                        console.log("hello world");
-                        console.log("bye world");
-                    }),
-                ),
-            ).toStrictEqual(1320643662);
-        });
-
-        it("calculates diff", () => {
-            expect(
-                getConfigureKey(
-                    mockDefinition(() => {
-                        console.log("hello world");
-                        console.log("bye world");
-                    }),
-                ),
-            ).not.toStrictEqual(
-                getConfigureKey(
-                    mockDefinition(() => {
-                        console.log("hello world");
-                        console.log("bye mars");
-                    }),
-                ),
-            );
-        });
     });
 
     it("verifies options filter", async () => {
