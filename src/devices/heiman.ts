@@ -1663,7 +1663,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [addCustomClusterHeimanSpecificInfraRedRemote()],
         fromZigbee: [fz.heiman_ir_remote],
         toZigbee: [tz.heiman_ir_remote],
-        exposes: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["heimanSpecificInfraRedRemote"]);
@@ -1737,16 +1736,8 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RelayModule-EF-3.0"],
         model: "HS1RM-EF",
         vendor: "Heiman",
-        description: "Smart Relay module - 2 gang with neutral wire",
+        description: "Smart relay module - 2 gang with neutral wire",
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ["l1", "l2"]}), m.temperature()],
-        fromZigbee: [],
-        toZigbee: [],
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genDeviceTempCfg"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
-        },
-        exposes: [],
     },
     {
         zigbeeModel: ["TemperLight"],
@@ -1990,10 +1981,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
         ],
-        fromZigbee: [],
-        toZigbee: [],
         ota: true,
-        exposes: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
@@ -2019,7 +2007,6 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.heimanClusterRadar(),
             heimanExtend.heimanClusterRadarActiveIndicatorExtend(),
             heimanExtend.heimanClusterLegacyIlluminanceExtend(),
-
             m.numeric({
                 name: "radar_delay_time",
                 cluster: 0x0406,
@@ -2029,7 +2016,6 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 3600,
                 access: "ALL",
             }),
-
             m.enumLookup({
                 name: "sensitivity",
                 lookup: {high: 0, medium: 1, low: 2},
@@ -2039,10 +2025,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
         ],
-        fromZigbee: [],
-        toZigbee: [],
         ota: true,
-        exposes: [],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, [
