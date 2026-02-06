@@ -61,9 +61,7 @@ module.exports = [
             },
         }],
         exposes: [
-            exposes.binary('state', exposes.access.ALL, 'ON', 'OFF').withDescription('Estado de la luz'),
-            exposes.numeric('brightness', exposes.access.ALL).withValueMin(0).withValueMax(254).withDescription('Luminosidad'),
-            exposes.numeric('color_temp', exposes.access.ALL).withUnit('mired').withValueMin(153).withValueMax(370).withDescription('Temperatura de color'),
+            exposes.light().withBrightness().withColorTemp([153, 370]),
             // Nuevos controles en la interfaz
             exposes.numeric('on_transition_time', exposes.access.ALL).withValueMin(0).withValueMax(60).withDescription('Tiempo de fundido al encender (1/10 seg)'),
             exposes.numeric('off_transition_time', exposes.access.ALL).withValueMin(0).withValueMax(60).withDescription('Tiempo de fundido al apagar (1/10 seg)')
