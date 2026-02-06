@@ -12,9 +12,9 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_s139roas"]),
         model: "ZWSH16",
         vendor: "AVATTO",
-        description: "Smart Temperature and Humidity Detector",
+        description: "Smart temperature and humidity detector",
         extend: [tuya.modernExtend.tuyaBase({dp: true, mcuVersionRequestOnConfigure: true})],
-        exposes: [e.battery(), e.temperature(), e.humidity(), tuya.exposes.temperatureUnit(), tuya.exposes.batteryState()],
+        exposes: [e.battery(), e.temperature(), e.humidity(), tuya.exposes.temperatureUnit()],
         meta: {
             tuyaDatapoints: [
                 [1, "temperature", tuya.valueConverter.divideBy10],
