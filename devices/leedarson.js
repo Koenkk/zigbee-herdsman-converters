@@ -31,7 +31,44 @@ module.exports = [
         model: 'ZM350STW1TCF',
         vendor: 'Leedarson',
         description: 'LED PAR16 50 GU10 tunable white',
-        extend: extend.light_onoff_brightness_colortemp({disableColorTempStartup: true}),
+        fromZigbee: [],
+        toZigbee: [{
+            key: ['state'],
+            convertSet: async (entity, key, value, meta) => {
+                const command = value.toLowerCase();
+                await entity.command('genOnOff', command, {}, {disableDefaultResponse: true});
+                return {state: {state: value.toUpperCase()}};
+            },
+        }, {
+            key: ['brightness'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.command('genLevelCtrl', 'moveToLevel', {level: value, transtime: 0}, {disableDefaultResponse: true});
+                return {state: {brightness: value}};
+            },
+        }, {
+            key: ['color_temp'],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.command('lightingColorCtrl', 'moveToColorTemp', {colortemp: value, transtime: 0}, {disableDefaultResponse: true});
+                return {state: {color_temp: value}};
+            },
+        }, {
+            // Nueva lógica para las transiciones
+            key: ['on_transition_time', 'off_transition_time'],
+            convertSet: async (entity, key, value, meta) => {
+                const attr = key === 'on_transition_time' ? 'onTransitionTime' : 'offTransitionTime';
+                await entity.write('genLevelCtrl', {[attr]: value}, {disableDefaultResponse: true});
+                return {state: {[key]: value}};
+            },
+        }],
+        exposes: [
+            exposes.binary('state', exposes.access.ALL, 'ON', 'OFF').withDescription('Estado de la luz'),
+            exposes.numeric('brightness', exposes.access.ALL).withValueMin(0).withValueMax(254).withDescription('Luminosidad'),
+            exposes.numeric('color_temp', exposes.access.ALL).withUnit('mired').withValueMin(153).withValueMax(370).withDescription('Temperatura de color'),
+            // Nuevos controles en la interfaz
+            exposes.numeric('on_transition_time', exposes.access.ALL).withValueMin(0).withValueMax(60).withDescription('Tiempo de fundido al encender (1/10 seg)'),
+            exposes.numeric('off_transition_time', exposes.access.ALL).withValueMin(0).withValueMax(60).withDescription('Tiempo de fundido al apagar (1/10 seg)')
+        ],
+        endpoint: (device) => { return {default: 1}; },
     },
     {
         zigbeeModel: ['M350ST-W1R-01', 'A470S-A7R-04'],
