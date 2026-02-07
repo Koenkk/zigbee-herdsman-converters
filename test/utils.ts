@@ -107,11 +107,12 @@ const DefaultTz = [
 export type AssertDefinitionArgs = {
     device: Zh.Device;
     meta: DefinitionMeta | undefined;
-    fromZigbee: Fz.Converter[];
+    // biome-ignore lint/suspicious/noExplicitAny: generic
+    fromZigbee: Fz.Converter<any, any, any>[];
     toZigbee: string[];
     exposes: string[];
     bind: {[s: number]: string[]};
-    read: {[s: number]: [string, string[]][]};
+    read: {[s: number]: ([string, string[]] | [string, string[], Record<string, unknown> | undefined])[]};
     configureReporting: {[s: number]: [string, ReturnType<typeof reportingItem>[]][]};
     endpoints?: {[s: string]: number};
     findByDeviceFn?: (device: Device) => Promise<Definition>;
@@ -155,7 +156,13 @@ export async function assertDefinition(args: AssertDefinitionArgs) {
         expect(endpoint.read).toHaveBeenCalledTimes(args.read[endpoint.ID]?.length ?? 0);
         if (args.read[endpoint.ID]) {
             args.read[endpoint.ID].forEach((read, idx) => {
-                expect(endpoint.read).toHaveBeenNthCalledWith(idx + 1, read[0], read[1]);
+                const options = read[2];
+
+                if (options) {
+                    expect(endpoint.read).toHaveBeenNthCalledWith(idx + 1, read[0], read[1], options);
+                } else {
+                    expect(endpoint.read).toHaveBeenNthCalledWith(idx + 1, read[0], read[1]);
+                }
             });
         }
 
