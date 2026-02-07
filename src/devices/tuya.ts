@@ -8682,6 +8682,8 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "MODEMIX", model: "MOD048"},
             {vendor: "Coswall", model: "CS-AJ-DE2U-ZG-11"},
             {vendor: "Aubess", model: "TS011F_plug_1"},
+            {vendor: "NEO Coolcam", model: "PLUG-001SPB2"},
+            {vendor: "Haozee", model: "HT-SP-ZB-01"},
             tuya.whitelabel("BSEED", "TS011F_plug_1_2", "Wall-mounted electrical EU/FR/UK socket with power monitoring", [
                 "_TZ3000_4ux0ondb",
                 "_TZ3000_b28wrpvx",
@@ -8706,6 +8708,8 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nous", "A10Z", "Smart Zigbee Socket", ["_TZ3210_jlf1nepw"]),
             tuya.whitelabel("MatSee Plus", "PJ-MINI-ZSW01", "Smart Socket Switch Module (with power monitoring)", ["_TZ3000_cjrngdr3"]),
             tuya.whitelabel("BlitzWolf", "BW-SHP13", "Smart plug (with power monitoring)", ["_TZ3000_amdymr7l"]),
+            tuya.whitelabel("NEO Coolcam", "PLUG-001SPB2", "Smart plug (with power monitoring)", ["_TZ3000_zloso4jk"]),
+            tuya.whitelabel("Haozee", "HT-SP-ZB-01", "Smart plug (with power monitoring)", ["_TZ3210_w0qqde0g"]),
         ],
         ota: true,
         extend: [
