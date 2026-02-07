@@ -24402,4 +24402,15 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0502B", ["_TZ3000_6dwfra5l","_TZ3210_claeh5ds"]),
+        model: "TS0502B",
+        vendor: "Tuya",
+        description: "Light controller",
+		whiteLabel: [
+            tuya.whitelabel("Mercator Ikuü", "SMCL01-ZB", "Ikon ceiling light", ["_TZ3000_6dwfra5l"]),
+            tuya.whitelabel("LUUMR", "10024773", "Smart LED C35 matt E14 4,2 W", ["_TZ3210_claeh5ds"]),
+        ],
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}})],
+    },
 ];
