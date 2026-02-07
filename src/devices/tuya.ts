@@ -4999,6 +4999,8 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("MiBoxer", "PZ2", "2 in 1 LED controller", ["_TZB210_0bkzabht"]),
             tuya.whitelabel("Lidl", "14156408L", "Livarno Lux smart LED ceiling light", ["_TZ3210_c2iwpxf1"]),
             tuya.whitelabel("EcoDim", "ED-10032", "Zigbee LED filament lamp dimmable E27, bulb A60, Smokey 2000K-4000K", ["_TZ3210_09hzmirw"]),
+            tuya.whitelabel("Mercator Ikuü", "SMCL01-ZB", "Ikon ceiling light", ["_TZ3000_6dwfra5l"]),
+            tuya.whitelabel("LUUMR", "10024773", "Smart LED C35 matt E14 4,2 W", ["_TZ3210_claeh5ds"]),
         ],
         extend: [
             tuya.modernExtend.tuyaLight({
@@ -24401,16 +24403,5 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             ],
         },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0502B", ["_TZ3000_6dwfra5l", "_TZ3210_claeh5ds"]),
-        model: "TS0502B",
-        vendor: "Tuya",
-        description: "Light controller",
-        whiteLabel: [
-            tuya.whitelabel("Mercator Ikuü", "SMCL01-ZB", "Ikon ceiling light", ["_TZ3000_6dwfra5l"]),
-            tuya.whitelabel("LUUMR", "10024773", "Smart LED C35 matt E14 4,2 W", ["_TZ3210_claeh5ds"]),
-        ],
-        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}})],
     },
 ];
