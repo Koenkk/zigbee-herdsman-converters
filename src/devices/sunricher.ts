@@ -6,11 +6,13 @@ import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
+import {setupConfigureForBinding} from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as sunricher from "../lib/sunricher";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
+import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from "../lib/utils";
 
 const NS = "zhc:sunricher";
 const e = exposes.presets;
@@ -97,7 +99,19 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    ZG2858A: {
+        cluster: "genBasic",
+        type: "write",
+        convert: (model, msg, publish, options, meta) => {
+            const number = msg.data["16389"];
+            const payload = {action: postfixWithEndpointName(`scene_${number}`, msg, model, meta)};
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter<"genBasic", undefined, "write">,
 };
+
 const tzLocal = {
     ZG9095B: {
         min_setpoint_deadband: {
@@ -152,6 +166,22 @@ const tzLocal = {
     },
 };
 
+const sunricherModernExtend = {
+    zg2858A(): ModernExtend {
+        return {
+            exposes: [
+                e
+                    .enum("action", ea.STATE, ["scene_1", "scene_2", "scene_3", "scene_4", "scene_5", "scene_6"])
+                    .withDescription("Triggered action (e.g. a button click)")
+                    .withCategory("diagnostic"),
+            ],
+            fromZigbee: [fzLocal.ZG2858A],
+            isModernExtend: true,
+            configure: [setupConfigureForBinding("genBasic", "output")],
+        };
+    },
+};
+
 async function syncTime(endpoint: Zh.Endpoint) {
     try {
         const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000 + new Date().getTimezoneOffset() * -1 * 60);
@@ -174,6 +204,35 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 }
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["ZGRC-KEY-047"],
+        model: "SR-ZG2868K12-DIM",
+        vendor: "Sunricher",
+        description: "ZigBee single color remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsScenes({commands: ["recall", "store"]}),
+        ],
+    },
+    {
+        fingerprint: [
+            {modelID: "ON/OFF (2CH)", manufacturerName: "Somfy"},
+            {modelID: "ON/OFF (2CH)", manufacturerName: "Sunricher"},
+        ],
+        model: "SR-ZG9001T2-SW",
+        vendor: "Sunricher",
+        description: "Zigbee 2-gang touch panel",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
+            m.onOff({endpointNames: ["1", "2"]}),
+            m.commandsOnOff({endpointNames: ["1", "2"]}),
+            m.identify(),
+            sunricher.extend.externalSwitchType(),
+        ],
+    },
     {
         zigbeeModel: ["ZG9041A-2R"],
         model: "SR-ZG9041A-2R",
@@ -203,19 +262,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.electricityMeter({endpointNames: ["3"]}),
             m.enumLookup({
-                name: "dev_mode",
-                cluster: "genBasic",
-                attribute: {ID: 0x0001, type: 0x30},
-                lookup: {
-                    curtain: 0,
-                    light: 1,
-                },
-                description: "Set device type (curtain or light)",
-                entityCategory: "config",
-                access: "ALL",
-                zigbeeCommandOptions: {manufacturerCode: 0x1224},
-            }),
-            m.enumLookup({
                 name: "curtain_type",
                 cluster: "closuresWindowCovering",
                 attribute: {ID: 0x1000, type: Zcl.DataType.ENUM8},
@@ -226,7 +272,6 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Configure curtain type",
                 access: "ALL",
                 entityCategory: "config",
-                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
             }),
             sunricher.extend.motorControl(),
             m.identify(),
@@ -614,10 +659,10 @@ export const definitions: DefinitionWithExtend[] = [
                     press: {
                         ID: 0x01,
                         parameters: [
-                            {name: "messageType", type: Zcl.DataType.UINT8},
-                            {name: "button2", type: Zcl.DataType.UINT8},
-                            {name: "button1", type: Zcl.DataType.UINT8},
-                            {name: "pressType", type: Zcl.DataType.UINT8},
+                            {name: "messageType", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "button2", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "button1", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "pressType", type: Zcl.DataType.UINT8, max: 0xff},
                         ],
                     },
                 },
@@ -639,46 +684,72 @@ export const definitions: DefinitionWithExtend[] = [
                         ID: 0x100d,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     antiFreezingTemp: {
                         ID: 0x1005,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     temperatureDisplayMode: {
                         ID: 0x1008,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     windowOpenCheck: {
                         ID: 0x1009,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     hysteresis: {
                         ID: 0x100a,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     windowOpenFlag: {
                         ID: 0x100b,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     forcedHeatingTime: {
                         ID: 0x100e,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     errorCode: {
                         ID: 0x2003,
                         type: Zcl.DataType.BITMAP8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
                     },
                     awayOrBoostMode: {
                         ID: 0x2002,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -922,9 +993,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfc8b,
                 manufacturerCode: 0x120b,
                 attributes: {
-                    indicatorLight: {ID: 0xf001, type: Zcl.DataType.UINT8},
-                    detectionArea: {ID: 0xf002, type: Zcl.DataType.UINT8},
-                    illuminanceThreshold: {ID: 0xf004, type: Zcl.DataType.UINT8},
+                    indicatorLight: {ID: 0xf001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    detectionArea: {ID: 0xf002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    illuminanceThreshold: {ID: 0xf004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1374,6 +1445,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: ["color_temperature_move", "move_to_hue_and_saturation"],
             }),
             m.commandsScenes({commands: ["recall", "store"]}),
+            sunricherModernExtend.zg2858A(),
         ],
     },
     {
@@ -1412,7 +1484,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), m.onOff({endpointNames: ["l1", "l2", "l3", "l4", "l5"]})],
     },
     {
-        zigbeeModel: ["ON/OFF(2CH)"],
+        fingerprint: [{modelID: "ON/OFF(2CH)", manufacturerName: "Sunricher", priority: 1}],
         model: "SR-ZG9101SAC-HP-SWITCH-2CH",
         vendor: "Sunricher",
         description: "Zigbee 2 channels switch",
@@ -1598,11 +1670,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
-        zigbeeModel: ["ON/OFF -M", "ON/OFF", "ZIGBEE-SWITCH"],
+        zigbeeModel: ["ON/OFF", "ZIGBEE-SWITCH"],
         model: "ZG9101SAC-HP-Switch",
         vendor: "Sunricher",
         description: "Zigbee AC in wall switch",
-        extend: [m.onOff({powerOnBehavior: false}), sunricher.extend.externalSwitchType()],
+        extend: [m.onOff({powerOnBehavior: false, configureReporting: true}), sunricher.extend.externalSwitchType()],
+    },
+    {
+        zigbeeModel: ["ON/OFF -M"],
+        model: "ZG9101SAC-HP-Switch-B",
+        vendor: "Sunricher",
+        description: "Zigbee AC in wall switch with metering",
+        extend: [m.onOff({powerOnBehavior: false, configureReporting: true}), sunricher.extend.externalSwitchType(), m.electricityMeter()],
     },
     {
         zigbeeModel: ["Micro Smart Dimmer", "SM311", "HK-SL-RDIM-A", "HK-SL-DIM-EU-A"],
@@ -1632,7 +1711,20 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
     },
     {
-        zigbeeModel: ["HK-SL-DIM-A"],
+        zigbeeModel: ["ZG2803-RGB-CCT"],
+        model: "SR-ZG2803-G4-5C",
+        vendor: "Sunricher",
+        description: "4 groups remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+    },
+    {
+        fingerprint: [{modelID: "HK-SL-DIM-A", manufacturerName: "Sunricher", priority: 1}],
         model: "SR-ZG9040A/ZG9041A-D",
         vendor: "Sunricher",
         description: "Zigbee micro smart dimmer",
@@ -1644,6 +1736,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sunricher",
         description: "Constant Current Zigbee LED dimmable driver",
         extend: [m.light({configureReporting: true}), sunricher.extend.externalSwitchType()],
+    },
+    {
+        zigbeeModel: ["3986"],
+        model: "SRP-ZG9105-CV",
+        vendor: "Sunricher",
+        description: "Constant voltage Zigbee LED driver",
+        extend: [m.light({colorTemp: {range: [160, 450]}, color: false, configureReporting: true})],
+        whiteLabel: [{vendor: "LongLife LED", model: "3986"}],
     },
     {
         fingerprint: [{modelID: "HK-ZD-DIM-A", softwareBuildID: "2.9.2_r72"}],
@@ -1684,98 +1784,38 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sunricher",
         whiteLabel: [{vendor: "Iluminize", model: "511.344"}],
         description: "Zigbee handheld remote RGBW 4 channels",
-        fromZigbee: [
-            fz.battery,
-            fz.command_on,
-            fz.command_off,
-            fz.command_step,
-            fz.command_move,
-            fz.command_stop,
-            fz.command_recall,
-            fz.command_move_hue,
-            fz.command_move_to_color,
-            fz.command_move_to_color_temp,
+        extend: [
+            m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
+            m.battery({voltage: true, voltageReporting: true}),
+            m.identify({isSleepy: true}),
+            m.commandsOnOff({commands: ["on", "off"]}),
+            m.commandsLevelCtrl({
+                commands: ["brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down", "brightness_stop"],
+            }),
+            m.commandsColorCtrl({
+                commands: ["hue_move", "hue_stop", "color_move", "color_temperature_move"],
+            }),
+            m.commandsScenes({commands: ["recall", "store"], bind: false}),
         ],
-        exposes: [
-            e.battery(),
-            e.battery_voltage(),
-            e.action([
-                "on",
-                "off",
-                "brightness_step_up",
-                "brightness_step_down",
-                "brightness_move_up",
-                "brightness_move_down",
-                "brightness_stop",
-                "recall_*",
-                "hue_move",
-                "hue_stop",
-                "color_move",
-                "color_temperature_move",
-            ]),
-        ],
-        toZigbee: [],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
-        },
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
     },
     {
         zigbeeModel: ["ZG2819S-CCT"],
         model: "ZG2819S-CCT",
         vendor: "Sunricher",
         description: "Zigbee handheld remote CCT 4 channels",
-        fromZigbee: [
-            fz.battery,
-            fz.command_on,
-            fz.command_off,
-            fz.command_step,
-            fz.command_move,
-            fz.command_stop,
-            fz.command_recall,
-            fz.command_move_hue,
-            fz.command_move_to_color,
-            fz.command_move_to_color_temp,
-            fz.command_color_loop_set,
-            fz.command_enhanced_move_to_hue_and_saturation,
+        extend: [
+            m.deviceEndpoints({endpoints: {ep1: 1, ep2: 2, ep3: 3, ep4: 4}}),
+            m.battery({voltage: true, voltageReporting: true}),
+            m.identify({isSleepy: true}),
+            m.commandsOnOff({commands: ["on", "off"]}),
+            m.commandsLevelCtrl({
+                commands: ["brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down", "brightness_stop"],
+            }),
+            m.commandsColorCtrl({
+                commands: ["hue_move", "hue_stop", "color_move", "color_temperature_move", "color_loop_set", "enhanced_move_to_hue_and_saturation"],
+            }),
+            m.commandsScenes({commands: ["recall", "store"], bind: false}),
         ],
-        exposes: [
-            e.battery(),
-            e.battery_voltage(),
-            e.action([
-                "on",
-                "off",
-                "brightness_step_up",
-                "brightness_step_down",
-                "brightness_move_up",
-                "brightness_move_down",
-                "brightness_stop",
-                "recall_*",
-                "hue_move",
-                "hue_stop",
-                "color_move",
-                "color_temperature_move",
-                "color_loop_set",
-                "enhanced_move_to_hue_and_saturation",
-            ]),
-        ],
-        toZigbee: [],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => {
-            return {ep1: 1, ep2: 2, ep3: 3, ep4: 4};
-        },
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.batteryVoltage(endpoint);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
     },
     {
         zigbeeModel: ["HK-ZCC-A"],
@@ -1952,14 +1992,20 @@ export const definitions: DefinitionWithExtend[] = [
                 logger.debug("Failed to setup keypadLockout reporting", NS);
             }
 
-            await endpoint.configureReporting("hvacThermostat", [
-                {
-                    attribute: "occupancy",
-                    minimumReportInterval: 0,
-                    maximumReportInterval: constants.repInterval.HOUR,
-                    reportableChange: null,
-                },
-            ]);
+            try {
+                await endpoint.configureReporting("hvacThermostat", [
+                    {
+                        attribute: "occupancy",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: null,
+                    },
+                ]);
+            } catch {
+                // Fails for some
+                // https://github.com/Koenkk/zigbee2mqtt/issues/29833
+                logger.debug("Failed to setup occupancy reporting", NS);
+            }
 
             await endpoint.read("haElectricalMeasurement", ["acVoltageMultiplier", "acVoltageDivisor", "acCurrentMultiplier"]);
             await endpoint.read("haElectricalMeasurement", ["acCurrentDivisor"]);
@@ -2426,5 +2472,19 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("hvacThermostat", [0x1004, 0x1005, 0x1006], options);
             await endpoint.read("hvacThermostat", [0x1008], options);
         },
+    },
+    {
+        fingerprint: [{modelID: "DIM", manufacturerName: "Sunricher"}],
+        model: "SR-ZG9101SAC-HP2",
+        vendor: "Sunricher",
+        description: "Zigbee 2 channel AC phase-cut dimmer",
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.light({endpointNames: ["l1", "l2"], configureReporting: true})],
+    },
+    {
+        zigbeeModel: ["ZG2855-RGB"],
+        model: "ZG2855-RGB",
+        vendor: "Sunricher",
+        description: "DIM RGB 3 in 1 Zigbee remote",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
     },
 ];

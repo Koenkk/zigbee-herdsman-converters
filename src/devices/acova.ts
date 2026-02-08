@@ -43,12 +43,13 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: [
-            "TAFFETAS2 D1.00P1.02Z1.00\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
-            "TAFFETAS2 D1.00P1.01Z1.00\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
             "PERCALE2 D1.00P1.01Z1.00",
             "PERCALE2 D1.00P1.02Z1.00",
             "PERCALE2 D1.00P1.03Z1.00",
+            "TAFFETAS2 D1.00P1.01Z1.00\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+            "TAFFETAS2 D1.00P1.02Z1.00\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
             "TAFFETAS2 D1.00P1.03Z1.00",
+            "TAFFETAS2 D1.00P1.63Z1.19",
         ],
         model: "TAFFETAS2/PERCALE2",
         vendor: "Acova",

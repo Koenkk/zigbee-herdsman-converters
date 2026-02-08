@@ -28,7 +28,6 @@ type LookupEntry = [moduleName: string, index: number];
 const lookup: Record<string | null, LookupEntry[]> = {};
 
 function addToLookup(zigbeeModel: string | undefined, index: LookupEntry) {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     zigbeeModel = zigbeeModel ? zigbeeModel.toLowerCase() : null;
 
     if (!lookup[zigbeeModel]) {

@@ -648,15 +648,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Wirenboard",
         description: "Wall-mounted multi sensor",
         extend: [
-            m.deviceAddCustomCluster("sprutDeviceBase", {
+            m.deviceAddCustomCluster("genBasic", {
                 ID: 0,
-                manufacturerCode: 26214,
                 attributes: {
-                    deviceVersion: {ID: 26113, type: Zcl.DataType.CHAR_STR},
-                    deviceSignature: {ID: 26114, type: Zcl.DataType.CHAR_STR},
-                    deviceBootVersion: {ID: 26115, type: Zcl.DataType.CHAR_STR},
-                    componentVersion: {ID: 26117, type: Zcl.DataType.CHAR_STR},
-                    componentSignature: {ID: 26118, type: Zcl.DataType.CHAR_STR},
+                    deviceVersion: {ID: 26113, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    deviceSignature: {ID: 26114, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    deviceBootVersion: {ID: 26115, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    componentVersion: {ID: 26117, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    componentSignature: {ID: 26118, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -665,18 +664,17 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 26112,
                 manufacturerCode: 26214,
                 attributes: {
-                    isConnected: {ID: 26116, type: Zcl.DataType.BOOLEAN},
-                    UartBaudRate: {ID: 26113, type: Zcl.DataType.UINT32},
+                    isConnected: {ID: 26116, type: Zcl.DataType.BOOLEAN, write: true},
+                    UartBaudRate: {ID: 26113, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 },
                 commands: {
                     debug: {
                         ID: 103,
-                        parameters: [{name: "data", type: Zcl.DataType.UINT8}],
+                        parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}],
                     },
                 },
                 commandsResponse: {},
             }),
-            m.forcePowerSource({powerSource: "Mains (single phase)"}),
             m.deviceEndpoints({
                 endpoints: {default: 1, l1: 2, l2: 3, l3: 4, indicator: 5},
                 multiEndpointSkip: ["occupancy"],

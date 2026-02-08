@@ -70,7 +70,6 @@ export class ColorRGB {
      * @returns new ColoRGB object
      */
     static fromHex(hex: string): ColorRGB {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         hex = hex.replace("#", "");
         const bigint = Number.parseInt(hex, 16);
         return new ColorRGB(((bigint >> 16) & 255) / 255, ((bigint >> 8) & 255) / 255, (bigint & 255) / 255);
@@ -712,9 +711,7 @@ export function syncColorState(
     }
 
     // handle undefined newState/oldState
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     if (newState === undefined) newState = {};
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     if (oldState === undefined) oldState = {};
 
     // figure out current color_mode

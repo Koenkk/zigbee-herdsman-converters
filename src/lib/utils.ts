@@ -84,7 +84,6 @@ const transactionStore: {[s: string]: number[]} = {};
 export function hasAlreadyProcessedMessage(msg: Fz.Message<any, any, any>, model: Definition, id: number = null, key: string = null) {
     if (model.meta?.publishDuplicateTransaction) return false;
     const currentID = id !== null ? id : msg.meta.zclTransactionSequenceNumber;
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     key = key || `${msg.device.ieeeAddr}-${msg.endpoint.ID}`;
     if (transactionStore[key]?.includes(currentID)) return true;
     // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
@@ -136,7 +135,6 @@ export function calibrateAndPrecisionRoundOptions(number: number, options: KeyVa
         // +/- percent
         calibrationOffset = (number * calibrationOffset) / 100;
     }
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     number = number + calibrationOffset;
 
     // Precision round
@@ -149,10 +147,8 @@ export function calibrateAndPrecisionRoundOptions(number: number, options: KeyVa
 
 export function toPercentage(value: number, min: number, max: number) {
     if (value > max) {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = max;
     } else if (value < min) {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         value = min;
     }
 
@@ -182,7 +178,6 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message<any, any,
     if (!meta) {
         logger.warning("No meta passed to postfixWithEndpointName, update your external converter!", NS);
         // @ts-expect-error ignore
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         meta = {device: null};
     }
 

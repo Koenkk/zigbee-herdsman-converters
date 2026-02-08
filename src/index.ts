@@ -48,7 +48,6 @@ type ModelIndex = [module: string, index: number];
 const MODELS_INDEX = modelsIndexJson as Record<string, ModelIndex[]>;
 
 export {ACTIONS, MqttRawPayload} from "./converters/actions";
-export type {Ota} from "./lib/types";
 export {
     DefinitionWithExtend,
     ExternalDefinitionWithExtend,
@@ -74,9 +73,7 @@ export {
     Tz,
     type OnEvent,
 };
-export {getConfigureKey} from "./lib/configureKey";
 export {setLogger} from "./lib/logger";
-export * as ota from "./lib/ota";
 export {clear as clearGlobalStore} from "./lib/store";
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
@@ -405,10 +402,10 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             };
         }
 
-        return {toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, options, ...definitionWithoutExtend};
+        return {version: "0.0.0", toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, options, ...definitionWithoutExtend};
     }
 
-    return {...definition};
+    return {version: "0.0.0", ...definition};
 }
 
 export function prepareDefinition(definition: DefinitionWithExtend): Definition {
@@ -504,8 +501,8 @@ export async function findByDevice(device: Zh.Device, generateForUnknown = false
                 definition = {
                     ...definition,
                     model: match.model,
-                    vendor: match.vendor,
-                    description: match.description || definition.description,
+                    vendor: match.vendor ?? definition.vendor,
+                    description: match.description ?? definition.description,
                 };
             }
         }

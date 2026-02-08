@@ -8,7 +8,7 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const {ewelinkAction, ewelinkBattery} = ewelinkModernExtend;
@@ -184,6 +184,7 @@ export interface SonoffEwelink {
         detachRelayMode: number;
         deviceWorkMode: number;
         detachRelayMode2: number;
+        motorTravelCalibrationAction: number;
         lackWaterCloseValveTimeout: number;
         motorTravelCalibrationStatus: number;
         motorRunStatus: number;
@@ -201,6 +202,7 @@ export interface SonoffEwelink {
         minBrightnessThreshold: number;
         transitionTime: number;
         dimmingLightRate: number;
+        programmableStepperSequence: number[];
     };
     commands: {
         protocolData: {data: number[]};
@@ -209,47 +211,196 @@ export interface SonoffEwelink {
 }
 
 const sonoffExtend = {
-    addCustomClusterEwelink: () =>
-        m.deviceAddCustomCluster("customClusterEwelink", {
+    addCustomClusterEwelink: () => {
+        return m.deviceAddCustomCluster("customClusterEwelink", {
             ID: 0xfc11,
             attributes: {
-                networkLed: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
-                backLight: {ID: 0x0002, type: Zcl.DataType.BOOLEAN},
-                faultCode: {ID: 0x0010, type: Zcl.DataType.INT32},
-                radioPower: {ID: 0x0012, type: Zcl.DataType.INT16},
+                networkLed: {ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
+                backLight: {ID: 0x0002, type: Zcl.DataType.BOOLEAN, write: true},
+                faultCode: {ID: 0x0010, type: Zcl.DataType.INT32, write: true, min: -2147483648},
+                radioPower: {ID: 0x0012, type: Zcl.DataType.INT16, write: true, min: -32768},
                 radioPowerWithManuCode: {
                     ID: 0x0012,
                     type: Zcl.DataType.INT16,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD,
+
+                    write: true,
+                    min: -32768,
                 },
-                delayedPowerOnState: {ID: 0x0014, type: Zcl.DataType.BOOLEAN},
-                delayedPowerOnTime: {ID: 0x0015, type: Zcl.DataType.UINT16},
-                externalTriggerMode: {ID: 0x0016, type: Zcl.DataType.UINT8},
-                detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN},
-                deviceWorkMode: {ID: 0x0018, type: Zcl.DataType.UINT8},
-                detachRelayMode2: {ID: 0x0019, type: Zcl.DataType.BITMAP8},
-                lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16},
-                motorTravelCalibrationStatus: {ID: 0x5012, type: Zcl.DataType.UINT8},
-                motorRunStatus: {ID: 0x5013, type: Zcl.DataType.UINT8},
-                acCurrentCurrentValue: {ID: 0x7004, type: Zcl.DataType.UINT32},
-                acCurrentVoltageValue: {ID: 0x7005, type: Zcl.DataType.UINT32},
-                acCurrentPowerValue: {ID: 0x7006, type: Zcl.DataType.UINT32},
-                outlet_control_protect: {ID: 0x7007, type: Zcl.DataType.UINT8},
-                energyToday: {ID: 0x7009, type: Zcl.DataType.UINT32},
-                energyMonth: {ID: 0x700a, type: Zcl.DataType.UINT32},
-                energyYesterday: {ID: 0x700b, type: Zcl.DataType.UINT32},
-                setCalibrationAction: {ID: 0x001d, type: Zcl.DataType.CHAR_STR},
-                calibrationStatus: {ID: 0x001e, type: Zcl.DataType.UINT8},
-                calibrationProgress: {ID: 0x0020, type: Zcl.DataType.UINT8},
-                minBrightnessThreshold: {ID: 0x4001, type: Zcl.DataType.UINT8},
-                dimmingLightRate: {ID: 0x4003, type: Zcl.DataType.UINT8},
-                transitionTime: {ID: 0x001f, type: Zcl.DataType.UINT32},
+                delayedPowerOnState: {ID: 0x0014, type: Zcl.DataType.BOOLEAN, write: true},
+                delayedPowerOnTime: {ID: 0x0015, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                externalTriggerMode: {ID: 0x0016, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN, write: true},
+                deviceWorkMode: {ID: 0x0018, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                detachRelayMode2: {ID: 0x0019, type: Zcl.DataType.BITMAP8, write: true},
+                motorTravelCalibrationAction: {ID: 0x5001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                motorTravelCalibrationStatus: {ID: 0x5012, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                motorRunStatus: {ID: 0x5013, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                acCurrentCurrentValue: {ID: 0x7004, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                acCurrentVoltageValue: {ID: 0x7005, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                acCurrentPowerValue: {ID: 0x7006, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                outlet_control_protect: {ID: 0x7007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                energyToday: {ID: 0x7009, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                energyMonth: {ID: 0x700a, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                energyYesterday: {ID: 0x700b, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                setCalibrationAction: {ID: 0x001d, type: Zcl.DataType.CHAR_STR, write: true},
+                calibrationStatus: {ID: 0x001e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                calibrationProgress: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                minBrightnessThreshold: {ID: 0x4001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                dimmingLightRate: {ID: 0x4003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                transitionTime: {ID: 0x001f, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                programmableStepperSequence: {ID: 0x0022, type: Zcl.DataType.ARRAY, write: true},
             },
             commands: {
                 protocolData: {ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
             },
             commandsResponse: {},
-        }),
+        });
+    },
+    programmableStepperSequence(sequences: string[]): ModernExtend {
+        const stepComposite = (n: number) => {
+            return e
+                .composite(`step_${n}`, `step_${n}`, ea.ALL)
+                .withFeature(e.binary("enable_step", ea.ALL, true, false).withDescription("Enable/disable this step."))
+                .withFeature(e.binary("relay_outlet_1", ea.ALL, true, false).withDescription("Outlet 1 relay state."))
+                .withFeature(e.binary("relay_outlet_2", ea.ALL, true, false).withDescription("Outlet 2 relay state."));
+        };
+
+        const exposes = sequences.map((seq) => {
+            return e
+                .composite(`programmable_stepper_seq${seq}`, `programmable_stepper_seq${seq}`, ea.ALL)
+                .withDescription(`Configure programmable stepper sequence ${seq}.`)
+                .withFeature(e.binary("enable_stepper", ea.ALL, true, false).withDescription("Enable/disable the stepper sequence."))
+                .withFeature(
+                    e
+                        .numeric("switch_outlet", ea.ALL)
+                        .withValueMin(1)
+                        .withValueMax(2)
+                        .withValueStep(1)
+                        .withDescription("The outlet channel of the external trigger switch bound to this sequence."),
+                )
+                .withFeature(e.binary("enable_double_press", ea.ALL, true, false).withDescription("Enable/disable double press to switch steps."))
+                .withFeature(
+                    e
+                        .numeric("double_press_interval", ea.ALL)
+                        .withValueMin(0)
+                        .withValueMax(32767)
+                        .withValueStep(1)
+                        .withUnit("ms")
+                        .withDescription("Set the double press interval for step switching."),
+                )
+                .withFeature(stepComposite(1))
+                .withFeature(stepComposite(2))
+                .withFeature(stepComposite(3))
+                .withFeature(stepComposite(4));
+        });
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [...sequences.map((seq) => `programmable_stepper_seq${seq}`)],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+
+                    const array: Uint8Array = new Uint8Array(11);
+
+                    // ZCL Array
+                    array[0] = 0x01;
+                    array[1] = 9;
+                    array[2] = 1;
+
+                    // Sequence configs
+                    const seqStr = key.replace("programmable_stepper_seq", "");
+                    const seqIndex = Number.parseInt(seqStr as string, 10) - 1;
+
+                    array[3] = (value.enable_stepper ? 0x80 : 0x00) | (seqIndex & 0x7f);
+                    array[4] = (value.switch_outlet - 1) & 0xff;
+                    array[5] = (value.enable_double_press ? 0x80 : 0x00) | ((value.double_press_interval >> 8) & 0x7f);
+                    array[6] = value.double_press_interval & 0xff;
+
+                    // Steps
+                    for (let i = 0; i < 4; i++) {
+                        const step = value[`step_${i + 1}`] ?? {};
+                        array[7 + i] = (step.enable_step ? 0x80 : 0x00) | (step.relay_outlet_1 ? 0x01 : 0x00) | (step.relay_outlet_2 ? 0x02 : 0x00);
+                    }
+
+                    await entity.write(
+                        "customClusterEwelink",
+                        {
+                            [0x0022]: {
+                                value: {
+                                    elementType: 0x20,
+                                    elements: array,
+                                },
+                                type: 0x48,
+                            },
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
+
+                    return {
+                        state: {
+                            [key]: value,
+                        },
+                    };
+                },
+            },
+        ];
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffEwelink, ["attributeReport"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport"],
+                convert: (model, msg) => {
+                    if (!msg.data?.programmableStepperSequence) {
+                        return;
+                    }
+
+                    const array = new Uint8Array(msg.data.programmableStepperSequence);
+                    if (array[0] !== 0x01) {
+                        return;
+                    }
+
+                    const seqCount = array[2];
+                    const seqDataOffset = 3;
+                    const result: KeyValueAny = {};
+
+                    for (let i = 0; i < seqCount; i++) {
+                        const offset = seqDataOffset + i * 8;
+
+                        // Steps
+                        const steps: KeyValueAny = {};
+                        for (let j = 0; j < 4; j++) {
+                            const currentBuffer = array[offset + 4 + j];
+                            steps[`step_${j + 1}`] = {
+                                enable_step: !!(currentBuffer & 0x80),
+                                relay_outlet_1: !!(currentBuffer & 0x01),
+                                relay_outlet_2: !!(currentBuffer & 0x02),
+                            };
+                        }
+
+                        // Sequence configs
+                        const seqNum = (array[offset] & 0x7f) + 1;
+                        result[`programmable_stepper_seq${seqNum}`] = {
+                            enable_stepper: !!(array[offset] & 0x80),
+                            switch_outlet: array[offset + 1] + 1,
+                            enable_double_press: !!(array[offset + 2] & 0x80),
+                            double_press_interval: ((array[offset + 2] & 0x7f) << 8) | array[offset + 3],
+                            ...steps,
+                        };
+                    }
+                    return result;
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
     inchingControlSet: (args: ExternalInchingAgs = {}, maxTime = 3599.5): ModernExtend => {
         const {endpointNames = undefined} = args;
         const clusterName = "customClusterEwelink";
@@ -342,23 +493,17 @@ const sonoffExtend = {
         };
     },
     weeklySchedule: (): ModernExtend => {
-        const exposes = e
-            .composite("schedule", "weekly_schedule", ea.STATE_SET)
-            .withCategory("config")
-            .withDescription(
-                'The preset heating schedule to use when the system mode is set to "auto" (indicated with ⏲ on the TRV). ' +
-                    "Up to 6 transitions can be defined per day, where a transition is expressed in the format 'HH:mm/temperature', each " +
-                    "separated by a space. The first transition for each day must start at 00:00 and the valid temperature range is 4-35°C " +
-                    "(in 0.5°C steps). The temperature will be set at the time of the first transition until the time of the next transition, " +
-                    "e.g. '04:00/20 10:00/25' will result in the temperature being set to 20°C at 04:00 until 10:00, when it will change to 25°C.",
-            )
-            .withFeature(e.text("sunday", ea.STATE_SET))
-            .withFeature(e.text("monday", ea.STATE_SET))
-            .withFeature(e.text("tuesday", ea.STATE_SET))
-            .withFeature(e.text("wednesday", ea.STATE_SET))
-            .withFeature(e.text("thursday", ea.STATE_SET))
-            .withFeature(e.text("friday", ea.STATE_SET))
-            .withFeature(e.text("saturday", ea.STATE_SET));
+        const scheduleDescription =
+            'The preset heating schedule to use when the system mode is set to "auto" (indicated with ⏲ on the TRV). ' +
+            "Up to 6 transitions can be defined per day, where a transition is expressed in the format 'HH:mm/temperature', each " +
+            "separated by a space. The first transition for each day must start at 00:00 and the valid temperature range is 4-35°C " +
+            "(in 0.5°C steps). The temperature will be set at the time of the first transition until the time of the next transition, " +
+            "e.g. '04:00/20 10:00/25' will result in the temperature being set to 20°C at 04:00 until 10:00, when it will change to 25°C.";
+
+        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
+        type DayName = (typeof days)[number];
+
+        const exposes = days.map((day) => e.text(`weekly_schedule_${day}`, ea.STATE_SET).withCategory("config").withDescription(scheduleDescription));
 
         const fromZigbee = [
             {
@@ -384,86 +529,154 @@ const sonoffExtend = {
                         .join(" ");
 
                     return {
-                        weekly_schedule: {
-                            ...(meta.state.weekly_schedule as Record<string, string>[]),
-                            [day]: transitions,
-                        },
+                        [`weekly_schedule_${day}`]: transitions,
                     };
                 },
             } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
         ];
 
+        // Helper function to parse and validate a schedule string
+        const parseScheduleString = (scheduleValue: string, dayName: string) => {
+            // Transition format: HH:mm/temperature
+            const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.5)?)$/;
+
+            const rawTransitions = scheduleValue.split(" ").sort();
+
+            if (rawTransitions.length > 6) {
+                throw new Error(`Invalid schedule for ${dayName}: days must have no more than 6 transitions`);
+            }
+
+            const transitions = [];
+
+            for (const transition of rawTransitions) {
+                const matches = transition.match(transitionRegex);
+
+                if (!matches) {
+                    throw new Error(
+                        `Invalid schedule for ${dayName}: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
+                    );
+                }
+
+                const hour = Number.parseInt(matches[1], 10);
+                const mins = Number.parseInt(matches[2], 10);
+                const temp = Number.parseFloat(matches[3]);
+
+                if (temp < 4 || temp > 35) {
+                    throw new Error(`Invalid schedule for ${dayName}: temperature value must be between 4-35 (inclusive), found: ${temp}`);
+                }
+
+                transitions.push({
+                    transitionTime: hour * 60 + mins,
+                    heatSetpoint: Math.round(temp * 100),
+                });
+            }
+
+            if (transitions[0].transitionTime !== 0) {
+                throw new Error(`Invalid schedule for ${dayName}: the first transition of each day should start at 00:00`);
+            }
+
+            return {
+                numoftrans: rawTransitions.length,
+                transitions,
+            };
+        };
+
+        // Helper function to get day bit from day name
+        const getDayBit = (dayName: string): number => {
+            const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayName, null);
+            if (dayKey === null) {
+                throw new Error(`Invalid schedule: invalid day name, found: ${dayName}`);
+            }
+            return Number(dayKey);
+        };
+
+        // Helper function to send setWeeklySchedule command
+        const sendScheduleCommand = async (
+            entity: Parameters<Tz.Converter["convertSet"]>[0],
+            dayofweek: number,
+            numoftrans: number,
+            transitions: Array<{transitionTime: number; heatSetpoint: number}>,
+            meta: Parameters<Tz.Converter["convertSet"]>[3],
+        ) => {
+            await entity.command(
+                "hvacThermostat",
+                "setWeeklySchedule",
+                {
+                    dayofweek,
+                    numoftrans,
+                    mode: 1 << 0, // heat
+                    transitions,
+                },
+                utils.getOptions(meta.mapped, entity),
+            );
+        };
+
         const toZigbee: Tz.Converter[] = [
+            // Single/multi day converter with batching support
             {
-                key: ["weekly_schedule"],
+                key: days.map((day) => `weekly_schedule_${day}`),
                 convertSet: async (entity, key, value, meta) => {
-                    // Transition format: HH:mm/temperature
-                    const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.5)?)$/;
+                    utils.assertString(value, key);
 
-                    utils.assertObject(value, key);
+                    // Extract all weekly_schedule keys from the message (if message exists)
+                    const message = meta.message as Record<string, unknown> | null;
+                    const scheduleKeys = message
+                        ? Object.keys(message).filter(
+                              (k) => k.startsWith("weekly_schedule_") && days.includes(k.replace("weekly_schedule_", "") as DayName),
+                          )
+                        : [];
 
-                    for (const dayOfWeekName of Object.keys(value)) {
-                        const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayOfWeekName.toLowerCase(), null);
+                    // For single-key messages or when message is not available, process normally (original behavior)
+                    if (scheduleKeys.length <= 1) {
+                        const dayName = key.replace("weekly_schedule_", "");
+                        const dayBit = getDayBit(dayName);
+                        const parsed = parseScheduleString(value, dayName);
 
-                        if (dayKey === null) {
-                            throw new Error(`Invalid schedule: invalid day name, found: ${dayOfWeekName}`);
-                        }
+                        await sendScheduleCommand(entity, 1 << dayBit, parsed.numoftrans, parsed.transitions, meta);
 
-                        const dayOfWeekBit = Number(dayKey);
-
-                        const rawTransitions = value[dayOfWeekName].split(" ").sort();
-
-                        if (rawTransitions.length > 6) {
-                            throw new Error("Invalid schedule: days must have no more than 6 transitions");
-                        }
-
-                        const transitions = [];
-
-                        for (const transition of rawTransitions) {
-                            const matches = transition.match(transitionRegex);
-
-                            if (!matches) {
-                                throw new Error(
-                                    `Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
-                                );
-                            }
-
-                            const hour = Number.parseInt(matches[1], 10);
-                            const mins = Number.parseInt(matches[2], 10);
-                            const temp = Number.parseFloat(matches[3]);
-
-                            if (temp < 4 || temp > 35) {
-                                throw new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temp}`);
-                            }
-
-                            transitions.push({
-                                transitionTime: hour * 60 + mins,
-                                heatSetpoint: Math.round(temp * 100),
-                            });
-                        }
-
-                        if (transitions[0].transitionTime !== 0) {
-                            throw new Error("Invalid schedule: the first transition of each day should start at 00:00");
-                        }
-
-                        await entity.command(
-                            "hvacThermostat",
-                            "setWeeklySchedule",
-                            {
-                                dayofweek: 1 << Number(dayOfWeekBit),
-                                numoftrans: rawTransitions.length,
-                                mode: 1 << 0, // heat
-                                transitions,
-                            },
-                            utils.getOptions(meta.mapped, entity),
-                        );
+                        return {state: {[key]: value}};
                     }
+
+                    // Process all schedule keys from the message with batching
+                    // Group days by their schedule string to optimize Zigbee commands
+                    const scheduleGroups = new Map<string, string[]>();
+                    for (const scheduleKey of scheduleKeys) {
+                        const dayName = scheduleKey.replace("weekly_schedule_", "");
+                        const schedule = message[scheduleKey] as string;
+                        utils.assertString(schedule, scheduleKey);
+
+                        const existing = scheduleGroups.get(schedule);
+                        if (existing) {
+                            existing.push(dayName);
+                        } else {
+                            scheduleGroups.set(schedule, [dayName]);
+                        }
+                    }
+
+                    const stateUpdates: Record<string, string> = {};
+
+                    // Send one command per unique schedule, combining days with identical schedules
+                    for (const [schedule, daysWithSchedule] of scheduleGroups) {
+                        // Parse and validate the schedule (only need to do once per unique schedule)
+                        const parsed = parseScheduleString(schedule, daysWithSchedule.join(", "));
+
+                        // Build dayofweek bitmask for all days with this schedule
+                        let dayofweek = 0;
+                        for (const dayName of daysWithSchedule) {
+                            dayofweek |= 1 << getDayBit(dayName);
+                            stateUpdates[`weekly_schedule_${dayName}`] = schedule;
+                        }
+
+                        await sendScheduleCommand(entity, dayofweek, parsed.numoftrans, parsed.transitions, meta);
+                    }
+
+                    return {state: stateUpdates};
                 },
             },
         ];
 
         return {
-            exposes: [exposes],
+            exposes,
             fromZigbee,
             toZigbee,
             isModernExtend: true,
@@ -751,7 +964,6 @@ const sonoffExtend = {
                 key: ["external_trigger_mode"],
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertString(value, key);
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value.toLowerCase();
                     const lookup = {edge: 0, pulse: 1, "following(off)": 2, "following(on)": 130};
                     const tmpValue = utils.getFromLookup(value, lookup);
@@ -1296,6 +1508,7 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "CK-TLSR8656-SS5-01(7003)", manufacturerName: "eWeLink"}],
             },
             tuya.whitelabel("Tuya", "WL-19DWZ", "Contact sensor", ["_TZ3000_n2egfsli"]),
+            tuya.whitelabel("zbeacon", "DS01", "Contact sensor", ["zbeacon"]),
         ],
         description: "Contact sensor",
         extend: [ewelinkBattery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]})],
@@ -1401,10 +1614,10 @@ export const definitions: DefinitionWithExtend[] = [
                 const endpoint = device.getEndpoint(1);
                 const bindClusters = ["msTemperatureMeasurement", "msRelativeHumidity", "genPowerCfg"];
                 await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
-                await reporting.temperature(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 20});
-                await reporting.humidity(endpoint, {min: 30, max: constants.repInterval.MINUTES_5, change: 100});
-                await reporting.batteryVoltage(endpoint, {min: 3600, max: 7200});
-                await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 7200});
+                await reporting.temperature(endpoint, {min: 30, max: 3600, change: 20});
+                await reporting.humidity(endpoint, {min: 30, max: constants.repInterval.HOUR, change: 100});
+                await reporting.batteryVoltage(endpoint, {min: 3600, max: constants.repInterval.MAX});
+                await reporting.batteryPercentageRemaining(endpoint, {min: 3600, max: 65000});
             } catch (e) {
                 /* Not required for all: https://github.com/Koenkk/zigbee2mqtt/issues/5562 */
                 logger.error(`Configure failed: ${e}`, NS);
@@ -1430,13 +1643,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("customSonoffSnzb02d", {
                 ID: 0xfc11,
                 attributes: {
-                    comfortTemperatureMax: {ID: 0x0003, type: Zcl.DataType.INT16},
-                    comfortTemperatureMin: {ID: 0x0004, type: Zcl.DataType.INT16},
-                    comfortHumidityMin: {ID: 0x0005, type: Zcl.DataType.UINT16},
-                    comfortHumidityMax: {ID: 0x0006, type: Zcl.DataType.UINT16},
-                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16},
-                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16},
-                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16},
+                    comfortTemperatureMax: {ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    comfortTemperatureMin: {ID: 0x0004, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    comfortHumidityMin: {ID: 0x0005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    comfortHumidityMax: {ID: 0x0006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1541,8 +1754,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("customSonoffSnzb02ld", {
                 ID: 0xfc11,
                 attributes: {
-                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16},
-                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16},
+                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1578,13 +1791,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SNZB-02WD",
         vendor: "SONOFF",
         description: "Waterproof (IP65) temperature and humidity sensor with screen",
+        ota: true,
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02wd", {
                 ID: 0xfc11,
                 attributes: {
-                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16},
-                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16},
-                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16},
+                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1637,13 +1851,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("customSonoffSnzb02dr2", {
                 ID: 0xfc11,
                 attributes: {
-                    comfortTemperatureMax: {ID: 0x0003, type: Zcl.DataType.INT16},
-                    comfortTemperatureMin: {ID: 0x0004, type: Zcl.DataType.INT16},
-                    comfortHumidityMin: {ID: 0x0005, type: Zcl.DataType.UINT16},
-                    comfortHumidityMax: {ID: 0x0006, type: Zcl.DataType.UINT16},
-                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16},
-                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16},
-                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16},
+                    comfortTemperatureMax: {ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    comfortTemperatureMin: {ID: 0x0004, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    comfortHumidityMin: {ID: 0x0005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    comfortHumidityMax: {ID: 0x0006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1917,7 +2131,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("customSonoffSnzb01m", {
                 ID: 0xfc12,
                 attributes: {
-                    keyActionEvent: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    keyActionEvent: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1935,8 +2149,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("customSonoffSnzb02p", {
                 ID: 0xfc11,
                 attributes: {
-                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16},
-                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16},
+                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1949,6 +2163,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_calibration",
                 cluster: "customSonoffSnzb02p",
                 attribute: "temperatureCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported temperature",
                 valueMin: -50,
                 valueMax: 50,
@@ -1960,6 +2175,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "humidity_calibration",
                 cluster: "customSonoffSnzb02p",
                 attribute: "humidityCalibration",
+                entityCategory: "config",
                 description: "Offset to add/subtract to the reported relative humidity",
                 valueMin: -50,
                 valueMax: 50,
@@ -1972,6 +2188,27 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["SNZB-04P"],
         model: "SNZB-04P",
+        vendor: "SONOFF",
+        description: "Contact sensor",
+        extend: [
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.binary({
+                name: "tamper",
+                cluster: 0xfc11,
+                attribute: {ID: 0x2000, type: 0x20},
+                description: "Tamper-proof status",
+                valueOn: [true, 0x01],
+                valueOff: [false, 0x00],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
+                access: "STATE_GET",
+            }),
+            ewelinkBattery(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["SNZB-04PR2"],
+        model: "SNZB-04PR2",
         vendor: "SONOFF",
         description: "Contact sensor",
         extend: [
@@ -2037,7 +2274,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "occupancy_timeout",
                 cluster: 0x0406,
                 attribute: {ID: 0x0020, type: 0x21},
-                description: "Unoccupied to occupied delay",
+                description: "Occupied to unoccupied delay",
                 valueMin: 15,
                 valueMax: 65535,
             }),
@@ -2059,6 +2296,39 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["MG1_5RZ"],
+        model: "MG1_5RZ",
+        vendor: "SONOFF",
+        description: "Zigbee human presence radar (5.8 GHz)",
+        extend: [
+            m.occupancy({reporting: false}),
+            m.numeric({
+                name: "occupied_to_unoccupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0020, type: 0x21},
+                description: "Ultrasonic occupied → unoccupied delay (seconds)",
+                valueMin: 60,
+                valueMax: 65535,
+            }),
+            m.numeric({
+                name: "unoccupied_to_occupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0021, type: 0x21},
+                description: "Ultrasonic unoccupied → occupied delay (seconds)",
+                valueMin: 0,
+                valueMax: 65535,
+            }),
+            m.enumLookup({
+                name: "occupancy_sensitivity",
+                lookup: {low: 1, medium: 2, high: 3},
+                cluster: 0x0406,
+                attribute: {ID: 0x0022, type: 0x20},
+                description: "Sensitivity of human presence detection",
+            }),
+        ],
+        ota: false,
     },
     {
         zigbeeModel: ["TRVZB"],
@@ -2084,32 +2354,39 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_running_state,
         ],
         extend: [
+            m.customLocalTemperatureCalibrationRange({min: -12.7, max: 12.7}),
             m.deviceAddCustomCluster("customSonoffTrvzb", {
                 ID: 0xfc11,
                 attributes: {
-                    childLock: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
-                    tamper: {ID: 0x2000, type: Zcl.DataType.UINT8},
-                    illumination: {ID: 0x2001, type: Zcl.DataType.UINT8},
-                    openWindow: {ID: 0x6000, type: Zcl.DataType.BOOLEAN},
-                    frostProtectionTemperature: {ID: 0x6002, type: Zcl.DataType.INT16},
-                    idleSteps: {ID: 0x6003, type: Zcl.DataType.UINT16},
-                    closingSteps: {ID: 0x6004, type: Zcl.DataType.UINT16},
-                    valveOpeningLimitVoltage: {ID: 0x6005, type: Zcl.DataType.UINT16},
-                    valveClosingLimitVoltage: {ID: 0x6006, type: Zcl.DataType.UINT16},
-                    valveMotorRunningVoltage: {ID: 0x6007, type: Zcl.DataType.UINT16},
-                    valveOpeningDegree: {ID: 0x600b, type: Zcl.DataType.UINT8},
-                    valveClosingDegree: {ID: 0x600c, type: Zcl.DataType.UINT8},
-                    tempAccuracy: {ID: 0x6011, type: Zcl.DataType.INT16},
-                    temporaryMode: {ID: 0x6014, type: Zcl.DataType.UINT8},
-                    temporaryModeTime: {ID: 0x6015, type: Zcl.DataType.UINT32},
-                    temporaryModeTemp: {ID: 0x6016, type: Zcl.DataType.INT16},
+                    childLock: {ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+                    tamper: {ID: 0x2000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    illumination: {ID: 0x2001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    openWindow: {ID: 0x6000, type: Zcl.DataType.BOOLEAN, write: true},
+                    frostProtectionTemperature: {ID: 0x6002, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    idleSteps: {ID: 0x6003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    closingSteps: {ID: 0x6004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    valveOpeningLimitVoltage: {ID: 0x6005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    valveClosingLimitVoltage: {ID: 0x6006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    valveMotorRunningVoltage: {ID: 0x6007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    valveOpeningDegree: {ID: 0x600b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    valveClosingDegree: {ID: 0x600c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    tempAccuracy: {ID: 0x6011, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    temporaryMode: {ID: 0x6014, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    temporaryModeTime: {ID: 0x6015, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    temporaryModeTemp: {ID: 0x6016, type: Zcl.DataType.INT16, write: true, min: -32768},
                     externalTemperatureInput: {
                         ID: 0x600d,
                         type: Zcl.DataType.INT16,
+
+                        write: true,
+                        min: -32768,
                     },
                     temperatureSensorSelect: {
                         ID: 0x600e,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -2147,6 +2424,7 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {boost: 0, timer: 1},
                 cluster: "customSonoffTrvzb",
                 attribute: "temporaryMode",
+                entityCategory: "config",
                 description:
                     "Boost mode: Activates maximum TRV temperature for a user-defined duration, enabling rapid heating. " +
                     "Timer Mode: Allows customization of temperature and duration for precise heating control." +
@@ -2319,14 +2597,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SONOFF",
         description: "Zigbee smart plug",
         whiteLabel: [{vendor: "SONOFF", model: "S60ZBTPG", fingerprint: [{modelID: "S60ZBTPG"}]}],
-        fromZigbee: [fzLocal.on_off_clear_electricity],
+        fromZigbee: [fzLocal.on_off_clear_electricity, fz.metering],
+        exposes: [e.energy()],
         extend: [
             m.onOff({
                 powerOnBehavior: true,
                 skipDuplicateTransaction: true,
                 configureReporting: true,
             }),
-            m.electricityMeter({cluster: "metering", power: false}),
             sonoffExtend.addCustomClusterEwelink(),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "current",
@@ -2374,6 +2652,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_yesterday",
+                label: "Energy yesterday",
                 cluster: "customClusterEwelink",
                 attribute: "energyYesterday",
                 description: "Electricity consumption for the yesterday",
@@ -2383,6 +2662,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_today",
+                label: "Energy today",
                 cluster: "customClusterEwelink",
                 attribute: "energyToday",
                 description: "Electricity consumption for the day",
@@ -2392,6 +2672,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_month",
+                label: "Energy month",
                 cluster: "customClusterEwelink",
                 attribute: "energyMonth",
                 description: "Electricity consumption for the month",
@@ -2413,7 +2694,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink", "seMetering"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
             await endpoint.read<"customClusterEwelink", SonoffEwelink>(
                 "customClusterEwelink",
@@ -2425,6 +2706,8 @@ export const definitions: DefinitionWithExtend[] = [
                 {attribute: "energyYesterday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
                 {attribute: "energyToday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
             ]);
+            await endpoint.read("seMetering", ["multiplier", "divisor"]);
+            await reporting.currentSummDelivered(endpoint);
         },
     },
     {
@@ -2488,6 +2771,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable/disable Radio power turbo mode",
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
+                entityCategory: "config",
             }),
             sonoffExtend.inchingControlSet(),
         ],
@@ -2829,6 +3113,20 @@ export const definitions: DefinitionWithExtend[] = [
             sonoffExtend.addCustomClusterEwelink(),
             m.windowCovering({controls: ["lift"], coverInverted: false}),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "motor_travel_calibration_action",
+                lookup: {
+                    start_automatic: 2,
+                    start_manual: 3,
+                    clear: 4,
+                    manual_2_fully_opened: 7,
+                    manual_3_fully_closed: 8,
+                },
+                cluster: "customClusterEwelink",
+                attribute: "motorTravelCalibrationAction",
+                description: "Calibrates the motor stroke, or clears the current one.",
+                access: "ALL",
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "motor_travel_calibration_status",
                 lookup: {Uncalibrated: 0, Calibrated: 1},
                 cluster: "customClusterEwelink",
@@ -2921,6 +3219,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 2,
                 endpointNames: ["l1", "l2"],
             }),
+            sonoffExtend.programmableStepperSequence(["1", "2", "3", "4"]),
         ],
 
         configure: async (device, coordinatorEndpoint) => {

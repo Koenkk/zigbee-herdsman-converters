@@ -126,6 +126,7 @@ export const danfossAdaptionRunStatus: KeyValueNumberString = {
     1: "in_progress",
     2: "found",
     4: "lost",
+    5: "lost_in_progress",
 };
 
 export const danfossAdaptionRunControl: KeyValueNumberString = {

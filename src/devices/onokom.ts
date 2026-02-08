@@ -10,7 +10,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["AUX-1-ZB-S"],
         model: "AUX-1-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR AUX-1-MB-B (Adapter for household and semi-industrial AUX systems)",
+        description: "AIR AUX-1-ZB-S (Adapter for household and semi-industrial AUX systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -36,7 +36,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "localTemp",
                 scale: 100,
                 unit: "°C",
-                description: "Current temperature",
+                description: "Indoor air temperature",
                 access: "STATE",
             }),
             m.numeric({
@@ -75,7 +75,7 @@ export const definitions: DefinitionWithExtend[] = [
                     dry: 4,
                     fan_only: 5,
                 },
-                description: "Modes",
+                description: "Mode",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -148,8 +148,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "status_led",
-                cluster: "genOnOff",
-                attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4704, type: Zcl.DataType.ENUM8},
                 lookup: {
                     normal_mode: 0,
                     disabled_if_no_errors: 1,
@@ -215,18 +215,6 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Mold protection",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.numeric({
-                name: "indoor_heat_exchanger_temperature",
-                cluster: "hvacThermostat",
-                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},
-                access: "STATE",
-                valueMin: 0,
-                valueMax: 100,
-                valueStep: 1,
-                unit: "°C",
-                description: "Indoor heat exchanger temperature",
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
             m.binary({
                 name: "screen_light",
                 cluster: "hvacThermostat",
@@ -244,7 +232,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 100,
                 valueStep: 1,
-                description: "Current fan RPM",
+                description: "Current fan speed",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -281,7 +269,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["DK-1-ZB-S"],
         model: "DK-1-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR DK-1-MB-B (Adapter for household Daikin systems)",
+        description: "AIR DK-1-ZB-S (Adapter for household Daikin systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -307,7 +295,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "localTemp",
                 scale: 100,
                 unit: "°C",
-                description: "Current temperature",
+                description: "Indoor air temperature",
                 access: "STATE",
             }),
             m.numeric({
@@ -346,7 +334,7 @@ export const definitions: DefinitionWithExtend[] = [
                     dry: 4,
                     fan_only: 5,
                 },
-                description: "Modes",
+                description: "Mode",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -419,8 +407,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "status_led",
-                cluster: "genOnOff",
-                attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4704, type: Zcl.DataType.ENUM8},
                 lookup: {
                     normal_mode: 0,
                     disabled_if_no_errors: 1,
@@ -460,6 +448,15 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
+                name: "ionization",
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4720, type: Zcl.DataType.BOOLEAN},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Ionization",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.binary({
                 name: "screen_light",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4731, type: Zcl.DataType.BOOLEAN},
@@ -482,9 +479,9 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4723, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
-                valueMax: 100,
+                valueMax: 200,
                 valueStep: 1,
-                description: "Target fan rpm",
+                description: "Target fan speed",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -493,9 +490,9 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x4724, type: Zcl.DataType.ENUM8},
                 access: "STATE",
                 valueMin: 0,
-                valueMax: 100,
+                valueMax: 200,
                 valueStep: 1,
-                description: "Current fan RPM",
+                description: "Current fan speed",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
         ],
@@ -511,7 +508,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["GR-1-ZB-S"],
         model: "GR-1-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR GR-1-MB-B (Adapter for household GREE systems)",
+        description: "AIR GR-1-ZB-S (Adapter for household GREE systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -537,7 +534,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "localTemp",
                 scale: 100,
                 unit: "°C",
-                description: "Current temperature",
+                description: "Indoor air temperature",
                 access: "STATE",
             }),
             m.numeric({
@@ -576,7 +573,7 @@ export const definitions: DefinitionWithExtend[] = [
                     dry: 4,
                     fan_only: 5,
                 },
-                description: "Modes",
+                description: "Mode",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -649,8 +646,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "status_led",
-                cluster: "genOnOff",
-                attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4704, type: Zcl.DataType.ENUM8},
                 lookup: {
                     normal_mode: 0,
                     disabled_if_no_errors: 1,
@@ -738,7 +735,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["GR-3-ZB-S"],
         model: "GR-3-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR GR-3-MB-B (Adapter for control of semi-industrial and multi-split systems GREE)",
+        description: "AIR GR-3-ZB-S (Adapter for control of semi-industrial and multi-split systems GREE)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -764,7 +761,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "localTemp",
                 scale: 100,
                 unit: "°C",
-                description: "Current temperature",
+                description: "Indoor air temperature",
                 access: "STATE",
             }),
             m.numeric({
@@ -803,7 +800,7 @@ export const definitions: DefinitionWithExtend[] = [
                     dry: 4,
                     fan_only: 5,
                 },
-                description: "Modes",
+                description: "Mode",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -876,8 +873,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "status_led",
-                cluster: "genOnOff",
-                attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4704, type: Zcl.DataType.ENUM8},
                 lookup: {
                     normal_mode: 0,
                     disabled_if_no_errors: 1,
@@ -968,7 +965,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HR-1-ZB-S"],
         model: "HR-1-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR HR-1-MB-B (Adapter for household and semi-industrial Haier systems)",
+        description: "AIR HR-1-ZB-S (Adapter for household and semi-industrial Haier systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -994,7 +991,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "localTemp",
                 scale: 100,
                 unit: "°C",
-                description: "Current temperature",
+                description: "Indoor air temperature",
                 access: "STATE",
             }),
             m.numeric({
@@ -1002,7 +999,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacThermostat",
                 attribute: "occupiedCoolingSetpoint",
                 valueMin: 16,
-                valueMax: 32,
+                valueMax: 30,
                 valueStep: 1,
                 scale: 100,
                 unit: "°C",
@@ -1033,7 +1030,7 @@ export const definitions: DefinitionWithExtend[] = [
                     dry: 4,
                     fan_only: 5,
                 },
-                description: "Modes",
+                description: "Mode",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -1106,8 +1103,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "status_led",
-                cluster: "genOnOff",
-                attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4704, type: Zcl.DataType.ENUM8},
                 lookup: {
                     normal_mode: 0,
                     disabled_if_no_errors: 1,
@@ -1195,7 +1192,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS-3-ZB-S"],
         model: "HS-3-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR HS-3-MB-B (Adapter for household Hisesnse systems)",
+        description: "AIR HS-3-ZB-S (Adapter for household Hisesnse systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -1221,7 +1218,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "localTemp",
                 scale: 100,
                 unit: "°C",
-                description: "Current temperature",
+                description: "Indoor air temperature",
                 access: "STATE",
             }),
             m.numeric({
@@ -1260,7 +1257,7 @@ export const definitions: DefinitionWithExtend[] = [
                     dry: 4,
                     fan_only: 5,
                 },
-                description: "Modes",
+                description: "Mode",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -1333,8 +1330,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "status_led",
-                cluster: "genOnOff",
-                attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4704, type: Zcl.DataType.ENUM8},
                 lookup: {
                     normal_mode: 0,
                     disabled_if_no_errors: 1,
@@ -1494,7 +1491,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HT-1-ZB-S"],
         model: "HT-1-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR HT-1-MB-B (Adapter for household Hitachi systems)",
+        description: "AIR HT-1-ZB-S (Adapter for household Hitachi systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -1520,7 +1517,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "localTemp",
                 scale: 100,
                 unit: "°C",
-                description: "Current temperature",
+                description: "Indoor air temperature",
                 access: "STATE",
             }),
             m.numeric({
@@ -1559,7 +1556,7 @@ export const definitions: DefinitionWithExtend[] = [
                     dry: 4,
                     fan_only: 5,
                 },
-                description: "Modes",
+                description: "Mode",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -1593,8 +1590,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "status_led",
-                cluster: "genOnOff",
-                attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4704, type: Zcl.DataType.ENUM8},
                 lookup: {
                     normal_mode: 0,
                     disabled_if_no_errors: 1,
@@ -1619,7 +1616,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MD-1-ZB-S"],
         model: "MD-1-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR MD-1-MB-B (Adapter for household MDV systems)",
+        description: "AIR MD-1-ZB-S (Adapter for household MDV systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -1645,7 +1642,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "localTemp",
                 scale: 100,
                 unit: "°C",
-                description: "Current temperature",
+                description: "Indoor air temperature",
                 access: "STATE",
             }),
             m.numeric({
@@ -1684,8 +1681,17 @@ export const definitions: DefinitionWithExtend[] = [
                     dry: 4,
                     fan_only: 5,
                 },
-                description: "Modes",
+                description: "Mode",
                 zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "outdoor_air_temperature",
+                cluster: "hvacThermostat",
+                attribute: "outdoorTemp",
+                scale: 100,
+                unit: "°C",
+                description: "Outdoor air temperature",
+                access: "STATE",
             }),
             m.numeric({
                 name: "zb_fan_speed",
@@ -1701,9 +1707,9 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4701, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
-                valueMax: 1,
+                valueMax: 7,
                 valueStep: 1,
-                description: "Vertical vanes: Stopped(0), Swing(1)",
+                description: "Vertical vanes: Stopped(0), Swing(1), Leftmost position(2), Rightmost position(7)",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -1711,9 +1717,9 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
-                valueMax: 1,
+                valueMax: 7,
                 valueStep: 1,
-                description: "Horizontal vanes: Stopped(0), Swing(1)",
+                description: "Horizontal vanes: Stopped(0), Swing(1), Lowest postion(2), Highest position(7)",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -1748,8 +1754,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "status_led",
-                cluster: "genOnOff",
-                attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4704, type: Zcl.DataType.ENUM8},
                 lookup: {
                     normal_mode: 0,
                     disabled_if_no_errors: 1,
@@ -1771,12 +1777,48 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary({
+                name: "eco_mode",
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4727, type: Zcl.DataType.BOOLEAN},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Eco mode",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.binary({
                 name: "turbo_mode",
                 cluster: "hvacFanCtrl",
                 attribute: {ID: 0x4711, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 description: "Turbo mode",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.binary({
+                name: "self_cleaning",
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4721, type: Zcl.DataType.BOOLEAN},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Self cleaning",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.binary({
+                name: "heating_8_deg",
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4724, type: Zcl.DataType.BOOLEAN},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Heating 8 deg",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.binary({
+                name: "gentle_wind",
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4725, type: Zcl.DataType.BOOLEAN},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Gentle wind",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -1786,7 +1828,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 100,
                 valueStep: 1,
-                description: "Target fan rpm",
+                description: "Target fan speed",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
         ],
@@ -1802,7 +1844,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MD-3-ZB-S"],
         model: "MD-3-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR MD-3-MB-B (Adapter for semi-industrial MDV systems)",
+        description: "AIR MD-3-ZB-S (Adapter for semi-industrial MDV systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -1828,7 +1870,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "localTemp",
                 scale: 100,
                 unit: "°C",
-                description: "Current temperature",
+                description: "Indoor air temperature",
                 access: "STATE",
             }),
             m.numeric({
@@ -1867,7 +1909,7 @@ export const definitions: DefinitionWithExtend[] = [
                     dry: 4,
                     fan_only: 5,
                 },
-                description: "Modes",
+                description: "Mode",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -1884,9 +1926,9 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
                 valueMin: 0,
-                valueMax: 8,
+                valueMax: 1,
                 valueStep: 1,
-                description: "Horizontal vanes: Stopped(0), Swing(1), Lowest postion(2), Highest position(8)",
+                description: "Horizontal vanes: Stopped(0), Swing(1)",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -1921,8 +1963,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "status_led",
-                cluster: "genOnOff",
-                attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4704, type: Zcl.DataType.ENUM8},
                 lookup: {
                     normal_mode: 0,
                     disabled_if_no_errors: 1,
@@ -1980,7 +2022,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ME-1-ZB-S"],
         model: "ME-1-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM-AIR-ME-1-MB-B (Adapter for household and semi-industrial Mitsubishi Electric systems)",
+        description: "ONOKOM-AIR-ME-1-ZB-S (Adapter for household and semi-industrial Mitsubishi Electric systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -2006,7 +2048,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "localTemp",
                 scale: 100,
                 unit: "°C",
-                description: "Current temperature",
+                description: "Indoor air temperature",
                 access: "STATE",
             }),
             m.numeric({
@@ -2045,7 +2087,7 @@ export const definitions: DefinitionWithExtend[] = [
                     dry: 4,
                     fan_only: 5,
                 },
-                description: "Modes",
+                description: "Mode",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -2109,8 +2151,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "status_led",
-                cluster: "genOnOff",
-                attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4704, type: Zcl.DataType.ENUM8},
                 lookup: {
                     normal_mode: 0,
                     disabled_if_no_errors: 1,
@@ -2144,7 +2186,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["TCL-1-ZB-S"],
         model: "TCL-1-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM-AIR-TCL-1-MB-B (Adapter for household TCL systems )",
+        description: "ONOKOM-AIR-TCL-1-ZB-S (Adapter for household TCL systems )",
         ota: true,
         extend: [
             m.enumLookup({
@@ -2170,7 +2212,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "localTemp",
                 scale: 100,
                 unit: "°C",
-                description: "Current temperature",
+                description: "Indoor air temperature",
                 access: "STATE",
             }),
             m.numeric({
@@ -2209,7 +2251,7 @@ export const definitions: DefinitionWithExtend[] = [
                     dry: 4,
                     fan_only: 5,
                 },
-                description: "Modes",
+                description: "Mode",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -2282,8 +2324,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "status_led",
-                cluster: "genOnOff",
-                attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4704, type: Zcl.DataType.ENUM8},
                 lookup: {
                     normal_mode: 0,
                     disabled_if_no_errors: 1,
@@ -2400,33 +2442,9 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x4724, type: Zcl.DataType.ENUM8},
                 access: "STATE",
                 valueMin: 0,
-                valueMax: 100,
+                valueMax: 200,
                 valueStep: 1,
-                description: "Current fan RPM",
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
-            m.numeric({
-                name: "indoor_heat_exchanger_temperature",
-                cluster: "hvacThermostat",
-                attribute: {ID: 0x4740, type: Zcl.DataType.UINT16},
-                access: "STATE",
-                valueMin: 0,
-                valueMax: 100,
-                valueStep: 1,
-                unit: "°C",
-                description: "Indoor heat exchanger temperature",
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
-            m.numeric({
-                name: "outdoor_heat_exchanger_temperature",
-                cluster: "hvacThermostat",
-                attribute: {ID: 0x4741, type: Zcl.DataType.UINT16},
-                access: "STATE",
-                valueMin: 0,
-                valueMax: 100,
-                valueStep: 1,
-                unit: "°C",
-                description: "Outdoor heat exchanger temperature",
+                description: "Current fan speed",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -2452,7 +2470,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["TCL-3-ZB-S"],
         model: "TCL-3-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR TCL-3-MB-B (Adapter for semi industrial TCL systems)",
+        description: "AIR TCL-3-ZB-S (Adapter for semi industrial TCL systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -2478,7 +2496,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "localTemp",
                 scale: 100,
                 unit: "°C",
-                description: "Current temperature",
+                description: "Indoor air temperature",
                 access: "STATE",
             }),
             m.numeric({
@@ -2517,7 +2535,7 @@ export const definitions: DefinitionWithExtend[] = [
                     dry: 4,
                     fan_only: 5,
                 },
-                description: "Modes",
+                description: "Mode",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric({
@@ -2581,8 +2599,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "status_led",
-                cluster: "genOnOff",
-                attribute: {ID: 0x4700, type: Zcl.DataType.ENUM8},
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x4704, type: Zcl.DataType.ENUM8},
                 lookup: {
                     normal_mode: 0,
                     disabled_if_no_errors: 1,

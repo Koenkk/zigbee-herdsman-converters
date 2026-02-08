@@ -92,6 +92,32 @@ export enum TuyaWeatherID {
     Condition = 0x03,
 }
 
+export type ThermostatSchedule = KeyValue & {
+    enabled: boolean;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    work_mode: "cooling" | "heating";
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    temperature_f: number;
+    start: {
+        hour: number;
+        minute: number;
+    };
+    end: {
+        hour: number;
+        minute: number;
+    };
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    week_days: {
+        sunday: boolean;
+        monday: boolean;
+        tuesday: boolean;
+        wednesday: boolean;
+        thursday: boolean;
+        friday: boolean;
+        saturday: boolean;
+    };
+};
+
 export function convertBufferToNumber(chunks: Buffer | number[]) {
     let value = 0;
     for (let i = 0; i < chunks.length; i++) {
@@ -150,7 +176,6 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
 // Return `seq` - transaction ID for handling concrete response
 async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
     if (seq === undefined) {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         seq = globalStore.getValue(entity, "sequence", 0);
         globalStore.putValue(entity, "sequence", (seq + 1) % 0xffff);
     }
@@ -324,7 +349,8 @@ const tuyaExposes = {
     backlightModeOffOn: () => e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Mode of the backlight").withCategory("config"),
     indicatorMode: () =>
         e.enum("indicator_mode", ea.ALL, ["off", "off/on", "on/off", "on"]).withDescription("LED indicator mode").withCategory("config"),
-    indicatorModeNoneRelayPos: () => e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Mode of the indicator light"),
+    indicatorModeNoneRelayPos: () =>
+        e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Mode of the indicator light").withCategory("config"),
     powerOutageMemory: () => e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
     batteryState: () => e.enum("battery_state", ea.STATE, ["low", "medium", "high"]).withDescription("State of the battery"),
     doNotDisturb: () =>
@@ -437,6 +463,17 @@ export class Enum extends Base {}
 const enumConstructor = (value: number) => new Enum(value);
 export {enumConstructor as enum};
 
+export const BacklightColorEnum = {
+    red: enumConstructor(0),
+    blue: enumConstructor(1),
+    green: enumConstructor(2),
+    white: enumConstructor(3),
+    yellow: enumConstructor(4),
+    magenta: enumConstructor(5),
+    cyan: enumConstructor(6),
+    warm_white: enumConstructor(7),
+} as const;
+
 export class Bitmap extends Base {}
 
 type LookupMap = {[s: string]: number | boolean | Enum | string};
@@ -469,6 +506,12 @@ export const valueConverterBasic = {
     },
     divideByFromOnly: (value: number) => {
         return {to: (v: number) => v, from: (v: number) => v / value};
+    },
+    divideByWithLimits: (value: number, min: number, max: number) => {
+        return {
+            to: (v: number) => (v > max ? max * value : v < min ? min * value : v * value),
+            from: (v: number) => (v / value > max ? max : v / value < min ? min : v / value),
+        };
     },
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
@@ -792,7 +835,6 @@ export const valueConverter = {
     lockUnlock: valueConverterBasic.lookup({LOCK: true, UNLOCK: false}),
     localTempCalibration1: {
         from: (v: number) => {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (v > 55) v -= 0x100000000;
             return v / 10;
         },
@@ -811,7 +853,6 @@ export const valueConverter = {
     },
     localTempCalibration3: {
         from: (v: number) => {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (v > 0x7fffffff) v -= 0x100000000;
             return v / 10;
         },
@@ -845,6 +886,43 @@ export const valueConverter = {
             const numberPattern = /\d+/g;
             // @ts-expect-error ignore
             return v.match(numberPattern).join([]).toString();
+        },
+    },
+    thermostatHolidayStartStopUnixTS: {
+        // converts 8-byte big-endian 2 times Unix timestamps array to "YYYY/MM/DD HH:MM | YYYY/MM/DD HH:MM" string
+        from: (v: number[]) => {
+            if (!v || v.length !== 8) return "";
+
+            // Convert first 4 bytes → start Unix timestamp
+            const startUnixTS = (v[0] << 24) | (v[1] << 16) | (v[2] << 8) | v[3];
+            // Convert next 4 bytes → end Unix timestamp
+            const endUnixTS = (v[4] << 24) | (v[5] << 16) | (v[6] << 8) | v[7];
+
+            const fmt = (date: Date) => {
+                const year = date.getUTCFullYear();
+                const month = String(date.getUTCMonth() + 1).padStart(2, "0"); // +1 as JavaScript months are zero-based
+                const day = String(date.getUTCDate()).padStart(2, "0");
+                const hours = String(date.getUTCHours()).padStart(2, "0");
+                const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+                return `${year}/${month}/${day} ${hours}:${minutes}`;
+            };
+
+            return `${fmt(new Date(startUnixTS * 1000))} | ${fmt(new Date(endUnixTS * 1000))}`;
+        },
+
+        to: (v: string) => {
+            // converts from string "YYYY/MM/DD HH:MM | YYYY/MM/DD HH:MM" to 8-byte array
+            const [startDate, endDate] = v.split("|").map((s) => s.trim());
+
+            const parse = (s: string) => {
+                const [datePart, timePart] = s.split(" ");
+                const [y, m, d] = datePart.split("/").map(Number);
+                const [h, min] = timePart.split(":").map(Number);
+                const unix = Math.floor(Date.UTC(y, m - 1, d, h, min) / 1000);
+                return [(unix >> 24) & 0xff, (unix >> 16) & 0xff, (unix >> 8) & 0xff, unix & 0xff];
+            };
+
+            return [...parse(startDate), ...parse(endDate)]; // ... to unpack arrays into elements
         },
     },
     thermostatScheduleDaySingleDP: {
@@ -1056,6 +1134,148 @@ export const valueConverter = {
                 return data;
             },
         };
+    },
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    thermostatScheduleDayMultiDP_TRV603WZ: {
+        // Custom schedule value converter for TRV603-WZ 8 pair schedule per day
+        // Structure:
+        //   [0] metadata (unknown purpose, preserved)
+        //   [1] count = number of subsequent bytes (must be even: pairs*2)
+        //   [2..] alternating (timeByte, thermByte) pairs.
+        // Encoding rules:
+        //   timeByte = hour * 10 + (minute / 10) (minute must be multiple of 10)
+        //   thermByte = 2 * temperatureC   (temperature in 0.5°C steps)
+        // Decoded textual schedule format:
+        //   "HH:MM/TT.T HH:MM/TT.T HH:MM/TT.T HH:MM/TT.T HH:MM/TT.T HH:MM/TT.T HH:MM/TT.T HH:MM/TT.T"
+        from: (v: number[]) => {
+            if (!v || v.length < 4) return "";
+            // const meta = v[0];  // (always 7?)
+            const count = v[1];
+            const segments = [];
+            for (let i = 0; i < count; i += 2) {
+                const timeByte = v[2 + i];
+                const thermByte = v[2 + i + 1];
+                const hour = Math.floor(timeByte / 10);
+                const minutes = (timeByte % 10) * 10;
+                const thermC = thermByte / 2;
+                segments.push(`${String(hour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}/${thermC.toFixed(1)}`);
+            }
+            return segments.join(" ");
+        },
+        to: (v: string) => {
+            const parts = v.split(/\s+/).filter(Boolean);
+            const payload = [];
+            const meta = 7; // keep observed metadata value;
+            payload.push(meta); // index 0
+            payload.push(parts.length * 2); // index 1: count of subsequent bytes
+            for (const segment of parts) {
+                // Segment format: HH:MM/TT.T  (e.g. 06:30/21.0 or 17:30/21.5)
+                const match = segment.match(/^(\d{2}):(\d{2})\/(\d{1,2}(?:\.5|\.0)?)$/);
+                if (!match) throw new Error(`Invalid schedule segment "${segment}", expected format "HH:MM/TT.T"`);
+                const hour = Number(match[1]);
+                if (hour < 0 || hour >= 24) throw new Error(`Invalid hour "${hour}" in schedule segment "${segment}", must be 0-23`);
+                const minute = Number(match[2]);
+                if (minute < 0 || minute > 59) throw new Error(`Invalid minute "${minute}" in schedule segment "${segment}", must be 0-59`);
+                const thermC = Number(match[3]);
+                const timeByte = hour * 10 + minute / 10;
+                const thermByte = Math.round(thermC * 2);
+                payload.push(timeByte, thermByte);
+            }
+            return payload;
+        },
+    },
+    thermostatSchedule: {
+        from: (value: string): ThermostatSchedule[] => {
+            const buffer = Buffer.from(value, "base64");
+            const schedules: ThermostatSchedule[] = [];
+            const scheduleLength = 12;
+
+            for (let offset = 0; offset < buffer.length; offset += scheduleLength) {
+                const b = buffer.slice(offset, offset + scheduleLength);
+
+                // temperature
+                const raw = b.readUInt16BE(3);
+                const temperatureF = (raw - 0x8000) / 10;
+
+                // time in minutes from midnight
+                const startMinutes = b.readUInt16BE(5);
+                const endMinutes = b.readUInt16BE(7);
+
+                function minutesToTime(m: number) {
+                    return {
+                        hour: Math.floor(m / 60),
+                        minute: m % 60,
+                    };
+                }
+
+                const daysMask = b[9];
+
+                schedules.push({
+                    enabled: (b[1] & 0x80) !== 0,
+                    work_mode: b[2] === 0x02 ? "cooling" : "heating",
+                    temperature_f: temperatureF,
+                    start: minutesToTime(startMinutes),
+                    end: minutesToTime(endMinutes),
+                    week_days: {
+                        sunday: !!(daysMask & 0x01),
+                        monday: !!(daysMask & 0x02),
+                        tuesday: !!(daysMask & 0x04),
+                        wednesday: !!(daysMask & 0x08),
+                        thursday: !!(daysMask & 0x10),
+                        friday: !!(daysMask & 0x20),
+                        saturday: !!(daysMask & 0x40),
+                    },
+                });
+            }
+
+            return schedules;
+        },
+        to: (schedules: ThermostatSchedule[]) => {
+            const scheduleLength = 12;
+            const buffers = [];
+
+            for (const schedule of schedules) {
+                const b = Buffer.alloc(scheduleLength, 0x00);
+
+                if (schedule.enabled) {
+                    b[1] |= 0x80;
+                }
+
+                b[2] = schedule.work_mode === "cooling" ? 0x02 : 0x00;
+
+                const temperatureF = schedule.temperature_f;
+                const rawTemperature = Math.round(temperatureF * 10) + 0x8000;
+                b.writeUInt16BE(rawTemperature & 0xffff, 3);
+
+                const startMinutes = schedule.start.hour * 60 + schedule.start.minute;
+                b.writeUInt16BE(startMinutes, 5);
+
+                const endMinutes = schedule.end.hour * 60 + schedule.end.minute;
+                b.writeUInt16BE(endMinutes, 7);
+
+                let daysMask = 0;
+                if (schedule.week_days.sunday) daysMask |= 0x01;
+                if (schedule.week_days.monday) daysMask |= 0x02;
+                if (schedule.week_days.tuesday) daysMask |= 0x04;
+                if (schedule.week_days.wednesday) daysMask |= 0x08;
+                if (schedule.week_days.thursday) daysMask |= 0x10;
+                if (schedule.week_days.friday) daysMask |= 0x20;
+                if (schedule.week_days.saturday) daysMask |= 0x40;
+                b[9] = daysMask;
+
+                b[10] = 0x02;
+
+                let sum = 0;
+                for (let i = 0; i <= 9; i++) {
+                    sum += b[i];
+                }
+                b[11] = sum & 0xff;
+
+                buffers.push(b);
+            }
+
+            return Buffer.concat(buffers).toString("base64");
+        },
     },
     tv02Preset: () => {
         return {
@@ -2536,7 +2756,6 @@ const tuyaModernExtend = {
             colorPowerOnBehavior?: boolean;
         },
     ): ModernExtend {
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         args = {minBrightness: "none", powerOnBehavior: false, switchType: false, doNotDisturb: true, colorPowerOnBehavior: true, ...args};
         if (args.colorTemp) {
             args.colorTemp = {startup: false, ...args.colorTemp};
@@ -2594,24 +2813,33 @@ const tuyaModernExtend = {
         args: {
             endpoints?: string[];
             powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
-            powerOnBehavior2?: boolean;
-            switchType?: boolean;
+            powerOnBehavior2?: boolean | ((manufacturerName: string) => boolean);
+            switchType?: boolean | ((manufacturerName: string) => boolean);
             switchTypeCurtain?: boolean;
             backlightModeLowMediumHigh?: boolean;
             indicatorMode?: boolean | ((manufacturerName: string) => boolean);
             indicatorModeNoneRelayPos?: boolean;
             backlightModeOffNormalInverted?: boolean;
-            backlightModeOffOn?: boolean;
+            backlightModeOffOn?: boolean | ((manufacturerName: string) => boolean);
             electricalMeasurements?: boolean;
             // biome-ignore lint/suspicious/noExplicitAny: generic
             electricalMeasurementsFzConverter?: Fz.Converter<"haElectricalMeasurement", undefined, any>;
             childLock?: boolean | ((manufacturerName: string) => boolean);
             switchMode?: boolean;
             onOffCountdown?: boolean | ((manufacturerName: string) => boolean);
-            inchingSwitch?: boolean;
+            inchingSwitch?: boolean | ((manufacturerName: string) => boolean);
         } = {},
     ): ModernExtend => {
-        const {onOffCountdown = false, indicatorMode = false, powerOutageMemory = false, childLock = false} = args;
+        const {
+            onOffCountdown = false,
+            indicatorMode = false,
+            powerOutageMemory = false,
+            childLock = false,
+            inchingSwitch = false,
+            backlightModeOffOn = false,
+            powerOnBehavior2 = false,
+            switchType = false,
+        } = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
             : [e.switch()];
@@ -2640,13 +2868,14 @@ const tuyaModernExtend = {
             } else {
                 exposes.push(tuyaExposes.powerOutageMemory());
             }
-        } else if (args.powerOnBehavior2) {
+        } else if (powerOnBehavior2) {
             fromZigbee.push(tuyaFz.power_on_behavior_2);
             toZigbee.push(tuyaTz.power_on_behavior_2);
-            if (args.endpoints) {
-                exposes.push(...args.endpoints.map((ee) => e.power_on_behavior().withEndpoint(ee)));
+            const expose = args.endpoints ? args.endpoints.map((ee) => e.power_on_behavior().withEndpoint(ee)) : [e.power_on_behavior()];
+            if (typeof powerOnBehavior2 === "function") {
+                exposes.push((d) => (powerOnBehavior2(d.manufacturerName) ? expose : []));
             } else {
-                exposes.push(e.power_on_behavior());
+                exposes.push(...expose);
             }
         } else {
             fromZigbee.push(tuyaFz.power_on_behavior_1);
@@ -2654,20 +2883,28 @@ const tuyaModernExtend = {
             exposes.push(e.power_on_behavior());
         }
 
-        if (args.switchType) {
+        if (switchType) {
             fromZigbee.push(tuyaFz.switch_type);
             toZigbee.push(tuyaTz.switch_type);
-            exposes.push(tuyaExposes.switchType());
+            if (typeof switchType === "function") {
+                exposes.push((d) => (switchType(d.manufacturerName) ? [tuyaExposes.switchType()] : []));
+            } else {
+                exposes.push(tuyaExposes.switchType());
+            }
         }
         if (args.switchTypeCurtain) {
             fromZigbee.push(tuyaFz.switch_type_curtain);
             toZigbee.push(tuyaTz.switch_type_curtain);
             exposes.push(tuyaExposes.switchTypeCurtain());
         }
-        if (args.backlightModeOffOn) {
+        if (backlightModeOffOn) {
             fromZigbee.push(tuyaFz.backlight_mode_off_on);
-            exposes.push(tuyaExposes.backlightModeOffOn());
             toZigbee.push(tuyaTz.backlight_indicator_mode_2);
+            if (typeof backlightModeOffOn === "function") {
+                exposes.push((d) => (backlightModeOffOn(d.manufacturerName) ? [tuyaExposes.backlightModeOffOn()] : []));
+            } else {
+                exposes.push(tuyaExposes.backlightModeOffOn());
+            }
         }
         if (args.backlightModeLowMediumHigh) {
             fromZigbee.push(tuyaFz.backlight_mode_low_medium_high);
@@ -2726,14 +2963,15 @@ const tuyaModernExtend = {
             }
         }
 
-        if (args.inchingSwitch) {
-            let quantity = 1;
-            if (args.endpoints) {
-                quantity = args.endpoints.length;
-            }
+        if (inchingSwitch) {
+            const quantity = args.endpoints?.length ?? 1;
             fromZigbee.push(tuyaFz.inchingSwitch);
-            exposes.push(tuyaExposes.inchingSwitch(quantity));
             toZigbee.push(tuyaTz.inchingSwitch);
+            if (typeof inchingSwitch === "function") {
+                exposes.push((d) => (inchingSwitch(d.manufacturerName) ? [tuyaExposes.inchingSwitch(quantity)] : []));
+            } else {
+                exposes.push(tuyaExposes.inchingSwitch(quantity));
+            }
         }
 
         const configure = [configureSetPowerSourceWhenUnknown("Mains (single phase)")];
@@ -2954,9 +3192,9 @@ const tuyaClusters = {
         modernExtend.deviceAddCustomCluster("manuSpecificTuya4", {
             ID: 0xe000,
             attributes: {
-                random_timing: {ID: 0xd001, type: Zcl.DataType.CHAR_STR},
-                cycle_timing: {ID: 0xd002, type: Zcl.DataType.CHAR_STR},
-                inching: {ID: 0xd003, type: Zcl.DataType.CHAR_STR},
+                random_timing: {ID: 0xd001, type: Zcl.DataType.CHAR_STR, write: true},
+                cycle_timing: {ID: 0xd002, type: Zcl.DataType.CHAR_STR, write: true},
+                inching: {ID: 0xd003, type: Zcl.DataType.CHAR_STR, write: true},
             },
             commands: {
                 setRandomTiming: {

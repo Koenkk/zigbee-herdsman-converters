@@ -44,9 +44,14 @@ const rd1pKnobActionsMap: {[key: string]: string} = {
     commandStepWithOnOff: "rotating_",
     commandStop: "stopped_rotating",
 };
-const rd1pKnobCommands: {[key: number]: string} = {
-    3: "commandRelease",
-};
+
+interface CandeoOnOff {
+    attributes: never;
+    commands: {
+        release: never;
+    };
+    commandResponses: never;
+}
 
 const luxScale: m.ScaleFunction = (value: number, type: "from" | "to") => {
     let result = value;
@@ -194,24 +199,18 @@ const fzLocal = {
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandMoveWithOnOff", "commandStepWithOnOff", "commandStop"]>,
     rd1p_knob_press: {
         cluster: "genOnOff",
-        type: ["commandOn", "commandOff", "commandToggle", "raw"],
+        type: ["commandOn", "commandOff", "commandToggle", "commandRelease"],
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             let knobAction = "unknown";
             if (msg.type in rd1pKnobActionsMap) {
                 knobAction = rd1pKnobActionsMap[msg.type];
-            } else if (msg.type === "raw") {
-                const command = msg.data[2] as number;
-                if (command in rd1pKnobCommands) {
-                    const knobCommand = rd1pKnobCommands[command];
-                    knobAction = rd1pKnobActionsMap[knobCommand];
-                }
             }
             const payload = {action: knobAction};
             utils.addActionGroup(payload, msg, model);
             return payload;
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle", "raw"]>,
+    } satisfies Fz.Converter<"genOnOff", CandeoOnOff, ["commandOn", "commandOff", "commandToggle", "commandRelease"]>,
 };
 
 const tzLocal = {
@@ -688,10 +687,10 @@ export const definitions: DefinitionWithExtend[] = [
                     rotaryRemoteControl: {
                         ID: 0x01,
                         parameters: [
-                            {name: "field1", type: Zcl.DataType.UINT8},
-                            {name: "field2", type: Zcl.DataType.UINT8},
-                            {name: "field3", type: Zcl.DataType.UINT8},
-                            {name: "field4", type: Zcl.DataType.UINT8},
+                            {name: "field1", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "field2", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "field3", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "field4", type: Zcl.DataType.UINT8, max: 0xff},
                         ],
                     },
                 },
@@ -775,6 +774,17 @@ export const definitions: DefinitionWithExtend[] = [
                 current: {min: 5, max: 900, change: 10},
                 energy: {min: 5, max: 1800, change: 50},
             }),
+            m.deviceAddCustomCluster("genOnOff", {
+                ID: 6,
+                attributes: {},
+                commands: {
+                    release: {
+                        ID: 0x03,
+                        parameters: [],
+                    },
+                },
+                commandsResponse: {},
+            }),
         ],
     },
     {
@@ -799,6 +809,17 @@ export const definitions: DefinitionWithExtend[] = [
                 voltage: {min: 5, max: 600, change: 500},
                 current: {min: 5, max: 900, change: 10},
                 energy: {min: 5, max: 1800, change: 50},
+            }),
+            m.deviceAddCustomCluster("genOnOff", {
+                ID: 6,
+                attributes: {},
+                commands: {
+                    release: {
+                        ID: 0x03,
+                        parameters: [],
+                    },
+                },
+                commandsResponse: {},
             }),
         ],
         fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press],

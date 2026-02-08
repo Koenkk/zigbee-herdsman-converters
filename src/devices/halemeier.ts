@@ -89,10 +89,17 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.action(["recall_*", "on", "off", "brightness_move_up", "brightness_move_down"])],
     },
     {
+        zigbeeModel: ["HA-ZM12/24-4K"],
+        model: "HA-ZM12/24-4K",
+        vendor: "Halemeier",
+        description: "4-channel LED driver",
+        extend: [m.light({endpointNames: ["l1", "l2", "l3", "l4"]}), m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}})],
+    },
+    {
         zigbeeModel: ["HA-ZM12mw2-4K"],
         model: "HA-ZM12mw2-4K",
         vendor: "Halemeier",
-        description: "4-channel LED driver",
+        description: "4-channel WS LED driver",
         extend: [
             m.light({colorTemp: {range: [160, 450]}, endpointNames: ["l1", "l2", "l3", "l4"]}),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),

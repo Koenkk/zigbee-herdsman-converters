@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
+import type {Device} from "zigbee-herdsman/dist/controller/model";
 import type {
     ClusterOrRawAttributeKeys,
     PartialClusterOrRawWriteAttributes,
@@ -7,6 +8,7 @@ import type {
     TCustomClusterPayload,
 } from "zigbee-herdsman/dist/controller/tstype";
 import type {TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
+import {DataType} from "zigbee-herdsman/dist/zspec/zcl/definition/enums";
 import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -1021,7 +1023,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
     }
 
     if (ultrasonicConfig) {
-        if (pirConfig.includes("otu_delay")) {
+        if (ultrasonicConfig.includes("otu_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_otu_delay",
@@ -1033,7 +1035,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             );
             attributesForReading.push("ultrasonicOToUDelay");
         }
-        if (pirConfig.includes("uto_delay")) {
+        if (ultrasonicConfig.includes("uto_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_uto_delay",
@@ -1045,7 +1047,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             );
             attributesForReading.push("ultrasonicUToODelay");
         }
-        if (pirConfig.includes("uto_threshold")) {
+        if (ultrasonicConfig.includes("uto_threshold")) {
             settingsExtends.push(
                 numeric({
                     name: "ultrasonic_uto_threshold",
@@ -1060,7 +1062,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
     }
 
     if (contactConfig) {
-        if (pirConfig.includes("otu_delay")) {
+        if (contactConfig.includes("otu_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_otu_delay",
@@ -1072,7 +1074,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             );
             attributesForReading.push("contactOToUDelay");
         }
-        if (pirConfig.includes("uto_delay")) {
+        if (contactConfig.includes("uto_delay")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_uto_delay",
@@ -1084,7 +1086,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             );
             attributesForReading.push("contactUToODelay");
         }
-        if (pirConfig.includes("uto_threshold")) {
+        if (contactConfig.includes("uto_threshold")) {
             settingsExtends.push(
                 numeric({
                     name: "contact_uto_threshold",
@@ -1374,7 +1376,8 @@ export type ColorCtrlCommand =
     | "hue_move"
     | "hue_stop"
     | "move_to_saturation"
-    | "move_to_hue";
+    | "move_to_hue"
+    | "stop_move_step";
 export interface CommandsColorCtrl {
     commands?: ColorCtrlCommand[];
     bind?: boolean;
@@ -1401,6 +1404,7 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
             "hue_stop",
             "move_to_saturation",
             "move_to_hue",
+            "stop_move_step",
         ],
         bind = true,
         endpointNames = undefined,
@@ -1426,6 +1430,7 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
         fz.command_move_hue,
         fz.command_move_to_saturation,
         fz.command_move_to_hue,
+        fz.command_stop_move_step,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
@@ -1459,6 +1464,19 @@ export function lightingBallast(): ModernExtend {
 // #endregion
 
 // #region HVAC
+
+export function customLocalTemperatureCalibrationRange({min, max}: {min: number; max: number}): ModernExtend {
+    // Some devices have a custom range for localTemperatureCalibration attribute.
+    // To find the range for a specific device: https://github.com/Koenkk/zigbee2mqtt/issues/30448#issuecomment-3707495349
+    return deviceAddCustomCluster("hvacThermostat", {
+        ID: 0x0201,
+        attributes: {
+            localTemperatureCalibration: {ID: 0x0010, type: DataType.INT8, write: true, min: min * 10, max: max * 10, default: 0},
+        },
+        commands: {},
+        commandsResponse: {},
+    });
+}
 
 // #endregion
 
@@ -1638,7 +1656,7 @@ export interface IasArgs {
     zoneType: IasZoneType;
     zoneAttributes: IasZoneAttribute[];
     alarmTimeout?: boolean;
-    keepAliveTimeout?: number;
+    keepAliveTimeout?: (device: Device) => number;
     zoneStatusReporting?: boolean;
     description?: string;
     invertAlarm?: true;
@@ -1762,14 +1780,15 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                         payload = {[alarm2Name]: alarm2Payload, ...payload};
                         addTimeout ||= alarm2Payload;
                     }
-                    if (isChange && args.keepAliveTimeout > 0) {
+                    const keepAliveTimeout = args?.keepAliveTimeout?.(msg.device);
+                    if (isChange && keepAliveTimeout !== undefined && keepAliveTimeout > 0) {
                         // This sensor continuously sends occupation updates as long as motion is detected; (re)start a timeout
                         // each time we receive one, in case the clearance message gets lost. Normally, these kinds of sensors
                         // send a clearance message, so this is an additional safety measure.
                         clearTimeout(globalStore.getValue(msg.endpoint, "timeout"));
                         if (addTimeout) {
                             // At least one zone active
-                            const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), args.keepAliveTimeout * 1000);
+                            const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), keepAliveTimeout * 1000);
                             globalStore.putValue(msg.endpoint, "timeout", timer);
                         } else {
                             globalStore.clearValue(msg.endpoint, "timeout");
@@ -2015,14 +2034,20 @@ function genericMeter(args: MeterArgs = {}) {
                 change: 5,
             },
             // Report change with every 100mW change
-            dc_power: {attribute: "dcPower" as const, divisor: "dcPowerDivisor", multiplier: "dcPowerMultiplier", forced: args.power, change: 100},
+            dc_power: {
+                attribute: "dcPower" as const,
+                divisor: "dcPowerDivisor",
+                multiplier: "dcPowerMultiplier",
+                forced: args.power,
+                change: 0.1,
+            },
             // Report change with every 100mV change
             dc_voltage: {
                 attribute: "dcVoltage" as const,
                 divisor: "dcVoltageDivisor",
                 multiplier: "dcVoltageMultiplier",
                 forced: args.voltage,
-                change: 100,
+                change: 0.1,
             },
             // Report change with every 100mA change
             dc_current: {
@@ -2030,7 +2055,7 @@ function genericMeter(args: MeterArgs = {}) {
                 divisor: "dcCurrentDivisor",
                 multiplier: "dcCurrentMultiplier",
                 forced: args.current,
-                change: 100,
+                change: 0.1,
             },
         },
         seMetering: {
@@ -2229,12 +2254,13 @@ function genericMeter(args: MeterArgs = {}) {
         toZigbee = [tz.metering_power, tz.currentsummdelivered, tz.currentsummreceived];
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === "metering" && args.type === "gas") {
-        if (args.power !== false) exposes.push(e.numeric("power", ea.STATE_GET).withUnit("m³/h").withDescription("Instantaneous gas flow in m³/h"));
-        if (args.energy !== false) exposes.push(e.numeric("energy", ea.ALL).withUnit("m³").withDescription("Total gas consumption in m³"));
+        if (args.power !== false)
+            exposes.push(e.numeric("volume_flow_rate", ea.STATE_GET).withUnit("m³/h").withDescription("Instantaneous gas flow in m³/h"));
+        if (args.energy !== false) exposes.push(e.numeric("gas", ea.STATE_GET).withUnit("m³").withDescription("Total gas consumption in m³"));
         fromZigbee = [args.fzMetering ?? fz.gas_metering];
         toZigbee = [
             {
-                key: ["energy"],
+                key: ["gas"],
                 convertGet: async (entity, key, meta) => {
                     const ep = determineEndpoint(entity, meta, "seMetering");
                     await ep.read("seMetering", ["currentSummDelivered"]);
@@ -2257,7 +2283,12 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET));
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement];
+
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.frequency, tz.powerfactor];
+        if (args.electricalMeasurementType === "dc") {
+            toZigbee = [tz.dcvoltage, tz.dccurrent, tz.dcpower];
+        }
+
         delete configureLookup.seMetering;
     }
 
@@ -2566,11 +2597,12 @@ export interface EnumLookupArgs<Cl extends string | number, Custom extends TCust
     reporting?: false | ReportingConfigWithoutAttribute;
     entityCategory?: "config" | "diagnostic";
     label?: string;
+    fzConvert?: Fz.Converter<Cl, Custom, ["attributeReport", "readResponse"]>["convert"];
 }
 export function enumLookup<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: EnumLookupArgs<Cl, Custom>,
 ): ModernExtend {
-    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, label} = args;
+    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, label, fzConvert} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
@@ -2583,12 +2615,14 @@ export function enumLookup<Cl extends string | number, Custom extends TCustomClu
         {
             cluster: cluster.toString(),
             type: ["attributeReport", "readResponse"],
-            convert: (model, msg, publish, options, meta) => {
-                if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
-                    // skip undefined value
-                    if (msg.data[attributeKey] !== undefined) return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
-                }
-            },
+            convert:
+                fzConvert ??
+                ((model, msg, publish, options, meta) => {
+                    if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
+                        // skip undefined value
+                        if (msg.data[attributeKey] !== undefined) return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
+                    }
+                }),
             // biome-ignore lint/suspicious/noExplicitAny: generic
         } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
@@ -2626,7 +2660,8 @@ export function enumLookup<Cl extends string | number, Custom extends TCustomClu
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
+    const endpointNames = endpointName ? [endpointName] : null;
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2845,7 +2880,8 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
+    const endpointNames = endpointName ? [endpointName] : null;
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -2914,7 +2950,8 @@ export function text<Cl extends string | number, Custom extends TCustomCluster |
         },
     ];
 
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access})];
+    const endpointNames = endpointName ? [endpointName] : null;
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames})];
 
     return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
 }
@@ -3169,6 +3206,19 @@ export interface ThermostatArgs {
     temperatureSetpointHold?: true;
     temperatureSetpointHoldDuration?: true;
     endpoint?: string;
+    ctrlSeqeOfOper?: Omit<
+        ValuesWithModernExtendConfiguration<
+            Array<
+                | "cooling_only"
+                | "cooling_with_reheat"
+                | "heating_only"
+                | "heating_with_reheat"
+                | "cooling_and_heating_4-pipes"
+                | "cooling_and_heating_4-pipes_with_reheat"
+            >
+        >,
+        "fromZigbee"
+    >;
 }
 
 export function thermostat(args: ThermostatArgs): ModernExtend {
@@ -3185,6 +3235,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
         temperatureSetpointHold = false,
         temperatureSetpointHoldDuration = false,
         endpoint = undefined,
+        ctrlSeqeOfOper = undefined,
     } = args;
 
     const endpointNames = endpoint ? [endpoint] : undefined;
@@ -3195,6 +3246,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
     const exposes: Expose[] = <Expose[]>[];
     const fromZigbee = [];
     const toZigbee = [];
+    const onEvent: OnEvent.Handler[] = [];
     const configure: Configure[] = <Configure[]>[];
 
     const expose = e.climate().withLocalTemperature(undefined, localTemperature?.values?.description ?? undefined);
@@ -3220,9 +3272,15 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
     }
 
     if (localTemperatureCalibration) {
-        const {min, max, step} =
-            localTemperatureCalibration.values === true ? {min: -12.8, max: 12.8, step: 0.1} : localTemperatureCalibration.values;
+        const {min, max, step} = localTemperatureCalibration.values === true ? {min: -2.5, max: 2.5, step: 0.1} : localTemperatureCalibration.values;
         expose.withLocalTemperatureCalibration(min, max, step);
+
+        if (min !== -2.5 || max !== 2.5) {
+            // -2.5 - 2.5 is the default ZCL range, add a custom range if different.
+            const customRange = customLocalTemperatureCalibrationRange({min, max});
+            onEvent.push(...customRange.onEvent);
+            configure.push(...customRange.configure);
+        }
 
         if (!localTemperatureCalibration.toZigbee?.skip) {
             toZigbee.push(tz.thermostat_local_temperature_calibration);
@@ -3388,7 +3446,24 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
         expose.withEndpoint(endpoint);
     }
 
-    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    if (ctrlSeqeOfOper) {
+        expose.withControlSequenceOfOperation(ctrlSeqeOfOper.values);
+
+        if (!ctrlSeqeOfOper.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_control_sequence_of_operation);
+        }
+
+        if (!ctrlSeqeOfOper.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "ctrlSeqeOfOper", {
+                    config: ctrlSeqeOfOper.configure?.reporting ?? repConfigChange0,
+                    access: ctrlSeqeOfOper.configure?.access ?? ea.ALL,
+                }),
+            );
+        }
+    }
+
+    return {exposes, fromZigbee, toZigbee, configure, onEvent, isModernExtend: true};
 }
 
 // #endregion

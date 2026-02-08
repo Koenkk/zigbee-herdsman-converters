@@ -32,6 +32,7 @@ interface Yandex {
         interlock: {value: number};
         buttonMode: {value: number};
         displayFlip: {value: boolean};
+        windowDetection: {value: boolean};
     };
     commandResponses: never;
 }
@@ -132,30 +133,30 @@ function YandexCluster(manufacturerCode: number): ModernExtend {
         ID: 0xfc03,
         manufacturerCode: manufacturerCode,
         attributes: {
-            switchMode: {ID: 0x0001, type: Zcl.DataType.ENUM8},
-            switchType: {ID: 0x0002, type: Zcl.DataType.ENUM8},
-            powerType: {ID: 0x0003, type: Zcl.DataType.ENUM8},
-            ledIndicator: {ID: 0x0005, type: Zcl.DataType.BOOLEAN},
-            interlock: {ID: 0x0007, type: Zcl.DataType.BOOLEAN},
-            buttonMode: {ID: 0x0008, type: Zcl.DataType.ENUM8},
-            displayFlip: {ID: 0x0009, type: Zcl.DataType.BOOLEAN},
-            windowDetection: {ID: 0x000a, type: Zcl.DataType.BOOLEAN},
-            frostProtection: {ID: 0x000d, type: Zcl.DataType.BOOLEAN},
-            scaleProtection: {ID: 0x000e, type: Zcl.DataType.BOOLEAN},
-            autoCalibration: {ID: 0x000f, type: Zcl.DataType.BOOLEAN},
+            switchMode: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            switchType: {ID: 0x0002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            powerType: {ID: 0x0003, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            ledIndicator: {ID: 0x0005, type: Zcl.DataType.BOOLEAN, write: true},
+            interlock: {ID: 0x0007, type: Zcl.DataType.BOOLEAN, write: true},
+            buttonMode: {ID: 0x0008, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            displayFlip: {ID: 0x0009, type: Zcl.DataType.BOOLEAN, write: true},
+            windowDetection: {ID: 0x000a, type: Zcl.DataType.BOOLEAN, write: true},
+            frostProtection: {ID: 0x000d, type: Zcl.DataType.BOOLEAN, write: true},
+            scaleProtection: {ID: 0x000e, type: Zcl.DataType.BOOLEAN, write: true},
+            autoCalibration: {ID: 0x000f, type: Zcl.DataType.BOOLEAN, write: true},
         },
         commands: {
             switchMode: {
                 ID: 0x01,
-                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+                parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             switchType: {
                 ID: 0x02,
-                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+                parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             powerType: {
                 ID: 0x03,
-                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+                parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             ledIndicator: {
                 ID: 0x05,
@@ -163,14 +164,18 @@ function YandexCluster(manufacturerCode: number): ModernExtend {
             },
             interlock: {
                 ID: 0x07,
-                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+                parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             buttonMode: {
                 ID: 0x08,
-                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+                parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             displayFlip: {
                 ID: 0x09,
+                parameters: [{name: "value", type: Zcl.DataType.BOOLEAN}],
+            },
+            windowDetection: {
+                ID: 0x0a,
                 parameters: [{name: "value", type: Zcl.DataType.BOOLEAN}],
             },
         },
@@ -196,12 +201,14 @@ function YandexThermostatCluster(manufacturerCode: number): ModernExtend {
                 ID: 0xf000,
                 type: Zcl.DataType.BOOLEAN,
                 manufacturerCode: manufacturerCode,
+
+                write: true,
             },
         },
         commands: {
             calibrate: {
                 ID: 0x00,
-                parameters: [{name: "value", type: Zcl.DataType.UINT8}],
+                parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
         },
         commandsResponse: {},
@@ -247,6 +254,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00537",
         vendor: "Yandex",
         description: "Single relay",
+        ota: true,
         extend: [
             reinterview(),
             YandexCluster(manufacturerCodeOld),
@@ -294,6 +302,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00538",
         vendor: "Yandex",
         description: "Double relay",
+        ota: true,
         extend: [
             reinterview(),
             YandexCluster(manufacturerCodeOld),
@@ -367,6 +376,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00534",
         vendor: "Yandex",
         description: "Single gang wireless switch",
+        ota: true,
         extend: [
             YandexCluster(manufacturerCodeOld),
             m.deviceEndpoints({
@@ -381,6 +391,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00535",
         vendor: "Yandex",
         description: "Double gang wireless switch",
+        ota: true,
         extend: [
             YandexCluster(manufacturerCodeOld),
             m.deviceEndpoints({
@@ -395,6 +406,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00531",
         vendor: "Yandex",
         description: "Single gang switch",
+        ota: true,
         extend: [
             reinterview(),
             YandexCluster(manufacturerCodeOld),
@@ -436,13 +448,12 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 endpointName: "1",
             }),
-            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
+            m.binary<"manuSpecificYandex", Yandex>({
                 name: "led_indicator",
                 cluster: "manuSpecificYandex",
                 attribute: "ledIndicator",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                setCommand: "ledIndicator",
                 zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Led indicator",
                 entityCategory: "config",
@@ -454,6 +465,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00532",
         vendor: "Yandex",
         description: "Double gang switch",
+        ota: true,
         extend: [
             reinterview(),
             YandexCluster(manufacturerCodeOld),
@@ -511,13 +523,12 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 endpointName: "2",
             }),
-            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
+            m.binary<"manuSpecificYandex", Yandex>({
                 name: "led_indicator",
                 cluster: "manuSpecificYandex",
                 attribute: "ledIndicator",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                setCommand: "ledIndicator",
                 zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Led indicator",
                 entityCategory: "config",
@@ -529,6 +540,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX_00530",
         vendor: "Yandex",
         description: "Dimmer",
+        ota: true,
         extend: [
             YandexCluster(manufacturerCodeOld),
             m.light({
@@ -569,6 +581,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX-00518",
         vendor: "Yandex",
         description: "Thermostatic radiator valve",
+        ota: true,
         extend: [
             YandexCluster(manufacturerCodeNew),
             YandexThermostatCluster(manufacturerCodeNew),
@@ -618,11 +631,12 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 zigbeeCommandOptions: {manufacturerCode: manufacturerCodeNew},
             }),
-            m.binary<"manuSpecificYandex", Yandex>({
+            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
                 name: "window_detection",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "manuSpecificYandex",
+                setCommand: "windowDetection",
                 attribute: "windowDetection",
                 description: "Enables/disables window detection on the device",
                 access: "ALL",
@@ -659,6 +673,9 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "OFF if calibration needs to be performed",
                 entityCategory: "config",
                 reporting: {min: 0, max: 3600, change: 0},
+            }),
+            m.battery({
+                voltage: true,
             }),
         ],
     },

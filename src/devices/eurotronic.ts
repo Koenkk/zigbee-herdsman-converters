@@ -39,8 +39,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.child_lock(),
             e
                 .climate()
-                .withSetpoint("current_heating_setpoint", 5, 30, 0.5)
                 .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
+                .withSetpoint("current_heating_setpoint", 5, 30, 0.5)
                 .withLocalTemperature()
                 .withSystemMode(["off", "auto", "heat"])
                 .withRunningState(["idle", "heat"])

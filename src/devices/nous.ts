@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_sonkaxrd"]),
         model: "E12",
-        vendor: "NOUS",
+        vendor: "Nous",
         description: "Zigbee carbon monoxide (CO) sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
@@ -24,25 +24,25 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("preheat", ea.ALL, "ON", "OFF").withDescription("Sensor preheating status"),
             e.binary("fault", ea.ALL, true, false).withDescription("Sensor fault indicator"),
             e.numeric("lifecycle", ea.STATE).withUnit("days").withDescription("Sensor service life or usage counter"),
-            e.battery().withDescription("Battery level in %"),
+            tuya.exposes.batteryState(),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "carbon_monoxide", tuya.valueConverter.trueFalse1],
+                [1, "carbon_monoxide", tuya.valueConverter.trueFalse0],
                 [2, "carbon_monoxide_value", tuya.valueConverter.raw],
                 [8, "self_checking", tuya.valueConverter.trueFalse0],
-                [9, "checking_result", tuya.valueConverterBasic.lookup({0: "ok", 1: "error"})],
-                [10, "preheat", tuya.valueConverterBasic.lookup({0: "OFF", 1: "ON"})],
+                [9, "checking_result", tuya.valueConverterBasic.lookup({ok: 0, error: 1})],
+                [10, "preheat", tuya.valueConverterBasic.lookup({OFF: 0, ON: 1})],
                 [11, "fault", tuya.valueConverter.trueFalse1],
                 [12, "lifecycle", tuya.valueConverter.raw],
-                [14, "battery", tuya.valueConverter.raw],
+                [14, "battery_state", tuya.valueConverter.batteryState],
             ],
         },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_1di7ujzp"]),
         model: "E13",
-        vendor: "NOUS",
+        vendor: "Nous",
         description: "Zigbee water leak sensor with sound alarm",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
@@ -54,11 +54,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "water_leak", tuya.valueConverter.trueFalse0],
+                [1, "water_leak", tuya.valueConverter.trueFalse1],
                 [4, "battery", tuya.valueConverter.raw],
-                [101, "working_mode", tuya.valueConverterBasic.lookup({0: "normal", 1: "silent", 2: "test"})],
+                [101, "working_mode", tuya.valueConverterBasic.lookup({normal: 0, silent: 1, test: 2})],
                 [102, "status", tuya.valueConverter.raw],
-                [103, "alarm_ringtone", tuya.valueConverterBasic.lookup({0: "tone_1", 1: "tone_2", 2: "tone_3"})],
+                [103, "alarm_ringtone", tuya.valueConverterBasic.lookup({tone_1: 0, tone_2: 1, tone_3: 2})],
             ],
         },
     },
@@ -184,24 +184,24 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee gas sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.binary("gas", ea.STATE, "ON", "OFF").withDescription("Gas detection state (ON = Gas detected)"),
-            e.binary("preheat", ea.STATE, "ON", "OFF").withDescription("Sensor is preheating"),
-            e.binary("fault_alarm", ea.STATE, "ON", "OFF").withDescription("Sensor fault detected"),
-            e.numeric("lifecycle", ea.STATE).withUnit("%").withDescription("Sensor life remaining"),
+            e.gas(),
+            e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
+            tuya.exposes.faultAlarm(),
+            e.binary("lifecycle", ea.STATE, true, false).withDescription("Sensor lifetime limit"),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "gas", tuya.valueConverter.trueFalse0],
-                [10, "preheat", tuya.valueConverter.trueFalse0],
+                [10, "preheat", tuya.valueConverter.raw],
                 [11, "fault_alarm", tuya.valueConverter.trueFalse1],
-                [12, "lifecycle", tuya.valueConverter.raw],
+                [12, "lifecycle", tuya.valueConverter.trueFalse0],
             ],
         },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_t9ffmdin"]),
         model: "D5Z",
-        vendor: "NOUS",
+        vendor: "Nous",
         description: "Zigbee smart energy meter with leakage and prepayment",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
@@ -257,5 +257,17 @@ export const definitions: DefinitionWithExtend[] = [
                 [126, "alarm_set_3", tuya.valueConverter.raw],
             ],
         },
+    },
+    {
+        fingerprint: [{modelID: "TS011F", manufacturerName: "_TZ3210_6cmeijtd"}],
+        model: "A11Z",
+        vendor: "Nous",
+        description: "Smart power strip 3 gang with power monitoring",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            m.onOff({endpointNames: ["l1", "l2", "l3"], powerOnBehavior: false}),
+            m.electricityMeter(),
+            tuya.modernExtend.tuyaMagicPacket(),
+        ],
     },
 ];

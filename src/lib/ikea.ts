@@ -363,10 +363,8 @@ export function ikeaAirPurifier(): ModernExtend {
             key: ["fan_mode", "fan_state"],
             convertSet: async (entity, key, value, meta) => {
                 if (key === "fan_state" && typeof value === "string" && value.toLowerCase() === "on") {
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = "auto";
                 } else {
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value.toString().toLowerCase();
                 }
 
@@ -514,7 +512,6 @@ export function ikeaVoc(args?: Partial<m.NumericArgs<"manuSpecificIkeaVocIndexMe
 }
 
 export function ikeaConfigureGenPollCtrl(args?: {endpointId: number}): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {endpointId: 1, ...args};
     const configure: Configure[] = [
         async (device, coordinatorEndpoint, definition) => {
@@ -683,7 +680,6 @@ export function styrbarCommandOn(): ModernExtend {
 }
 
 export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boolean; endpointNames: string[]}): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {
         actionLookup: {
             commandAction1: "initial_press",
@@ -746,8 +742,24 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
     return {exposes, fromZigbee, configure, isModernExtend: true};
 }
 
+export function ikeaBilresaDouble(): ModernExtend {
+    const exposes: Expose[] = [presets.action(["off_double", "on_double"])];
+
+    const fromZigbee = [
+        {
+            cluster: "genScenes",
+            type: "commandTradfriArrowSingle",
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                return {action: `${msg.data.value === 257 ? "off" : "on"}_double`};
+            },
+        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowSingle">,
+    ];
+
+    return {exposes, fromZigbee, isModernExtend: true};
+}
+
 export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): ModernExtend {
-    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
     args = {styrbar: false, bind: true, ...args};
     const actions = ["arrow_left_click", "arrow_left_hold", "arrow_left_release", "arrow_right_click", "arrow_right_hold", "arrow_right_release"];
     const exposes: Expose[] = [presets.action(actions)];
@@ -857,15 +869,15 @@ export function addCustomClusterManuSpecificIkeaAirPurifier(): ModernExtend {
         ID: 0xfc7d,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {
-            filterRunTime: {ID: 0x0000, type: Zcl.DataType.UINT32},
-            replaceFilter: {ID: 0x0001, type: Zcl.DataType.UINT8},
-            filterLifeTime: {ID: 0x0002, type: Zcl.DataType.UINT32},
-            controlPanelLight: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
-            particulateMatter25Measurement: {ID: 0x0004, type: Zcl.DataType.UINT16},
-            childLock: {ID: 0x0005, type: Zcl.DataType.BOOLEAN},
-            fanMode: {ID: 0x0006, type: Zcl.DataType.UINT8},
-            fanSpeed: {ID: 0x0007, type: Zcl.DataType.UINT8},
-            deviceRunTime: {ID: 0x0008, type: Zcl.DataType.UINT32},
+            filterRunTime: {ID: 0x0000, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+            replaceFilter: {ID: 0x0001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            filterLifeTime: {ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+            controlPanelLight: {ID: 0x0003, type: Zcl.DataType.BOOLEAN, write: true},
+            particulateMatter25Measurement: {ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            childLock: {ID: 0x0005, type: Zcl.DataType.BOOLEAN, write: true},
+            fanMode: {ID: 0x0006, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            fanSpeed: {ID: 0x0007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            deviceRunTime: {ID: 0x0008, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
         },
         commands: {},
         commandsResponse: {},
@@ -887,9 +899,9 @@ export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExt
         ID: 0xfc7e,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {
-            measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC},
-            measuredMinValue: {ID: 0x0001, type: Zcl.DataType.SINGLE_PREC},
-            measuredMaxValue: {ID: 0x0002, type: Zcl.DataType.SINGLE_PREC},
+            measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
+            measuredMinValue: {ID: 0x0001, type: Zcl.DataType.SINGLE_PREC, write: true},
+            measuredMaxValue: {ID: 0x0002, type: Zcl.DataType.SINGLE_PREC, write: true},
         },
         commands: {},
         commandsResponse: {},
@@ -901,8 +913,8 @@ export function addCustomClusterManuSpecificIkeaSmartPlug(): ModernExtend {
         ID: 0xfc85,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {
-            childLock: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
-            ledEnable: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
+            childLock: {ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+            ledEnable: {ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
         },
 
         commands: {},
@@ -938,7 +950,12 @@ const unfreezeMechanisms: {
     // Color lights:
     //   Do not support this command.
     moveColorTemp: async (entity) => {
-        await entity.command("lightingColorCtrl", "moveColorTemp", {rate: 1, movemode: 0, minimum: 0, maximum: 600}, {});
+        await entity.command(
+            "lightingColorCtrl",
+            "moveColorTemp",
+            {rate: 1, movemode: 0, minimum: 0, maximum: 600, optionsMask: 0, optionsOverride: 0},
+            {},
+        );
     },
 
     // WS lights:
@@ -947,7 +964,7 @@ const unfreezeMechanisms: {
     //   Finishes the color transition instantly: light will instantly
     //   "fast forward" to the final state, post-transition.
     genLevelCtrl: async (entity) => {
-        await entity.command("genLevelCtrl", "stop", {}, {});
+        await entity.command("genLevelCtrl", "stop", {optionsMask: 0, optionsOverride: 0}, {});
     },
 };
 
@@ -1039,21 +1056,6 @@ export const ikeaModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
         });
 
-        // NOTE: make exposes dynamic based on fw version
-        result.exposes = [
-            (device, options) => {
-                if (
-                    !isDummyDevice(device) &&
-                    device.softwareBuildID &&
-                    semverValid(device.softwareBuildID) &&
-                    semverGte(device.softwareBuildID, "2.4.25")
-                ) {
-                    return [binary(resultName, access.ALL, "LOCK", "UNLOCK").withDescription(resultDescription).withCategory("config")];
-                }
-                return [];
-            },
-        ];
-
         return result;
     },
 
@@ -1083,7 +1085,12 @@ export const ikeaModernExtend = {
                 ) {
                     return [binary(resultName, access.ALL, "TRUE", "FALSE").withDescription(resultDescription).withCategory("config")];
                 }
-                return [];
+                return [
+                    binary(resultName, access.ALL, "TRUE", "FALSE")
+                        .withDescription(resultDescription)
+                        .withCategory("config")
+                        .withLabel("Led disable"),
+                ];
             },
         ];
 

@@ -40,10 +40,10 @@ export const develcoModernExtend = {
         deviceAddCustomCluster("genBasic", {
             ID: 0x0000,
             attributes: {
-                develcoPrimarySwVersion: {ID: 0x8000, type: Zcl.DataType.OCTET_STR, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
-                develcoPrimaryHwVersion: {ID: 0x8020, type: Zcl.DataType.OCTET_STR, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
-                develcoLedControl: {ID: 0x8100, type: Zcl.DataType.BITMAP8, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
-                develcoTxPower: {ID: 0x8101, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
+                develcoPrimarySwVersion: {ID: 0x8000, type: Zcl.DataType.OCTET_STR, manufacturerCode: Zcl.ManufacturerCode.DEVELCO, write: true},
+                develcoPrimaryHwVersion: {ID: 0x8020, type: Zcl.DataType.OCTET_STR, manufacturerCode: Zcl.ManufacturerCode.DEVELCO, write: true},
+                develcoLedControl: {ID: 0x8100, type: Zcl.DataType.BITMAP8, manufacturerCode: Zcl.ManufacturerCode.DEVELCO, write: true},
+                develcoTxPower: {ID: 0x8101, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.DEVELCO, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
@@ -52,7 +52,13 @@ export const develcoModernExtend = {
         deviceAddCustomCluster("ssIasZone", {
             ID: Zcl.Clusters.ssIasZone.ID,
             attributes: {
-                develcoZoneStatusInterval: {ID: 0x8000, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
+                develcoZoneStatusInterval: {
+                    ID: 0x8000,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xffff,
+                },
             },
             commands: {},
             commandsResponse: {},
@@ -62,10 +68,10 @@ export const develcoModernExtend = {
             ID: 0xfc03,
             manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
             attributes: {
-                measuredValue: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                minMeasuredValue: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                maxMeasuredValue: {ID: 0x0002, type: Zcl.DataType.UINT16},
-                resolution: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                measuredValue: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                minMeasuredValue: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                maxMeasuredValue: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                resolution: {ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
             },
             commands: {},
             commandsResponse: {},
