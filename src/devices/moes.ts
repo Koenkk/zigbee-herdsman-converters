@@ -1986,9 +1986,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.child_lock(),
 
                 // System mode separate expose (clearer in UI)
-                e
-                    .enum("system_mode", ea.STATE_SET, ["off", "heat"])
-                    .withDescription("Thermostat system mode (device enabled/disabled)"),
+                e.enum("system_mode", ea.STATE_SET, ["off", "heat"]).withDescription("Thermostat system mode (device enabled/disabled)"),
 
                 // Main climate control
                 e
@@ -2001,15 +1999,10 @@ export const definitions: DefinitionWithExtend[] = [
                     .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
 
                 // Floor temperature (secondary sensor)
-                e
-                    .numeric("floor_temperature", ea.STATE)
-                    .withUnit("°C")
-                    .withDescription("Temperature from floor sensor (secondary)"),
+                e.numeric("floor_temperature", ea.STATE).withUnit("°C").withDescription("Temperature from floor sensor (secondary)"),
 
                 // Valve state
-                e
-                    .binary("valve_state", ea.STATE, "OPEN", "CLOSED")
-                    .withDescription("Valve state"),
+                e.binary("valve_state", ea.STATE, "OPEN", "CLOSED").withDescription("Valve state"),
 
                 // Fault alarm
                 e
@@ -2017,9 +2010,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withDescription("Fault alarm status"),
 
                 // Sensor selection
-                e
-                    .enum("sensor", ea.STATE_SET, ["internal", "external", "both"])
-                    .withDescription("Temperature sensor selection"),
+                e.enum("sensor", ea.STATE_SET, ["internal", "external", "both"]).withDescription("Temperature sensor selection"),
 
                 // Temperature scale
                 e
@@ -2027,14 +2018,10 @@ export const definitions: DefinitionWithExtend[] = [
                     .withDescription("Temperature scale (WARNING: converter only supports Celsius datapoints)"),
 
                 // Backlight brightness
-                e
-                    .enum("backlight_brightness", ea.STATE_SET, ["off", "low", "medium", "high"])
-                    .withDescription("Backlight brightness"),
+                e.enum("backlight_brightness", ea.STATE_SET, ["off", "low", "medium", "high"]).withDescription("Backlight brightness"),
 
                 // Antifreeze
-                e
-                    .binary("antifreeze", ea.STATE_SET, "ON", "OFF")
-                    .withDescription("Antifreeze mode"),
+                e.binary("antifreeze", ea.STATE_SET, "ON", "OFF").withDescription("Antifreeze mode"),
 
                 // Temperature limits
                 e
@@ -2076,9 +2063,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withDescription("Weekly programming mode type"),
 
                 // Factory reset
-                e
-                    .binary("factory_reset", ea.SET, "ON", "OFF")
-                    .withDescription("Factory reset (use with caution)"),
+                e.binary("factory_reset", ea.SET, "ON", "OFF").withDescription("Factory reset (use with caution)"),
 
                 // Schedule exposes - individual fields for each period
                 ...scheduleExposes,

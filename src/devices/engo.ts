@@ -680,14 +680,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSystemMode(["heat", "cool"], ea.STATE_SET)
                 .withRunningState(["idle", "heat", "cool"], ea.STATE)
                 .withPreset(["manual", "schedule", "frost protection"]),
-            e
-                .max_temperature()
-                .withValueMin(5)
-                .withValueMax(35), //45 possible
-            e
-                .min_temperature()
-                .withValueMin(5)
-                .withValueMax(35), //45 possible
+            e.max_temperature().withValueMin(5).withValueMax(35), //45 possible
+            e.min_temperature().withValueMin(5).withValueMax(35), //45 possible
             e.battery(),
             e.child_lock(),
             e

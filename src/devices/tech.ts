@@ -42,11 +42,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.comfort_temperature().withValueStep(0.5),
             e.eco_temperature().withValueStep(0.5),
             e.holiday_temperature().withValueStep(0.5),
-            e
-                .min_temperature_limit()
-                .withValueMin(5)
-                .withValueMax(15)
-                .withValueStep(0.5), // min temperature for frost protection
+            e.min_temperature_limit().withValueMin(5).withValueMax(15).withValueStep(0.5), // min temperature for frost protection
             e
                 .binary("frost_protection", ea.STATE_SET, "ON", "OFF")
                 .withDescription("Indicates if the frost protection mode is enabled")
@@ -126,11 +122,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.comfort_temperature().withValueStep(0.5),
             e.eco_temperature().withValueStep(0.5),
             e.holiday_temperature().withValueStep(0.5),
-            e
-                .min_temperature_limit()
-                .withValueMin(5)
-                .withValueMax(15)
-                .withValueStep(0.5), // min temperature for frost protection
+            e.min_temperature_limit().withValueMin(5).withValueMax(15).withValueStep(0.5), // min temperature for frost protection
             e
                 .binary("scale_protection", ea.STATE_SET, "ON", "OFF")
                 .withDescription(
