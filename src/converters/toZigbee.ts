@@ -21,6 +21,8 @@ const manufacturerOptions = {
     hue: {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V},
     ikea: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
     sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
+    stello: {manufacturerCode: Zcl.ManufacturerCode.STELPRO},
+    stelpro: {manufacturerCode: Zcl.ManufacturerCode.STELPRO},
     tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
     legrand: {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
     viessmann: {manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH},
@@ -2079,6 +2081,38 @@ export const currentsummdelivered: Tz.Converter = {
         await ep.read("seMetering", ["currentSummDelivered"]);
     },
 };
+export const currenttier1summdelivered: Tz.Converter = {
+    key: ["energy_tier_1"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier1SummDelivered"]);
+    },
+};
+export const currenttier2summdelivered: Tz.Converter = {
+    key: ["energy_tier_2"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier2SummDelivered"]);
+    },
+};
+export const currenttier3summdelivered: Tz.Converter = {
+    key: ["energy_tier_3"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier3SummDelivered"]);
+    },
+};
+export const currenttier4summdelivered: Tz.Converter = {
+    key: ["energy_tier_4"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier4SummDelivered"]);
+    },
+};
 export const currentsummreceived: Tz.Converter = {
     key: ["produced_energy"],
     convertGet: async (entity, key, meta) => {
@@ -2154,6 +2188,27 @@ export const accurrent_neutral: Tz.Converter = {
     convertGet: async (entity, key, meta) => {
         const ep = determineEndpoint(entity, meta, "haElectricalMeasurement");
         await ep.read("haElectricalMeasurement", ["neutralCurrent"]);
+    },
+};
+export const dccurrent: Tz.Converter = {
+    key: ["current"],
+    convertGet: async (entity, key, meta) => {
+        const ep = determineEndpoint(entity, meta, "haElectricalMeasurement");
+        await ep.read("haElectricalMeasurement", ["dcCurrent"]);
+    },
+};
+export const dcvoltage: Tz.Converter = {
+    key: ["voltage"],
+    convertGet: async (entity, key, meta) => {
+        const ep = determineEndpoint(entity, meta, "haElectricalMeasurement");
+        await ep.read("haElectricalMeasurement", ["dcVoltage"]);
+    },
+};
+export const dcpower: Tz.Converter = {
+    key: ["power"],
+    convertGet: async (entity, key, meta) => {
+        const ep = determineEndpoint(entity, meta, "haElectricalMeasurement");
+        await ep.read("haElectricalMeasurement", ["dcPower"]);
     },
 };
 export const temperature: Tz.Converter = {
@@ -3427,13 +3482,34 @@ export const eurotronic_mirror_display: Tz.Converter = {
         await entity.read("hvacThermostat", [0x4008], manufacturerOptions.eurotronic);
     },
 };
+export const stelpro_peak_demand_event_icon: Tz.Converter = {
+    key: ["peak_demand_icon"],
+    convertSet: async (entity, key, value, meta) => {
+        const hours = Number(value);
+        const seconds = hours * 3600;
+        if (seconds < 0 || seconds > 65535) {
+            throw new Error("Peak demand duration must be between 0 and 18 hours");
+        }
+
+        const payload = {
+            16645: {
+                value: seconds,
+                type: Zcl.DataType.UINT16,
+            },
+        };
+
+        await entity.write("hvacThermostat", payload);
+        return {state: {[key]: hours}};
+    },
+};
 export const stelpro_thermostat_outdoor_temperature: Tz.Converter = {
-    key: ["thermostat_outdoor_temperature"],
+    key: ["outdoor_temperature_display"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertNumber(value, key);
-        if (value > -100 && value < 100) {
-            await entity.write("hvacThermostat", {StelproOutdoorTemp: value * 100});
+        if (value < -32 || value > 119) {
+            throw new Error("Outdoor temperature must be between -32 and 119 degrees Celsius");
         }
+        await entity.write("hvacThermostat", {StelproOutdoorTemp: value * 100});
     },
 };
 export const DTB190502A1_LED: Tz.Converter = {

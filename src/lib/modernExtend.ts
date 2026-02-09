@@ -2034,14 +2034,20 @@ function genericMeter(args: MeterArgs = {}) {
                 change: 5,
             },
             // Report change with every 100mW change
-            dc_power: {attribute: "dcPower" as const, divisor: "dcPowerDivisor", multiplier: "dcPowerMultiplier", forced: args.power, change: 100},
+            dc_power: {
+                attribute: "dcPower" as const,
+                divisor: "dcPowerDivisor",
+                multiplier: "dcPowerMultiplier",
+                forced: args.power,
+                change: 0.1,
+            },
             // Report change with every 100mV change
             dc_voltage: {
                 attribute: "dcVoltage" as const,
                 divisor: "dcVoltageDivisor",
                 multiplier: "dcVoltageMultiplier",
                 forced: args.voltage,
-                change: 100,
+                change: 0.1,
             },
             // Report change with every 100mA change
             dc_current: {
@@ -2049,7 +2055,7 @@ function genericMeter(args: MeterArgs = {}) {
                 divisor: "dcCurrentDivisor",
                 multiplier: "dcCurrentMultiplier",
                 forced: args.current,
-                change: 100,
+                change: 0.1,
             },
         },
         seMetering: {
@@ -2277,7 +2283,12 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET));
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement];
+
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.frequency, tz.powerfactor];
+        if (args.electricalMeasurementType === "dc") {
+            toZigbee = [tz.dcvoltage, tz.dccurrent, tz.dcpower];
+        }
+
         delete configureLookup.seMetering;
     }
 
@@ -2586,11 +2597,12 @@ export interface EnumLookupArgs<Cl extends string | number, Custom extends TCust
     reporting?: false | ReportingConfigWithoutAttribute;
     entityCategory?: "config" | "diagnostic";
     label?: string;
+    fzConvert?: Fz.Converter<Cl, Custom, ["attributeReport", "readResponse"]>["convert"];
 }
 export function enumLookup<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: EnumLookupArgs<Cl, Custom>,
 ): ModernExtend {
-    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, label} = args;
+    const {name, lookup, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, entityCategory, label, fzConvert} = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
@@ -2603,12 +2615,14 @@ export function enumLookup<Cl extends string | number, Custom extends TCustomClu
         {
             cluster: cluster.toString(),
             type: ["attributeReport", "readResponse"],
-            convert: (model, msg, publish, options, meta) => {
-                if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
-                    // skip undefined value
-                    if (msg.data[attributeKey] !== undefined) return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
-                }
-            },
+            convert:
+                fzConvert ??
+                ((model, msg, publish, options, meta) => {
+                    if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
+                        // skip undefined value
+                        if (msg.data[attributeKey] !== undefined) return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
+                    }
+                }),
             // biome-ignore lint/suspicious/noExplicitAny: generic
         } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
@@ -3443,7 +3457,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
             configure.push(
                 setupConfigureForReporting("hvacThermostat", "ctrlSeqeOfOper", {
                     config: ctrlSeqeOfOper.configure?.reporting ?? repConfigChange0,
-                    access: ctrlSeqeOfOper.configure?.access ?? ea.STATE_GET,
+                    access: ctrlSeqeOfOper.configure?.access ?? ea.ALL,
                 }),
             );
         }

@@ -812,6 +812,16 @@ export const metering: Fz.Converter<"seMetering", undefined, ["attributeReport",
             const property = postfixWithEndpointName("energy_tier_2", msg, model, meta);
             payload[property] = value * (factor ?? 1);
         }
+        if (msg.data.currentTier3SummDelivered !== undefined) {
+            const value = msg.data.currentTier3SummDelivered;
+            const property = postfixWithEndpointName("energy_tier_3", msg, model, meta);
+            payload[property] = value * (factor ?? 1);
+        }
+        if (msg.data.currentTier4SummDelivered !== undefined) {
+            const value = msg.data.currentTier4SummDelivered;
+            const property = postfixWithEndpointName("energy_tier_4", msg, model, meta);
+            payload[property] = value * (factor ?? 1);
+        }
         if (msg.data.currentTier1SummReceived !== undefined) {
             const value = msg.data.currentTier1SummReceived;
             const property = postfixWithEndpointName("produced_energy_tier_1", msg, model, meta);
@@ -1673,7 +1683,7 @@ export const command_move_hue: Fz.Converter<"lightingColorCtrl", undefined, "com
     type: "commandMoveHue",
     convert: (model, msg, publish, options, meta) => {
         if (hasAlreadyProcessedMessage(msg, model)) return;
-        const movestop = msg.data.movemode === 1 ? "move" : "stop";
+        const movestop = msg.data.movemode === 1 ? "move" : msg.data.movemode === 3 ? "down" : "stop";
         const action = postfixWithEndpointName(`hue_${movestop}`, msg, model, meta);
         const payload = {action, action_rate: msg.data.rate};
         addActionGroup(payload, msg, model);
