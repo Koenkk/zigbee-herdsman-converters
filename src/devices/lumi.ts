@@ -5087,9 +5087,9 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.electricityMeter(),
             m.thermostat({
-                setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}},
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}, configure: {skip: true}},
                 localTemperatureCalibration: {values: true},
-                temperatureSetpointHold: true,
+                temperatureSetpointHold: {configure: {skip: true}},
                 temperatureSetpointHoldDuration: true,
                 systemMode: {values: ["off", "heat"]},
                 runningState: {
@@ -5118,7 +5118,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.humidity(),
+            m.humidity({reporting: false}),
             m.enumLookup({
                 name: "sensor",
                 lookup: {internal: 0, external: 1, ntc: 2},
