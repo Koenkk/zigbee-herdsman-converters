@@ -636,7 +636,9 @@ export const definitions: DefinitionWithExtend[] = [
                     "HIS_40",
                 ])
                 .withDescription("Control algorithm"),
-            e.enum("valve_protection", ea.STATE_SET, ["off", "on"]).withLabel("Valve Protection"),
+            e
+                .enum("valve_protection", ea.STATE_SET, ["off", "on", "anti_stop"])
+                .withDescription("Prevents valve blockage during long periods of inactivity"),
             e
                 .enum("comfort_warm_floor", ea.STATE_SET, ["OFF", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"])
                 .withDescription("Comfort warm floor setting"),
@@ -737,6 +739,7 @@ export const definitions: DefinitionWithExtend[] = [
                     tuya.valueConverterBasic.lookup({
                         off: tuya.enum(0),
                         on: tuya.enum(1),
+                        anti_stop: tuya.enum(2)
                     }),
                 ],
             ],
