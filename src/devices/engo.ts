@@ -739,7 +739,7 @@ export const definitions: DefinitionWithExtend[] = [
                     tuya.valueConverterBasic.lookup({
                         off: tuya.enum(0),
                         on: tuya.enum(1),
-                        anti_stop: tuya.enum(2)
+                        anti_stop: tuya.enum(2),
                     }),
                 ],
             ],
