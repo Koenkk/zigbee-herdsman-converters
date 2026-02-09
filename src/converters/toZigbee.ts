@@ -587,7 +587,14 @@ export const warning: Tz.Converter = {
         let info;
         // https://github.com/Koenkk/zigbee2mqtt/issues/8310 some devices require the info to be reversed.
         if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
-        if (["SIRZB-110", "SIRZB-111", "SRAC-23B-ZBSR", "AV2010/29A", "AV2010/24A"].includes(meta.mapped.model)) {
+        // SIRZB-110/111 require all-zero info byte to reliably stop the siren.
+        if (values.mode === "stop" && ["SIRZB-110", "SIRZB-111"].includes(meta.mapped.model)) {
+            // @ts-expect-error ignore
+            if (value.level == null) values.level = "low";
+            // @ts-expect-error ignore
+            if (value.strobe == null) values.strobe = false;
+        }
+        if (["SIRZB-110", "SRAC-23B-ZBSR", "AV2010/29A", "AV2010/24A"].includes(meta.mapped.model)) {
             info = utils.getFromLookup(values.mode, mode) + ((values.strobe ? 1 : 0) << 4) + (utils.getFromLookup(values.level, level) << 6);
         } else {
             info = (utils.getFromLookup(values.mode, mode) << 4) + ((values.strobe ? 1 : 0) << 2) + utils.getFromLookup(values.level, level);
@@ -622,6 +629,15 @@ export const warning_simple: Tz.Converter = {
         if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
         if (["SMSZB-120", "HESZB-120"].includes(meta.mapped.model)) {
             info = (alarmState << 7) + (alarmState << 6);
+        } else if (meta.mapped.model === "SIRZB-110") {
+            // ZCL-compliant layout: bits 0-3=mode, bit 4=strobe, bits 6-7=level
+            // OFF: info=0 (mode=stop, level=low, strobe=off — device requires level=0 to stop)
+            // ON: emergency(3) + strobe(1<<4) + very_high(3<<6) = 211
+            info = alarmState === 0 ? 0 : 3 + (1 << 4) + (3 << 6);
+        } else if (meta.mapped.model === "SIRZB-111") {
+            // Generic layout: bits 4-7=mode, bit 2=strobe, bits 0-1=level
+            // OFF: info=0, ON: (emergency<<4) + (strobe<<2) + very_high = 55
+            info = alarmState === 0 ? 0 : (3 << 4) + (1 << 2) + 3;
         } else {
             info = (3 << 6) + (alarmState << 2);
         }
