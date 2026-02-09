@@ -2721,10 +2721,7 @@ export const lumiModernExtend = {
             e.numeric("action_slide_time", ea.STATE).withUnit("ms").withCategory("diagnostic"),
             e.numeric("action_slide_speed", ea.STATE).withUnit("mm/s").withCategory("diagnostic"),
             e.numeric("action_slide_relative_displacement", ea.STATE).withCategory("diagnostic"),
-            e
-                .numeric("action_slide_time_delta", ea.STATE)
-                .withUnit("ms")
-                .withCategory("diagnostic"),
+            e.numeric("action_slide_time_delta", ea.STATE).withUnit("ms").withCategory("diagnostic"),
             // action is exposed from extraActions inside lumiAction
         ];
 
