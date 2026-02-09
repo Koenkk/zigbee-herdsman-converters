@@ -62,20 +62,20 @@ function getWS90Meta(device: Zh.Device): WS90Meta {
 /**
  * Calculate dew point using Magnus formula
  */
-function calculateDewPoint(T: number | undefined, Rh: number | undefined): number | null {
-    if (T === undefined || Rh === undefined || Rh <= 0) return null;
+function calculateDewPoint(T: number | undefined, RH: number | undefined): number | null {
+    if (T === undefined || RH === undefined || RH <= 0) return null;
     const a = 17.27;
     const b = 237.7;
-    const alpha = (a * T) / (b + T) + Math.log(Rh / 100);
-    return Math.round(((b * alpha) / (a - alpha)) * 10) / 10;
+    const alpha = (a * T) / (b + T) + Math.log(RH / 100);
+    return Math.round((b * alpha) / (a - alpha) * 10) / 10;
 }
 
 /**
  * Calculate humidex (Canadian heat index)
  */
-function calculateHumidex(T: number | undefined, Rh: number | undefined): number | null {
-    if (T === undefined || Rh === undefined) return null;
-    const dewPoint = calculateDewPoint(T, Rh);
+function calculateHumidex(T: number | undefined, RH: number | undefined): number | null {
+    if (T === undefined || RH === undefined) return null;
+    const dewPoint = calculateDewPoint(T, RH);
     if (dewPoint === null) return null;
     const ee = 6.11 * Math.exp(5417.753 * (1 / 273.15 - 1 / (273.15 + dewPoint)));
     return Math.round((T + 0.5555 * (ee - 10)) * 10) / 10;
@@ -88,7 +88,7 @@ function calculateWindChill(T: number | undefined, windMs: number | undefined): 
     if (T === undefined || windMs === undefined) return null;
     const windKmh = windMs * 3.6;
     if (T > 10 || windKmh < 4.8) return Math.round(T * 10) / 10;
-    const wc = 13.12 + 0.6215 * T - 11.37 * windKmh ** 0.16 + 0.3965 * T * windKmh ** 0.16;
+    const wc = 13.12 + 0.6215 * T - 11.37 * Math.pow(windKmh, 0.16) + 0.3965 * T * Math.pow(windKmh, 0.16);
     return Math.round(wc * 10) / 10;
 }
 
@@ -97,14 +97,14 @@ function calculateWindChill(T: number | undefined, windMs: number | undefined): 
  */
 function calculateHeatStress(
     T: number | undefined,
-    Rh: number | undefined,
+    RH: number | undefined,
     lux: number | undefined,
     windMs: number | undefined,
     precipitation: number | undefined,
 ): number | null {
     if (T === undefined) return null;
     const solar = (lux || 0) / 100;
-    const base = T + solar / 100 + (Rh || 0) / 10;
+    const base = T + solar / 100 + (RH || 0) / 10;
     const cooled = base - (windMs || 0) / 2;
     const adjusted = cooled - ((precipitation || 0) > 0 ? 3 : 0);
     const scaled = (adjusted - 18) / (42 - 18);
@@ -115,10 +115,14 @@ function calculateHeatStress(
 /**
  * Calculate apparent temperature (wind chill when cold, humidex when warm)
  */
-function calculateApparentTemperature(T: number | undefined, Rh: number | undefined, windMs: number | undefined): number | null {
+function calculateApparentTemperature(
+    T: number | undefined,
+    RH: number | undefined,
+    windMs: number | undefined,
+): number | null {
     if (T === undefined) return null;
     const windChill = calculateWindChill(T, windMs);
-    const humidex = calculateHumidex(T, Rh);
+    const humidex = calculateHumidex(T, RH);
     if (windChill !== null && windChill < T) return windChill;
     if (humidex !== null && humidex > T) return humidex;
     return Math.round(T * 10) / 10;
@@ -141,10 +145,10 @@ function calculateRainRate(meta: WS90Meta, precipitation: number | undefined): n
     const timeDeltaMs = now - history.time;
     const precipDelta = precipitation - history.value;
 
-    meta.precipHistory = {value: precipitation, time: now};
-
-    if (timeDeltaMs < 30000) return null;
+    if (timeDeltaMs < 60000) return null;
     if (precipDelta < 0) return 0;
+
+    meta.precipHistory = {value: precipitation, time: now};
 
     const timeDeltaHours = timeDeltaMs / (1000 * 60 * 60);
     const rate = precipDelta / timeDeltaHours;
@@ -169,9 +173,9 @@ function calculatePressureTrend(meta: WS90Meta, pressure: number | undefined): n
     const timeDeltaMs = now - history.time;
     const pressureDelta = pressure - history.value;
 
-    meta.pressureHistory = {value: pressure, time: now};
+    if (timeDeltaMs < 3600000) return null;
 
-    if (timeDeltaMs < 300000) return null;
+    meta.pressureHistory = {value: pressure, time: now};
 
     const timeDeltaHours = timeDeltaMs / (1000 * 60 * 60);
     const rate = pressureDelta / timeDeltaHours;
@@ -216,17 +220,20 @@ function calculateWeatherCondition(state: {[key: string]: number | boolean | und
 
     if ((illuminance as number) > 40000) {
         return isWindy ? "windy" : "sunny";
-    }
-    if ((illuminance as number) > 10000) {
+    } else if ((illuminance as number) > 10000) {
         return isWindy ? "windy-variant" : "partlycloudy";
+    } else {
+        return "cloudy";
     }
-    return "cloudy";
 }
 
 /**
  * Update calculated values whenever we get new sensor data (uses device.meta for persistence)
  */
-function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: number | boolean}): {[key: string]: number | string | null} {
+function updateWS90CalculatedValues(
+    device: Zh.Device,
+    payload: {[key: string]: number | boolean},
+): {[key: string]: number | string | null} {
     const meta = getWS90Meta(device);
     if (!meta.state) meta.state = {};
     Object.assign(meta.state, payload);
@@ -763,10 +770,7 @@ const shellyModernExtend = {
     ws90CalculatedValues(): ModernExtend {
         const exposes: Expose[] = [
             // Calculated values only
-            e
-                .numeric("dew_point", ea.STATE)
-                .withUnit("°C")
-                .withDescription("Calculated dew point temperature"),
+            e.numeric("dew_point", ea.STATE).withUnit("°C").withDescription("Calculated dew point temperature"),
             e.numeric("wind_chill", ea.STATE).withUnit("°C").withDescription("Calculated wind chill temperature"),
             e.numeric("humidex", ea.STATE).withUnit("°C").withDescription("Calculated humidex (feels-like for warm conditions)"),
             e.numeric("apparent_temperature", ea.STATE).withUnit("°C").withDescription("Calculated apparent temperature"),
@@ -785,7 +789,7 @@ const shellyModernExtend = {
                     if (msg.data.measuredValue !== undefined) {
                         const temperature = msg.data.measuredValue / 100;
                         const calculated = updateWS90CalculatedValues(msg.device, {temperature});
-                        return calculated; // Only calculated values; m.temperature() handles base temperature
+                        return calculated;  // Only calculated values; m.temperature() handles base temperature
                     }
                 },
             },
@@ -796,7 +800,7 @@ const shellyModernExtend = {
                     if (msg.data.measuredValue !== undefined) {
                         const humidity = msg.data.measuredValue / 100;
                         const calculated = updateWS90CalculatedValues(msg.device, {humidity});
-                        return calculated; // Only calculated values; m.humidity() handles base humidity
+                        return calculated;  // Only calculated values; m.humidity() handles base humidity
                     }
                 },
             },
@@ -807,7 +811,7 @@ const shellyModernExtend = {
                     if (msg.data.measuredValue !== undefined) {
                         const pressure = msg.data.measuredValue / 10;
                         const calculated = updateWS90CalculatedValues(msg.device, {pressure});
-                        return calculated; // Only calculated values; m.pressure() handles base pressure
+                        return calculated;  // Only calculated values; m.pressure() handles base pressure
                     }
                 },
             },
@@ -817,9 +821,9 @@ const shellyModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data.measuredValue !== undefined) {
                         const measuredValue = msg.data.measuredValue;
-                        const illuminance = measuredValue > 0 ? Math.round(10 ** ((measuredValue - 1) / 10000)) : 0;
+                        const illuminance = measuredValue > 0 ? Math.round(Math.pow(10, (measuredValue - 1) / 10000)) : 0;
                         const calculated = updateWS90CalculatedValues(msg.device, {illuminance});
-                        return calculated; // Only calculated values; m.illuminance() handles base illuminance
+                        return calculated;  // Only calculated values; m.illuminance() handles base illuminance
                     }
                 },
             },
@@ -831,7 +835,7 @@ const shellyModernExtend = {
                     if (data.uv_index !== undefined) {
                         const uv_index = (data.uv_index as number) / 10;
                         const calculated = updateWS90CalculatedValues(msg.device, {uv_index});
-                        return calculated; // Only return calculated values, m.numeric() handles uv_index
+                        return calculated;  // Only return calculated values, m.numeric() handles uv_index
                     }
                 },
             },
@@ -845,7 +849,7 @@ const shellyModernExtend = {
                     if (data.wind_direction !== undefined) payload.wind_direction = (data.wind_direction as number) / 10;
                     if (data.gust_speed !== undefined) payload.gust_speed = (data.gust_speed as number) / 10;
                     const calculated = updateWS90CalculatedValues(msg.device, payload);
-                    return calculated; // Only calculated values; m.numeric() handles base wind values
+                    return calculated;  // Only calculated values; m.numeric() handles base wind values
                 },
             },
             {
@@ -872,7 +876,7 @@ const shellyModernExtend = {
                     calculated.rain_rate = rain_rate;
 
                     msg.device.save();
-                    return calculated; // Only calculated values; m.binary()/m.numeric() handle base rain values
+                    return calculated;  // Only calculated values; m.binary()/m.numeric() handle base rain values
                 },
             },
         ];
@@ -923,6 +927,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandStep"]>,
 };
+
 
 // =============================================================================
 // Device Definitions
