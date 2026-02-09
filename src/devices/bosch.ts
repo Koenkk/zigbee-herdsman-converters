@@ -940,6 +940,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschSmartPlugExtend.electricityMeter(),
             boschGeneralEnergyDeviceExtend.resetEnergyMeters(),
         ],
+        version: "0.0.1",
         ota: true,
         whiteLabel: [
             {vendor: "Bosch", model: "BSP-EZ2", description: "Smart plug compact (type E plug)", fingerprint: [{modelID: "RBSH-SP-ZB-FR"}]},
