@@ -259,68 +259,6 @@ const sonoffExtend = {
             commandsResponse: {},
         });
     },
-    smartTempControl(): ModernExtend {
-        const expose = e
-            .enum("smart_temperature_control", ea.ALL, ["off", "precision", "smart"])
-            .withDescription(
-                'Manual mode: off or precision (same effect), Smart mode: automatic temperature control. After enabling the Adaptive Mode, "Valve Opening Percentage" and "Temperature Accuracy" will be automatically disabled.',
-            );
-
-        const modeToValue: Record<string, number> = {
-            off: 0x00,
-            precision: 0x00, // 0x01 is for device reporting only, use 0x00 for control
-            smart: 0x02,
-        };
-        const valueToMode: Record<number, string> = {
-            [0x00]: "off",
-            [0x01]: "precision",
-            [0x02]: "smart",
-        };
-
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["smart_temperature_control"],
-                convertSet: async (entity, key, value, meta) => {
-                    const smartTempControl = modeToValue[value as string] ?? 0x00;
-
-                    await entity.write<"customSonoffTrvzb", SonoffTrvzb>("customSonoffTrvzb", {smartTempControl}).catch((err) => console.error(err));
-
-                    return {
-                        state: {
-                            [key]: value,
-                        },
-                    };
-                },
-                convertGet: async (entity, key, meta) => {
-                    await entity
-                        .read<"customSonoffTrvzb", SonoffTrvzb>("customSonoffTrvzb", ["smartTempControl"], utils.getOptions(meta.mapped, entity))
-                        .catch((err) => console.error(err));
-                },
-            },
-        ];
-
-        const fromZigbee = [
-            {
-                cluster: "customSonoffTrvzb",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if ("smartTempControl" in msg.data) {
-                        const rawValue = msg.data.smartTempControl;
-                        return {
-                            smart_temperature_control: valueToMode[rawValue] ?? "off",
-                        };
-                    }
-                },
-            } satisfies Fz.Converter<"customSonoffTrvzb", SonoffTrvzb, ["attributeReport", "readResponse"]>,
-        ];
-
-        return {
-            exposes: [expose],
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
     programmableStepperSequence(sequences: string[]): ModernExtend {
         const stepComposite = (n: number) => {
             return e
@@ -2643,7 +2581,23 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.weeklySchedule(),
             m.customTimeResponse("1970_UTC"),
-            sonoffExtend.smartTempControl(),
+            m.enumLookup<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "smart_temperature_control",
+                // manual sends 0x00 (same as off), 0x01 is report-only
+                lookup: {off: 0x00, manual: 0x00, smart: 0x02},
+                cluster: "customSonoffTrvzb",
+                attribute: "smartTempControl",
+                description:
+                    "Manual mode: off or manual (same effect), Smart mode: automatic temperature control. " +
+                    'After enabling the smart mode, "Valve Opening Percentage" and "Temperature Accuracy" will be automatically disabled.',
+                access: "ALL",
+                fzConvert: (model, msg, publish, options, meta) => {
+                    if ("smartTempControl" in msg.data) {
+                        const valueToMode: Record<number, string> = {0: "off", 1: "manual", 2: "smart"};
+                        return {smart_temperature_control: valueToMode[msg.data.smartTempControl] ?? "off"};
+                    }
+                },
+            }),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
