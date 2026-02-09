@@ -74,13 +74,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0502B", ["_TZ3000_6dwfra5l"]),
-        model: "SMCL01-ZB",
-        vendor: "Mercator Ikuü",
-        description: "Ikon ceiling light",
-        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}})],
-    },
-    {
         fingerprint: tuya.fingerprint("TS0505B", ["_TZ3000_xr5m6kfg"]),
         model: "SMD4109W-RGB-ZB",
         vendor: "Mercator Ikuü",

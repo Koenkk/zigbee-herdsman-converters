@@ -269,7 +269,7 @@ const tzLocal = {
     backlight_autodim: {
         key: ["backlight_auto_dim"],
         convertSet: async (entity, key, value, meta) => {
-            const sinopeBacklightParam = utils.getMetaValue(entity, meta.mapped, "alternateBacklightAutoDim", "allEqual", false)
+            const sinopeBacklightParam = utils.getMetaValue(entity, meta.mapped, "sinopeAlternateBacklightAutoDim", "allEqual", false)
                 ? {0: "on_demand", 1: "off", 2: "sensing"}
                 : {0: "on_demand", 1: "sensing", 2: "off"};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value as number, Number);

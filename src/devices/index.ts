@@ -310,6 +310,7 @@ import {definitions as superled} from "./superled";
 import {definitions as swann} from "./swann";
 import {definitions as sylvania} from "./sylvania";
 import {definitions as tapestry} from "./tapestry";
+import {definitions as taskLighting} from "./task_lighting";
 import {definitions as tci} from "./tci";
 import {definitions as tcl} from "./tcl";
 import {definitions as tech} from "./tech";
@@ -671,6 +672,7 @@ const definitions: DefinitionWithExtend[] = [
     ...superled,
     ...swann,
     ...sylvania,
+    ...taskLighting,
     ...tapestry,
     ...tci,
     ...tcl,
