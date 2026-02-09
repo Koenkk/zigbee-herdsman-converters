@@ -141,10 +141,10 @@ function calculateRainRate(meta: WS90Meta, precipitation: number | undefined): n
     const timeDeltaMs = now - history.time;
     const precipDelta = precipitation - history.value;
 
-    meta.precipHistory = {value: precipitation, time: now};
-
-    if (timeDeltaMs < 30000) return null;
+    if (timeDeltaMs < 60000) return null;
     if (precipDelta < 0) return 0;
+
+    meta.precipHistory = {value: precipitation, time: now};
 
     const timeDeltaHours = timeDeltaMs / (1000 * 60 * 60);
     const rate = precipDelta / timeDeltaHours;
@@ -169,9 +169,9 @@ function calculatePressureTrend(meta: WS90Meta, pressure: number | undefined): n
     const timeDeltaMs = now - history.time;
     const pressureDelta = pressure - history.value;
 
-    meta.pressureHistory = {value: pressure, time: now};
+    if (timeDeltaMs < 3600000) return null;
 
-    if (timeDeltaMs < 300000) return null;
+    meta.pressureHistory = {value: pressure, time: now};
 
     const timeDeltaHours = timeDeltaMs / (1000 * 60 * 60);
     const rate = pressureDelta / timeDeltaHours;
