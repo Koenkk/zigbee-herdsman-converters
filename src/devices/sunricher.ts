@@ -248,6 +248,13 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
     },
     {
+        zigbeeModel: ["ZGRC-KEY-043"],
+        model: "SR-ZG2868EK7-CCT",
+        vendor: "Sunricher",
+        description: "Zigbee lighting remote control",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+    },
+    {
         zigbeeModel: ["ZG9098A-WinOnly"],
         model: "SR-ZG9081A",
         vendor: "Sunricher",
