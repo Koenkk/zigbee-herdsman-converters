@@ -200,7 +200,9 @@ export interface SonoffEwelink {
         calibrationStatus: number;
         calibrationProgress: number;
         minBrightnessThreshold: number;
+        maxBrightnessThreshold: number;
         transitionTime: number;
+        levelForCalibration: number;
         dimmingLightRate: number;
         programmableStepperSequence: number[];
     };
@@ -247,8 +249,10 @@ const sonoffExtend = {
                 setCalibrationAction: {ID: 0x001d, type: Zcl.DataType.CHAR_STR, write: true},
                 calibrationStatus: {ID: 0x001e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 calibrationProgress: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                minBrightnessThreshold: {ID: 0x4001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                minBrightnessThreshold: {ID: 0x4001, type: Zcl.DataType.UINT8},
+                maxBrightnessThreshold: {ID: 0x4002, type: Zcl.DataType.UINT8},
                 dimmingLightRate: {ID: 0x4003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                levelForCalibration: {ID: 0x4006, type: Zcl.DataType.UINT8},
                 transitionTime: {ID: 0x001f, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 programmableStepperSequence: {ID: 0x0022, type: Zcl.DataType.ARRAY, write: true},
             },
@@ -3514,7 +3518,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "set_calibration_action",
-                lookup: {start: [0x03, 0x01, 0x01, 0x01], stop: [0x03, 0x01, 0x01, 0x02], clear: [0x03, 0x01, 0x01, 0x03]},
+                lookup: {start: [0x03, 0x01, 0x01, 0x01], stop: [0x03, 0x01, 0x01, 0x02]},
                 cluster: "customClusterEwelink",
                 attribute: "setCalibrationAction",
                 description:
@@ -3544,20 +3548,6 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "%",
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
-                name: "min_brightness_threshold",
-                access: "ALL",
-                cluster: "customClusterEwelink",
-                attribute: "minBrightnessThreshold",
-                description: "Lowest brightness level mapped to 1 % on the dimmer slider.",
-                entityCategory: "config",
-                valueMin: 1,
-                valueMax: 50,
-                valueStep: 1,
-                unit: "%",
-                scale: 2.55,
-                precision: 0,
-            }),
-            m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "transition_time",
                 access: "ALL",
                 cluster: "customClusterEwelink",
@@ -3578,6 +3568,50 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Speed of brightness change via external switch.",
                 access: "ALL",
                 entityCategory: "config",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "max_brightness_threshold",
+                access: "ALL",
+                cluster: "customClusterEwelink",
+                attribute: "maxBrightnessThreshold",
+                description: "highest brightness level mapped to 100 % on the dimmer slider.",
+                entityCategory: "config",
+                valueMin: 2,
+                valueMax: 100,
+                valueStep: 1,
+                unit: "%",
+                scale: 2.55,
+                precision: 0,
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "min_brightness_threshold",
+                access: "ALL",
+                cluster: "customClusterEwelink",
+                attribute: "minBrightnessThreshold",
+                description: "Lowest brightness level mapped to 1 % on the dimmer slider.",
+                entityCategory: "config",
+                valueMin: 1,
+                valueMax: 99,
+                valueStep: 1,
+                unit: "%",
+                scale: 2.55,
+                precision: 0,
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "level_for_calibration",
+                access: "ALL",
+                cluster: "customClusterEwelink",
+                attribute: "levelForCalibration",
+                description:
+                    "Brightness Calibration ensures your dimmer works within the optimal range for your specific bulb." +
+                    " By adjusting the slider, you select the bulb's lowest stable brightness and preferred maximum brightness.",
+                entityCategory: "config",
+                valueMin: 1,
+                valueMax: 100,
+                valueStep: 1,
+                unit: "%",
+                scale: 2.55,
+                precision: 0,
             }),
         ],
         ota: true,
