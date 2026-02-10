@@ -421,7 +421,14 @@ export const definitions: DefinitionWithExtend[] = [
             fz.co2,
             fz.color_colortemp,
         ],
-        toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tzLocal.ptvo_on_off, tz.light_color],
+        toZigbee: [
+            tz.ptvo_switch_trigger,
+            tz.ptvo_switch_uart,
+            tz.ptvo_switch_analog_input,
+            tz.ptvo_switch_light_brightness,
+            tzLocal.ptvo_on_off,
+            tz.light_color,
+        ],
         exposes: (device, options) => {
             const expose: Expose[] = [];
             const exposeDeviceOptions: KeyValue = {};
