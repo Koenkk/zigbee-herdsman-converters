@@ -763,10 +763,7 @@ const shellyModernExtend = {
     ws90CalculatedValues(): ModernExtend {
         const exposes: Expose[] = [
             // Calculated values only
-            e
-                .numeric("dew_point", ea.STATE)
-                .withUnit("°C")
-                .withDescription("Calculated dew point temperature"),
+            e.numeric("dew_point", ea.STATE).withUnit("°C").withDescription("Calculated dew point temperature"),
             e.numeric("wind_chill", ea.STATE).withUnit("°C").withDescription("Calculated wind chill temperature"),
             e.numeric("humidex", ea.STATE).withUnit("°C").withDescription("Calculated humidex (feels-like for warm conditions)"),
             e.numeric("apparent_temperature", ea.STATE).withUnit("°C").withDescription("Calculated apparent temperature"),

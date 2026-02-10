@@ -83,11 +83,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("temperature_max", ea.STATE_SET).withUnit("°C").withValueMin(-20).withValueMax(80),
             e.binary("temperature_scale", ea.STATE_SET, "°C", "°F").withDescription("Temperature scale (°F/°C)"),
             e.numeric("humidity_min", ea.STATE_SET).withUnit("%").withValueMin(1).withValueMax(100),
-            e
-                .numeric("humidity_max", ea.STATE_SET)
-                .withUnit("%")
-                .withValueMin(1)
-                .withValueMax(100),
+            e.numeric("humidity_max", ea.STATE_SET).withUnit("%").withValueMin(1).withValueMax(100),
             // e.binary('unknown_111', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown datapoint 111 (default: ON)'),
             // e.binary('unknown_112', ea.STATE_SET, 'ON', 'OFF').withDescription('Unknown datapoint 112 (default: ON)')
         ],

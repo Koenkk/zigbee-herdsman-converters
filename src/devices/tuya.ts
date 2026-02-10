@@ -1660,10 +1660,7 @@ export const definitions: DefinitionWithExtend[] = [
             //     .enum("report_period", ea.STATE_SET, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"])
             //     .withDescription("Report period"),
             // Flow rate sensor
-            e
-                .numeric("flow_rate", ea.STATE)
-                .withUnit("L/h")
-                .withDescription("Instantaneous water flow rate"),
+            e.numeric("flow_rate", ea.STATE).withUnit("L/h").withDescription("Instantaneous water flow rate"),
             e.binary("auto_clean", ea.STATE_SET, "ON", "OFF").withDescription("Auto clean"),
             e.temperature(),
             e.battery_voltage(),
@@ -7128,9 +7125,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "06:00/21.5 17:20/26 20:00/21 24:00/18").map((text) => text.withCategory("config")),
             e.binary("valve", ea.STATE, "CLOSED", "OPEN"),
             // e.enum('factory_reset', ea.STATE_SET, ['factory reset']).withLabel('Factory reset').withDescription('Reset all settings to factory ones'),
-            e
-                .binary("factory_reset", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Back to factory settings, USE WITH CAUTION"),
+            e.binary("factory_reset", ea.STATE_SET, "ON", "OFF").withDescription("Back to factory settings, USE WITH CAUTION"),
             tuya.exposes.errorStatus(),
         ],
         meta: {
@@ -10515,10 +10510,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withRunningState(["idle", "heat"], ea.STATE),
 
             // Expose local temperature as a sensor
-            e
-                .numeric("local_temperature", ea.STATE)
-                .withUnit("°C")
-                .withDescription("Current temperature measured by the thermostat."),
+            e.numeric("local_temperature", ea.STATE).withUnit("°C").withDescription("Current temperature measured by the thermostat."),
 
             // Modes and Schedules
             e.enum("mode", ea.STATE_SET, ["manual", "program"]),
@@ -10804,9 +10796,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("backlight_mode", ea.STATE_SET, ["off", "low", "medium", "high"]).withDescription("Intensity of the backlight"),
             e.enum("working_day", ea.STATE_SET, ["disabled", "6-1", "5-2", "7"]).withDescription("Workday setting"),
             e.text("schedule_weekday", ea.STATE_SET).withDescription("Workdays (6 times `hh:mm/cc.c°C`)"),
-            e
-                .text("schedule_holiday", ea.STATE_SET)
-                .withDescription("Holidays (2 times `hh:mm/cc.c°C)`"),
+            e.text("schedule_holiday", ea.STATE_SET).withDescription("Holidays (2 times `hh:mm/cc.c°C)`"),
             // ============== exposes for found, but not functional datapoints:
             /*
             e.min_temperature_limit() 
@@ -13965,9 +13955,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power(),
             e.current(),
             // Change the description according to the specifications of the device
-            e
-                .energy()
-                .withDescription("Total forward active energy"),
+            e.energy().withDescription("Total forward active energy"),
             e.produced_energy().withDescription("Total reverse active energy"),
         ],
         meta: {
@@ -14011,9 +13999,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.currentWithPhase("Y"),
             tuya.exposes.currentWithPhase("Z"),
             // Change the description according to the specifications of the device
-            e
-                .energy()
-                .withDescription("Total forward active energy"),
+            e.energy().withDescription("Total forward active energy"),
             e.produced_energy().withDescription("Total reverse active energy"),
         ],
         meta: {
@@ -16290,9 +16276,7 @@ export const definitions: DefinitionWithExtend[] = [
             // but they indicate when the unsigned value of power_a and power_b
             // were received. They can be several seconds in the past if
             // the publication was delayed because of the late_energy_flow options.
-            e
-                .text("timestamp_a", ea.STATE)
-                .withDescription("Timestamp at power measure (phase a)"),
+            e.text("timestamp_a", ea.STATE).withDescription("Timestamp at power measure (phase a)"),
             e.text("timestamp_b", ea.STATE).withDescription("Timestamp at power measure (phase b)"),
         ],
         meta: {
@@ -17531,9 +17515,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             // e.binary('system_mode', ea.STATE_SET, 'ON', 'OFF')
             // .withDescription('Turn system on or standby mode'),
-            e
-                .binary("state", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Turn system on or standby mode"),
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn system on or standby mode"),
             e
                 .climate()
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
@@ -22084,20 +22066,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
-            e
-                .enum("dot_mode", ea.STATE_SET, ["single", "multi"])
-                .withDescription("Dot mode"), // DP 104
-            e
-                .enum("direction", ea.STATE_SET, ["normal", "reversed"])
-                .withDescription("Motor direction"), // DP 11
-            e
-                .enum("border", ea.STATE_SET, ["UP", "Down", "Delete"])
-                .withDescription("Border mode"), // DP 16
-            e
-                .numeric("speed", ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(5)
-                .withDescription("Motor speed"), // DP 103
+            e.enum("dot_mode", ea.STATE_SET, ["single", "multi"]).withDescription("Dot mode"), // DP 104
+            e.enum("direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction"), // DP 11
+            e.enum("border", ea.STATE_SET, ["UP", "Down", "Delete"]).withDescription("Border mode"), // DP 16
+            e.numeric("speed", ea.STATE_SET).withValueMin(1).withValueMax(5).withDescription("Motor speed"), // DP 103
             e.text("work_state", ea.STATE),
         ],
         meta: {
@@ -22829,9 +22801,7 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.binary("backlight", ea.STATE_SET, "ON", "OFF").withDescription("Button LED backlights"),
             e.enum("show_screen", ea.STATE_SET, ["motion", "on_press", "on"]).withDescription("Screen display mode"),
             // Thermostat - Switch 4 only
-            exposes
-                .binary("thermostat", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Thermostat - toggle switch"),
+            exposes.binary("thermostat", ea.STATE_SET, "ON", "OFF").withDescription("Thermostat - toggle switch"),
             e.text("thermostat_name", ea.STATE_SET).withDescription("Name for Thermostat (max 8 chars displayed)"),
 
             e
@@ -22851,17 +22821,10 @@ export const definitions: DefinitionWithExtend[] = [
             // Set weather
             // Temperature will accept decimal values e.g. 0.1 but display will round off to nearest whole number.
             // Best to handle rounding in HA before passing to z2m.
-            e
-                .numeric("temperature_1", ea.STATE_SET)
-                .withValueMin(-65)
-                .withValueMax(99)
-                .withDescription("Temperature")
-                .withValueStep(0.1),
+            e.numeric("temperature_1", ea.STATE_SET).withValueMin(-65).withValueMax(99).withDescription("Temperature").withValueStep(0.1),
             // If you need other values to match your weather provider, map them with a template in HA or
             // add a z2m 'External Extension' to override tuya.M8ProTuyaWeatherCondition.
-            e
-                .enum("condition_1", ea.STATE_SET, Object.keys(tuya.M8ProTuyaWeatherCondition))
-                .withDescription("Weather condition"),
+            e.enum("condition_1", ea.STATE_SET, Object.keys(tuya.M8ProTuyaWeatherCondition)).withDescription("Weather condition"),
         ],
         meta: {
             multiEndpoint: true,

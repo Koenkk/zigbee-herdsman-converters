@@ -148,10 +148,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_outage_memory(),
             // When in rgbw mode, only one of color and colortemp will be valid, and l2 will be invalid
             // Do not control l2 in rgbw mode
-            e
-                .light_brightness_colortemp_colorxy([153, 370])
-                .removeFeature("color_temp_startup")
-                .withEndpoint("l1"),
+            e.light_brightness_colortemp_colorxy([153, 370]).removeFeature("color_temp_startup").withEndpoint("l1"),
             e.light_brightness_colortemp([153, 370]).removeFeature("color_temp_startup").withEndpoint("l2"),
             e.enum("dimmer_mode", ea.ALL, ["rgbw", "dual_ct"]).withDescription("Switch between rgbw mode or dual color temperature mode"),
         ],
@@ -5090,9 +5087,9 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.electricityMeter(),
             m.thermostat({
-                setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}},
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}, configure: {skip: true}},
                 localTemperatureCalibration: {values: true},
-                temperatureSetpointHold: true,
+                temperatureSetpointHold: {configure: {skip: true}},
                 temperatureSetpointHoldDuration: true,
                 systemMode: {values: ["off", "heat"]},
                 runningState: {
@@ -5121,7 +5118,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.humidity(),
+            m.humidity({reporting: false}),
             m.enumLookup({
                 name: "sensor",
                 lookup: {internal: 0, external: 1, ntc: 2},

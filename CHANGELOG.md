@@ -1,5 +1,16 @@
 # Changelog
 
+## [26.2.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.2.0...v26.2.1) (2026-02-09)
+
+
+### Bug Fixes
+
+* Aqara UT-A01E: fix configure reporting failing https://github.com/Koenkk/zigbee2mqtt/issues/30384 ([523f585](https://github.com/Koenkk/zigbee-herdsman-converters/commit/523f58504290c23d8f9241d5fbaa78dc7f58d9e4))
+* Develco SIRZB-111: fix wrong siren modes and stop not working ([#11499](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11499)) ([d512ddf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d512ddfa378201c83058dcd0c6dd3cedd2bd3e48))
+* **ignore:** bump the minor-patch group with 4 updates ([#11495](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11495)) ([7f16f0e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7f16f0e26af98f59350e05c17c25d5d25ddcaab7))
+* **ignore:** Shelly WS90: Fix timing bugs in pressure trend and rain rate calculations ([#11498](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11498)) ([fcd6ecb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fcd6ecb2a6c7a7ed6496ccd60660b71eeff43024))
+* Third Reality 3RSP02064Z: various updates ([#11496](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11496)) ([5cff190](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5cff1901d61e6c65451847016e3d1cd9bab925f9))
+
 ## [26.2.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.1.0...v26.2.0) (2026-02-08)
 
 
