@@ -35,9 +35,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery(),
             //! to fix as the exposed format is bitmap
-            e
-                .numeric("error", ea.STATE)
-                .withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
+            e.numeric("error", ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
             e.child_lock().withCategory("config"),
             e
                 .enum("running_mode", ea.STATE, ["auto", "manual", "off", "eco", "comfort", "boost"])

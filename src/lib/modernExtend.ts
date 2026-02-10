@@ -3203,7 +3203,7 @@ export interface ThermostatArgs {
     runningMode?: Omit<ValuesWithModernExtendConfiguration<Array<"off" | "cool" | "heat">>, "fromZigbee">;
     fanMode?: Array<"off" | "low" | "medium" | "high" | "on" | "auto" | "smart">;
     piHeatingDemand?: Omit<ValuesWithModernExtendConfiguration<true | Access>, "fromZigbee">;
-    temperatureSetpointHold?: true;
+    temperatureSetpointHold?: true | Omit<ValuesWithModernExtendConfiguration<true>, "values" | "fromZigbee" | "toZigbee">;
     temperatureSetpointHoldDuration?: true;
     endpoint?: string;
     ctrlSeqeOfOper?: Omit<
@@ -3407,13 +3407,15 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
                 .withDescription("Prevent changes. `false` = run normally. `true` = prevent from making changes."),
         );
         toZigbee.push(tz.thermostat_temperature_setpoint_hold);
-        configure.push(
-            setupConfigureForReporting("hvacThermostat", "tempSetpointHold", {
-                config: repConfigChange0,
-                access: ea.STATE_GET,
-                endpointNames: endpointNames,
-            }),
-        );
+        if (temperatureSetpointHold === true || (isObject(temperatureSetpointHold) && !temperatureSetpointHold.configure.skip)) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "tempSetpointHold", {
+                    config: repConfigChange0,
+                    access: ea.STATE_GET,
+                    endpointNames: endpointNames,
+                }),
+            );
+        }
     }
 
     if (temperatureSetpointHoldDuration) {
@@ -3435,7 +3437,6 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
         toZigbee.push(tzConverter);
         configure.push(
             setupConfigureForReporting("hvacThermostat", key, {
-                config: repConfigChange0,
                 access: ea.STATE_GET,
                 endpointNames: endpointNames,
             }),
