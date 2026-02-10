@@ -169,7 +169,7 @@ function calculatePressureTrend(meta: WS90Meta, pressure: number | undefined): n
     const timeDeltaMs = now - history.time;
     const pressureDelta = pressure - history.value;
 
-    if (timeDeltaMs < 3600000) return null;
+    if (timeDeltaMs < 1800000) return null;
 
     meta.pressureHistory = {value: pressure, time: now};
 
@@ -266,6 +266,8 @@ function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: 
         if (trend !== null) {
             result.pressure_trend = trend;
             state.pressure_trend = trend;
+        } else if (typeof state.pressure_trend === "number") {
+            result.pressure_trend = state.pressure_trend;
         }
     }
 
