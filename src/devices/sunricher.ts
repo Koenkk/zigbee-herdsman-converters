@@ -1474,7 +1474,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HK-SENSOR-4IN1-A",
         vendor: "Sunricher",
         description: "4IN1 Sensor",
-        extend: [m.battery(), m.identify(), m.occupancy(), m.temperature(), m.humidity(), m.illuminance()],
+        extend: [m.battery({dontDividePercentage: true}), m.identify(), m.occupancy(), m.temperature(), m.humidity(), m.illuminance()],
     },
     {
         zigbeeModel: ["SR-ZG9023A-EU"],
