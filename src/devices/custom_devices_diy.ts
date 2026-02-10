@@ -419,8 +419,16 @@ export const definitions: DefinitionWithExtend[] = [
             fz.electrical_measurement,
             fz.metering,
             fz.co2,
+            fz.color_colortemp,
         ],
-        toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tzLocal.ptvo_on_off],
+        toZigbee: [
+            tz.ptvo_switch_trigger,
+            tz.ptvo_switch_uart,
+            tz.ptvo_switch_analog_input,
+            tz.ptvo_switch_light_brightness,
+            tzLocal.ptvo_on_off,
+            tz.light_color,
+        ],
         exposes: (device, options) => {
             const expose: Expose[] = [];
             const exposeDeviceOptions: KeyValue = {};
@@ -685,7 +693,7 @@ export const definitions: DefinitionWithExtend[] = [
                             acVoltageMultiplier: 1,
                             acCurrentDivisor: 1000,
                             acCurrentMultiplier: 1,
-                            acPowerDivisor: 10,
+                            acPowerDivisor: 1,
                             acPowerMultiplier: 1,
                         });
                     }
