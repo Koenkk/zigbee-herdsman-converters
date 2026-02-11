@@ -1979,16 +1979,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // DP 6 - Prepayment Switch
                 [6, "prepayment_switch", tuya.valueConverter.onOff],
                 // DP 7 - Cumulative Heat
-                [
-                    7,
-                    "cumulative_heat",
-                    {
-                        from: (value, meta) => {
-                            // Multiplier: 2, so divide by 100 to get kWh
-                            return value / 100;
-                        },
-                    },
-                ],
+                [7, "cumulative_heat", tuya.valueConverter.divideBy100],
                 // DP 16 - Meter ID
                 [16, "meter_id", tuya.valueConverter.raw],
                 // DP 19 - Instantaneous Flow Rate
@@ -2007,38 +1998,11 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                 ],
                 // DP 21 - Inlet Water Temperature
-                [
-                    21,
-                    "inlet_water_temperature",
-                    {
-                        from: (value, meta) => {
-                            // Multiplier: 2, so divide by 100 to get °C
-                            return value / 100;
-                        },
-                    },
-                ],
+                [21, "inlet_water_temperature", tuya.valueConverter.divideBy100],
                 // DP 22 - Outlet Water Temperature
-                [
-                    22,
-                    "outlet_water_temperature",
-                    {
-                        from: (value, meta) => {
-                            // Multiplier: 2, so divide by 100 to get °C
-                            return value / 100;
-                        },
-                    },
-                ],
+                [22, "outlet_water_temperature", tuya.valueConverter.divideBy100],
                 // DP 24 - Power Supply Voltage
-                [
-                    24,
-                    "voltage",
-                    {
-                        from: (value, meta) => {
-                            // Multiplier: 2, so divide by 100 to get V
-                            return value / 100;
-                        },
-                    },
-                ],
+                [26, "voltage", tuya.valueConverter.divideBy100],
             ],
         },
         options: [
