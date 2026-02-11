@@ -37,11 +37,7 @@ const definition: Definition = {
     toZigbee: [tuya.tz.datapoints],
     configure: tuya.configureMagicPacket,
 
-    exposes: [
-        e.cover_position().setAccess("position", ea.STATE_SET),
-        e.enum("calibration", ea.STATE_SET, ["start", "finish"]),
-        e.temperature(),
-    ],
+    exposes: [e.cover_position().setAccess("position", ea.STATE_SET), e.enum("calibration", ea.STATE_SET, ["start", "finish"]), e.temperature()],
 
     meta: {
         tuyaDatapoints: [
