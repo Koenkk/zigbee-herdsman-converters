@@ -1753,7 +1753,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("auto_clean", ea.STATE_SET, "ON", "OFF").withDescription("Auto clean"),
             e.temperature(),
             e.battery_voltage(),
-            // Senzori adăugați de pe modelul tău:
             e
                 .numeric("reverse_water_consumed", ea.STATE)
                 .withUnit("m³")
@@ -1762,7 +1761,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.001),
             e.text("meter_id", ea.STATE).withDescription("Meter identification number"),
             e.enum("report_period", ea.STATE_SET, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"]).withDescription("Report period"),
-            // Alarme individuale (bitmap)
             e.text("faults", ea.STATE).withDescription("Active fault status"),
         ],
         meta: {
