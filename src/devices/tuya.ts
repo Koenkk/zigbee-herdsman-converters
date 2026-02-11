@@ -22085,6 +22085,162 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_6vwfjkcj", "_TZE204_0hcjew5p"]),
+        model: "_TZE204_6vwfjkcj",
+        vendor: "Tuya",
+        description: "Smart thermostat for electric radiator with pilot wire",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        whiteLabel: [tuya.whitelabel("RKHK", "TH-P0Z", "Smart thermostat for electric heater", ["_TZE204_0hcjew5p"])],
+        exposes: [
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the heater on or off").withCategory("config"),
+            e.child_lock(),
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withSystemMode(["off", "heat"], ea.STATE)
+                .withPreset(["comfort", "eco", "antifrost", "off", "comfort_1", "comfort_2", "program", "manual"]),
+            e
+                .enum("mode", ea.STATE, ["comfort", "eco", "antifrost", "off", "comfort_1", "comfort_2", "program", "manual"])
+                .withDescription("Current running mode")
+                .withCategory("diagnostic"),
+            e
+                .binary("radiators_without_integrated_regulation", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "Enable this for radiator without integrated regulation. OFF if Comfort, Eco and Antifrost temperatures can be defined on the radiator. ON if the radiator has no integrated regulation (i.e define temperatures on the thermostat).",
+                )
+                .withCategory("config"),
+            e
+                .numeric("comfort_temperature", ea.STATE_SET)
+                .withUnit("  C")
+                .withValueMin(5)
+                .withValueMax(35)
+                .withValueStep(0.5)
+                .withDescription("Set comfort temperature")
+                .withCategory("config"),
+            e
+                .numeric("eco_temperature", ea.STATE_SET)
+                .withUnit("  C")
+                .withValueMin(5)
+                .withValueMax(30)
+                .withValueStep(0.5)
+                .withDescription("Set ECO temperature")
+                .withCategory("config"),
+            e
+                .numeric("antifrost_temperature", ea.STATE_SET)
+                .withUnit("  C")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(0.5)
+                .withDescription("Set antifrost temperature")
+                .withCategory("config"),
+            e
+                .numeric("temperature_sensibility", ea.STATE_SET)
+                .withUnit("  C")
+                .withValueMin(0.5)
+                .withValueMax(5)
+                .withValueStep(0.5)
+                .withDescription("Set thermostat sensitivity")
+                .withCategory("config"),
+            e.binary("antifrost", ea.STATE_SET, "ON", "OFF").withDescription("Enable antifrost protection feature").withCategory("config"),
+            e
+                .binary("window_detection", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Open window detection")
+                .withDescription("Enable / Disable open window detection feature")
+                .withCategory("config"),
+            e.enum("window", ea.STATE, ["close", "open"]).withDescription("Indicates if window is open").withCategory("diagnostic"),
+            e.power(),
+            e.voltage(),
+            e.current(),
+            e.energy(),
+            e.numeric("energy_today", ea.STATE).withUnit("kWh").withDescription("Energy consumed today"),
+            e.numeric("energy_yesterday", ea.STATE).withUnit("kWh").withDescription("Energy consumed yesterday"),
+            e
+                .enum("device_mode_type", ea.STATE, ["four", "six", "switch"])
+                .withDescription("Indicates the actual pilot wire mode of the thermostat")
+                .withCategory("diagnostic"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
+                [
+                    2,
+                    "mode",
+                    tuya.valueConverterBasic.lookup({
+                        comfort: tuya.enum(0),
+                        eco: tuya.enum(1),
+                        antifrost: tuya.enum(2),
+                        off: tuya.enum(3),
+                        comfort_1: tuya.enum(4),
+                        comfort_2: tuya.enum(5),
+                        program: tuya.enum(6),
+                        manual: tuya.enum(7),
+                    }),
+                ],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        comfort: tuya.enum(0),
+                        eco: tuya.enum(1),
+                        antifrost: tuya.enum(2),
+                        off: tuya.enum(3),
+                        comfort_1: tuya.enum(4),
+                        comfort_2: tuya.enum(5),
+                        program: tuya.enum(6),
+                        manual: tuya.enum(7),
+                    }),
+                ],
+                [11, "power", tuya.valueConverter.divideBy10],
+                [16, "local_temperature", tuya.valueConverter.divideBy10],
+                [
+                    17,
+                    "window",
+                    tuya.valueConverterBasic.lookup({
+                        close: tuya.enum(0),
+                        open: tuya.enum(1),
+                    }),
+                ],
+                [19, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
+                [20, "fault", tuya.valueConverter.raw],
+                [29, "window_detection", tuya.valueConverter.onOff],
+                [39, "child_lock", tuya.valueConverter.lockUnlock],
+                [50, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [101, "voltage", tuya.valueConverter.divideBy10],
+                [102, "current", tuya.valueConverter.divideBy1000],
+                [103, "temperature_sensibility", tuya.valueConverter.divideBy10],
+                [104, "energy_today", tuya.valueConverter.divideBy10],
+                [105, "energy_yesterday", tuya.valueConverter.divideBy10],
+                [
+                    106,
+                    "device_mode_type",
+                    tuya.valueConverterBasic.lookup({
+                        four: tuya.enum(0),
+                        six: tuya.enum(1),
+                        switch: tuya.enum(2),
+                    }),
+                ],
+                [107, "energy", tuya.valueConverter.divideBy10],
+                [108, "week_program_1", tuya.valueConverter.raw],
+                [109, "week_program_2", tuya.valueConverter.raw],
+                [110, "week_program_3", tuya.valueConverter.raw],
+                [111, "week_program_4", tuya.valueConverter.raw],
+                [112, "week_program_5", tuya.valueConverter.raw],
+                [113, "week_program_6", tuya.valueConverter.raw],
+                [114, "week_program_7", tuya.valueConverter.raw],
+                [115, "set_temp_switch", tuya.valueConverter.onOff],
+                [115, "radiators_without_integrated_regulation", tuya.valueConverter.onOff],
+                [116, "antifrost", tuya.valueConverter.onOff],
+                [117, "eco_temperature", tuya.valueConverter.divideBy10],
+                [118, "comfort_temperature", tuya.valueConverter.divideBy10],
+                [119, "antifrost_temperature", tuya.valueConverter.divideBy10],
+                [120, "light", tuya.valueConverter.raw],
+            ],
+        },
+    },
+	{
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ilzkxrav"]),
         model: "TWC-R01",
         vendor: "THALEOS",
