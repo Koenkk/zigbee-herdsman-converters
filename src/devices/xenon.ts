@@ -64,4 +64,4 @@ const definition: Definition = {
     },
 };
 
-export default definition;
+export default [definition];
