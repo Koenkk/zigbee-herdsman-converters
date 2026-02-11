@@ -1757,7 +1757,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("flow_rate", ea.STATE).withUnit("L/h").withDescription("Instantaneous water flow rate"),
             e.binary("auto_clean", ea.STATE_SET, "ON", "OFF").withDescription("Auto clean"),
             e.temperature(),
-            e.battery_voltage(),
+            e.voltage(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1821,7 +1821,7 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                 ],
                 [22, "temperature", tuya.valueConverter.divideBy100],
-                [26, "battery_voltage", tuya.valueConverter.divideBy100],
+                [26, "voltage", tuya.valueConverter.divideBy100],
             ],
         },
         // Optional: Add device-specific options
