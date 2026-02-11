@@ -1,12 +1,12 @@
-import {Definition} from '../lib/types';
-import * as tuya from '../lib/tuya';
-import * as exposes from '../lib/exposes';
+import * as exposes from "../lib/exposes";
+import * as tuya from "../lib/tuya";
+import type {Definition} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
 const temperatureAutoScale = {
-    from: (v: number) => (typeof v === 'number' && v > 100 ? v / 10 : v),
+    from: (v: number) => (typeof v === "number" && v > 100 ? v / 10 : v),
     to: (v: number) => v,
 };
 
@@ -24,38 +24,42 @@ const positionInvert = {
 };
 
 const definition: Definition = {
-    fingerprint: [{modelID: 'TS0601', manufacturerName: '_TZE284_hbjwgkdh'}],
-    model: 'X7726',
-    vendor: 'Xenon Smart',
-    description: 'Zigbee curtain motor (TS0601)',
+    fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_hbjwgkdh"}],
+    model: "X7726",
+    vendor: "Xenon Smart",
+    description: "Zigbee curtain motor (TS0601)",
 
     fromZigbee: [tuya.fz.datapoints],
     toZigbee: [tuya.tz.datapoints],
     configure: tuya.configureMagicPacket,
 
-    exposes: [
-        e.cover_position().setAccess('position', ea.STATE_SET),
-        e.enum('calibration', ea.STATE_SET, ['start', 'finish']),
-        e.temperature(),
-    ],
+    exposes: [e.cover_position().setAccess("position", ea.STATE_SET), e.enum("calibration", ea.STATE_SET, ["start", "finish"]), e.temperature()],
 
     meta: {
         tuyaDatapoints: [
-            [1, 'state', tuya.valueConverterBasic.lookup({
-                OPEN: tuya.enum(0),
-                STOP: tuya.enum(1),
-                CLOSE: tuya.enum(2),
-            })],
+            [
+                1,
+                "state",
+                tuya.valueConverterBasic.lookup({
+                    OPEN: tuya.enum(0),
+                    STOP: tuya.enum(1),
+                    CLOSE: tuya.enum(2),
+                }),
+            ],
 
-            [2, 'position', positionInvert],
-            [3, 'position', positionInvert],
+            [2, "position", positionInvert],
+            [3, "position", positionInvert],
 
-            [102, 'calibration', tuya.valueConverterBasic.lookup({
-                start: tuya.enum(0),
-                finish: tuya.enum(1),
-            })],
+            [
+                102,
+                "calibration",
+                tuya.valueConverterBasic.lookup({
+                    start: tuya.enum(0),
+                    finish: tuya.enum(1),
+                }),
+            ],
 
-            [103, 'temperature', temperatureAutoScale],
+            [103, "temperature", temperatureAutoScale],
         ],
     },
 };
