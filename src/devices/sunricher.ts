@@ -248,6 +248,13 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
     },
     {
+        zigbeeModel: ["ZGRC-KEY-043"],
+        model: "SR-ZG2868EK7-CCT",
+        vendor: "Sunricher",
+        description: "Zigbee lighting remote control",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+    },
+    {
         zigbeeModel: ["ZG9098A-WinOnly"],
         model: "SR-ZG9081A",
         vendor: "Sunricher",
@@ -1474,7 +1481,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HK-SENSOR-4IN1-A",
         vendor: "Sunricher",
         description: "4IN1 Sensor",
-        extend: [m.battery(), m.identify(), m.occupancy(), m.temperature(), m.humidity(), m.illuminance()],
+        extend: [m.battery({dontDividePercentage: true}), m.identify(), m.occupancy(), m.temperature(), m.humidity(), m.illuminance()],
     },
     {
         zigbeeModel: ["SR-ZG9023A-EU"],
