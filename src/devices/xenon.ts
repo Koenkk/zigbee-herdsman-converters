@@ -8,12 +8,10 @@ const ea = exposes.access;
 // Hem 26 hem 260 gönderen varyantları otomatik düzeltir
 const temperatureAutoScale = {
     from: (v: number) => (typeof v === "number" && v > 100 ? v / 10 : v),
-    to: (v: number) => v, // genelde read-only
+    to: (v: number) => v,
 };
 
-// Pozisyon ters çevirme:
-// Cihaz: 0=açık, 100=kapalı
-// Z2M/HA: 0=kapalı, 100=açık
+// Cihaz: 0=açık, 100=kapalı  |  Z2M/HA: 0=kapalı, 100=açık
 const positionInvert = {
     from: (v: number) => {
         const n = Number(v);
@@ -31,13 +29,17 @@ const definition: Definition = {
     fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_hbjwgkdh"}],
     model: "X7726",
     vendor: "Xenon Smart",
-    description: "Zigbee curtain motor (TS0601)",
+    description: "Xenon Smart Zigbee Curtain Motor X7726 (TS0601)",
 
     fromZigbee: [tuya.fz.datapoints],
     toZigbee: [tuya.tz.datapoints],
     configure: tuya.configureMagicPacket,
 
-    exposes: [e.cover_position().setAccess("position", ea.STATE_SET), e.enum("calibration", ea.STATE_SET, ["start", "finish"]), e.temperature()],
+    exposes: [
+        e.cover_position().setAccess("position", ea.STATE_SET),
+        e.enum("calibration", ea.STATE_SET, ["start", "finish"]),
+        e.temperature(),
+    ],
 
     meta: {
         tuyaDatapoints: [
@@ -52,10 +54,10 @@ const definition: Definition = {
                 }),
             ],
 
-            // DP2 → hedef pozisyon set (HA<->Cihaz ters çevirme)
+            // DP2 → hedef pozisyon set
             [2, "position", positionInvert],
 
-            // DP3 → mevcut pozisyon raporu (Cihaz->HA ters çevirme)
+            // DP3 → mevcut pozisyon raporu
             [3, "position", positionInvert],
 
             // DP102 → calibration
@@ -68,10 +70,11 @@ const definition: Definition = {
                 }),
             ],
 
-            // DP103 → temperature (26 veya 260 gelebilir)
+            // DP103 → temperature
             [103, "temperature", temperatureAutoScale],
         ],
     },
 };
 
-export default [definition];
+// ⚠️ Bu repo’da indexer "definitions" adlı ARRAY export’u bekliyor
+export const definitions = [definition];
