@@ -1811,42 +1811,42 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 // DP 5 - Fault bitmap
-            [
-                5,
-                "faults",
-                {
-                    from: (value, meta) => {
-                        const faults = [];
-                        const faultMap = {
-                            1: "battery_alarm",
-                            2: "magnetism_alarm",
-                            4: "cover_alarm",
-                            8: "credit_alarm",
-                            16: "switch_gaps_alarm",
-                            32: "meter_body_alarm",
-                            64: "abnormal_water_alarm",
-                            128: "arrearage_alarm",
-                            256: "overflow_alarm",
-                            512: "revflow_alarm",
-                            1024: "over_pre_alarm",
-                            2048: "empty_pipe_alarm",
-                            4096: "transducer_alarm",
-                        };
+                [
+                    5,
+                    "faults",
+                    {
+                        from: (value, meta) => {
+                            const faults = [];
+                            const faultMap = {
+                                1: "battery_alarm",
+                                2: "magnetism_alarm",
+                                4: "cover_alarm",
+                                8: "credit_alarm",
+                                16: "switch_gaps_alarm",
+                                32: "meter_body_alarm",
+                                64: "abnormal_water_alarm",
+                                128: "arrearage_alarm",
+                                256: "overflow_alarm",
+                                512: "revflow_alarm",
+                                1024: "over_pre_alarm",
+                                2048: "empty_pipe_alarm",
+                                4096: "transducer_alarm",
+                            };
 
-                        if (value === 0) {
-                            return "";
-                        }
-
-                        for (const [bit, name] of Object.entries(faultMap)) {
-                            if (value & parseInt(bit)) {
-                                faults.push(name);
+                            if (value === 0) {
+                                return "";
                             }
-                        }
-                        // Return as comma-separated string
-                        return faults.join(",");
+
+                            for (const [bit, name] of Object.entries(faultMap)) {
+                                if (value & Number.parseInt(bit)) {
+                                    faults.push(name);
+                                }
+                            }
+                            // Return as comma-separated string
+                            return faults.join(",");
+                        },
                     },
-                },
-            ],
+                ],
                 [13, "state", tuya.valueConverter.onOffNotStrict],
                 [14, "auto_clean", tuya.valueConverter.onOff],
                 // DP 16 - Meter ID
