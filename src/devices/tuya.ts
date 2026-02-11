@@ -22085,7 +22085,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_6vwfjkcj", "_TZE204_0hcjew5p"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_6vwfjkcj"]),
         model: "_TZE204_6vwfjkcj",
         vendor: "Tuya",
         description: "Smart thermostat for electric radiator with pilot wire",
