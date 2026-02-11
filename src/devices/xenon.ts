@@ -5,11 +5,15 @@ import type {Definition} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
+// Hem 26 hem 260 gönderen varyantları otomatik düzeltir
 const temperatureAutoScale = {
     from: (v: number) => (typeof v === "number" && v > 100 ? v / 10 : v),
-    to: (v: number) => v,
+    to: (v: number) => v, // genelde read-only
 };
 
+// Pozisyon ters çevirme:
+// Cihaz: 0=açık, 100=kapalı
+// Z2M/HA: 0=kapalı, 100=açık
 const positionInvert = {
     from: (v: number) => {
         const n = Number(v);
@@ -33,32 +37,42 @@ const definition: Definition = {
     toZigbee: [tuya.tz.datapoints],
     configure: tuya.configureMagicPacket,
 
-    exposes: [e.cover_position().setAccess("position", ea.STATE_SET), e.enum("calibration", ea.STATE_SET, ["start", "finish"]), e.temperature()],
+    exposes: [
+        e.cover_position().setAccess("position", ea.STATE_SET),
+        e.enum("calibration", ea.STATE_SET, ["start", "finish"]),
+        e.temperature(),
+    ],
 
     meta: {
         tuyaDatapoints: [
+            // DP1 → OPEN/STOP/CLOSE
             [
                 1,
                 "state",
                 tuya.valueConverterBasic.lookup({
-                    OPEN: tuya.enum(0),
-                    STOP: tuya.enum(1),
-                    CLOSE: tuya.enum(2),
+                    OPEN: 0,
+                    STOP: 1,
+                    CLOSE: 2,
                 }),
             ],
 
+            // DP2 → hedef pozisyon set (HA<->Cihaz ters çevirme)
             [2, "position", positionInvert],
+
+            // DP3 → mevcut pozisyon raporu (Cihaz->HA ters çevirme)
             [3, "position", positionInvert],
 
+            // DP102 → calibration
             [
                 102,
                 "calibration",
                 tuya.valueConverterBasic.lookup({
-                    start: tuya.enum(0),
-                    finish: tuya.enum(1),
+                    start: 0,
+                    finish: 1,
                 }),
             ],
 
+            // DP103 → temperature (26 veya 260 gelebilir)
             [103, "temperature", temperatureAutoScale],
         ],
     },
