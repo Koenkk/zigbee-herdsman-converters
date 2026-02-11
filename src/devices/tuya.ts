@@ -4193,7 +4193,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bxoo2swd", "_TZE200_tsxpl0d0"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_bxoo2swd", "_TZE204_bxoo2swd", "_TZE200_tsxpl0d0"]),
         model: "TS0601_dimmer_4",
         vendor: "Tuya",
         description: "2 gang smart dimmer module",
@@ -4253,7 +4253,7 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, l2: 1};
         },
         whiteLabel: [
-            tuya.whitelabel("Moes", "ZM-105B-M", "2 gang smart dimmer module", ["_TZE204_bxoo2swd"]),
+            tuya.whitelabel("Moes", "ZM-105B-M", "2 gang smart dimmer module", ["_TZE200_bxoo2swd", "_TZE204_bxoo2swd"]),
             tuya.whitelabel("KnockautX", "FMD2C018", "2 gang smart dimmer module", ["_TZE200_tsxpl0d0"]),
         ],
     },
