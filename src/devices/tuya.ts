@@ -22240,7 +22240,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-	{
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ilzkxrav"]),
         model: "TWC-R01",
         vendor: "THALEOS",
