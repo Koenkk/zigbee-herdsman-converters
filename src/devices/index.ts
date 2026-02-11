@@ -349,6 +349,7 @@ import {definitions as woolley} from "./woolley";
 import {definitions as woox} from "./woox";
 import {definitions as wyze} from "./wyze";
 import {definitions as xal} from "./xal";
+import {definitions as xenon} from "./xenon";
 import {definitions as xinghuoyuan} from "./xinghuoyuan";
 import {definitions as xyzroe} from "./xyzroe";
 import {definitions as yale} from "./yale";
@@ -711,6 +712,7 @@ const definitions: DefinitionWithExtend[] = [
     ...wmun,
     ...wyze,
     ...xal,
+    ...xenon,
     ...xinghuoyuan,
     ...xyzroe,
     ...yale,
