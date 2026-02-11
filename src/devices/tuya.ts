@@ -1855,25 +1855,27 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("meter_id", ea.STATE).withDescription("Meter identification number"),
             e.temperature(),
             e.voltage(),
-        e.list(
-            "fault",
-            ea.STATE,
-            e.enum("fault_item", ea.STATE, [
-                "battery_alarm",
-                "magnetism_alarm",
-                "cover_alarm",
-                "credit_alarm",
-                "switch_gaps_alarm",
-                "meter_body_alarm",
-                "abnormal_water_alarm",
-                "arrearage_alarm",
-                "overflow_alarm",
-                "revflow_alarm",
-                "over_pre_alarm",
-                "empty_pipe_alarm",
-                "transducer_alarm",
-            ])
-        ).withDescription("Active fault status"),
+            e
+                .list(
+                    "fault",
+                    ea.STATE,
+                    e.enum("fault_item", ea.STATE, [
+                        "battery_alarm",
+                        "magnetism_alarm",
+                        "cover_alarm",
+                        "credit_alarm",
+                        "switch_gaps_alarm",
+                        "meter_body_alarm",
+                        "abnormal_water_alarm",
+                        "arrearage_alarm",
+                        "overflow_alarm",
+                        "revflow_alarm",
+                        "over_pre_alarm",
+                        "empty_pipe_alarm",
+                        "transducer_alarm",
+                    ]),
+                )
+                .withDescription("Active fault status"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1947,40 +1949,40 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [
-                5,
-                "fault",
-                {
-                    from: (value, meta) => {
-                        const faults = [];
-                        const faultMap = {
-                            1: "battery_alarm",
-                            2: "magnetism_alarm",
-                            4: "cover_alarm",
-                            8: "credit_alarm",
-                            16: "switch_gaps_alarm",
-                            32: "meter_body_alarm",
-                            64: "abnormal_water_alarm",
-                            128: "arrearage_alarm",
-                            256: "overflow_alarm",
-                            512: "revflow_alarm",
-                            1024: "over_pre_alarm",
-                            2048: "empty_pipe_alarm",
-                            4096: "transducer_alarm",
-                        };
-                        
-                        if (value === 0) {
-                            return [];
-                        }
-                        
-                        for (const [bit, name] of Object.entries(faultMap)) {
-                            if (value & parseInt(bit)) {
-                                faults.push(name);
+                    5,
+                    "fault",
+                    {
+                        from: (value, meta) => {
+                            const faults = [];
+                            const faultMap = {
+                                1: "battery_alarm",
+                                2: "magnetism_alarm",
+                                4: "cover_alarm",
+                                8: "credit_alarm",
+                                16: "switch_gaps_alarm",
+                                32: "meter_body_alarm",
+                                64: "abnormal_water_alarm",
+                                128: "arrearage_alarm",
+                                256: "overflow_alarm",
+                                512: "revflow_alarm",
+                                1024: "over_pre_alarm",
+                                2048: "empty_pipe_alarm",
+                                4096: "transducer_alarm",
+                            };
+
+                            if (value === 0) {
+                                return [];
                             }
-                        }
-                        return faults;
+
+                            for (const [bit, name] of Object.entries(faultMap)) {
+                                if (value & Number.parseInt(bit)) {
+                                    faults.push(name);
+                                }
+                            }
+                            return faults;
+                        },
                     },
-                },
-            ],
+                ],
                 [16, "meter_id", tuya.valueConverter.raw],
                 [
                     18,
