@@ -357,6 +357,7 @@ import {definitions as ynoa} from "./ynoa";
 import {definitions as yokis} from "./yokis";
 import {definitions as yookee} from "./yookee";
 import {definitions as ysrsai} from "./ysrsai";
+import {definitions as zbeacon} from "./zbeacon";
 import {definitions as zemismart} from "./zemismart";
 import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
@@ -719,6 +720,7 @@ const definitions: DefinitionWithExtend[] = [
     ...yokis,
     ...yookee,
     ...ysrsai,
+    ...zbeacon,
     ...zemismart,
     ...zen,
     ...zigbeetlc,
