@@ -553,19 +553,21 @@ export const valueConverter = {
     divideBy1000: valueConverterBasic.divideBy(1000),
     divideBy10FromOnly: valueConverterBasic.divideByFromOnly(10),
     // Converts water consumption data from raw buffer format (bytes 4-7)
-    waterConsumption: {
-        from: (v: string | number | boolean) => {
-            if (typeof v === "number") {
-                return v / 1000;
-            }
-            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v);
-            if (buf.length >= 8) {
-                const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
-                return value / 1000;
-            }
-            return 0;
-        },
-    },
+	waterConsumption: {
+		from: (v: string | number | boolean) => {
+			if (typeof v === 'number') {
+				return v / 1000;
+			}
+			if (typeof v === 'string') {
+				const buf = Buffer.from(v);
+				if (buf.length >= 8) {
+					const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
+					return value / 1000;
+				}
+			}
+			return 0;
+		},
+	},
     switchMode: valueConverterBasic.lookup({switch: new Enum(0), scene: new Enum(1)}),
     switchMode2: valueConverterBasic.lookup({switch: new Enum(0), curtain: new Enum(1)}),
     lightMode: valueConverterBasic.lookup({normal: new Enum(0), on: new Enum(1), off: new Enum(2), flash: new Enum(3)}),
