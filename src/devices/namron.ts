@@ -1511,10 +1511,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["4512758"],
+        zigbeeModel: ["4512758", "4512759"],
         model: "4512758",
         vendor: "Namron",
         description: "Zigbee thermostat 16A",
+        whiteLabel: [{model: "4512759", fingerprint: [{modelID: "4512759"}]}],
         fromZigbee: [fzLocal.namron_thermostat2, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
         toZigbee: [
             {
