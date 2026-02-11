@@ -252,7 +252,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG2868EK7-CCT",
         vendor: "Sunricher",
         description: "Zigbee lighting remote control",
-        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl(), m.commandsScenes()],
     },
     {
         zigbeeModel: ["ZG9098A-WinOnly"],
