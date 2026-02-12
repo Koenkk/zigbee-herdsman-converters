@@ -3211,6 +3211,10 @@ export interface ThermostatArgs {
         >,
         "fromZigbee"
     >;
+    programmingOperationMode?: Omit<
+        ValuesWithModernExtendConfiguration<Array<"setpoint" | "schedule" | "schedule_with_preheat" | "eco">>,
+        "fromZigbee"
+    >;
 }
 
 export function thermostat(args: ThermostatArgs): ModernExtend {
@@ -3228,6 +3232,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
         temperatureSetpointHoldDuration = false,
         endpoint = undefined,
         ctrlSeqeOfOper = undefined,
+        programmingOperationMode = undefined,
     } = args;
 
     const endpointNames = endpoint ? [endpoint] : undefined;
@@ -3451,6 +3456,23 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
                 setupConfigureForReporting("hvacThermostat", "ctrlSeqeOfOper", {
                     config: ctrlSeqeOfOper.configure?.reporting ?? repConfigChange0,
                     access: ctrlSeqeOfOper.configure?.access ?? ea.ALL,
+                }),
+            );
+        }
+    }
+
+    if (programmingOperationMode) {
+        expose.withProgrammingOperationMode(programmingOperationMode.values);
+
+        if (!programmingOperationMode.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_programming_operation_mode);
+        }
+
+        if (!programmingOperationMode.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "programingOperMode", {
+                    config: programmingOperationMode.configure?.reporting ?? repConfigChange0,
+                    access: programmingOperationMode.configure?.access ?? ea.ALL,
                 }),
             );
         }
