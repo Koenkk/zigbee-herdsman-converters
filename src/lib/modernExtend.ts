@@ -3215,6 +3215,7 @@ export interface ThermostatArgs {
         ValuesWithModernExtendConfiguration<Array<"setpoint" | "schedule" | "schedule_with_preheat" | "eco">>,
         "fromZigbee"
     >;
+    setpointChangeSource?: Omit<ValuesWithModernExtendConfiguration<true>, "fromZigbee" | "toZigbee">;
 }
 
 export function thermostat(args: ThermostatArgs): ModernExtend {
@@ -3233,6 +3234,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
         endpoint = undefined,
         ctrlSeqeOfOper = undefined,
         programmingOperationMode = undefined,
+        setpointChangeSource = undefined,
     } = args;
 
     const endpointNames = endpoint ? [endpoint] : undefined;
@@ -3473,6 +3475,19 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
                 setupConfigureForReporting("hvacThermostat", "programingOperMode", {
                     config: programmingOperationMode.configure?.reporting ?? repConfigChange0,
                     access: programmingOperationMode.configure?.access ?? ea.ALL,
+                }),
+            );
+        }
+    }
+
+    if (setpointChangeSource) {
+        expose.withSetpointChangeSource();
+
+        if (!setpointChangeSource.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "setpointChangeSource", {
+                    config: setpointChangeSource.configure?.reporting ?? repConfigChange0,
+                    access: setpointChangeSource.configure?.access ?? ea.STATE,
                 }),
             );
         }
