@@ -1841,7 +1841,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ultrasonic heat meter",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.numeric("cumulative_flow", ea.STATE).withUnit("m³").withDescription("Cumulative water flow").withValueMin(0).withValueStep(0.01),
+            e.numeric("water_consumed", ea.STATE).withUnit("m³").withDescription("Total water consumption").withValueMin(0).withValueStep(0.001),
             e
                 .numeric("monthly_water_consumption", ea.STATE)
                 .withUnit("m³")
@@ -1882,16 +1882,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 // DP 1 - Cumulative Flow
-                [
-                    1,
-                    "cumulative_flow",
-                    {
-                        from: (value, meta) => {
-                            // Multiplier: 2, so divide by 100 to get m³
-                            return value / 100;
-                        },
-                    },
-                ],
+                [1, "water_consumed", tuya.valueConverter.divideBy1000],
                 // DP 2 - Monthly Water Consumption
                 [
                     2,
