@@ -345,6 +345,7 @@ const tuyaExposes = {
         e
             .enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch", "button2-switch"])
             .withDescription("External switch type"),
+    switchTypeButton: () => e.enum("switch_type_button", ea.ALL, ["release", "press"]).withDescription("Determines when the button actuates"),
     backlightModeLowMediumHigh: () => e.enum("backlight_mode", ea.ALL, ["low", "medium", "high"]).withDescription("Intensity of the backlight"),
     backlightModeOffNormalInverted: () => e.enum("backlight_mode", ea.ALL, ["off", "normal", "inverted"]).withDescription("Mode of the backlight"),
     backlightModeOffOn: () => e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Mode of the backlight").withCategory("config"),
@@ -538,6 +539,11 @@ export const valueConverter = {
         "button-switch": new Enum(2),
         "button2-switch": new Enum(3),
     }),
+    switchTypeButton: valueConverterBasic.lookup({
+        release: new Enum(0),
+        press: new Enum(1),
+    }),
+
     switchType2: valueConverterBasic.lookup({toggle: new Enum(0), state: new Enum(1), momentary: new Enum(2)}),
     backlightModeOffNormalInverted: valueConverterBasic.lookup({off: new Enum(0), normal: new Enum(1), inverted: new Enum(2)}),
     backlightModeOffLowMediumHigh: valueConverterBasic.lookup({off: new Enum(0), low: new Enum(1), medium: new Enum(2), high: new Enum(3)}),
@@ -1727,6 +1733,17 @@ const tuyaTz = {
             await entity.read("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
+    switch_type_button: {
+        key: ["switch_type_button"],
+        convertSet: async (entity, key, value, meta) => {
+            const switchType = utils.getFromLookup(value, {release: 0, press: 1});
+            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("manuSpecificTuya3", ["switchType"]);
+        },
+    } satisfies Tz.Converter,
     backlight_indicator_mode_1: {
         key: ["backlight_mode", "indicator_mode"],
         convertSet: async (entity, key, value, meta) => {
@@ -2005,6 +2022,17 @@ const tuyaFz = {
                 const lookup: KeyValue = {0: "flip-switch", 1: "sync-switch", 2: "button-switch", 3: "button2-switch"};
                 utils.assertNumber(msg.data.switchType);
                 return {switch_type_curtain: lookup[msg.data.switchType]};
+            }
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
+    switch_type_button: {
+        cluster: "manuSpecificTuya3",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.switchType !== undefined) {
+                const lookup: KeyValue = {0: "release", 1: "press"};
+                utils.assertNumber(msg.data.switchType);
+                return {switch_type_button: lookup[msg.data.switchType]};
             }
         },
     } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
@@ -2868,6 +2896,7 @@ const tuyaModernExtend = {
             powerOnBehavior2?: boolean | ((manufacturerName: string) => boolean);
             switchType?: boolean | ((manufacturerName: string) => boolean);
             switchTypeCurtain?: boolean;
+            switchTypeButton?: boolean;
             backlightModeLowMediumHigh?: boolean;
             indicatorMode?: boolean | ((manufacturerName: string) => boolean);
             indicatorModeNoneRelayPos?: boolean;
@@ -2948,6 +2977,11 @@ const tuyaModernExtend = {
             fromZigbee.push(tuyaFz.switch_type_curtain);
             toZigbee.push(tuyaTz.switch_type_curtain);
             exposes.push(tuyaExposes.switchTypeCurtain());
+        }
+        if (args.switchTypeButton) {
+            fromZigbee.push(tuyaFz.switch_type_button);
+            toZigbee.push(tuyaTz.switch_type_button);
+            exposes.push(tuyaExposes.switchTypeButton());
         }
         if (backlightModeOffOn) {
             fromZigbee.push(tuyaFz.backlight_mode_off_on);
