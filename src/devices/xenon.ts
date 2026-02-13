@@ -14,13 +14,11 @@ export const definitions: Definition[] = [
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
-
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             exposes.enum("calibration", ea.STATE_SET, ["start", "finish"]),
             e.temperature(),
         ],
-
         meta: {
             tuyaDatapoints: [
                 [
@@ -32,11 +30,9 @@ export const definitions: Definition[] = [
                         CLOSE: tuya.enum(2),
                     }),
                 ],
-
                 // Koenkk suggestion: use standard coverPosition converter
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.coverPosition],
-
                 [
                     102,
                     "calibration",
@@ -45,7 +41,6 @@ export const definitions: Definition[] = [
                         finish: tuya.enum(1),
                     }),
                 ],
-
                 [103, "temperature", tuya.valueConverter.raw],
             ],
         },
