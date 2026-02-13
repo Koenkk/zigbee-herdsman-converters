@@ -1,5 +1,21 @@
 # Changelog
 
+## [26.4.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.3.0...v26.4.0) (2026-02-11)
+
+
+### Features
+
+* **add:** 4512759 https://github.com/Koenkk/zigbee2mqtt/discussions/31031 ([668a891](https://github.com/Koenkk/zigbee-herdsman-converters/commit/668a8912eea248d1f1640339e8c5dd4eb0096f0c))
+* **add:** TH01-2-z ([#11512](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11512)) ([a5f3eec](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a5f3eecf57b98a84e8c1a4f062ed1653388cdfc6))
+* BITUO TECHNIK SPM02 and SDM01: add per-phase energy ([#11504](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11504)) ([b0255ab](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b0255ab51cb1ac1fc79e75f82237d918a512570b))
+
+
+### Bug Fixes
+
+* Aqara UT-A01E: fix reported power value and remove current and voltage https://github.com/Koenkk/zigbee2mqtt/issues/30384 ([c414bc0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c414bc0cbb64fc139b1d64e4ab8e2c13802c07a8))
+* **detect:** Detect `_TZ3210_cjrngdr3` as MatSee Plus PJ-MINI-ZSW01 ([#11517](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11517)) ([a337b37](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a337b3745fef39b228138db11353cd39ba3929d7))
+* **detect:** Detect `_TZE200_bxoo2swd` as Moes ZM-105B-M ([#11513](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11513)) ([8ad376b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ad376b7c70c5e3b404ce639decb18b4e0af790f))
+
 ## [26.3.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.2.1...v26.3.0) (2026-02-10)
 
 

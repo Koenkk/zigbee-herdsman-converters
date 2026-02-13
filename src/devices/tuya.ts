@@ -4193,7 +4193,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bxoo2swd", "_TZE200_tsxpl0d0"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_bxoo2swd", "_TZE204_bxoo2swd", "_TZE200_tsxpl0d0"]),
         model: "TS0601_dimmer_4",
         vendor: "Tuya",
         description: "2 gang smart dimmer module",
@@ -4253,7 +4253,7 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, l2: 1};
         },
         whiteLabel: [
-            tuya.whitelabel("Moes", "ZM-105B-M", "2 gang smart dimmer module", ["_TZE204_bxoo2swd"]),
+            tuya.whitelabel("Moes", "ZM-105B-M", "2 gang smart dimmer module", ["_TZE200_bxoo2swd", "_TZE204_bxoo2swd"]),
             tuya.whitelabel("KnockautX", "FMD2C018", "2 gang smart dimmer module", ["_TZE200_tsxpl0d0"]),
         ],
     },
@@ -8798,7 +8798,10 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("NEO", "NAS-WR01B", "Smart plug (with electrical measurements)", ["_TZ3000_gjnozsaz"]),
             tuya.whitelabel("GreenSun", "HSC-ZW-EU", "Outdoor Smart Plug (with power monitoring)", ["_TZ3000_cicwjqth"]),
             tuya.whitelabel("Nous", "A10Z", "Smart Zigbee Socket", ["_TZ3210_jlf1nepw"]),
-            tuya.whitelabel("MatSee Plus", "PJ-MINI-ZSW01", "Smart Socket Switch Module (with power monitoring)", ["_TZ3000_cjrngdr3"]),
+            tuya.whitelabel("MatSee Plus", "PJ-MINI-ZSW01", "Smart Socket Switch Module (with power monitoring)", [
+                "_TZ3000_cjrngdr3",
+                "_TZ3210_cjrngdr3",
+            ]),
             tuya.whitelabel("BlitzWolf", "BW-SHP13", "Smart plug (with power monitoring)", ["_TZ3000_amdymr7l"]),
             tuya.whitelabel("NEO Coolcam", "PLUG-001SPB2", "Smart plug (with power monitoring)", ["_TZ3000_zloso4jk"]),
             tuya.whitelabel("Haozee", "HT-SP-ZB-01", "Smart plug (with power monitoring)", ["_TZ3210_w0qqde0g"]),

@@ -5085,7 +5085,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Floor heating thermostat W500",
         extend: [
-            m.electricityMeter(),
+            m.electricityMeter({current: false, voltage: false, power: {divisor: 1}, energy: {divisor: 1000}}),
             m.thermostat({
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}, configure: {skip: true}},
                 localTemperatureCalibration: {values: true},
