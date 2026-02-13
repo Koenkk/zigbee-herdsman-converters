@@ -565,6 +565,16 @@ export const valueConverter = {
         from: (value: number) => (value > 200 ? value - 256 : value),
         to: (value: number) => (value < 0 ? 256 + value : value),
     },
+    waterConsumption: {
+        from: (v: string) => {
+            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
+            if (buf.length >= 8) {
+                const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
+                return value / 1000;
+            }
+            return 0;
+        },
+    },
     setLimit: {
         to: (v: number) => {
             if (!v) throw new Error("Limit cannot be unset, use factory_reset");
