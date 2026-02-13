@@ -1884,13 +1884,9 @@ export const definitions: DefinitionWithExtend[] = [
                 // DP 1 - Cumulative Flow
                 [1, "water_consumed", tuya.valueConverter.divideBy1000],
                 // DP 2 - Monthly Water Consumption
-                [
-                    2,
-                    "monthly_water_consumption", tuya.valueConverter.waterConsumption],
+                [2, "monthly_water_consumption", tuya.valueConverter.waterConsumption],
                 // DP 3 - Daily Water Consumption
-                [
-                    3,
-                    "daily_water_consumption", tuya.valueConverter.waterConsumption],
+                [3, "daily_water_consumption", tuya.valueConverter.waterConsumption],
                 // DP 4 - Report Period Setting
                 [
                     4,
