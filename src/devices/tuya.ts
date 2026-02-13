@@ -18844,7 +18844,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fhvdgeuh", "_TZE200_abatw3kj", "_TZE204_4bjixefp","_TZE284_5m4nchbm"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fhvdgeuh", "_TZE200_abatw3kj", "_TZE204_4bjixefp", "_TZE284_5m4nchbm"]),
         model: "TS0601_din_4",
         vendor: "Tuya",
         description: "Din rail switch with power monitoring and threshold settings",
