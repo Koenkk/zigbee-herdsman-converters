@@ -30,9 +30,9 @@ interface ShellyRPC {
 
 interface ShellyWS90Wind {
     attributes: {
-        wind_speed: number;
-        wind_direction: number;
-        gust_speed: number;
+        windSpeed: number;
+        windDirection: number;
+        gustSpeed: number;
     };
     commands: never;
     commandResponses: never;
@@ -40,7 +40,7 @@ interface ShellyWS90Wind {
 
 interface ShellyWS90UV {
     attributes: {
-        uv_index: number;
+        uvIndex: number;
     };
     commands: never;
     commandResponses: never;
@@ -48,7 +48,7 @@ interface ShellyWS90UV {
 
 interface ShellyWS90Rain {
     attributes: {
-        rain_status: number;
+        rainStatus: number;
         precipitation: number;
     };
     commands: never;
@@ -861,8 +861,8 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    if (data.uv_index !== undefined) {
-                        const uv_index = (data.uv_index as number) / 10;
+                    if (data.uvIndex !== undefined) {
+                        const uv_index = (data.uvIndex as number) / 10;
                         const calculated = updateWS90CalculatedValues(msg.device, {uv_index});
                         return calculated;
                     }
@@ -874,9 +874,9 @@ const shellyModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
                     const payload: {[key: string]: number} = {};
-                    if (data.wind_speed !== undefined) payload.wind_speed = (data.wind_speed as number) / 10;
-                    if (data.wind_direction !== undefined) payload.wind_direction = (data.wind_direction as number) / 10;
-                    if (data.gust_speed !== undefined) payload.gust_speed = (data.gust_speed as number) / 10;
+                    if (data.windSpeed !== undefined) payload.wind_speed = (data.windSpeed as number) / 10;
+                    if (data.windDirection !== undefined) payload.wind_direction = (data.windDirection as number) / 10;
+                    if (data.gustSpeed !== undefined) payload.gust_speed = (data.gustSpeed as number) / 10;
                     const calculated = updateWS90CalculatedValues(msg.device, payload);
                     return calculated;
                 },
@@ -887,7 +887,7 @@ const shellyModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
                     const payload: {[key: string]: number | boolean} = {};
-                    if (data.rain_status !== undefined) payload.rain_status = Boolean(data.rain_status);
+                    if (data.rainStatus !== undefined) payload.rain_status = Boolean(data.rainStatus);
                     if (data.precipitation !== undefined) {
                         payload.precipitation = (data.precipitation as number) / 10;
                     }
@@ -1114,9 +1114,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfc01,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    wind_speed: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                    wind_direction: {ID: 0x0004, type: Zcl.DataType.UINT16},
-                    gust_speed: {ID: 0x0007, type: Zcl.DataType.UINT16},
+                    windSpeed: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                    windDirection: {ID: 0x0004, type: Zcl.DataType.UINT16},
+                    gustSpeed: {ID: 0x0007, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1124,7 +1124,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"shellyWS90Wind", ShellyWS90Wind>({
                 name: "wind_speed",
                 cluster: "shellyWS90Wind",
-                attribute: "wind_speed",
+                attribute: "windSpeed",
                 valueMin: 0,
                 valueMax: 140,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -1136,7 +1136,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"shellyWS90Wind", ShellyWS90Wind>({
                 name: "wind_direction",
                 cluster: "shellyWS90Wind",
-                attribute: "wind_direction",
+                attribute: "windDirection",
                 valueMin: 0,
                 valueMax: 360,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -1148,7 +1148,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"shellyWS90Wind", ShellyWS90Wind>({
                 name: "gust_speed",
                 cluster: "shellyWS90Wind",
-                attribute: "gust_speed",
+                attribute: "gustSpeed",
                 valueMin: 0,
                 valueMax: 140,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -1161,7 +1161,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfc02,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    uv_index: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    uvIndex: {ID: 0x0000, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1169,7 +1169,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"shellyWS90UV", ShellyWS90UV>({
                 name: "uv_index",
                 cluster: "shellyWS90UV",
-                attribute: "uv_index",
+                attribute: "uvIndex",
                 valueMin: 0,
                 valueMax: 11,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -1181,7 +1181,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfc03,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    rain_status: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+                    rainStatus: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
                     precipitation: {ID: 0x0001, type: Zcl.DataType.UINT24},
                 },
                 commands: {},
@@ -1190,7 +1190,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.binary<"shellyWS90Rain", ShellyWS90Rain>({
                 name: "rain_status",
                 cluster: "shellyWS90Rain",
-                attribute: "rain_status",
+                attribute: "rainStatus",
                 valueOn: [true, 1],
                 valueOff: [false, 0],
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
