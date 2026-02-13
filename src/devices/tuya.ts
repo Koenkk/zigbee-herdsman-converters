@@ -19999,9 +19999,9 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_d6i25bwg"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_d6i25bwg", "_TZE204_3q3maeoo"]),
         model: "PO-BOCO-ELEC",
-        vendor: "Powernity",
+        vendor: "Powernity / Xanlite",
         description: "Pilot wire heating module",
         extend: [tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
