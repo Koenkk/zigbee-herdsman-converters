@@ -28,6 +28,33 @@ interface ShellyRPC {
     commandResponses: never;
 }
 
+interface ShellyWS90Wind {
+    attributes: {
+        wind_speed: number;
+        wind_direction: number;
+        gust_speed: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ShellyWS90UV {
+    attributes: {
+        uv_index: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ShellyWS90Rain {
+    attributes: {
+        rain_status: number;
+        precipitation: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface ShellyTRVManualMode {
     attributes: {
         manualMode: number;
@@ -62,20 +89,20 @@ function getWS90Meta(device: Zh.Device): WS90Meta {
 /**
  * Calculate dew point using Magnus formula
  */
-function calculateDewPoint(T: number | undefined, Rh: number | undefined): number | null {
-    if (T === undefined || Rh === undefined || Rh <= 0) return null;
+function calculateDewPoint(T: number | undefined, RH: number | undefined): number | null {
+    if (T === undefined || RH === undefined || RH <= 0) return null;
     const a = 17.27;
     const b = 237.7;
-    const alpha = (a * T) / (b + T) + Math.log(Rh / 100);
-    return Math.round(((b * alpha) / (a - alpha)) * 10) / 10;
+    const alpha = (a * T) / (b + T) + Math.log(RH / 100);
+    return Math.round((b * alpha) / (a - alpha) * 10) / 10;
 }
 
 /**
  * Calculate humidex (Canadian heat index)
  */
-function calculateHumidex(T: number | undefined, Rh: number | undefined): number | null {
-    if (T === undefined || Rh === undefined) return null;
-    const dewPoint = calculateDewPoint(T, Rh);
+function calculateHumidex(T: number | undefined, RH: number | undefined): number | null {
+    if (T === undefined || RH === undefined) return null;
+    const dewPoint = calculateDewPoint(T, RH);
     if (dewPoint === null) return null;
     const ee = 6.11 * Math.exp(5417.753 * (1 / 273.15 - 1 / (273.15 + dewPoint)));
     return Math.round((T + 0.5555 * (ee - 10)) * 10) / 10;
@@ -88,7 +115,7 @@ function calculateWindChill(T: number | undefined, windMs: number | undefined): 
     if (T === undefined || windMs === undefined) return null;
     const windKmh = windMs * 3.6;
     if (T > 10 || windKmh < 4.8) return Math.round(T * 10) / 10;
-    const wc = 13.12 + 0.6215 * T - 11.37 * windKmh ** 0.16 + 0.3965 * T * windKmh ** 0.16;
+    const wc = 13.12 + 0.6215 * T - 11.37 * Math.pow(windKmh, 0.16) + 0.3965 * T * Math.pow(windKmh, 0.16);
     return Math.round(wc * 10) / 10;
 }
 
@@ -97,14 +124,14 @@ function calculateWindChill(T: number | undefined, windMs: number | undefined): 
  */
 function calculateHeatStress(
     T: number | undefined,
-    Rh: number | undefined,
+    RH: number | undefined,
     lux: number | undefined,
     windMs: number | undefined,
     precipitation: number | undefined,
 ): number | null {
     if (T === undefined) return null;
     const solar = (lux || 0) / 100;
-    const base = T + solar / 100 + (Rh || 0) / 10;
+    const base = T + solar / 100 + (RH || 0) / 10;
     const cooled = base - (windMs || 0) / 2;
     const adjusted = cooled - ((precipitation || 0) > 0 ? 3 : 0);
     const scaled = (adjusted - 18) / (42 - 18);
@@ -115,10 +142,14 @@ function calculateHeatStress(
 /**
  * Calculate apparent temperature (wind chill when cold, humidex when warm)
  */
-function calculateApparentTemperature(T: number | undefined, Rh: number | undefined, windMs: number | undefined): number | null {
+function calculateApparentTemperature(
+    T: number | undefined,
+    RH: number | undefined,
+    windMs: number | undefined,
+): number | null {
     if (T === undefined) return null;
     const windChill = calculateWindChill(T, windMs);
-    const humidex = calculateHumidex(T, Rh);
+    const humidex = calculateHumidex(T, RH);
     if (windChill !== null && windChill < T) return windChill;
     if (humidex !== null && humidex > T) return humidex;
     return Math.round(T * 10) / 10;
@@ -216,17 +247,20 @@ function calculateWeatherCondition(state: {[key: string]: number | boolean | und
 
     if ((illuminance as number) > 40000) {
         return isWindy ? "windy" : "sunny";
-    }
-    if ((illuminance as number) > 10000) {
+    } else if ((illuminance as number) > 10000) {
         return isWindy ? "windy-variant" : "partlycloudy";
+    } else {
+        return "cloudy";
     }
-    return "cloudy";
 }
 
 /**
  * Update calculated values whenever we get new sensor data (uses device.meta for persistence)
  */
-function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: number | boolean}): {[key: string]: number | string | null} {
+function updateWS90CalculatedValues(
+    device: Zh.Device,
+    payload: {[key: string]: number | boolean},
+): {[key: string]: number | string | null} {
     const meta = getWS90Meta(device);
     if (!meta.state) meta.state = {};
     Object.assign(meta.state, payload);
@@ -266,7 +300,7 @@ function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: 
         if (trend !== null) {
             result.pressure_trend = trend;
             state.pressure_trend = trend;
-        } else if (typeof state.pressure_trend === "number") {
+        } else if (typeof state.pressure_trend === 'number') {
             result.pressure_trend = state.pressure_trend;
         }
     }
@@ -784,7 +818,7 @@ const shellyModernExtend = {
                     if (msg.data.measuredValue !== undefined) {
                         const temperature = msg.data.measuredValue / 100;
                         const calculated = updateWS90CalculatedValues(msg.device, {temperature});
-                        return calculated; // Only calculated values; m.temperature() handles base temperature
+                        return calculated;  // Only calculated values; m.temperature() handles base temperature
                     }
                 },
             },
@@ -795,7 +829,7 @@ const shellyModernExtend = {
                     if (msg.data.measuredValue !== undefined) {
                         const humidity = msg.data.measuredValue / 100;
                         const calculated = updateWS90CalculatedValues(msg.device, {humidity});
-                        return calculated; // Only calculated values; m.humidity() handles base humidity
+                        return calculated;  // Only calculated values; m.humidity() handles base humidity
                     }
                 },
             },
@@ -806,7 +840,7 @@ const shellyModernExtend = {
                     if (msg.data.measuredValue !== undefined) {
                         const pressure = msg.data.measuredValue / 10;
                         const calculated = updateWS90CalculatedValues(msg.device, {pressure});
-                        return calculated; // Only calculated values; m.pressure() handles base pressure
+                        return calculated;  // Only calculated values; m.pressure() handles base pressure
                     }
                 },
             },
@@ -816,9 +850,9 @@ const shellyModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data.measuredValue !== undefined) {
                         const measuredValue = msg.data.measuredValue;
-                        const illuminance = measuredValue > 0 ? Math.round(10 ** ((measuredValue - 1) / 10000)) : 0;
+                        const illuminance = measuredValue > 0 ? Math.round(Math.pow(10, (measuredValue - 1) / 10000)) : 0;
                         const calculated = updateWS90CalculatedValues(msg.device, {illuminance});
-                        return calculated; // Only calculated values; m.illuminance() handles base illuminance
+                        return calculated;  // Only calculated values; m.illuminance() handles base illuminance
                     }
                 },
             },
@@ -827,8 +861,8 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    if (data[0x0000] !== undefined) {
-                        const uv_index = (data[0x0000] as number) / 10;
+                    if (data.uv_index !== undefined) {
+                        const uv_index = (data.uv_index as number) / 10;
                         const calculated = updateWS90CalculatedValues(msg.device, {uv_index});
                         return calculated;
                     }
@@ -840,9 +874,9 @@ const shellyModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
                     const payload: {[key: string]: number} = {};
-                    if (data[0x0000] !== undefined) payload.wind_speed = (data[0x0000] as number) / 10;
-                    if (data[0x0004] !== undefined) payload.wind_direction = (data[0x0004] as number) / 10;
-                    if (data[0x0007] !== undefined) payload.gust_speed = (data[0x0007] as number) / 10;
+                    if (data.wind_speed !== undefined) payload.wind_speed = (data.wind_speed as number) / 10;
+                    if (data.wind_direction !== undefined) payload.wind_direction = (data.wind_direction as number) / 10;
+                    if (data.gust_speed !== undefined) payload.gust_speed = (data.gust_speed as number) / 10;
                     const calculated = updateWS90CalculatedValues(msg.device, payload);
                     return calculated;
                 },
@@ -853,9 +887,9 @@ const shellyModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
                     const payload: {[key: string]: number | boolean} = {};
-                    if (data[0x0000] !== undefined) payload.rain_status = Boolean(data[0x0000]);
-                    if (data[0x0001] !== undefined) {
-                        payload.precipitation = (data[0x0001] as number) / 10;
+                    if (data.rain_status !== undefined) payload.rain_status = Boolean(data.rain_status);
+                    if (data.precipitation !== undefined) {
+                        payload.precipitation = (data.precipitation as number) / 10;
                     }
 
                     // Calculate rain_rate (it's a calculated value, not a base sensor value)
@@ -871,7 +905,7 @@ const shellyModernExtend = {
                     calculated.rain_rate = rain_rate;
 
                     msg.device.save();
-                    return calculated; // Only calculated values; m.binary()/m.numeric() handle base rain values
+                    return calculated;  // Only calculated values; m.binary()/m.numeric() handle base rain values
                 },
             },
         ];
@@ -922,6 +956,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandStep"]>,
 };
+
 
 // =============================================================================
 // Device Definitions
@@ -1078,14 +1113,18 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("shellyWS90Wind", {
                 ID: 0xfc01,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
-                attributes: {},
+                attributes: {
+                    wind_speed: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                    wind_direction: {ID: 0x0004, type: Zcl.DataType.UINT16},
+                    gust_speed: {ID: 0x0007, type: Zcl.DataType.UINT16},
+                },
                 commands: {},
                 commandsResponse: {},
             }),
-            m.numeric({
+            m.numeric<"shellyWS90Wind", ShellyWS90Wind>({
                 name: "wind_speed",
                 cluster: "shellyWS90Wind",
-                attribute: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                attribute: "wind_speed",
                 valueMin: 0,
                 valueMax: 140,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -1094,10 +1133,10 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "m/s",
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"shellyWS90Wind", ShellyWS90Wind>({
                 name: "wind_direction",
                 cluster: "shellyWS90Wind",
-                attribute: {ID: 0x0004, type: Zcl.DataType.UINT16},
+                attribute: "wind_direction",
                 valueMin: 0,
                 valueMax: 360,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -1106,10 +1145,10 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "°",
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"shellyWS90Wind", ShellyWS90Wind>({
                 name: "gust_speed",
                 cluster: "shellyWS90Wind",
-                attribute: {ID: 0x0007, type: Zcl.DataType.UINT16},
+                attribute: "gust_speed",
                 valueMin: 0,
                 valueMax: 140,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -1121,14 +1160,16 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("shellyWS90UV", {
                 ID: 0xfc02,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
-                attributes: {},
+                attributes: {
+                    uv_index: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                },
                 commands: {},
                 commandsResponse: {},
             }),
-            m.numeric({
+            m.numeric<"shellyWS90UV", ShellyWS90UV>({
                 name: "uv_index",
                 cluster: "shellyWS90UV",
-                attribute: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                attribute: "uv_index",
                 valueMin: 0,
                 valueMax: 11,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -1139,24 +1180,27 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceAddCustomCluster("shellyWS90Rain", {
                 ID: 0xfc03,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
-                attributes: {},
+                attributes: {
+                    rain_status: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+                    precipitation: {ID: 0x0001, type: Zcl.DataType.UINT24},
+                },
                 commands: {},
                 commandsResponse: {},
             }),
-            m.binary({
+            m.binary<"shellyWS90Rain", ShellyWS90Rain>({
                 name: "rain_status",
                 cluster: "shellyWS90Rain",
-                attribute: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+                attribute: "rain_status",
                 valueOn: [true, 1],
                 valueOff: [false, 0],
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "Rain status",
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"shellyWS90Rain", ShellyWS90Rain>({
                 name: "precipitation",
                 cluster: "shellyWS90Rain",
-                attribute: {ID: 0x0001, type: Zcl.DataType.UINT24},
+                attribute: "precipitation",
                 valueMin: 0,
                 valueMax: 100000,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
