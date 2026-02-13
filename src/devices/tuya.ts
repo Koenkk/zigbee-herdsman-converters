@@ -1886,33 +1886,11 @@ export const definitions: DefinitionWithExtend[] = [
                 // DP 2 - Monthly Water Consumption
                 [
                     2,
-                    "monthly_water_consumption",
-                    {
-                        from: (v) => {
-                            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
-                            if (buf.length >= 8) {
-                                const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
-                                return value / 1000;
-                            }
-                            return 0;
-                        },
-                    },
-                ],
+                    "monthly_water_consumption", tuya.valueConverter.waterConsumption],
                 // DP 3 - Daily Water Consumption
                 [
                     3,
-                    "daily_water_consumption",
-                    {
-                        from: (v) => {
-                            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
-                            if (buf.length >= 8) {
-                                const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
-                                return value / 1000;
-                            }
-                            return 0;
-                        },
-                    },
-                ],
+                    "daily_water_consumption", tuya.valueConverter.waterConsumption],
                 // DP 4 - Report Period Setting
                 [
                     4,
