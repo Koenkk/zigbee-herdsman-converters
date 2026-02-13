@@ -1767,7 +1767,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "water_consumed", tuya.valueConverter.divideBy1000],
                 [2, "month_consumption", tuya.valueConverter.waterConsumption],
-                [3, "daily_consumption", "month_consumption", tuya.valueConverter.waterConsumption],
+                [3, "daily_consumption", tuya.valueConverter.waterConsumption],
                 [
                     4,
                     "report_period",
