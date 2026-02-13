@@ -1768,32 +1768,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "water_consumed", tuya.valueConverter.divideBy1000],
                 [
                     2,
-                    "month_consumption",
-                    {
-                        from: (v) => {
-                            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
-                            if (buf.length >= 8) {
-                                const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
-                                return value / 1000;
-                            }
-                            return 0;
-                        },
-                    },
-                ],
+                    "month_consumption", tuya.valueConverter.waterConsumption,],
                 [
                     3,
-                    "daily_consumption",
-                    {
-                        from: (v) => {
-                            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
-                            if (buf.length >= 8) {
-                                const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
-                                return value / 1000;
-                            }
-                            return 0;
-                        },
-                    },
-                ],
+                    "daily_consumption", "month_consumption", tuya.valueConverter.waterConsumption,],
                 [
                     4,
                     "report_period",
