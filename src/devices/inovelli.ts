@@ -1,5 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 import type {ClusterOrRawPayload} from "zigbee-herdsman/dist/controller/tstype";
+import {BuffaloZclDataType} from "zigbee-herdsman/dist/zspec/zcl/definition/enums";
 import type {Parameter} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -184,6 +185,10 @@ interface InovelliMmWave {
             area3: number;
             /** uint8: 0 or 1 */
             area4: number;
+        };
+        reportTargetInfo: {
+            targetNum: number;
+            targets: Buffer;
         };
         reportInterferenceArea: {
             count: number;
@@ -549,6 +554,13 @@ const inovelliExtend = {
                         {name: "area4", type: Zcl.DataType.UINT8},
                     ],
                 },
+                reportTargetInfo: {
+                    ID: 1,
+                    parameters: [
+                        {name: "targetNum", type: Zcl.DataType.UINT8},
+                        {name: "targets", type: BuffaloZclDataType.BUFFER},
+                    ],
+                },
                 reportInterferenceArea: {
                     ID: 2,
                     parameters: mmWaveCommandResponseAreaParameters,
@@ -716,14 +728,21 @@ const inovelliExtend = {
         ];
 
         return {
-            fromZigbee: [fzLocal.anyone_in_reporting_area, fzLocal.report_areas],
+            fromZigbee: [fzLocal.anyone_in_reporting_area, fzLocal.report_areas, fzLocal.report_target_info],
             toZigbee: [
                 tzLocal.inovelli_mmwave_control_commands,
                 tzLocal.mmwave_detection_areas,
                 tzLocal.mmwave_interference_areas,
                 tzLocal.mmwave_stay_areas,
             ],
-            exposes: [exposeMMWaveControl(), ...exposeMMWaveAreas(), exposeInterferenceAreas(), exposeDetectionAreas(), exposeStayAreas()],
+            exposes: [
+                exposeMMWaveControl(),
+                ...exposeMMWaveAreas(),
+                exposeInterferenceAreas(),
+                exposeDetectionAreas(),
+                exposeStayAreas(),
+                exposeMMWaveTargets(),
+            ],
             configure: configure,
             isModernExtend: true,
         } as ModernExtend;
@@ -2577,6 +2596,22 @@ const fzLocal = {
             return {notificationComplete: "Unknown"};
         },
     } satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["commandLedEffectComplete"]>,
+    report_target_info: {
+        cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
+        type: ["commandReportTargetInfo"],
+        convert: (model, msg, publish, options, meta) => {
+            const targets: Array<{id: number; x: number; y: number; z: number; dop: number}> = [];
+            for (let i = 0; i < msg.data.targetNum; i++) {
+                const x = msg.data.targets.readInt16LE(i * 9);
+                const y = msg.data.targets.readInt16LE(i * 9 + 2);
+                const z = msg.data.targets.readInt16LE(i * 9 + 4);
+                const dop = msg.data.targets.readInt16LE(i * 9 + 6);
+                const id = msg.data.targets.readUInt8(i * 9 + 8);
+                targets.push({id, x, y, z, dop});
+            }
+            return {mmwave_targets: targets};
+        },
+    } satisfies Fz.Converter<typeof INOVELLI_MMWAVE_CLUSTER_NAME, InovelliMmWave, ["commandReportTargetInfo"]>,
     report_areas: {
         cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
         type: ["commandReportInterferenceArea", "commandReportDetectionArea", "commandReportStayArea"],
@@ -2808,6 +2843,23 @@ const exposeStayAreas = () => {
         .withFeature(createAreaComposite("area_3", "area3"))
         .withFeature(createAreaComposite("area_4", "area4"))
         .withCategory("config");
+};
+
+const exposeMMWaveTargets = () => {
+    const targetComposite = e
+        .composite("target", "target", ea.STATE)
+        .withFeature(e.numeric("id", ea.STATE).withValueMin(0).withValueMax(255).withDescription("Target ID"))
+        .withFeature(e.numeric("x", ea.STATE).withUnit("cm").withDescription("X-axis coordinate of the target in centimeters"))
+        .withFeature(e.numeric("y", ea.STATE).withUnit("cm").withDescription("Y-axis coordinate of the target in centimeters"))
+        .withFeature(e.numeric("z", ea.STATE).withUnit("cm").withDescription("Z-axis coordinate of the target in centimeters"))
+        .withFeature(e.numeric("dop", ea.STATE).withDescription("Doppler shift speed of the target"));
+
+    return e
+        .list("mmwave_targets", ea.STATE, targetComposite)
+        .withLengthMin(0)
+        .withLengthMax(4)
+        .withDescription("All of the detected mmWave targets")
+        .withCategory("diagnostic");
 };
 
 const BUTTON_TAP_SEQUENCES = [
