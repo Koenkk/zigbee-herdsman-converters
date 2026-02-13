@@ -565,7 +565,7 @@ export const valueConverter = {
         from: (value: number) => (value > 200 ? value - 256 : value),
         to: (value: number) => (value < 0 ? 256 + value : value),
     },
-        // Converts water consumption data from raw buffer format (bytes 4-7)
+    // Converts water consumption data from raw buffer format (bytes 4-7)
     waterConsumption: {
         from: (v: string) => {
             const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
