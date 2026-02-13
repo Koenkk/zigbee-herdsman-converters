@@ -11916,7 +11916,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "4 gang switch with LCD",
         extend: [
-            tuyaWeatherForecast({includeCurrentWeather: true, numberOfForecastDays: 3, correctForNegativeValues: true}),
+            tuyaWeatherForecast({
+                includeCurrentWeather: true,
+                numberOfForecastDays: 3,
+                correctForNegativeValues: true,
+                weatherConditionMap: tuya.M8ProTuyaWeatherCondition,
+            }),
             tuyaBase({dp: true, timeStart: "1970"}),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}}),
         ],
@@ -22400,7 +22405,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "F3-Pro",
         vendor: "Tuya",
         description: "Smart panel, 4-gang switch with scene, dimmer, and curtain control",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true})],
+        extend: [
+            tuya.modernExtend.tuyaWeatherForecast({
+                includeCurrentWeather: true,
+                numberOfForecastDays: 3,
+                correctForNegativeValues: false,
+                weatherConditionMap: tuya.F3ProTuyaWeatherCondition,
+            }),
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                forceTimeUpdates: true,
+                queryOnConfigure: true,
+                timeStart: "1970", // needed else date/time doesn't sync with z2m > 2.6.2
+            }),
+        ],
 
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1, l7: 1, l8: 1};
@@ -22491,6 +22509,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("%")
                 .withValueMin(0)
                 .withValueMax(100),
+
+            e.numeric("temperature_1", ea.STATE_SET).withValueMin(-65).withValueMax(99).withDescription("Temperature").withValueStep(0.1),
+            e.enum("condition_1", ea.STATE_SET, Object.keys(tuya.F3ProTuyaWeatherCondition)).withDescription("Weather condition"),
         ],
 
         meta: {
