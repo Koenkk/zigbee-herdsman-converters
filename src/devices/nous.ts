@@ -259,15 +259,51 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS011F", manufacturerName: "_TZ3210_6cmeijtd"}],
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3210_6cmeijtd"]),
         model: "A11Z",
         vendor: "Nous",
-        description: "Smart power strip 3 gang with power monitoring",
+        description: "3-channel power strip with total energy monitoring",
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            m.onOff({endpointNames: ["l1", "l2", "l3"], powerOnBehavior: false}),
-            m.electricityMeter(),
-            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
+            tuya.modernExtend.tuyaOnOff({
+                electricalMeasurements: true,
+                electricalMeasurementsFzConverter: tuya.fz.TS011F_electrical_measurement,
+                powerOnBehavior2: true,
+                onOffCountdown: true,
+                indicatorMode: true,
+                childLock: true,
+                switchTypeButton: true,
+                endpoints: ["l1", "l2", "l3"],
+            }),
+            m.identify(),
         ],
+        meta: {
+            multiEndpoint: true,
+            multiEndpointSkip: ["energy", "current", "voltage", "power"],
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
+            await reporting.currentSummDelivered(endpoint1);
+            await reporting.rmsCurrent(endpoint1, {change: 50});
+            await reporting.rmsVoltage(endpoint1, {change: 5});
+            await reporting.activePower(endpoint1, {change: 5});
+            endpoint1.saveClusterAttributeKeyValue("haElectricalMeasurement", {
+                acCurrentDivisor: 1000,
+                acCurrentMultiplier: 1,
+                acVoltageDivisor: 1,
+                acVoltageMultiplier: 1,
+                acPowerDivisor: 1,
+                acPowerMultiplier: 1,
+            });
+            endpoint1.saveClusterAttributeKeyValue("seMetering", {
+                divisor: 100,
+                multiplier: 1,
+            });
+        },
     },
 ];
