@@ -1854,7 +1854,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("report_period", ea.STATE_SET, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"]).withDescription("Report period"),
             e.text("meter_id", ea.STATE).withDescription("Meter identification number"),
             e.temperature(),
-            e.voltage(),
+            e.battery_voltage(),
             e.text("faults", ea.STATE).withDescription("Active fault status"),
         ],
         meta: {
@@ -1984,7 +1984,7 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                 ],
                 [22, "temperature", tuya.valueConverter.divideBy100],
-                [26, "voltage", tuya.valueConverter.divideBy100],
+                [26, "battery_voltage", tuya.valueConverter.divideBy100],
             ],
         },
         options: [
