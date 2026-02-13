@@ -5407,4 +5407,38 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.lumiZigbeeOTA(),
         ],
     },
+    {
+        zigbeeModel: ["lumi.switch.aeu003"],
+        model: "DS-K02D/DS-K02E",
+        vendor: "Aqara",
+        description: "Aqara H2 EU shutter switch",
+        fromZigbee: [fz.cover_position_tilt, lumi.fromZigbee.lumi_action_multistate],
+        toZigbee: [],
+        exposes: [
+            e.action([
+                "single_top_right",
+                "single_bottom_right",
+                "double_top_right",
+                "double_bottom_right",
+                "hold_top_right",
+                "hold_bottom_right",
+                "release_top_right",
+                "release_bottom_right",
+            ]),
+        ],
+        extend: [m.windowCovering({controls: ["lift"]})],
+        meta: {coverInverted: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint3 = device.getEndpoint(3);
+            const endpoint4 = device.getEndpoint(4);
+            await endpoint3.bind("genMultistateInput", coordinatorEndpoint);
+            await endpoint4.bind("genMultistateInput", coordinatorEndpoint);
+            await endpoint3.configureReporting("genMultistateInput", [
+                {attribute: "presentValue", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
+            ]);
+            await endpoint4.configureReporting("genMultistateInput", [
+                {attribute: "presentValue", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
+            ]);
+        },
+    },
 ];
