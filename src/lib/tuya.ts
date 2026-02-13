@@ -340,34 +340,48 @@ const tuyaExposes = {
             .numeric(`power_factor_${phase}`, ea.STATE)
             .withUnit("%")
             .withDescription(`Instantaneous measured power factor (phase ${phase.toUpperCase()})`),
-    switchType: () => e.enum("switch_type", ea.ALL, ["toggle", "state", "momentary"]).withDescription("Type of the switch"),
+    switchType: () => e.enum("switch_type", ea.ALL, ["toggle", "state", "momentary"]).withDescription("Type of the switch").withCategory("config"),
     switchTypeCurtain: () =>
         e
             .enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch", "button2-switch"])
-            .withDescription("External switch type"),
-    switchTypeButton: () => e.enum("switch_type_button", ea.ALL, ["release", "press"]).withDescription("Determines when the button actuates"),
-    backlightModeLowMediumHigh: () => e.enum("backlight_mode", ea.ALL, ["low", "medium", "high"]).withDescription("Intensity of the backlight"),
-    backlightModeOffNormalInverted: () => e.enum("backlight_mode", ea.ALL, ["off", "normal", "inverted"]).withDescription("Mode of the backlight"),
+            .withDescription("External switch type")
+            .withCategory("config"),
+    switchTypeButton: () =>
+        e.enum("switch_type_button", ea.ALL, ["release", "press"]).withDescription("Determines when the button actuates").withCategory("config"),
+    backlightModeLowMediumHigh: () =>
+        e.enum("backlight_mode", ea.ALL, ["low", "medium", "high"]).withDescription("Intensity of the backlight").withCategory("config"),
+    backlightModeOffNormalInverted: () =>
+        e.enum("backlight_mode", ea.ALL, ["off", "normal", "inverted"]).withDescription("Mode of the backlight").withCategory("config"),
     backlightModeOffOn: () => e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Mode of the backlight").withCategory("config"),
     indicatorMode: () =>
         e.enum("indicator_mode", ea.ALL, ["off", "off/on", "on/off", "on"]).withDescription("LED indicator mode").withCategory("config"),
     indicatorModeNoneRelayPos: () =>
         e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Mode of the indicator light").withCategory("config"),
-    powerOutageMemory: () => e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
+    powerOutageMemory: () =>
+        e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage").withCategory("config"),
     batteryState: () => e.enum("battery_state", ea.STATE, ["low", "medium", "high"]).withDescription("State of the battery"),
     doNotDisturb: () =>
         e
             .binary("do_not_disturb", ea.STATE_SET, true, false)
-            .withDescription("Do not disturb mode, when enabled this function will keep the light OFF after a power outage"),
+            .withDescription("Do not disturb mode, when enabled this function will keep the light OFF after a power outage")
+            .withCategory("config"),
     colorPowerOnBehavior: () =>
-        e.enum("color_power_on_behavior", ea.STATE_SET, ["initial", "previous", "customized"]).withDescription("Power on behavior state"),
-    powerOnBehavior: () => e.enum("power_on_behavior", ea.ALL, ["off", "on", "previous"]).withDescription("Power on behavior state"),
+        e
+            .enum("color_power_on_behavior", ea.STATE_SET, ["initial", "previous", "customized"])
+            .withDescription("Power on behavior state")
+            .withCategory("config"),
+    powerOnBehavior: () =>
+        e.enum("power_on_behavior", ea.ALL, ["off", "on", "previous"]).withDescription("Power on behavior state").withCategory("config"),
     switchMode: () =>
-        e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withDescription("Sets the mode of the switch to act as a switch or as a scene"),
+        e
+            .enum("switch_mode", ea.STATE_SET, ["switch", "scene"])
+            .withDescription("Sets the mode of the switch to act as a switch or as a scene")
+            .withCategory("config"),
     switchMode2: () =>
         e
             .enum("switch_mode", ea.STATE_SET, ["switch", "curtain"])
-            .withDescription("Sets the mode of the switch to act as a switch or as a curtain controller"),
+            .withDescription("Sets the mode of the switch to act as a switch or as a curtain controller")
+            .withCategory("config"),
     lightMode: () =>
         e.enum("light_mode", ea.STATE_SET, ["normal", "on", "off", "flash"]).withDescription(`'Sets the indicator mode of l1.
         Normal: Orange while off and white while on.
