@@ -59,7 +59,88 @@ export const dataTypes = {
     bitmap: 5, // [ 1,2,4 bytes ] as bits
 };
 
-export const M8ProTuyaWeatherCondition = {
+export interface TuyaWeatherCondition {
+    sunny?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    heavy_rain?: number;
+    cloudy?: number;
+    sandstorm?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    light_snow?: number;
+    snow?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    freezing_fog?: number;
+    rainstorm?: number;
+    shower?: number;
+    dust?: number;
+    spit?: number;
+    sleet?: number;
+    yin?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    freezing_rain?: number;
+    rain?: number;
+    fog?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    heavy_shower?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    heavy_snow?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    heavy_downpour?: number;
+    blizzard?: number;
+    hailstone?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    snow_shower?: number;
+    haze?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    thunder_shower?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    floating_dust?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    thunder_and_lighting?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    dust_storm?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    light_shower?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    rain_and_snow?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    dust_bowl?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ice_pellets?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    strong_dust_storms?: number;
+    sandy?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    light_to_moderate_rain?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    mostly_sunny?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    very_heavy_rain?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ice_pod?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    light_to_moderate_snow?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    few_clouds?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    light_snow_showers?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    moderate_snow?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    icy_needles?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    thunderstorm_with_ice_pods?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    light_rain?: number;
+    thunder?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    moderate_rain?: number;
+    thunderstorm?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    moderate_to_heavy_rain?: number;
+}
+
+export const M8ProTuyaWeatherCondition: TuyaWeatherCondition = {
     sunny: 100,
     heavy_rain: 101,
     cloudy: 102,
@@ -84,6 +165,47 @@ export const M8ProTuyaWeatherCondition = {
     snow_shower: 130,
     haze: 140,
     thunder_shower: 143,
+};
+
+export const F3ProTuyaWeatherCondition: TuyaWeatherCondition = {
+    heavy_rain: 101,
+    thunderstorm: 102,
+    dust_storm: 103,
+    light_snow: 104,
+    snow: 105,
+    freezing_fog: 106,
+    shower: 108,
+    floating_dust: 109,
+    thunder_and_lighting: 110,
+    light_shower: 111,
+    rain: 112,
+    rain_and_snow: 113,
+    dust_bowl: 114,
+    ice_pellets: 115,
+    strong_dust_storms: 116,
+    sandy: 117,
+    light_to_moderate_rain: 118,
+    mostly_sunny: 119,
+    sunny: 120,
+    haze: 121,
+    heavy_shower: 123,
+    heavy_snow: 124,
+    very_heavy_rain: 125,
+    blizzard: 126,
+    ice_pod: 127,
+    light_to_moderate_snow: 128,
+    few_clouds: 129,
+    light_snow_showers: 130,
+    moderate_snow: 131,
+    cloudy: 132,
+    icy_needles: 133,
+    thunderstorm_with_ice_pods: 136,
+    freezing_rain: 137,
+    snow_shower: 138,
+    light_rain: 139,
+    thunder: 140,
+    moderate_rain: 141,
+    moderate_to_heavy_rain: 144,
 };
 
 export enum TuyaWeatherID {
@@ -3054,9 +3176,19 @@ const tuyaModernExtend = {
         });
     },
     tuyaWeatherForecast(
-        args: {includeCurrentWeather?: boolean; numberOfForecastDays?: number; correctForNegativeValues?: boolean} = {},
+        args: {
+            includeCurrentWeather?: boolean;
+            numberOfForecastDays?: number;
+            correctForNegativeValues?: boolean;
+            weatherConditionMap?: TuyaWeatherCondition;
+        } = {},
     ): ModernExtend {
-        const {includeCurrentWeather = true, numberOfForecastDays = 3, correctForNegativeValues = false} = args;
+        const {
+            includeCurrentWeather = true,
+            numberOfForecastDays = 3,
+            correctForNegativeValues = false,
+            weatherConditionMap = M8ProTuyaWeatherCondition,
+        } = args;
 
         const tz_fileds = includeCurrentWeather ? ["temperature_0", "humidity_0", "condition_0"] : [];
 
@@ -3092,7 +3224,7 @@ const tuyaModernExtend = {
                 );
                 weather_values[TuyaWeatherID.Humidity].push("humidity_0" in meta.state ? (meta.state["humidity_0"] as number) : 0);
                 weather_values[TuyaWeatherID.Condition].push(
-                    "condition_0" in meta.state ? M8ProTuyaWeatherCondition[meta.state["condition_0"] as keyof typeof M8ProTuyaWeatherCondition] : 0,
+                    "condition_0" in meta.state ? weatherConditionMap[meta.state["condition_0"] as keyof typeof weatherConditionMap] : 0,
                 );
             } else {
                 buffer.writeUInt8(0x0, bOffset++);
@@ -3104,9 +3236,7 @@ const tuyaModernExtend = {
                 );
                 weather_values[TuyaWeatherID.Humidity].push(`humidity_${i}` in meta.state ? (meta.state[`humidity${i}`] as number) : 0);
                 weather_values[TuyaWeatherID.Condition].push(
-                    `condition_${i}` in meta.state
-                        ? M8ProTuyaWeatherCondition[meta.state[`condition_${i}`] as keyof typeof M8ProTuyaWeatherCondition]
-                        : 0,
+                    `condition_${i}` in meta.state ? weatherConditionMap[meta.state[`condition_${i}`] as keyof typeof weatherConditionMap] : 0,
                 );
             }
 
