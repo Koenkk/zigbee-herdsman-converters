@@ -85,11 +85,25 @@ const attrPlugSwitchTimeReload = 0xf004;
 const attrPlugSwitchProtectCtrl = 0xf005;
 const attrPlugSwitchAutoRestart = 0xf006;
 
+const attrSwitchType = 0xf000;
+const attrSwitchDecoupled = 0xf001;
+
+const attrDeviceModelNumber = 0xf002;
+
+const attrDoorDelayOn = 0xf003;
+const attrDoorDelayOff = 0xf004;
+const attrDoorOnCmdOff = 0xf005;
+const attrDoorOffCmdOff = 0xf006;
+
 interface SlackyDiyOnOffCfg {
     attributes: {
         customSwitchType: number;
         customRelayControl: number;
-        customSwitchModel: number;
+        customDeviceModelNumber: number;
+        customDelayOn: number;
+        customDelayOff: number;
+        customOnCmdOff: number;
+        customOffCmdOff: number;
     };
     commands: never;
     commandResponses: never;
@@ -503,6 +517,17 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacThermostat", [attrThermManufName]);
+        },
+    } satisfies Tz.Converter,
+    device_model_number: {
+        key: ["door_device_number", "switch_device_number"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {model_0: 0, model_1: 1, model_2: 2, model_3: 3, model_4: 4, model_5: 5};
+            await entity.write("genOnOffSwitchCfg", {[attrDeviceModelNumber]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOffSwitchCfg", [attrDeviceModelNumber]);
         },
     } satisfies Tz.Converter,
 };
@@ -2212,7 +2237,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withLocalTemperature()
                 .withSetpoint("occupied_heating_setpoint", 5, 45, 0.5)
-                .withLocalTemperatureCalibration(-9.9, 9.9, 1)
+                .withLocalTemperatureCalibration(-9, 9, 1)
                 .withSystemMode(["off", "heat"])
                 .withRunningState(["idle", "heat"], ea.STATE)
                 .withWeeklySchedule(["heat"], ea.ALL),
@@ -3261,23 +3286,20 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0x0007,
                 attributes: {
                     customSwitchType: {
-                        ID: 0xf000,
+                        ID: attrSwitchType,
                         type: 0x30,
-                        manufacturerCode: 0x6565,
                         write: true,
                         max: 0xff,
                     },
                     customRelayControl: {
-                        ID: 0xf001,
+                        ID: attrSwitchDecoupled,
                         type: 0x30,
-                        manufacturerCode: 0x6565,
                         write: true,
                         max: 0xff,
                     },
-                    customSwitchModel: {
-                        ID: 0xf002,
+                    customDeviceModelNumber: {
+                        ID: attrDeviceModelNumber,
                         type: 0x30,
-                        manufacturerCode: 0x6565,
                         write: true,
                         max: 0xff,
                     },
@@ -3310,12 +3332,108 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: {min: 0, max: 65000, change: 0},
                 description: "Relay decoupled",
             }),
-            m.enumLookup<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
-                name: "switch_model",
-                lookup: {none: 0, model_1: 1, model_2: 2, model_3: 3, model_4: 4, model_5: 5},
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["TS0203-z20-Sld"],
+        model: "TS0203-z-Sld",
+        vendor: "Slacky-DIY",
+        description: "Tuya door/window sensor with custom firmware",
+        toZigbee: [tzLocal.device_model_number],
+        extend: [
+            m.deviceAddCustomCluster("genOnOffSwitchCfg", {
+                ID: 0x0007,
+                attributes: {
+                    customDelayOn: {
+                        ID: attrDoorDelayOn,
+                        type: 0x20,
+                        write: true,
+                        max: 0xff,
+                    },
+                    customDelayOff: {
+                        ID: attrDoorDelayOff,
+                        type: 0x20,
+                        write: true,
+                        max: 0xff,
+                    },
+                    customDeviceModelNumber: {
+                        ID: attrDeviceModelNumber,
+                        type: 0x30,
+                        write: true,
+                        max: 0xff,
+                    },
+                    customOnCmdOff: {
+                        ID: attrDoorOnCmdOff,
+                        type: 0x10,
+                        write: true,
+                        max: 0x01,
+                    },
+                    customOffCmdOff: {
+                        ID: attrDoorOffCmdOff,
+                        type: 0x10,
+                        write: true,
+                        max: 0x01,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.text({
+                name: "model_number",
+                cluster: "genBasic",
+                attribute: "productLabel",
+                access: "STATE_GET",
+                description: "Door sensor model number",
+            }),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]}),
+            m.battery({
+                voltage: true,
+                voltageReporting: true,
+                percentageReportingConfig: {min: 3600, max: 0, change: 0},
+                voltageReportingConfig: {min: 3600, max: 0, change: 0},
+            }),
+            m.enumLookup({
+                name: "switch_actions",
+                lookup: {off: 0, on: 1, toggle: 2},
                 cluster: "genOnOffSwitchCfg",
-                attribute: "customSwitchModel",
-                description: "Switch model",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+            m.numeric<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "delay_on",
+                unit: "sec",
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customDelayOn",
+                description: "Delay On",
+                valueMin: 0,
+                valueMax: 120,
+            }),
+            m.numeric<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "delay_off",
+                unit: "sec",
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customDelayOff",
+                description: "Delay Off",
+                valueMin: 0,
+                valueMax: 120,
+            }),
+            m.binary<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "on_command_off",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customOnCmdOff",
+                description: "Disable command 'On'",
+            }),
+            m.binary<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "off_command_off",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customOffCmdOff",
+                description: "Disable command 'Off'",
             }),
         ],
         meta: {},
