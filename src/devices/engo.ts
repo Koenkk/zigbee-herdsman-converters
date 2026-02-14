@@ -411,7 +411,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_lnxdk2ch"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_lnxdk2ch", "_TZE204_glk6viwg"]),
         model: "E40",
         vendor: "ENGO",
         description: "Zigbee smart thermostat",
