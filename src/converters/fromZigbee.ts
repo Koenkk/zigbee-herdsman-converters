@@ -131,7 +131,10 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             );
         }
         if (msg.data.runningState !== undefined) {
-            result[postfixWithEndpointName("running_state", msg, model, meta)] = constants.thermostatRunningStates[msg.data.runningState];
+            result[postfixWithEndpointName("running_state", msg, model, meta)] = utils.getFromLookup(
+                msg.data.runningState,
+                constants.thermostatRunningStates,
+            );
         }
         if (msg.data.pIHeatingDemand !== undefined) {
             result[postfixWithEndpointName("pi_heating_demand", msg, model, meta)] = mapNumberRange(

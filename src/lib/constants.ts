@@ -76,7 +76,7 @@ export const thermostatDayOfWeek: KeyValueNumberString = {
     7: "away_or_vacation",
 };
 
-export const thermostatRunningStates: KeyValueAny = {
+export const thermostatRunningStates = {
     0: "idle",
     1: "heat",
     2: "cool",
@@ -98,7 +98,8 @@ export const thermostatRunningStates: KeyValueAny = {
     66: "cool",
     32768: "idle",
     32769: "heat",
-};
+} as const satisfies KeyValueAny;
+export type ThermostatRunningState = (typeof thermostatRunningStates)[keyof typeof thermostatRunningStates];
 
 export const thermostatAcLouverPositions: KeyValueNumberString = {
     0: "fully_closed",

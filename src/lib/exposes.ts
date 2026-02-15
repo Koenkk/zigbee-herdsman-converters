@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import type {ThermostatRunningMode, ThermostatSystemMode} from "./constants";
+import type {ThermostatRunningMode, ThermostatRunningState, ThermostatSystemMode} from "./constants";
 import type {Access, LevelConfigFeatures, Range} from "./types";
 import {getLabelFromName} from "./utils";
 
@@ -653,11 +653,7 @@ export class Climate extends Base {
         return this;
     }
 
-    withRunningState(modes: string[], access = a.STATE_GET) {
-        const allowed = ["idle", "heat", "cool", "fan_only"];
-        modes.forEach((m) => {
-            assert(allowed.includes(m));
-        });
+    withRunningState(modes: ThermostatRunningState[], access = a.STATE_GET) {
         this.addFeature(new Enum("running_state", access, modes).withDescription("The current running state"));
         return this;
     }
