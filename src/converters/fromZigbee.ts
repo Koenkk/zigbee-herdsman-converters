@@ -225,7 +225,7 @@ export const thermostat_weekly_schedule: Fz.Converter<"hvacThermostat", undefine
         const days = [];
         for (let i = 0; i < 8; i++) {
             if ((msg.data.dayofweek & (1 << i)) > 0) {
-                days.push(constants.thermostatDayOfWeek[i]);
+                days.push(utils.getFromLookup(i, constants.thermostatDayOfWeek));
             }
         }
 
@@ -2890,6 +2890,7 @@ export const meazon_meter: Fz.Converter<"seMetering", undefined, ["attributeRepo
         return result;
     },
 };
+
 export const orvibo_raw_1: Fz.Converter<23, undefined, "raw"> = {
     cluster: 23,
     type: "raw",
