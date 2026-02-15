@@ -3210,7 +3210,7 @@ export interface ThermostatArgs {
     ctrlSeqeOfOper?: Omit<ValuesWithModernExtendConfiguration<constants.ThermostatControlSequenceOfOperation[]>, "fromZigbee">;
     programmingOperationMode?: Omit<ValuesWithModernExtendConfiguration<constants.ThermostatProgrammingOperationMode[]>, "fromZigbee">;
     setpointChangeSource?: Omit<ValuesWithModernExtendConfiguration<true>, "fromZigbee" | "toZigbee">;
-    weeklySchedule?: Omit<ValuesWithModernExtendConfiguration<Array<"heat" | "cool">>, "fromZigbee">;
+    weeklySchedule?: Omit<ValuesWithModernExtendConfiguration<constants.ThermostatScheduleMode[]>, "fromZigbee">;
 }
 
 export function thermostat(args: ThermostatArgs): ModernExtend {

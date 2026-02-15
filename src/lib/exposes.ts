@@ -6,6 +6,7 @@ import type {
     ThermostatProgrammingOperationMode,
     ThermostatRunningMode,
     ThermostatRunningState,
+    ThermostatScheduleMode,
     ThermostatSystemMode,
 } from "./constants";
 import {thermostatSetpointChangeSource} from "./constants";
@@ -739,12 +740,7 @@ export class Climate extends Base {
         return this;
     }
 
-    withWeeklySchedule(modes: string[], access = a.ALL) {
-        const allowed = ["heat", "cool"];
-        modes.forEach((m) => {
-            assert(allowed.includes(m));
-        });
-
+    withWeeklySchedule(modes: ThermostatScheduleMode[], access = a.ALL) {
         const featureDayOfWeek = new List(
             "dayofweek",
             a.SET,

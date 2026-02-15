@@ -114,10 +114,11 @@ export const thermostatAcLouverPositions = {
 } as const satisfies KeyValueNumberString;
 export type ThermostatAcLouverPosition = (typeof thermostatAcLouverPositions)[keyof typeof thermostatAcLouverPositions];
 
-export const thermostatScheduleMode: KeyValueNumberString = {
+export const thermostatScheduleMode = {
     0: "heat",
     1: "cool",
-};
+} as const satisfies KeyValueNumberString;
+export type ThermostatScheduleMode = (typeof thermostatScheduleMode)[keyof typeof thermostatScheduleMode];
 
 export const fanMode = {
     off: 0,
