@@ -1,5 +1,11 @@
 import assert from "node:assert";
-import type {ThermostatControlSequenceOfOperation, ThermostatRunningMode, ThermostatRunningState, ThermostatSystemMode} from "./constants";
+import type {
+    ThermostatControlSequenceOfOperation,
+    ThermostatProgrammingOperationMode,
+    ThermostatRunningMode,
+    ThermostatRunningState,
+    ThermostatSystemMode,
+} from "./constants";
 import type {Access, LevelConfigFeatures, Range} from "./types";
 import {getLabelFromName} from "./utils";
 
@@ -713,11 +719,7 @@ export class Climate extends Base {
         return this;
     }
 
-    withProgrammingOperationMode(modes: string[], access = a.ALL) {
-        const allowed = ["setpoint", "schedule", "schedule_with_preheat", "eco"];
-        modes.forEach((m) => {
-            assert(allowed.includes(m));
-        });
+    withProgrammingOperationMode(modes: ThermostatProgrammingOperationMode[], access = a.ALL) {
         this.addFeature(presets.programming_operation_mode(modes).withAccess(access));
         return this;
     }

@@ -117,8 +117,10 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             );
         }
         if (msg.data.programingOperMode !== undefined) {
-            result[postfixWithEndpointName("programming_operation_mode", msg, model, meta)] =
-                constants.thermostatProgrammingOperationModes[msg.data.programingOperMode];
+            result[postfixWithEndpointName("programming_operation_mode", msg, model, meta)] = utils.getFromLookup(
+                msg.data.programingOperMode,
+                constants.thermostatProgrammingOperationModes,
+            );
         }
         if (msg.data.systemMode !== undefined) {
             result[postfixWithEndpointName("system_mode", msg, model, meta)] = utils.getFromLookup(

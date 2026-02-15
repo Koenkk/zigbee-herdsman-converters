@@ -26,12 +26,13 @@ export const thermostatControlSequenceOfOperations = {
 } as const satisfies KeyValueNumberString;
 export type ThermostatControlSequenceOfOperation = (typeof thermostatControlSequenceOfOperations)[keyof typeof thermostatControlSequenceOfOperations];
 
-export const thermostatProgrammingOperationModes: KeyValueNumberString = {
+export const thermostatProgrammingOperationModes = {
     0: "setpoint",
     1: "schedule",
     3: "schedule_with_preheat",
     4: "eco",
-};
+} as const satisfies KeyValueNumberString;
+export type ThermostatProgrammingOperationMode = (typeof thermostatProgrammingOperationModes)[keyof typeof thermostatProgrammingOperationModes];
 
 export const thermostatSetpointChangeSource: KeyValueNumberString = {
     0: "manual",
