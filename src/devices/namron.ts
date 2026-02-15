@@ -1958,9 +1958,7 @@ export const definitions: DefinitionWithExtend[] = [
                     const endpoint = device.getEndpoint(1);
 
                     // Device expects LOCAL Unix time, not UTC
-                    const localTimeSeconds =
-                        Math.floor(Date.now() / 1000) -
-                        new Date().getTimezoneOffset() * 60;
+                    const localTimeSeconds = Math.floor(Date.now() / 1000) - new Date().getTimezoneOffset() * 60;
 
                     // Device does not asks for the time with binding, therefore we write the time every 24 hours
                     await endpoint.write("hvacThermostat", {
