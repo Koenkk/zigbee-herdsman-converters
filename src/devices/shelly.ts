@@ -1267,6 +1267,13 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events],
         exposes: [e.action(["1_single", "2_single", "3_single", "4_single", "1_hold", "2_hold", "3_hold", "4_hold"])],
         extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
+        version: "0.0.1",
+        configure: async (device, coordinatorEndpoint, definition) => {
+            for (const endpoint of device.endpoints) {
+                await endpoint.bind("genOnOff", coordinatorEndpoint);
+                await endpoint.bind("genLevelCtrl", coordinatorEndpoint);
+            }
+        },
     },
     {
         zigbeeModel: ["BLU Wall Switch 4 ZB"],
@@ -1277,6 +1284,13 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events],
         exposes: [e.action(["1_single", "2_single", "3_single", "4_single", "1_hold", "2_hold", "3_hold", "4_hold"])],
         extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
+        version: "0.0.1",
+        configure: async (device, coordinatorEndpoint, definition) => {
+            for (const endpoint of device.endpoints) {
+                await endpoint.bind("genOnOff", coordinatorEndpoint);
+                await endpoint.bind("genLevelCtrl", coordinatorEndpoint);
+            }
+        },
     },
     {
         zigbeeModel: ["BLU TRV"],
