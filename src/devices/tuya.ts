@@ -2940,7 +2940,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power(),
             e.temperature().withDescription("Device temperature"),
 
-            // Protections: current/voltage/temperature
+            // Protections: current/voltage/temperature WF
             e.binary("over_current_breaker", ea.ALL, "ON", "OFF").withDescription("Overcurrent protection enable"),
             e.numeric("over_current_threshold", ea.ALL).withUnit("mA").withValueMin(100).withValueMax(630).withDescription("Overcurrent threshold"),
 
@@ -2950,8 +2950,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("under_voltage_breaker", ea.ALL, "ON", "OFF").withDescription("Undervoltage protection enable"),
             e.numeric("under_voltage_threshold", ea.ALL).withUnit("V").withValueMin(0).withValueMax(999).withDescription("Undervoltage threshold"),
 
-            e.binary("high_temperature_breaker", ea.ALL, "ON", "OFF").withDescription("Overtemperature protection enable"),
-            e.numeric("high_temperature_threshold", ea.ALL).withUnit("°C").withDescription("Overtemperature threshold"),
+			e.binary('high_temperature_breaker', ea.ALL, 'ON', 'OFF').withDescription('Overtemperature protection enable'),
+			e.numeric('high_temperature_threshold', ea.ALL)
+				.withUnit('°C')
+				.withValueMin(20)
+				.withValueMax(110)
+				.withDescription('Overtemperature threshold'),
 
             // Leakage
             e.binary("leakage_breaker", ea.ALL, "ON", "OFF").withDescription("Leakage protection enable"),
