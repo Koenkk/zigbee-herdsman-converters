@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import type {
     ThermostatControlSequenceOfOperation,
+    ThermostatFanMode,
     ThermostatProgrammingOperationMode,
     ThermostatRunningMode,
     ThermostatRunningState,
@@ -670,11 +671,7 @@ export class Climate extends Base {
         return this;
     }
 
-    withFanMode(modes: string[], access = a.ALL) {
-        const allowed = ["off", "low", "medium", "high", "on", "auto", "smart"];
-        modes.forEach((m) => {
-            assert(allowed.includes(m));
-        });
+    withFanMode(modes: ThermostatFanMode[], access = a.ALL) {
         this.addFeature(new Enum("fan_mode", access, modes).withDescription("Mode of the fan"));
         return this;
     }

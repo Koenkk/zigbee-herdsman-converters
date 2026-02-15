@@ -1,4 +1,4 @@
-import type {KeyValueAny, KeyValueNumberString} from "./types";
+import type {KeyValueAny, KeyValueNumberString, KeyValue} from "./types";
 
 export const OneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
 
@@ -126,7 +126,8 @@ export const fanMode = {
     on: 4,
     auto: 5,
     smart: 6,
-};
+} as const satisfies KeyValue;
+export type ThermostatFanMode = keyof typeof fanMode;
 
 export const temperatureDisplayMode: KeyValueNumberString = {
     0: "celsius",
