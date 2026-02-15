@@ -111,8 +111,10 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             };
         }
         if (msg.data.ctrlSeqeOfOper !== undefined) {
-            result[postfixWithEndpointName("control_sequence_of_operation", msg, model, meta)] =
-                constants.thermostatControlSequenceOfOperations[msg.data.ctrlSeqeOfOper];
+            result[postfixWithEndpointName("control_sequence_of_operation", msg, model, meta)] = utils.getFromLookup(
+                msg.data.ctrlSeqeOfOper,
+                constants.thermostatControlSequenceOfOperations,
+            );
         }
         if (msg.data.programingOperMode !== undefined) {
             result[postfixWithEndpointName("programming_operation_mode", msg, model, meta)] =

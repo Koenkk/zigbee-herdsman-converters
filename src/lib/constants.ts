@@ -16,14 +16,15 @@ export const repInterval = {
     SECONDS_5: 5,
 };
 
-export const thermostatControlSequenceOfOperations: KeyValueNumberString = {
+export const thermostatControlSequenceOfOperations = {
     0: "cooling_only",
     1: "cooling_with_reheat",
     2: "heating_only",
     3: "heating_with_reheat",
     4: "cooling_and_heating_4-pipes",
     5: "cooling_and_heating_4-pipes_with_reheat",
-};
+} as const satisfies KeyValueNumberString;
+export type ThermostatControlSequenceOfOperation = (typeof thermostatControlSequenceOfOperations)[keyof typeof thermostatControlSequenceOfOperations];
 
 export const thermostatProgrammingOperationModes: KeyValueNumberString = {
     0: "setpoint",

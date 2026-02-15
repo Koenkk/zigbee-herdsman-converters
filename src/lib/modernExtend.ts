@@ -3207,19 +3207,7 @@ export interface ThermostatArgs {
     temperatureSetpointHold?: true | Omit<ValuesWithModernExtendConfiguration<true>, "values" | "fromZigbee" | "toZigbee">;
     temperatureSetpointHoldDuration?: true;
     endpoint?: string;
-    ctrlSeqeOfOper?: Omit<
-        ValuesWithModernExtendConfiguration<
-            Array<
-                | "cooling_only"
-                | "cooling_with_reheat"
-                | "heating_only"
-                | "heating_with_reheat"
-                | "cooling_and_heating_4-pipes"
-                | "cooling_and_heating_4-pipes_with_reheat"
-            >
-        >,
-        "fromZigbee"
-    >;
+    ctrlSeqeOfOper?: Omit<ValuesWithModernExtendConfiguration<constants.ThermostatControlSequenceOfOperation[]>, "fromZigbee">;
     programmingOperationMode?: Omit<
         ValuesWithModernExtendConfiguration<Array<"setpoint" | "schedule" | "schedule_with_preheat" | "eco">>,
         "fromZigbee"

@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import type {ThermostatRunningMode, ThermostatRunningState, ThermostatSystemMode} from "./constants";
+import type {ThermostatControlSequenceOfOperation, ThermostatRunningMode, ThermostatRunningState, ThermostatSystemMode} from "./constants";
 import type {Access, LevelConfigFeatures, Range} from "./types";
 import {getLabelFromName} from "./utils";
 
@@ -708,18 +708,7 @@ export class Climate extends Base {
         return this;
     }
 
-    withControlSequenceOfOperation(modes: string[], access = a.STATE) {
-        const allowed = [
-            "cooling_only",
-            "cooling_with_reheat",
-            "heating_only",
-            "heating_with_reheat",
-            "cooling_and_heating_4-pipes",
-            "cooling_and_heating_4-pipes_with_reheat",
-        ];
-        modes.forEach((m) => {
-            assert(allowed.includes(m));
-        });
+    withControlSequenceOfOperation(modes: ThermostatControlSequenceOfOperation[], access = a.STATE) {
         this.addFeature(new Enum("control_sequence_of_operation", access, modes).withDescription("Operating environment of the thermostat"));
         return this;
     }
