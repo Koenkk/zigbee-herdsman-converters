@@ -34,11 +34,12 @@ export const thermostatProgrammingOperationModes = {
 } as const satisfies KeyValueNumberString;
 export type ThermostatProgrammingOperationMode = (typeof thermostatProgrammingOperationModes)[keyof typeof thermostatProgrammingOperationModes];
 
-export const thermostatSetpointChangeSource: KeyValueNumberString = {
+export const thermostatSetpointChangeSource = {
     0: "manual",
     1: "schedule",
     2: "externally",
-};
+} as const satisfies KeyValueNumberString;
+export type ThermostatSetpointChangeSource = (typeof thermostatSetpointChangeSource)[keyof typeof thermostatSetpointChangeSource];
 
 export const thermostatSystemModes = {
     0: "off",

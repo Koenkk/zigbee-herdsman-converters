@@ -93,8 +93,10 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             result[postfixWithEndpointName("setpoint_change_amount", msg, model, meta)] = msg.data.setpointChangeAmount / 100;
         }
         if (msg.data.setpointChangeSource !== undefined) {
-            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] =
-                constants.thermostatSetpointChangeSource[msg.data.setpointChangeSource];
+            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] = utils.getFromLookup(
+                msg.data.setpointChangeSource,
+                constants.thermostatSetpointChangeSource,
+            );
         }
         if (msg.data.setpointChangeSourceTimeStamp !== undefined) {
             const date = new Date(2000, 0, 1);

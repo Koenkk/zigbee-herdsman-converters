@@ -6,6 +6,7 @@ import type {
     ThermostatRunningState,
     ThermostatSystemMode,
 } from "./constants";
+import {thermostatSetpointChangeSource} from "./constants";
 import type {Access, LevelConfigFeatures, Range} from "./types";
 import {getLabelFromName} from "./utils";
 
@@ -726,7 +727,9 @@ export class Climate extends Base {
 
     withSetpointChangeSource(access = a.STATE) {
         this.addFeature(
-            new Enum("setpoint_change_source", access, ["manual", "schedule", "externally"]).withDescription("Source of the current setpoint change"),
+            new Enum("setpoint_change_source", access, Object.values(thermostatSetpointChangeSource)).withDescription(
+                "Source of the current setpoint change",
+            ),
         );
         return this;
     }
