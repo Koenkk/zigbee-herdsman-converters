@@ -58,11 +58,12 @@ export const acovaThermostatSystemModes: KeyValueNumberString = {
     4: "away_or_vacation",
 };
 
-export const thermostatRunningMode: KeyValueNumberString = {
+export const thermostatRunningMode = {
     0: "off",
     3: "cool",
     4: "heat",
-};
+} as const satisfies KeyValueNumberString;
+export type ThermostatRunningMode = (typeof thermostatRunningMode)[keyof typeof thermostatRunningMode];
 
 export const thermostatDayOfWeek: KeyValueNumberString = {
     0: "sunday",
