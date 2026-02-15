@@ -2924,6 +2924,98 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [[16, "state", tuya.valueConverter.onOff]],
         },
     },
+	
+	
+	
+	
+	{
+    fingerprint: tuya.fingerprint('TS0601', ['_TZE204_lb0fsvba']),
+    model: 'TS0601_breaker_lb0fsvba',
+    vendor: 'Tuya',
+    description: 'Smart circuit breaker with metering, leakage, and protection settings',
+    fromZigbee: [tuya.fz.datapoints],
+    toZigbee: [tuya.tz.datapoints],
+    configure: tuya.configureMagicPacket,
+    exposes: [
+        e.switch().withDescription('Circuit breaker on/off'),
+        e.voltage(),
+        e.current(),
+        e.power(),
+        e.temperature().withDescription('Device temperature'),
+
+        // Protections: current/voltage/temperature
+        e.binary('over_current_breaker', ea.ALL, 'ON', 'OFF').withDescription('Overcurrent protection enable'),
+        e.numeric('over_current_threshold', ea.ALL).withUnit('mA').withValueMin(100).withValueMax(630)
+            .withDescription('Overcurrent threshold'),
+
+        e.binary('over_voltage_breaker', ea.ALL, 'ON', 'OFF').withDescription('Overvoltage protection enable'),
+        e.numeric('over_voltage_threshold', ea.ALL).withUnit('V').withValueMin(0).withValueMax(999)
+            .withDescription('Overvoltage threshold'),
+
+        e.binary('under_voltage_breaker', ea.ALL, 'ON', 'OFF').withDescription('Undervoltage protection enable'),
+        e.numeric('under_voltage_threshold', ea.ALL).withUnit('V').withValueMin(0).withValueMax(999)
+            .withDescription('Undervoltage threshold'),
+
+        e.binary('high_temperature_breaker', ea.ALL, 'ON', 'OFF').withDescription('Overtemperature protection enable'),
+        e.numeric('high_temperature_threshold', ea.ALL).withUnit('°C').withDescription('Overtemperature threshold'),
+
+        // Leakage
+        e.binary('leakage_breaker', ea.ALL, 'ON', 'OFF').withDescription('Leakage protection enable'),
+        e.numeric('leakage_current_threshold', ea.ALL).withUnit('mA').withValueMin(10).withValueMax(300)
+            .withDescription('Leakage current threshold'),
+        e.numeric('leakage_current', ea.STATE).withUnit('mA').withDescription('Measured residual/leakage current'),
+
+        // Auto reclose + delays
+        e.binary('auto_reclose', ea.ALL, 'ON', 'OFF').withDescription('Automatic reclosing enable'),
+        e.numeric('reclose_delay', ea.ALL).withUnit('s').withValueMin(1).withValueMax(600)
+            .withDescription('Reclosing delay'),
+        e.numeric('overcurrent_delay', ea.ALL).withUnit('s').withDescription('Overcurrent trip delay'),
+        e.numeric('undercurrent_delay', ea.ALL).withUnit('s').withDescription('Loss-of-current delay'),
+
+        // Energy
+        e.numeric('energy_import', ea.STATE).withUnit('kWh').withDescription('Import/forward energy'),
+        e.numeric('energy_export', ea.STATE).withUnit('kWh').withDescription('Export/reverse energy'),
+    ],
+    meta: {
+        tuyaDatapoints: [
+            [6, null, tuya.valueConverter.phaseVariant2],
+            [16, 'state', tuya.valueConverter.onOff],
+            [103, 'temperature', tuya.valueConverter.raw],
+
+            [17, null, tuya.valueConverter.threshold_2],
+            [17, 'high_temperature_threshold', tuya.valueConverter.threshold_2],
+            [17, 'high_temperature_breaker', tuya.valueConverter.threshold_2],
+
+            [18, null, tuya.valueConverter.threshold_3],
+            [18, 'over_current_threshold', tuya.valueConverter.threshold_3],
+            [18, 'over_current_breaker', tuya.valueConverter.threshold_3],
+            [18, 'over_voltage_threshold', tuya.valueConverter.threshold_3],
+            [18, 'over_voltage_breaker', tuya.valueConverter.threshold_3],
+            [18, 'under_voltage_threshold', tuya.valueConverter.threshold_3],
+            [18, 'under_voltage_breaker', tuya.valueConverter.threshold_3],
+
+            [19, null, tuya.valueConverter.threshold_2],
+            [19, 'leakage_current_threshold', tuya.valueConverter.threshold_2],
+            [19, 'leakage_breaker', tuya.valueConverter.threshold_2],
+
+            [20, 'auto_reclose', tuya.valueConverter.onOff],
+            [21, 'reclose_delay', tuya.valueConverter.raw],
+            [22, 'overcurrent_delay', tuya.valueConverter.raw],
+            [23, 'undercurrent_delay', tuya.valueConverter.raw],
+
+            [1, 'energy_import', tuya.valueConverter.divideBy100],
+            [2, 'energy_export', tuya.valueConverter.divideBy100],
+
+            [15, 'leakage_current', tuya.valueConverter.raw],
+        ],
+    },
+},
+
+	
+	
+	
+	
+	
     {
         // Senoro window sensor variant with 3-state opening on DP101.
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6teua268"]),
