@@ -1,5 +1,5 @@
 import assert from "node:assert";
-
+import type {ThermostatSystemMode} from "./constants";
 import type {Access, LevelConfigFeatures, Range} from "./types";
 import {getLabelFromName} from "./utils";
 
@@ -648,11 +648,7 @@ export class Climate extends Base {
         return this;
     }
 
-    withSystemMode(modes: string[], access = a.ALL, description = "Mode of this device") {
-        const allowed = ["off", "heat", "cool", "auto", "dry", "fan_only", "sleep", "emergency_heating"];
-        modes.forEach((m) => {
-            assert(allowed.includes(m));
-        });
+    withSystemMode(modes: ThermostatSystemMode[], access = a.ALL, description = "Mode of this device") {
         this.addFeature(new Enum("system_mode", access, modes).withDescription(description));
         return this;
     }

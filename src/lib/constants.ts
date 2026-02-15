@@ -38,7 +38,7 @@ export const thermostatSetpointChangeSource: KeyValueNumberString = {
     2: "externally",
 };
 
-export const thermostatSystemModes: KeyValueNumberString = {
+export const thermostatSystemModes = {
     0: "off",
     1: "auto",
     3: "cool",
@@ -48,7 +48,8 @@ export const thermostatSystemModes: KeyValueNumberString = {
     7: "fan_only",
     8: "dry",
     9: "sleep",
-};
+} as const satisfies KeyValueNumberString;
+export type ThermostatSystemMode = (typeof thermostatSystemModes)[keyof typeof thermostatSystemModes];
 
 export const acovaThermostatSystemModes: KeyValueNumberString = {
     0: "off",

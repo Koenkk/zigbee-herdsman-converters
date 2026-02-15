@@ -306,7 +306,7 @@ const fzLocal = {
                 result.control_sequence_of_operation = constants.thermostatControlSequenceOfOperations[msg.data.ctrlSeqeOfOper];
             }
             if (msg.data.systemMode !== undefined) {
-                result.system_mode = constants.thermostatSystemModes[msg.data.systemMode];
+                result.system_mode = utils.getFromLookup(msg.data.systemMode, constants.thermostatSystemModes);
             }
             if (msg.data.pIHeatingDemand !== undefined) {
                 result.pi_heating_demand = precisionRound(msg.data.pIHeatingDemand, 0);
