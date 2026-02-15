@@ -210,8 +210,10 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             }
         }
         if (msg.data.acLouverPosition !== undefined) {
-            result[postfixWithEndpointName("ac_louver_position", msg, model, meta)] =
-                constants.thermostatAcLouverPositions[msg.data.acLouverPosition];
+            result[postfixWithEndpointName("ac_louver_position", msg, model, meta)] = utils.getFromLookup(
+                msg.data.acLouverPosition,
+                constants.thermostatAcLouverPositions,
+            );
         }
         return result;
     },

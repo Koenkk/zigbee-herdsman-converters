@@ -1,4 +1,4 @@
-import type {KeyValueAny, KeyValueNumberString, KeyValue} from "./types";
+import type {KeyValue, KeyValueAny, KeyValueNumberString} from "./types";
 
 export const OneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
 
@@ -104,14 +104,15 @@ export const thermostatRunningStates = {
 } as const satisfies KeyValueAny;
 export type ThermostatRunningState = (typeof thermostatRunningStates)[keyof typeof thermostatRunningStates];
 
-export const thermostatAcLouverPositions: KeyValueNumberString = {
+export const thermostatAcLouverPositions = {
     0: "fully_closed",
     1: "fully_closed",
     2: "fully_open",
     3: "quarter_open",
     4: "half_open",
     5: "three_quarters_open",
-};
+} as const satisfies KeyValueNumberString;
+export type ThermostatAcLouverPosition = (typeof thermostatAcLouverPositions)[keyof typeof thermostatAcLouverPositions];
 
 export const thermostatScheduleMode: KeyValueNumberString = {
     0: "heat",

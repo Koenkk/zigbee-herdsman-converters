@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import type {
+    ThermostatAcLouverPosition,
     ThermostatControlSequenceOfOperation,
     ThermostatFanMode,
     ThermostatProgrammingOperationMode,
@@ -731,11 +732,7 @@ export class Climate extends Base {
         return this;
     }
 
-    withAcLouverPosition(positions: string[], access = a.ALL) {
-        const allowed = ["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"];
-        positions.forEach((m) => {
-            assert(allowed.includes(m));
-        });
+    withAcLouverPosition(positions: ThermostatAcLouverPosition[], access = a.ALL) {
         this.addFeature(
             new Enum("ac_louver_position", access, positions).withLabel("AC louver position").withDescription("AC louver position of this device"),
         );
