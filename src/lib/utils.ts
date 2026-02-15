@@ -633,41 +633,41 @@ export const ignoreUnsupportedAttribute = async (func: () => Promise<void>, fail
     }
 };
 
-export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V = undefined, keyIsBool = false): V {
+export function getFromLookup<V>(key: unknown, lookup: Record<string | number, V>, defaultValue: V = undefined, keyIsBool = false): V {
     if (!keyIsBool) {
-        if (typeof value === "string") {
-            for (const key of [value, value.toLowerCase(), value.toUpperCase()]) {
-                if (lookup[key] !== undefined) {
-                    return lookup[key];
+        if (typeof key === "string") {
+            for (const k of [key, key.toLowerCase(), key.toUpperCase()]) {
+                if (lookup[k] !== undefined) {
+                    return lookup[k];
                 }
             }
-        } else if (typeof value === "number") {
-            if (lookup[value] !== undefined) {
-                return lookup[value];
+        } else if (typeof key === "number") {
+            if (lookup[key] !== undefined) {
+                return lookup[key];
             }
         } else {
-            throw new Error(`Expected string or number, got: ${typeof value}`);
+            throw new Error(`Expected string or number, got: ${typeof key}`);
         }
     } else {
         // Silly hack, but boolean is not supported as index
-        if (typeof value === "boolean") {
-            const stringValue = value.toString();
-            for (const key of [stringValue, stringValue.toLowerCase(), stringValue.toUpperCase()]) {
-                if (lookup[key] !== undefined) {
-                    return lookup[key];
+        if (typeof key === "boolean") {
+            const stringKey = key.toString();
+            for (const k of [stringKey, stringKey.toLowerCase(), stringKey.toUpperCase()]) {
+                if (lookup[k] !== undefined) {
+                    return lookup[k];
                 }
             }
         } else {
-            throw new Error(`Expected boolean, got: ${typeof value}`);
+            throw new Error(`Expected boolean, got: ${typeof key}`);
         }
     }
     if (defaultValue === undefined) {
-        throw new Error(`Value: '${value}' not found in: [${Object.keys(lookup).join(", ")}]`);
+        throw new Error(`Key '${key}' not found in: [${Object.keys(lookup).join(", ")}]`);
     }
     return defaultValue;
 }
 
-export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string = undefined): string {
+export function getFromLookupByValue(value: unknown, lookup: Record<string, unknown>, defaultValue: string = undefined): string {
     for (const [key, val] of Object.entries(lookup)) {
         if (val === value) {
             return key;
