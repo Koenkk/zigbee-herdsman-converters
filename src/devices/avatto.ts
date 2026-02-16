@@ -176,13 +176,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-    // Since a lot of Tuya devices use the same modelID, but use different datapoints
-    // it's necessary to provide a fingerprint instead of a zigbeeModel
-    // announced as TRV26 in AVATTO Aliexpress shop (although TRV26 is not a product listed on Avatto official site)
-    fingerprint: [
+        // Since a lot of Tuya devices use the same modelID, but use different datapoints
+        // it's necessary to provide a fingerprint instead of a zigbeeModel
+        // announced as TRV26 in AVATTO Aliexpress shop (although TRV26 is not a product listed on Avatto official site)
+        fingerprint: [
             {
                 modelID: "TS0601",
-                manufacturerName: "_TZE204_xdtnpp1a"  /* model: 'TRV26', vendor: 'AVATTO' */,
+                manufacturerName: "_TZE204_xdtnpp1a" /* model: 'TRV26', vendor: 'AVATTO' */,
             },
         ],
         model: "TS0601",
@@ -196,14 +196,27 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery(),
             e.child_lock(),
-            e.numeric("max_temperature_limit", ea.STATE_SET).withUnit("°C").withDescription("Max temperature limit").withValueMin(15).withValueMax(35).withValueStep(0.5),
-            e.numeric("min_temperature_limit", ea.STATE_SET).withUnit("°C").withDescription("Min temperature limit").withValueMin(5).withValueMax(15).withValueStep(0.5),
+            e
+                .numeric("max_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Max temperature limit")
+                .withValueMin(15)
+                .withValueMax(35)
+                .withValueStep(0.5),
+            e
+                .numeric("min_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Min temperature limit")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(0.5),
             e.window_detection(),
             e.open_window_temperature().withValueMin(5).withValueMax(20),
             e.comfort_temperature().withValueMin(5).withValueMax(25),
             e.eco_temperature().withValueMin(5).withValueMax(20),
             e.holiday_temperature().withValueMin(5).withValueMax(25),
-            e.climate()
+            e
+                .climate()
                 .withPreset(["auto", "manual", "holiday", "comfort", "o", "antifrost"])
                 .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
@@ -218,13 +231,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .binary("scale_protection", ea.STATE_SET, "ON", "OFF")
                 .withDescription(
                     "To ensure normal use of the thermostat, the controller will automatically open the valve fully every " +
-                    '1000 hours. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
-                    "again.",
+                        '1000 hours. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
+                        "again.",
                 ),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "06:00/21.5 17:20/26 20:00/21 24:00/18").map((text) => text.withCategory("config")),
             e.binary("factory_reset", ea.STATE_SET, "ON", "OFF").withDescription("Back to factory settings, USE WITH CAUTION"),
             e.numeric("uptime", ea.STATE).withLabel("Uptime").withUnit("h"),
-            e.numeric("descale_countdown", ea.STATE).withLabel("Descale Countdown").withUnit('h'),
+            e.numeric("descale_countdown", ea.STATE).withLabel("Descale Countdown").withUnit("h"),
             tuya.exposes.errorStatus(),
         ],
         meta: {
@@ -283,7 +296,7 @@ export const definitions: DefinitionWithExtend[] = [
                 //[37, 'boost_time', tuya.valueConverter.raw],
                 //[38, 'boost_timeset_countdown', tuya.valueConverter.countdown],
                 [39, "scale_protection", tuya.valueConverter.raw],
-                [47, 'local_temperature_calibration', tuya.valueConverter.localTempCalibration1],
+                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
                 //[48, 'valve_testing', tuya.valueConverter.raw],
                 //[49, "valve", tuya.valueConverter.trueFalseEnum0],
                 [101, "uptime", tuya.valueConverter.divideBy10],
