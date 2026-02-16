@@ -416,44 +416,58 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ENGO",
         description: "Zigbee smart thermostat",
         options: [
-            e.binary("expose_device_state", ea.SET, true, false)
+            e
+                .binary("expose_device_state", ea.SET, true, false)
                 .withDescription("Expose device power state as a separate property when enabled. Restart z2m after changing this setting."),
         ],
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: (device, options) => {
-    		const exposesList = [
-    			e.climate()
-    				.withSystemMode(["off", "heat", "cool"], ea.STATE_SET)
-    				.withSetpoint('current_heating_setpoint', 5, 45, 0.5, ea.STATE_SET)
-    				.withLocalTemperature(ea.STATE)
-    				.withLocalTemperatureCalibration(-3.5, 3.5, 0.5, ea.STATE_SET)
-    				.withRunningState(['idle', 'heat', 'cool'], ea.STATE)
-    				.withPreset(['manual', 'schedule', 'frost']),
-    			e.numeric('backlight', ea.STATE_SET).withUnit('%').withDescription('Backlight brightness'),
-    			e.enum('sensor_error', ea.STATE, ['Normal', 'E1', 'E2']),
-    			e.child_lock(),
-    			e.enum('relay_mode', ea.STATE_SET, ['NO', 'NC', 'OFF']),
-    			e.enum('sensor_choose', ea.STATE_SET, ['internal', 'all', 'external']),
-    			e.enum('control_algorithm', ea.STATE_SET, ['TPI_UFH', 'TPI_RAD', 'TPI_ELE', 'HIS_04', 'HIS_08', 'HIS_12', 'HIS_16', 'HIS_20', 'HIS_30', 'HIS_40']),
-    			e.numeric('frost_set', ea.STATE_SET).withUnit('°C').withValueMin(5).withValueMax(17).withValueStep(0.5),
-    			e.binary('valve_protection', ea.STATE_SET, 'ON', 'OFF').withDescription("Prevents valve blockage during long periods of inactivity."),
-    			e.enum('comfort_warm_floor', ea.STATE_SET, ['OFF', 'LEVEL1', 'LEVEL2', 'LEVEL3', 'LEVEL4', 'LEVEL5'])
-    				.withDescription("Automatically warms the floor every 60 minutes for 7, 11, 15, 19 or 23 minutes according to the level number."),
-    			e.max_temperature().withValueMin(5).withValueMax(45),
-    			e.min_temperature().withValueMin(6).withValueMax(45),
-    			e.text('schedule_monday', ea.STATE_SET),
-    			e.text('schedule_tuesday', ea.STATE_SET),
-    			e.text('schedule_wednesday', ea.STATE_SET),
-    			e.text('schedule_thursday', ea.STATE_SET),
-    			e.text('schedule_friday', ea.STATE_SET),
-    			e.text('schedule_saturday', ea.STATE_SET),
-    			e.text('schedule_sunday', ea.STATE_SET),
-    		];
-    		if (options?.expose_device_state === true) {
-    			exposesList.unshift(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON or OFF"));
-    		}
-    		return exposesList;
-    	},
+            const exposesList = [
+                e
+                    .climate()
+                    .withSystemMode(["off", "heat", "cool"], ea.STATE_SET)
+                    .withSetpoint("current_heating_setpoint", 5, 45, 0.5, ea.STATE_SET)
+                    .withLocalTemperature(ea.STATE)
+                    .withLocalTemperatureCalibration(-3.5, 3.5, 0.5, ea.STATE_SET)
+                    .withRunningState(["idle", "heat", "cool"], ea.STATE)
+                    .withPreset(["manual", "schedule", "frost"]),
+                e.numeric("backlight", ea.STATE_SET).withUnit("%").withDescription("Backlight brightness"),
+                e.enum("sensor_error", ea.STATE, ["Normal", "E1", "E2"]),
+                e.child_lock(),
+                e.enum("relay_mode", ea.STATE_SET, ["NO", "NC", "OFF"]),
+                e.enum("sensor_choose", ea.STATE_SET, ["internal", "all", "external"]),
+                e.enum("control_algorithm", ea.STATE_SET, [
+                    "TPI_UFH",
+                    "TPI_RAD",
+                    "TPI_ELE",
+                    "HIS_04",
+                    "HIS_08",
+                    "HIS_12",
+                    "HIS_16",
+                    "HIS_20",
+                    "HIS_30",
+                    "HIS_40",
+                ]),
+                e.numeric("frost_set", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(17).withValueStep(0.5),
+                e.binary("valve_protection", ea.STATE_SET, "ON", "OFF").withDescription("Prevents valve blockage during long periods of inactivity."),
+                e
+                    .enum("comfort_warm_floor", ea.STATE_SET, ["OFF", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"])
+                    .withDescription("Automatically warms the floor every 60 minutes for 7, 11, 15, 19 or 23 minutes according to the level number."),
+                e.max_temperature().withValueMin(5).withValueMax(45),
+                e.min_temperature().withValueMin(6).withValueMax(45),
+                e.text("schedule_monday", ea.STATE_SET),
+                e.text("schedule_tuesday", ea.STATE_SET),
+                e.text("schedule_wednesday", ea.STATE_SET),
+                e.text("schedule_thursday", ea.STATE_SET),
+                e.text("schedule_friday", ea.STATE_SET),
+                e.text("schedule_saturday", ea.STATE_SET),
+                e.text("schedule_sunday", ea.STATE_SET),
+            ];
+            if (options?.expose_device_state === true) {
+                exposesList.unshift(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON or OFF"));
+            }
+            return exposesList;
+        },
         meta: {
             tuyaDatapoints: [
                 [
