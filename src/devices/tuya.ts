@@ -2971,8 +2971,8 @@ export const definitions: DefinitionWithExtend[] = [
             // Auto reclose + delays
             e.binary("auto_reclose", ea.ALL, "ON", "OFF").withDescription("Automatic reclosing enable"),
             e.numeric("reclose_delay", ea.ALL).withUnit("s").withValueMin(1).withValueMax(600).withDescription("Reclosing delay"),
-            e.numeric("overcurrent_delay", ea.ALL).withUnit("s").withDescription("Overcurrent trip delay"),
-            e.numeric("undercurrent_delay", ea.ALL).withUnit("s").withDescription("Loss-of-current delay"),
+            e.numeric("overcurrent_delay", ea.ALL).withUnit("s").withValueMin(0).withValueMax(600).withDescription("Overcurrent trip delay"),
+            e.numeric("undercurrent_delay", ea.ALL).withUnit("s").withValueMin(0).withValueMax(600).withDescription("Loss-of-current delay"),
 
             // Energy
             e.numeric("energy_import", ea.STATE).withUnit("kWh").withDescription("Import/forward energy"),
