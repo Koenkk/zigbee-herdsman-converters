@@ -1,5 +1,23 @@
 # Changelog
 
+## [26.6.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.5.0...v26.6.0) (2026-02-15)
+
+
+### Features
+
+* **add:** TS0203-z-Sld ([#11534](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11534)) ([b28a261](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b28a2610e0808b2d5098cbfa0b773a80f31482fa))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_glk6viwg` as ENGO E40 ([#11529](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11529)) ([2d9ac27](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2d9ac27003b5d1ffb782381b9dc111abda37932f))
+* **ignore:** Shelly WS90: use string attribute names for custom cluster sensors ([#11519](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11519)) ([b99aaca](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b99aacac5653cb2a67989cec97c964ae2c9617b6))
+* LiXee ZLinky: reduce poll chunk size default (4→2) ([#11536](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11536)) ([bd4e26c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bd4e26cca081cbe74689a1d53190cc674e2ea466))
+* Shelly SBBT-104CUS and SBBT-004CEU: fix no `action` https://github.com/Koenkk/zigbee2mqtt/issues/30941 ([7b1a978](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7b1a978796617ab017cf701edbf61d2e9dfae1da))
+* Tuya TS0601_water_meter: refactor fault handling ([#11515](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11515)) ([60c7fac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/60c7fac6827c63ca47eddc8c7a82be8bb479a08e))
+* Tuya TS0726: add additional fingerprints ([#11535](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11535)) ([a227127](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a22712787014bccc25490fe3216cb9fb35de5d70))
+* Tuya: fix `read`/`write` not working https://github.com/Koenkk/zigbee2mqtt/discussions/28245 ([83daa88](https://github.com/Koenkk/zigbee-herdsman-converters/commit/83daa88e61db3432a4891cc152b3860c6c01008c))
+
 ## [26.5.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.4.0...v26.5.0) (2026-02-13)
 
 

@@ -1854,25 +1854,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("report_period", ea.STATE_SET, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"]).withDescription("Report period"),
             e.text("meter_id", ea.STATE).withDescription("Meter identification number"),
             e.temperature(),
-            e.voltage(),
-            e
-                .enum("fault", ea.STATE, [
-                    "no_fault",
-                    "battery_alarm",
-                    "magnetism_alarm",
-                    "cover_alarm",
-                    "credit_alarm",
-                    "switch_gaps_alarm",
-                    "meter_body_alarm",
-                    "abnormal_water_alarm",
-                    "arrearage_alarm",
-                    "overflow_alarm",
-                    "revflow_alarm",
-                    "over_pre_alarm",
-                    "empty_pipe_alarm",
-                    "transducer_alarm",
-                ])
-                .withDescription("Fault status"),
+            e.battery_voltage(),
+            e.text("faults", ea.STATE).withDescription("Active fault status"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1947,23 +1930,39 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [
                     5,
-                    "fault",
-                    tuya.valueConverterBasic.lookup({
-                        0: "no_fault",
-                        1: "battery_alarm",
-                        2: "magnetism_alarm",
-                        4: "cover_alarm",
-                        8: "credit_alarm",
-                        16: "switch_gaps_alarm",
-                        32: "meter_body_alarm",
-                        64: "abnormal_water_alarm",
-                        128: "arrearage_alarm",
-                        256: "overflow_alarm",
-                        512: "revflow_alarm",
-                        1024: "over_pre_alarm",
-                        2048: "empty_pipe_alarm",
-                        4096: "transducer_alarm",
-                    }),
+                    "faults",
+                    {
+                        from: (value, meta) => {
+                            const faults = [];
+                            const faultMap = {
+                                1: "battery_alarm",
+                                2: "magnetism_alarm",
+                                4: "cover_alarm",
+                                8: "credit_alarm",
+                                16: "switch_gaps_alarm",
+                                32: "meter_body_alarm",
+                                64: "abnormal_water_alarm",
+                                128: "arrearage_alarm",
+                                256: "overflow_alarm",
+                                512: "revflow_alarm",
+                                1024: "over_pre_alarm",
+                                2048: "empty_pipe_alarm",
+                                4096: "transducer_alarm",
+                            };
+
+                            if (value === 0) {
+                                return "";
+                            }
+
+                            for (const [bit, name] of Object.entries(faultMap)) {
+                                if (value & Number.parseInt(bit)) {
+                                    faults.push(name);
+                                }
+                            }
+                            // Return as comma-separated string
+                            return faults.join(",");
+                        },
+                    },
                 ],
                 [16, "meter_id", tuya.valueConverter.raw],
                 [
@@ -1985,7 +1984,7 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                 ],
                 [22, "temperature", tuya.valueConverter.divideBy100],
-                [26, "voltage", tuya.valueConverter.divideBy100],
+                [26, "battery_voltage", tuya.valueConverter.divideBy100],
             ],
         },
         options: [
@@ -20685,7 +20684,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_5kxl9esg", "_TZ3002_jn2x20tg"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_5kxl9esg", "_TZ3002_jn2x20tg", "_TZ300A_rncj86af"]),
         model: "TS0726_1_gang_scene_switch",
         vendor: "Tuya",
         description: "1 gang switch with scene and backlight",
@@ -20707,7 +20706,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_ezqbvrqz", "_TZ3002_ymv5vytn", "_TZ3002_6ahhkwyh", "_TZ3002_zjuvw9zf", "_TZ3002_a4kvf6zd"]),
+        fingerprint: tuya.fingerprint("TS0726", [
+            "_TZ3000_ezqbvrqz",
+            "_TZ3002_ymv5vytn",
+            "_TZ3002_6ahhkwyh",
+            "_TZ3002_zjuvw9zf",
+            "_TZ3002_a4kvf6zd",
+            "_TZ300A_ohjmifiz",
+        ]),
         model: "TS0726_2_gang_scene_switch",
         vendor: "Tuya",
         description: "2 gang switch with scene and backlight",
@@ -20736,7 +20742,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_noru9tix", "_TZ3002_rbnycsav", "_TZ3002_kq3kqwjt", "_TZ3002_ybtqbyk3", "_TZ3002_iedhxgyi"]),
+        fingerprint: tuya.fingerprint("TS0726", [
+            "_TZ3000_noru9tix",
+            "_TZ3002_rbnycsav",
+            "_TZ3002_kq3kqwjt",
+            "_TZ3002_ybtqbyk3",
+            "_TZ3002_iedhxgyi",
+            "_TZ300A_vqrs45nj",
+        ]),
         model: "TS0726_3_gang_scene_switch",
         vendor: "Tuya",
         description: "3 gang switch with scene and backlight",
@@ -20765,7 +20778,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_rsylfthg", "_TZ3002_umdkr64x", "_TZ3002_hkaktryd", "_TZ3002_pzao9ls1"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_rsylfthg", "_TZ3002_umdkr64x", "_TZ3002_hkaktryd", "_TZ3002_pzao9ls1", "_TZ300A_vkflnsl0"]),
         model: "TS0726_4_gang_scene_switch",
         vendor: "Tuya",
         description: "4 gang switch with scene and backlight",

@@ -1917,7 +1917,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(1)
                 .withDescription(
                     "Number of attributes requested from the ZLinky in each poll to reduce Zigbee network load. " +
-                        "Requesting too many at once may exceed the device's limit and cause read errors. Requires Z2M restart. Default: 4.",
+                        "Requesting too many at once may exceed the device's limit and cause read errors. Requires Z2M restart. Default: 2.",
                 ),
             e
                 .text("tic_command_whitelist", ea.SET)
@@ -2017,7 +2017,7 @@ export const definitions: DefinitionWithExtend[] = [
                     ),
                 poll: async (device, options) => {
                     const endpoint = device.getEndpoint(1);
-                    const measurement_poll_chunk = options?.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
+                    const measurement_poll_chunk = options?.measurement_poll_chunk ? options.measurement_poll_chunk : 2;
                     utils.assertNumber(measurement_poll_chunk);
                     const currentExposes = getCurrentConfig(device, options).filter(
                         (e) => !endpoint.configuredReportings.some((r) => r.cluster.name === e.cluster && r.attribute.name === e.att),
