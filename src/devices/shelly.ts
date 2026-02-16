@@ -1258,6 +1258,12 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.one_button_events],
         exposes: [e.action(["single", "double", "triple"])],
         extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}), m.identify()],
+        version: "0.0.1",
+        configure: async (device, coordinatorEndpoint, definition) => {
+            for (const endpoint of device.endpoints) {
+                await endpoint.bind("genOnOff", coordinatorEndpoint);
+            }
+        },
     },
     {
         fingerprint: [{modelID: "BLU RC Button 4 ZB", manufacturerName: "Shelly"}],
