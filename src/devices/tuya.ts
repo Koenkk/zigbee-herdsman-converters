@@ -13471,28 +13471,40 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Fan Dimmer and 1 Gang Light Switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            exposes.numeric('fan_speed', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%').withDescription('Speed of the fan %'),
-            e.power_on_behavior(['off', 'on', 'previous']).withAccess(ea.STATE_SET),
+            exposes
+                .numeric("fan_speed", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Speed of the fan %"),
+            e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET),
             e.binary("light_switch", ea.STATE_SET, "ON", "OFF").withDescription("Light switch"),
-            e.enum('indicator', ea.ALL, ['off', 'off/on', 'on']).withDescription('LED indicator mode').withAccess(ea.STATE_SET),
-            exposes.binary('child_lock', ea.STATE_SET, 'ON', 'OFF').withDescription('Child Lock'),
-            exposes.numeric('minimum_speed', ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withUnit('%').withDescription('Vitesse minimale du ventilateur'),
+            e.enum("indicator", ea.ALL, ["off", "off/on", "on"]).withDescription("LED indicator mode").withAccess(ea.STATE_SET),
+            exposes.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
+            exposes
+                .numeric("minimum_speed", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Vitesse minimale du ventilateur"),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverter.onOff],
-                [4, 'fan_speed', tuya.valueConverter.raw],
-                [5, 'light_switch', tuya.valueConverter.onOff],
-                [11, 'power_on_behavior', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'on': tuya.enum(1), 'previous': tuya.enum(2)})],
-                [12, 'indicator', tuya.valueConverterBasic.lookup({'off': tuya.enum(0), 'off/on': tuya.enum(1), 'on': tuya.enum(2)})],
-                [13, 'backlight', tuya.valueConverter.onOff],
-                [104, 'child_lock', tuya.valueConverter.onOff],
-                [105, 'minimum_speed', tuya.valueConverter.raw],
+                [1, "state", tuya.valueConverter.onOff],
+                [4, "fan_speed", tuya.valueConverter.raw],
+                [5, "light_switch", tuya.valueConverter.onOff],
+                [11, "power_on_behavior", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1), previous: tuya.enum(2)})],
+                [12, "indicator", tuya.valueConverterBasic.lookup({off: tuya.enum(0), "off/on": tuya.enum(1), on: tuya.enum(2)})],
+                [13, "backlight", tuya.valueConverter.onOff],
+                [104, "child_lock", tuya.valueConverter.onOff],
+                [105, "minimum_speed", tuya.valueConverter.raw],
             ],
         },
         whiteLabel: [
             {vendor: "Coswall", model: "X99-G-kbFan-1g-ZG-LN-11"},
-            {vendor: "Zemismart", model: "ZN2S-RS1E-FL / ZN2S-US1U-FL"}
+            {vendor: "Zemismart", model: "ZN2S-RS1E-FL / ZN2S-US1U-FL"},
         ],
     },
     {
