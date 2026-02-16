@@ -287,16 +287,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ['SonomaStyle'],
-        model: 'SonomaStyle',
-        vendor: 'Stelpro',
-        description: 'Sonoma Style Fan Heater',
+        zigbeeModel: ["SonomaStyle"],
+        model: "SonomaStyle",
+        vendor: "Stelpro",
+        description: "Sonoma Style Fan Heater",
         extend: [],
         meta: {},
-        fromZigbee: [
-            fz.stelpro_thermostat,
-            fz.hvac_user_interface
-        ],
+        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -307,36 +304,36 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_running_state,
         ],
         exposes: [
-                e.local_temperature(),
-                e.keypad_lockout(),
-                e
-                    .climate()
-                    .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5)
-                    .withLocalTemperature()
-                    .withSystemMode(['off', 'auto', 'heat'])
-                    .withRunningState(['idle', 'heat'])
-                    .withPiHeatingDemand(),
-            ],
-            configure: async (device, coordinatorEndpoint) => {
-                const endpoint = device.getEndpoint(25);
-                const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'msTemperatureMeasurement'];
-                await reporting.bind(endpoint, coordinatorEndpoint, binds);
-                // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Ki
-                await reporting.thermostatTemperature(endpoint);
-                await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-                await reporting.thermostatSystemMode(endpoint);
-                await reporting.thermostatPIHeatingDemand(endpoint);
-                await reporting.thermostatKeypadLockMode(endpoint);
-                // cluster 0x0201 attribute 0x401c
-                await endpoint.configureReporting('hvacThermostat', [
-                    {
-                        attribute: 'StelproSystemMode',
-                        minimumReportInterval: constants.repInterval.MINUTE,
-                        maximumReportInterval: constants.repInterval.HOUR,
-                        reportableChange: 1,
-                    },
-              ]);
-         },
+            e.local_temperature(),
+            e.keypad_lockout(),
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(["off", "auto", "heat"])
+                .withRunningState(["idle", "heat"])
+                .withPiHeatingDemand(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(25);
+            const binds = ["genBasic", "genIdentify", "genGroups", "hvacThermostat", "hvacUserInterfaceCfg", "msTemperatureMeasurement"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            // Those exact parameters (min/max/change) are required for reporting to work with Stelpro Ki
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
+            // cluster 0x0201 attribute 0x401c
+            await endpoint.configureReporting("hvacThermostat", [
+                {
+                    attribute: "StelproSystemMode",
+                    minimumReportInterval: constants.repInterval.MINUTE,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 1,
+                },
+            ]);
+        },
     },
     {
         zigbeeModel: ["SMT402AD"],
