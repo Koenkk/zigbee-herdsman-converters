@@ -1,20 +1,18 @@
 import {describe, expect, test} from "vitest";
-import type {Models as ZHModels} from "zigbee-herdsman";
 import {Zcl} from "zigbee-herdsman";
 import {findByDevice, generateExternalDefinitionSource} from "../src";
 import * as fz from "../src/converters/fromZigbee";
 import {repInterval} from "../src/lib/constants";
-import type {Definition} from "../src/lib/types";
 import {type AssertDefinitionArgs, assertDefinition, mockDevice, reportingItem} from "./utils";
 
 const assertGeneratedDefinition = async (args: AssertDefinitionArgs & {externalDefinitionSource?: string}) => {
-    const getDefinition = async (device: ZHModels.Device): Promise<Definition> => findByDevice(device, true);
-    const definition = await getDefinition(args.device);
+    const definition = await findByDevice(args.device, true);
     expect(definition.model).toEqual(args.device.modelID);
     if (args.externalDefinitionSource) {
         expect((await generateExternalDefinitionSource(args.device)).trim()).toEqual(args.externalDefinitionSource.trim());
     }
-    return await assertDefinition({findByDeviceFn: getDefinition, ...args});
+    // prevent unnecessary duplicate call to `findByDevice` by passing already retrieved definition
+    return await assertDefinition({findByDeviceFn: () => Promise.resolve(definition), ...args});
 };
 
 describe("GenerateDefinition", () => {
@@ -165,7 +163,7 @@ export default {
             endpoints: {"1": 1, "2": 2},
             fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off],
             toZigbee: ["temperature", "state", "on_time", "off_wait_time"],
-            exposes: ["switch(state)", "temperature", "temperature"],
+            exposes: ["switch(state)", "temperature_1", "temperature_2"],
             bind: {1: ["msTemperatureMeasurement", "genOnOff"], 2: ["msTemperatureMeasurement"]},
             read: {
                 1: [
@@ -475,6 +473,159 @@ export default {
     extend: [m.onOff({"powerOnBehavior":false}), m.electricityMeter()],
 };
             `,
+        });
+    });
+
+    test("Electricity DC meter", async () => {
+        const attributes = {
+            haElectricalMeasurement: {
+                measurementType: 1 << 6,
+                dcPowerDivisor: 10000,
+                dcPowerMultiplier: 1,
+                dcCurrentDivisor: 1000,
+                dcCurrentMultiplier: 1,
+                dcVoltageDivisor: 100,
+                dcVoltageMultiplier: 1,
+            },
+        };
+
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "dc",
+                endpoints: [{ID: 2, inputClusters: ["haElectricalMeasurement"], attributes}],
+            }),
+            meta: undefined,
+            fromZigbee: [fz.electrical_measurement],
+            toZigbee: ["voltage", "current", "power"],
+            exposes: ["current_2", "power_2", "voltage_2"],
+            bind: {2: ["haElectricalMeasurement"]},
+            read: {
+                2: [
+                    ["haElectricalMeasurement", ["dcPowerDivisor", "dcPowerMultiplier"]],
+                    ["haElectricalMeasurement", ["dcVoltageDivisor", "dcVoltageMultiplier"]],
+                    ["haElectricalMeasurement", ["dcCurrentDivisor", "dcCurrentMultiplier"]],
+                    ["haElectricalMeasurement", ["dcPower", "dcVoltage", "dcCurrent"]],
+                ],
+            },
+            configureReporting: {
+                2: [
+                    [
+                        "haElectricalMeasurement",
+                        [
+                            reportingItem("dcPower", 10, 65000, 1000),
+                            reportingItem("dcVoltage", 10, 65000, 10),
+                            reportingItem("dcCurrent", 10, 65000, 100),
+                        ],
+                    ],
+                ],
+            },
+            externalDefinitionSource: `
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
+
+export default {
+    zigbeeModel: ['dc'],
+    model: 'dc',
+    vendor: '',
+    description: 'Automatically generated definition',
+    extend: [m.electricityMeter({"cluster":"electrical","electricalMeasurementType":"dc","endpointNames":["2"]})],
+};
+            `,
+        });
+    });
+
+    test("input(genBinaryInput), output(genBinaryOutput, genAnalogOutput)", async () => {
+        const attr10 = {
+            genBinaryInput: {
+                description: "my_binary_name",
+            },
+            genAnalogOutput: {
+                description: "my_output_name",
+                applicationType: 0,
+                engineeringUnits: 62,
+                minPresentValue: 0.0,
+                maxPresentValue: 30.0,
+                resolution: 0.1,
+                presentValue: 15.0,
+            },
+        };
+
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "temp",
+                endpoints: [
+                    {ID: 10, inputClusters: ["genBinaryInput", "genBinaryOutput", "genAnalogOutput"], outputClusters: [], attributes: attr10},
+                ],
+            }),
+            meta: undefined,
+            fromZigbee: [
+                expect.objectContaining({cluster: "genBinaryInput"}),
+                expect.objectContaining({cluster: "genBinaryOutput"}),
+                expect.objectContaining({cluster: "genAnalogOutput"}),
+            ],
+            toZigbee: ["my_binary_name", "binary_output_10", "my_output_name"],
+            exposes: ["binary_output_10", "my_binary_name", "my_output_name"],
+            bind: {10: ["genBinaryInput", "genBinaryOutput", "genAnalogOutput"]},
+            read: {
+                10: [
+                    ["genBinaryOutput", ["description"], {sendPolicy: "immediate", disableRecovery: true}],
+                    ["genBinaryInput", ["presentValue"]],
+                    ["genBinaryOutput", ["presentValue"]],
+                    ["genAnalogOutput", ["presentValue"]],
+                ],
+            },
+            configureReporting: {
+                10: [
+                    ["genBinaryInput", [reportingItem("presentValue", 0, 65000, 1)]],
+                    ["genBinaryOutput", [reportingItem("presentValue", 0, 65000, 1)]],
+                    ["genAnalogOutput", [reportingItem("presentValue", 0, 65000, 1)]],
+                ],
+            },
+        });
+    });
+
+    test("input(genAnalogInput), x2 endpoints", async () => {
+        const attr10 = {
+            genAnalogInput: {
+                description: "my_custom_name",
+                applicationType: 0,
+                engineeringUnits: 62,
+                minPresentValue: 0.0,
+                maxPresentValue: 30.0,
+                resolution: 0.1,
+                presentValue: 15.0,
+            },
+        };
+
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "temp",
+                endpoints: [
+                    {ID: 10, inputClusters: ["genAnalogInput"], outputClusters: [], attributes: attr10},
+                    {ID: 11, inputClusters: ["genAnalogInput"], outputClusters: []},
+                ],
+            }),
+            meta: {multiEndpoint: true},
+            fromZigbee: [expect.objectContaining({cluster: "genAnalogInput"}), expect.objectContaining({cluster: "genAnalogInput"})],
+            toZigbee: ["my_custom_name", "analog_input"],
+            exposes: ["analog_input_11", "my_custom_name_10"],
+            bind: {10: ["genAnalogInput"], 11: ["genAnalogInput"]},
+            read: {
+                10: [["genAnalogInput", ["presentValue"]]],
+                11: [
+                    ["genAnalogInput", ["description"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["applicationType"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["engineeringUnits"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["minPresentValue"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["maxPresentValue"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["resolution"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["presentValue"]],
+                ],
+            },
+            configureReporting: {
+                10: [["genAnalogInput", [reportingItem("presentValue", 0, 65000, 1)]]],
+                11: [["genAnalogInput", [reportingItem("presentValue", 0, 65000, 1)]]],
+            },
+            endpoints: {"10": 10, "11": 11},
         });
     });
 });

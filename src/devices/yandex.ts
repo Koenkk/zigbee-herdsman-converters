@@ -32,6 +32,7 @@ interface Yandex {
         interlock: {value: number};
         buttonMode: {value: number};
         displayFlip: {value: boolean};
+        windowDetection: {value: boolean};
     };
     commandResponses: never;
 }
@@ -171,6 +172,10 @@ function YandexCluster(manufacturerCode: number): ModernExtend {
             },
             displayFlip: {
                 ID: 0x09,
+                parameters: [{name: "value", type: Zcl.DataType.BOOLEAN}],
+            },
+            windowDetection: {
+                ID: 0x0a,
                 parameters: [{name: "value", type: Zcl.DataType.BOOLEAN}],
             },
         },
@@ -443,13 +448,12 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 endpointName: "1",
             }),
-            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
+            m.binary<"manuSpecificYandex", Yandex>({
                 name: "led_indicator",
                 cluster: "manuSpecificYandex",
                 attribute: "ledIndicator",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                setCommand: "ledIndicator",
                 zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Led indicator",
                 entityCategory: "config",
@@ -519,13 +523,12 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 endpointName: "2",
             }),
-            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
+            m.binary<"manuSpecificYandex", Yandex>({
                 name: "led_indicator",
                 cluster: "manuSpecificYandex",
                 attribute: "ledIndicator",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                setCommand: "ledIndicator",
                 zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Led indicator",
                 entityCategory: "config",
@@ -578,6 +581,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YNDX-00518",
         vendor: "Yandex",
         description: "Thermostatic radiator valve",
+        ota: true,
         extend: [
             YandexCluster(manufacturerCodeNew),
             YandexThermostatCluster(manufacturerCodeNew),
@@ -627,11 +631,12 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 zigbeeCommandOptions: {manufacturerCode: manufacturerCodeNew},
             }),
-            m.binary<"manuSpecificYandex", Yandex>({
+            binaryWithSetCommand<"manuSpecificYandex", Yandex>({
                 name: "window_detection",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "manuSpecificYandex",
+                setCommand: "windowDetection",
                 attribute: "windowDetection",
                 description: "Enables/disables window detection on the device",
                 access: "ALL",
@@ -668,6 +673,54 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "OFF if calibration needs to be performed",
                 entityCategory: "config",
                 reporting: {min: 0, max: 3600, change: 0},
+            }),
+            m.battery({
+                voltage: true,
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["YNDX-00591", "YNDX-00592"],
+        model: "YNDX-00591",
+        vendor: "Yandex",
+        description: "Window cover",
+        ota: true,
+        extend: [
+            m.windowCovering({
+                controls: ["lift"],
+                configureReporting: true,
+                coverMode: true,
+                coverInverted: false,
+            }),
+            m.enumLookup({
+                name: "velocity",
+                lookup: {slow: 6, normal: 9, fast: 12},
+                cluster: "closuresWindowCovering",
+                attribute: "velocityLift",
+                description: "Velocity",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "max_position",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "closuresWindowCovering",
+                attribute: {ID: 0xf001, type: Zcl.DataType.UINT8},
+                description: "Max position",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeNew},
+            }),
+            m.numeric({
+                name: "min_position",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "closuresWindowCovering",
+                attribute: {ID: 0xf002, type: Zcl.DataType.UINT8},
+                description: "Min position",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeNew},
             }),
         ],
     },

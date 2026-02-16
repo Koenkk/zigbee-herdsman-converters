@@ -56,12 +56,17 @@ const valueConverterLocal = {
         to: (v: string, meta: Tz.Meta) => {
             const stringValue = String(v ?? "");
             const limitedString = stringValue.slice(0, 12);
-            return limitedString.split("").map((char) => char.charCodeAt(0));
+            const encoder = new TextEncoder();
+            const uint8Array = encoder.encode(limitedString);
+            const numberArray = Array.from(uint8Array);
+            return numberArray;
         },
         from: (v: number, meta: Fz.Meta) => {
-            return Object.values(v)
-                .map((code) => String.fromCharCode(code))
-                .join("");
+            const data = Object.values(v);
+            const uint8Array = new Uint8Array(data);
+            const decoder = new TextDecoder("utf-8");
+            const decodedString = decoder.decode(uint8Array);
+            return decodedString;
         },
     },
     cycleSchedule: {
@@ -458,7 +463,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3ctwoaip", "_TZE204_3ctwoaip"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3ctwoaip", "_TZE204_3ctwoaip", "_TZE284_dmckrsxg"]),
         model: "ZMS-206EU-2",
         vendor: "Zemismart",
         description: "Smart screen switch 2 gang",
@@ -778,6 +783,54 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_a2teqi5u"]),
+        model: "ZMS-208US-2",
+        vendor: "Zemismart",
+        description: "Smart screen switch 2 gang",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch(),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.child_lock(),
+            e.text("name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Switch 1"),
+            e.text("name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Switch 2"),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l1")
+                .withDescription("Countdown for Switch 1")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withEndpoint("l2")
+                .withDescription("Countdown for Switch 2")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, "state_l2", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [7, "countdown_l1", tuya.valueConverter.raw],
+                [8, "countdown_l2", tuya.valueConverter.raw],
+                [13, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [24, "test_bit", tuya.valueConverter.raw],
+                [101, "child_lock", tuya.valueConverter.lockUnlock],
+                [105, "name_l1", valueConverterLocal.name],
+                [106, "name_l2", valueConverterLocal.name],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_xvywzhmi"]),
         model: "ZMS-208US-3",
         vendor: "Zemismart",
@@ -926,6 +979,44 @@ export const definitions: DefinitionWithExtend[] = [
                         remove_top_bottom: tuya.enum(4),
                     }),
                 ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6hrnp30w"]),
+        model: "ZMP1",
+        vendor: "Zemismart",
+        description: "Blind driver",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.text("work_state", ea.STATE),
+            e.battery(),
+            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup((options) =>
+                        options.invert_cover
+                            ? {OPEN: tuya.enum(2), STOP: tuya.enum(1), CLOSE: tuya.enum(0)}
+                            : {OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)},
+                    ),
+                ],
+                [2, "position", tuya.valueConverter.coverPosition], // Curtain position setting
+                [3, "position", tuya.valueConverter.coverPosition], // Current curtain position
+                [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
+                [
+                    7,
+                    "work_state",
+                    tuya.valueConverterBasic.lookup((options) =>
+                        options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
+                    ),
+                ],
+                [13, "battery", tuya.valueConverter.raw],
             ],
         },
     },

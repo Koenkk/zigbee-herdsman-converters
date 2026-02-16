@@ -1,11 +1,12 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {ClusterOrRawPayload} from "zigbee-herdsman/dist/controller/tstype";
+import type {Parameter} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {Configure, DefinitionWithExtend, Expose, Fz, ModernExtend, Tz, Zh} from "../lib/types";
+import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -111,6 +112,7 @@ interface Inovelli {
             level: number;
             duration: number;
         };
+        energyReset: Record<string, never>;
         individualLedEffect: {
             led: number;
             effect: number;
@@ -144,17 +146,125 @@ interface InovelliMmWave {
         mmWaveControl: {
             controlID: number;
         };
+        setInterferenceArea: {
+            areaId: number;
+            xMin: number;
+            xMax: number;
+            yMin: number;
+            yMax: number;
+            zMin: number;
+            zMax: number;
+        };
+        setDetectionArea: {
+            areaId: number;
+            xMin: number;
+            xMax: number;
+            yMin: number;
+            yMax: number;
+            zMin: number;
+            zMax: number;
+        };
+        setStayArea: {
+            areaId: number;
+            xMin: number;
+            xMax: number;
+            yMin: number;
+            yMax: number;
+            zMin: number;
+            zMax: number;
+        };
     };
     commandResponses: {
         anyoneInReportingArea: {
-            /** boolean */
+            /** uint8: 0 or 1 */
             area1: number;
-            /** boolean */
+            /** uint8: 0 or 1 */
             area2: number;
-            /** boolean */
+            /** uint8: 0 or 1 */
             area3: number;
-            /** boolean */
+            /** uint8: 0 or 1 */
             area4: number;
+        };
+        reportInterferenceArea: {
+            count: number;
+            xMin1: number;
+            xMax1: number;
+            yMin1: number;
+            yMax1: number;
+            zMin1: number;
+            zMax1: number;
+            xMin2: number;
+            xMax2: number;
+            yMin2: number;
+            yMax2: number;
+            zMin2: number;
+            zMax2: number;
+            xMin3: number;
+            xMax3: number;
+            yMin3: number;
+            yMax3: number;
+            zMin3: number;
+            zMax3: number;
+            xMin4: number;
+            xMax4: number;
+            yMin4: number;
+            yMax4: number;
+            zMin4: number;
+            zMax4: number;
+        };
+        reportDetectionArea: {
+            count: number;
+            xMin1: number;
+            xMax1: number;
+            yMin1: number;
+            yMax1: number;
+            zMin1: number;
+            zMax1: number;
+            xMin2: number;
+            xMax2: number;
+            yMin2: number;
+            yMax2: number;
+            zMin2: number;
+            zMax2: number;
+            xMin3: number;
+            xMax3: number;
+            yMin3: number;
+            yMax3: number;
+            zMin3: number;
+            zMax3: number;
+            xMin4: number;
+            xMax4: number;
+            yMin4: number;
+            yMax4: number;
+            zMin4: number;
+            zMax4: number;
+        };
+        reportStayArea: {
+            count: number;
+            xMin1: number;
+            xMax1: number;
+            yMin1: number;
+            yMax1: number;
+            zMin1: number;
+            zMax1: number;
+            xMin2: number;
+            xMax2: number;
+            yMin2: number;
+            yMax2: number;
+            zMin2: number;
+            zMax2: number;
+            xMin3: number;
+            xMax3: number;
+            yMin3: number;
+            yMax3: number;
+            zMin3: number;
+            zMax3: number;
+            xMin4: number;
+            xMax4: number;
+            yMin4: number;
+            yMax4: number;
+            zMin4: number;
+            zMax4: number;
         };
     };
 }
@@ -215,14 +325,18 @@ const individualLedEffects: {[key: string]: number} = {
 };
 
 const mmWaveControlCommands: {[key: string]: number} = {
+    reset_mmwave_module: 0,
     set_interference: 1,
+    query_areas: 2,
     clear_interference: 3,
     reset_detection_area: 4,
-    reset_mmwave_module: 0,
+    clear_stay_areas: 5,
 };
 
 const INOVELLI_CLUSTER_NAME = "manuSpecificInovelli" as const;
 const INOVELLI_MMWAVE_CLUSTER_NAME = "manuSpecificInovelliMMWave" as const;
+
+type MmWaveAreaPayload = InovelliMmWave["commands"]["setInterferenceArea"];
 
 const inovelliExtend = {
     addCustomClusterInovelli: () =>
@@ -257,7 +371,7 @@ const inovelliExtend = {
                 dimmingMode: {ID: 0x001a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 nonNeutralAuxMediumGear: {ID: 0x001e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 nonNeutralAuxLowGear: {ID: 0x001f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                internalTemperature: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                internalTemperature: {ID: 0x0020, type: Zcl.DataType.INT8, write: true, max: 0xff},
                 overheat: {ID: 0x0021, type: Zcl.DataType.BOOLEAN, write: true},
                 otaImageType: {ID: 0x0022, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 buttonDelay: {ID: 0x0032, type: Zcl.DataType.UINT8, write: true, max: 0xff},
@@ -331,6 +445,10 @@ const inovelliExtend = {
                         {name: "duration", type: Zcl.DataType.UINT8, max: 0xff},
                     ],
                 },
+                energyReset: {
+                    ID: 2,
+                    parameters: [],
+                },
                 individualLedEffect: {
                     ID: 3,
                     parameters: [
@@ -348,8 +466,45 @@ const inovelliExtend = {
             },
             commandsResponse: {},
         }),
-    addCustomMMWaveClusterInovelli: () =>
-        m.deviceAddCustomCluster(INOVELLI_MMWAVE_CLUSTER_NAME, {
+    addCustomMMWaveClusterInovelli: () => {
+        const mmWaveCommandAreaParameters: Parameter[] = [
+            {name: "areaId", type: Zcl.DataType.UINT8, max: 3},
+            {name: "xMin", type: Zcl.DataType.INT16, min: -600, max: 600},
+            {name: "xMax", type: Zcl.DataType.INT16, min: -600, max: 600},
+            {name: "yMin", type: Zcl.DataType.INT16, min: -600, max: 600},
+            {name: "yMax", type: Zcl.DataType.INT16, min: -600, max: 600},
+            {name: "zMin", type: Zcl.DataType.INT16, min: -600, max: 600},
+            {name: "zMax", type: Zcl.DataType.INT16, min: -600, max: 600},
+        ];
+        const mmWaveCommandResponseAreaParameters: Parameter[] = [
+            {name: "count", type: Zcl.DataType.UINT8},
+            {name: "xMin1", type: Zcl.DataType.INT16},
+            {name: "xMax1", type: Zcl.DataType.INT16},
+            {name: "yMin1", type: Zcl.DataType.INT16},
+            {name: "yMax1", type: Zcl.DataType.INT16},
+            {name: "zMin1", type: Zcl.DataType.INT16},
+            {name: "zMax1", type: Zcl.DataType.INT16},
+            {name: "xMin2", type: Zcl.DataType.INT16},
+            {name: "xMax2", type: Zcl.DataType.INT16},
+            {name: "yMin2", type: Zcl.DataType.INT16},
+            {name: "yMax2", type: Zcl.DataType.INT16},
+            {name: "zMin2", type: Zcl.DataType.INT16},
+            {name: "zMax2", type: Zcl.DataType.INT16},
+            {name: "xMin3", type: Zcl.DataType.INT16},
+            {name: "xMax3", type: Zcl.DataType.INT16},
+            {name: "yMin3", type: Zcl.DataType.INT16},
+            {name: "yMax3", type: Zcl.DataType.INT16},
+            {name: "zMin3", type: Zcl.DataType.INT16},
+            {name: "zMax3", type: Zcl.DataType.INT16},
+            {name: "xMin4", type: Zcl.DataType.INT16},
+            {name: "xMax4", type: Zcl.DataType.INT16},
+            {name: "yMin4", type: Zcl.DataType.INT16},
+            {name: "yMax4", type: Zcl.DataType.INT16},
+            {name: "zMin4", type: Zcl.DataType.INT16},
+            {name: "zMax4", type: Zcl.DataType.INT16},
+        ];
+
+        return m.deviceAddCustomCluster(INOVELLI_MMWAVE_CLUSTER_NAME, {
             ID: 64562, // 0xfc32
             manufacturerCode: 0x122f,
             attributes: {
@@ -371,19 +526,44 @@ const inovelliExtend = {
                     ID: 0,
                     parameters: [{name: "controlID", type: Zcl.DataType.UINT8, max: 0xff}],
                 },
+                setInterferenceArea: {
+                    ID: 1,
+                    parameters: mmWaveCommandAreaParameters,
+                },
+                setDetectionArea: {
+                    ID: 2,
+                    parameters: mmWaveCommandAreaParameters,
+                },
+                setStayArea: {
+                    ID: 3,
+                    parameters: mmWaveCommandAreaParameters,
+                },
             },
             commandsResponse: {
                 anyoneInReportingArea: {
                     ID: 0,
                     parameters: [
-                        {name: "area1", type: Zcl.DataType.BOOLEAN},
-                        {name: "area2", type: Zcl.DataType.BOOLEAN},
-                        {name: "area3", type: Zcl.DataType.BOOLEAN},
-                        {name: "area4", type: Zcl.DataType.BOOLEAN},
+                        {name: "area1", type: Zcl.DataType.UINT8},
+                        {name: "area2", type: Zcl.DataType.UINT8},
+                        {name: "area3", type: Zcl.DataType.UINT8},
+                        {name: "area4", type: Zcl.DataType.UINT8},
                     ],
                 },
+                reportInterferenceArea: {
+                    ID: 2,
+                    parameters: mmWaveCommandResponseAreaParameters,
+                },
+                reportDetectionArea: {
+                    ID: 3,
+                    parameters: mmWaveCommandResponseAreaParameters,
+                },
+                reportStayArea: {
+                    ID: 4,
+                    parameters: mmWaveCommandResponseAreaParameters,
+                },
             },
-        }),
+        });
+    },
     inovelliDevice: ({
         attrs,
         supportsLedEffects,
@@ -474,18 +654,16 @@ const inovelliExtend = {
     },
     inovelliLight: ({splitValuesByEndpoint = false}: {splitValuesByEndpoint?: boolean} = {}) => {
         // biome-ignore lint/suspicious/noExplicitAny: generic
-        const fromZigbee: Fz.Converter<any, any, any>[] = [];
-        const bindingList = ["genOnOff"];
+        const fromZigbee: Fz.Converter<any, any, any>[] = [fzLocal.on_off_for_endpoint(1, "state"), fzLocal.brightness];
 
         if (!splitValuesByEndpoint) {
-            fromZigbee.push(fz.on_off, fz.brightness, fz.level_config, fz.power_on_behavior);
-            bindingList.push("genLevelCtrl");
+            fromZigbee.push(fz.level_config, fz.power_on_behavior);
         }
 
         const configure: Configure[] = [
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
-                await reporting.bind(endpoint, coordinatorEndpoint, bindingList);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
                 await reporting.onOff(endpoint);
             },
         ];
@@ -506,44 +684,55 @@ const inovelliExtend = {
         } as ModernExtend;
     },
     inovelliFan: ({endpointId, splitValuesByEndpoint = false}: {endpointId: number; splitValuesByEndpoint?: boolean}) => {
-        // biome-ignore lint/suspicious/noExplicitAny: generic
-        const fromZigbee: Fz.Converter<any, any, any>[] = [fzLocal.fan_mode(endpointId), fzLocal.breeze_mode(endpointId)];
-        const toZigbee: Tz.Converter[] = [tzLocal.fan_mode(endpointId), tzLocal.breezeMode(endpointId)];
-        const exposes: Expose[] = [e.fan().withState("fan_state").withModes(Object.keys(FAN_MODES)), exposeBreezeMode()];
-        const bindingList = ["genOnOff"];
-
-        if (!splitValuesByEndpoint) {
-            fromZigbee.push(fzLocal.fan_state);
-            toZigbee.push(tzLocal.fan_state);
-            bindingList.push("genLevelCtrl");
-        }
-
-        const configure: Configure[] = [
-            async (device, coordinatorEndpoint, definition) => {
-                const endpoint = device.getEndpoint(1);
-                await reporting.bind(endpoint, coordinatorEndpoint, bindingList);
-                await reporting.onOff(endpoint);
-
-                if (splitValuesByEndpoint) {
-                    const endpoint2 = device.getEndpoint(2);
-                    await reporting.bind(endpoint2, coordinatorEndpoint, bindingList);
-                    await reporting.onOff(endpoint2);
-                }
-            },
-        ];
         return {
-            fromZigbee,
-            toZigbee,
-            exposes,
-            configure,
+            fromZigbee: [fzLocal.fan_mode(endpointId), fzLocal.breeze_mode(endpointId), fzLocal.fan_state(endpointId)],
+            toZigbee: [tzLocal.fan_mode(endpointId), tzLocal.breezeMode(endpointId), tzLocal.fan_state(endpointId)],
+            exposes: [e.fan().withState("fan_state").withModes(Object.keys(FAN_MODES)), exposeBreezeMode()],
+            configure: [
+                async (device, coordinatorEndpoint, definition) => {
+                    const endpoint = device.getEndpoint(endpointId);
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
+                    await reporting.onOff(endpoint);
+                },
+            ],
             isModernExtend: true,
         } as ModernExtend;
     },
     inovelliMMWave: () => {
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, [INOVELLI_MMWAVE_CLUSTER_NAME]);
+
+                await endpoint.command<typeof INOVELLI_MMWAVE_CLUSTER_NAME, "mmWaveControl", InovelliMmWave>(
+                    INOVELLI_MMWAVE_CLUSTER_NAME,
+                    "mmWaveControl",
+                    {
+                        controlID: mmWaveControlCommands.query_areas,
+                    },
+                    {disableResponse: true, disableDefaultResponse: true},
+                );
+            },
+        ];
+
+        return {
+            fromZigbee: [fzLocal.anyone_in_reporting_area, fzLocal.report_areas],
+            toZigbee: [
+                tzLocal.inovelli_mmwave_control_commands,
+                tzLocal.mmwave_detection_areas,
+                tzLocal.mmwave_interference_areas,
+                tzLocal.mmwave_stay_areas,
+            ],
+            exposes: [exposeMMWaveControl(), ...exposeMMWaveAreas(), exposeInterferenceAreas(), exposeDetectionAreas(), exposeStayAreas()],
+            configure: configure,
+            isModernExtend: true,
+        } as ModernExtend;
+    },
+    inovelliEnergyReset: () => {
         return {
             fromZigbee: [],
-            toZigbee: [tzLocal.inovelli_mmwave_control_commands],
-            exposes: [exposeMMWaveControl()],
+            toZigbee: [tzLocal.inovelli_energy_reset],
+            exposes: [exposeEnergyReset()],
             configure: [],
             isModernExtend: true,
         } as ModernExtend;
@@ -849,7 +1038,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     internalTemperature: {
         ID: 32,
-        dataType: Zcl.DataType.UINT8,
+        dataType: Zcl.DataType.INT8,
         min: 0,
         max: 127,
         readOnly: true,
@@ -1851,6 +2040,70 @@ const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
     },
 };
 
+function createMmWaveCompositeAreaConverter<Cmd extends "setInterferenceArea" | "setDetectionArea" | "setStayArea">(
+    key: string,
+    command: Cmd,
+): Tz.Converter {
+    return {
+        key: [key],
+        convertSet: async (entity, key, values, meta) => {
+            utils.assertObject(values);
+
+            // The composite structure has area1, area2, area3, area4 as keys
+            const areaKeys = ["area1", "area2", "area3", "area4"];
+            const state: KeyValue = {[key]: {}} as KeyValue;
+            const compositeState = state[key] as KeyValueAny;
+
+            // Process each area that's provided in the composite
+            for (const areaKey of areaKeys) {
+                if (areaKey in values && utils.isObject(values[areaKey])) {
+                    const areaData = values[areaKey] as KeyValueAny;
+                    // Extract area number from "area1" -> 1, "area2" -> 2, etc.
+                    const areaId = Number.parseInt(areaKey.replace("area", ""), 10);
+
+                    const payload: MmWaveAreaPayload = {
+                        // areaID is zero indexed
+                        areaId: areaId - 1,
+                        xMin: areaData.width_min,
+                        xMax: areaData.width_max,
+                        yMin: areaData.depth_min,
+                        yMax: areaData.depth_max,
+                        zMin: areaData.height_min,
+                        zMax: areaData.height_max,
+                    };
+
+                    await entity.command<typeof INOVELLI_MMWAVE_CLUSTER_NAME, Cmd, InovelliMmWave>(
+                        INOVELLI_MMWAVE_CLUSTER_NAME,
+                        command,
+                        payload as ClusterOrRawPayload<typeof INOVELLI_MMWAVE_CLUSTER_NAME, Cmd, InovelliMmWave>,
+                        {
+                            disableResponse: true,
+                            disableDefaultResponse: true,
+                        },
+                    );
+
+                    // Store the area data in the state
+                    compositeState[areaKey] = areaData;
+                }
+            }
+
+            // Query areas after all updates are complete
+            if (Object.keys(compositeState).length > 0) {
+                await entity.command<typeof INOVELLI_MMWAVE_CLUSTER_NAME, "mmWaveControl", InovelliMmWave>(
+                    INOVELLI_MMWAVE_CLUSTER_NAME,
+                    "mmWaveControl",
+                    {
+                        controlID: mmWaveControlCommands.query_areas,
+                    },
+                    {disableResponse: true, disableDefaultResponse: true},
+                );
+            }
+
+            return {state};
+        },
+    } satisfies Tz.Converter;
+}
+
 const tzLocal = {
     inovelli_parameters: (attributes: {[s: string]: Attribute}, cluster: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME) =>
         ({
@@ -1943,6 +2196,17 @@ const tzLocal = {
             return {state: {[key]: values}};
         },
     } satisfies Tz.Converter,
+    inovelli_energy_reset: {
+        key: ["energy_reset"],
+        convertSet: async (entity, key, values, meta) => {
+            await entity.command<typeof INOVELLI_CLUSTER_NAME, "energyReset", Inovelli>(
+                INOVELLI_CLUSTER_NAME,
+                "energyReset",
+                {},
+                {disableResponse: true, disableDefaultResponse: true},
+            );
+        },
+    } satisfies Tz.Converter,
     inovelli_individual_led_effect: {
         key: ["individual_led_effect"],
         convertSet: async (entity, key, values, meta) => {
@@ -1979,6 +2243,9 @@ const tzLocal = {
             return {state: {[key]: values}};
         },
     } satisfies Tz.Converter,
+    mmwave_detection_areas: createMmWaveCompositeAreaConverter("mmwave_detection_areas", "setDetectionArea"),
+    mmwave_interference_areas: createMmWaveCompositeAreaConverter("mmwave_interference_areas", "setInterferenceArea"),
+    mmwave_stay_areas: createMmWaveCompositeAreaConverter("mmwave_stay_areas", "setStayArea"),
     /*
      * Inovelli devices have a default transition property that the device should
      * fallback to if a transition is not specified by passing 0xffff
@@ -2062,65 +2329,33 @@ const tzLocal = {
                 await endpoint.read("genLevelCtrl", ["currentLevel"]);
             },
         }) satisfies Tz.Converter,
-    fan_state: {
-        key: ["fan_state"],
-        convertSet: async (entity, key, value, meta) => {
-            const state = meta.message.fan_state != null ? meta.message.fan_state.toString().toLowerCase() : null;
-            utils.validateValue(state, ["toggle", "off", "on"]);
-
-            await entity.command("genOnOff", state as "toggle" | "off" | "on", {}, utils.getOptions(meta.mapped, entity));
-            if (state === "toggle") {
-                const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
-                return currentState ? {state: {fan_state: currentState === "OFF" ? "ON" : "OFF"}} : {};
-            }
-            return {state: {fan_state: state.toString().toUpperCase()}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read("genOnOff", ["onOff"]);
-        },
-    } satisfies Tz.Converter,
-
-    /**
-     * On the VZM36, When turning the fan on and off, we must ensure that we are sending these
-     * commands to endpoint 2 on the canopy module.
-     */
-    vzm36_fan_on_off: {
-        key: ["fan_state", "on_time", "off_wait_time"],
-        convertSet: async (entity, key, value, meta) => {
-            const endpoint = meta.device.getEndpoint(2);
-
-            // is entity an endpoint, or just the device? may need to get the actual endpoint..
-            utils.assertEndpoint(entity);
-            const state = typeof meta.message.fan_state === "string" ? meta.message.fan_state.toLowerCase() : null;
-            utils.validateValue(state, ["toggle", "off", "on"]);
-
-            if (state === "on" && (meta.message.on_time != null || meta.message.off_wait_time != null)) {
-                const onTime = meta.message.on_time != null ? meta.message.on_time : 0;
-                const offWaitTime = meta.message.off_wait_time != null ? meta.message.off_wait_time : 0;
-
-                if (typeof onTime !== "number") {
-                    throw new Error("The on_time value must be a number!");
+    fan_state: (endpointId?: number) =>
+        ({
+            key: ["fan_state", "on_time", "off_wait_time"],
+            convertSet: async (entity, key, value, meta) => {
+                const targetEntity = endpointId != null ? meta.device.getEndpoint(endpointId) : entity;
+                const localMeta = {
+                    ...meta,
+                    message: {
+                        ...meta.message,
+                        state: meta.message.fan_state,
+                    },
+                    state: {
+                        ...meta.state,
+                        state: meta.state.fan_state,
+                    },
+                };
+                const result = (await tz.on_off.convertSet(targetEntity, key, value, localMeta)) as KeyValueAny;
+                if (result?.state?.state != null) {
+                    return {state: {fan_state: result.state.state}};
                 }
-                if (typeof offWaitTime !== "number") {
-                    throw new Error("The off_wait_time value must be a number!");
-                }
-
-                const payload = {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
-                await endpoint.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
-            } else {
-                await endpoint.command("genOnOff", state as "toggle" | "off" | "on", {}, utils.getOptions(meta.mapped, endpoint));
-                if (state === "toggle") {
-                    const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
-                    return currentState ? {state: {fan_state: currentState === "OFF" ? "ON" : "OFF"}} : {};
-                }
-                return {state: {fan_state: state.toUpperCase()}};
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            const endpoint = meta.device.getEndpoint(2);
-            await endpoint.read("genOnOff", ["onOff"]);
-        },
-    } satisfies Tz.Converter,
+                return result ?? {};
+            },
+            convertGet: async (entity, key, meta) => {
+                const targetEntity = endpointId != null ? meta.device.getEndpoint(endpointId) : entity;
+                await tz.on_off.convertGet(targetEntity, key, meta);
+            },
+        }) satisfies Tz.Converter,
     breezeMode: (endpointId: number) =>
         ({
             key: ["breezeMode"],
@@ -2188,7 +2423,7 @@ const fzLocal = {
     ) =>
         ({
             cluster: cluster,
-            type: ["raw", "readResponse"],
+            type: ["raw", "readResponse", "attributeReport"],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.type === "raw" && msg.endpoint.ID === 2 && msg.data[4] === 0x00) {
                     // Scene Event
@@ -2210,7 +2445,7 @@ const fzLocal = {
                     const action = clickLookup[msg.data[6]];
                     return {action: `${button}_${action}`};
                 }
-                if (msg.type === "readResponse") {
+                if (msg.type === "readResponse" || msg.type === "attributeReport") {
                     return Object.keys(msg.data).reduce((p, c) => {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
                         const raw = (msg.data as Record<string | number, unknown>)[c];
@@ -2227,7 +2462,7 @@ const fzLocal = {
                 }
                 return msg.data;
             },
-        }) satisfies Fz.Converter<typeof cluster, undefined, ["raw", "readResponse"]>,
+        }) satisfies Fz.Converter<typeof cluster, undefined, ["raw", "readResponse", "attributeReport"]>,
     fan_mode: (endpointId: number) =>
         ({
             cluster: "genLevelCtrl",
@@ -2244,16 +2479,31 @@ const fzLocal = {
                 return msg.data;
             },
         }) satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
-    fan_state: {
-        cluster: "genOnOff",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.onOff !== undefined) {
+    fan_state: (endpointId?: number) =>
+        ({
+            cluster: "genOnOff",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.onOff === undefined) {
+                    return msg.data;
+                }
+                if (endpointId != null && msg.endpoint.ID !== endpointId) {
+                    return msg.data;
+                }
                 return {fan_state: msg.data.onOff === 1 ? "ON" : "OFF"};
-            }
-            return msg.data;
-        },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+            },
+        }) satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    on_off_for_endpoint: (endpointId: number, stateKey: string) =>
+        ({
+            cluster: "genOnOff",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.endpoint.ID !== endpointId || msg.data.onOff === undefined) {
+                    return msg.data;
+                }
+                return {[stateKey]: msg.data.onOff === 1 ? "ON" : "OFF"};
+            },
+        }) satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     brightness: {
         cluster: "genLevelCtrl",
         type: ["attributeReport", "readResponse"],
@@ -2317,23 +2567,6 @@ const fzLocal = {
                 }
             },
         }) satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["attributeReport", "readResponse"]>,
-    vzm36_fan_light_state: {
-        cluster: "genOnOff",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID === 1) {
-                if (msg.data.onOff !== undefined) {
-                    return {state: msg.data.onOff === 1 ? "ON" : "OFF"};
-                }
-            } else if (msg.endpoint.ID === 2) {
-                if (msg.data.onOff !== undefined) {
-                    return {fan_state: msg.data.onOff === 1 ? "ON" : "OFF"};
-                }
-            } else {
-                return msg.data;
-            }
-        },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     led_effect_complete: {
         cluster: INOVELLI_CLUSTER_NAME,
         type: ["commandLedEffectComplete"],
@@ -2344,6 +2577,51 @@ const fzLocal = {
             return {notificationComplete: "Unknown"};
         },
     } satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["commandLedEffectComplete"]>,
+    report_areas: {
+        cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
+        type: ["commandReportInterferenceArea", "commandReportDetectionArea", "commandReportStayArea"],
+        convert: (model, msg, publish, options, meta) => {
+            const areas: KeyValueAny = {};
+            const data = msg.data as KeyValueAny;
+            for (let i = 1; i <= 4; i++) {
+                areas[`area${i}`] = {
+                    width_min: data[`xMin${i}`],
+                    width_max: data[`xMax${i}`],
+                    height_min: data[`zMin${i}`],
+                    height_max: data[`zMax${i}`],
+                    depth_min: data[`yMin${i}`],
+                    depth_max: data[`yMax${i}`],
+                };
+            }
+            const result: KeyValueAny = {};
+
+            // Map command types to the new property names
+            const propertyMap: KeyValueAny = {
+                commandReportInterferenceArea: "mmwave_interference_areas",
+                commandReportDetectionArea: "mmwave_detection_areas",
+                commandReportStayArea: "mmwave_stay_areas",
+            };
+
+            result[propertyMap[msg.type]] = areas;
+            return result;
+        },
+    } satisfies Fz.Converter<
+        typeof INOVELLI_MMWAVE_CLUSTER_NAME,
+        InovelliMmWave,
+        ["commandReportInterferenceArea", "commandReportDetectionArea", "commandReportStayArea"]
+    >,
+    anyone_in_reporting_area: {
+        cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
+        type: ["commandAnyoneInReportingArea"],
+        convert: (model, msg, publish, options, meta) => {
+            return {
+                mmwave_area1_occupancy: msg.data.area1 === 1,
+                mmwave_area2_occupancy: msg.data.area2 === 1,
+                mmwave_area3_occupancy: msg.data.area3 === 1,
+                mmwave_area4_occupancy: msg.data.area4 === 1,
+            };
+        },
+    } satisfies Fz.Converter<typeof INOVELLI_MMWAVE_CLUSTER_NAME, InovelliMmWave, ["commandAnyoneInReportingArea"]>,
 };
 
 const exposeLedEffects = () => {
@@ -2429,6 +2707,109 @@ const exposeLedEffectComplete = () => {
         .withCategory("diagnostic");
 };
 
+const exposeEnergyReset = () => {
+    return e.enum("energy_reset", ea.SET, ["reset"]).withDescription("Reset energy meter").withCategory("config");
+};
+
+const exposeMMWaveAreas = () => {
+    return [
+        e
+            .binary("area1Occupancy", ea.STATE, true, false)
+            .withProperty("mmwave_area1_occupancy")
+            .withDescription("Indicates whether the device detected occupancy in Area 1"),
+        e
+            .binary("area2Occupancy", ea.STATE, true, false)
+            .withProperty("mmwave_area2_occupancy")
+            .withDescription("Indicates whether the device detected occupancy in Area 2"),
+        e
+            .binary("area3Occupancy", ea.STATE, true, false)
+            .withProperty("mmwave_area3_occupancy")
+            .withDescription("Indicates whether the device detected occupancy in Area 3"),
+        e
+            .binary("area4Occupancy", ea.STATE, true, false)
+            .withProperty("mmwave_area4_occupancy")
+            .withDescription("Indicates whether the device detected occupancy in Area 4"),
+    ];
+};
+
+const createAreaComposite = (areaName: string, property: string) => {
+    return e
+        .composite(areaName, property, ea.STATE)
+        .withFeature(
+            e
+                .numeric("width_min", ea.STATE_SET)
+                .withValueMin(-600)
+                .withValueMax(600)
+                .withDescription("Defines the area (negative values are left of the switch facing away from the wall, positive values are right)"),
+        )
+        .withFeature(
+            e
+                .numeric("width_max", ea.STATE_SET)
+                .withValueMin(-600)
+                .withValueMax(600)
+                .withDescription("Defines the area (negative values are left of the switch facing away from the wall, positive values are right)"),
+        )
+        .withFeature(
+            e
+                .numeric("height_min", ea.STATE_SET)
+                .withValueMin(-600)
+                .withValueMax(600)
+                .withDescription("Defines the area (negative values are below the switch, positive values are above)"),
+        )
+        .withFeature(
+            e
+                .numeric("height_max", ea.STATE_SET)
+                .withValueMin(-600)
+                .withValueMax(600)
+                .withDescription("Defines the area (negative values are below the switch, positive values are above)"),
+        )
+        .withFeature(
+            e.numeric("depth_min", ea.STATE_SET).withValueMin(0).withValueMax(600).withDescription("Defines the area in front of the switch"),
+        )
+        .withFeature(
+            e.numeric("depth_max", ea.STATE_SET).withValueMin(0).withValueMax(600).withDescription("Defines the area in front of the switch"),
+        );
+};
+
+const exposeDetectionAreas = () => {
+    return e
+        .composite("mmwave_detection_areas", "mmwave_detection_areas", ea.STATE_SET)
+        .withDescription(
+            "Defines one or more active detection zones where the sensor reports movement or occupancy. Up to four detection zones can be set.",
+        )
+        .withFeature(createAreaComposite("area_1", "area1"))
+        .withFeature(createAreaComposite("area_2", "area2"))
+        .withFeature(createAreaComposite("area_3", "area3"))
+        .withFeature(createAreaComposite("area_4", "area4"))
+        .withCategory("config");
+};
+
+const exposeInterferenceAreas = () => {
+    return e
+        .composite("mmwave_interference_areas", "mmwave_interference_areas", ea.STATE_SET)
+        .withDescription(
+            "Manually defines the coordinates of an interference area, which is an ignored zone where targets are not reported as present. Up to four zones can be defined.",
+        )
+        .withFeature(createAreaComposite("area_1", "area1"))
+        .withFeature(createAreaComposite("area_2", "area2"))
+        .withFeature(createAreaComposite("area_3", "area3"))
+        .withFeature(createAreaComposite("area_4", "area4"))
+        .withCategory("config");
+};
+
+const exposeStayAreas = () => {
+    return e
+        .composite("mmwave_stay_areas", "mmwave_stay_areas", ea.STATE_SET)
+        .withDescription(
+            "Defines one or more stay areas where stationary presence should still be detected. Up to four stay zones can be configured.",
+        )
+        .withFeature(createAreaComposite("area_1", "area1"))
+        .withFeature(createAreaComposite("area_2", "area2"))
+        .withFeature(createAreaComposite("area_3", "area3"))
+        .withFeature(createAreaComposite("area_4", "area4"))
+        .withCategory("config");
+};
+
 const BUTTON_TAP_SEQUENCES = [
     "down_single",
     "up_single",
@@ -2484,9 +2865,10 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             inovelliExtend.addCustomClusterInovelli(),
             m.identify(),
+            inovelliExtend.inovelliEnergyReset(),
+            m.electricityMeter({energy: {divisor: 1000}}),
             m.temperature(),
             m.humidity(),
-            m.electricityMeter({energy: {divisor: 1000}}),
         ],
         ota: true,
     },
@@ -2508,6 +2890,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             inovelliExtend.addCustomClusterInovelli(),
             m.identify(),
+            inovelliExtend.inovelliEnergyReset(),
             m.electricityMeter({
                 current: false,
                 voltage: false,
@@ -2540,10 +2923,8 @@ export const definitions: DefinitionWithExtend[] = [
             inovelliExtend.addCustomClusterInovelli(),
             inovelliExtend.addCustomMMWaveClusterInovelli(),
             m.identify(),
+            inovelliExtend.inovelliEnergyReset(),
             m.electricityMeter({
-                // Current and voltage were removed in version 0.8 of the firmware and expected to be restored in the future
-                current: false,
-                voltage: false,
                 energy: {divisor: 1000},
             }),
             m.illuminance(),
@@ -2573,10 +2954,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VZM36",
         vendor: "Inovelli",
         description: "Fan canopy module",
-        fromZigbee: [fzLocal.brightness, fzLocal.vzm36_fan_light_state],
-        toZigbee: [
-            tzLocal.vzm36_fan_on_off, // Need to use VZM36 specific converter
-        ],
+        fromZigbee: [],
+        toZigbee: [],
         extend: [
             inovelliExtend.inovelliLight({splitValuesByEndpoint: true}),
             inovelliExtend.inovelliFan({endpointId: 2, splitValuesByEndpoint: true}),

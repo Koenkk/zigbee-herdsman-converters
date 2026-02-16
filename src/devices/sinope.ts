@@ -51,11 +51,15 @@ const fzLocal = {
                 result.main_cycle_output = utils.getFromLookup(msg.data.SinopeMainCycleOutput, cycleOutputLookup);
             }
             if (msg.data["1026"] !== undefined) {
-                const lookup = {0: "on_demand", 1: "sensing", 2: "off"};
+                const lookup = utils.getMetaValue(msg.endpoint, model, "sinopeAlternateBacklightAutoDim", "allEqual", false)
+                    ? {0: "on_demand", 1: "off", 2: "sensing"}
+                    : {0: "on_demand", 1: "sensing", 2: "off"};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data["1026"], lookup);
             }
             if (msg.data.SinopeBacklight !== undefined) {
-                const lookup = {0: "on_demand", 1: "sensing", 2: "off"};
+                const lookup = utils.getMetaValue(msg.endpoint, model, "sinopeAlternateBacklightAutoDim", "allEqual", false)
+                    ? {0: "on_demand", 1: "off", 2: "sensing"}
+                    : {0: "on_demand", 1: "sensing", 2: "off"};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data.SinopeBacklight, lookup);
             }
             if (msg.data["1028"] !== undefined) {
@@ -265,7 +269,9 @@ const tzLocal = {
     backlight_autodim: {
         key: ["backlight_auto_dim"],
         convertSet: async (entity, key, value, meta) => {
-            const sinopeBacklightParam = {0: "on_demand", 1: "sensing", 2: "off"};
+            const sinopeBacklightParam = utils.getMetaValue(entity, meta.mapped, "sinopeAlternateBacklightAutoDim", "allEqual", false)
+                ? {0: "on_demand", 1: "off", 2: "sensing"}
+                : {0: "on_demand", 1: "sensing", 2: "off"};
             const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value as number, Number);
             await entity.write("hvacThermostat", {SinopeBacklight}, manuSinope);
             return {state: {backlight_auto_dim: value}};
@@ -836,6 +842,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
         extend: [m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        meta: {sinopeAlternateBacklightAutoDim: true},
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -917,8 +924,12 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacUserInterfaceCfg",
                 "msTemperatureMeasurement",
                 "manuSpecificSinope",
+                "seMetering",
+                "haElectricalMeasurement",
             ];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds); // This G2 version has limited memory space
+            // This G2 version has limited memory space
+            // from experimenting we can configure a maximum of 8 reporting entities
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
             const thermostatDate = new Date();
             const thermostatTimeSec = thermostatDate.getTime() / 1000;
             const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
@@ -929,9 +940,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
 
-            await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // Disable default reporting
             await endpoint.configureReporting("msTemperatureMeasurement", [
                 {
                     attribute: "tolerance",
@@ -941,8 +951,17 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             ]);
 
-            // Disable default reporting (not used by Sinope)
-            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 60, max: 300, change: 10});
+
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await endpoint.configureReporting("haElectricalMeasurement", [
+                {attribute: "rmsVoltage", minimumReportInterval: 60, maximumReportInterval: 300, reportableChange: 5},
+                {attribute: "rmsCurrent", minimumReportInterval: 10, maximumReportInterval: 60, reportableChange: 0.1},
+                {attribute: "activePower", minimumReportInterval: 10, maximumReportInterval: 60, reportableChange: 5},
+            ]);
+
+            // for some older version it migth still work
             try {
                 await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             } catch {
@@ -955,7 +974,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1124ZB-G2",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [m.electricityMeter()],
+        extend: [m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        meta: {sinopeAlternateBacklightAutoDim: true},
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -1037,8 +1057,12 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacUserInterfaceCfg",
                 "msTemperatureMeasurement",
                 "manuSpecificSinope",
+                "seMetering",
+                "haElectricalMeasurement",
             ];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds); // This G2 version has limited memory space
+            // This G2 version has limited memory space
+            // from experimenting we can configure a maximum of 8 reporting entities
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
             const thermostatDate = new Date();
             const thermostatTimeSec = thermostatDate.getTime() / 1000;
             const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
@@ -1049,9 +1073,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
 
-            await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // Disable default reporting
             await endpoint.configureReporting("msTemperatureMeasurement", [
                 {
                     attribute: "tolerance",
@@ -1061,8 +1084,17 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             ]);
 
-            // Disable default reporting (not used by Sinope)
-            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 60, max: 300, change: 10});
+
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await endpoint.configureReporting("haElectricalMeasurement", [
+                {attribute: "rmsVoltage", minimumReportInterval: 60, maximumReportInterval: 300, reportableChange: 5},
+                {attribute: "rmsCurrent", minimumReportInterval: 10, maximumReportInterval: 60, reportableChange: 0.1},
+                {attribute: "activePower", minimumReportInterval: 10, maximumReportInterval: 60, reportableChange: 5},
+            ]);
+
+            // for some older version it migth still work
             try {
                 await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             } catch {

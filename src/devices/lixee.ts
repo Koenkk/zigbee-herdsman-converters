@@ -55,6 +55,7 @@ const local = {
                     warnDIR2: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     warnDIR3: {ID: 0x0008, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     motDEtat: {ID: 0x0009, type: Zcl.DataType.CHAR_STR, write: true},
+                    tariffPeriod: {ID: 0x0010, type: Zcl.DataType.CHAR_STR, write: true},
                     currentPrice: {ID: 0x0200, type: Zcl.DataType.CHAR_STR, write: true},
                     currentIndexTarif: {ID: 0x0201, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                     currentDate: {ID: 0x0202, type: Zcl.DataType.CHAR_STR, write: true},
@@ -219,6 +220,7 @@ const fzLocal = {
                 /* 0x0007 */ "warnDIR2",
                 /* 0x0008 */ "warnDIR3",
                 /* 0x0009 */ "motDEtat",
+                /* 0x0010 */ "tariffPeriod",
                 /* 0x0200 */ "currentPrice",
                 /* 0x0201 */ "currentIndexTarif",
                 /* 0x0202 */ "currentDate",
@@ -257,7 +259,7 @@ const fzLocal = {
                     .join("_")
                     .toLowerCase();
                 // biome-ignore lint/suspicious/noExplicitAny: bad typing
-                let val: any = msg.data[at];
+                let val: any = (msg.data as KeyValue)[at];
                 if (val != null) {
                     // TODO: this is not possible??
                     if (utils.isObject(val) && "type" in val && "data" in val && val.type === "Buffer") {
@@ -271,6 +273,13 @@ const fzLocal = {
                         val = val.replace(/\s+/g, " ").trim(); // Remove extra and leading spaces
                     }
                     switch (at) {
+                        case "tariffPeriod":
+                            // Store the value twice: once for when the meter
+                            // is in standard mode and once for when it is in
+                            // legacy mode
+                            result.current_price = val;
+                            result.active_register_tier_delivered = val;
+                            break;
                         case "activeEnergyOutD01":
                         case "activeEnergyOutD02":
                         case "activeEnergyOutD03":
@@ -1765,6 +1774,25 @@ function getCurrentConfig(device: Zh.Device, options: KeyValue) {
             e.linkyMode === linkyMode && (e.linkyPhase === linkyPhase || e.linkyPhase === linkyPhaseDef.all) && (linkyProduction || !e.onlyProducer),
     );
 
+    if (device.applicationVersion > 15) {
+        // @ts-expect-error ignore
+        myExpose = myExpose.map((e) => {
+            // For recent firmwares, use the reportable tariffPeriod attribute
+            // instead of the old polled currentPrice and
+            // activeRegisterTierDelivered attributes
+            if (e.att === "currentPrice" || e.att === "activeRegisterTierDelivered") {
+                return {
+                    ...e,
+                    cluster: clustersDef._0xFF66,
+                    att: "tariffPeriod",
+                    reportable: true,
+                    report: {min: 0, max: repInterval.HOUR, change: 0},
+                };
+            }
+            return e;
+        });
+    }
+
     // Filter even more, based on our current tarif
     let currentTarf = "";
 
@@ -1889,7 +1917,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(1)
                 .withDescription(
                     "Number of attributes requested from the ZLinky in each poll to reduce Zigbee network load. " +
-                        "Requesting too many at once may exceed the device's limit and cause read errors. Requires Z2M restart. Default: 4.",
+                        "Requesting too many at once may exceed the device's limit and cause read errors. Requires Z2M restart. Default: 2.",
                 ),
             e
                 .text("tic_command_whitelist", ea.SET)
@@ -1989,7 +2017,7 @@ export const definitions: DefinitionWithExtend[] = [
                     ),
                 poll: async (device, options) => {
                     const endpoint = device.getEndpoint(1);
-                    const measurement_poll_chunk = options?.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
+                    const measurement_poll_chunk = options?.measurement_poll_chunk ? options.measurement_poll_chunk : 2;
                     utils.assertNumber(measurement_poll_chunk);
                     const currentExposes = getCurrentConfig(device, options).filter(
                         (e) => !endpoint.configuredReportings.some((r) => r.cluster.name === e.cluster && r.attribute.name === e.att),
