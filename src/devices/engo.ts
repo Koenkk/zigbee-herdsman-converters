@@ -415,12 +415,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "E40",
         vendor: "ENGO",
         description: "Zigbee smart thermostat",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        options: [
+            e.binary("expose_device_state", ea.SET, true, false).withDescription("Expose device power state as a separate property when enabled."),
+        ],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF"),
             e
                 .climate()
-                .withSystemMode(["heat", "cool"], ea.STATE_SET)
+                .withSystemMode(["off", "heat", "cool"], ea.STATE_SET)
                 .withSetpoint("current_heating_setpoint", 5, 45, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-3.5, 3.5, 0.5, ea.STATE_SET)
@@ -466,8 +470,58 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff],
-                [2, "system_mode", tuya.valueConverterBasic.lookup({heat: tuya.enum(0), cool: tuya.enum(1)})],
+                [
+                    1,
+                    "state",
+                    {
+                        to: async (value, meta) => {
+                            if (meta.options?.expose_device_state === true) {
+                                await tuya.sendDataPointBool(
+                                    meta.device.endpoints[0],
+                                    1,
+                                    utils.getFromLookup(value, {on: true, off: false}),
+                                    "dataRequest",
+                                    1,
+                                );
+                            }
+                        },
+                        from: (value, meta, options) => {
+                            const isOn = value === true;
+                            meta.state.system_mode = isOn ? (meta.state.system_mode_device ?? "heat") : "off";
+    
+                            if (options?.expose_device_state === true) {
+                                return isOn ? "ON" : "OFF";
+                            }
+                            meta.state.state = undefined;
+                        },
+                    },
+                ],
+    
+                [
+                    2,
+                    "system_mode",
+                    {
+                        to: async (value, meta) => {
+                            const entity = meta.device.endpoints[0];
+                            await tuya.sendDataPointBool(entity, 1, value !== "off", "dataRequest", 1);
+                            switch (value) {
+                                case "heat":
+                                    await tuya.sendDataPointEnum(entity, 2, 0, "dataRequest", 1);
+                                    break;
+                                case "cool":
+                                    await tuya.sendDataPointEnum(entity, 2, 1, "dataRequest", 1);
+                                    break;
+                            }
+                        },
+                        from: (value, meta) => {
+                            const modes = ["heat", "cool"];
+                            const mode = modes[value];
+                            meta.state.system_mode_device = mode;
+                            const fallbackMode = "heat";
+                            return mode ?? fallbackMode;
+                        },
+                    },
+                ],
                 [
                     3,
                     "running_state",
