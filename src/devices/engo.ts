@@ -431,7 +431,8 @@ export const definitions: DefinitionWithExtend[] = [
                     .withLocalTemperatureCalibration(-3.5, 3.5, 0.5, ea.STATE_SET)
                     .withRunningState(["idle", "heat", "cool"], ea.STATE)
                     .withPreset(["manual", "schedule", "frost"]),
-    			e.numeric("backlight", ea.STATE_SET)
+                e
+                    .numeric("backlight", ea.STATE_SET)
                     .withUnit("%")
                     .withDescription("Backlight brightness")
                     .withValueMin(0)
