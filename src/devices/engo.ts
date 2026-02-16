@@ -487,7 +487,7 @@ export const definitions: DefinitionWithExtend[] = [
                         from: (value, meta, options) => {
                             const isOn = value === true;
                             meta.state.system_mode = isOn ? (meta.state.system_mode_device ?? "heat") : "off";
-    
+
                             if (options?.expose_device_state === true) {
                                 return isOn ? "ON" : "OFF";
                             }
@@ -495,7 +495,7 @@ export const definitions: DefinitionWithExtend[] = [
                         },
                     },
                 ],
-    
+
                 [
                     2,
                     "system_mode",
