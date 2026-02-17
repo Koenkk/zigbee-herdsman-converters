@@ -1,5 +1,27 @@
 # Changelog
 
+## [26.7.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.6.0...v26.7.0) (2026-02-17)
+
+
+### Features
+
+* **add:** EKAT-T3074-6WZ ([#11548](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11548)) ([3428369](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3428369705b825af0f4904e433e98f7ce76dd7a0))
+* **add:** SonomaStyle ([#11546](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11546)) ([8127cad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8127cadb1da7bf78affdef83020db1619e7549bf))
+* **add:** TRV26 ([#11542](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11542)) ([3a59e53](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3a59e5327b91efd7d0027a51b3b152c170a91499))
+* Tuya TS0601_fan_dimmer_and_light_switch: improve support ([#11544](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11544)) ([e678bc1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e678bc14e6f9d3048f73402624cc73da102aa33f))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3002_tlsvxhxc` as Tuya TS0726_2_gang https://github.com/Koenkk/zigbee2mqtt/issues/31084 ([a5bd727](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a5bd727594355cfda1f75cb498d9c3e3b376d03b))
+* **detect:** Detect `_TZE284_bjzrowv2` as Tuya TS0601_cover_1 https://github.com/Koenkk/zigbee2mqtt/issues/31080 ([2b3e937](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2b3e93779ccd5c45d2f089b40963a3bd98440a81))
+* HomeSeer DS150ZB: fix handling of poll check-in failed ([#11549](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11549)) ([f12cd60](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f12cd600e61f4b5e9753ec63293464777b8cb7e1))
+* **ignore:** bump the minor-patch group with 2 updates ([#11541](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11541)) ([18eabb9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/18eabb97a66fd825df21bd14ad97c0c6f3b9b4ec))
+* Namron 4512783/4512784: fix time ([#11538](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11538)) ([c9c7f1f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c9c7f1fd0d6fcc278cb54cd9aaa0a94b91f24bb8))
+* Nous A11Z: fix energy/power reporting ([#11530](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11530)) ([6eac610](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6eac610be77f11c5a1c21f29730ba60cc59bdbf3))
+* SBER SBDV: make various attributes writeable ([#11550](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11550)) ([2b1aeb2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2b1aeb2ddeb05562b2f583ab521419d57d2e0c55))
+* Shelly remotes: fix binding to coordinator ([#11547](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11547)) ([1c2a62f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1c2a62fa3062214d6f4fbfc363652ac774a2f502))
+
 ## [26.6.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.5.0...v26.6.0) (2026-02-15)
 
 
