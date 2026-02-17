@@ -176,22 +176,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        // Since a lot of Tuya devices use the same modelID, but use different datapoints
-        // it's necessary to provide a fingerprint instead of a zigbeeModel
-        // announced as TRV26 in AVATTO Aliexpress shop (although TRV26 is not a product listed on Avatto official site)
-        fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE204_xdtnpp1a" /* model: 'TRV26', vendor: 'AVATTO' */,
-            },
-        ],
-        model: "TS0601",
-        vendor: "Tuya",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xdtnpp1a"]),
+        model: "TRV26",
+        vendor: "AVATTO",
         description: "Thermostatic radiator valve",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", forceTimeUpdates: true, respondToMcuVersionResponse: true})],
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
         ota: true,
         exposes: [
             e.battery(),
@@ -210,7 +199,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(5)
                 .withValueMax(15)
                 .withValueStep(0.5),
-            e.window_detection(),
+            e.window_detection_bool(),
             e.open_window_temperature().withValueMin(5).withValueMax(20),
             e.comfort_temperature().withValueMin(5).withValueMax(25),
             e.eco_temperature().withValueMin(5).withValueMax(20),
@@ -276,10 +265,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [7, "child_lock", tuya.valueConverter.lockUnlock],
                 [9, "max_temperature_limit", tuya.valueConverter.divideBy10],
                 [10, "min_temperature_limit", tuya.valueConverter.divideBy10],
-                [14, "window_detection", tuya.valueConverter.onOff],
+                [14, "window_detection", tuya.valueConverter.raw],
                 [16, "open_window_temperature", tuya.valueConverter.divideBy10],
                 [17, "open_window_time", tuya.valueConverter.raw],
-                // [18, 'backlight', tuya.valueConverter.raw],
                 [19, "factory_reset", tuya.valueConverter.onOff],
                 [21, "holiday_temperature", tuya.valueConverter.raw],
                 [24, "comfort_temperature", tuya.valueConverter.divideBy10],
@@ -293,12 +281,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [23, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
                 [35, "error_status", tuya.valueConverter.raw],
                 [36, "frost_protection", tuya.valueConverter.onOff],
-                //[37, 'boost_time', tuya.valueConverter.raw],
-                //[38, 'boost_timeset_countdown', tuya.valueConverter.countdown],
                 [39, "scale_protection", tuya.valueConverter.raw],
                 [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
-                //[48, 'valve_testing', tuya.valueConverter.raw],
-                //[49, "valve", tuya.valueConverter.trueFalseEnum0],
                 [101, "uptime", tuya.valueConverter.divideBy10],
                 [102, "descale_countdown", tuya.valueConverter.divideBy10],
             ],
