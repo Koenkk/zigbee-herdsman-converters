@@ -344,4 +344,50 @@ export const definitions: DefinitionWithExtend[] = [
             ]);
         },
     },
+    {
+        zigbeeModel: ["SonomaStyle"],
+        model: "SonomaStyle",
+        vendor: "Stelpro",
+        description: "Sonoma Style wall fan heater with integrated Zigbee thermostat",
+        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_temperature_display_mode,
+            tz.thermostat_keypad_lockout,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+        ],
+        exposes: [
+            e.local_temperature(),
+            e.keypad_lockout(),
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
+                .withLocalTemperature()
+                .withSystemMode(["off", "auto", "heat"])
+                .withRunningState(["idle", "heat"])
+                .withPiHeatingDemand(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(25);
+            const binds = ["genBasic", "genIdentify", "genGroups", "hvacThermostat", "hvacUserInterfaceCfg", "msTemperatureMeasurement"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatPIHeatingDemand(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
+            // cluster 0x0201 attribute 0x401c (common for Stelpro line-voltage thermostats)
+            await endpoint.configureReporting("hvacThermostat", [
+                {
+                    attribute: "StelproSystemMode",
+                    minimumReportInterval: constants.repInterval.MINUTE,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 1,
+                },
+            ]);
+        },
+    },
 ];
