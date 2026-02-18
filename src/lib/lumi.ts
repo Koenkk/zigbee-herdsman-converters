@@ -2224,8 +2224,8 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiCurtainReverse: (args?: Partial<modernExtend.BinaryArgs<"closuresWindowCovering">>) => {
-        const {onEvent, configure} = modernExtend.deviceAddCustomCluster("hvacThermostat", {
-            ID: 0x0201,
+        const {onEvent, configure} = modernExtend.deviceAddCustomCluster("closuresWindowCovering", {
+            ID: 0x0102,
             attributes: {
                 // Make windowCoveringMode writable
                 // https://github.com/Koenkk/zigbee2mqtt/issues/30768

@@ -259,15 +259,36 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS011F", manufacturerName: "_TZ3210_6cmeijtd"}],
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3210_6cmeijtd"]),
         model: "A11Z",
         vendor: "Nous",
-        description: "Smart power strip 3 gang with power monitoring",
+        description: "3-channel power strip with total energy monitoring",
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            m.onOff({endpointNames: ["l1", "l2", "l3"], powerOnBehavior: false}),
-            m.electricityMeter(),
-            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
+            tuya.modernExtend.tuyaOnOff({
+                powerOnBehavior2: true,
+                onOffCountdown: true,
+                indicatorMode: true,
+                childLock: true,
+                switchTypeButton: true,
+                endpoints: ["l1", "l2", "l3"],
+            }),
+            m.electricityMeter({
+                current: {divisor: 1000, multiplier: 1},
+                voltage: {divisor: 1, multiplier: 1},
+                power: {divisor: 1, multiplier: 1},
+                energy: {divisor: 100, multiplier: 1},
+                fzElectricalMeasurement: tuya.fz.TS011F_electrical_measurement,
+            }),
+            m.identify(),
         ],
+        meta: {
+            multiEndpoint: true,
+            multiEndpointSkip: ["energy", "current", "voltage", "power"],
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+        },
     },
 ];

@@ -133,7 +133,7 @@ export async function assertDefinition(args: AssertDefinitionArgs) {
     expect(definition.meta).toEqual(args.meta);
     expect(definition.fromZigbee).toEqual(args.fromZigbee);
 
-    const expectedToZigbee = definition.toZigbee?.slice(0, definition.toZigbee.length - DefaultTz.length).flatMap((c) => c.key);
+    const expectedToZigbee = definition.toZigbee?.slice(DefaultTz.length).flatMap((c) => c.key);
     utils.assertArray(expectedToZigbee);
     logIfNotEqual(expectedToZigbee, args.toZigbee);
     expect(expectedToZigbee).toEqual(args.toZigbee);
