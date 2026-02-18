@@ -178,7 +178,7 @@ export const definitions: DefinitionWithExtend[] = [
                             if (options?.expose_device_state === true) {
                                 return isOn ? "ON" : "OFF";
                             }
-                            meta.state.state = undefined;
+                            return undefined;
                         },
                     },
                 ],
