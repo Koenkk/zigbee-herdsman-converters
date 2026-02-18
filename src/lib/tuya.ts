@@ -3097,13 +3097,13 @@ const tuyaModernExtend = {
                 exposes.push(...expose);
             }
         } else if (powerOnBehavior3) {
-            const result: ModernExtend = m.enumLookup({
-                name: "power_on_behavior",
-                lookup: {off: 0, on: 1, previous: 2},
-                cluster: "manuSpecificTuya",
+            const result: ModernExtend = modernExtend.enumLookup({
+                name: 'power_on_behavior',
+                lookup: {'off': 0, 'on': 1, 'previous': 2},
+                cluster: 'manuSpecificTuya',
                 attribute: {ID: 0x4002, type: 0x30},
-                description: "Controls the behavior when the device is powered on after power loss",
-                entityCategory: "config",
+                description: 'Controls the behavior when the device is powered on after power loss',
+                entityCategory: 'config',
                 endpointNames: args.endpoints,
             });
             fromZigbee.push(...result.fromZigbee);
