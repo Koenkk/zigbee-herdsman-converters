@@ -3101,12 +3101,12 @@ const tuyaModernExtend = {
             if (endpointList.length > 0) {
                 for (const endpoint of endpointList) {
                     const result = modernExtend.enumLookup({
-                        name: 'power_on_behavior',
-                        lookup: {'off': 0, 'on': 1, 'previous': 2},
-                        cluster: 'manuSpecificTuya',
+                        name: "power_on_behavior",
+                        lookup: {off: 0, on: 1, previous: 2},
+                        cluster: "manuSpecificTuya",
                         attribute: {ID: 0x4002, type: 0x30},
-                        description: 'Controls the behavior when the device is powered on after power loss',
-                        entityCategory: 'config',
+                        description: "Controls the behavior when the device is powered on after power loss",
+                        entityCategory: "config",
                         endpointName: endpoint,
                     });
                     fromZigbee.push(...result.fromZigbee);
@@ -3115,12 +3115,12 @@ const tuyaModernExtend = {
                 }
             } else {
                 const result = modernExtend.enumLookup({
-                    name: 'power_on_behavior',
-                    lookup: {'off': 0, 'on': 1, 'previous': 2},
-                    cluster: 'manuSpecificTuya',
+                    name: "power_on_behavior",
+                    lookup: {off: 0, on: 1, previous: 2},
+                    cluster: "manuSpecificTuya",
                     attribute: {ID: 0x4002, type: 0x30},
-                    description: 'Controls the behavior when the device is powered on after power loss',
-                    entityCategory: 'config',
+                    description: "Controls the behavior when the device is powered on after power loss",
+                    entityCategory: "config",
                 });
                 fromZigbee.push(...result.fromZigbee);
                 toZigbee.push(...result.toZigbee);
