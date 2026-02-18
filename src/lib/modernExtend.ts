@@ -2301,7 +2301,7 @@ function genericMeter(args: MeterArgs = {}) {
             exposes.push(e.voltage_phase_b().withAccess(ea.STATE_GET), e.voltage_phase_c().withAccess(ea.STATE_GET));
             toZigbee.push(tz.acvoltage_phase_b, tz.acvoltage_phase_c);
         }
-        if (args.current !== false) {
+        if (args.current) {
             exposes.push(e.current_phase_b().withAccess(ea.STATE_GET), e.current_phase_c().withAccess(ea.STATE_GET));
             toZigbee.push(tz.accurrent_phase_b, tz.accurrent_phase_c);
         }
