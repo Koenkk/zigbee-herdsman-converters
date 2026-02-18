@@ -12,7 +12,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, KeyValueString, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from "../lib/utils";
 import * as zosung from "../lib/zosung";
@@ -1080,57 +1080,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport", "readResponse"]>,
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    TS011F_electrical_measurement: {
-        ...fz.electrical_measurement,
-        convert: (model, msg, publish, options, meta) => {
-            const result = (fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
-            const lookup: KeyValueString = {
-                power: "activePower",
-                current: "rmsCurrent",
-                voltage: "rmsVoltage",
-            };
-
-            // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
-            if (result) {
-                for (const key of ["power", "current", "voltage"]) {
-                    if (key in result) {
-                        const value = result[key];
-                        clearTimeout(globalStore.getValue(msg.endpoint, key));
-                        if (value === 0) {
-                            const configuredReporting = msg.endpoint.configuredReportings.find(
-                                (c) => c.cluster.name === "haElectricalMeasurement" && c.attribute.name === lookup[key],
-                            );
-                            const time = (configuredReporting ? configuredReporting.minimumReportInterval : 5) * 2 + 1;
-                            globalStore.putValue(
-                                msg.endpoint,
-                                key,
-                                setTimeout(() => {
-                                    const payload = {[key]: value};
-                                    // Device takes a lot of time to report power 0 in some cases. When current == 0 we can assume power == 0
-                                    // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
-                                    if (key === "current") {
-                                        payload.power = 0;
-                                    }
-                                    publish(payload);
-                                }, time * 1000),
-                            );
-                            delete result[key];
-                        }
-                    }
-                }
-            }
-
-            // Device takes a lot of time to report power 0 in some cases. When the state is OFF we can assume power == 0
-            // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
-            if (meta.state.state === "OFF") {
-                result.power = 0;
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_threshold: {
         cluster: "manuSpecificTuya3",
@@ -4736,6 +4685,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_tdhnhhiy",
             "_TZE204_wskr3up8",
             "_TZE204_gxbdnfrh",
+            "_TZE284_g1enhdsi",
         ]),
         model: "TS0601_switch_6_gang",
         vendor: "Tuya",
@@ -4775,6 +4725,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nova Digital", "SYZB-6W", "6 gang switch 4x4", ["_TZE284_tdhnhhiy"]),
             tuya.whitelabel("Nova Digital", "FZB-6", "6 gang switch 4x4", ["_TZE204_wskr3up8"]),
             tuya.whitelabel("Nova Digital", "SA-6", "Safira smart switch - 6 gang", ["_TZE204_gxbdnfrh"]),
+            tuya.whitelabel("Ekaza", "EKAT-T3074-6WZ", "6 gang switch", ["_TZE284_g1enhdsi"]),
         ],
     },
     {
@@ -6489,6 +6440,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_n1aauwb4",
                 "_TZE200_xu4a5rhj",
                 "_TZE200_bjzrowv2",
+                "_TZE284_bjzrowv2",
                 "_TZE204_bjzrowv2",
                 "_TZE200_axgvo9jh",
                 "_TZE200_gaj531w3",
@@ -8809,14 +8761,16 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 electricalMeasurements: true,
-                electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
+                electricalMeasurementsFzConverter: tuya.fz.TS011F_electrical_measurement,
 
                 // Conditional features
                 powerOutageMemory: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
                 indicatorMode: (manufacturerName) => manufacturerName !== "_TZ3000_ww6drja5",
                 childLock: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
                 onOffCountdown: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
+                switchTypeButton: true,
             }),
+            m.identify(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -10189,7 +10143,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_1s0vfmtv", "_TZ3002_gdwja9a7", "_TZ3002_u7d3nes3"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_1s0vfmtv", "_TZ3002_gdwja9a7", "_TZ3002_u7d3nes3", "_TZ3002_tlsvxhxc"]),
         model: "TS0726_2_gang",
         vendor: "Tuya",
         description: "2 gang switch with neutral wire",
@@ -13465,22 +13419,47 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Liwokit", model: "Fan+Light-01"}],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bql5khqx"]),
-        model: "X99-G-kbFan-1g-ZG-LN-11",
-        vendor: "Coswall",
-        description: "Fan & light switch",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bql5khqx", "_TZE204_2jnoy8dj"]),
+        model: "TS0601_fan_dimmer_and_light_switch",
+        vendor: "Tuya",
+        description: "Fan Dimmer and 1 Gang Light Switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.binary("status_indication", ea.STATE_SET, "ON", "OFF").withDescription("Light switch"),
-            e.numeric("fan_speed", ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withDescription("Fan Speed %"),
+            exposes
+                .numeric("fan_speed", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Speed of the fan %"),
+            e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET),
+            e.binary("light_switch", ea.STATE_SET, "ON", "OFF").withDescription("Light switch"),
+            e.enum("indicator", ea.ALL, ["off", "off/on", "on"]).withDescription("LED indicator mode").withAccess(ea.STATE_SET),
+            exposes.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
+            exposes
+                .numeric("minimum_speed", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Vitesse minimale du ventilateur"),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],
                 [4, "fan_speed", tuya.valueConverter.raw],
-                [5, "status_indication", tuya.valueConverter.onOff],
+                [5, "light_switch", tuya.valueConverter.onOff],
+                [11, "power_on_behavior", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1), previous: tuya.enum(2)})],
+                [12, "indicator", tuya.valueConverterBasic.lookup({off: tuya.enum(0), "off/on": tuya.enum(1), on: tuya.enum(2)})],
+                [13, "backlight", tuya.valueConverter.onOff],
+                [104, "child_lock", tuya.valueConverter.onOff],
+                [105, "minimum_speed", tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [
+            {vendor: "Coswall", model: "X99-G-kbFan-1g-ZG-LN-11"},
+            {vendor: "Zemismart", model: "ZN2S-RS1E-FL / ZN2S-US1U-FL"},
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lawxy9e2", "_TZE204_lawxy9e2"]),
@@ -13623,7 +13602,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 electricalMeasurements: true,
-                electricalMeasurementsFzConverter: fzLocal.TS011F_electrical_measurement,
+                electricalMeasurementsFzConverter: tuya.fz.TS011F_electrical_measurement,
                 powerOutageMemory: true,
                 indicatorMode: true,
                 onOffCountdown: true,

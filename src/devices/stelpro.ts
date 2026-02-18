@@ -85,11 +85,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ST218"],
+        zigbeeModel: ["ST218", "SonomaStyle"],
         model: "ST218",
         vendor: "Stelpro",
         description: "Ki convector, line-voltage thermostat",
         fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface],
+        whiteLabel: [{description: "Style Fan Heater", model: "SonomaStyle", fingerprint: [{modelID: "SonomaStyle"}]}],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,

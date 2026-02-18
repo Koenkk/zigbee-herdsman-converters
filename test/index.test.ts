@@ -523,6 +523,7 @@ describe("ZHC", () => {
             "voltage_precision",
             "energy_calibration",
             "energy_precision",
+            "identify_timeout",
             "state_action",
         ]);
         const payload3 = {current: 0.0585};
