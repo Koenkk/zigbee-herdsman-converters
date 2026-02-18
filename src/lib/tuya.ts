@@ -3104,7 +3104,7 @@ const tuyaModernExtend = {
                 attribute: {ID: 0x4002, type: 0x30},
                 description: "Controls the behavior when the device is powered on after power loss",
                 entityCategory: "config",
-                endpointNames: args.endpoints,
+                endpointName: args.endpoints,
             });
             fromZigbee.push(...result.fromZigbee);
             toZigbee.push(...result.toZigbee);
