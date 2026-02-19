@@ -43,22 +43,41 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_1di7ujzp"]),
         model: "E13",
         vendor: "Nous",
-        description: "Zigbee water leak sensor with sound alarm",
+        description: "Water leakage or shortage sensor with sound alarm",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.water_leak(),
+            e.water(),
+            e.binary("alarm", ea.STATE, true, false).withDescription("Indicates whether the buzzer is currently ringing"),
+            e.enum("alarm_mode", ea.STATE_SET, ["water presence", "water absence"]).withDescription("When to sound the alarm").withCategory("config"),
+            e
+                .enum("ringtone", ea.STATE_SET, ["muted", "tone 1", "tone 2", "tone 3"])
+                .withDescription("Selected buzzer ringtone for the alarm")
+                .withCategory("config"),
             e.battery(),
-            e.enum("working_mode", ea.ALL, ["normal", "silent", "test"]).withDescription("Operational mode of the device"),
-            e.text("status", ea.STATE).withDescription("Device status"),
-            e.enum("alarm_ringtone", ea.ALL, ["tone_1", "tone_2", "tone_3"]).withDescription("Alarm ringtone"),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "water_leak", tuya.valueConverter.trueFalse1],
+                [1, "water", tuya.valueConverter.trueFalse1],
                 [4, "battery", tuya.valueConverter.raw],
-                [101, "working_mode", tuya.valueConverterBasic.lookup({normal: 0, silent: 1, test: 2})],
-                [102, "status", tuya.valueConverter.raw],
-                [103, "alarm_ringtone", tuya.valueConverterBasic.lookup({tone_1: 0, tone_2: 1, tone_3: 2})],
+                [
+                    101,
+                    "alarm_mode",
+                    tuya.valueConverterBasic.lookup({
+                        "water presence": tuya.enum(0),
+                        "water absence": tuya.enum(1),
+                    }),
+                ],
+                [102, "alarm", tuya.valueConverter.trueFalse1],
+                [
+                    103,
+                    "ringtone",
+                    tuya.valueConverterBasic.lookup({
+                        muted: tuya.enum(0),
+                        "tone 1": tuya.enum(1),
+                        "tone 2": tuya.enum(2),
+                        "tone 3": tuya.enum(3),
+                    }),
+                ],
             ],
         },
     },
