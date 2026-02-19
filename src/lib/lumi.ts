@@ -888,7 +888,7 @@ export const numericAttributes2Payload = async (
                 }
                 break;
             case "1289":
-                payload.dimmer_mode = getFromLookup(value, {3: "rgbw", 1: "dual_ct"});
+                payload.dimmer_mode = getFromLookup(value, {1: "dual_ct", 2: "rgb", 3: "rgbw"});
                 break;
             case "1299":
                 if (["ZNXDD01LM"].includes(model.model)) {
