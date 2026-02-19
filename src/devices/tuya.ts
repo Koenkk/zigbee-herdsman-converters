@@ -16948,6 +16948,28 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3210_iymfxdis"]),
+        model: "SA-4W",
+        vendor: "Nova Digital",
+        description: "Safira smart light switch - 4 gang",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
+            tuya.modernExtend.tuyaOnOff({
+                backlightModeOffOn: true,
+                powerOnBehavior3: true,
+                endpoints: ["l1", "l2", "l3", "l4"],
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const endpointId of [1, 2, 3, 4]) {
+                const endpoint = device.getEndpoint(endpointId);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+                await reporting.onOff(endpoint);
+            }
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS1002", ["_TZ3000_etufnltx"]),
         model: "F00XN00-04-1",
         vendor: "FORIA",

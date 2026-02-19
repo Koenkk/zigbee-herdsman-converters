@@ -3030,6 +3030,7 @@ const tuyaModernExtend = {
             endpoints?: string[];
             powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior2?: boolean | ((manufacturerName: string) => boolean);
+            powerOnBehavior3?: boolean;
             switchType?: boolean | ((manufacturerName: string) => boolean);
             switchTypeCurtain?: boolean;
             switchTypeButton?: boolean;
@@ -3055,6 +3056,7 @@ const tuyaModernExtend = {
             inchingSwitch = false,
             backlightModeOffOn = false,
             powerOnBehavior2 = false,
+            powerOnBehavior3 = false,
             switchType = false,
         } = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
@@ -3093,6 +3095,36 @@ const tuyaModernExtend = {
                 exposes.push((d) => (powerOnBehavior2(d.manufacturerName) ? expose : []));
             } else {
                 exposes.push(...expose);
+            }
+        } else if (powerOnBehavior3) {
+            const endpointList = args.endpoints || [];
+            if (endpointList.length > 0) {
+                for (const endpoint of endpointList) {
+                    const result = modernExtend.enumLookup({
+                        name: "power_on_behavior",
+                        lookup: {off: 0, on: 1, previous: 2},
+                        cluster: "manuSpecificTuya",
+                        attribute: {ID: 0x4002, type: 0x30},
+                        description: "Controls the behavior when the device is powered on after power loss",
+                        entityCategory: "config",
+                        endpointName: endpoint,
+                    });
+                    fromZigbee.push(...result.fromZigbee);
+                    toZigbee.push(...result.toZigbee);
+                    exposes.push(...result.exposes);
+                }
+            } else {
+                const result = modernExtend.enumLookup({
+                    name: "power_on_behavior",
+                    lookup: {off: 0, on: 1, previous: 2},
+                    cluster: "manuSpecificTuya",
+                    attribute: {ID: 0x4002, type: 0x30},
+                    description: "Controls the behavior when the device is powered on after power loss",
+                    entityCategory: "config",
+                });
+                fromZigbee.push(...result.fromZigbee);
+                toZigbee.push(...result.toZigbee);
+                exposes.push(...result.exposes);
             }
         } else {
             fromZigbee.push(tuyaFz.power_on_behavior_1);
