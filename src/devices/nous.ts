@@ -48,9 +48,9 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.water(),
             e.binary("alarm", ea.STATE, true, false).withDescription("Indicates whether the buzzer is currently ringing"),
-            e.enum("alarm_mode", ea.STATE_SET, ["water presence", "water absence"]).withDescription("When to sound the alarm").withCategory("config"),
+            e.enum("alarm_mode", ea.STATE_SET, ["water_presence", "water_absence"]).withDescription("When to sound the alarm").withCategory("config"),
             e
-                .enum("ringtone", ea.STATE_SET, ["muted", "tone 1", "tone 2", "tone 3"])
+                .enum("ringtone", ea.STATE_SET, ["muted", "tone_1", "tone_2", "tone_3"])
                 .withDescription("Selected buzzer ringtone for the alarm")
                 .withCategory("config"),
             e.battery(),
@@ -63,8 +63,8 @@ export const definitions: DefinitionWithExtend[] = [
                     101,
                     "alarm_mode",
                     tuya.valueConverterBasic.lookup({
-                        "water presence": tuya.enum(0),
-                        "water absence": tuya.enum(1),
+                        water_presence: tuya.enum(0),
+                        water_absence: tuya.enum(1),
                     }),
                 ],
                 [102, "alarm", tuya.valueConverter.trueFalse1],
@@ -73,9 +73,9 @@ export const definitions: DefinitionWithExtend[] = [
                     "ringtone",
                     tuya.valueConverterBasic.lookup({
                         muted: tuya.enum(0),
-                        "tone 1": tuya.enum(1),
-                        "tone 2": tuya.enum(2),
-                        "tone 3": tuya.enum(3),
+                        tone_1: tuya.enum(1),
+                        tone_2: tuya.enum(2),
+                        tone_3: tuya.enum(3),
                     }),
                 ],
             ],
