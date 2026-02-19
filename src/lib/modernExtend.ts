@@ -3118,14 +3118,9 @@ export function deviceEndpoints(args: {endpoints: {[n: string]: number}; multiEn
 }
 
 export function deviceAddCustomCluster(clusterName: string, clusterDefinition: ClusterDefinition): ModernExtend {
-    const addCluster = (device: Zh.Device) => {
-        if (!device.customClusters[clusterName]) {
-            device.addCustomCluster(clusterName, clusterDefinition);
-        }
-    };
-
+    const addCluster = (device: Zh.Device) => device.addCustomCluster(clusterName, clusterDefinition);
     const onEvent: OnEvent.Handler[] = [(event) => event.type === "start" && addCluster(event.data.device)];
-    const configure: Configure[] = [async (device) => addCluster(device)];
+    const configure: Configure[] = [addCluster];
 
     return {onEvent, configure, isModernExtend: true};
 }
