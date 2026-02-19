@@ -16948,7 +16948,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: "TS0004", manufacturerName: "_TZ3210_iymfxdis"}],
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3210_iymfxdis"]),
         model: "SA-4W",
         vendor: "Nova Digital",
         description: "Safira smart light switch - 4 gang",
