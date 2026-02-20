@@ -1904,7 +1904,7 @@ export const definitions: DefinitionWithExtend[] = [
                             }
 
                             for (const [bit, name] of Object.entries(faultMap)) {
-                                if (value & Number.parseInt(bit)) {
+                                if (value & Number.parseInt(bit, 10)) {
                                     faults.push(name);
                                 }
                             }

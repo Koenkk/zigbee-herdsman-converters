@@ -348,11 +348,11 @@ export const power_on_behavior: Tz.Converter = {
         const lookup = {off: 0, on: 1, toggle: 2, previous: 255};
         try {
             await entity.write("genOnOff", {startUpOnOff: utils.getFromLookup(value, lookup)}, utils.getOptions(meta.mapped, entity));
-        } catch (e) {
-            if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+        } catch (error) {
+            if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
                 throw new Error("Got `UNSUPPORTED_ATTRIBUTE` error, device does not support power on behaviour");
             }
-            throw e;
+            throw error;
         }
         return {state: {power_on_behavior: value}};
     },

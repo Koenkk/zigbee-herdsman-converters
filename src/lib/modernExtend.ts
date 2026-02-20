@@ -602,11 +602,11 @@ export function onOff(args: OnOffArgs = {}): ModernExtend {
                             [{attribute: "startUpOnOff", min: "MIN", max: "MAX", change: 1}],
                             false,
                         );
-                    } catch (e) {
-                        if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                    } catch (error) {
+                        if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
                             logger.debug("Reading startUpOnOff failed, this features is unsupported", "zhc:onoff");
                         } else {
-                            throw e;
+                            throw error;
                         }
                     }
                 }

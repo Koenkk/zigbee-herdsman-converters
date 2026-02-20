@@ -314,7 +314,7 @@ export const definitions: DefinitionWithExtend[] = [
                 if ((error as Error).message.includes("READ_ONLY")) {
                     logger.debug("Writing `longPollInterval` failed, ignoring...", NS);
                 } else {
-                    throw e;
+                    throw error;
                 }
             }
             await reporting.temperature(endpoint);
