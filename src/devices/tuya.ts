@@ -2882,37 +2882,27 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("opening_state", ea.STATE, ["open", "closed", "tilted"]).withDescription("Opening state"),
-            e.binary("alarm_state", ea.STATE_SET, true, false).withDescription("Alarm was triggered."),
-            e.binary("setup_mode", ea.STATE_SET, true, false).withDescription("Set mode status"),
-            e.binary("alarm_siren", ea.STATE_SET, true, false).withDescription("Activate the siren when the alarm is triggered."),
+            e.binary("alarm_state", ea.STATE_SET, true, false).withDescription("Alarm state"),
+            e.binary("setup_mode", ea.STATE_SET, true, false).withDescription("Exit Setup Mode"),
+            e.binary("alarm_siren", ea.STATE_SET, true, false).withDescription("Alarm siren"),
             e
                 .numeric("alarm_siren_duration", ea.STATE_SET)
-                .withDescription("Duration of the alarm siren.")
+                .withDescription("Alarm siren duration")
                 .withValueMin(5)
                 .withValueMax(180)
                 .withValueStep(1),
             e.numeric("vibration", ea.STATE).withDescription("Value of vibration."),
-            e
-                .numeric("vibration_limit", ea.STATE_SET)
-                .withDescription("Limit at which a vibration is reported.")
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1),
-            e.binary("vibration_siren", ea.STATE_SET, true, false).withDescription("Activate the siren when vibrating."),
+            e.numeric("vibration_limit", ea.STATE_SET).withDescription("Vibration limit").withValueMin(0).withValueMax(100).withValueStep(1),
+            e.binary("vibration_siren", ea.STATE_SET, true, false).withDescription("Vibration siren"),
             e
                 .numeric("vibration_siren_duration", ea.STATE_SET)
-                .withDescription("Duration of the vibrating siren.")
+                .withDescription("Vibration siren duration")
                 .withValueMin(5)
                 .withValueMax(180)
                 .withValueStep(1),
-            e.binary("close_signal", ea.STATE_SET, true, false).withDescription("Enable sound when closing the window."),
-            e
-                .numeric("transmission_power", ea.STATE_SET)
-                .withDescription("Transmission power 11-19. High value > battery consumption.")
-                .withValueMin(11)
-                .withValueMax(19)
-                .withValueStep(1),
-            e.binary("magnetic_status", ea.STATE, true, false).withDescription("Magnetic status."),
+            e.binary("close_signal", ea.STATE_SET, true, false).withDescription("Close signal"),
+            e.numeric("transmission_power", ea.STATE_SET).withDescription("Transmission power").withValueMin(11).withValueMax(19).withValueStep(1),
+            e.binary("magnetic_status", ea.STATE, true, false).withDescription("Magnetic status"),
             e.battery(),
         ],
         meta: {
