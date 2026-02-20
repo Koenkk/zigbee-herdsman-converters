@@ -3,7 +3,6 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as reporting from "../lib/reporting";
 import * as libColor from "./color";
-import {ColorRGB, ColorXY} from "./color";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
 import * as modernExtend from "./modernExtend";
@@ -16,26 +15,6 @@ const NS = "zhc:philips";
 const ea = exposes.access;
 const e = exposes.presets;
 const eNumeric = exposes.Numeric;
-
-const encodeRGBToScaledGradient = (hex: string) => {
-    const xy = ColorRGB.fromHex(hex).toXY();
-    const x = (xy.x * 4095) / 0.7347;
-    const y = (xy.y * 4095) / 0.8413;
-    const xx = Math.round(x).toString(16).padStart(3, "0");
-    const yy = Math.round(y).toString(16).padStart(3, "0");
-
-    return [xx[1], xx[2], yy[2], xx[0], yy[0], yy[1]].join("");
-};
-
-const decodeScaledGradientToRGB = (p: string) => {
-    const x = p[3] + p[0] + p[1];
-    const y = p[4] + p[5] + p[2];
-
-    const xx = Number(((Number.parseInt(x, 16) * 0.7347) / 4095).toFixed(4));
-    const yy = Number(((Number.parseInt(y, 16) * 0.8413) / 4095).toFixed(4));
-
-    return new ColorXY(xx, yy).toRGB().toHEX();
-};
 
 const COLOR_MODE_GRADIENT = "4b01";
 const COLOR_MODE_COLOR_XY = "0b00";
@@ -300,9 +279,7 @@ const philipsTz = {
         return {
             key: ["gradient"],
             convertSet: async (entity, key, value, meta) => {
-                // @ts-expect-error ignore
-                const scene = encodeGradientColors(value, opts);
-                const payload = {data: Buffer.from(scene, "hex")};
+                const payload = {data: encodeGradientColors(value as string[], opts)};
                 await entity.command("manuSpecificPhilips2", "multiColor", payload);
             },
             convertGet: async (entity, key, meta) => {
@@ -589,8 +566,7 @@ const philipsFz = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.state !== undefined) {
-                const input = msg.data.state.toString("hex");
-                const decoded = decodeGradientColors(input, {reverse: true});
+                const decoded = decodeGradientColors(msg.data.state, {reverse: true});
                 if (decoded.color_mode === "gradient") {
                     return {gradient: decoded.colors};
                 }
@@ -601,8 +577,13 @@ const philipsFz = {
 };
 export {philipsFz as fz};
 
+const GAMUT = libColor.SUPPORTED_GAMUTS.wide;
+const MAX_X = GAMUT.red[0];
+const MAX_Y = GAMUT.green[1];
+
+// https://github.com/chrivers/bifrost/blob/master/doc/hue-zigbee-format.md#property-gradient_colors-color-encoding
 // decoder for manuSpecificPhilips2.state
-export function decodeGradientColors(input: string, opts: KeyValue) {
+export function decodeGradientColors(input: Buffer, opts: KeyValue) {
     // Gradient mode (4b01)
     // Example: 4b010164fb74346b1350000000f3297fda7d55da7d55f3297fda7d552800
     // 4b01 - mode? (4) (0b00 single color?, 4b01 gradient?)
@@ -644,45 +625,50 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
     // 0300 - mode (4)
     //     01 - on/off (2)
     //       b2 - brightness (2)
+    let bufOffset = 0;
 
     // Device color mode
-    const mode = input.slice(0, 4);
-    input = input.slice(4);
+    const mode = input.toString("hex", bufOffset, 2);
+    bufOffset += 2;
 
-    // On/off (2 bytes)
-    const on = Number.parseInt(input.slice(0, 2), 16) === 1;
-    input = input.slice(2);
+    // On/off (1 byte)
+    const on = input.readUInt8(bufOffset) === 1;
+    bufOffset += 1;
 
-    // Brightness (2 bytes)
-    const brightness = Number.parseInt(input.slice(0, 2), 16);
-    input = input.slice(2);
+    // Brightness (1 byte)
+    const brightness = input.readUInt8(bufOffset);
+    bufOffset += 1;
 
     // Gradient mode
     if (mode === COLOR_MODE_GRADIENT) {
-        // Unknown (8 bytes)
-        input = input.slice(8);
+        // Unknown (4 bytes)
+        // Length (1 bytes)
+        bufOffset += 5;
+        // Number of colors (1 bytes)
+        const nColors = input.readUInt8(bufOffset) >> 4;
+        // Unknown (3 bytes)
+        bufOffset += 4;
+        const colors: string[] = [];
 
-        // Length (2 bytes)
-        input = input.slice(2);
+        for (let i = 0; i < nColors; i++) {
+            const b0 = input.readUInt8(bufOffset);
+            const b1 = input.readUInt8(bufOffset + 1);
+            const b2 = input.readUInt8(bufOffset + 2);
+            const rawX = b0 | ((b1 & 0x0f) << 8);
+            const rawY = (b2 << 4) | (b1 >> 4);
+            bufOffset += 3;
+            const x = Math.round(((rawX * MAX_X) / 0xfff) * 10000.0) / 10000;
+            const y = Math.round(((rawY * MAX_Y) / 0xfff) * 10000.0) / 10000;
 
-        // Number of colors (2 bytes)
-        const nColors = Number.parseInt(input.slice(0, 2), 16) >> 4;
-        input = input.slice(2);
+            colors.push(new libColor.ColorXY(x, y).toRGB(GAMUT).toHex());
+        }
 
-        // Unknown (6 bytes)
-        input = input.slice(6);
-
-        // Colors (6 * nColors bytes)
-        const colorsPayload = input.slice(0, 6 * nColors);
-        input = input.slice(6 * nColors);
-        const colors = colorsPayload.match(/.{6}/g).map(decodeScaledGradientToRGB);
-
-        // Segments (2 bytes)
-        const segments = Number.parseInt(input.slice(0, 2), 16) >> 3;
-        input = input.slice(2);
-
-        // Offset (2 bytes)
-        const offset = Number.parseInt(input.slice(0, 2), 16) >> 3;
+        // Segments (1 bytes)
+        const segments = input.readUInt8(bufOffset) >> 3;
+        bufOffset += 1;
+        // Offset (1 bytes)
+        const offset = input.readUInt8(bufOffset) >> 3;
+        bufOffset += 1;
 
         if (opts?.reverse) {
             colors.reverse();
@@ -699,17 +685,17 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
     }
     if (mode === COLOR_MODE_COLOR_XY || mode === COLOR_MODE_EFFECT) {
         // XY Color mode
-        const xLow = Number.parseInt(input.slice(0, 2), 16);
-        input = input.slice(2);
-        const xHigh = Number.parseInt(input.slice(0, 2), 16) << 8;
-        input = input.slice(2);
-        const yHigh = Number.parseInt(input.slice(0, 2), 16);
-        input = input.slice(2);
-        const yLow = Number.parseInt(input.slice(0, 2), 16) << 8;
-        input = input.slice(2);
+        const xLow = input.readUInt8(bufOffset);
+        bufOffset += 1;
+        const xHigh = input.readUInt8(bufOffset) << 8;
+        bufOffset += 1;
+        const yHigh = input.readUInt8(bufOffset);
+        bufOffset += 1;
+        const yLow = input.readUInt8(bufOffset) << 8;
+        bufOffset += 1;
 
-        const x = Math.round(((xHigh | xLow) / 65535) * 10000) / 10000;
-        const y = Math.round(((yHigh | yLow) / 65535) * 10000) / 10000;
+        const x = Math.round(((xHigh | xLow) / 0xffff) * 10000) / 10000;
+        const y = Math.round(((yHigh | yLow) / 0xffff) * 10000) / 10000;
 
         if (mode === COLOR_MODE_COLOR_XY) {
             return {
@@ -722,9 +708,11 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
         }
 
         // Effect mode
-        const effect = input.slice(0, 4);
+        const effect = input.toString("hex", bufOffset, bufOffset + 2);
+        bufOffset += 2;
         // @ts-expect-error ignore
         const name = knownEffects[effect] || `unknown_${effect}`;
+
         return {
             color_mode: "xy",
             x,
@@ -736,10 +724,10 @@ export function decodeGradientColors(input: string, opts: KeyValue) {
     }
     if (mode === COLOR_MODE_COLOR_TEMP) {
         // Color temperature mode
-        const low = Number.parseInt(input.slice(0, 2), 16);
-        input = input.slice(2);
-        const high = Number.parseInt(input.slice(0, 2), 16) << 8;
-        input = input.slice(2);
+        const low = input.readUInt8(bufOffset);
+        bufOffset += 1;
+        const high = input.readUInt8(bufOffset) << 8;
+        bufOffset += 1;
 
         const temp = high | low;
 
@@ -770,19 +758,8 @@ export function encodeGradientColors(value: string[], opts: KeyValueAny) {
         throw new Error("Expected at least 1 color, got 0");
     }
 
-    // For devices where it makes more sense to specify the colors in reverse
-    // For example Hue Signe, where the last color is the top color.
-    if (opts.reverse) {
-        value.reverse();
-    }
-
-    // The number of colors and segments can technically differ. Here they are always the same, but we could
-    // support it by extending the API.
-    // If number of colors is less than the number of segments, the colors will repeat.
-    // It seems like the maximum number of colors is 9, and the maximum number of segments is 31.
-    const nColors = (value.length << 4).toString(16).padStart(2, "0");
-
     let segments = value.length;
+
     if (opts.segments) {
         segments = opts.segments;
     }
@@ -790,24 +767,50 @@ export function encodeGradientColors(value: string[], opts: KeyValueAny) {
     if (segments < 1 || segments > 31) {
         throw new Error(`Expected segments to be between 1 and 31 (inclusive), got ${segments}`);
     }
-    const segmentsPayload = (segments << 3).toString(16).padStart(2, "0");
-
-    // Encode the colors
-    const colorsPayload = value.map(encodeRGBToScaledGradient).join("");
 
     // Offset of the first color. 0 means the first segment uses the first color. (min 0, max 31)
     let offset = 0;
+
     if (opts.offset) {
         offset = opts.offset;
     }
-    const offsetPayload = (offset << 3).toString(16).padStart(2, "0");
 
+    // For devices where it makes more sense to specify the colors in reverse
+    // For example Hue Signe, where the last color is the top color.
+    if (opts.reverse) {
+        value.reverse();
+    }
+
+    let bufOffset = 0;
+    const buf = Buffer.alloc(4 + 2 + 3 * (value.length + 1) + 2, 0x00);
+    bufOffset = buf.writeUInt32BE(0x50010400, bufOffset);
     // Payload length
-    const length = (1 + 3 * (value.length + 1)).toString(16).padStart(2, "0");
+    bufOffset = buf.writeUInt8(1 + 3 * (value.length + 1), bufOffset);
+    // The number of colors and segments can technically differ. Here they are always the same, but we could
+    // support it by extending the API.
+    // If number of colors is less than the number of segments, the colors will repeat.
+    // It seems like the maximum number of colors is 9, and the maximum number of segments is 31.
+    bufOffset = buf.writeUInt8(value.length << 4, bufOffset);
+    // 3 zero bytes
+    bufOffset += 3;
 
-    // 5001 - mode? set gradient?
-    // 0400 - unknown
-    const scene = `50010400${length}${nColors}000000${colorsPayload}${segmentsPayload}${offsetPayload}`;
+    // Encode the colors
+    for (let i = 0; i < value.length; i++) {
+        const xy = libColor.ColorRGB.fromHex(value[i]).toXY(GAMUT);
+        const rawX = Math.round(((xy.x * 0xfff) / MAX_X) * 10000.0) / 10000;
+        const rawY = Math.round(((xy.y * 0xfff) / MAX_Y) * 10000.0) / 10000;
 
-    return scene;
+        const b0 = rawX & 0xff;
+        const b1 = ((rawX >> 8) & 0x0f) | ((rawY & 0x0f) << 4);
+        const b2 = (rawY >> 4) & 0xff;
+
+        bufOffset = buf.writeUInt8(b0, bufOffset);
+        bufOffset = buf.writeUInt8(b1, bufOffset);
+        bufOffset = buf.writeUInt8(b2, bufOffset);
+    }
+
+    bufOffset = buf.writeUInt8(segments << 3, bufOffset);
+    bufOffset = buf.writeUInt8(offset << 3, bufOffset);
+
+    return buf;
 }
