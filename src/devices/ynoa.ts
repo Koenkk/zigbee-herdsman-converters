@@ -48,7 +48,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LA-A60-CCT",
         vendor: "Ynoa",
         description: "Smart LED E27 CCT A60",
-        extend: [m.light({"colorTemp":{"range":[153,370]}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
         zigbeeModel: ["ZBT-RGBWSwitch-D0800"],
