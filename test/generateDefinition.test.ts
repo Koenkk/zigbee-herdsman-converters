@@ -23,9 +23,10 @@ describe("GenerateDefinition", () => {
             fromZigbee: [],
             toZigbee: [],
             exposes: [],
-            bind: [],
-            read: [],
-            configureReporting: [],
+            bind: {},
+            read: {},
+            write: {},
+            configureReporting: {},
         });
     });
 
@@ -38,6 +39,7 @@ describe("GenerateDefinition", () => {
             exposes: ["temperature"],
             bind: {1: ["msTemperatureMeasurement"]},
             read: {1: [["msTemperatureMeasurement", ["measuredValue"]]]},
+            write: {},
             configureReporting: {
                 1: [["msTemperatureMeasurement", [reportingItem("measuredValue", 10, repInterval.HOUR, 100)]]],
             },
@@ -53,6 +55,7 @@ describe("GenerateDefinition", () => {
             exposes: ["pressure"],
             bind: {1: ["msPressureMeasurement"]},
             read: {1: [["msPressureMeasurement", ["measuredValue"]]]},
+            write: {},
             configureReporting: {
                 1: [["msPressureMeasurement", [reportingItem("measuredValue", 10, repInterval.HOUR, 50)]]],
             },
@@ -68,6 +71,7 @@ describe("GenerateDefinition", () => {
             exposes: ["humidity"],
             bind: {1: ["msRelativeHumidity"]},
             read: {1: [["msRelativeHumidity", ["measuredValue"]]]},
+            write: {},
             configureReporting: {
                 1: [["msRelativeHumidity", [reportingItem("measuredValue", 10, repInterval.HOUR, 100)]]],
             },
@@ -92,6 +96,7 @@ describe("GenerateDefinition", () => {
                     ["genOnOff", ["onOff"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 1: [
                     ["msTemperatureMeasurement", [reportingItem("measuredValue", 10, repInterval.HOUR, 100)]],
@@ -130,6 +135,7 @@ export default {
                     ["genOnOff", ["onOff"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 2: [
                     ["msTemperatureMeasurement", [reportingItem("measuredValue", 10, repInterval.HOUR, 100)]],
@@ -172,6 +178,7 @@ export default {
                 ],
                 2: [["msTemperatureMeasurement", ["measuredValue"]]],
             },
+            write: {},
             configureReporting: {
                 1: [
                     ["msTemperatureMeasurement", [reportingItem("measuredValue", 10, repInterval.HOUR, 100)]],
@@ -245,6 +252,7 @@ export default {
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
+            write: {},
             configureReporting: {},
             externalDefinitionSource: `
 import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
@@ -312,6 +320,7 @@ export default {
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
+            write: {},
             configureReporting: {},
             externalDefinitionSource: `
 import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
@@ -385,6 +394,7 @@ export default {
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
+            write: {},
             configureReporting: [],
             externalDefinitionSource: `
 import * as philips from 'zigbee-herdsman-converters/lib/philips';
@@ -448,6 +458,7 @@ export default {
                     ["seMetering", ["currentSummDelivered"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 1: [
                     ["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]],
@@ -507,6 +518,7 @@ export default {
                     ["haElectricalMeasurement", ["dcPower", "dcVoltage", "dcCurrent"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 2: [
                     [
@@ -573,6 +585,7 @@ export default {
                     ["genAnalogOutput", ["presentValue"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 10: [
                     ["genBinaryInput", [reportingItem("presentValue", 0, 65000, 1)]],
@@ -621,6 +634,7 @@ export default {
                     ["genAnalogInput", ["presentValue"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 10: [["genAnalogInput", [reportingItem("presentValue", 0, 65000, 1)]]],
                 11: [["genAnalogInput", [reportingItem("presentValue", 0, 65000, 1)]]],
