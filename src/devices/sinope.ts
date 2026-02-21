@@ -619,16 +619,16 @@ const tzLocal = {
 };
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['HP6000ZB-GE', 'HP6000ZB-HS', 'HP6000ZB-MA'],
-        model: 'HP6000ZB',
-        vendor: 'Sinope Technologies',
-        description: 'Mini-split air conditioner interface',
+        zigbeeModel: ["HP6000ZB-GE", "HP6000ZB-HS", "HP6000ZB-MA"],
+        model: "HP6000ZB",
+        vendor: "Sinope Technologies",
+        description: "Mini-split air conditioner interface",
         fromZigbee: [
             fz.thermostat,
             fz.fan,
             {
-                cluster: 'hvacThermostat',
-                type: ['attributeReport', 'readResponse'],
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
                     if (result) {
@@ -650,35 +650,45 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_system_mode,
             tz.fan_mode,
             {
-                key: ['occupied_heating_setpoint', 'occupied_cooling_setpoint'],
+                key: ["occupied_heating_setpoint", "occupied_cooling_setpoint"],
                 convertSet: async (entity, key, value, meta) => {
                     const temp = Math.round(Number(value) * 100);
                     // Use Sinope specific currentSetpoint attribute for reliable control
-                    await entity.write('manuSpecificSinope', {currentSetpoint: temp}, {manufacturerCode: 0x119C});
+                    await entity.write("manuSpecificSinope", {currentSetpoint: temp}, {manufacturerCode: 0x119c});
                     return {state: {[key]: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read('manuSpecificSinope', ['currentSetpoint'], {manufacturerCode: 0x119C});
+                    await entity.read("manuSpecificSinope", ["currentSetpoint"], {manufacturerCode: 0x119c});
                 },
             },
         ],
         exposes: [
-            exposes.climate()
+            exposes
+                .climate()
                 .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 16, 30, 1)
-                .withSetpoint('occupied_cooling_setpoint', 16, 30, 1)
-                .withSystemMode(['off', 'heat', 'cool', 'dry', 'fan_only'])
-                .withFanMode(['low', 'medium', 'high', 'auto']),
+                .withSetpoint("occupied_heating_setpoint", 16, 30, 1)
+                .withSetpoint("occupied_cooling_setpoint", 16, 30, 1)
+                .withSystemMode(["off", "heat", "cool", "dry", "fan_only"])
+                .withFanMode(["low", "medium", "high", "auto"]),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const clusters = ['hvacThermostat', 'hvacFanCtrl', 'manuSpecificSinope'];
+            const clusters = ["hvacThermostat", "hvacFanCtrl", "manuSpecificSinope"];
             await reporting.bind(endpoint, coordinatorEndpoint, clusters);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatSystemMode(endpoint);
-            await endpoint.configureReporting('manuSpecificSinope', [{
-                attribute: 'currentSetpoint', minimumReportInterval: 1, maximumReportInterval: 3600, reportableChange: 10
-            }], {manufacturerCode: 0x119C});
+            await endpoint.configureReporting(
+                "manuSpecificSinope",
+                [
+                    {
+                        attribute: "currentSetpoint",
+                        minimumReportInterval: 1,
+                        maximumReportInterval: 3600,
+                        reportableChange: 10,
+                    },
+                ],
+                {manufacturerCode: 0x119c},
+            );
         },
     },
     {
