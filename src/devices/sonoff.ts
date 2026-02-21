@@ -98,6 +98,7 @@ interface SonoffTrvzb {
         temporaryMode: number;
         temporaryModeTime: number;
         temporaryModeTemp: number;
+        smartTempControl: number;
     };
     commands: never;
     commandResponses: never;
@@ -2388,6 +2389,7 @@ export const definitions: DefinitionWithExtend[] = [
                         write: true,
                         max: 0xff,
                     },
+                    smartTempControl: {ID: 0x6017, type: Zcl.DataType.BITMAP8, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -2579,6 +2581,23 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.weeklySchedule(),
             m.customTimeResponse("1970_UTC"),
+            m.enumLookup<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "smart_temperature_control",
+                // manual sends 0x00 (same as off), 0x01 is report-only
+                lookup: {off: 0x00, manual: 0x00, smart: 0x02},
+                cluster: "customSonoffTrvzb",
+                attribute: "smartTempControl",
+                description:
+                    "Manual mode: off or manual (same effect), Smart mode: automatic temperature control. " +
+                    'After enabling the smart mode, "Valve Opening Percentage" and "Temperature Accuracy" will be automatically disabled.',
+                access: "ALL",
+                fzConvert: (model, msg, publish, options, meta) => {
+                    if ("smartTempControl" in msg.data) {
+                        const valueToMode: Record<number, string> = {0: "off", 1: "manual", 2: "smart"};
+                        return {smart_temperature_control: valueToMode[msg.data.smartTempControl] ?? "off"};
+                    }
+                },
+            }),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
