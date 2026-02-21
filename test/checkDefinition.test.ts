@@ -21,7 +21,6 @@ describe("Check definition", () => {
                 1: [
                     ["manuSpecificSamsungAccelerometer", {0: {value: 0x14, type: 0x20}}, {manufacturerCode: Zcl.ManufacturerCode.SAMJIN_CO_LTD}],
                     ["genPollCtrl", {checkinInterval: 14400}],
-                    ["genPollCtrl", {longPollInterval: 3600}],
                 ],
             },
             configureReporting: {
