@@ -630,7 +630,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: 'hvacThermostat',
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    const result = fz.thermostat.convert(model, msg, publish, options, meta);
+                    const result = any = fz.thermostat.convert(model, msg, publish, options, meta);
                     if (result) {
                         const coolingSetpoint = result.occupied_cooling_setpoint;
                         const lastSetpoint = meta.state ? (meta.state.occupied_cooling_setpoint as number) : undefined;
