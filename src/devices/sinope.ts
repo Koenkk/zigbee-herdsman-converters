@@ -619,6 +619,69 @@ const tzLocal = {
 };
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ['HP6000ZB-GE', 'HP6000ZB-HS', 'HP6000ZB-MA'],
+        model: 'HP6000ZB',
+        vendor: 'Sinope Technologies',
+        description: 'Mini-split air conditioner interface',
+        fromZigbee: [
+            fz.thermostat,
+            fz.fan,
+            {
+                cluster: 'hvacThermostat',
+                type: ['attributeReport', 'readResponse'],
+                convert: (model, msg, publish, options, meta) => {
+                    const result = fz.thermostat.convert(model, msg, publish, options, meta);
+                    if (result) {
+                        const coolingSetpoint = result.occupied_cooling_setpoint;
+                        const lastSetpoint = meta.state ? (meta.state.occupied_cooling_setpoint as number) : undefined;
+
+                        // 28°C spike filter: Ignore erratic reports of 28.0°C if it deviates significantly from current state.
+                        // This prevents automation triggers caused by internal device communication fallbacks.
+                        if (coolingSetpoint === 28 && lastSetpoint !== undefined && Math.abs(lastSetpoint - 28) > 5) {
+                            return null;
+                        }
+                    }
+                    return result;
+                },
+            },
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_system_mode,
+            tz.fan_mode,
+            {
+                key: ['occupied_heating_setpoint', 'occupied_cooling_setpoint'],
+                convertSet: async (entity, key, value, meta) => {
+                    const temp = Math.round(Number(value) * 100);
+                    // Use Sinope specific currentSetpoint attribute for reliable control
+                    await entity.write('manuSpecificSinope', {currentSetpoint: temp}, {manufacturerCode: 0x119C});
+                    return {state: {[key]: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read('manuSpecificSinope', ['currentSetpoint'], {manufacturerCode: 0x119C});
+                },
+            },
+        ],
+        exposes: [
+            exposes.climate()
+                .withLocalTemperature()
+                .withSetpoint('occupied_heating_setpoint', 16, 30, 1)
+                .withSetpoint('occupied_cooling_setpoint', 16, 30, 1)
+                .withSystemMode(['off', 'heat', 'cool', 'dry', 'fan_only'])
+                .withFanMode(['low', 'medium', 'high', 'auto']),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const clusters = ['hvacThermostat', 'hvacFanCtrl', 'manuSpecificSinope'];
+            await reporting.bind(endpoint, coordinatorEndpoint, clusters);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await endpoint.configureReporting('manuSpecificSinope', [{
+                attribute: 'currentSetpoint', minimumReportInterval: 1, maximumReportInterval: 3600, reportableChange: 10
+            }], {manufacturerCode: 0x119C});
+        },
+    },
+    {
         zigbeeModel: ["TH1123ZB"],
         model: "TH1123ZB",
         vendor: "Sinopé",
