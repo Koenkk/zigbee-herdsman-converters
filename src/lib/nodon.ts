@@ -9,9 +9,6 @@ import * as utils from "./utils";
 const e = exposes.presets;
 const NS = "zhc:nodon";
 
-const PILOT_WIRE_CLUSTER = "customClusterNodOnPilotWire";
-const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.NODON};
-
 interface NodonPilotWire {
     attributes: {
         mode: number;
@@ -22,27 +19,29 @@ interface NodonPilotWire {
     commandResponses: never;
 }
 
-const pilotWireCluster = deviceAddCustomCluster(PILOT_WIRE_CLUSTER, {
-    ID: 0xfc00,
-    manufacturerCode: Zcl.ManufacturerCode.NODON,
-    attributes: {
-        mode: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-    },
-    commands: {
-        setMode: {
-            ID: 0x0000,
-            parameters: [{name: "mode", type: Zcl.DataType.UINT8, max: 0xff}],
+const createPilotWireCluster = (clusterName: string, manufacturerCode: number) =>
+    deviceAddCustomCluster(clusterName, {
+        ID: 0xfc00,
+        manufacturerCode: manufacturerCode,
+        attributes: {
+            mode: {ID: 0x0000, type: Zcl.DataType.UINT8},
         },
-    },
-    commandsResponse: {},
-});
+        commands: {
+            setMode: {
+                ID: 0x0000,
+                parameters: [{name: "mode", type: Zcl.DataType.UINT8}],
+            },
+        },
+        commandsResponse: {},
+    });
 
-const pilotWireConfig = (configureReporting: boolean): ModernExtend => {
+const createPilotWireConfig = (clusterName: string, manufacturerCode: number, configureReporting: boolean): ModernExtend => {
+    const manufacturerOptions = {manufacturerCode: manufacturerCode};
     return {
         exposes: [e.pilot_wire_mode()],
         fromZigbee: [
             {
-                cluster: PILOT_WIRE_CLUSTER,
+                cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const payload: KeyValueAny = {};
@@ -75,23 +74,23 @@ const pilotWireConfig = (configureReporting: boolean): ModernExtend => {
                         "comfort_-2": 0x05,
                     });
                     const payload = {mode: mode};
-                    await entity.command<typeof PILOT_WIRE_CLUSTER, "setMode", NodonPilotWire>(PILOT_WIRE_CLUSTER, "setMode", payload);
+                    await entity.command<typeof clusterName, "setMode", NodonPilotWire>(clusterName, "setMode", payload, manufacturerOptions);
                     return {state: {pilot_wire_mode: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof PILOT_WIRE_CLUSTER, NodonPilotWire>(PILOT_WIRE_CLUSTER, [0x0000], manufacturerOptions);
+                    await entity.read<typeof clusterName, NodonPilotWire>(clusterName, [0x0000], manufacturerOptions);
                 },
             },
         ],
         configure: [
             async (device, coordinatorEndpoint) => {
                 const ep = device.getEndpoint(1);
-                await reporting.bind(ep, coordinatorEndpoint, [PILOT_WIRE_CLUSTER]);
+                await reporting.bind(ep, coordinatorEndpoint, [clusterName]);
                 if (configureReporting) {
-                    const p = reporting.payload<typeof PILOT_WIRE_CLUSTER, NodonPilotWire>("mode", 0, 120, 0, {min: 1, max: 3600, change: 0});
-                    await ep.configureReporting(PILOT_WIRE_CLUSTER, p);
+                    const p = reporting.payload<typeof clusterName, NodonPilotWire>("mode", 0, 120, 0, {min: 1, max: 3600, change: 0});
+                    await ep.configureReporting(clusterName, p, manufacturerOptions);
                 } else {
-                    await ep.read<typeof PILOT_WIRE_CLUSTER, NodonPilotWire>(PILOT_WIRE_CLUSTER, ["mode"]);
+                    await ep.read<typeof clusterName, NodonPilotWire>(clusterName, ["mode"], manufacturerOptions);
                 }
             },
         ],
@@ -99,4 +98,13 @@ const pilotWireConfig = (configureReporting: boolean): ModernExtend => {
     };
 };
 
-export const nodonPilotWire = (configureReporting: boolean): ModernExtend[] => [pilotWireCluster, pilotWireConfig(configureReporting)];
+const NODON_PILOT_WIRE_CLUSTER = "customClusterNodOnPilotWire";
+
+export const nodonPilotWire = (
+    configureReporting: boolean,
+    manufacturerCode: number = Zcl.ManufacturerCode.NODON,
+    clusterName: string = NODON_PILOT_WIRE_CLUSTER,
+): ModernExtend[] => [
+    createPilotWireCluster(clusterName, manufacturerCode),
+    createPilotWireConfig(clusterName, manufacturerCode, configureReporting),
+];
