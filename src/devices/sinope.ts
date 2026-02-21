@@ -1473,7 +1473,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SW2500ZB",
         vendor: "Sinopé",
         description: "Zigbee smart light switch",
-        extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
+        // Some SW2500ZB firmware variants reject `seMetering` config/reporting and
+        // also fail `instantaneousDemand` reads with UNSUPPORTED_ATTRIBUTE.
+        // Keep metering support for delivered energy, but disable power handling.
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering", configureReporting: false, power: false})],
         fromZigbee: [fzLocal.sinope],
         toZigbee: [
             tzLocal.timer_seconds,
