@@ -1696,17 +1696,21 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
             e.numeric("water_consumed", ea.STATE).withUnit("L").withDescription("Total water consumption").withValueMin(0).withValueStep(0.001),
+            e
+                .numeric("reverse_water_consumed", ea.STATE)
+                .withUnit("L")
+                .withDescription("Total reverse water consumption")
+                .withValueMin(0)
+                .withValueStep(0.001),
             e.numeric("month_consumption", ea.STATE).withUnit("L").withDescription("month consumption").withValueMin(0).withValueStep(0.001),
             e.numeric("daily_consumption", ea.STATE).withUnit("L").withDescription("daily consumption").withValueMin(0).withValueStep(0.001),
-            // //  I can't seem to get this to work - when i try to change the value i get an error in zigbee2mqtt, stuck on 1 Hour
-            // e
-            //     .enum("report_period", ea.STATE_SET, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"])
-            //     .withDescription("Report period"),
-            // Flow rate sensor
             e.numeric("flow_rate", ea.STATE).withUnit("L/h").withDescription("Instantaneous water flow rate"),
             e.binary("auto_clean", ea.STATE_SET, "ON", "OFF").withDescription("Auto clean"),
             e.temperature(),
             e.battery_voltage(),
+            e.text("meter_id", ea.STATE).withDescription("Meter identification number"),
+            e.text("faults", ea.STATE).withDescription("Active fault status"),
+            e.enum("report_period", ea.STATE_SET, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"]).withDescription("Report period"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1753,8 +1757,57 @@ export const definitions: DefinitionWithExtend[] = [
                         "24h": tuya.enum(7),
                     }),
                 ],
+                [
+                    5,
+                    "faults",
+                    {
+                        from: (value, meta) => {
+                            const faults = [];
+                            const faultMap = {
+                                1: "battery_alarm",
+                                2: "magnetism_alarm",
+                                4: "cover_alarm",
+                                8: "credit_alarm",
+                                16: "switch_gaps_alarm",
+                                32: "meter_body_alarm",
+                                64: "abnormal_water_alarm",
+                                128: "arrearage_alarm",
+                                256: "overflow_alarm",
+                                512: "revflow_alarm",
+                                1024: "over_pre_alarm",
+                                2048: "empty_pipe_alarm",
+                                4096: "transducer_alarm",
+                            };
+
+                            if (value === 0) {
+                                return "";
+                            }
+
+                            for (const [bit, name] of Object.entries(faultMap)) {
+                                if (value & Number.parseInt(bit, 10)) {
+                                    faults.push(name);
+                                }
+                            }
+                            // Return as comma-separated string
+                            return faults.join(",");
+                        },
+                    },
+                ],
                 [13, "state", tuya.valueConverter.onOffNotStrict],
                 [14, "auto_clean", tuya.valueConverter.onOff],
+                [16, "meter_id", tuya.valueConverter.raw],
+                [
+                    18,
+                    "reverse_water_consumed",
+                    {
+                        from: (value, meta) => {
+                            const buffer = Buffer.from(value);
+                            if (buffer.length >= 4) {
+                                return buffer.readUInt32BE(0) / 1000;
+                            }
+                        },
+                    },
+                ],
                 [
                     21,
                     "flow_rate",
@@ -1777,8 +1830,14 @@ export const definitions: DefinitionWithExtend[] = [
         options: [
             exposes.options.precision("water_consumed"),
             exposes.options.calibration("water_consumed"),
+            exposes.options.precision("month_consumption"),
+            exposes.options.calibration("month_consumption"),
+            exposes.options.precision("daily_consumption"),
+            exposes.options.calibration("daily_consumption"),
             exposes.options.precision("flow_rate"),
             exposes.options.calibration("flow_rate"),
+            exposes.options.precision("reverse_water_consumed"),
+            exposes.options.calibration("reverse_water_consumed"),
             exposes.options.precision("temperature"),
             exposes.options.calibration("temperature"),
         ],
