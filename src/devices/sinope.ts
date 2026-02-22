@@ -618,16 +618,16 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 export const definitions: DefinitionWithExtend[] = [
- {
-        zigbeeModel: ['HP6000ZB-GE', 'HP6000ZB-HS', 'HP6000ZB-MA'],
-        model: 'HP6000ZB',
-        vendor: 'Sinope Technologies',
-        description: 'Mini-split air conditioner interface',
+    {
+        zigbeeModel: ["HP6000ZB-GE", "HP6000ZB-HS", "HP6000ZB-MA"],
+        model: "HP6000ZB",
+        vendor: "Sinope Technologies",
+        description: "Mini-split air conditioner interface",
         fromZigbee: [
             fz.fan,
             {
-                cluster: 'hvacThermostat',
-                type: ['attributeReport', 'readResponse'],
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
                     if (result) {
@@ -636,8 +636,7 @@ export const definitions: DefinitionWithExtend[] = [
                         const lastSetpoint = meta.state ? (meta.state.occupied_heating_setpoint as number) : undefined;
 
                         // 28°C spike filter: Ignore erratic reports of 28.0°C if it deviates significantly from current state.
-                        if ((heatingSetpoint === 28 || coolingSetpoint === 28) &&
-                            lastSetpoint !== undefined && Math.abs(lastSetpoint - 28) > 5) {
+                        if ((heatingSetpoint === 28 || coolingSetpoint === 28) && lastSetpoint !== undefined && Math.abs(lastSetpoint - 28) > 5) {
                             return null;
                         }
 
@@ -652,12 +651,12 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             },
             {
-                cluster: 'manuSpecificSinope',
-                type: ['attributeReport', 'readResponse'],
+                cluster: "manuSpecificSinope",
+                type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const result: KeyValueAny = {};
-                    if (msg.data['610'] !== undefined) result.swing_mode = msg.data['610'] === 1 ? 'ON' : 'OFF';
-                    if (msg.data['613'] !== undefined) result.display_led = msg.data['613'] === 1 ? 'ON' : 'OFF';
+                    if (msg.data["610"] !== undefined) result.swing_mode = msg.data["610"] === 1 ? "ON" : "OFF";
+                    if (msg.data["613"] !== undefined) result.display_led = msg.data["613"] === 1 ? "ON" : "OFF";
                     return result;
                 },
             },
@@ -667,52 +666,62 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_system_mode,
             tz.fan_mode,
             {
-                key: ['occupied_heating_setpoint', 'occupied_cooling_setpoint'],
+                key: ["occupied_heating_setpoint", "occupied_cooling_setpoint"],
                 convertSet: async (entity, key, value, meta) => {
                     const temp = Math.round(Number(value) * 100);
-                    await entity.write('manuSpecificSinope', {currentSetpoint: temp}, {manufacturerCode: 0x119c});
+                    await entity.write("manuSpecificSinope", {currentSetpoint: temp}, {manufacturerCode: 0x119c});
                     return {state: {occupied_heating_setpoint: value, occupied_cooling_setpoint: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await entity.read('manuSpecificSinope', ['currentSetpoint'], {manufacturerCode: 0x119c});
+                    await entity.read("manuSpecificSinope", ["currentSetpoint"], {manufacturerCode: 0x119c});
                 },
             },
             {
-                key: ['swing_mode'],
+                key: ["swing_mode"],
                 convertSet: async (entity, key, value, meta) => {
-                    const val = value === 'ON' ? 1 : 0;
-                    await entity.write('manuSpecificSinope', {0x0262: {value: val, type: 0x30}}, {manufacturerCode: 0x119c});
+                    const val = value === "ON" ? 1 : 0;
+                    await entity.write("manuSpecificSinope", {610: {value: val, type: 0x30}}, {manufacturerCode: 0x119c});
                     return {state: {swing_mode: value}};
                 },
             },
             {
-                key: ['display_led'],
+                key: ["display_led"],
                 convertSet: async (entity, key, value, meta) => {
-                    const val = value === 'ON' ? 1 : 0;
-                    await entity.write('manuSpecificSinope', {0x0265: {value: val, type: 0x30}}, {manufacturerCode: 0x119c});
+                    const val = value === "ON" ? 1 : 0;
+                    await entity.write("manuSpecificSinope", {613: {value: val, type: 0x30}}, {manufacturerCode: 0x119c});
                     return {state: {display_led: value}};
                 },
             },
         ],
         exposes: [
-            exposes.climate()
+            exposes
+                .climate()
                 .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 16, 30, 1)
-                .withSetpoint('occupied_cooling_setpoint', 16, 30, 1)
-                .withSystemMode(['off', 'heat', 'cool', 'dry', 'fan_only'])
-                .withFanMode(['low', 'medium', 'high', 'auto']),
-            exposes.binary('swing_mode', exposes.access.ALL, 'ON', 'OFF').withDescription('Swing mode'),
-            exposes.binary('display_led', exposes.access.ALL, 'ON', 'OFF').withDescription('Display LED'),
+                .withSetpoint("occupied_heating_setpoint", 16, 30, 1)
+                .withSetpoint("occupied_cooling_setpoint", 16, 30, 1)
+                .withSystemMode(["off", "heat", "cool", "dry", "fan_only"])
+                .withFanMode(["low", "medium", "high", "auto"]),
+            exposes.binary("swing_mode", exposes.access.ALL, "ON", "OFF").withDescription("Swing mode"),
+            exposes.binary("display_led", exposes.access.ALL, "ON", "OFF").withDescription("Display LED"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const clusters = ['hvacThermostat', 'hvacFanCtrl', 'manuSpecificSinope'];
+            const clusters = ["hvacThermostat", "hvacFanCtrl", "manuSpecificSinope"];
             await reporting.bind(endpoint, coordinatorEndpoint, clusters);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatSystemMode(endpoint);
-            await endpoint.configureReporting('manuSpecificSinope', [{
-                attribute: 'currentSetpoint', minimumReportInterval: 1, maximumReportInterval: 3600, reportableChange: 10,
-            }], {manufacturerCode: 0x119c});
+            await endpoint.configureReporting(
+                "manuSpecificSinope",
+                [
+                    {
+                        attribute: "currentSetpoint",
+                        minimumReportInterval: 1,
+                        maximumReportInterval: 3600,
+                        reportableChange: 10,
+                    },
+                ],
+                {manufacturerCode: 0x119c},
+            );
         },
     },
     {
