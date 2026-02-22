@@ -446,4 +446,57 @@ export const develcoModernExtend = {
 
         return {exposes: [expose], fromZigbee, configure, isModernExtend: true};
     },
+    customPulseTrigger: (options?: {endpointNames?: string[]}): ModernExtend => {
+        const endpointNames = options?.endpointNames || [];
+        const durationExpose = e
+            .numeric("duration", ea.STATE_SET)
+            .withLabel("Pulse duration")
+            .withUnit("s")
+            .withValueMin(0.0)
+            .withValueMax(3600)
+            .withDescription("Duration of the pulse.");
+
+        const triggerExpose = e
+            .enum("trigger", ea.SET, ["press"])
+            .withDescription(
+                "Trigger a timed pulse. The length of the pulse is defined by 'Pulse duration'. If the 'Pulse duration' is undefined a default value of 1s will be used.",
+            );
+
+        const exposes: Expose[] = [...exposeEndpoints(durationExpose, endpointNames), ...exposeEndpoints(triggerExpose, endpointNames)];
+        
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["trigger", "duration"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "duration") {
+                        const val = value === null ? 1.0 : Number(value);
+                        logger.info(`IOMZB-110: Oppdaterer ${key} for ${meta.endpoint_name} til ${val}`, "zhc:develco");
+                        return {state: {[key]: val}};
+                    }
+                    if (key === "trigger" && value === "press") {
+                        const epSuffix = meta.endpoint_name ? `_${meta.endpoint_name}` : "";
+                        const stateLookupKey = `duration${epSuffix}`;
+                        const seconds = meta.state[stateLookupKey] !== undefined ? Number(meta.state[stateLookupKey]) : 1.0;
+                        const deciseconds = Math.round(seconds * 10);
+                        await entity.command(
+                            "genOnOff",
+                            "onWithTimedOff",
+                            {
+                                ctrlbits: 0,
+                                ontime: deciseconds,
+                                offwaittime: 0,
+                            },
+                            meta.options,
+                        );
+                        return {state: {[key]: null}};
+                    }
+                },
+            },
+        ];
+        return {
+            isModernExtend: true,
+            exposes,
+            toZigbee,
+        };
+    },
 };
