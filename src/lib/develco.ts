@@ -471,7 +471,6 @@ export const develcoModernExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     if (key === "duration") {
                         const val = value === null ? 1.0 : Number(value);
-                        logger.info(`IOMZB-110: Oppdaterer ${key} for ${meta.endpoint_name} til ${val}`, "zhc:develco");
                         return {state: {[key]: val}};
                     }
                     if (key === "trigger" && value === "press") {
