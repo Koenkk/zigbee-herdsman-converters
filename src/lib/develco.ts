@@ -463,7 +463,7 @@ export const develcoModernExtend = {
             );
 
         const exposes: Expose[] = [...exposeEndpoints(durationExpose, endpointNames), ...exposeEndpoints(triggerExpose, endpointNames)];
-        
+
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["trigger", "duration"],
