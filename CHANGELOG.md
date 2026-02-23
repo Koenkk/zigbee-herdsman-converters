@@ -1,5 +1,25 @@
 # Changelog
 
+## [26.10.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.9.0...v26.10.0) (2026-02-23)
+
+
+### Features
+
+* **add:** 404078 ([#11585](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11585)) ([ace63ae](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ace63ae6220b153845751bfb1db907e9e998f0da))
+* **add:** SG45-E26 ([#11574](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11574)) ([145ae9b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/145ae9b86bfcdc5dc2a0a99dbe34bafe7d1f19a9))
+* **add:** TS0601_heat_meter ([#11518](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11518)) ([0f795fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f795fcc1b70929728ae54e44f7b01461b0ad2cc))
+* Develco IOMZB-110: add pulse trigger and rework integration ([#11578](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11578)) ([1a3d2fa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1a3d2fae1fedf1d5d92626cd6e9d5499920b44b3))
+
+
+### Bug Fixes
+
+* **ignore:** bump the minor-patch group with 3 updates ([#11580](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11580)) ([415595d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/415595d043a0f8b33eac38136e4b0b2b9c7af74c))
+* Lumi: remove packet delay in segment color writes ([#11583](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11583)) ([cc5d8da](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cc5d8da7a3248307dc1bab42ae06f46aa0685e59))
+* Moes SFL02-Z-1: fix `indicator_status` ([#11573](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11573)) ([b810bf7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b810bf73f8404628b6c4dda94da1c125f7f46c6a))
+* Sinopé TH1123ZB: fix backlight_auto_dim ([#11581](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11581)) ([02cff63](https://github.com/Koenkk/zigbee-herdsman-converters/commit/02cff63d987f11ebcc17d10abdfe1c33053fb21f))
+* TECH VNTH-T2: expose battery ([#11579](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11579)) ([1c4dfb4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1c4dfb4ea89f6ee3e398d02b6637f242df8387d9))
+* Tuya TS0601_water_valve: add more features https://github.com/Koenkk/zigbee-herdsman-converters/pull/11516 ([ce520ab](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ce520abf31550c81220b57766cfa7fcda58d77be))
+
 ## [26.9.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.8.0...v26.9.0) (2026-02-21)
 
 
