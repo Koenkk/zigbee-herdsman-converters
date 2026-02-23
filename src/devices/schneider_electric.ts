@@ -1054,6 +1054,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fzLocal.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
+        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         exposes: [
             e
                 .climate()
@@ -1419,6 +1420,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Wiser radiator thermostat",
         fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fzLocal.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
+        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         exposes: [
             e
                 .climate()
@@ -2343,6 +2345,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.schneider_thermostat_keypad_lockout,
             tz.thermostat_temperature_display_mode,
         ],
+        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         exposes: [
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
             e.enum("schneider_pilot_mode", ea.ALL, ["contactor", "pilot"]).withDescription("Controls piloting mode"),
@@ -2385,6 +2388,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.schneider_thermostat_keypad_lockout,
             tz.thermostat_temperature_display_mode,
         ],
+        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         exposes: [
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
             e.enum("schneider_pilot_mode", ea.ALL, ["contactor", "pilot"]).withDescription("Controls piloting mode"),
@@ -2760,6 +2764,7 @@ export const definitions: DefinitionWithExtend[] = [
             await utils.ignoreUnsupportedAttribute(async () => await reporting.thermostatOccupancy(endpoint4), "thermostatOccupancy");
         },
         extend: [
+            schneiderElectricExtend.addWiserDeviceInfoCluster(),
             m.poll({
                 key: "measurement",
                 option: exposes.options.measurement_poll_interval().withDescription("Polling interval of the occupied heating/cooling setpoint"),
