@@ -24597,4 +24597,33 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_seq9cm6u"]),
+        model: "TS0601_bed_presence_sensor",
+        vendor: "Tuya",
+        description: "'Pressure Sensing Strap/Bed Occupancy Sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.occupancy(),
+            e.battery(),
+            exposes.numeric('illuminance', ea.STATE).withUnit('lux').withDescription('Pressure'),
+            exposes.enum('pir_sensitivity', ea.ALL, ['low', 'middle', 'high']) .withDescription('Sensitivity'),
+            exposes.numeric('interval_time', ea.ALL).withUnit('min').withDescription('Sampling interval'),
+            exposes.numeric('pir_delay', ea.ALL).withUnit('s').withDescription('Delay to report no presence'),
+            exposes.numeric('presence_time', ea.ALL).withUnit('s').withDescription('Delay to report presence'),
+            exposes.numeric('work_state', ea.STATE).withDescription('0=pir,1=none,2=pir_5min,3=pir_30min,4=none_5min,5=none_30min'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'occupancy', tuya.valueConverter.trueFalse0],
+                [4, 'battery', tuya.valueConverter.raw],
+                [9, 'pir_sensitivity', tuya.valueConverter.raw],
+                [12, 'illuminance', tuya.valueConverter.raw],
+                [101, 'interval_time', tuya.valueConverter.raw],
+                [102, 'pir_delay', tuya.valueConverter.raw],
+                [103, 'presence_time', tuya.valueConverter.raw],
+                [104, 'work_state', tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
