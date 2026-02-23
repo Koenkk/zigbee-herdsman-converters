@@ -323,4 +323,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "tint desk lamp, white+color",
         extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
+    {
+        zigbeeModel: ["Power Socket"],
+        model: "404078",
+        vendor: "MLI",
+        description: "tint Smart Socket Tower Outdoor",
+        extend: [m.onOff({powerOnBehavior: false})],
+    },
 ];
