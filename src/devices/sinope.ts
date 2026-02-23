@@ -619,6 +619,106 @@ const tzLocal = {
 };
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["HP6000ZB-GE", "HP6000ZB-HS", "HP6000ZB-MA"],
+        model: "HP6000ZB",
+        vendor: "Sinopé",
+        description: "Mini-split air conditioner interface",
+        fromZigbee: [
+            fz.fan,
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: Record<string, unknown> = {};
+                    if (Object.hasOwn(msg.data, "localTemp")) {
+                        result.local_temperature = Number.parseFloat((msg.data["localTemp"] / 100).toFixed(1));
+                    }
+                    if (Object.hasOwn(msg.data, "systemMode")) {
+                        const modeLookup: Record<number, string> = {0: "off", 3: "cool", 4: "heat", 6: "fan_only", 8: "dry"};
+                        result.system_mode = modeLookup[msg.data["systemMode"]];
+                    }
+                    // Unified setpoint to prevent "Range" UI issues in Home Assistant
+                    if (Object.hasOwn(msg.data, "occupiedHeatingSetpoint") || Object.hasOwn(msg.data, "occupiedCoolingSetpoint")) {
+                        const val = msg.data["occupiedHeatingSetpoint"] || msg.data["occupiedCoolingSetpoint"];
+                        result.occupied_heating_setpoint = Number.parseFloat((val / 100).toFixed(1));
+                    }
+                    return result;
+                },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+            {
+                cluster: "manuSpecificSinope",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: Record<string, unknown> = {};
+                    if (msg.data["610"] !== undefined) result.swing_mode = msg.data["610"] === 1 ? "ON" : "OFF";
+                    if (msg.data["613"] !== undefined) result.display_led = msg.data["613"] === 1 ? "ON" : "OFF";
+                    if (msg.data["currentSetpoint"] !== undefined) {
+                        result.occupied_heating_setpoint = Number.parseFloat((msg.data["currentSetpoint"] / 100).toFixed(1));
+                    }
+                    return result;
+                },
+            } satisfies Fz.Converter<"manuSpecificSinope", undefined, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_system_mode,
+            tz.fan_mode,
+            {
+                key: ["occupied_heating_setpoint"],
+                convertSet: async (entity, key, value, meta) => {
+                    const temp = Math.round(Number(value) * 100);
+                    await entity.write("manuSpecificSinope", {currentSetpoint: temp}, {manufacturerCode: 0x119c});
+                    return {state: {occupied_heating_setpoint: value}};
+                },
+            },
+            {
+                key: ["swing_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    const val = value === "ON" ? 1 : 0;
+                    await entity.write("manuSpecificSinope", {610: {value: val, type: 0x30}}, {manufacturerCode: 0x119c});
+                    return {state: {swing_mode: value}};
+                },
+            },
+            {
+                key: ["display_led"],
+                convertSet: async (entity, key, value, meta) => {
+                    const val = value === "ON" ? 1 : 0;
+                    await entity.write("manuSpecificSinope", {613: {value: val, type: 0x30}}, {manufacturerCode: 0x119c});
+                    return {state: {display_led: value}};
+                },
+            },
+        ],
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSetpoint("occupied_heating_setpoint", 16, 30, 1)
+                .withSystemMode(["off", "heat", "cool", "dry", "fan_only"])
+                .withFanMode(["low", "medium", "high", "auto"]),
+            e.binary("swing_mode", ea.ALL, "ON", "OFF").withDescription("Vertical Swing"),
+            e.binary("display_led", ea.ALL, "ON", "OFF").withDescription("Display LED"),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["hvacThermostat", "hvacFanCtrl", "manuSpecificSinope"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await endpoint.configureReporting(
+                "manuSpecificSinope",
+                [
+                    {
+                        attribute: "currentSetpoint",
+                        minimumReportInterval: 1,
+                        maximumReportInterval: 3600,
+                        reportableChange: 10,
+                    },
+                ],
+                {manufacturerCode: 0x119c},
+            );
+        },
+    },
+    {
         zigbeeModel: ["TH1123ZB"],
         model: "TH1123ZB",
         vendor: "Sinopé",
