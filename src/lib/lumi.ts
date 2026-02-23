@@ -1849,7 +1849,7 @@ export const lumiModernExtend = {
             cluster: "manuSpecificLumi",
             attribute: {ID: 0x051f, type: 0x23},
             description: "RGB dynamic effect type",
-            zigbeeCommandOptions: {manufacturerCode},
+            zigbeeCommandOptions: {manufacturerCode, disableDefaultResponse: true},
             ...args,
         });
     },
@@ -1859,7 +1859,7 @@ export const lumiModernExtend = {
             cluster: "manuSpecificLumi",
             attribute: {ID: 0x0520, type: 0x20},
             description: "RGB dynamic effect speed (1-100%)",
-            zigbeeCommandOptions: {manufacturerCode},
+            zigbeeCommandOptions: {manufacturerCode, disableDefaultResponse: true},
             unit: "%",
             valueMin: 1,
             valueMax: 100,
@@ -1897,7 +1897,7 @@ export const lumiModernExtend = {
                         await targetEndpoint.write(
                             "manuSpecificLumi",
                             {1315: {value: packet, type: 0x41}},
-                            {manufacturerCode, disableDefaultResponse: false},
+                            {manufacturerCode, disableDefaultResponse: true},
                         );
 
                         return {
@@ -1946,7 +1946,7 @@ export const lumiModernExtend = {
                         await endpoint.write(
                             "manuSpecificLumi",
                             {1311: {value: effectValue, type: 0x23}},
-                            {manufacturerCode, disableDefaultResponse: false},
+                            {manufacturerCode, disableDefaultResponse: true},
                         );
 
                         return {state: {effect: value}};
@@ -2027,12 +2027,8 @@ export const lumiModernExtend = {
                             await entity.write(
                                 "manuSpecificLumi",
                                 {[ATTR_SEGMENT_CONTROL]: {value: Buffer.from(packet), type: 0x41}},
-                                {manufacturerCode, disableDefaultResponse: false},
+                                {manufacturerCode, disableDefaultResponse: true},
                             );
-
-                            if (i < groups.length - 1) {
-                                await sleep(50);
-                            }
                         }
 
                         if (deviceType === "strip") {
@@ -2081,7 +2077,7 @@ export const lumiModernExtend = {
 
                         const mask = Buffer.from(lumiGenerateSegmentMask(segments, "strip", maxSegments));
 
-                        await entity.write("manuSpecificLumi", {1328: {value: mask, type: 0x41}}, {manufacturerCode, disableDefaultResponse: false});
+                        await entity.write("manuSpecificLumi", {1328: {value: mask, type: 0x41}}, {manufacturerCode, disableDefaultResponse: true});
 
                         return {state: {effect_segments: value}};
                     },
