@@ -644,7 +644,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
             {
                 cluster: "manuSpecificSinope",
                 type: ["attributeReport", "readResponse"],
@@ -657,7 +657,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                     return result;
                 },
-            },
+            } satisfies Fz.Converter<"manuSpecificSinope", undefined, ["attributeReport", "readResponse"]>,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
