@@ -24632,7 +24632,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Delay to report presence"),
             exposes
                 .enum("work_state", ea.STATE, ["pir", "none", "pir_5min", "pir_30min", "none_5min", "none_30min"])
-                .withDescription("0=pir,1=none,2=pir_5min,3=pir_30min,4=none_5min,5=none_30min"),
+                .withDescription("Summary of the state of the device"),
         ],
         meta: {
             tuyaDatapoints: [
