@@ -24606,31 +24606,36 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.occupancy(),
             e.battery(),
-
-            exposes.numeric("illuminance", ea.STATE).withUnit("lux").withValueMin(0).withValueMax(10000).withValueStep(1).withDescription("Pressure"),
+            
+            exposes.numeric("illuminance", ea.STATE).withUnit("lux")
+                .withValueMin(0)
+                .withValueMax(10000)
+                .withValueStep(1)
+                .withDescription("Pressure"),
             exposes.enum("pir_sensitivity", ea.ALL, ["low", "middle", "high"]).withDescription("Sensitivity"),
-            exposes
-                .numeric("interval_time", ea.ALL)
-                .withUnit("min")
+            exposes.numeric("interval_time", ea.ALL).withUnit("min")
                 .withValueMin(5)
                 .withValueMax(720)
                 .withValueStep(5)
                 .withDescription("Sampling interval"),
-            exposes
-                .numeric("pir_delay", ea.ALL)
-                .withUnit("s")
+            exposes.numeric("pir_delay", ea.ALL).withUnit("s")
                 .withValueMin(0)
                 .withValueMax(3600)
                 .withValueStep(1)
                 .withDescription("Delay to report no presence"),
-            exposes
-                .numeric("presence_time", ea.ALL)
-                .withUnit("s")
+            exposes.numeric("presence_time", ea.ALL).withUnit("s")
                 .withValueMin(0)
                 .withValueMax(3600)
                 .withValueStep(1)
-                .withDescription("Delay to report presence"),
-            exposes.numeric("work_state", ea.STATE).withDescription("0=pir,1=none,2=pir_5min,3=pir_30min,4=none_5min,5=none_30min"),
+            .withDescription("Delay to report presence"),
+            exposes.exposes.enum("work_state", ea.STATE, [
+                "pir",
+                "none",
+                "pir_5min",
+                "pir_30min",
+                "none_5min",
+                "none_30min",
+            ]).withDescription("0=pir,1=none,2=pir_5min,3=pir_30min,4=none_5min,5=none_30min"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -24641,7 +24646,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "pir_sensitivity",
                     tuya.valueConverterBasic.lookup({
                         low: tuya.enum(0),
-                        medium: tuya.enum(1),
+                        middle: tuya.enum(1),
                         high: tuya.enum(2),
                     }),
                 ],
