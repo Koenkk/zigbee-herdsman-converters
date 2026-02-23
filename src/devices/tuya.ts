@@ -24617,7 +24617,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "occupancy", tuya.valueConverter.trueFalse0],
                 [4, "battery", tuya.valueConverter.raw],
-                [9, "pir_sensitivity", tuya.valueConverter.pressureStripSensitivityMode],
                 [
                     9,
                     "pir_sensitivity",
