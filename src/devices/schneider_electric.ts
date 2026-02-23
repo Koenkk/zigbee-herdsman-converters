@@ -770,6 +770,21 @@ const schneiderElectricExtend = {
             lookup: {None: 0, Radiator: 1, "Fan Assisted Radiator": 2, "Radiant Panel": 3, Floor: 4, "Not specified": 0xff},
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         }),
+    addSchneiderLightSwitchConfigurationCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificSchneiderLightSwitchConfiguration", {
+            ID: 0xff17,
+            manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            attributes: {
+                ledIndication: {ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                upSceneID: {ID: 0x0010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                upGroupID: {ID: 0x0011, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                downSceneID: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                downGroupID: {ID: 0x0021, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                switchActions: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
 };
 
 const tzLocal = {
@@ -1237,6 +1252,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.lightingBallast(),
             m.identify(),
             schneiderElectricExtend.dimmingMode(),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             indicatorMode(),
         ],
         meta: {omitOptionalLevelParams: true},
@@ -1268,7 +1284,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Specifies the maximum light output of the ballast"),
         ],
         ota: true,
-        extend: [indicatorMode("smart")],
+        extend: [schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(), indicatorMode("smart")],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
@@ -1286,7 +1302,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser 40/300-Series module switch 2AX",
         ota: true,
-        extend: [m.onOff({powerOnBehavior: false}), indicatorMode("smart")],
+        extend: [schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(), m.onOff({powerOnBehavior: false}), indicatorMode("smart")],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1303,7 +1319,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser 40/300-Series module switch 10AX with ControlLink",
         ota: true,
-        extend: [m.onOff({powerOnBehavior: false}), indicatorMode("smart")],
+        extend: [schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(), m.onOff({powerOnBehavior: false}), indicatorMode("smart")],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1457,7 +1473,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("dimmer_mode", ea.ALL, ["auto", "rc", "rl", "rl_led"])
                 .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
         ],
-        extend: [indicatorMode(), switchActions()],
+        extend: [schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(), indicatorMode(), switchActions()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingBallastCfg"]);
@@ -1488,7 +1504,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("dimmer_mode", ea.ALL, ["auto", "rc", "rl", "rl_led"])
                 .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
         ],
-        extend: [indicatorMode("right"), indicatorMode("left"), switchActions("right"), switchActions("left")],
+        extend: [
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
+            indicatorMode("right"),
+            indicatorMode("left"),
+            switchActions("right"),
+            switchActions("left"),
+        ],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
@@ -1525,6 +1547,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {left: 4, right: 3, left_btn: 22, right_btn: 21}}),
             m.light({endpointNames: ["left", "right"], configureReporting: true}),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             switchActions("left_btn"),
             switchActions("right_btn"),
             indicatorMode("left_btn"),
@@ -1549,6 +1572,7 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, l2: 2, s1: 21, s2: 22, s3: 23, s4: 24};
         },
         extend: [
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             indicatorMode("s1"),
             indicatorMode("s2"),
             indicatorMode("s3"),
@@ -1583,6 +1607,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         extend: [
             m.light({endpointNames: ["l1"], configureReporting: true, levelConfig: {}}),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             indicatorMode("s1"),
             indicatorMode("s2"),
             indicatorMode("s3"),
@@ -1943,6 +1968,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery(),
             m.deviceEndpoints({endpoints: {right: 21, left: 22}}),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             switchActions("right"),
             switchActions("left"),
             m.commandsOnOff({endpointNames: ["right", "left"]}),
