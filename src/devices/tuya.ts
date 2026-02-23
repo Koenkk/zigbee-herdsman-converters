@@ -24607,7 +24607,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.occupancy(),
             e.battery(),
             exposes.numeric('illuminance', ea.STATE).withUnit('lux').withDescription('Pressure'),
-            exposes.enum('pir_sensitivity', ea.ALL, ['low', 'middle', 'high']) .withDescription('Sensitivity'),
+            exposes.enum('pir_sensitivity', ea.ALL, ['low', 'middle', 'high']).withDescription('Sensitivity'),
             exposes.numeric('interval_time', ea.ALL).withUnit('min').withDescription('Sampling interval'),
             exposes.numeric('pir_delay', ea.ALL).withUnit('s').withDescription('Delay to report no presence'),
             exposes.numeric('presence_time', ea.ALL).withUnit('s').withDescription('Delay to report presence'),
@@ -24620,7 +24620,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [9, 'pir_sensitivity', tuya.valueConverter.pressureStripSensitivityMode],
                 [
                     9, 
-                     'work_state', 
+                     'pir_sensitivity', 
                      tuya.valueConverterBasic.lookup({
                         "low": tuya.enum(0),
                         "medium": tuya.enum(1),
