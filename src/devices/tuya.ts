@@ -24636,11 +24636,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "occupancy", tuya.valueConverter.trueFalse0],
+                [1, "presence", tuya.valueConverter.trueFalse0],
                 [4, "battery", tuya.valueConverter.raw],
                 [
                     9,
-                    "pir_sensitivity",
+                    "sensitivity",
                     tuya.valueConverterBasic.lookup({
                         low: tuya.enum(0),
                         middle: tuya.enum(1),
@@ -24649,7 +24649,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [12, "illuminance", tuya.valueConverter.raw],
                 [101, "interval_time", tuya.valueConverter.raw],
-                [102, "pir_delay", tuya.valueConverter.raw],
+                [102, "presence_delay", tuya.valueConverter.raw],
                 [103, "presence_time", tuya.valueConverter.raw],
                 [
                     104,
@@ -24657,8 +24657,8 @@ export const definitions: DefinitionWithExtend[] = [
                     tuya.valueConverterBasic.lookup({
                         pir: tuya.enum(0),
                         none: tuya.enum(1),
-                        pir_5min: tuya.enum(2),
-                        pir_30min: tuya.enum(3),
+                        presence_5min: tuya.enum(2),
+                        presence_30min: tuya.enum(3),
                         none_5min: tuya.enum(4),
                         none_30min: tuya.enum(5),
                     }),
