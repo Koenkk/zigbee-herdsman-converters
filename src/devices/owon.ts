@@ -873,7 +873,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
     },
     {
-        zigbeeModel: ["FDS315"],
+        zigbeeModel: ["FDS315", "FDS315-AH"],
         model: "FDS315",
         vendor: "OWON",
         description: "Fall Detection Sensor",

@@ -31,9 +31,10 @@ describe("ModernExtend", () => {
                 "power_on_behavior",
             ],
             exposes: ["effect", "light(state,brightness)", "power_on_behavior"],
-            bind: [],
-            read: [],
-            configureReporting: [],
+            bind: {},
+            read: {},
+            write: {},
+            configureReporting: {},
         });
     });
 
@@ -69,14 +70,15 @@ describe("ModernExtend", () => {
                 "power_on_behavior",
             ],
             exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup)", "power_on_behavior"],
-            bind: [],
+            bind: {},
             read: {
                 1: [
                     ["lightingColorCtrl", ["colorCapabilities"]],
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
-            configureReporting: [],
+            write: {},
+            configureReporting: {},
         });
     });
 
@@ -116,14 +118,15 @@ describe("ModernExtend", () => {
                 "power_on_behavior",
             ],
             exposes: ["effect", "light(state,brightness,color_temp,color_xy,color_hs)", "power_on_behavior"],
-            bind: [],
+            bind: {},
             read: {
                 1: [
                     ["lightingColorCtrl", ["colorCapabilities"]],
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
-            configureReporting: [],
+            write: {},
+            configureReporting: {},
         });
     });
 
@@ -164,14 +167,15 @@ describe("ModernExtend", () => {
                 "power_on_behavior",
             ],
             exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup,color_xy)", "power_on_behavior"],
-            bind: [],
+            bind: {},
             read: {
                 1: [
                     ["lightingColorCtrl", ["colorCapabilities"]],
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
-            configureReporting: [],
+            write: {},
+            configureReporting: {},
         });
     });
 
@@ -201,6 +205,7 @@ describe("ModernExtend", () => {
                     ["seMetering", ["currentSummDelivered"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 1: [
                     ["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]],
@@ -276,7 +281,8 @@ describe("ModernExtend", () => {
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
-            configureReporting: [],
+            write: {},
+            configureReporting: {},
         });
     });
 
@@ -342,6 +348,7 @@ describe("ModernExtend", () => {
                     ["genLevelCtrl", ["currentLevel"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 10: [
                     ["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]],
@@ -381,6 +388,7 @@ describe("ModernExtend", () => {
                 1: [["genOnOff", ["onOff"]]],
                 2: [["genOnOff", ["onOff"]]],
             },
+            write: {},
             configureReporting: {
                 1: [["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]]],
                 2: [["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]]],
@@ -418,6 +426,7 @@ describe("ModernExtend", () => {
                     ["manuSpecificLumi", ["displayUnit"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 1: [
                     ["genPowerCfg", [reportingItem("batteryVoltage", repInterval.HOUR, repInterval.MAX, 0)]],
@@ -438,12 +447,12 @@ describe("ModernExtend", () => {
         const expectedConfig = {maximumReportInterval: 10, minimumReportInterval: 0, reportableChange: 1};
 
         await setupAttributes(deviceEp, coordinator.endpoints[0], "haElectricalMeasurement", [
-            {attribute: "1", ...config},
-            {attribute: "2", ...config},
-            {attribute: "3", ...config},
-            {attribute: "4", ...config},
-            {attribute: "5", ...config},
-            {attribute: "6", ...config},
+            {attribute: "acActivePowerOverload", ...config},
+            {attribute: "acAlarmsMask", ...config},
+            {attribute: "acCurrentDivisor", ...config},
+            {attribute: "acCurrentMultiplier", ...config},
+            {attribute: "acCurrentOverload", ...config},
+            {attribute: "acFrequency", ...config},
         ]);
 
         expect(deviceEp.bind).toHaveBeenCalledTimes(1);
@@ -451,18 +460,23 @@ describe("ModernExtend", () => {
 
         expect(deviceEp.configureReporting).toHaveBeenCalledTimes(2);
         expect(deviceEp.configureReporting).toHaveBeenNthCalledWith(1, "haElectricalMeasurement", [
-            {attribute: "1", ...expectedConfig},
-            {attribute: "2", ...expectedConfig},
-            {attribute: "3", ...expectedConfig},
-            {attribute: "4", ...expectedConfig},
+            {attribute: "acActivePowerOverload", ...expectedConfig},
+            {attribute: "acAlarmsMask", ...expectedConfig},
+            {attribute: "acCurrentDivisor", ...expectedConfig},
+            {attribute: "acCurrentMultiplier", ...expectedConfig},
         ]);
         expect(deviceEp.configureReporting).toHaveBeenNthCalledWith(2, "haElectricalMeasurement", [
-            {attribute: "5", ...expectedConfig},
-            {attribute: "6", ...expectedConfig},
+            {attribute: "acCurrentOverload", ...expectedConfig},
+            {attribute: "acFrequency", ...expectedConfig},
         ]);
 
         expect(deviceEp.read).toHaveBeenCalledTimes(2);
-        expect(deviceEp.read).toHaveBeenNthCalledWith(1, "haElectricalMeasurement", ["1", "2", "3", "4"]);
-        expect(deviceEp.read).toHaveBeenNthCalledWith(2, "haElectricalMeasurement", ["5", "6"]);
+        expect(deviceEp.read).toHaveBeenNthCalledWith(1, "haElectricalMeasurement", [
+            "acActivePowerOverload",
+            "acAlarmsMask",
+            "acCurrentDivisor",
+            "acCurrentMultiplier",
+        ]);
+        expect(deviceEp.read).toHaveBeenNthCalledWith(2, "haElectricalMeasurement", ["acCurrentOverload", "acFrequency"]);
     });
 });

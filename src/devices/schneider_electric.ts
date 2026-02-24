@@ -6,7 +6,7 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 import {postfixWithEndpointName} from "../lib/utils";
 
@@ -770,6 +770,30 @@ const schneiderElectricExtend = {
             lookup: {None: 0, Radiator: 1, "Fan Assisted Radiator": 2, "Radiant Panel": 3, Floor: 4, "Not specified": 0xff},
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         }),
+    addWiserDeviceInfoCluster: () =>
+        m.deviceAddCustomCluster("wiserDeviceInfo", {
+            ID: 0xfe03,
+            attributes: {
+                deviceInfo: {ID: 0x0020, type: Zcl.DataType.CHAR_STR, write: true},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addSchneiderLightSwitchConfigurationCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificSchneiderLightSwitchConfiguration", {
+            ID: 0xff17,
+            manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            attributes: {
+                ledIndication: {ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                upSceneID: {ID: 0x0010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                upGroupID: {ID: 0x0011, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                downSceneID: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                downGroupID: {ID: 0x0021, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                switchActions: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
 };
 
 const tzLocal = {
@@ -947,6 +971,41 @@ const fzLocal = {
             return ret;
         },
     } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
+    wiser_device_info: {
+        cluster: "wiserDeviceInfo",
+        type: "attributeReport",
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            const data = msg.data.deviceInfo.split(",");
+            if (data[0] === "ALG") {
+                // TODO What is ALG
+                const alg = data.slice(1);
+                result.ALG = alg.join(",");
+                result.occupied_heating_setpoint = Number.parseInt(alg[2], 10) / 10;
+                result.local_temperature = Number.parseInt(alg[3], 10) / 10;
+                result.pi_heating_demand = Number.parseInt(alg[9], 10);
+            } else if (data[0] === "ADC") {
+                // TODO What is ADC
+                const adc = data.slice(1);
+                result.ADC = adc.join(",");
+                // TODO: should parseInt?
+                result.occupied_heating_setpoint = Number.parseInt(adc[5], 10) / 100;
+                result.local_temperature = Number.parseInt(adc[3], 10) / 10;
+            } else if (data[0] === "UI") {
+                if (data[1] === "BoostUp") {
+                    result.boost = "Up";
+                } else if (data[1] === "BoostDown") {
+                    result.boost = "Down";
+                } else {
+                    result.boost = "None";
+                }
+            } else if (data[0] === "MOT") {
+                // Info about the motor
+                result.MOT = data[1];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -1007,9 +1066,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WV704R0A0902",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat",
-        fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fz.wiser_device_info],
+        fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fzLocal.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
+        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         exposes: [
             e
                 .climate()
@@ -1237,6 +1297,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.lightingBallast(),
             m.identify(),
             schneiderElectricExtend.dimmingMode(),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             indicatorMode(),
         ],
         meta: {omitOptionalLevelParams: true},
@@ -1268,7 +1329,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Specifies the maximum light output of the ballast"),
         ],
         ota: true,
-        extend: [indicatorMode("smart")],
+        extend: [schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(), indicatorMode("smart")],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
@@ -1286,7 +1347,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser 40/300-Series module switch 2AX",
         ota: true,
-        extend: [m.onOff({powerOnBehavior: false}), indicatorMode("smart")],
+        extend: [schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(), m.onOff({powerOnBehavior: false}), indicatorMode("smart")],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1303,7 +1364,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser 40/300-Series module switch 10AX with ControlLink",
         ota: true,
-        extend: [m.onOff({powerOnBehavior: false}), indicatorMode("smart")],
+        extend: [schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(), m.onOff({powerOnBehavior: false}), indicatorMode("smart")],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1373,8 +1434,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6100Z3",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat",
-        fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fz.wiser_device_info],
+        fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fzLocal.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
+        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         exposes: [
             e
                 .climate()
@@ -1457,7 +1519,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("dimmer_mode", ea.ALL, ["auto", "rc", "rl", "rl_led"])
                 .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
         ],
-        extend: [indicatorMode(), switchActions()],
+        extend: [schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(), indicatorMode(), switchActions()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingBallastCfg"]);
@@ -1488,7 +1550,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("dimmer_mode", ea.ALL, ["auto", "rc", "rl", "rl_led"])
                 .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
         ],
-        extend: [indicatorMode("right"), indicatorMode("left"), switchActions("right"), switchActions("left")],
+        extend: [
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
+            indicatorMode("right"),
+            indicatorMode("left"),
+            switchActions("right"),
+            switchActions("left"),
+        ],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
@@ -1525,6 +1593,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {left: 4, right: 3, left_btn: 22, right_btn: 21}}),
             m.light({endpointNames: ["left", "right"], configureReporting: true}),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             switchActions("left_btn"),
             switchActions("right_btn"),
             indicatorMode("left_btn"),
@@ -1549,6 +1618,7 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, l2: 2, s1: 21, s2: 22, s3: 23, s4: 24};
         },
         extend: [
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             indicatorMode("s1"),
             indicatorMode("s2"),
             indicatorMode("s3"),
@@ -1583,6 +1653,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         extend: [
             m.light({endpointNames: ["l1"], configureReporting: true, levelConfig: {}}),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             indicatorMode("s1"),
             indicatorMode("s2"),
             indicatorMode("s3"),
@@ -1943,6 +2014,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery(),
             m.deviceEndpoints({endpoints: {right: 21, left: 22}}),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             switchActions("right"),
             switchActions("left"),
             m.commandsOnOff({endpointNames: ["right", "left"]}),
@@ -2288,7 +2360,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002497",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.metering, fz.schneider_pilot_mode, fz.wiser_device_info, fz.hvac_user_interface, fz.temperature],
+        fromZigbee: [fz.stelpro_thermostat, fz.metering, fz.schneider_pilot_mode, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_system_mode,
@@ -2299,6 +2371,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.schneider_thermostat_keypad_lockout,
             tz.thermostat_temperature_display_mode,
         ],
+        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         exposes: [
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
             e.enum("schneider_pilot_mode", ea.ALL, ["contactor", "pilot"]).withDescription("Controls piloting mode"),
@@ -2330,7 +2403,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE011680",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.metering, fz.schneider_pilot_mode, fz.wiser_device_info, fz.hvac_user_interface, fz.temperature],
+        fromZigbee: [fz.stelpro_thermostat, fz.metering, fz.schneider_pilot_mode, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_system_mode,
@@ -2341,6 +2414,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.schneider_thermostat_keypad_lockout,
             tz.thermostat_temperature_display_mode,
         ],
+        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         exposes: [
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
             e.enum("schneider_pilot_mode", ea.ALL, ["contactor", "pilot"]).withDescription("Controls piloting mode"),
@@ -2667,7 +2741,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.stelpro_thermostat,
             fz.metering,
             fz.schneider_pilot_mode,
-            fz.wiser_device_info,
+            fzLocal.wiser_device_info,
             fz.hvac_user_interface,
             fz.temperature,
             fz.occupancy,
@@ -2716,6 +2790,7 @@ export const definitions: DefinitionWithExtend[] = [
             await utils.ignoreUnsupportedAttribute(async () => await reporting.thermostatOccupancy(endpoint4), "thermostatOccupancy");
         },
         extend: [
+            schneiderElectricExtend.addWiserDeviceInfoCluster(),
             m.poll({
                 key: "measurement",
                 option: exposes.options.measurement_poll_interval().withDescription("Polling interval of the occupied heating/cooling setpoint"),

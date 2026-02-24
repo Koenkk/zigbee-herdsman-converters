@@ -358,6 +358,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_move,
             fz.command_color_loop_set,
             fz.command_enhanced_move_to_hue_and_saturation,
+            fz.command_move_to_hue_and_saturation,
         ],
         toZigbee: [],
         exposes: [
@@ -377,6 +378,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "brightness_move_down",
                 "color_loop_set",
                 "enhanced_move_to_hue_and_saturation",
+                "move_to_hue_and_saturation",
                 "hue_stop",
             ]),
         ],

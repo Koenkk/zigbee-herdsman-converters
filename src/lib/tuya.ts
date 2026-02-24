@@ -679,7 +679,6 @@ export const valueConverter = {
         release: new Enum(0),
         press: new Enum(1),
     }),
-
     switchType2: valueConverterBasic.lookup({toggle: new Enum(0), state: new Enum(1), momentary: new Enum(2)}),
     backlightModeOffNormalInverted: valueConverterBasic.lookup({off: new Enum(0), normal: new Enum(1), inverted: new Enum(2)}),
     backlightModeOffLowMediumHigh: valueConverterBasic.lookup({off: new Enum(0), low: new Enum(1), medium: new Enum(2), high: new Enum(3)}),
@@ -707,6 +706,16 @@ export const valueConverter = {
     localTemperatureCalibration_256: {
         from: (value: number) => (value > 200 ? value - 256 : value),
         to: (value: number) => (value < 0 ? 256 + value : value),
+    },
+    waterConsumption: {
+        from: (v: string) => {
+            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
+            if (buf.length >= 8) {
+                const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
+                return value / 1000;
+            }
+            return 0;
+        },
     },
     setLimit: {
         to: (v: number) => {
@@ -3030,6 +3039,7 @@ const tuyaModernExtend = {
             endpoints?: string[];
             powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior2?: boolean | ((manufacturerName: string) => boolean);
+            powerOnBehavior3?: boolean;
             switchType?: boolean | ((manufacturerName: string) => boolean);
             switchTypeCurtain?: boolean;
             switchTypeButton?: boolean;
@@ -3055,6 +3065,7 @@ const tuyaModernExtend = {
             inchingSwitch = false,
             backlightModeOffOn = false,
             powerOnBehavior2 = false,
+            powerOnBehavior3 = false,
             switchType = false,
         } = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
@@ -3093,6 +3104,36 @@ const tuyaModernExtend = {
                 exposes.push((d) => (powerOnBehavior2(d.manufacturerName) ? expose : []));
             } else {
                 exposes.push(...expose);
+            }
+        } else if (powerOnBehavior3) {
+            const endpointList = args.endpoints || [];
+            if (endpointList.length > 0) {
+                for (const endpoint of endpointList) {
+                    const result = modernExtend.enumLookup({
+                        name: "power_on_behavior",
+                        lookup: {off: 0, on: 1, previous: 2},
+                        cluster: "manuSpecificTuya",
+                        attribute: {ID: 0x4002, type: 0x30},
+                        description: "Controls the behavior when the device is powered on after power loss",
+                        entityCategory: "config",
+                        endpointName: endpoint,
+                    });
+                    fromZigbee.push(...result.fromZigbee);
+                    toZigbee.push(...result.toZigbee);
+                    exposes.push(...result.exposes);
+                }
+            } else {
+                const result = modernExtend.enumLookup({
+                    name: "power_on_behavior",
+                    lookup: {off: 0, on: 1, previous: 2},
+                    cluster: "manuSpecificTuya",
+                    attribute: {ID: 0x4002, type: 0x30},
+                    description: "Controls the behavior when the device is powered on after power loss",
+                    entityCategory: "config",
+                });
+                fromZigbee.push(...result.fromZigbee);
+                toZigbee.push(...result.toZigbee);
+                exposes.push(...result.exposes);
             }
         } else {
             fromZigbee.push(tuyaFz.power_on_behavior_1);
