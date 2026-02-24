@@ -2212,41 +2212,6 @@ export const tuya_led_controller: Fz.Converter<"lightingColorCtrl", undefined, [
         return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
     },
 };
-export const wiser_device_info: Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport"> = {
-    cluster: "wiserDeviceInfo",
-    type: "attributeReport",
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        const data = msg.data.deviceInfo.split(",");
-        if (data[0] === "ALG") {
-            // TODO What is ALG
-            const alg = data.slice(1);
-            result.ALG = alg.join(",");
-            result.occupied_heating_setpoint = Number.parseInt(alg[2], 10) / 10;
-            result.local_temperature = Number.parseInt(alg[3], 10) / 10;
-            result.pi_heating_demand = Number.parseInt(alg[9], 10);
-        } else if (data[0] === "ADC") {
-            // TODO What is ADC
-            const adc = data.slice(1);
-            result.ADC = adc.join(",");
-            // TODO: should parseInt?
-            result.occupied_heating_setpoint = Number.parseInt(adc[5], 10) / 100;
-            result.local_temperature = Number.parseInt(adc[3], 10) / 10;
-        } else if (data[0] === "UI") {
-            if (data[1] === "BoostUp") {
-                result.boost = "Up";
-            } else if (data[1] === "BoostDown") {
-                result.boost = "Down";
-            } else {
-                result.boost = "None";
-            }
-        } else if (data[0] === "MOT") {
-            // Info about the motor
-            result.MOT = data[1];
-        }
-        return result;
-    },
-};
 export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
