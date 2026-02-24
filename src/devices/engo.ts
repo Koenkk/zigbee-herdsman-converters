@@ -455,44 +455,45 @@ export const definitions: DefinitionWithExtend[] = [
                     "TPI_RAD",
                     "TPI_ELE",
                     "HIS_02",
-                "HIS_04",
+                    "HIS_04",
                     "HIS_06",
                     "HIS_08",
                     "HIS_10",
-                "HIS_20",
-                "HIS_30",
-                "HIS_40",
-            ]),
-            e.numeric("frost_set", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(17).withValueStep(0.5),
-            e
-                .enum("valve_protection", ea.STATE_SET, ["off", "on", "anti_stop"])
-                .withLabel("Valve Protection")
-                .withDescription("Prevents valve blockage during long periods of inactivity.").withDescription("Prevents valve blockage during long periods of inactivity."),
+                    "HIS_20",
+                    "HIS_30",
+                    "HIS_40",
+                ]),
+                e.numeric("frost_set", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(17).withValueStep(0.5),
+                e
+                    .enum("valve_protection", ea.STATE_SET, ["off", "on", "anti_stop"])
+                    .withLabel("Valve Protection")
+                    .withDescription("Prevents valve blockage during long periods of inactivity.")
+                    .withDescription("Prevents valve blockage during long periods of inactivity."),
                 e
                     .enum("comfort_warm_floor", ea.STATE_SET, ["OFF", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"])
                     .withDescription("Automatically warms the floor every 60 minutes for 7, 11, 15, 19 or 23 minutes according to the level number."),
                 e.max_temperature().withValueMin(5).withValueMax(45),
                 e.min_temperature().withValueMin(5).withValueMax(45),
-            e.text("schedule_monday", ea.STATE_SET),
-            e.text("schedule_tuesday", ea.STATE_SET),
-            e.text("schedule_wednesday", ea.STATE_SET),
-            e.text("schedule_thursday", ea.STATE_SET),
-            e.text("schedule_friday", ea.STATE_SET),
-            e.text("schedule_saturday", ea.STATE_SET),
-            e.text("schedule_sunday", ea.STATE_SET),
-            e
-                .numeric("delta_t_rcwc_alg", ea.STATE_SET)
-                .withLabel("Delta RCWC Algorithm")
-                .withDescription("Defines how fast the TRV will react on temperature change. Defaults to 2.0")
-                .withUnit("°C")
-                .withValueMin(0.5)
-                .withValueStep(0.5)
-                .withValueMax(5),
-            e
-                .enum("device_pair_state", ea.STATE, ["none", "commutation_center", "trv"])
-                .withLabel("Device Pair State")
-                .withDescription("Defines paired devices type: None, Commutation Center or TRV"),
-        ];
+                e.text("schedule_monday", ea.STATE_SET),
+                e.text("schedule_tuesday", ea.STATE_SET),
+                e.text("schedule_wednesday", ea.STATE_SET),
+                e.text("schedule_thursday", ea.STATE_SET),
+                e.text("schedule_friday", ea.STATE_SET),
+                e.text("schedule_saturday", ea.STATE_SET),
+                e.text("schedule_sunday", ea.STATE_SET),
+                e
+                    .numeric("delta_t_rcwc_alg", ea.STATE_SET)
+                    .withLabel("Delta RCWC Algorithm")
+                    .withDescription("Defines how fast the TRV will react on temperature change. Defaults to 2.0")
+                    .withUnit("°C")
+                    .withValueMin(0.5)
+                    .withValueStep(0.5)
+                    .withValueMax(5),
+                e
+                    .enum("device_pair_state", ea.STATE, ["none", "commutation_center", "trv"])
+                    .withLabel("Device Pair State")
+                    .withDescription("Defines paired devices type: None, Commutation Center or TRV"),
+            ];
             if (options?.expose_device_state === true) {
                 exposesList.unshift(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON or OFF"));
             }
