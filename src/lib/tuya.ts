@@ -14,6 +14,7 @@ import type {
     KeyValue,
     KeyValueAny,
     KeyValueNumberString,
+    KeyValueString,
     ModernExtend,
     Publish,
     Range,
@@ -461,33 +462,48 @@ const tuyaExposes = {
             .numeric(`power_factor_${phase}`, ea.STATE)
             .withUnit("%")
             .withDescription(`Instantaneous measured power factor (phase ${phase.toUpperCase()})`),
-    switchType: () => e.enum("switch_type", ea.ALL, ["toggle", "state", "momentary"]).withDescription("Type of the switch"),
+    switchType: () => e.enum("switch_type", ea.ALL, ["toggle", "state", "momentary"]).withDescription("Type of the switch").withCategory("config"),
     switchTypeCurtain: () =>
         e
             .enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch", "button2-switch"])
-            .withDescription("External switch type"),
-    backlightModeLowMediumHigh: () => e.enum("backlight_mode", ea.ALL, ["low", "medium", "high"]).withDescription("Intensity of the backlight"),
-    backlightModeOffNormalInverted: () => e.enum("backlight_mode", ea.ALL, ["off", "normal", "inverted"]).withDescription("Mode of the backlight"),
+            .withDescription("External switch type")
+            .withCategory("config"),
+    switchTypeButton: () =>
+        e.enum("switch_type_button", ea.ALL, ["release", "press"]).withDescription("Determines when the button actuates").withCategory("config"),
+    backlightModeLowMediumHigh: () =>
+        e.enum("backlight_mode", ea.ALL, ["low", "medium", "high"]).withDescription("Intensity of the backlight").withCategory("config"),
+    backlightModeOffNormalInverted: () =>
+        e.enum("backlight_mode", ea.ALL, ["off", "normal", "inverted"]).withDescription("Mode of the backlight").withCategory("config"),
     backlightModeOffOn: () => e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Mode of the backlight").withCategory("config"),
     indicatorMode: () =>
         e.enum("indicator_mode", ea.ALL, ["off", "off/on", "on/off", "on"]).withDescription("LED indicator mode").withCategory("config"),
     indicatorModeNoneRelayPos: () =>
         e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Mode of the indicator light").withCategory("config"),
-    powerOutageMemory: () => e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
+    powerOutageMemory: () =>
+        e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage").withCategory("config"),
     batteryState: () => e.enum("battery_state", ea.STATE, ["low", "medium", "high"]).withDescription("State of the battery"),
     doNotDisturb: () =>
         e
             .binary("do_not_disturb", ea.STATE_SET, true, false)
-            .withDescription("Do not disturb mode, when enabled this function will keep the light OFF after a power outage"),
+            .withDescription("Do not disturb mode, when enabled this function will keep the light OFF after a power outage")
+            .withCategory("config"),
     colorPowerOnBehavior: () =>
-        e.enum("color_power_on_behavior", ea.STATE_SET, ["initial", "previous", "customized"]).withDescription("Power on behavior state"),
-    powerOnBehavior: () => e.enum("power_on_behavior", ea.ALL, ["off", "on", "previous"]).withDescription("Power on behavior state"),
+        e
+            .enum("color_power_on_behavior", ea.STATE_SET, ["initial", "previous", "customized"])
+            .withDescription("Power on behavior state")
+            .withCategory("config"),
+    powerOnBehavior: () =>
+        e.enum("power_on_behavior", ea.ALL, ["off", "on", "previous"]).withDescription("Power on behavior state").withCategory("config"),
     switchMode: () =>
-        e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withDescription("Sets the mode of the switch to act as a switch or as a scene"),
+        e
+            .enum("switch_mode", ea.STATE_SET, ["switch", "scene"])
+            .withDescription("Sets the mode of the switch to act as a switch or as a scene")
+            .withCategory("config"),
     switchMode2: () =>
         e
             .enum("switch_mode", ea.STATE_SET, ["switch", "curtain"])
-            .withDescription("Sets the mode of the switch to act as a switch or as a curtain controller"),
+            .withDescription("Sets the mode of the switch to act as a switch or as a curtain controller")
+            .withCategory("config"),
     lightMode: () =>
         e.enum("light_mode", ea.STATE_SET, ["normal", "on", "off", "flash"]).withDescription(`'Sets the indicator mode of l1.
         Normal: Orange while off and white while on.
@@ -659,6 +675,10 @@ export const valueConverter = {
         "button-switch": new Enum(2),
         "button2-switch": new Enum(3),
     }),
+    switchTypeButton: valueConverterBasic.lookup({
+        release: new Enum(0),
+        press: new Enum(1),
+    }),
     switchType2: valueConverterBasic.lookup({toggle: new Enum(0), state: new Enum(1), momentary: new Enum(2)}),
     backlightModeOffNormalInverted: valueConverterBasic.lookup({off: new Enum(0), normal: new Enum(1), inverted: new Enum(2)}),
     backlightModeOffLowMediumHigh: valueConverterBasic.lookup({off: new Enum(0), low: new Enum(1), medium: new Enum(2), high: new Enum(3)}),
@@ -686,6 +706,16 @@ export const valueConverter = {
     localTemperatureCalibration_256: {
         from: (value: number) => (value > 200 ? value - 256 : value),
         to: (value: number) => (value < 0 ? 256 + value : value),
+    },
+    waterConsumption: {
+        from: (v: string) => {
+            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
+            if (buf.length >= 8) {
+                const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
+                return value / 1000;
+            }
+            return 0;
+        },
     },
     setLimit: {
         to: (v: number) => {
@@ -1848,6 +1878,17 @@ const tuyaTz = {
             await entity.read("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
+    switch_type_button: {
+        key: ["switch_type_button"],
+        convertSet: async (entity, key, value, meta) => {
+            const switchType = utils.getFromLookup(value, {release: 0, press: 1});
+            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("manuSpecificTuya3", ["switchType"]);
+        },
+    } satisfies Tz.Converter,
     backlight_indicator_mode_1: {
         key: ["backlight_mode", "indicator_mode"],
         convertSet: async (entity, key, value, meta) => {
@@ -2129,6 +2170,17 @@ const tuyaFz = {
             }
         },
     } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
+    switch_type_button: {
+        cluster: "manuSpecificTuya3",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.switchType !== undefined) {
+                const lookup: KeyValue = {0: "release", 1: "press"};
+                utils.assertNumber(msg.data.switchType);
+                return {switch_type_button: lookup[msg.data.switchType]};
+            }
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
     backlight_mode_low_medium_high: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2267,6 +2319,57 @@ const tuyaFz = {
             }
         },
     } satisfies Fz.Converter<"manuSpecificTuya4", Tuya4, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS011F_electrical_measurement: {
+        ...fz.electrical_measurement,
+        convert: (model, msg, publish, options, meta) => {
+            const result = (fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
+            const lookup: KeyValueString = {
+                power: "activePower",
+                current: "rmsCurrent",
+                voltage: "rmsVoltage",
+            };
+
+            // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
+            if (result) {
+                for (const key of ["power", "current", "voltage"]) {
+                    if (key in result) {
+                        const value = result[key];
+                        clearTimeout(globalStore.getValue(msg.endpoint, key));
+                        if (value === 0) {
+                            const configuredReporting = msg.endpoint.configuredReportings.find(
+                                (c) => c.cluster.name === "haElectricalMeasurement" && c.attribute.name === lookup[key],
+                            );
+                            const time = (configuredReporting ? configuredReporting.minimumReportInterval : 5) * 2 + 1;
+                            globalStore.putValue(
+                                msg.endpoint,
+                                key,
+                                setTimeout(() => {
+                                    const payload = {[key]: value};
+                                    // Device takes a lot of time to report power 0 in some cases. When current == 0 we can assume power == 0
+                                    // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
+                                    if (key === "current") {
+                                        payload.power = 0;
+                                    }
+                                    publish(payload);
+                                }, time * 1000),
+                            );
+                            delete result[key];
+                        }
+                    }
+                }
+            }
+
+            // Device takes a lot of time to report power 0 in some cases. When the state is OFF we can assume power == 0
+            // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
+            if (meta.state.state === "OFF") {
+                result.power = 0;
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
 };
 export {tuyaFz as fz};
 
@@ -2936,8 +3039,10 @@ const tuyaModernExtend = {
             endpoints?: string[];
             powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior2?: boolean | ((manufacturerName: string) => boolean);
+            powerOnBehavior3?: boolean;
             switchType?: boolean | ((manufacturerName: string) => boolean);
             switchTypeCurtain?: boolean;
+            switchTypeButton?: boolean;
             backlightModeLowMediumHigh?: boolean;
             indicatorMode?: boolean | ((manufacturerName: string) => boolean);
             indicatorModeNoneRelayPos?: boolean;
@@ -2960,6 +3065,7 @@ const tuyaModernExtend = {
             inchingSwitch = false,
             backlightModeOffOn = false,
             powerOnBehavior2 = false,
+            powerOnBehavior3 = false,
             switchType = false,
         } = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
@@ -2999,6 +3105,36 @@ const tuyaModernExtend = {
             } else {
                 exposes.push(...expose);
             }
+        } else if (powerOnBehavior3) {
+            const endpointList = args.endpoints || [];
+            if (endpointList.length > 0) {
+                for (const endpoint of endpointList) {
+                    const result = modernExtend.enumLookup({
+                        name: "power_on_behavior",
+                        lookup: {off: 0, on: 1, previous: 2},
+                        cluster: "manuSpecificTuya",
+                        attribute: {ID: 0x4002, type: 0x30},
+                        description: "Controls the behavior when the device is powered on after power loss",
+                        entityCategory: "config",
+                        endpointName: endpoint,
+                    });
+                    fromZigbee.push(...result.fromZigbee);
+                    toZigbee.push(...result.toZigbee);
+                    exposes.push(...result.exposes);
+                }
+            } else {
+                const result = modernExtend.enumLookup({
+                    name: "power_on_behavior",
+                    lookup: {off: 0, on: 1, previous: 2},
+                    cluster: "manuSpecificTuya",
+                    attribute: {ID: 0x4002, type: 0x30},
+                    description: "Controls the behavior when the device is powered on after power loss",
+                    entityCategory: "config",
+                });
+                fromZigbee.push(...result.fromZigbee);
+                toZigbee.push(...result.toZigbee);
+                exposes.push(...result.exposes);
+            }
         } else {
             fromZigbee.push(tuyaFz.power_on_behavior_1);
             toZigbee.push(tuyaTz.power_on_behavior_1);
@@ -3018,6 +3154,11 @@ const tuyaModernExtend = {
             fromZigbee.push(tuyaFz.switch_type_curtain);
             toZigbee.push(tuyaTz.switch_type_curtain);
             exposes.push(tuyaExposes.switchTypeCurtain());
+        }
+        if (args.switchTypeButton) {
+            fromZigbee.push(tuyaFz.switch_type_button);
+            toZigbee.push(tuyaTz.switch_type_button);
+            exposes.push(tuyaExposes.switchTypeButton());
         }
         if (backlightModeOffOn) {
             fromZigbee.push(tuyaFz.backlight_mode_off_on);

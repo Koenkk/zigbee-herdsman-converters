@@ -959,13 +959,13 @@ export const definitions: DefinitionWithExtend[] = [
                     await syncTimeWithTimeZone(endpoint);
 
                     break;
-                } catch (e) {
+                } catch (error) {
                     retryCount++;
-                    logger.warning(`Configure attempt ${retryCount} failed: ${e}`, NS);
+                    logger.warning(`Configure attempt ${retryCount} failed: ${error}`, NS);
 
                     if (retryCount === maxRetries) {
                         logger.error(`Failed to configure device after ${maxRetries} attempts`, NS);
-                        throw e;
+                        throw error;
                     }
 
                     await new Promise((resolve) => setTimeout(resolve, 2000 * retryCount));

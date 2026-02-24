@@ -176,6 +176,119 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xdtnpp1a"]),
+        model: "TRV26",
+        vendor: "AVATTO",
+        description: "Thermostatic radiator valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", forceTimeUpdates: true, respondToMcuVersionResponse: true})],
+        ota: true,
+        exposes: [
+            e.battery(),
+            e.child_lock(),
+            e
+                .numeric("max_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Max temperature limit")
+                .withValueMin(15)
+                .withValueMax(35)
+                .withValueStep(0.5),
+            e
+                .numeric("min_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Min temperature limit")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(0.5),
+            e.window_detection_bool(),
+            e.open_window_temperature().withValueMin(5).withValueMax(20),
+            e.comfort_temperature().withValueMin(5).withValueMax(25),
+            e.eco_temperature().withValueMin(5).withValueMax(20),
+            e.holiday_temperature().withValueMin(5).withValueMax(25),
+            e
+                .climate()
+                .withPreset(["auto", "manual", "holiday", "comfort", "o", "antifrost"])
+                .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withSystemMode(["off", "heat"], ea.STATE_SET, "Only for Homeassistant")
+                .withRunningState(["idle", "heat"], ea.STATE_SET),
+            tuya.exposes.frostProtection(
+                "When Anti-Freezing function is activated, the temperature in the house is kept " +
+                    'at 8 °C, the device display "AF".press the pair button to cancel.',
+            ),
+            e
+                .binary("scale_protection", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "To ensure normal use of the thermostat, the controller will automatically open the valve fully every " +
+                        '1000 hours. It will run for 30 seconds per time with the screen displaying "Ad", then return to its normal working state ' +
+                        "again.",
+                ),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "06:00/21.5 17:20/26 20:00/21 24:00/18").map((text) => text.withCategory("config")),
+            e.binary("factory_reset", ea.STATE_SET, "ON", "OFF").withDescription("Back to factory settings, USE WITH CAUTION"),
+            e.numeric("uptime", ea.STATE).withLabel("Uptime").withUnit("h"),
+            e.numeric("descale_countdown", ea.STATE).withLabel("Descale Countdown").withUnit("h"),
+            tuya.exposes.errorStatus(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    49,
+                    "running_state",
+                    tuya.valueConverterBasic.lookup({
+                        heat: tuya.enum(1),
+                        idle: tuya.enum(0),
+                    }),
+                ],
+                [
+                    49,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        heat: tuya.enum(1),
+                        off: tuya.enum(0),
+                    }),
+                ],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        auto: tuya.enum(1),
+                        eco: tuya.enum(2),
+                        comfort: tuya.enum(3),
+                        antifrost: tuya.enum(4),
+                        holiday: tuya.enum(5),
+                    }),
+                ],
+                [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [5, "local_temperature", tuya.valueConverter.divideBy10],
+                [6, "battery", tuya.valueConverter.raw],
+                [7, "child_lock", tuya.valueConverter.lockUnlock],
+                [9, "max_temperature_limit", tuya.valueConverter.divideBy10],
+                [10, "min_temperature_limit", tuya.valueConverter.divideBy10],
+                [14, "window_detection", tuya.valueConverter.raw],
+                [16, "open_window_temperature", tuya.valueConverter.divideBy10],
+                [17, "open_window_time", tuya.valueConverter.raw],
+                [19, "factory_reset", tuya.valueConverter.onOff],
+                [21, "holiday_temperature", tuya.valueConverter.raw],
+                [24, "comfort_temperature", tuya.valueConverter.divideBy10],
+                [25, "eco_temperature", tuya.valueConverter.divideBy10],
+                [17, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [18, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [19, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
+                [20, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [21, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
+                [22, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
+                [23, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [35, "error_status", tuya.valueConverter.raw],
+                [36, "frost_protection", tuya.valueConverter.onOff],
+                [39, "scale_protection", tuya.valueConverter.raw],
+                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [101, "uptime", tuya.valueConverter.divideBy10],
+                [102, "descale_countdown", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_goecjd1t"]),
         model: "ZWPM16",
         vendor: "AVATTO",

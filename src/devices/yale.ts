@@ -211,6 +211,31 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
+    ymc_action: {
+        cluster: "closuresDoorLock",
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: {[key: number]: string} = {
+                0: "password_unlock",
+                1: "unlock",
+                2: "auto_lock",
+                3: "rfid_unlock",
+                4: "fingerprint_unlock",
+                5: "unlock_failure_invalid_pin_or_id",
+                6: "unlock_failure_invalid_schedule",
+                7: "one_touch_lock",
+                8: "key_lock",
+                9: "key_unlock",
+                10: "auto_lock",
+                11: "schedule_lock",
+                12: "schedule_unlock",
+                13: "manual_lock",
+                14: "manual_unlock",
+                15: "non_access_user_operational_event",
+            };
+            return {action: lookup[msg.data[3]], action_source_user: msg.data[5]};
+        },
+    } satisfies Fz.Converter<"closuresDoorLock", undefined, ["raw"]>,
 };
 
 const tzLocal = {
@@ -389,6 +414,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YMC420-W",
         vendor: "Yale",
         description: "Digital Lock YMC 420 W",
+        fromZigbee: [fzLocal.ymc_action],
         extend: [lockExtend()],
     },
     {
