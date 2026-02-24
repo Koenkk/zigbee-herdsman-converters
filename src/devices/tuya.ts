@@ -24760,7 +24760,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "TS0502B_LUUMR",
         vendor: "LUUMR",
-        description: "LUUMR Smart LED C35 E14 4.2 W, 470 lm, 2700–6500 K (CCT) – Zigbee candle bulb",
+        description: "LUUMR Smart LED C35 E14 4.2 W, 470 lm – Zigbee candle bulb",
         extend: [
             tuya.modernExtend.tuyaLight({
                 color: false,
