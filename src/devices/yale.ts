@@ -12,6 +12,46 @@ const NS = "zhc:yale";
 const e = exposes.presets;
 const ea = exposes.access;
 
+// Cluster manuSpecificDoorman moved from ZH to ZHC. Commented out since the cluster is not in use, ref https://github.com/Koenkk/zigbee-herdsman/issues/1622#issuecomment-3951225848
+// const _yaleExtend = {
+//     addManuSpecificDoormanCluster: () =>
+//         m.deviceAddCustomCluster("manuSpecificDoorman", {
+//             ID: 0xfc04,
+//             attributes: {},
+//             commands: {
+//                 getConfigurationParameter: {
+//                     ID: 0xfc,
+//                     parameters: [
+//                         // bit pack ("bbb", 0x00, 0x00, configurationId)
+//                         {name: "payload", type: Zcl.DataType.CHAR_STR},
+//                     ],
+//                 },
+//                 setConfigurationParameter: {
+//                     ID: 0xfd,
+//                     parameters: [
+//                         // bit pack ("bbbb", 0x00, 0x00, configurationId, value)
+//                         {name: "payload", type: Zcl.DataType.CHAR_STR},
+//                     ],
+//                 },
+//                 integrationModeActivation: {
+//                     ID: 0x25,
+//                     parameters: [
+//                         // bit pack ("bbbbb", slot, codeType, string sub (userCode, 1, 2), string sub (userCode, 3, 4), string sub (userCode, 5, 6)) .. String duplicate (0xff, 12)
+//                         {name: "payload", type: Zcl.DataType.CHAR_STR},
+//                     ],
+//                 },
+//                 armDisarm: {
+//                     ID: 0x4e,
+//                     parameters: [
+//                         // bit pack ("bb", lockSequenceNumber, operatingParameter)
+//                         {name: "payload", type: Zcl.DataType.CHAR_STR},
+//                     ],
+//                 },
+//             },
+//             commandsResponse: {},
+//         }),
+// };
+
 const lockExtend = (meta = {}, lockStateOptions: Reporting.Override | false = null, binds = ["closuresDoorLock", "genPowerCfg"]): ModernExtend => {
     return {
         fromZigbee: [
