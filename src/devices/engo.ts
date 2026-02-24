@@ -39,6 +39,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("zone_4_name", ea.STATE_SET).withDescription("Custom name for zigbee zone 4"),
             e.text("zone_5_name", ea.STATE_SET).withDescription("Custom name for zigbee zone 5"),
             e.text("zone_6_name", ea.STATE_SET).withDescription("Custom name for zigbee zone 6"),
+            e.voltage(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -76,6 +77,7 @@ export const definitions: DefinitionWithExtend[] = [
                         "15_min": tuya.enum(3),
                     }),
                 ],
+                [120, "voltage", tuya.valueConverter.divideBy10],
             ],
         },
     },
@@ -473,6 +475,18 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("schedule_friday", ea.STATE_SET),
             e.text("schedule_saturday", ea.STATE_SET),
             e.text("schedule_sunday", ea.STATE_SET),
+            e
+                .numeric("delta_t_rcwc_alg", ea.STATE_SET)
+                .withLabel("Delta RCWC Algorithm")
+                .withDescription("Defines how fast the TRV will react on temperature change. Defaults to 2.0")
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueStep(0.5)
+                .withValueMax(5),
+            e
+                .enum("device_pair_state", ea.STATE, ["none", "commutation_center", "trv"])
+                .withLabel("Device Pair State")
+                .withDescription("Defines paired devices type: None, Commutation Center or TRV"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -543,6 +557,17 @@ export const definitions: DefinitionWithExtend[] = [
                         HIS_40: tuya.enum(10),
                     }),
                 ],
+                [102, "delta_t_rcwc_alg", tuya.valueConverter.divideBy10],
+                [
+                    103,
+                    "device_pair_state",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        commutation_center: tuya.enum(1),
+                        trv: tuya.enum(2),
+                    }),
+                ],
+                // [105, "???", tuya.valueConverter.onOff],
                 [106, "frost_set", tuya.valueConverter.divideBy10],
                 [
                     107,
@@ -554,7 +579,6 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [108, "relay_mode", tuya.valueConverterBasic.lookup({NO: tuya.enum(0), NC: tuya.enum(1), OFF: tuya.enum(2)})],
-                [120, "sensor_error", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), E1: tuya.enum(1), E2: tuya.enum(2)})],
                 [109, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
                 [110, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
                 [111, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
@@ -562,6 +586,16 @@ export const definitions: DefinitionWithExtend[] = [
                 [113, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
                 [114, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
                 [115, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                // [119, "???", 0],
+                [120, "sensor_error", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), E1: tuya.enum(1), E2: tuya.enum(2)})],
+                // [121, "???", 0],
+                // [122, "???", 0],
+                // [123, "???", 0],
+
+                // [128, "???", 0],
+
+                // [136, "???", 0],
+                // [137, "???", 0],
             ],
         },
     },
@@ -817,7 +851,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.5)
                 .withValueMax(5),
             e
-                .enum("device_pair_state", ea.STATE, ["none", "trv"])
+                .enum("device_pair_state", ea.STATE, ["none", "commutation_center", "trv"])
                 .withLabel("Device Pair State")
                 .withDescription("Defines paired devices type: None, Commutation Center or TRV"),
             e
@@ -906,6 +940,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "device_pair_state",
                     tuya.valueConverterBasic.lookup({
                         none: tuya.enum(0),
+                        commutation_center: tuya.enum(1),
                         trv: tuya.enum(2),
                     }),
                 ],
