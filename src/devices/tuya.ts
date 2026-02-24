@@ -24607,8 +24607,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.occupancy(),
             e.battery(),
 
-            exposes.numeric("illuminance", ea.STATE).withUnit("lux").withValueMin(0).withValueMax(10000).withValueStep(1).withDescription("Pressure"),
-            exposes.enum("pir_sensitivity", ea.ALL, ["low", "middle", "high"]).withDescription("Sensitivity"),
+            exposes.numeric("illuminance", ea.STATE).withUnit("lux").withValueMin(0).withValueMax(10000).withValueStep(1).withDescription("Raw pressure value"),
+            exposes.enum("sensitivity", ea.ALL, ["low", "middle", "high"]).withDescription("Sensitivity"),
             exposes
                 .numeric("interval_time", ea.ALL)
                 .withUnit("min")
@@ -24617,7 +24617,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(5)
                 .withDescription("Sampling interval"),
             exposes
-                .numeric("pir_delay", ea.ALL)
+                .numeric("presence_delay", ea.ALL)
                 .withUnit("s")
                 .withValueMin(0)
                 .withValueMax(3600)
@@ -24631,7 +24631,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withDescription("Delay to report presence"),
             exposes
-                .enum("work_state", ea.STATE, ["pir", "none", "pir_5min", "pir_30min", "none_5min", "none_30min"])
+                .enum("work_state", ea.STATE, ["presence", "none", "presence_5min", "presence_30min", "none_5min", "none_30min"])
                 .withDescription("Summary of the state of the device"),
         ],
         meta: {
@@ -24655,7 +24655,7 @@ export const definitions: DefinitionWithExtend[] = [
                     104,
                     "work_state",
                     tuya.valueConverterBasic.lookup({
-                        pir: tuya.enum(0),
+                        presence: tuya.enum(0),
                         none: tuya.enum(1),
                         presence_5min: tuya.enum(2),
                         presence_30min: tuya.enum(3),
