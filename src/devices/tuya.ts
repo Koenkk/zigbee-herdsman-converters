@@ -24752,4 +24752,79 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_seq9cm6u"]),
+        model: "TS0601_bed_presence_sensor",
+        vendor: "Tuya",
+        description: "'Pressure Sensing Strap/Bed Occupancy Sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.occupancy(),
+            e.battery(),
+
+            exposes
+                .numeric("illuminance", ea.STATE)
+                .withUnit("lux")
+                .withValueMin(0)
+                .withValueMax(10000)
+                .withValueStep(1)
+                .withDescription("Raw pressure value"),
+            exposes.enum("sensitivity", ea.ALL, ["low", "middle", "high"]).withDescription("Sensitivity"),
+            exposes
+                .numeric("interval_time", ea.ALL)
+                .withUnit("min")
+                .withValueMin(5)
+                .withValueMax(720)
+                .withValueStep(5)
+                .withDescription("Sampling interval"),
+            exposes
+                .numeric("presence_delay", ea.ALL)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withDescription("Delay to report no presence"),
+            exposes
+                .numeric("presence_time", ea.ALL)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withDescription("Delay to report presence"),
+            exposes
+                .enum("work_state", ea.STATE, ["presence", "none", "presence_5min", "presence_30min", "none_5min", "none_30min"])
+                .withDescription("Summary of the state of the device"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse0],
+                [4, "battery", tuya.valueConverter.raw],
+                [
+                    9,
+                    "sensitivity",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        middle: tuya.enum(1),
+                        high: tuya.enum(2),
+                    }),
+                ],
+                [12, "illuminance", tuya.valueConverter.raw],
+                [101, "interval_time", tuya.valueConverter.raw],
+                [102, "presence_delay", tuya.valueConverter.raw],
+                [103, "presence_time", tuya.valueConverter.raw],
+                [
+                    104,
+                    "work_state",
+                    tuya.valueConverterBasic.lookup({
+                        presence: tuya.enum(0),
+                        none: tuya.enum(1),
+                        presence_5min: tuya.enum(2),
+                        presence_30min: tuya.enum(3),
+                        none_5min: tuya.enum(4),
+                        none_30min: tuya.enum(5),
+                    }),
+                ],
+            ],
+        },
+    },
 ];
