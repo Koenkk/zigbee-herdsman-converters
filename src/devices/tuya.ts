@@ -24751,4 +24751,23 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: [
+            {
+                modelID: "TS0502B",
+                manufacturerName: "_TZ3210_claeh5ds",
+            },
+        ],
+        model: "TS0502B_LUUMR",
+        vendor: "LUUMR",
+        description: "LUUMR Smart LED C35 E14 4.2 W, 470 lm – Zigbee candle bulb",
+        extend: [
+            tuya.modernExtend.tuyaLight({
+                color: false,
+                colorTemp: {range: [153, 500]},
+                doNotDisturb: false,
+                powerOnBehavior: false,
+            }),
+        ],
+    },
 ];
