@@ -2584,7 +2584,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "smart_temperature_control",
                 // manual sends 0x00 (same as off), 0x01 is report-only
-                lookup: {off: 0x00, manual: 0x00, smart: 0x02},
+                lookup: {off: 0x00, on: 0x02},
                 cluster: "customSonoffTrvzb",
                 attribute: "smartTempControl",
                 description:
