@@ -1838,7 +1838,8 @@ const sonoffExtend = {
                     .withDescription("Irrigation mode: duration, capacity, or duration with interval"),
             )
             .withFeature(
-                e.numeric("irrigation_total_duration", ea.ALL)
+                e
+                    .numeric("irrigation_total_duration", ea.ALL)
                     .withValueMin(0)
                     .withValueMax(719)
                     .withUnit("min")
@@ -1853,12 +1854,7 @@ const sonoffExtend = {
             .withFeature(e.enum("irrigation_amount_unit", ea.ALL, ["gallon", "liter"]).withDescription("Capacity unit"))
             .withFeature(e.numeric("irrigation_amount", ea.ALL).withValueMin(0).withValueMax(10000).withDescription("Irrigation volume"))
             .withFeature(
-                e
-                    .numeric("fail_safe", ea.ALL)
-                    .withValueMin(0)
-                    .withValueMax(719)
-                    .withUnit("min")
-                    .withDescription("Safety protection timeout"),
+                e.numeric("fail_safe", ea.ALL).withValueMin(0).withValueMax(719).withUnit("min").withDescription("Safety protection timeout"),
             );
 
         const modeMap: {[key: string]: number} = {
@@ -1914,7 +1910,10 @@ const sonoffExtend = {
                     utils.assertObject(value, key);
 
                     if (typeof value.irrigation_mode !== "string" || modeMap[value.irrigation_mode] === undefined) {
-                        logger.error("manual_default_settings invalid irrigation_mode, expected one of: duration, capacity, duration_with_interval.", NS);
+                        logger.error(
+                            "manual_default_settings invalid irrigation_mode, expected one of: duration, capacity, duration_with_interval.",
+                            NS,
+                        );
                         return;
                     }
                     if (value.irrigation_amount_unit !== "gallon" && value.irrigation_amount_unit !== "liter") {
@@ -2008,7 +2007,7 @@ const sonoffExtend = {
                 e.numeric(month, ea.ALL).withValueMin(0.1).withValueMax(2).withValueStep(0.1).withDescription(`Adjustment multiplier for ${month}`),
             );
         }
-        
+
         const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
             {
                 cluster: "customClusterEwelink",
@@ -2117,8 +2116,8 @@ const sonoffExtend = {
         };
 
         const scheduleTypeMap: {[key: number]: string} = {
-            0x00: "automatic",
-            0x01: "manual",
+            0: "automatic",
+            1: "manual",
         };
 
         const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
@@ -2144,10 +2143,7 @@ const sonoffExtend = {
                     if (isStartOrStandby) {
                         const minLength = hasScheduleType ? 15 : 14;
                         if (array.length < minLength) {
-                            logger.error(
-                                `irrigationScheduleStatus invalid length=${array.length}, expected>=${minLength} for start/standby`,
-                                NS,
-                            );
+                            logger.error(`irrigationScheduleStatus invalid length=${array.length}, expected>=${minLength} for start/standby`, NS);
                             return;
                         }
 
@@ -2189,10 +2185,7 @@ const sonoffExtend = {
                         const expectedEndTime =
                             (array[7 + dataOffset] << 24) | (array[8 + dataOffset] << 16) | (array[9 + dataOffset] << 8) | array[10 + dataOffset];
                         const actualEndTime =
-                            (array[11 + dataOffset] << 24) |
-                            (array[12 + dataOffset] << 16) |
-                            (array[13 + dataOffset] << 8) |
-                            array[14 + dataOffset];
+                            (array[11 + dataOffset] << 24) | (array[12 + dataOffset] << 16) | (array[13 + dataOffset] << 8) | array[14 + dataOffset];
                         const expectedStartTimeISO = formatUtcSecondsToIsoWithOffset(deviceLocal2000ToUTCSeconds(expectedStartTime));
                         const expectedEndTimeISO = formatUtcSecondsToIsoWithOffset(deviceLocal2000ToUTCSeconds(expectedEndTime));
                         const actualEndTimeISO = formatUtcSecondsToIsoWithOffset(deviceLocal2000ToUTCSeconds(actualEndTime));
@@ -2759,12 +2752,16 @@ const sonoffExtend = {
                 .withFeature(
                     e
                         .text("enable_date", ea.SET)
-                        .withDescription("Enable date in local YYYY-MM-DD format (fixed at 00:00:00 local day start). Omit to use current local date"),
+                        .withDescription(
+                            "Enable date in local YYYY-MM-DD format (fixed at 00:00:00 local day start). Omit to use current local date",
+                        ),
                 )
                 .withFeature(
-                        e
-                            .text("start_time", ea.SET)
-                            .withDescription("Start time in local HH:mm format (24-hour, zero-padded), converted to seconds from start of local day. Omit to use current local time rounded to minute"),
+                    e
+                        .text("start_time", ea.SET)
+                        .withDescription(
+                            "Start time in local HH:mm format (24-hour, zero-padded), converted to seconds from start of local day. Omit to use current local time rounded to minute",
+                        ),
                 )
                 .withFeature(e.enum("irrigation_mode", ea.SET, ["duration", "capacity", "duration_with_interval"]))
                 .withFeature(e.numeric("irrigation_total_duration", ea.SET).withValueMin(0).withValueMax(719).withUnit("min"))
@@ -2773,7 +2770,9 @@ const sonoffExtend = {
                 .withFeature(e.enum("irrigation_amount_unit", ea.SET, ["gallon", "liter"]))
                 .withFeature(e.numeric("irrigation_amount", ea.SET).withValueMin(1).withValueMax(10000))
                 .withFeature(e.numeric("fail_safe", ea.SET).withValueMin(0).withValueMax(719).withUnit("min"))
-                .withFeature(e.text("create_datetime", ea.SET).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)")),
+                .withFeature(
+                    e.text("create_datetime", ea.SET).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
+                ),
             e
                 .composite("irrigation_plan_report", "irrigation_plan_report", ea.STATE)
                 .withDescription("Irrigation plan report")
@@ -2802,7 +2801,11 @@ const sonoffExtend = {
                 .withFeature(e.enum("irrigation_amount_unit", ea.STATE, ["gallon", "liter"]))
                 .withFeature(e.numeric("irrigation_amount", ea.STATE))
                 .withFeature(e.numeric("fail_safe", ea.STATE))
-                .withFeature(e.text("create_datetime", ea.STATE).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)")),
+                .withFeature(
+                    e
+                        .text("create_datetime", ea.STATE)
+                        .withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
+                ),
         ];
 
         const fromZigbee: Fz.Converter<
@@ -2991,8 +2994,7 @@ const sonoffExtend = {
                         }
                     }
                     const nowLocalDate = new Date((nowUtcSeconds + offsetSeconds) * 1000);
-                    const defaultEnableDate =
-                        `${nowLocalDate.getUTCFullYear()}-${String(nowLocalDate.getUTCMonth() + 1).padStart(2, "0")}-${String(nowLocalDate.getUTCDate()).padStart(2, "0")}`;
+                    const defaultEnableDate = `${nowLocalDate.getUTCFullYear()}-${String(nowLocalDate.getUTCMonth() + 1).padStart(2, "0")}-${String(nowLocalDate.getUTCDate()).padStart(2, "0")}`;
                     const defaultStartSeconds = Math.floor(((((nowUtcSeconds + offsetSeconds) % 86400) + 86400) % 86400) / 60) * 60;
                     const defaultStartHours = Math.floor(defaultStartSeconds / 3600);
                     const defaultStartMinutes = Math.floor((defaultStartSeconds % 3600) / 60);
@@ -3213,7 +3215,9 @@ const sonoffExtend = {
         const clusterName = "customClusterEwelink";
         const commandId = 0x08;
 
-        const exposes = [e.text("rain_delay", ea.SET).withDescription("Schedule delay end time in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)")];
+        const exposes = [
+            e.text("rain_delay", ea.SET).withDescription("Schedule delay end time in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
+        ];
         const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["raw", "commandRainDelay"]>[] = [
             {
                 cluster: clusterName,
