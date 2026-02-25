@@ -3504,7 +3504,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0501B_dimmer",
         description: "Zigbee dimmer",
         vendor: "Tuya",
-        extend: [tuyaLight({configureReporting: true, effect: false})],
+        extend: [tuyaLight({colorTemp: {range: [153, 500]}, configureReporting: true, effect: false})],
         whiteLabel: [tuya.whitelabel("Tuya", "L1(ZW)", "Light dimmer 0-10V", ["_TZB210_rkgngb5o"])],
     },
     {
