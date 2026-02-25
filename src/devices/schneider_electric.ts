@@ -785,6 +785,16 @@ const schneiderElectricExtend = {
             lookup: {None: 0, Radiator: 1, "Fan Assisted Radiator": 2, "Radiant Panel": 3, Floor: 4, "Not specified": 0xff},
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         }),
+    addWiserDeviceInfoCluster: () =>
+        m.deviceAddCustomCluster("wiserDeviceInfo", {
+            ID: 0xfe03, // 65027
+            // manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            attributes: {
+                deviceInfo: {ID: 0x0020, type: Zcl.DataType.CHAR_STR, write: true},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
     addSchneiderLightSwitchConfigurationCluster: () =>
         m.deviceAddCustomCluster("manuSpecificSchneiderLightSwitchConfiguration", {
             ID: 0xff17,
@@ -796,16 +806,6 @@ const schneiderElectricExtend = {
                 downSceneID: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 downGroupID: {ID: 0x0021, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 switchActions: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-            },
-            commands: {},
-            commandsResponse: {},
-        }),
-    addWiserDeviceInfoCluster: () =>
-        m.deviceAddCustomCluster("wiserDeviceInfo", {
-            ID: 0xfe03, // 65027
-            // manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
-            attributes: {
-                deviceInfo: {ID: 0x0020, type: Zcl.DataType.CHAR_STR, write: true},
             },
             commands: {},
             commandsResponse: {},
