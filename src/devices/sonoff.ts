@@ -2593,7 +2593,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 fzConvert: (model, msg, publish, options, meta) => {
                     if ("smartTempControl" in msg.data) {
-                        const valueToMode: Record<number, string> = {0: "off", 1: "manual", 2: "smart"};
+                        const valueToMode: Record<number, string> = {0: "off", 1: "off", 2: "on"};
                         return {smart_temperature_control: valueToMode[msg.data.smartTempControl] ?? "off"};
                     }
                 },
