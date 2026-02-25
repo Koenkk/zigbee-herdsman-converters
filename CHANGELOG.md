@@ -1,5 +1,23 @@
 # Changelog
 
+## [26.11.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.10.1...v26.11.0) (2026-02-25)
+
+
+### Features
+
+* SONOFF TRVZB: support `smart_temperature_control` ([#11466](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11466)) ([bc3e5bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc3e5bb37b7f4a8db1582a46c2a1ceb80ed2326a))
+
+
+### Bug Fixes
+
+* Amina S: fix energy reporting ([#11594](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11594)) ([0e01b6c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0e01b6c00bb2aa281878b3c2985a1189c6095297))
+* **detect:** Detect `_TZ3000_iktiy8ue` as Nous B5Z ([#11598](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11598)) ([fc4b8ee](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc4b8ee43d32d5c6a124845e0e37e1fcd96d65a8))
+* ENGO: various improvements for various devices ([#11596](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11596)) ([a183347](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a18334789f3a380d7c123bd500b7e01109bd2c88))
+* Move cluster manuSpecificSchneiderFanSwitchConfiguration from ZH to ZHC. ([#11604](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11604)) ([9c3a7c1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c3a7c11796c000de1282b34c9510d60f7bd4a53))
+* Move elko cluster attributes (hvacThermostat) from ZH to ZHC  ([#11599](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11599)) ([c46986e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c46986e9a95012122e0ef468fa2d88970c37cf96))
+* Schneider Electric: implement pilot mode with modernextend, modify device attributes and remove unused converters ([#11603](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11603)) ([f40f0d5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f40f0d54443b07f9b709ef7bf4499dea0b7cc443))
+* Tuya TS0501B_dimmer: expose color temperature ([#11601](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11601)) ([a6dcee3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a6dcee368b83450bfadb7b16b16e9204ed7921bf))
+
 ## [26.10.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.10.0...v26.10.1) (2026-02-24)
 
 
