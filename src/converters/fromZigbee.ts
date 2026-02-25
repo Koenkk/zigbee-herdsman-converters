@@ -4680,18 +4680,6 @@ export const idlock_fw: Fz.Converter<"genBasic", undefined, ["attributeReport", 
         return result;
     },
 };
-export const schneider_pilot_mode: Fz.Converter<"schneiderSpecificPilotMode", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "schneiderSpecificPilotMode",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        const lookup: KeyValueAny = {1: "contactor", 3: "pilot"};
-        if ("pilotMode" in msg.data) {
-            result.schneider_pilot_mode = lookup[msg.data.pilotMode];
-        }
-        return result;
-    },
-};
 export const schneider_ui_action: Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport"> = {
     cluster: "wiserDeviceInfo",
     type: "attributeReport",
