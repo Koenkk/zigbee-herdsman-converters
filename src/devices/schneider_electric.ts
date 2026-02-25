@@ -787,8 +787,7 @@ const schneiderElectricExtend = {
         }),
     addWiserDeviceInfoCluster: () =>
         m.deviceAddCustomCluster("wiserDeviceInfo", {
-            ID: 0xfe03, // 65027
-            // manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            ID: 0xfe03,
             attributes: {
                 deviceInfo: {ID: 0x0020, type: Zcl.DataType.CHAR_STR, write: true},
             },
