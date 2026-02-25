@@ -2581,23 +2581,16 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.weeklySchedule(),
             m.customTimeResponse("1970_UTC"),
-            m.enumLookup<"customSonoffTrvzb", SonoffTrvzb>({
+            m.binary<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "smart_temperature_control",
-                // manual sends 0x00 (same as off), 0x01 is report-only
-                lookup: {off: 0x00, on: 0x02},
                 cluster: "customSonoffTrvzb",
                 attribute: "smartTempControl",
                 description:
-                    "Off: fully opens or closes the radiator valve based on a threshold temperature, " +
-                    "On: adjust valve opening based on a PID algorithm. " +
-                    'After enabling the smart mode, "Valve Opening Percentage" and "Temperature Accuracy" will be automatically disabled.',
+                    "Enable adaptive valve control using a PID algorithm. " +
+                    'When enabled, "Valve Opening Percentage" and "Temperature Accuracy" are unavailable.',
                 access: "ALL",
-                fzConvert: (model, msg, publish, options, meta) => {
-                    if ("smartTempControl" in msg.data) {
-                        const valueToMode: Record<number, string> = {0: "off", 1: "off", 2: "on"};
-                        return {smart_temperature_control: valueToMode[msg.data.smartTempControl] ?? "off"};
-                    }
-                },
+                valueOn: [true, 0x02],
+                valueOff: [false, 0x00],
             }),
         ],
         ota: true,
