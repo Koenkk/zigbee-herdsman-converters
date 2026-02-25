@@ -2242,33 +2242,6 @@ export const humidity: Tz.Converter = {
 // #endregion
 
 // #region Non-generic converters
-export const elko_power_status: Tz.Converter = {
-    key: ["system_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {elkoPowerStatus: value === "heat" ? 1 : 0});
-        return {state: {system_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["elkoPowerStatus"]);
-    },
-};
-export const elko_relay_state: Tz.Converter = {
-    key: ["running_state"],
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["elkoRelayState"]);
-    },
-};
-export const elko_local_temperature_calibration: Tz.Converter = {
-    key: ["local_temperature_calibration"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertNumber(value, key);
-        await entity.write("hvacThermostat", {elkoCalibration: Math.round(value * 10)});
-        return {state: {local_temperature_calibration: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["elkoCalibration"]);
-    },
-};
 export const livolo_socket_switch_on_off: Tz.Converter = {
     key: ["state"],
     convertSet: async (entity, key, value, meta) => {
