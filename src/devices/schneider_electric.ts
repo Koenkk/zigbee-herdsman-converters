@@ -794,6 +794,17 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    addSchneiderFanSwitchConfigurationCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificSchneiderFanSwitchConfiguration", {
+            ID: 0xfc04,
+            manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            attributes: {
+                ledIndication: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledOrientation: {ID: 0x0060, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
 };
 
 const tzLocal = {
@@ -1384,7 +1395,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.fan_mode],
         exposes: [e.fan().withState("fan_state").withModes(["off", "low", "medium", "high", "on"])],
         ota: true,
-        extend: [fanIndicatorMode(), fanIndicatorOrientation()],
+        extend: [schneiderElectricExtend.addSchneiderFanSwitchConfigurationCluster(), fanIndicatorMode(), fanIndicatorOrientation()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(7);
             await reporting.bind(endpoint, coordinatorEndpoint, ["hvacFanCtrl"]);
@@ -2061,7 +2072,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.current(),
             e.voltage(),
         ],
-        extend: [socketIndicatorMode()],
+        extend: [schneiderElectricExtend.addSchneiderFanSwitchConfigurationCluster(), socketIndicatorMode()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(6);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
@@ -2078,7 +2089,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "LK FUGA wiser wireless socket outlet",
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
-        extend: [socketIndicatorMode()],
+        extend: [schneiderElectricExtend.addSchneiderFanSwitchConfigurationCluster(), socketIndicatorMode()],
         exposes: [
             e.switch(),
             e.power(),
@@ -2103,6 +2114,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Mureva EVlink Smart socket outlet",
         extend: [
+            schneiderElectricExtend.addSchneiderFanSwitchConfigurationCluster(),
             m.onOff(),
             m.electricityMeter({
                 // Unit supports acVoltage and acCurrent, but only acCurrent divisor/multiplier can be read
