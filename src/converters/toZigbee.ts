@@ -4617,20 +4617,6 @@ export const idlock_relock_enabled: Tz.Converter = {
         await entity.read("closuresDoorLock", [0x4005], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
     },
 };
-export const schneider_pilot_mode: Tz.Converter = {
-    key: ["schneider_pilot_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        const lookup = {contactor: 1, pilot: 3};
-        value = value.toLowerCase();
-        const mode = utils.getFromLookup(value, lookup);
-        await entity.write("schneiderSpecificPilotMode", {pilotMode: mode}, {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
-        return {state: {schneider_pilot_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("schneiderSpecificPilotMode", ["pilotMode"], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
-    },
-};
 export const schneider_dimmer_mode: Tz.Converter = {
     key: ["dimmer_mode"],
     convertSet: async (entity, key, value, meta) => {
