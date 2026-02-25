@@ -2588,8 +2588,8 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customSonoffTrvzb",
                 attribute: "smartTempControl",
                 description:
-                    'Off: fully opens or closes the radiator valve based on a threshold temperature, ' +
-                    'On: adjust valve opening based on a PID algorithm. ' +
+                    "Off: fully opens or closes the radiator valve based on a threshold temperature, " +
+                    "On: adjust valve opening based on a PID algorithm. " +
                     'After enabling the smart mode, "Valve Opening Percentage" and "Temperature Accuracy" will be automatically disabled.',
                 access: "ALL",
                 fzConvert: (model, msg, publish, options, meta) => {
