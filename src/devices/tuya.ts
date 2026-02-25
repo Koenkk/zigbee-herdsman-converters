@@ -23142,14 +23142,7 @@ export const definitions: DefinitionWithExtend[] = [
                         fully_close: tuya.enum(1),
                     }),
                 ],
-                [
-                    12,
-                    "motor_fault",
-                    tuya.valueConverterBasic.lookup({
-                        false: tuya.bitmap(0),
-                        true: tuya.bitmap(1),
-                    }),
-                ],
+                [12, 'motor_fault', {from: (v: number) => v !== 0}],
                 [13, "battery", tuya.valueConverter.raw],
                 [
                     16,
