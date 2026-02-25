@@ -448,6 +448,9 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueStep(10),
                 e.enum("sensor_error", ea.STATE, ["Normal", "E1", "E2"]),
                 e.child_lock(),
+                e.binary('temperature_set_enabled_while_blocked', ea.STATE_SET, 'ON', 'OFF')
+                    .withLabel('Enable temperature control during child lock')
+                    .withDescription('Option to control temperature buttons while child lock is enabled. (Available only in newer version of regulator software).'),
                 e.enum("relay_mode", ea.STATE_SET, ["NO", "NC", "OFF"]),
                 e.enum("sensor_choose", ea.STATE_SET, ["internal", "all", "external"]),
                 e.enum("control_algorithm", ea.STATE_SET, [
@@ -626,7 +629,7 @@ export const definitions: DefinitionWithExtend[] = [
                         trv: tuya.enum(2),
                     }),
                 ],
-                // [105, "???", tuya.valueConverter.onOff],
+                [105, "temperature_set_enabled_while_blocked", tuya.valueConverter.onOff],
                 [106, "frost_set", tuya.valueConverter.divideBy10],
                 [
                     107,
