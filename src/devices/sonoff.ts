@@ -98,6 +98,7 @@ interface SonoffTrvzb {
         temporaryMode: number;
         temporaryModeTime: number;
         temporaryModeTemp: number;
+        smartTempControl: number;
     };
     commands: never;
     commandResponses: never;
@@ -2388,6 +2389,7 @@ export const definitions: DefinitionWithExtend[] = [
                         write: true,
                         max: 0xff,
                     },
+                    smartTempControl: {ID: 0x6017, type: Zcl.DataType.BITMAP8, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -2579,6 +2581,17 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.weeklySchedule(),
             m.customTimeResponse("1970_UTC"),
+            m.binary<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "smart_temperature_control",
+                cluster: "customSonoffTrvzb",
+                attribute: "smartTempControl",
+                description:
+                    "Enable adaptive valve control using a PID algorithm. " +
+                    'When enabled, "Valve Opening Percentage" and "Temperature Accuracy" are unavailable.',
+                access: "ALL",
+                valueOn: [true, 0x02],
+                valueOff: [false, 0x00],
+            }),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
