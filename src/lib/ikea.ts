@@ -971,7 +971,7 @@ export interface TradfriButton {
         };
     };
     commandResponses: never;
-};
+}
 
 export function addCustomClusterTradfriButton(): ModernExtend {
     return m.deviceAddCustomCluster("tradfriButton", {
