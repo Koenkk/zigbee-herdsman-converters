@@ -1,4 +1,5 @@
 import type {Types as ZHTypes} from "zigbee-herdsman";
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -52,6 +53,147 @@ const lockExtend = (meta = {}, lockStateOptions: Reporting.Override | false = nu
         ],
         isModernExtend: true,
     };
+};
+
+const yaleExtend = {
+    addManuSpecificAssaDoorLockCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificAssaDoorLock", {
+            ID: 0xfc00,
+            attributes: {
+                autoLockTime: {ID: 0x0012, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                wrongCodeAttempts: {ID: 0x0013, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                shutdownTime: {ID: 0x0014, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                batteryLevel: {ID: 0x0015, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                insideEscutcheonLED: {ID: 0x0016, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                volume: {ID: 0x0017, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                lockMode: {ID: 0x0018, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                language: {ID: 0x0019, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                allCodesLockout: {ID: 0x001a, type: Zcl.DataType.BOOLEAN, write: true},
+                oneTouchLocking: {ID: 0x001b, type: Zcl.DataType.BOOLEAN, write: true},
+                privacyButtonSetting: {ID: 0x001c, type: Zcl.DataType.BOOLEAN, write: true},
+                /* enableLogging: {ID: 0x0020, type: Zcl.DataType.BOOLEAN, write: true},*/ // marked in C4 driver as not supported
+                numberLogRecordsSupported: {ID: 0x0021, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                numberPinsSupported: {ID: 0x0030, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                numberScheduleSlotsPerUser: {ID: 0x0040, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                alarmMask: {ID: 0x0050, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            },
+            commands: {
+                getLockStatus: {ID: 0x10, response: 0, parameters: []},
+                getBatteryLevel: {ID: 0x12, parameters: []},
+                setRFLockoutTime: {ID: 0x13, parameters: []},
+                /* getLogRecord: {ID: 0x20,
+                    parameters: [],
+                },*/ // marked in C4 driver as not supported
+                userCodeSet: {
+                    ID: 0x30,
+                    parameters: [
+                        // bit pack ("bbb", slot, status, pinLength) .. pin
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                userCodeGet: {
+                    ID: 0x31,
+                    parameters: [
+                        // bit pack ("b", slot)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                userCodeClear: {
+                    ID: 0x32,
+                    parameters: [
+                        // bit pack ("b", slot)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                clearAllUserCodes: {ID: 0x33, parameters: []},
+                setUserCodeStatus: {ID: 0x34, parameters: []},
+                getUserCodeStatus: {ID: 0x35, parameters: []},
+                getLastUserIdEntered: {ID: 0x36, parameters: []},
+                userAdded: {ID: 0x37, parameters: []},
+                userDeleted: {ID: 0x38, parameters: []},
+                setScheduleSlot: {
+                    ID: 0x40,
+                    parameters: [
+                        // bit pack ("bbbbbbb", 0, slot, weeklyScheduleNumber, startHour, startMinute, hours, minutes)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                getScheduleSlot: {
+                    ID: 0x41,
+                    parameters: [
+                        // bit pack ("bb", slot, userId)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                setScheduleSlotStatus: {
+                    ID: 0x42,
+                    parameters: [
+                        // bit pack ("bbb", 0, slot, status)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                reflash: {
+                    ID: 0x60,
+                    response: 1,
+                    parameters: [
+                        // bit pack ("bI", version, length)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                reflashData: {
+                    ID: 0x61,
+                    response: 2,
+                    parameters: [
+                        // bit pack ("IH", segmentId - 1, length) .. string sub (data, start, finish)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                reflashStatus: {
+                    ID: 0x62,
+                    response: 3,
+                    parameters: [
+                        // bit pack ("bI", reflashStatusParameter, 0x00)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                getReflashLock: {ID: 0x90, parameters: []},
+                getHistory: {ID: 0xa0, parameters: []},
+                getLogin: {ID: 0xa1, parameters: []},
+                getUser: {ID: 0xa2, parameters: []},
+                getUsers: {ID: 0xa3, parameters: []},
+                getMandatoryAttributes: {ID: 0xb0, parameters: []},
+                readAttribute: {ID: 0xb1, parameters: []},
+                writeAttribute: {ID: 0xb2, parameters: []},
+                configureReporting: {ID: 0xb3, parameters: []},
+                getBasicClusterAttributes: {ID: 0xb4, parameters: []},
+            },
+            commandsResponse: {
+                getLockStatusRsp: {ID: 0x00, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
+                reflashRsp: {ID: 0x01, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
+                reflashDataRsp: {ID: 0x02, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
+                reflashStatusRsp: {ID: 0x03, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
+                /* boltStateRsp: {ID: 4,
+                    parameters: [
+                        {name: 'state', type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },*/ // C4 driver has this response yet there is no command - maybe a non-specific cluster response?
+                /* lockStatusReportRsp: {ID: 5,
+                    parameters: [
+                        {name: 'status', type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },*/ // C4 driver has this response yet there is no command - maybe a non-specific cluster response?
+                /* handleStateRsp: {ID: 6,
+                    parameters: [
+                        {name: 'state', type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },*/ // C4 driver has this response yet there is no command - maybe a non-specific cluster response?
+                /* userStatusRsp: {ID: 7,
+                    parameters: [
+                        {name: 'status', type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },*/ // C4 driver has this response yet there is no command - maybe a non-specific cluster response?
+            },
+        }),
 };
 
 const fzLocal = {
@@ -211,31 +353,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
-    ymc_action: {
-        cluster: "closuresDoorLock",
-        type: ["raw"],
-        convert: (model, msg, publish, options, meta) => {
-            const lookup: {[key: number]: string} = {
-                0: "password_unlock",
-                1: "unlock",
-                2: "auto_lock",
-                3: "rfid_unlock",
-                4: "fingerprint_unlock",
-                5: "unlock_failure_invalid_pin_or_id",
-                6: "unlock_failure_invalid_schedule",
-                7: "one_touch_lock",
-                8: "key_lock",
-                9: "key_unlock",
-                10: "auto_lock",
-                11: "schedule_lock",
-                12: "schedule_unlock",
-                13: "manual_lock",
-                14: "manual_unlock",
-                15: "non_access_user_operational_event",
-            };
-            return {action: lookup[msg.data[3]], action_source_user: msg.data[5]};
-        },
-    } satisfies Fz.Converter<"closuresDoorLock", undefined, ["raw"]>,
 };
 
 const tzLocal = {
@@ -414,7 +531,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YMC420-W",
         vendor: "Yale",
         description: "Digital Lock YMC 420 W",
-        fromZigbee: [fzLocal.ymc_action],
         extend: [lockExtend()],
     },
     {
@@ -485,6 +601,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZYA-C4-MOD-S",
         vendor: "Yale",
         description: "Control4 module for Yale KeyFree/Keyless/Doorman/Assure/nexTouch locks",
+        extend: [yaleExtend.addManuSpecificAssaDoorLockCluster()],
         fromZigbee: [fz.lock, fzLocal.c4_alarm, fzLocal.c4_assa_lock_attribute],
         toZigbee: [tz.lock, tzLocal.auto_lock_time, tzLocal.volume],
         exposes: [
