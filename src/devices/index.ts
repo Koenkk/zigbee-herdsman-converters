@@ -19,6 +19,7 @@ import {definitions as aubess} from "./aubess";
 import {definitions as auroraLighting} from "./aurora_lighting";
 import {definitions as automaton} from "./automaton";
 import {definitions as avatto} from "./avatto";
+import {definitions as avattoEz} from "./avatto_ez";
 import {definitions as awox} from "./awox";
 import {definitions as axis} from "./axis";
 import {definitions as bacchus} from "./bacchus";
@@ -386,6 +387,7 @@ const definitions: DefinitionWithExtend[] = [
     ...auroraLighting,
     ...automaton,
     ...avatto,
+    ...avattoEz,
     ...awox,
     ...axis,
     ...bacchus,
