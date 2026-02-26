@@ -941,7 +941,7 @@ export function addCustomClusterManuSpecificIkeaUnknown(): ModernExtend {
     });
 }
 
-export interface tradfriButton {
+export interface TradfriButton {
     attributes: never;
     commands: {
         /** ID=0x01 */
