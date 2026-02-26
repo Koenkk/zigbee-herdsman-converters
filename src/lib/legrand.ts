@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import * as m from "../lib/modernExtend";
 import type {DummyDevice, Fz, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import * as exposes from "./exposes";
@@ -59,6 +59,63 @@ const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString =>
 };
 
 export const legrandOptions = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
+
+interface LegrandDevicesCluster {
+    attributes: {
+        deviceMode: number;
+        ledInDark: number;
+        ledIfOn: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface LegrandDevicesCluster2 {
+    attributes: {
+        pilotWireMode: number;
+    };
+    commands: {
+        command0: {data: Buffer};
+    };
+    commandResponses: never;
+}
+
+export const legrandExtend = {
+    addLegrandDevicesCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificLegrandDevices", {
+            ID: 0xfc01,
+            manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
+            attributes: {
+                deviceMode: {ID: 0x0000, type: Zcl.DataType.DATA16},
+                ledInDark: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
+                ledIfOn: {ID: 0x0002, type: Zcl.DataType.BOOLEAN},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addLegrandDevices2Cluster: () =>
+        m.deviceAddCustomCluster("manuSpecificLegrandDevices2", {
+            ID: 0xfc40,
+            manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
+            attributes: {
+                pilotWireMode: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+            },
+            commands: {
+                command0: {ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+            },
+            commandsResponse: {},
+        }),
+    addLegrandDevices3Cluster: () =>
+        m.deviceAddCustomCluster("manuSpecificLegrandDevices3", {
+            ID: 0xfc41,
+            manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
+            attributes: {},
+            commands: {
+                command0: {ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+            },
+            commandsResponse: {},
+        }),
+};
 
 export const eLegrand = {
     identify: () => {
@@ -174,6 +231,49 @@ export const tzLegrand = {
             await entity.command("genIdentify", "identify", {identifytime: 10}, {});
         },
     } satisfies Tz.Converter,
+    legrand_device_mode: {
+        key: ["device_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, key);
+            // enable the dimmer, requires a recent firmware on the device
+            const lookup: Record<string, number> = {
+                dimmer_on: 0x0101,
+                dimmer_off: 0x0100,
+                switch: 0x0003,
+                auto: 0x0004,
+                pilot_on: 0x0002,
+                pilot_off: 0x0001,
+            };
+            const val = value.toLowerCase();
+            utils.validateValue(val, Object.keys(lookup));
+            const payload: KeyValueAny = {deviceMode: utils.getFromLookup(val, lookup)};
+            await entity.write("manuSpecificLegrandDevices", payload, legrandOptions);
+            return {state: {device_mode: val}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("manuSpecificLegrandDevices", [0x0000, 0x0001, 0x0002], legrandOptions);
+        },
+    } satisfies Tz.Converter,
+    legrand_pilot_wire_mode: {
+        key: ["pilot_wire_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const modeLookup = {
+                comfort: 0x00,
+                "comfort_-1": 0x01,
+                "comfort_-2": 0x02,
+                eco: 0x03,
+                frost_protection: 0x04,
+                off: 0x05,
+            };
+            utils.validateValue(value, Object.keys(modeLookup));
+            const payload = {data: Buffer.from([utils.getFromLookup(value, modeLookup)])};
+            await entity.command("manuSpecificLegrandDevices2", "command0", payload);
+            return {state: {pilot_wire_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("manuSpecificLegrandDevices2", [0x0000], legrandOptions);
+        },
+    } satisfies Tz.Converter,
 };
 
 export const fzLegrand = {
@@ -198,26 +298,32 @@ export const fzLegrand = {
         type: ["readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValueAny = {};
-
-            if (msg.data["0"] !== undefined) {
-                const option0 = msg.data["0"];
-
-                if (option0 === 0x0001) payload.device_mode = "pilot_off";
-                else if (option0 === 0x0002) payload.device_mode = "pilot_on";
-                else if (option0 === 0x0003) payload.device_mode = "switch";
-                else if (option0 === 0x0004) payload.device_mode = "auto";
-                else if (option0 === 0x0100) payload.device_mode = "dimmer_off";
-                else if (option0 === 0x0101) payload.device_mode = "dimmer_on";
-                else {
-                    logger.warning(`Device_mode ${option0} not recognized, please fix me!`, NS);
+            if (msg.data.deviceMode !== undefined) {
+                const modeLookup: Record<number, string> = {
+                    1: "pilot_off",
+                    2: "pilot_on",
+                    3: "switch",
+                    4: "auto",
+                    256: "dimmer_off",
+                    257: "dimmer_on",
+                };
+                const mode = msg.data.deviceMode;
+                if (modeLookup[mode] !== undefined) {
+                    payload.device_mode = modeLookup[mode];
+                } else {
+                    logger.warning(`Device_mode ${mode} not recognized, please fix me!`, NS);
                     payload.device_mode = "unknown";
                 }
             }
-            if (msg.data["1"] !== undefined) payload.led_in_dark = msg.data["1"] === 0x00 ? "OFF" : "ON";
-            if (msg.data["2"] !== undefined) payload.led_if_on = msg.data["2"] === 0x00 ? "OFF" : "ON";
+            if (msg.data.ledInDark !== undefined) {
+                payload.led_in_dark = msg.data.ledInDark ? "ON" : "OFF";
+            }
+            if (msg.data.ledIfOn !== undefined) {
+                payload.led_if_on = msg.data.ledIfOn ? "ON" : "OFF";
+            }
             return payload;
         },
-    } satisfies Fz.Converter<"manuSpecificLegrandDevices", undefined, ["readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificLegrandDevices", LegrandDevicesCluster, ["readResponse"]>,
     stop_poll_on_checkin: {
         cluster: "genPollCtrl",
         type: ["commandCheckin"],
@@ -268,4 +374,36 @@ export const fzLegrand = {
             return {};
         },
     } satisfies Fz.Converter<"genIdentify", undefined, ["attributeReport", "readResponse"]>,
+    legrand_master_switch_center: {
+        cluster: "manuSpecificLegrandDevices",
+        type: "raw",
+        convert: (model, msg, publish, options, meta) => {
+            const centerSignature = [0x15, 0x21, 0x10, 0x00, 0x03, 0xff];
+            if (msg.data?.length === 6 && centerSignature.every((b, i) => msg.data[i] === b)) {
+                return {action: utils.postfixWithEndpointName("center", msg, model, meta)};
+            }
+        },
+    } satisfies Fz.Converter<"manuSpecificLegrandDevices", LegrandDevicesCluster, "raw">,
+    legrand_pilot_wire_mode: {
+        cluster: "manuSpecificLegrandDevices2",
+        type: ["readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.pilotWireMode !== undefined) {
+                const lookup: Record<number, string> = {
+                    0: "comfort",
+                    1: "comfort_-1",
+                    2: "comfort_-2",
+                    3: "eco",
+                    4: "frost_protection",
+                    5: "off",
+                };
+                const mode = msg.data.pilotWireMode;
+                if (lookup[mode] !== undefined) {
+                    return {pilot_wire_mode: lookup[mode]};
+                }
+                logger.warning(`Pilot_wire_mode ${mode} not recognized, please fix me!`, NS);
+                return {pilot_wire_mode: "unknown"};
+            }
+        },
+    } satisfies Fz.Converter<"manuSpecificLegrandDevices2", LegrandDevicesCluster2, ["readResponse"]>,
 };

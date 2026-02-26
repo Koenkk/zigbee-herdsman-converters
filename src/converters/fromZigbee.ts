@@ -3607,44 +3607,6 @@ export const legrand_scenes: Fz.Converter<"genScenes", undefined, "commandRecall
         return {action: lookup[msg.data.groupid] ? lookup[msg.data.groupid] : "default"};
     },
 };
-export const legrand_master_switch_center: Fz.Converter<"manuSpecificLegrandDevices", undefined, "raw"> = {
-    cluster: "manuSpecificLegrandDevices",
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        if (
-            msg.data &&
-            msg.data.length === 6 &&
-            msg.data[0] === 0x15 &&
-            msg.data[1] === 0x21 &&
-            msg.data[2] === 0x10 &&
-            msg.data[3] === 0x00 &&
-            msg.data[4] === 0x03 &&
-            msg.data[5] === 0xff
-        ) {
-            return {action: "center"};
-        }
-    },
-};
-export const legrand_pilot_wire_mode: Fz.Converter<"manuSpecificLegrandDevices2", undefined, ["readResponse"]> = {
-    cluster: "manuSpecificLegrandDevices2",
-    type: ["readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        const mode = msg.data["0"];
-
-        if (mode === 0x00) payload.pilot_wire_mode = "comfort";
-        else if (mode === 0x01) payload.pilot_wire_mode = "comfort_-1";
-        else if (mode === 0x02) payload.pilot_wire_mode = "comfort_-2";
-        else if (mode === 0x03) payload.pilot_wire_mode = "eco";
-        else if (mode === 0x04) payload.pilot_wire_mode = "frost_protection";
-        else if (mode === 0x05) payload.pilot_wire_mode = "off";
-        else {
-            logger.warning(`Bad mode : ${mode}`, NS);
-            payload.pilot_wire_mode = "unknown";
-        }
-        return payload;
-    },
-};
 export const legrand_power_alarm: Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "haElectricalMeasurement",
     type: ["attributeReport", "readResponse"],
