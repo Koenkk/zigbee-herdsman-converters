@@ -10472,12 +10472,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_lcjsewlo", "_TZ3000_kfkqkjqe"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_lcjsewlo", "_TZ3000_kfkqkjqe", "_TZ3000_cziew6eu"]),
         model: "TS0726_3_gang",
         vendor: "Tuya",
         description: "3 gang switch with neutral wire",
         fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
+        whiteLabel: [tuya.whitelabel("Zemismart", "KES-606US-L3-EESS", "3 gang switch with neutral", ["_TZ3000_cziew6eu"])],
         exposes: [
             ...[1, 2, 3].map((ep) => e.switch().withEndpoint(`l${ep}`)),
             ...[1, 2, 3].map((ep) => e.power_on_behavior().withEndpoint(`l${ep}`)),
