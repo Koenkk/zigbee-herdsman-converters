@@ -153,7 +153,7 @@ interface ManuSpecificAssaDoorLock {
             status: number;
         };
     };
-};
+}
 
 const lockExtend = (meta = {}, lockStateOptions: Reporting.Override | false = null, binds = ["closuresDoorLock", "genPowerCfg"]): ModernExtend => {
     return {
@@ -495,7 +495,7 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
-        ymc_action: {
+    ymc_action: {
         cluster: "closuresDoorLock",
         type: ["raw"],
         convert: (model, msg, publish, options, meta) => {
