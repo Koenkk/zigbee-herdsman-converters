@@ -393,7 +393,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const data = msg.data;
             const result: ZHTypes.KeyValue = {};
-            if (data["18"]) {
+            if (data.autoLockTime) {
                 const lookup = {
                     0: "off",
                     30: "30seconds",
@@ -401,65 +401,65 @@ const fzLocal = {
                     120: "2minutes",
                     180: "3minutes",
                 };
-                result.auto_lock_time = getFromLookup(data["18"], lookup);
+                result.auto_lock_time = getFromLookup(data.autoLockTime, lookup);
             }
-            if (data["19"]) {
-                result.wrong_code_attempts = data["19"];
+            if (data.wrongCodeAttempts) {
+                result.wrong_code_attempts = data.wrongCodeAttempts;
             }
-            if (data["20"]) {
-                result.shutdown_time = data["20"];
+            if (data.shutdownTime) {
+                result.shutdown_time = data.shutdownTime;
             }
-            if (data["21"]) {
-                result.battery = data["21"];
-                result.battery_low = data["21"] <= 15;
+            if (data.batteryLevel) {
+                result.battery = data.batteryLevel;
+                result.battery_low = data.batteryLevel <= 15;
             }
-            if (data["22"]) {
-                result.inside_escutcheon_led = data["22"] === 1;
+            if (data.insideEscutcheonLED) {
+                result.inside_escutcheon_led = data.insideEscutcheonLED === 1;
             }
-            if (data["23"]) {
+            if (data.volume) {
                 const lookup = {
                     1: "silent",
                     2: "low",
                     3: "high",
                 };
-                result.volume = getFromLookup(data["23"], lookup);
+                result.volume = getFromLookup(data.volume, lookup);
             }
-            if (data["24"]) {
+            if (data.lockMode) {
                 const lookup = {
                     0: "normal",
                     1: "vacation",
                     2: "privacy",
                 };
-                result.lock_mode = getFromLookup(data["24"], lookup);
+                result.lock_mode = getFromLookup(data.lockMode, lookup);
             }
-            if (data["25"]) {
+            if (data.language) {
                 const lookup = {
                     1: "english",
                     2: "spanish",
                     3: "french",
                 };
-                result.lock_mode = getFromLookup(data["25"], lookup);
+                result.lock_mode = getFromLookup(data.language, lookup);
             }
-            if (data["26"]) {
-                result.all_codes_lockout = data["26"];
+            if (data.allCodesLockout) {
+                result.all_codes_lockout = data.allCodesLockout;
             }
-            if (data["27"]) {
-                result.one_touch_locking = data["27"];
+            if (data.oneTouchLocking) {
+                result.one_touch_locking = data.oneTouchLocking;
             }
-            if (data["28"]) {
-                result.privacy_button = data["28"];
+            if (data.privacyButtonSetting) {
+                result.privacy_button = data.privacyButtonSetting;
             }
-            if (data["33"]) {
-                result.number_log_records_supported = data["33"];
+            if (data.numberLogRecordsSupported) {
+                result.number_log_records_supported = data.numberLogRecordsSupported;
             }
-            if (data["48"]) {
-                result.number_pins_supported = data["48"];
+            if (data.numberPinsSupported) {
+                result.number_pins_supported = data.numberPinsSupported;
             }
-            if (data["64"]) {
-                result.number_schedule_slots_per_user = data["64"];
+            if (data.numberScheduleSlotsPerUser) {
+                result.number_schedule_slots_per_user = data.numberScheduleSlotsPerUser;
             }
-            if (data["80"]) {
-                result.alarm_mask = data["80"];
+            if (data.alarmMask) {
+                result.alarm_mask = data.alarmMask;
             }
             return result;
         },
