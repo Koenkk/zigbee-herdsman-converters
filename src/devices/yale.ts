@@ -388,7 +388,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
     c4_assa_lock_attribute: {
-        cluster: "manuSpecificUbisysDeviceSetup",
+        cluster: "manuSpecificAssaDoorLock",
         type: ["readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const data = msg.data;
@@ -463,7 +463,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificUbisysDeviceSetup", ManuSpecificAssaDoorLock, ["readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificAssaDoorLock", ManuSpecificAssaDoorLock, ["readResponse"]>,
     c4_lock_operation_event: {
         cluster: "genAlarms",
         type: ["commandAlarm"],
