@@ -2354,7 +2354,7 @@ const sonoffExtend = {
             e
                 .composite("read_swvzf_records", "read_swvzf_records", ea.STATE_SET)
                 .withDescription("Read irrigation water volume and duration in the past 24 hours, 30 days, and 6 months.")
-                .withFeature(e.enum("type", ea.SET, ["24Hours", "30Days", "6Months"]).withDescription("Reading type"))
+                .withFeature(e.enum("type", ea.SET, ["24_hours", "30_days", "6_months"]).withDescription("Reading type"))
                 .withFeature(e.text("time_start", ea.SET).withDescription("Start time"))
                 .withFeature(e.text("time_end", ea.SET).withDescription("End time")),
         ];
