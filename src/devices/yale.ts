@@ -13,6 +13,148 @@ const NS = "zhc:yale";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface ManuSpecificAssaDoorLock {
+    attributes: {
+        /** ID=0x0012 | type=UINT8 | write=true | max=255 */
+        autoLockTime: number;
+        /** ID=0x0013 | type=UINT8 | write=true | max=255 */
+        wrongCodeAttempts: number;
+        /** ID=0x0014 | type=UINT8 | write=true | max=255 */
+        shutdownTime: number;
+        /** ID=0x0015 | type=UINT8 | write=true | max=255 */
+        batteryLevel: number;
+        /** ID=0x0016 | type=UINT8 | write=true | max=255 */
+        insideEscutcheonLED: number;
+        /** ID=0x0017 | type=UINT8 | write=true | max=255 */
+        volume: number;
+        /** ID=0x0018 | type=UINT8 | write=true | max=255 */
+        lockMode: number;
+        /** ID=0x0019 | type=UINT8 | write=true | max=255 */
+        language: number;
+        /** ID=0x001a | type=BOOLEAN | write=true */
+        allCodesLockout: number;
+        /** ID=0x001b | type=BOOLEAN | write=true */
+        oneTouchLocking: number;
+        /** ID=0x001c | type=BOOLEAN | write=true */
+        privacyButtonSetting: number;
+        /** ID=0x0021 | type=UINT16 | write=true | max=65535 */
+        numberLogRecordsSupported: number;
+        /** ID=0x0030 | type=UINT8 | write=true | max=255 */
+        numberPinsSupported: number;
+        /** ID=0x0040 | type=UINT8 | write=true | max=255 */
+        numberScheduleSlotsPerUser: number;
+        /** ID=0x0050 | type=UINT8 | write=true | max=255 */
+        alarmMask: number;
+    };
+    commands: {
+        /** ID=0x10 | response=0 */
+        getLockStatus: Record<string, never>;
+        /** ID=0x12 */
+        getBatteryLevel: Record<string, never>;
+        /** ID=0x13 */
+        setRFLockoutTime: Record<string, never>;
+        /** ID=0x30 */
+        userCodeSet: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x31 */
+        userCodeGet: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x32 */
+        userCodeClear: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x33 */
+        clearAllUserCodes: Record<string, never>;
+        /** ID=0x34 */
+        setUserCodeStatus: Record<string, never>;
+        /** ID=0x35 */
+        getUserCodeStatus: Record<string, never>;
+        /** ID=0x36 */
+        getLastUserIdEntered: Record<string, never>;
+        /** ID=0x37 */
+        userAdded: Record<string, never>;
+        /** ID=0x38 */
+        userDeleted: Record<string, never>;
+        /** ID=0x40 */
+        setScheduleSlot: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x41 */
+        getScheduleSlot: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x42 */
+        setScheduleSlotStatus: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x60 | response=1 */
+        reflash: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x61 | response=2 */
+        reflashData: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x62 | response=3 */
+        reflashStatus: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x90 */
+        getReflashLock: Record<string, never>;
+        /** ID=0xa0 */
+        getHistory: Record<string, never>;
+        /** ID=0xa1 */
+        getLogin: Record<string, never>;
+        /** ID=0xa2 */
+        getUser: Record<string, never>;
+        /** ID=0xa3 */
+        getUsers: Record<string, never>;
+        /** ID=0xb0 */
+        getMandatoryAttributes: Record<string, never>;
+        /** ID=0xb1 */
+        readAttribute: Record<string, never>;
+        /** ID=0xb2 */
+        writeAttribute: Record<string, never>;
+        /** ID=0xb3 */
+        configureReporting: Record<string, never>;
+        /** ID=0xb4 */
+        getBasicClusterAttributes: Record<string, never>;
+    };
+    commandResponses: {
+        /** ID=0x00 */
+        getLockStatusRsp: {
+            /** type=UINT8 | max=255 */
+            status: number;
+        };
+        /** ID=0x01 */
+        reflashRsp: {
+            /** type=UINT8 | max=255 */
+            status: number;
+        };
+        /** ID=0x02 */
+        reflashDataRsp: {
+            /** type=UINT8 | max=255 */
+            status: number;
+        };
+        /** ID=0x03 */
+        reflashStatusRsp: {
+            /** type=UINT8 | max=255 */
+            status: number;
+        };
+    };
+};
+
 const lockExtend = (meta = {}, lockStateOptions: Reporting.Override | false = null, binds = ["closuresDoorLock", "genPowerCfg"]): ModernExtend => {
     return {
         fromZigbee: [
@@ -321,7 +463,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificUbisysDeviceSetup", undefined, ["readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificUbisysDeviceSetup", ManuSpecificAssaDoorLock, ["readResponse"]>,
     c4_lock_operation_event: {
         cluster: "genAlarms",
         type: ["commandAlarm"],
@@ -353,6 +495,31 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
+        ymc_action: {
+        cluster: "closuresDoorLock",
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: {[key: number]: string} = {
+                0: "password_unlock",
+                1: "unlock",
+                2: "auto_lock",
+                3: "rfid_unlock",
+                4: "fingerprint_unlock",
+                5: "unlock_failure_invalid_pin_or_id",
+                6: "unlock_failure_invalid_schedule",
+                7: "one_touch_lock",
+                8: "key_lock",
+                9: "key_unlock",
+                10: "auto_lock",
+                11: "schedule_lock",
+                12: "schedule_unlock",
+                13: "manual_lock",
+                14: "manual_unlock",
+                15: "non_access_user_operational_event",
+            };
+            return {action: lookup[msg.data[3]], action_source_user: msg.data[5]};
+        },
+    } satisfies Fz.Converter<"closuresDoorLock", undefined, ["raw"]>,
 };
 
 const tzLocal = {
@@ -531,6 +698,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YMC420-W",
         vendor: "Yale",
         description: "Digital Lock YMC 420 W",
+        fromZigbee: [fzLocal.ymc_action],
         extend: [lockExtend()],
     },
     {
