@@ -1581,6 +1581,11 @@ const sonoffExtend = {
                     const value = msg.data.rainDelayEndDatetime;
                     utils.assertNumber(value);
 
+                    // When the set end time is reached, the device will report 0
+                    if (value === 0) {
+                        return {rain_delay_end_datetime: ""};
+                    }
+
                     // Device seconds since 2000-01-01 UTC -> Unix UTC seconds.
                     const seconds = deviceLocal2000ToUTCSeconds(value);
                     return {
@@ -1651,16 +1656,16 @@ const sonoffExtend = {
         };
     },
     valveAbnormalState: (): ModernExtend => {
-        const valveAbnormalStates = ["water_shortage", "water_leakage", "frost_protection", "reach_safety_time_limit"];
+        const valveAbnormalStates = ["water_shortage", "water_leakage", "frost_protection", "fail_safe"];
 
         // Generate all combinations (0b0000 to 0b1111)
         const allCombinations: string[] = ["normal"];
-        for (let i = 0b0001; i < 0b1111; i++) {
+        for (let i = 0b0001; i <= 0b1111; i++) {
             const states: string[] = [];
             if (i & 0b0001) states.push("water_shortage");
             if (i & 0b0010) states.push("water_leakage");
             if (i & 0b0100) states.push("frost_protection");
-            if (i & 0b1000) states.push("reach_safety_time_limit");
+            if (i & 0b1000) states.push("fail_safe");
             allCombinations.push(states.join(","));
         }
 
@@ -2373,16 +2378,16 @@ const sonoffExtend = {
         };
 
         const parseHistoryRecords = (
-            mode: "24Hours" | "30Days" | "6Months",
+            mode: "24_hours" | "30_days" | "6_months",
             recordData: number[],
             args: {startSec: number; dayOffset?: number},
         ): SonoffSwvHistoryRecord[] => {
             const records: SonoffSwvHistoryRecord[] = [];
-            const count = Math.floor(recordData.length / (mode === "24Hours" ? 3 : 5));
+            const count = Math.floor(recordData.length / (mode === "24_hours" ? 3 : 5));
             const startSec = args.startSec;
             const dayOffset = args.dayOffset ?? 0;
 
-            if (mode === "24Hours") {
+            if (mode === "24_hours") {
                 let startMs = startSec * 1000;
                 for (let i = 0; i < count; i++) {
                     const index = i * 3;
@@ -2397,7 +2402,7 @@ const sonoffExtend = {
                 return records;
             }
 
-            if (mode === "30Days") {
+            if (mode === "30_days") {
                 let startMs = (startSec + dayOffset * 86400) * 1000;
                 for (let i = 0; i < count; i++) {
                     const index = i * 5;
@@ -2412,7 +2417,7 @@ const sonoffExtend = {
                 return records;
             }
 
-            if (mode === "6Months") {
+            if (mode === "6_months") {
                 let startDate = new Date(startSec * 1000);
                 for (let i = 0; i < count; i++) {
                     const index = i * 5;
@@ -2435,7 +2440,7 @@ const sonoffExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertObject(value, key);
                     const type = value?.type;
-                    if (!["24Hours", "30Days", "6Months"].includes(type)) {
+                    if (!["24_hours", "30_days", "6_months"].includes(type)) {
                         logger.error(`read_swvzf_records invalid type: ${type}`, NS);
                         return;
                     }
@@ -2468,9 +2473,9 @@ const sonoffExtend = {
                     }
 
                     let subCmd = 0x00;
-                    if (type === "24Hours") subCmd = 0x00;
-                    if (type === "30Days") subCmd = 0x01;
-                    if (type === "6Months") subCmd = 0x02;
+                    if (type === "24_hours") subCmd = 0x00;
+                    if (type === "30_days") subCmd = 0x01;
+                    if (type === "6_months") subCmd = 0x02;
 
                     const payloadBuffer = Buffer.alloc(9);
                     payloadBuffer[0] = subCmd;
@@ -2560,7 +2565,7 @@ const sonoffExtend = {
                         const recordData = slicedRecordData.slice(0, alignedLength);
                         if (recordData.length < 3) return;
 
-                        const value = parseHistoryRecords("24Hours", recordData, {startSec});
+                        const value = parseHistoryRecords("24_hours", recordData, {startSec});
                         if (ieeeAddr && swvzfReqCache[ieeeAddr]) {
                             delete swvzfReqCache[ieeeAddr][subCmd];
                         }
@@ -2576,7 +2581,7 @@ const sonoffExtend = {
                         const recordData = slicedRecordData.slice(0, alignedLength);
                         if (recordData.length < 5) return;
 
-                        const value = parseHistoryRecords("6Months", recordData, {startSec});
+                        const value = parseHistoryRecords("6_months", recordData, {startSec});
                         if (ieeeAddr && swvzfReqCache[ieeeAddr]) {
                             delete swvzfReqCache[ieeeAddr][subCmd];
                         }
@@ -2593,7 +2598,7 @@ const sonoffExtend = {
 
                         if (recordIndex === 0 || recordIndex === 1) {
                             if (payload.length % 5 !== 0) {
-                                logger.info(`readSWVZFRecord invalid 30Days payloadLen=${payload.length} recordIndex=${recordIndex}`, NS);
+                                logger.info(`readSWVZFRecord invalid 30_days payloadLen=${payload.length} recordIndex=${recordIndex}`, NS);
                                 return;
                             }
 
@@ -2606,7 +2611,7 @@ const sonoffExtend = {
                             recordData = [...payload];
                         } else {
                             if ((payload.length - 1) % 5 !== 0) {
-                                logger.info(`readSWVZFRecord invalid 30Days payloadLen=${payload.length} recordIndex=2`, NS);
+                                logger.info(`readSWVZFRecord invalid 30_days payloadLen=${payload.length} recordIndex=2`, NS);
                                 return;
                             }
 
@@ -2629,7 +2634,7 @@ const sonoffExtend = {
                         }
 
                         const dayOffset = recordIndex * 10;
-                        const records = parseHistoryRecords("30Days", recordData, {startSec, dayOffset});
+                        const records = parseHistoryRecords("30_days", recordData, {startSec, dayOffset});
 
                         if (!ieeeAddr) return {"30_days_records": records};
 
@@ -3198,6 +3203,7 @@ const sonoffExtend = {
                     return {
                         state: {
                             [key]: planIndex,
+                            [`irrigation_plan_settings_${planIndex}`]: null, // Clear the state of deleted plans
                         },
                     };
                 },
@@ -5425,22 +5431,6 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["LOCK", 0x01],
                 valueOff: ["UNLOCK", 0x00],
                 entityCategory: "config",
-            }),
-            m.numeric<"customClusterEwelink", SonoffSwvzn>({
-                name: "real_time_irrigation_duration",
-                cluster: "customClusterEwelink",
-                attribute: "realTimeIrrigationDuration",
-                description: "Real-time Irrigation Duration",
-                access: "STATE_GET",
-                unit: "s",
-            }),
-            m.numeric<"customClusterEwelink", SonoffSwvzn>({
-                name: "real_time_irrigation_volume",
-                cluster: "customClusterEwelink",
-                attribute: "realTimeIrrigationVolume",
-                description: "The amount of water irrigated in real time",
-                access: "STATE_GET",
-                unit: "L",
             }),
             sonoffExtend.valveAbnormalState(),
             sonoffExtend.irrigationStartTime(),
