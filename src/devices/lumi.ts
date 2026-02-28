@@ -1471,7 +1471,6 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             }),
             lumiElectricityMeter(),
-            lumiPower(),
             lumiPreventReset(),
         ],
     },
