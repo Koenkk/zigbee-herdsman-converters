@@ -2044,86 +2044,6 @@ export const namron_hvac_user_interface: Fz.Converter<"hvacUserInterfaceCfg", un
         return result;
     },
 };
-export const elko_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    options: [exposes.options.local_temperature_based_on_sensor()],
-    convert: (model, msg, publish, options, meta) => {
-        const result = thermostat.convert(model, msg, publish, options, meta) as KeyValue;
-        const data = msg.data;
-        if (data.localTemp !== undefined) {
-            let value = precisionRound(msg.data.localTemp, 2) / 100;
-            const valuesFloorSensor = ["floor", "supervisor_floor"];
-            const sensorType = meta.state.sensor as string;
-            const floorTemperature = meta.state.floor_temp as number;
-            if (valuesFloorSensor.includes(sensorType) && options.local_temperature_based_on_sensor) {
-                value = floorTemperature;
-            }
-            if (value >= -273.15) {
-                result[postfixWithEndpointName("local_temperature", msg, model, meta)] = value;
-            }
-        }
-        if (data.elkoDisplayText !== undefined) {
-            // Display text
-            result.display_text = data.elkoDisplayText;
-        }
-        if (data.elkoSensor !== undefined) {
-            // Sensor
-            const sensorModeLookup = {
-                0: "air",
-                1: "floor",
-                3: "supervisor_floor",
-            };
-            const value = utils.getFromLookup(data.elkoSensor, sensorModeLookup);
-            result.sensor = value;
-        }
-        if (data.elkoPowerStatus !== undefined) {
-            // Power status
-            result.system_mode = data.elkoPowerStatus ? "heat" : "off";
-        }
-        if (data.elkoExternalTemp !== undefined) {
-            // External temp (floor)
-            result.floor_temp = utils.precisionRound(data.elkoExternalTemp, 2) / 100;
-        }
-        if (data.elkoRelayState !== undefined) {
-            // Relay state
-            result.running_state = data.elkoRelayState ? "heat" : "idle";
-        }
-        if (data.elkoCalibration !== undefined) {
-            // Calibration
-            result.local_temperature_calibration = precisionRound(data.elkoCalibration, 2) / 10;
-        }
-        if (data.elkoLoad !== undefined) {
-            // Load
-            result.load = data.elkoLoad;
-        }
-        if (data.elkoRegulatorMode !== undefined) {
-            // Regulator mode
-            result.regulator_mode = data.elkoRegulatorMode ? "regulator" : "thermostat";
-        }
-        if (data.elkoMeanPower !== undefined) {
-            // Mean power
-            result.mean_power = data.elkoMeanPower;
-        }
-        if (data.elkoNightSwitching !== undefined) {
-            // Night switching
-            result.night_switching = data.elkoNightSwitching ? "on" : "off";
-        }
-        if (data.elkoFrostGuard !== undefined) {
-            // Frost guard
-            result.frost_guard = data.elkoFrostGuard ? "on" : "off";
-        }
-        if (data.elkoChildLock !== undefined) {
-            // Child lock
-            result.child_lock = data.elkoChildLock ? "lock" : "unlock";
-        }
-        if (data.elkoMaxFloorTemp !== undefined) {
-            // Max floor temp
-            result.max_floor_temp = data.elkoMaxFloorTemp;
-        }
-        return result;
-    },
-};
 export const ias_smoke_alarm_1_develco: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -2210,41 +2130,6 @@ export const tuya_led_controller: Fz.Converter<"lightingColorCtrl", undefined, [
         // can be added to the result keys.
         const epPostfix = postfixWithEndpointName("", msg, model, meta);
         return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
-    },
-};
-export const wiser_device_info: Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport"> = {
-    cluster: "wiserDeviceInfo",
-    type: "attributeReport",
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        const data = msg.data.deviceInfo.split(",");
-        if (data[0] === "ALG") {
-            // TODO What is ALG
-            const alg = data.slice(1);
-            result.ALG = alg.join(",");
-            result.occupied_heating_setpoint = Number.parseInt(alg[2], 10) / 10;
-            result.local_temperature = Number.parseInt(alg[3], 10) / 10;
-            result.pi_heating_demand = Number.parseInt(alg[9], 10);
-        } else if (data[0] === "ADC") {
-            // TODO What is ADC
-            const adc = data.slice(1);
-            result.ADC = adc.join(",");
-            // TODO: should parseInt?
-            result.occupied_heating_setpoint = Number.parseInt(adc[5], 10) / 100;
-            result.local_temperature = Number.parseInt(adc[3], 10) / 10;
-        } else if (data[0] === "UI") {
-            if (data[1] === "BoostUp") {
-                result.boost = "Up";
-            } else if (data[1] === "BoostDown") {
-                result.boost = "Down";
-            } else {
-                result.boost = "None";
-            }
-        } else if (data[0] === "MOT") {
-            // Info about the motor
-            result.MOT = data[1];
-        }
-        return result;
     },
 };
 export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
@@ -3722,44 +3607,6 @@ export const legrand_scenes: Fz.Converter<"genScenes", undefined, "commandRecall
         return {action: lookup[msg.data.groupid] ? lookup[msg.data.groupid] : "default"};
     },
 };
-export const legrand_master_switch_center: Fz.Converter<"manuSpecificLegrandDevices", undefined, "raw"> = {
-    cluster: "manuSpecificLegrandDevices",
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        if (
-            msg.data &&
-            msg.data.length === 6 &&
-            msg.data[0] === 0x15 &&
-            msg.data[1] === 0x21 &&
-            msg.data[2] === 0x10 &&
-            msg.data[3] === 0x00 &&
-            msg.data[4] === 0x03 &&
-            msg.data[5] === 0xff
-        ) {
-            return {action: "center"};
-        }
-    },
-};
-export const legrand_pilot_wire_mode: Fz.Converter<"manuSpecificLegrandDevices2", undefined, ["readResponse"]> = {
-    cluster: "manuSpecificLegrandDevices2",
-    type: ["readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        const mode = msg.data["0"];
-
-        if (mode === 0x00) payload.pilot_wire_mode = "comfort";
-        else if (mode === 0x01) payload.pilot_wire_mode = "comfort_-1";
-        else if (mode === 0x02) payload.pilot_wire_mode = "comfort_-2";
-        else if (mode === 0x03) payload.pilot_wire_mode = "eco";
-        else if (mode === 0x04) payload.pilot_wire_mode = "frost_protection";
-        else if (mode === 0x05) payload.pilot_wire_mode = "off";
-        else {
-            logger.warning(`Bad mode : ${mode}`, NS);
-            payload.pilot_wire_mode = "unknown";
-        }
-        return payload;
-    },
-};
 export const legrand_power_alarm: Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "haElectricalMeasurement",
     type: ["attributeReport", "readResponse"],
@@ -4711,18 +4558,6 @@ export const idlock_fw: Fz.Converter<"genBasic", undefined, ["attributeReport", 
         const result: KeyValueAny = {};
         if (0x5000 in msg.data) {
             result.idlock_lock_fw = msg.data[0x5000];
-        }
-        return result;
-    },
-};
-export const schneider_pilot_mode: Fz.Converter<"schneiderSpecificPilotMode", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "schneiderSpecificPilotMode",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        const lookup: KeyValueAny = {1: "contactor", 3: "pilot"};
-        if ("pilotMode" in msg.data) {
-            result.schneider_pilot_mode = lookup[msg.data.pilotMode];
         }
         return result;
     },

@@ -2242,33 +2242,6 @@ export const humidity: Tz.Converter = {
 // #endregion
 
 // #region Non-generic converters
-export const elko_power_status: Tz.Converter = {
-    key: ["system_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {elkoPowerStatus: value === "heat" ? 1 : 0});
-        return {state: {system_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["elkoPowerStatus"]);
-    },
-};
-export const elko_relay_state: Tz.Converter = {
-    key: ["running_state"],
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["elkoRelayState"]);
-    },
-};
-export const elko_local_temperature_calibration: Tz.Converter = {
-    key: ["local_temperature_calibration"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertNumber(value, key);
-        await entity.write("hvacThermostat", {elkoCalibration: Math.round(value * 10)});
-        return {state: {local_temperature_calibration: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["elkoCalibration"]);
-    },
-};
 export const livolo_socket_switch_on_off: Tz.Converter = {
     key: ["state"],
     convertSet: async (entity, key, value, meta) => {
@@ -3701,52 +3674,6 @@ export const bticino_4027C_cover_position: Tz.Converter = {
         await entity.read("closuresWindowCovering", ["currentPositionLiftPercentage"]);
     },
 };
-export const legrand_device_mode: Tz.Converter = {
-    key: ["device_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        // enable the dimmer, requires a recent firmware on the device
-        const lookup = {
-            // dimmer
-            dimmer_on: 0x0101,
-            dimmer_off: 0x0100,
-            // contactor
-            switch: 0x0003,
-            auto: 0x0004,
-            // pilot wire
-            pilot_on: 0x0002,
-            pilot_off: 0x0001,
-        };
-
-        value = value.toLowerCase();
-        utils.validateValue(value, Object.keys(lookup));
-        const payload = {0: {value: utils.getFromLookup(value, lookup), type: 9}};
-        await entity.write("manuSpecificLegrandDevices", payload, manufacturerOptions.legrand);
-        return {state: {device_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("manuSpecificLegrandDevices", [0x0000, 0x0001, 0x0002], manufacturerOptions.legrand);
-    },
-};
-export const legrand_pilot_wire_mode: Tz.Converter = {
-    key: ["pilot_wire_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        const mode = {
-            comfort: 0x00,
-            "comfort_-1": 0x01,
-            "comfort_-2": 0x02,
-            eco: 0x03,
-            frost_protection: 0x04,
-            off: 0x05,
-        };
-        const payload = {data: Buffer.from([utils.getFromLookup(value, mode)])};
-        await entity.command("manuSpecificLegrandDevices2", "command0", payload);
-        return {state: {pilot_wire_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("manuSpecificLegrandDevices2", [0x0000], manufacturerOptions.legrand);
-    },
-};
 export const legrand_power_alarm: Tz.Converter = {
     key: ["power_alarm"],
     convertSet: async (entity, key, value, meta) => {
@@ -4615,20 +4542,6 @@ export const idlock_relock_enabled: Tz.Converter = {
     },
     convertGet: async (entity, key, meta) => {
         await entity.read("closuresDoorLock", [0x4005], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
-    },
-};
-export const schneider_pilot_mode: Tz.Converter = {
-    key: ["schneider_pilot_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        const lookup = {contactor: 1, pilot: 3};
-        value = value.toLowerCase();
-        const mode = utils.getFromLookup(value, lookup);
-        await entity.write("schneiderSpecificPilotMode", {pilotMode: mode}, {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
-        return {state: {schneider_pilot_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("schneiderSpecificPilotMode", ["pilotMode"], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
     },
 };
 export const schneider_dimmer_mode: Tz.Converter = {

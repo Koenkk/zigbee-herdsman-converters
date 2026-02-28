@@ -189,7 +189,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Amina Distribution AS",
         description: "Amina S EV Charger",
         ota: true,
-        fromZigbee: [fzLocal.ev_status, fzLocal.alarms],
+        fromZigbee: [fzLocal.ev_status, fzLocal.alarms, fzLocal.poll_energy],
         toZigbee: [tzLocal.ev_status, tzLocal.alarms, tzLocal.charge_limit, tzLocal.charge_limit_with_on_off],
         exposes: [
             e.text("ev_status", ea.STATE_GET).withDescription("Current charging status"),
