@@ -16517,6 +16517,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PJ-1203A",
         vendor: "Tuya",
         description: "Bidirectional energy meter with 80A current clamp",
+        whiteLabel: [tuya.whitelabel("Tuya", "PJ-1203A", "Bidirectional energy meter with 80A current clamp", ["_TZE284_81yrt3lo"])],
         fromZigbee: [fzLocal.PJ1203A_strict_fz_datapoints, fzLocal.PJ1203A_sync_time_increase_seq],
         toZigbee: [tuya.tz.datapoints],
         extend: [tuya.modernExtend.tuyaBase()],
