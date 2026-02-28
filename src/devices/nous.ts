@@ -14,7 +14,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_sonkaxrd"]),
         model: "E12",
         vendor: "Nous",
-        description: "Zigbee carbon monoxide (CO) sensor",
+        description: "Carbon monoxide alarm",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.carbon_monoxide().withDescription("Indicates if CO level and exposure time are above safety limits, triggering the alarm"),
