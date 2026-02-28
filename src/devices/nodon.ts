@@ -78,13 +78,16 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
             ...args,
         }),
-    dryContact: (args?: Partial<m.EnumLookupArgs<"genBinaryInput">>) =>
-        m.enumLookup({
+    dryContact: (args?: Partial<m.BinaryArgs<"genBinaryInput">>) =>
+        m.binary({
             name: "dry_contact",
-            lookup: {contact_closed: 0x00, contact_open: 0x01},
             cluster: "genBinaryInput",
-            attribute: {ID: 0x055, type: Zcl.DataType.ENUM8},
-            description: "State of the contact, closed or open.",
+            attribute: "presentValue",
+            reporting: {min: "MIN", max: "1_HOUR", change: 1},
+            valueOn: ["Closed", 1],
+            valueOff: ["Opened", 0],
+            description: "Dry contact state",
+            access: "STATE_GET",
             ...args,
         }),
     impulseMode: (args?: Partial<m.NumericArgs<"genOnOff">>) => {
@@ -232,7 +235,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FPS-4-1-00",
         vendor: "NodOn",
         description: "Electrical heating actuator",
-        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), m.temperature(), ...nodonPilotWire(true)],
+        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), m.temperature(), m.humidity(), ...nodonPilotWire(true)],
         ota: true,
     },
     {
@@ -244,6 +247,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [
             tz.fan_mode,
             tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
             tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_min_heat_setpoint_limit,
