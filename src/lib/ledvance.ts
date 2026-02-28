@@ -2,10 +2,25 @@ import {Zcl} from "zigbee-herdsman";
 
 import type {Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
-import * as modernExtend from "./modernExtend";
+import * as m from "../lib/modernExtend";
 import {isObject} from "./utils";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
+
+export const ledvanceExtend = {
+    addmanuSpecificOsramCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificOsram", {
+            ID: 0xfc0f,
+            attributes: {},
+            commands: {
+                saveStartupParams: {ID: 0x01, parameters: []},
+                resetStartupParams: {ID: 0x02, parameters: []},
+            },
+            commandsResponse: {
+                saveStartupParamsRsp: {ID: 0x00, parameters: []},
+            },
+        }),
+}
 
 export const ledvanceFz = {
     pbc_level_to_action: {
@@ -52,16 +67,16 @@ export const ledvanceTz = {
     } satisfies Tz.Converter,
 };
 
-export function ledvanceOnOff(args?: modernExtend.OnOffArgs) {
+export function ledvanceOnOff(args?: m.OnOffArgs) {
     args = {ota: true, configureReporting: true, ...args};
-    return modernExtend.onOff(args);
+    return m.onOff(args);
 }
 
-export function ledvanceLight(args?: modernExtend.LightArgs) {
+export function ledvanceLight(args?: m.LightArgs) {
     args = {powerOnBehavior: false, ota: true, ...args};
     if (args.colorTemp) args.colorTemp.startup = false;
     if (args.color) args.color = {modes: ["xy", "hs"], ...(isObject(args.color) ? args.color : {})};
-    const result = modernExtend.light(args);
+    const result = m.light(args);
     result.toZigbee.push(ledvanceTz.ledvance_commands);
     return result;
 }
