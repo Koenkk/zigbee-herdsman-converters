@@ -394,4 +394,116 @@ describe("toZigbee converters", () => {
             expect(device.endpoints[0].command).toHaveBeenNthCalledWith(4, "genOnOff", "off", {}, {});
         });
     });
+
+    describe("light_color", () => {
+        test("xy color only device (given by color mode explicitly) should be able to receive hsv color by converting color before", async () => {
+            const device = mockDevice({
+                modelID: "xy_only_light",
+                manufacturerName: "ACME-inc",
+                endpoints: [
+                    {
+                        ID: 1,
+                        inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"],
+                        meta: {
+                            color: {mode: ["xy"]},
+                        },
+                    },
+                ],
+            });
+
+            const definition = await zhc.findByDevice(device);
+
+            const meta: Tz.Meta = {
+                state: {},
+                device,
+                message: {
+                    color: {h: 200, s: 50, v: 100}, // Input HSV color (blue with some saturation)
+                    transition: 1.0,
+                },
+                mapped: definition,
+                options: {hue_correction: []},
+                publish: null,
+                endpoint_name: null,
+            };
+
+            const converter = zhc.toZigbee.light_color;
+            await converter.convertSet(device.endpoints[0], "color", meta.message.color, meta);
+
+            const expectedX = 16895;
+            const expectedY = 20257;
+
+            // assert that the command was called with the correct cluster, command, and payload
+            expect(device.endpoints[0].command).toHaveBeenCalledWith(
+                "lightingColorCtrl",
+                "moveToColor",
+                expect.objectContaining({
+                    colorx: expectedX,
+                    colory: expectedY,
+                    transtime: 10,
+                    optionsMask: 0,
+                    optionsOverride: 0,
+                }),
+                {},
+            );
+
+            // ensure that other color commands like moveToHueAndSaturation or moveToColorTemp were NOT called
+            expect(device.endpoints[0].command).not.toHaveBeenCalledWith("lightingColorCtrl", "moveToHueAndSaturation", {}, {});
+            expect(device.endpoints[0].command).not.toHaveBeenCalledWith("lightingColorCtrl", "moveToColorTemp", {}, {});
+        });
+
+        test("xy color only device (generic color device) should be able to receive hsv color by converting color before", async () => {
+            const device = mockDevice({
+                modelID: "xy_only_light",
+                manufacturerName: "ACME-inc",
+                endpoints: [
+                    {
+                        ID: 1,
+                        inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"],
+                        meta: {
+                            color: true,
+                        },
+                    },
+                ],
+            });
+
+            const definition = await zhc.findByDevice(device);
+
+            const meta: Tz.Meta = {
+                state: {},
+                device,
+                message: {
+                    color: {h: 200, s: 50, v: 100}, // Input HSV color (blue with some saturation)
+                    transition: 1.0,
+                },
+                mapped: definition,
+                options: {hue_correction: []},
+                publish: null,
+                endpoint_name: null,
+            };
+
+            const converter = zhc.toZigbee.light_color;
+            await converter.convertSet(device.endpoints[0], "color", meta.message.color, meta);
+
+            const expectedX = 16895;
+            const expectedY = 20257;
+
+            // assert that the command was called with the correct cluster, command, and payload
+            expect(device.endpoints[0].command).toHaveBeenCalledWith(
+                "lightingColorCtrl",
+                "moveToColor",
+                expect.objectContaining({
+                    colorx: expectedX,
+                    colory: expectedY,
+                    transtime: 10,
+                    optionsMask: 0,
+                    optionsOverride: 0,
+                }),
+                {},
+            );
+
+            // ensure that other color commands like moveToHueAndSaturation or moveToColorTemp were NOT called
+            expect(device.endpoints[0].command).not.toHaveBeenCalledWith("lightingColorCtrl", "moveToHueAndSaturation", {}, {});
+            expect(device.endpoints[0].command).not.toHaveBeenCalledWith("lightingColorCtrl", "moveToColorTemp", {}, {});
+        });
+    });
 });
