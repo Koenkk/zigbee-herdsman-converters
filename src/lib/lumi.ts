@@ -1,6 +1,4 @@
-import assert from "node:assert";
 import {Buffer} from "node:buffer";
-import {DataType} from "zigbee-herdsman/dist/zspec/zcl";
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
@@ -2220,17 +2218,7 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiCurtainReverse: (args?: Partial<modernExtend.BinaryArgs<"closuresWindowCovering">>) => {
-        const {onEvent, configure} = modernExtend.deviceAddCustomCluster("closuresWindowCovering", {
-            ID: 0x0102,
-            attributes: {
-                // Make windowCoveringMode writable
-                // https://github.com/Koenkk/zigbee2mqtt/issues/30768
-                windowCoveringMode: {ID: 0x0017, type: DataType.BITMAP8, required: true, default: 4, write: true, max: 0xffff},
-            },
-            commands: {},
-            commandsResponse: {},
-        });
-        const result = modernExtend.binary({
+        return modernExtend.binary({
             name: "reverse_direction",
             valueOn: [true, 1],
             valueOff: [false, 0],
@@ -2241,10 +2229,6 @@ export const lumiModernExtend = {
             entityCategory: "config",
             ...args,
         });
-        result.configure.push(...configure);
-        assert(result.onEvent === undefined);
-        result.onEvent = onEvent;
-        return result;
     },
     lumiCurtainStatus: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
