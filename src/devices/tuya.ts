@@ -22507,7 +22507,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
-            e.illuminance(),
             e.battery(),
             e
                 .numeric("fading_time", ea.STATE_SET)
