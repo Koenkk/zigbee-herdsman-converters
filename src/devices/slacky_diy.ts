@@ -32,6 +32,7 @@ const model_r09 = "THERM_SLACKY_DIY_R09";
 //const model_r0a = "THERM_SLACKY_DIY_R0A";
 const model_r0b = "THERM_SLACKY_DIY_R0B";
 const modelR0c = "THERM_SLACKY_DIY_R0C";
+const model_r0d = "THERM_SLACKY_DIY_R0D";
 
 const attrThermSensorUser = 0xf000;
 const attrThermFrostProtect = 0xf001;
@@ -48,6 +49,8 @@ const attrThermEcoModeCoolTemperature = 0xf00b;
 const attrThermExtTemperatureCalibration = 0xf00c;
 const attrThermModeKeyLock = 0xf00d;
 const attrThermManufName = 0xf00e;
+const attrThermScreenOffTime = 0xf00f;
+const attrThermLedIndicator = 0xf010;
 const attrFanCtrlControl = 0xf000;
 
 const switchSensorUsed = ["Inner (IN)", "All (AL)", "Outer (OU)"];
@@ -140,7 +143,7 @@ const fzLocal = {
             if (msg.data.minSetpointDeadBand !== undefined) {
                 //logger.info(`Model: ${model.model}`, NS);
                 let data: number;
-                if (model.model === model_r06 || model.model === model_r09 || model.model === model_r0b) {
+                if (model.model === model_r06 || model.model === model_r09 || model.model === model_r0b || model.model === model_r0d) {
                     data = msg.data.minSetpointDeadBand / 10;
                     result.hysteresis_temperature = data;
                 } else {
@@ -179,6 +182,15 @@ const fzLocal = {
                     const lookup = {0: "Off", 1: "Low", 2: "Medium", 3: "High"};
                     result.brightness_level = utils.getFromLookup(msg.data[attrThermLevel], lookup);
                 }
+            }
+            if (msg.data[attrThermScreenOffTime] !== undefined) {
+                if (model.model === model_r0d) {
+                    const lookup_time = {0: "10s", 1: "20s", 2: "30s", 3: "40s", 4: "50s", 5: "60s"};
+                    result.screen_sleep_time = utils.getFromLookup(msg.data[attrThermScreenOffTime], lookup_time);
+                }
+            }
+            if (msg.data[attrThermLedIndicator] !== undefined) {
+                result.led_indicator = msg.data[attrThermLedIndicator] === 1 ? "On" : "Off";
             }
             if (msg.data[attrThermSound] !== undefined) {
                 result.sound = msg.data[attrThermSound] === 1 ? "On" : "Off";
@@ -453,6 +465,29 @@ const tzLocal = {
             await entity.read("hvacThermostat", [attrThermLevel]);
         },
     } satisfies Tz.Converter,
+    thermostat_screen_sleep_time: {
+        key: ["screen_sleep_time"],
+        convertSet: async (entity, key, value, meta) => {
+            //utils.assertNumber(value);
+            const lookup = {"10s": 0, "20s": 1, "30s": 2, "40s": 3, "50s": 4, "60s": 5};
+            await entity.write("hvacThermostat", {[attrThermScreenOffTime]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
+            return {state: {screen_sleep_time: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("hvacThermostat", [attrThermScreenOffTime]);
+        },
+    } satisfies Tz.Converter,
+    thermostat_led_indicator: {
+        key: ["led_indicator"],
+        convertSet: async (entity, key, value, meta) => {
+            const led_indicator = Number(value === "On");
+            await entity.write("hvacThermostat", {[attrThermLedIndicator]: {value: led_indicator, type: 0x10}});
+            return {readAfterWriteTime: 250, state: {led_indicator: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("hvacThermostat", [attrThermLedIndicator]);
+        },
+    } satisfies Tz.Converter,
     thermostat_inversion: {
         key: ["relay_type"],
         convertSet: async (entity, key, value, meta) => {
@@ -571,6 +606,8 @@ const localToZigbeeThermostat = [
     tzLocal.thermostat_frost_protect_onoff,
     tzLocal.thermostat_brightness_level,
     tzLocal.thermostat_screen_sleep_mode,
+    tzLocal.thermostat_screen_sleep_time,
+    tzLocal.thermostat_led_indicator,
     tzLocal.thermostat_sound,
     tzLocal.thermostat_inversion,
     tzLocal.thermostat_schedule_mode,
@@ -2616,6 +2653,108 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("schedule_friday", ea.STATE).withDescription("Friday's schedule"),
             e.text("schedule_saturday", ea.STATE).withDescription("Saturday's schedule"),
             e.text("schedule_sunday", ea.STATE).withDescription("Sunday's schedule"),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["Tuya_Thermostat_r0D"],
+        model: "THERM_SLACKY_DIY_R0D",
+        vendor: "Slacky-DIY",
+        description: "Tuya Thermostat for Floor Heating with custom Firmware",
+        endpoint: (device) => {
+            return {day: 1, night: 2};
+        },
+        fromZigbee: localFromZigbeeThermostat,
+        toZigbee: localToZigbeeThermostat,
+        configure: configureCommon,
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
+        exposes: [
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
+            e.enum("brightness_level", ea.ALL, ["Off", "Low", "Medium", "High"]).withDescription("Screen idle brightness"),
+            e.enum("screen_sleep_time", ea.ALL, ["10s", "20s", "30s", "40s", "50s", "60s"]).withDescription("Screen sleep timeout"),
+            e.binary("led_indicator", ea.ALL, "On", "Off").withDescription("Enables/disables light ring indicator"),
+            e.programming_operation_mode(["setpoint", "schedule", "schedule_with_preheat", "eco"]).withDescription("Setpoint or Schedule mode"),
+            e
+                .numeric("hysteresis_temperature", ea.ALL)
+                .withDescription("The delta between local_temperature and current_heating_setpoint to trigger activity")
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueMax(5)
+                .withValueStep(0.5),
+            e
+                .numeric("min_heat_setpoint_limit", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Minimum Heating set point limit")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(1),
+            e
+                .numeric("max_heat_setpoint_limit", ea.ALL)
+                .withDescription("Maximum Heating set point limit")
+                .withUnit("°C")
+                .withValueMin(35)
+                .withValueMax(45)
+                .withValueStep(1),
+            e
+                .numeric("frost_protect", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Protection against minimum freezing temperature")
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1),
+            e
+                .numeric("heat_protect", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Protection against maximum heating temperature")
+                .withValueMin(10)
+                .withValueMax(70)
+                .withValueStep(1),
+            e
+                .numeric("eco_mode_cool_temperature", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Set cool temperature in eco mode")
+                .withValueMin(10)
+                .withValueMax(30)
+                .withValueStep(1),
+            e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
+            e.numeric("outdoor_temperature", ea.STATE_GET).withUnit("°C").withDescription("Current temperature measured from the floor outer sensor"),
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSetpoint("occupied_heating_setpoint", 5, 45, 1)
+                .withLocalTemperatureCalibration(-10, 10, 1)
+                .withSystemMode(["off", "heat"])
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withWeeklySchedule(["heat"], ea.ALL),
+            e.text("schedule_monday", ea.STATE).withDescription("Monday's schedule"),
+            e.text("schedule_tuesday", ea.STATE).withDescription("Tuesday's schedule"),
+            e.text("schedule_wednesday", ea.STATE).withDescription("Wednesday's schedule"),
+            e.text("schedule_thursday", ea.STATE).withDescription("Thursday's schedule"),
+            e.text("schedule_friday", ea.STATE).withDescription("Friday's schedule"),
+            e.text("schedule_saturday", ea.STATE).withDescription("Saturday's schedule"),
+            e.text("schedule_sunday", ea.STATE).withDescription("Sunday's schedule"),
+            e.enum("settings_reset", ea.SET, ["Default"]).withDescription("Default settings"),
         ],
         meta: {},
         ota: true,
