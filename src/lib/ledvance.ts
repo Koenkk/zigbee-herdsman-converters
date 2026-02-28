@@ -1,8 +1,7 @@
 import {Zcl} from "zigbee-herdsman";
-
+import * as m from "../lib/modernExtend";
 import type {Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
-import * as m from "../lib/modernExtend";
 import {isObject} from "./utils";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
@@ -20,7 +19,7 @@ export const ledvanceExtend = {
                 saveStartupParamsRsp: {ID: 0x00, parameters: []},
             },
         }),
-}
+};
 
 export const ledvanceFz = {
     pbc_level_to_action: {

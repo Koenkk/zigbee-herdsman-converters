@@ -1,4 +1,4 @@
-import {ledvanceLight, ledvanceOnOff, ledvanceExtend} from "../lib/ledvance";
+import {ledvanceExtend, ledvanceLight, ledvanceOnOff} from "../lib/ledvance";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
 
