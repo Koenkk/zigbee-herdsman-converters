@@ -24,7 +24,7 @@ const terncyExtend = {
         m.deviceAddCustomCluster("manuSpecificClusterAduroSmart", {
             ID: 0xfccc,
             attributes: {
-                terncyRotation: {ID: 0x001b, type: Zcl.DataType.UINT16}, 
+                terncyRotation: {ID: 0x001b, type: Zcl.DataType.UINT16},
             },
             commands: {
                 cmd0: {ID: 0x00, parameters: []},
