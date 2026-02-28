@@ -1,4 +1,5 @@
 import type {Types as ZHTypes} from "zigbee-herdsman";
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -11,6 +12,148 @@ import {getFromLookup} from "../lib/utils";
 const NS = "zhc:yale";
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface ManuSpecificAssaDoorLock {
+    attributes: {
+        /** ID=0x0012 | type=UINT8 | write=true | max=255 */
+        autoLockTime: number;
+        /** ID=0x0013 | type=UINT8 | write=true | max=255 */
+        wrongCodeAttempts: number;
+        /** ID=0x0014 | type=UINT8 | write=true | max=255 */
+        shutdownTime: number;
+        /** ID=0x0015 | type=UINT8 | write=true | max=255 */
+        batteryLevel: number;
+        /** ID=0x0016 | type=UINT8 | write=true | max=255 */
+        insideEscutcheonLED: number;
+        /** ID=0x0017 | type=UINT8 | write=true | max=255 */
+        volume: number;
+        /** ID=0x0018 | type=UINT8 | write=true | max=255 */
+        lockMode: number;
+        /** ID=0x0019 | type=UINT8 | write=true | max=255 */
+        language: number;
+        /** ID=0x001a | type=BOOLEAN | write=true */
+        allCodesLockout: number;
+        /** ID=0x001b | type=BOOLEAN | write=true */
+        oneTouchLocking: number;
+        /** ID=0x001c | type=BOOLEAN | write=true */
+        privacyButtonSetting: number;
+        /** ID=0x0021 | type=UINT16 | write=true | max=65535 */
+        numberLogRecordsSupported: number;
+        /** ID=0x0030 | type=UINT8 | write=true | max=255 */
+        numberPinsSupported: number;
+        /** ID=0x0040 | type=UINT8 | write=true | max=255 */
+        numberScheduleSlotsPerUser: number;
+        /** ID=0x0050 | type=UINT8 | write=true | max=255 */
+        alarmMask: number;
+    };
+    commands: {
+        /** ID=0x10 | response=0 */
+        getLockStatus: Record<string, never>;
+        /** ID=0x12 */
+        getBatteryLevel: Record<string, never>;
+        /** ID=0x13 */
+        setRFLockoutTime: Record<string, never>;
+        /** ID=0x30 */
+        userCodeSet: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x31 */
+        userCodeGet: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x32 */
+        userCodeClear: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x33 */
+        clearAllUserCodes: Record<string, never>;
+        /** ID=0x34 */
+        setUserCodeStatus: Record<string, never>;
+        /** ID=0x35 */
+        getUserCodeStatus: Record<string, never>;
+        /** ID=0x36 */
+        getLastUserIdEntered: Record<string, never>;
+        /** ID=0x37 */
+        userAdded: Record<string, never>;
+        /** ID=0x38 */
+        userDeleted: Record<string, never>;
+        /** ID=0x40 */
+        setScheduleSlot: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x41 */
+        getScheduleSlot: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x42 */
+        setScheduleSlotStatus: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x60 | response=1 */
+        reflash: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x61 | response=2 */
+        reflashData: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x62 | response=3 */
+        reflashStatus: {
+            /** type=CHAR_STR */
+            payload: string;
+        };
+        /** ID=0x90 */
+        getReflashLock: Record<string, never>;
+        /** ID=0xa0 */
+        getHistory: Record<string, never>;
+        /** ID=0xa1 */
+        getLogin: Record<string, never>;
+        /** ID=0xa2 */
+        getUser: Record<string, never>;
+        /** ID=0xa3 */
+        getUsers: Record<string, never>;
+        /** ID=0xb0 */
+        getMandatoryAttributes: Record<string, never>;
+        /** ID=0xb1 */
+        readAttribute: Record<string, never>;
+        /** ID=0xb2 */
+        writeAttribute: Record<string, never>;
+        /** ID=0xb3 */
+        configureReporting: Record<string, never>;
+        /** ID=0xb4 */
+        getBasicClusterAttributes: Record<string, never>;
+    };
+    commandResponses: {
+        /** ID=0x00 */
+        getLockStatusRsp: {
+            /** type=UINT8 | max=255 */
+            status: number;
+        };
+        /** ID=0x01 */
+        reflashRsp: {
+            /** type=UINT8 | max=255 */
+            status: number;
+        };
+        /** ID=0x02 */
+        reflashDataRsp: {
+            /** type=UINT8 | max=255 */
+            status: number;
+        };
+        /** ID=0x03 */
+        reflashStatusRsp: {
+            /** type=UINT8 | max=255 */
+            status: number;
+        };
+    };
+}
 
 const lockExtend = (meta = {}, lockStateOptions: Reporting.Override | false = null, binds = ["closuresDoorLock", "genPowerCfg"]): ModernExtend => {
     return {
@@ -52,6 +195,147 @@ const lockExtend = (meta = {}, lockStateOptions: Reporting.Override | false = nu
         ],
         isModernExtend: true,
     };
+};
+
+const yaleExtend = {
+    addManuSpecificAssaDoorLockCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificAssaDoorLock", {
+            ID: 0xfc00,
+            attributes: {
+                autoLockTime: {ID: 0x0012, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                wrongCodeAttempts: {ID: 0x0013, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                shutdownTime: {ID: 0x0014, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                batteryLevel: {ID: 0x0015, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                insideEscutcheonLED: {ID: 0x0016, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                volume: {ID: 0x0017, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                lockMode: {ID: 0x0018, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                language: {ID: 0x0019, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                allCodesLockout: {ID: 0x001a, type: Zcl.DataType.BOOLEAN, write: true},
+                oneTouchLocking: {ID: 0x001b, type: Zcl.DataType.BOOLEAN, write: true},
+                privacyButtonSetting: {ID: 0x001c, type: Zcl.DataType.BOOLEAN, write: true},
+                /* enableLogging: {ID: 0x0020, type: Zcl.DataType.BOOLEAN, write: true},*/ // marked in C4 driver as not supported
+                numberLogRecordsSupported: {ID: 0x0021, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                numberPinsSupported: {ID: 0x0030, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                numberScheduleSlotsPerUser: {ID: 0x0040, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                alarmMask: {ID: 0x0050, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            },
+            commands: {
+                getLockStatus: {ID: 0x10, response: 0, parameters: []},
+                getBatteryLevel: {ID: 0x12, parameters: []},
+                setRFLockoutTime: {ID: 0x13, parameters: []},
+                /* getLogRecord: {ID: 0x20,
+                    parameters: [],
+                },*/ // marked in C4 driver as not supported
+                userCodeSet: {
+                    ID: 0x30,
+                    parameters: [
+                        // bit pack ("bbb", slot, status, pinLength) .. pin
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                userCodeGet: {
+                    ID: 0x31,
+                    parameters: [
+                        // bit pack ("b", slot)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                userCodeClear: {
+                    ID: 0x32,
+                    parameters: [
+                        // bit pack ("b", slot)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                clearAllUserCodes: {ID: 0x33, parameters: []},
+                setUserCodeStatus: {ID: 0x34, parameters: []},
+                getUserCodeStatus: {ID: 0x35, parameters: []},
+                getLastUserIdEntered: {ID: 0x36, parameters: []},
+                userAdded: {ID: 0x37, parameters: []},
+                userDeleted: {ID: 0x38, parameters: []},
+                setScheduleSlot: {
+                    ID: 0x40,
+                    parameters: [
+                        // bit pack ("bbbbbbb", 0, slot, weeklyScheduleNumber, startHour, startMinute, hours, minutes)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                getScheduleSlot: {
+                    ID: 0x41,
+                    parameters: [
+                        // bit pack ("bb", slot, userId)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                setScheduleSlotStatus: {
+                    ID: 0x42,
+                    parameters: [
+                        // bit pack ("bbb", 0, slot, status)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                reflash: {
+                    ID: 0x60,
+                    response: 1,
+                    parameters: [
+                        // bit pack ("bI", version, length)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                reflashData: {
+                    ID: 0x61,
+                    response: 2,
+                    parameters: [
+                        // bit pack ("IH", segmentId - 1, length) .. string sub (data, start, finish)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                reflashStatus: {
+                    ID: 0x62,
+                    response: 3,
+                    parameters: [
+                        // bit pack ("bI", reflashStatusParameter, 0x00)
+                        {name: "payload", type: Zcl.DataType.CHAR_STR},
+                    ],
+                },
+                getReflashLock: {ID: 0x90, parameters: []},
+                getHistory: {ID: 0xa0, parameters: []},
+                getLogin: {ID: 0xa1, parameters: []},
+                getUser: {ID: 0xa2, parameters: []},
+                getUsers: {ID: 0xa3, parameters: []},
+                getMandatoryAttributes: {ID: 0xb0, parameters: []},
+                readAttribute: {ID: 0xb1, parameters: []},
+                writeAttribute: {ID: 0xb2, parameters: []},
+                configureReporting: {ID: 0xb3, parameters: []},
+                getBasicClusterAttributes: {ID: 0xb4, parameters: []},
+            },
+            commandsResponse: {
+                getLockStatusRsp: {ID: 0x00, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
+                reflashRsp: {ID: 0x01, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
+                reflashDataRsp: {ID: 0x02, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
+                reflashStatusRsp: {ID: 0x03, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
+                /* boltStateRsp: {ID: 4,
+                    parameters: [
+                        {name: 'state', type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },*/ // C4 driver has this response yet there is no command - maybe a non-specific cluster response?
+                /* lockStatusReportRsp: {ID: 5,
+                    parameters: [
+                        {name: 'status', type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },*/ // C4 driver has this response yet there is no command - maybe a non-specific cluster response?
+                /* handleStateRsp: {ID: 6,
+                    parameters: [
+                        {name: 'state', type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },*/ // C4 driver has this response yet there is no command - maybe a non-specific cluster response?
+                /* userStatusRsp: {ID: 7,
+                    parameters: [
+                        {name: 'status', type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },*/ // C4 driver has this response yet there is no command - maybe a non-specific cluster response?
+            },
+        }),
 };
 
 const fzLocal = {
@@ -104,12 +388,12 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
     c4_assa_lock_attribute: {
-        cluster: "manuSpecificUbisysDeviceSetup",
+        cluster: "manuSpecificAssaDoorLock",
         type: ["readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const data = msg.data;
             const result: ZHTypes.KeyValue = {};
-            if (data["18"]) {
+            if (data.autoLockTime) {
                 const lookup = {
                     0: "off",
                     30: "30seconds",
@@ -117,69 +401,69 @@ const fzLocal = {
                     120: "2minutes",
                     180: "3minutes",
                 };
-                result.auto_lock_time = getFromLookup(data["18"], lookup);
+                result.auto_lock_time = getFromLookup(data.autoLockTime, lookup);
             }
-            if (data["19"]) {
-                result.wrong_code_attempts = data["19"];
+            if (data.wrongCodeAttempts) {
+                result.wrong_code_attempts = data.wrongCodeAttempts;
             }
-            if (data["20"]) {
-                result.shutdown_time = data["20"];
+            if (data.shutdownTime) {
+                result.shutdown_time = data.shutdownTime;
             }
-            if (data["21"]) {
-                result.battery = data["21"];
-                result.battery_low = data["21"] <= 15;
+            if (data.batteryLevel) {
+                result.battery = data.batteryLevel;
+                result.battery_low = data.batteryLevel <= 15;
             }
-            if (data["22"]) {
-                result.inside_escutcheon_led = data["22"] === 1;
+            if (data.insideEscutcheonLED) {
+                result.inside_escutcheon_led = data.insideEscutcheonLED === 1;
             }
-            if (data["23"]) {
+            if (data.volume) {
                 const lookup = {
                     1: "silent",
                     2: "low",
                     3: "high",
                 };
-                result.volume = getFromLookup(data["23"], lookup);
+                result.volume = getFromLookup(data.volume, lookup);
             }
-            if (data["24"]) {
+            if (data.lockMode) {
                 const lookup = {
                     0: "normal",
                     1: "vacation",
                     2: "privacy",
                 };
-                result.lock_mode = getFromLookup(data["24"], lookup);
+                result.lock_mode = getFromLookup(data.lockMode, lookup);
             }
-            if (data["25"]) {
+            if (data.language) {
                 const lookup = {
                     1: "english",
                     2: "spanish",
                     3: "french",
                 };
-                result.lock_mode = getFromLookup(data["25"], lookup);
+                result.lock_mode = getFromLookup(data.language, lookup);
             }
-            if (data["26"]) {
-                result.all_codes_lockout = data["26"];
+            if (data.allCodesLockout) {
+                result.all_codes_lockout = data.allCodesLockout;
             }
-            if (data["27"]) {
-                result.one_touch_locking = data["27"];
+            if (data.oneTouchLocking) {
+                result.one_touch_locking = data.oneTouchLocking;
             }
-            if (data["28"]) {
-                result.privacy_button = data["28"];
+            if (data.privacyButtonSetting) {
+                result.privacy_button = data.privacyButtonSetting;
             }
-            if (data["33"]) {
-                result.number_log_records_supported = data["33"];
+            if (data.numberLogRecordsSupported) {
+                result.number_log_records_supported = data.numberLogRecordsSupported;
             }
-            if (data["48"]) {
-                result.number_pins_supported = data["48"];
+            if (data.numberPinsSupported) {
+                result.number_pins_supported = data.numberPinsSupported;
             }
-            if (data["64"]) {
-                result.number_schedule_slots_per_user = data["64"];
+            if (data.numberScheduleSlotsPerUser) {
+                result.number_schedule_slots_per_user = data.numberScheduleSlotsPerUser;
             }
-            if (data["80"]) {
-                result.alarm_mask = data["80"];
+            if (data.alarmMask) {
+                result.alarm_mask = data.alarmMask;
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificUbisysDeviceSetup", undefined, ["readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificAssaDoorLock", ManuSpecificAssaDoorLock, ["readResponse"]>,
     c4_lock_operation_event: {
         cluster: "genAlarms",
         type: ["commandAlarm"],
@@ -485,6 +769,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZYA-C4-MOD-S",
         vendor: "Yale",
         description: "Control4 module for Yale KeyFree/Keyless/Doorman/Assure/nexTouch locks",
+        extend: [yaleExtend.addManuSpecificAssaDoorLockCluster()],
         fromZigbee: [fz.lock, fzLocal.c4_alarm, fzLocal.c4_assa_lock_attribute],
         toZigbee: [tz.lock, tzLocal.auto_lock_time, tzLocal.volume],
         exposes: [
