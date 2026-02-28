@@ -2085,6 +2085,36 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         extend: [lumiZigbeeOTA()],
     },
+    {   
+            zigbeeModel: ["lumi.plug.acn005"],
+            model: "ZNQBCZ11LM",
+            vendor: "Aqara",
+            description: "Smart wall outlet H2 (USB)",
+            fromZigbee: [
+                lumi.fromZigbee.lumi_specific,
+            ],
+            toZigbee: [
+                lumi.toZigbee.lumi_button_switch_mode,
+            ],
+            meta: {multiEndpoint: true, multiEndpointSkip: ["power", "energy"]},
+            endpoint: () => {
+                return {relay: 1, usb: 2};
+            }, 
+            exposes: [
+                e
+                    .enum("button_switch_mode", exposes.access.ALL, ["relay", "relay_and_usb"])
+                    .withDescription("Control both relay and usb or only the relay with the physical switch button"),
+            ],
+            extend: [
+                lumi.lumiModernExtend.lumiZigbeeOTA(),
+                lumi.lumiModernExtend.lumiOnOff({ powerOutageMemory: "enum", endpointNames: ["relay","usb"] }),
+                lumi.lumiModernExtend.lumiLedDisabledNight(),
+                lumi.lumiModernExtend.lumiPower(),
+                lumi.lumiModernExtend.lumiElectricityMeter(),
+                lumi.lumiModernExtend.lumiOverloadProtection(),
+                lumi.lumiModernExtend.lumiButtonLock(),
+            ],
+    },
     {
         zigbeeModel: ["lumi.sensor_smoke"],
         model: "JTYJ-GD-01LM/BW",
