@@ -3473,12 +3473,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
         }
 
         if (!programmingOperationMode.configure?.skip) {
-            configure.push(
-                setupConfigureForReporting("hvacThermostat", "programingOperMode", {
-                    config: programmingOperationMode.configure?.reporting ?? repConfigChange0,
-                    access: programmingOperationMode.configure?.access ?? ea.ALL,
-                }),
-            );
+            configure.push(setupConfigureForReading("hvacThermostat", ["programingOperMode"], endpointNames));
         }
     }
 
