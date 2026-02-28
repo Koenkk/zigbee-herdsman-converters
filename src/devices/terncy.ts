@@ -14,7 +14,7 @@ interface AduroSmart {
         terncyRotation: number;
     };
     commands: {
-        cmd0: {iD: 0x00; parameters: []};
+        cmd0: Record<string, never>;
     };
     commandResponses: never;
 }
