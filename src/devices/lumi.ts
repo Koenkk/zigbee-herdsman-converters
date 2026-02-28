@@ -2940,13 +2940,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart dimmer controller T1 Pro",
         extend: [lumiZigbeeOTA(), lumiLight({colorTemp: true, powerOutageMemory: "switch"})],
     },
-    {   
+    {
         zigbeeModel: ["lumi.dimmer.acn003"],
         model: "ZNDDQDQ11LM",
         vendor: "Aqara",
         description: "T1 light strip controller",
         extend: [
-            lumi.lumiModernExtend.lumiLight({colorTemp: true, colorTempRange: [154, 370], color: false, powerOutageMemory: "enum",}),
+            lumi.lumiModernExtend.lumiLight({colorTemp: true, colorTempRange: [154, 370], color: false, powerOutageMemory: "enum"}),
             m.identify(),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
@@ -2957,13 +2957,13 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.lumiTransitionCurveCurvature(),
         ],
     },
-    {   
+    {
         zigbeeModel: ["lumi.dimmer.acn004"],
         model: "ZNDDQDQ12LM",
         vendor: "Aqara",
         description: "T1 light strip controller",
         extend: [
-            lumi.lumiModernExtend.lumiLight({colorTemp: true, colorTempRange: [154, 370], color: false, powerOutageMemory: "enum",}),
+            lumi.lumiModernExtend.lumiLight({colorTemp: true, colorTempRange: [154, 370], color: false, powerOutageMemory: "enum"}),
             m.identify(),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
@@ -2974,13 +2974,13 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.lumiTransitionCurveCurvature(),
         ],
     },
-    {   
+    {
         zigbeeModel: ["lumi.dimmer.acn005"],
         model: "ZNDDQDQ13LM",
         vendor: "Aqara",
         description: "T1 light strip controller",
         extend: [
-            lumi.lumiModernExtend.lumiLight({colorTemp: true, colorTempRange: [154, 370], color: false, powerOutageMemory: "enum",}),
+            lumi.lumiModernExtend.lumiLight({colorTemp: true, colorTempRange: [154, 370], color: false, powerOutageMemory: "enum"}),
             m.identify(),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
