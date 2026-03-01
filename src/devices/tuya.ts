@@ -2113,7 +2113,7 @@ export const definitions: DefinitionWithExtend[] = [
                             };
 
                             if (value === 0) {
-                                return "";
+                                return "OK";
                             }
 
                             for (const [bit, name] of Object.entries(faultMap)) {
