@@ -551,6 +551,21 @@ const schneiderElectricExtend = {
             },
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         }),
+    pilotMode: () =>
+        m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
+            name: "schneider_pilot_mode",
+            cluster: "heatingCoolingOutputClusterServer",
+            attribute: "heatingOutputMode",
+            description:
+                "Controls piloting mode (from 'old description'). According to SE the attribute is called 'Heating output mode', and the corresponding custom cluster is heatingCoolingOutputClusterServer.",
+            entityCategory: "config",
+            access: "ALL",
+            lookup: {
+                Contactor: 1,
+                Pilot: 3,
+            },
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        }),
     addHvacUserInterfaceCfgCustomAttributes: () =>
         m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
             ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
@@ -790,6 +805,17 @@ const schneiderElectricExtend = {
                 downSceneID: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 downGroupID: {ID: 0x0021, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 switchActions: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addSchneiderFanSwitchConfigurationCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificSchneiderFanSwitchConfiguration", {
+            ID: 0xfc04,
+            manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            attributes: {
+                ledIndication: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledOrientation: {ID: 0x0060, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
@@ -1384,7 +1410,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.fan_mode],
         exposes: [e.fan().withState("fan_state").withModes(["off", "low", "medium", "high", "on"])],
         ota: true,
-        extend: [fanIndicatorMode(), fanIndicatorOrientation()],
+        extend: [schneiderElectricExtend.addSchneiderFanSwitchConfigurationCluster(), fanIndicatorMode(), fanIndicatorOrientation()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(7);
             await reporting.bind(endpoint, coordinatorEndpoint, ["hvacFanCtrl"]);
@@ -1755,7 +1781,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Heating thermostat",
         whiteLabel: [{model: "CCTFR6710", fingerprint: [{modelID: "CCTFR6710"}]}],
-        fromZigbee: [fz.thermostat, fz.metering, fz.schneider_pilot_mode],
+        fromZigbee: [fz.thermostat, fz.metering],
         toZigbee: [
             tz.schneider_temperature_measured_value,
             tz.thermostat_system_mode,
@@ -1763,13 +1789,12 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_control_sequence_of_operation,
-            tz.schneider_pilot_mode,
             tz.schneider_temperature_measured_value,
         ],
+        extend: [schneiderElectricExtend.addHeatingCoolingOutputClusterServer(), schneiderElectricExtend.pilotMode()],
         exposes: [
             e.power(),
             e.energy(),
-            e.enum("schneider_pilot_mode", ea.ALL, ["contactor", "pilot"]).withDescription("Controls piloting mode"),
             e
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 4, 30, 0.5)
@@ -2061,7 +2086,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.current(),
             e.voltage(),
         ],
-        extend: [socketIndicatorMode()],
+        extend: [schneiderElectricExtend.addSchneiderFanSwitchConfigurationCluster(), socketIndicatorMode()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(6);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
@@ -2078,7 +2103,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "LK FUGA wiser wireless socket outlet",
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
-        extend: [socketIndicatorMode()],
+        extend: [schneiderElectricExtend.addSchneiderFanSwitchConfigurationCluster(), socketIndicatorMode()],
         exposes: [
             e.switch(),
             e.power(),
@@ -2103,6 +2128,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Mureva EVlink Smart socket outlet",
         extend: [
+            schneiderElectricExtend.addSchneiderFanSwitchConfigurationCluster(),
             m.onOff(),
             m.electricityMeter({
                 // Unit supports acVoltage and acCurrent, but only acCurrent divisor/multiplier can be read
@@ -2353,6 +2379,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 reporting: {min: 0, max: 3600, change: 0},
             }),
+            schneiderElectricExtend.addWiserDeviceInfoCluster(),
         ],
     },
     {
@@ -2360,21 +2387,23 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002497",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.metering, fz.schneider_pilot_mode, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
+        fromZigbee: [fz.stelpro_thermostat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
             tz.thermostat_local_temperature,
             tz.thermostat_control_sequence_of_operation,
-            tz.schneider_pilot_mode,
             tz.schneider_thermostat_keypad_lockout,
             tz.thermostat_temperature_display_mode,
         ],
-        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
+        extend: [
+            schneiderElectricExtend.addWiserDeviceInfoCluster(),
+            schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
+            schneiderElectricExtend.pilotMode(),
+        ],
         exposes: [
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
-            e.enum("schneider_pilot_mode", ea.ALL, ["contactor", "pilot"]).withDescription("Controls piloting mode"),
             e
                 .enum("temperature_display_mode", ea.ALL, ["celsius", "fahrenheit"])
                 .withDescription("The temperature format displayed on the thermostat screen"),
@@ -2403,21 +2432,23 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE011680",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.metering, fz.schneider_pilot_mode, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
+        fromZigbee: [fz.stelpro_thermostat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
             tz.thermostat_local_temperature,
             tz.thermostat_control_sequence_of_operation,
-            tz.schneider_pilot_mode,
             tz.schneider_thermostat_keypad_lockout,
             tz.thermostat_temperature_display_mode,
         ],
-        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
+        extend: [
+            schneiderElectricExtend.addWiserDeviceInfoCluster(),
+            schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
+            schneiderElectricExtend.pilotMode(),
+        ],
         exposes: [
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
-            e.enum("schneider_pilot_mode", ea.ALL, ["contactor", "pilot"]).withDescription("Controls piloting mode"),
             e
                 .enum("temperature_display_mode", ea.ALL, ["celsius", "fahrenheit"])
                 .withDescription("The temperature format displayed on the thermostat screen"),
@@ -2737,29 +2768,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S520619",
         vendor: "Schneider Electric",
         description: "Wiser Odace Smart thermostat",
-        fromZigbee: [
-            fz.stelpro_thermostat,
-            fz.metering,
-            fz.schneider_pilot_mode,
-            fzLocal.wiser_device_info,
-            fz.hvac_user_interface,
-            fz.temperature,
-            fz.occupancy,
-        ],
+        fromZigbee: [fz.stelpro_thermostat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature, fz.occupancy],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_system_mode,
             tz.thermostat_local_temperature,
             tz.thermostat_control_sequence_of_operation,
-            tz.schneider_pilot_mode,
             tz.schneider_thermostat_keypad_lockout,
             tz.thermostat_temperature_display_mode,
             tz.thermostat_running_state,
         ],
         exposes: [
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
-            e.enum("schneider_pilot_mode", ea.ALL, ["contactor", "pilot"]).withDescription("Controls piloting mode"),
             e
                 .enum("temperature_display_mode", ea.ALL, ["celsius", "fahrenheit"])
                 .withDescription("The temperature format displayed on the thermostat screen"),
@@ -2791,6 +2812,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             schneiderElectricExtend.addWiserDeviceInfoCluster(),
+            schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
+            schneiderElectricExtend.pilotMode(),
             m.poll({
                 key: "measurement",
                 option: exposes.options.measurement_poll_interval().withDescription("Polling interval of the occupied heating/cooling setpoint"),
