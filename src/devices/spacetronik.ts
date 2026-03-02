@@ -14,9 +14,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tuya.tz.datapoints],
         configure: tuya.configureMagicPacket,
         meta: {
-            tuyaDatapoints: [
-                [1, "gas", tuya.valueConverter.trueFalse0],
-	    ],
+            tuyaDatapoints: [[1, "gas", tuya.valueConverter.trueFalse0]],
         },
         exposes: [e.gas()],
     },
