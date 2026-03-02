@@ -22184,7 +22184,8 @@ export const definitions: DefinitionWithExtend[] = [
                 queryIntervalSeconds: 10,
                 respondToMcuVersionResponse: false,
                 timeStart: "off",
-            })],
+            }),
+        ],
         exposes: [
             e.energy(),
             e.voltage(),
