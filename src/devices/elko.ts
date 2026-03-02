@@ -13,12 +13,12 @@ const ea = exposes.access;
 interface ElkoThermostatCluster {
     attributes: {
         elkoLoad: number;
-        elkoDisplayText: number;
+        elkoDisplayText: string;
         elkoSensor: number;
         elkoRegulatorTime: number;
         elkoRegulatorMode: number;
         elkoPowerStatus: number;
-        elkoDateTime: number;
+        elkoDateTime: Buffer;
         elkoMeanPower: number;
         elkoExternalTemp: number;
         elkoNightSwitching: number;
@@ -26,7 +26,7 @@ interface ElkoThermostatCluster {
         elkoChildLock: number;
         elkoMaxFloorTemp: number;
         elkoRelayState: number;
-        elkoVersion: number;
+        elkoVersion: Buffer;
         elkoCalibration: number;
         elkoLastMessageId: number;
         elkoLastMessageStatus: number;
