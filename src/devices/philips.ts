@@ -4266,7 +4266,7 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "929003812801"}],
             },
         ],
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color :{modes: ["xy", "hs"], enhancedHue: true}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["LWE008"],
