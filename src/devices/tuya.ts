@@ -22182,8 +22182,6 @@ export const definitions: DefinitionWithExtend[] = [
                 dp: true,
                 queryOnConfigure: true,
                 queryIntervalSeconds: 10,
-                respondToMcuVersionResponse: false,
-                timeStart: "off",
             }),
         ],
         exposes: [
