@@ -1885,7 +1885,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Outlet water temperature")
                 .withValueMin(0)
                 .withValueStep(0.01),
-            e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Power supply voltage").withValueMin(0).withValueStep(0.01),
+            e.battery_voltage(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1974,7 +1974,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // DP 22 - Outlet Water Temperature
                 [22, "outlet_water_temperature", tuya.valueConverter.divideBy100],
                 // DP 24 - Power Supply Voltage
-                [26, "voltage", tuya.valueConverter.divideBy100],
+                [26, "battery_voltage", tuya.valueConverter.divideBy100],
             ],
         },
         options: [
