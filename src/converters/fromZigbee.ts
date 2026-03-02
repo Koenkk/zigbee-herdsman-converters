@@ -3462,15 +3462,6 @@ export const kmpcil_res005_on_off: Fz.Converter<"genBinaryOutput", undefined, ["
         return {state: msg.data.presentValue === 0 ? "OFF" : "ON"};
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const _3310_humidity: Fz.Converter<"manuSpecificCentraliteHumidity", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "manuSpecificCentraliteHumidity",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const humidity = msg.data.measuredValue / 100.0;
-        return {humidity};
-    },
-};
 export const smartthings_acceleration: Fz.Converter<"manuSpecificSamsungAccelerometer", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "manuSpecificSamsungAccelerometer",
     type: ["attributeReport", "readResponse"],
