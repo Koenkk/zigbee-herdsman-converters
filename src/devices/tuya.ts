@@ -1780,7 +1780,7 @@ export const definitions: DefinitionWithExtend[] = [
                             };
 
                             if (value === 0) {
-                                return "";
+                                return "no_alarm";
                             }
 
                             for (const [bit, name] of Object.entries(faultMap)) {
@@ -2113,7 +2113,7 @@ export const definitions: DefinitionWithExtend[] = [
                             };
 
                             if (value === 0) {
-                                return "";
+                                return "no_alarm";
                             }
 
                             for (const [bit, name] of Object.entries(faultMap)) {
