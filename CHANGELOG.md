@@ -1,5 +1,25 @@
 # Changelog
 
+## [26.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.12.0...v26.13.0) (2026-03-02)
+
+
+### Features
+
+* **add:** 929004611201, 929003812601 ([#11631](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11631)) ([4766103](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4766103dba52aa6d5cf2a87185a287a6c1b7c37b))
+* Zemismart ZM25TQ: support lower, upper, middle limits control ([#11625](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11625)) ([9302ea8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9302ea81dd664d3129a2dbf72193d4251261b208))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3002_vsom92pp` as Tuya TS0726_3_gang https://github.com/Koenkk/zigbee2mqtt/issues/31222 ([f5a453a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f5a453a8f69fe1f2aa170ba8c38d495aacb2b58a))
+* Heiman HS3AQ: fix time incorrect https://github.com/Koenkk/zigbee2mqtt.io/pull/4873 ([4dbb6bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4dbb6bbd6004daa1fd0e58b4a9eb52e551fd664c))
+* LiXee ZiPulses: fix multiplier, divisor and unitOfMeasure not writable https://github.com/Koenkk/zigbee2mqtt/issues/30912 ([b8a8f60](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b8a8f6097f79c6a930e63cf6df763f48bbea9b7e))
+* Move manuSpecificCentraliteHumidity cluster from ZH to ZHC ([#11624](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11624)) ([bb375be](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bb375bee752771a69b73004de83b2236b07e5fe1))
+* Move manuSpecificClusterAduroSmart clutser to ZHC ([#11622](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11622)) ([319da85](https://github.com/Koenkk/zigbee-herdsman-converters/commit/319da85f3f6d31bcdc9051561303bceaa75ef296))
+* Schneider Electric: fix `schneider_pilot_mode` https://github.com/Koenkk/zigbee2mqtt/issues/31227 ([970665e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/970665eb61190fba02562370110631bb3d784536))
+* Tuya TS0601_heat_meter: fix `battery_voltage` ([#11627](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11627)) ([8ae026b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ae026b4791ccbab43cf123866eb47d5db9ddbbd))
+* Tuya TS0601_water_valve and TS0601_water_meter: fix empty faults string ([#11626](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11626)) ([01ec05e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/01ec05ebf6e1a602a5608b72d161d922d00f9633))
+
 ## [26.12.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.11.0...v26.12.0) (2026-02-28)
 
 
