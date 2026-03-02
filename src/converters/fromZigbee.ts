@@ -3462,28 +3462,6 @@ export const kmpcil_res005_on_off: Fz.Converter<"genBinaryOutput", undefined, ["
         return {state: msg.data.presentValue === 0 ? "OFF" : "ON"};
     },
 };
-export const smartthings_acceleration: Fz.Converter<"manuSpecificSamsungAccelerometer", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "manuSpecificSamsungAccelerometer",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        if (msg.data.acceleration !== undefined) payload.moving = msg.data.acceleration === 1;
-
-        // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy#L222
-        /*
-                The axes reported by the sensor are mapped differently in the SmartThings DTH.
-                Preserving that functionality here.
-                xyzResults.x = z
-                xyzResults.y = y
-                xyzResults.z = -x
-            */
-        if (msg.data.z_axis !== undefined) payload.x_axis = msg.data.z_axis;
-        if (msg.data.y_axis !== undefined) payload.y_axis = msg.data.y_axis;
-        if (msg.data.x_axis !== undefined) payload.z_axis = -msg.data.x_axis;
-
-        return payload;
-    },
-};
 export const byun_smoke_false: Fz.Converter<"pHMeasurement", undefined, ["attributeReport"]> = {
     cluster: "pHMeasurement",
     type: ["attributeReport"],
