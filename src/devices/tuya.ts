@@ -22177,7 +22177,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tongou",
         description: "Zigbee energy meter (transformer clamp)",
         whiteLabel: [tuya.whitelabel("Tongou", "TOSA1-01WXJAT2A", "Smart energy meter, two wire", ["_TZE284_4hdbt6rn"])],
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnConfigure: true,
+                queryIntervalSeconds: 10,
+                respondToMcuVersionResponse: false,
+                timeStart: "off",
+            })],
         exposes: [
             e.energy(),
             e.voltage(),
