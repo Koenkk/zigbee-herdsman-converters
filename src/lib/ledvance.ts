@@ -1,12 +1,11 @@
 import {Zcl} from "zigbee-herdsman";
-import * as m from "../lib/modernExtend";
-import type {Fz, KeyValue, Tz} from "../lib/types";
+import type {Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
-import {isObject} from "./utils";
+import * as m from "./modernExtend";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
 
-export const ledvanceExtend = {
+const ledvanceExtend = {
     addmanuSpecificOsramCluster: () =>
         m.deviceAddCustomCluster("manuSpecificOsram", {
             ID: 0xfc0f,
@@ -71,11 +70,16 @@ export function ledvanceOnOff(args?: m.OnOffArgs) {
     return m.onOff(args);
 }
 
-export function ledvanceLight(args?: m.LightArgs) {
+export function ledvanceLight(args?: m.LightArgs): ModernExtend {
     args = {powerOnBehavior: false, ota: true, ...args};
     if (args.colorTemp) args.colorTemp.startup = false;
-    if (args.color) args.color = {modes: ["xy", "hs"], ...(isObject(args.color) ? args.color : {})};
-    const result = m.light(args);
-    result.toZigbee.push(ledvanceTz.ledvance_commands);
-    return result;
+    if (args.color) args.color = {modes: ["xy", "hs"], ...(utils.isObject(args.color) ? args.color : {})};
+    const base = m.light(args);
+    const customCluster = ledvanceExtend.addmanuSpecificOsramCluster();
+    return {
+        ...base,
+        toZigbee: [...base.toZigbee, ledvanceTz.ledvance_commands],
+        configure: [...(base.configure ?? []), ...(customCluster.configure ?? [])],
+        isModernExtend: true,
+    };
 }
