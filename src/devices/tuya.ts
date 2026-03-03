@@ -486,6 +486,23 @@ const trv603ScheduleConverter = (dayNumber: number) => {
 };
 
 const tzLocal = {
+    acmelec_ae720k_state_double_on: {
+        key: ["state"],
+        convertSet: async (entity, key, value, meta) => {
+            const on = String(value).toLowerCase() === "on";
+            if (!on) {
+                await tuya.sendDataPointBool(entity, 1, false);
+                return {state: {state: "OFF"}};
+            }
+
+            // AE-720K requires ON twice (similar to pressing ON twice on device)
+            await tuya.sendDataPointBool(entity, 1, true);
+            await new Promise((r) => setTimeout(r, 220));
+            await tuya.sendDataPointBool(entity, 1, true);
+
+            return {state: {state: "ON"}};
+        },
+    } satisfies Tz.Converter,
     ts0049_countdown: {
         key: ["water_countdown"],
         convertSet: async (entity, key, value, meta) => {
@@ -20950,105 +20967,60 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-// Put this helper near other local converters in the same file:
-const acmelecLocalTemp = {
-    from: (v) => (typeof v === "number" && v > 60 ? v / 10 : v), // supports both 257->25.7 and 26->26
-    to: (v) => v, // not used (read-only)
-};
-
-// Double-ON handler for AE-720K
-const tzLocal = {
-    acmelec_ae720k_state_double_on: {
-        key: ["state"],
-        convertSet: async (entity, key, value, meta) => {
-            const on =
-                value === "ON" ||
-                value === 1 ||
-                value === true ||
-                String(value).toLowerCase() === "on";
-
-            if (!on) {
-                await tuya.sendDataPointBool(entity, 1, false);
-                return {state: "OFF"};
-            }
-
-            // AE-720K requires ON twice (similar to pressing ON twice on device)
-            await tuya.sendDataPointBool(entity, 1, true);
-            await new Promise((r) => setTimeout(r, 220));
-            await tuya.sendDataPointBool(entity, 1, true);
-
-            return {state: "ON"};
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_mul9abs3"]),
+        model: "AE-720K",
+        vendor: "ACMELEC",
+        description: "Compatible with Daikin vrv system",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        toZigbee: [tzLocal.acmelec_ae720k_state_double_on],
+        exposes: [
+            // Same wording as AE-940K doc: state is binary and write-only
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
+            e
+                .climate()
+                .withSystemMode(["cool", "heat", "fan_only", "dry"], ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 16, 32, 1, ea.STATE_SET)
+                .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
+                .withLocalTemperature(ea.STATE),
+            e.child_lock(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        cool: tuya.enum(0),
+                        heat: tuya.enum(1),
+                        fan_only: tuya.enum(2),
+                        dry: tuya.enum(3),
+                    }),
+                ],
+                [16, "current_heating_setpoint", tuya.valueConverter.raw],
+                [
+                    28,
+                    "fan_mode",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        medium: tuya.enum(1),
+                        high: tuya.enum(2),
+                        auto: tuya.enum(3),
+                    }),
+                ],
+                [
+                    24,
+                    "local_temperature",
+                    {
+                        from: (v) => (typeof v === "number" && v > 60 ? v / 10 : v), // supports both 257->25.7 and 26->26
+                        to: (v) => v, // not used (read-only)
+                    },
+                ],
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+            ],
         },
     },
-};
-
-{
-    fingerprint: tuya.fingerprint("TS0601", ["_TZE284_mul9abs3"]),
-    model: "AE-720K",
-    vendor: "ACMELEC",
-    description: "Compatible with Daikin vrv system",
-
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tzLocal.acmelec_ae720k_state_double_on, tuya.tz.datapoints],
-    configure: tuya.configureMagicPacket,
-
-    // keep tuyaBase for time handling etc.
-    extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
-
-    exposes: [
-        // Same wording as AE-940K doc: state is binary and write-only
-        e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
-
-        e
-            .climate()
-            .withSystemMode(["cool", "heat", "fan_only", "dry"], ea.STATE_SET)
-            .withSetpoint("current_heating_setpoint", 16, 32, 1, ea.STATE_SET)
-            .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
-            .withLocalTemperature(ea.STATE),
-
-        e.child_lock(),
-    ],
-
-    meta: {
-        tuyaDatapoints: [
-            // DP1: state (write-only in practice, but mapping is fine)
-            [1, "state", tuya.valueConverter.onOff],
-
-            // DP2: system mode
-            [
-                2,
-                "system_mode",
-                tuya.valueConverterBasic.lookup({
-                    cool: tuya.enum(0),
-                    heat: tuya.enum(1),
-                    fan_only: tuya.enum(2),
-                    dry: tuya.enum(3),
-                }),
-            ],
-
-            // DP16: setpoint (integer °C on your devices)
-            [16, "current_heating_setpoint", tuya.valueConverter.raw],
-
-            // DP28: fan
-            [
-                28,
-                "fan_mode",
-                tuya.valueConverterBasic.lookup({
-                    low: tuya.enum(0),
-                    medium: tuya.enum(1),
-                    high: tuya.enum(2),
-                    auto: tuya.enum(3),
-                }),
-            ],
-
-            // DP24: local temperature (common on these controllers; adjust if your log says otherwise)
-            [24, "local_temperature", acmelecLocalTemp],
-
-            // DP40: child lock
-            [40, "child_lock", tuya.valueConverter.lockUnlock],
-        ],
-    },
-},
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mul9abs3"]),
         model: "AE-669K",
