@@ -5,7 +5,7 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
 import {centraliteExtend, fzLocal as fzCentralite, type ManuSpecificCentraliteHumidity} from "./centralite";
 
 const e = exposes.presets;
@@ -47,7 +47,7 @@ export const fzLocal = {
         cluster: "manuSpecificSamsungAccelerometer",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const payload: KeyValueAny = {};
+            const payload: KeyValue = {};
             if (msg.data.acceleration !== undefined) payload.moving = msg.data.acceleration === 1;
 
             // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy#L222
@@ -149,14 +149,26 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryVoltage(endpoint);
             const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
-            // @ts-expect-error ignore
-            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer">("xAxis", 10, constants.repInterval.MINUTE, 1);
+            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "xAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadX, options);
-            // @ts-expect-error ignore
-            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer">("yAxis", 10, constants.repInterval.MINUTE, 1);
+            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "yAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadY, options);
-            // @ts-expect-error ignore
-            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer">("zAxis", 10, constants.repInterval.MINUTE, 1);
+            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "zAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadZ, options);
             // Has Unknown power source, force it.
             device.powerSource = "Battery";
@@ -341,14 +353,26 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryVoltage(endpoint);
             const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.MINUTE, 1);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
-            // @ts-expect-error ignore
-            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer">("xAxis", 10, constants.repInterval.MINUTE, 1);
+            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "xAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadX, options);
-            // @ts-expect-error ignore
-            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer">("yAxis", 10, constants.repInterval.MINUTE, 1);
+            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "yAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadY, options);
-            // @ts-expect-error ignore
-            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer">("zAxis", 10, constants.repInterval.MINUTE, 1);
+            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "zAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadZ, options);
             // Has Unknown power source, force it.
             device.powerSource = "Battery";
@@ -372,16 +396,18 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.write("genPollCtrl", {checkinInterval: 14400});
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.HOUR, 5);
+            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "acceleration",
+                10,
+                constants.repInterval.HOUR,
+                5,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
-            // @ts-expect-error ignore
-            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer">("xAxis", 10, constants.repInterval.HOUR, 5);
+            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>("xAxis", 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadX, options);
-            // @ts-expect-error ignore
-            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer">("yAxis", 10, constants.repInterval.HOUR, 5);
+            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>("yAxis", 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadY, options);
-            // @ts-expect-error ignore
-            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer">("zAxis", 10, constants.repInterval.HOUR, 5);
+            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>("zAxis", 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadZ, options);
         },
         exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],
