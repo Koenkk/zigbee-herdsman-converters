@@ -10,7 +10,7 @@ import {assertString, precisionRound} from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
-interface ElkoThermostatCluster {
+export interface ElkoThermostatCluster {
     attributes: {
         elkoLoad: number;
         elkoDisplayText: string;
@@ -117,11 +117,11 @@ const elkoExtend = {
             key: ["system_mode", "local_temperature_calibration"],
             convertSet: async (entity, key, value, meta) => {
                 if (key === "system_mode") {
-                    await entity.write("hvacThermostat", {elkoPowerStatus: value === "heat" ? 1 : 0});
+                    await entity.write<"hvacThermostat", ElkoThermostatCluster>("hvacThermostat", {elkoPowerStatus: value === "heat" ? 1 : 0});
                     return {state: {[key]: value}};
                 }
                 if (key === "local_temperature_calibration") {
-                    await entity.write("hvacThermostat", {elkoCalibration: Math.round(Number(value) * 10)});
+                    await entity.write<"hvacThermostat", ElkoThermostatCluster>("hvacThermostat", {elkoCalibration: Math.round(Number(value) * 10)});
                     return {state: {[key]: value}};
                 }
             },
