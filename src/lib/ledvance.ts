@@ -5,6 +5,17 @@ import * as m from "./modernExtend";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
 
+interface OsramCluster {
+    attributes: never;
+    commands: {
+        // biome-ignore lint/complexity/noBannedTypes: empty payload
+        saveStartupParams: {};
+        // biome-ignore lint/complexity/noBannedTypes: empty payload
+        resetStartupParams: {};
+    };
+    commandResponses: never;
+}
+
 const ledvanceExtend = {
     addmanuSpecificOsramCluster: () =>
         m.deviceAddCustomCluster("manuSpecificOsram", {
