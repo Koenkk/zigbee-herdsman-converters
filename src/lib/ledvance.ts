@@ -56,9 +56,19 @@ export const ledvanceTz = {
                 }
             } else if (key === "osram_remember_state" || key === "remember_state") {
                 if (value === true) {
-                    await entity.command("manuSpecificOsram", "saveStartupParams", {}, manufacturerOptions);
+                    await entity.command<"manuSpecificOsram", "saveStartupParams", OsramCluster>(
+                        "manuSpecificOsram",
+                        "saveStartupParams",
+                        {},
+                        manufacturerOptions,
+                    );
                 } else if (value === false) {
-                    await entity.command("manuSpecificOsram", "resetStartupParams", {}, manufacturerOptions);
+                    await entity.command<"manuSpecificOsram", "resetStartupParams", OsramCluster>(
+                        "manuSpecificOsram",
+                        "resetStartupParams",
+                        {},
+                        manufacturerOptions,
+                    );
                 }
             }
         },

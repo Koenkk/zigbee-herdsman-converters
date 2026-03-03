@@ -32,6 +32,12 @@ export const thermostatProgrammingOperationModes: KeyValueNumberString = {
     4: "eco",
 };
 
+export const thermostatSetpointChangeSource: KeyValueNumberString = {
+    0: "manual",
+    1: "schedule",
+    2: "externally",
+};
+
 export const thermostatSystemModes: KeyValueNumberString = {
     0: "off",
     1: "auto",

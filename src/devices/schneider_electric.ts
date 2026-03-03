@@ -24,6 +24,14 @@ interface SchneiderOccupancyConfig {
     commandResponses: never;
 }
 
+export interface WiserDeviceInfo {
+    attributes: {
+        deviceInfo: string;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface SchneiderVisaConfig {
     attributes: {
         indicatorLuminanceLevel: number;
@@ -37,6 +45,24 @@ interface SchneiderVisaConfig {
         key2EventNotification: number;
         key3EventNotification: number;
         key4EventNotification: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SchneiderLightSwitchConfiguration {
+    attributes: {
+        ledIndication: number;
+        switchActions: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SchneiderFanSwitchConfiguration {
+    attributes: {
+        ledIndication: number;
+        ledOrientation: number;
     };
     commands: never;
     commandResponses: never;
@@ -116,7 +142,7 @@ function indicatorMode(endpoint?: string) {
     if (endpoint) {
         description = `Set Indicator Mode for ${endpoint} switch.`;
     }
-    return m.enumLookup({
+    return m.enumLookup<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>({
         name: "indicator_mode",
         lookup: {
             reverse_with_load: 2,
@@ -132,7 +158,7 @@ function indicatorMode(endpoint?: string) {
 }
 
 function socketIndicatorMode() {
-    return m.enumLookup({
+    return m.enumLookup<"manuSpecificSchneiderFanSwitchConfiguration", SchneiderFanSwitchConfiguration>({
         name: "indicator_mode",
         lookup: {
             reverse_with_load: 0,
@@ -147,7 +173,7 @@ function socketIndicatorMode() {
 }
 
 function evlinkIndicatorMode() {
-    return m.enumLookup({
+    return m.enumLookup<"manuSpecificSchneiderFanSwitchConfiguration", SchneiderFanSwitchConfiguration>({
         name: "indicator_mode",
         lookup: {
             default: 1,
@@ -161,7 +187,7 @@ function evlinkIndicatorMode() {
 
 function fanIndicatorMode() {
     const description = "Set Indicator Mode.";
-    return m.enumLookup({
+    return m.enumLookup<"manuSpecificSchneiderFanSwitchConfiguration", SchneiderFanSwitchConfiguration>({
         name: "indicator_mode",
         lookup: {
             always_on: 3,
@@ -176,7 +202,7 @@ function fanIndicatorMode() {
 
 function fanIndicatorOrientation() {
     const description = "Set Indicator Orientation.";
-    return m.enumLookup({
+    return m.enumLookup<"manuSpecificSchneiderFanSwitchConfiguration", SchneiderFanSwitchConfiguration>({
         name: "indicator_orientation",
         lookup: {
             horizontal_left: 2,
@@ -195,7 +221,7 @@ function switchActions(endpoint?: string) {
     if (endpoint) {
         description = `Set Switch Action for ${endpoint} Button.`;
     }
-    return m.enumLookup({
+    return m.enumLookup<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>({
         name: "switch_actions",
         lookup: {
             light: 0,
@@ -561,8 +587,8 @@ const schneiderElectricExtend = {
             entityCategory: "config",
             access: "ALL",
             lookup: {
-                Contactor: 1,
-                Pilot: 3,
+                contactor: 1,
+                pilot: 3,
             },
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         }),
@@ -1031,7 +1057,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport">,
+    } satisfies Fz.Converter<"wiserDeviceInfo", WiserDeviceInfo, "attributeReport">,
 };
 
 export const definitions: DefinitionWithExtend[] = [

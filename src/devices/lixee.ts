@@ -1,5 +1,6 @@
 import {Buffer} from "node:buffer";
 import {Zcl} from "zigbee-herdsman";
+import {DataType} from "zigbee-herdsman/dist/zspec/zcl";
 import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import {repInterval} from "../lib/constants";
@@ -1872,6 +1873,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZLinky_TIC",
         vendor: "LiXee",
         description: "Lixee ZLinky",
+        version: "0.0.1",
         fromZigbee: [fzLocal.lixee_metering, fz.meter_identification, fzLocal.lixee_ha_electrical_measurement, fzLocal.lixee_private_fz],
         toZigbee: [],
         exposes: (device, options) => {
@@ -2057,6 +2059,18 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Lixee ZiPulses",
         fromZigbee: [fz.battery, fz.temperature, fz.metering, fzZiPulses],
         toZigbee: [tzSeMetering],
+        extend: [
+            m.deviceAddCustomCluster("seMetering", {
+                ID: 0x0702,
+                attributes: {
+                    unitOfMeasure: {ID: 0x0300, type: DataType.ENUM8, required: true, max: 0xff, default: 0x00, write: true},
+                    multiplier: {ID: 0x0301, type: DataType.UINT24, max: 0xffffff, write: true},
+                    divisor: {ID: 0x0302, type: DataType.UINT24, max: 0xffffff, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.battery(),
             e.battery_voltage(),

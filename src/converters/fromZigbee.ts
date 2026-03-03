@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import type {WiserDeviceInfo} from "src/devices/schneider_electric";
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -93,8 +94,8 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             result[postfixWithEndpointName("setpoint_change_amount", msg, model, meta)] = msg.data.setpointChangeAmount / 100;
         }
         if (msg.data.setpointChangeSource !== undefined) {
-            const lookup: KeyValueAny = {0: "manual", 1: "schedule", 2: "externally"};
-            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] = lookup[msg.data.setpointChangeSource];
+            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] =
+                constants.thermostatSetpointChangeSource[msg.data.setpointChangeSource];
         }
         if (msg.data.setpointChangeSourceTimeStamp !== undefined) {
             const date = new Date(2000, 0, 1);
@@ -2146,17 +2147,6 @@ export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "command
         };
     },
 };
-export const terncy_knob: Fz.Converter<"manuSpecificClusterAduroSmart", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "manuSpecificClusterAduroSmart",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (typeof msg.data["27"] === "number") {
-            const direction = msg.data["27"] > 0 ? "clockwise" : "counterclockwise";
-            const number = Math.abs(msg.data["27"]) / 12;
-            return {action: "rotate", action_direction: direction, action_number: number};
-        }
-    },
-};
 export const DTB190502A1: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
@@ -2203,21 +2193,6 @@ export const ZigUP: Fz.Converter<"genOnOff", undefined, ["attributeReport", "rea
             reason: lookup[msg.data["41367"] as number],
             [`${ds18b20Id}`]: ds18b20Value,
         };
-    },
-};
-export const terncy_contact: Fz.Converter<"genBinaryInput", undefined, "attributeReport"> = {
-    cluster: "genBinaryInput",
-    type: "attributeReport",
-    convert: (model, msg, publish, options, meta) => {
-        return {contact: msg.data.presentValue === 0};
-    },
-};
-export const terncy_temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "msTemperatureMeasurement",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const temperature = msg.data.measuredValue / 10.0;
-        return {temperature: temperature};
     },
 };
 export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]> = {
@@ -3488,37 +3463,6 @@ export const kmpcil_res005_on_off: Fz.Converter<"genBinaryOutput", undefined, ["
         return {state: msg.data.presentValue === 0 ? "OFF" : "ON"};
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const _3310_humidity: Fz.Converter<"manuSpecificCentraliteHumidity", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "manuSpecificCentraliteHumidity",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const humidity = msg.data.measuredValue / 100.0;
-        return {humidity};
-    },
-};
-export const smartthings_acceleration: Fz.Converter<"manuSpecificSamsungAccelerometer", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "manuSpecificSamsungAccelerometer",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        if (msg.data.acceleration !== undefined) payload.moving = msg.data.acceleration === 1;
-
-        // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy#L222
-        /*
-                The axes reported by the sensor are mapped differently in the SmartThings DTH.
-                Preserving that functionality here.
-                xyzResults.x = z
-                xyzResults.y = y
-                xyzResults.z = -x
-            */
-        if (msg.data.z_axis !== undefined) payload.x_axis = msg.data.z_axis;
-        if (msg.data.y_axis !== undefined) payload.y_axis = msg.data.y_axis;
-        if (msg.data.x_axis !== undefined) payload.z_axis = -msg.data.x_axis;
-
-        return payload;
-    },
-};
 export const byun_smoke_false: Fz.Converter<"pHMeasurement", undefined, ["attributeReport"]> = {
     cluster: "pHMeasurement",
     type: ["attributeReport"],
@@ -4562,7 +4506,7 @@ export const idlock_fw: Fz.Converter<"genBasic", undefined, ["attributeReport", 
         return result;
     },
 };
-export const schneider_ui_action: Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport"> = {
+export const schneider_ui_action: Fz.Converter<"wiserDeviceInfo", WiserDeviceInfo, "attributeReport"> = {
     cluster: "wiserDeviceInfo",
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
@@ -5216,52 +5160,6 @@ export const eurotronic_thermostat: Fz.Converter<"hvacThermostat", undefined, ["
             }
         }
         return result;
-    },
-};
-export const terncy_raw: Fz.Converter<"manuSpecificClusterAduroSmart", undefined, "raw"> = {
-    cluster: "manuSpecificClusterAduroSmart",
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        // 13,40,18,104, 0,8,1 - single
-        // 13,40,18,22,  0,17,1
-        // 13,40,18,32,  0,18,1
-        // 13,40,18,6,   0,16,1
-        // 13,40,18,111, 0,4,2 - double
-        // 13,40,18,58,  0,7,2
-        // 13,40,18,6,   0,2,3 - triple
-        // motion messages:
-        // 13,40,18,105, 4,167,0,7 - motion on right side
-        // 13,40,18,96,  4,27,0,5
-        // 13,40,18,101, 4,27,0,7
-        // 13,40,18,125, 4,28,0,5
-        // 13,40,18,85,  4,28,0,7
-        // 13,40,18,3,   4,24,0,5
-        // 13,40,18,81,  4,10,1,7
-        // 13,40,18,72,  4,30,1,5
-        // 13,40,18,24,  4,25,0,40 - motion on left side
-        // 13,40,18,47,  4,28,0,56
-        // 13,40,18,8,   4,32,0,40
-        let value = null;
-        if (msg.data[4] === 0) {
-            value = msg.data[6];
-            if (1 <= value && value <= 3) {
-                const actionLookup: KeyValueAny = {1: "single", 2: "double", 3: "triple", 4: "quadruple"};
-                return {action: actionLookup[value]};
-            }
-        } else if (msg.data[4] === 4) {
-            value = msg.data[7];
-            const sidelookup: KeyValueAny = {5: "right", 7: "right", 40: "left", 56: "left"};
-            if (sidelookup[value]) {
-                const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
-                const payload = occupancy_with_timeout.convert(model, newMsg, publish, options, meta) as KeyValueAny;
-                if (payload) {
-                    payload.action_side = sidelookup[value];
-                    payload.side = sidelookup[value]; /* legacy: remove this line (replaced by action_side) */
-                }
-
-                return payload;
-            }
-        }
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`

@@ -486,6 +486,23 @@ const trv603ScheduleConverter = (dayNumber: number) => {
 };
 
 const tzLocal = {
+    acmelec_ae720k_state_double_on: {
+        key: ["state"],
+        convertSet: async (entity, key, value, meta) => {
+            const on = String(value).toLowerCase() === "on";
+            if (!on) {
+                await tuya.sendDataPointBool(entity, 1, false);
+                return {state: {state: "OFF"}};
+            }
+
+            // AE-720K requires ON twice (similar to pressing ON twice on device)
+            await tuya.sendDataPointBool(entity, 1, true);
+            await new Promise((r) => setTimeout(r, 220));
+            await tuya.sendDataPointBool(entity, 1, true);
+
+            return {state: {state: "ON"}};
+        },
+    } satisfies Tz.Converter,
     ts0049_countdown: {
         key: ["water_countdown"],
         convertSet: async (entity, key, value, meta) => {
@@ -1780,7 +1797,7 @@ export const definitions: DefinitionWithExtend[] = [
                             };
 
                             if (value === 0) {
-                                return "";
+                                return "no_alarm";
                             }
 
                             for (const [bit, name] of Object.entries(faultMap)) {
@@ -1885,7 +1902,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Outlet water temperature")
                 .withValueMin(0)
                 .withValueStep(0.01),
-            e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Power supply voltage").withValueMin(0).withValueStep(0.01),
+            e.battery_voltage(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1974,7 +1991,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // DP 22 - Outlet Water Temperature
                 [22, "outlet_water_temperature", tuya.valueConverter.divideBy100],
                 // DP 24 - Power Supply Voltage
-                [26, "voltage", tuya.valueConverter.divideBy100],
+                [26, "battery_voltage", tuya.valueConverter.divideBy100],
             ],
         },
         options: [
@@ -2113,7 +2130,7 @@ export const definitions: DefinitionWithExtend[] = [
                             };
 
                             if (value === 0) {
-                                return "";
+                                return "no_alarm";
                             }
 
                             for (const [bit, name] of Object.entries(faultMap)) {
@@ -20951,6 +20968,60 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_mul9abs3"]),
+        model: "AE-720K",
+        vendor: "ACMELEC",
+        description: "Compatible with Daikin vrv system",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        toZigbee: [tzLocal.acmelec_ae720k_state_double_on],
+        exposes: [
+            // Same wording as AE-940K doc: state is binary and write-only
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
+            e
+                .climate()
+                .withSystemMode(["cool", "heat", "fan_only", "dry"], ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 16, 32, 1, ea.STATE_SET)
+                .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
+                .withLocalTemperature(ea.STATE),
+            e.child_lock(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        cool: tuya.enum(0),
+                        heat: tuya.enum(1),
+                        fan_only: tuya.enum(2),
+                        dry: tuya.enum(3),
+                    }),
+                ],
+                [16, "current_heating_setpoint", tuya.valueConverter.raw],
+                [
+                    28,
+                    "fan_mode",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        medium: tuya.enum(1),
+                        high: tuya.enum(2),
+                        auto: tuya.enum(3),
+                    }),
+                ],
+                [
+                    24,
+                    "local_temperature",
+                    {
+                        from: (v) => (typeof v === "number" && v > 60 ? v / 10 : v), // supports both 257->25.7 and 26->26
+                        to: (v) => v, // not used (read-only)
+                    },
+                ],
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mul9abs3"]),
         model: "AE-669K",
         vendor: "ACMELEC",
@@ -21187,12 +21258,16 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3002_kq3kqwjt",
             "_TZ3002_ybtqbyk3",
             "_TZ3002_iedhxgyi",
+            "_TZ3002_vsom92pp",
             "_TZ300A_vqrs45nj",
         ]),
         model: "TS0726_3_gang_scene_switch",
         vendor: "Tuya",
         description: "3 gang switch with scene and backlight",
-        whiteLabel: [tuya.whitelabel("BSEED", "EC-GL86ZPCS31", "3 gang switch with scene and backlight", ["_TZ3002_iedhxgyi"])],
+        whiteLabel: [
+            tuya.whitelabel("BSEED", "EC-GL86ZPCS31", "3 gang switch with scene and backlight", ["_TZ3002_iedhxgyi"]),
+            tuya.whitelabel("BSEED", "EC-SL-FK86ZPCS31", "3 gang switch with scene and backlight (no neutral line required)", ["_TZ3002_vsom92pp"]),
+        ],
         fromZigbee: [fzLocal.TS0726_action],
         exposes: [e.action(["scene_1", "scene_2", "scene_3"])],
         extend: [
@@ -21217,11 +21292,21 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_rsylfthg", "_TZ3002_umdkr64x", "_TZ3002_hkaktryd", "_TZ3002_pzao9ls1", "_TZ300A_vkflnsl0"]),
+        fingerprint: tuya.fingerprint("TS0726", [
+            "_TZ3000_rsylfthg",
+            "_TZ3002_umdkr64x",
+            "_TZ3002_hkaktryd",
+            "_TZ3002_pzao9ls1",
+            "_TZ300A_vkflnsl0",
+            // "BSEED_TODO",
+        ]),
         model: "TS0726_4_gang_scene_switch",
         vendor: "Tuya",
         description: "4 gang switch with scene and backlight",
-        whiteLabel: [tuya.whitelabel("BSEED", "EC-GL86ZPCS41", "4 gang switch with scene and backlight", ["_TZ3002_pzao9ls1"])],
+        whiteLabel: [
+            tuya.whitelabel("BSEED", "EC-GL86ZPCS41", "4 gang switch with scene and backlight", ["_TZ3002_pzao9ls1"]),
+            // tuya.whitelabel("BSEED", "EC-SL-FK86ZPCS41", "4 gang switch with scene and backlight (no neutral line required)", ["BSEED_TODO"]),
+        ],
         fromZigbee: [fzLocal.TS0726_action],
         exposes: [e.action(["scene_1", "scene_2", "scene_3", "scene_4"])],
         extend: [
