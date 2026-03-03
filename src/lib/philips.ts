@@ -19,10 +19,17 @@ const ea = exposes.access;
 const e = exposes.presets;
 const eNumeric = exposes.Numeric;
 
+// Gradient color XY scaling constants per Bifrost spec.
+// MAX_X = 0.7347: maximum X inside the visible light spectrum / Wide Gamut red X.
+// MAX_Y = 0.8264: outer bound of the Wide Gamut Y axis.
+// NOTE: many older implementations incorrectly use 0.8431 for MAX_Y.
+const GRADIENT_COLORS_MAX_X = 0.7347;
+const GRADIENT_COLORS_MAX_Y = 0.8264;
+
 const encodeRGBToScaledGradient = (hex: string) => {
     const xy = ColorRGB.fromHex(hex).toXY();
-    const x = (xy.x * 4095) / 0.7347;
-    const y = (xy.y * 4095) / 0.8413;
+    const x = (xy.x * 4095) / GRADIENT_COLORS_MAX_X;
+    const y = (xy.y * 4095) / GRADIENT_COLORS_MAX_Y;
     const xx = Math.round(x).toString(16).padStart(3, "0");
     const yy = Math.round(y).toString(16).padStart(3, "0");
 
@@ -33,8 +40,8 @@ const decodeScaledGradientToRGB = (p: string) => {
     const x = p[3] + p[0] + p[1];
     const y = p[4] + p[5] + p[2];
 
-    const xx = Number(((Number.parseInt(x, 16) * 0.7347) / 4095).toFixed(4));
-    const yy = Number(((Number.parseInt(y, 16) * 0.8413) / 4095).toFixed(4));
+    const xx = Number(((Number.parseInt(x, 16) * GRADIENT_COLORS_MAX_X) / 4095).toFixed(4));
+    const yy = Number(((Number.parseInt(y, 16) * GRADIENT_COLORS_MAX_Y) / 4095).toFixed(4));
 
     return new ColorXY(xx, yy).toRGB().toHEX();
 };
@@ -53,10 +60,11 @@ export const knownEffects = {
     "0a80": "sparkle",
     "0b80": "opal",
     "0c80": "glisten",
-    "0d80": "underwater",
-    "0e80": "cosmos",
-    "0f80": "sunbeam",
-    "1080": "enchant",
+    "0d80": "sunset",
+    "0e80": "underwater",
+    "0f80": "cosmos",
+    "1080": "sunbeam",
+    "1180": "enchant",
 };
 
 interface PhilipsContact {
@@ -90,9 +98,48 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", undefi
             }
             if (decoded.colorMirek !== undefined) {
                 retval["color_temp"] = decoded.colorMirek;
+                retval["color_mode"] = "color_temp";
             }
             if (decoded.colorXY !== undefined) {
                 retval["color"] = decoded.colorXY.toObject();
+                retval["color_mode"] = "xy";
+            }
+            if (decoded.fadeSpeed !== undefined) {
+                retval["transition"] = decoded.fadeSpeed;
+            }
+            if (decoded.effectType !== undefined) {
+                const effectNames: Record<number, string> = {
+                    [HueEffectType.NoEffect]: "none",
+                    [HueEffectType.Candle]: "candle",
+                    [HueEffectType.Fireplace]: "fireplace",
+                    [HueEffectType.Prism]: "colorloop",
+                    [HueEffectType.Sunrise]: "sunrise",
+                    [HueEffectType.Sparkle]: "sparkle",
+                    [HueEffectType.Opal]: "opal",
+                    [HueEffectType.Glisten]: "glisten",
+                    [HueEffectType.Sunset]: "sunset",
+                    [HueEffectType.Underwater]: "underwater",
+                    [HueEffectType.Cosmos]: "cosmos",
+                    [HueEffectType.Sunbeam]: "sunbeam",
+                    [HueEffectType.Enchant]: "enchant",
+                };
+                retval["effect"] = effectNames[decoded.effectType] ?? `unknown_0x${decoded.effectType.toString(16)}`;
+            }
+            if (decoded.effectSpeed !== undefined) {
+                retval["effect_speed"] = decoded.effectSpeed;
+            }
+            if (decoded.gradientColors !== undefined) {
+                retval["gradient"] = decoded.gradientColors.colors.map((c: ColorXY) => c.toRGB().toHEX());
+                const styleNames: Record<number, string> = {
+                    [HueGradientStyle.Linear]: "linear",
+                    [HueGradientStyle.Scattered]: "scattered",
+                    [HueGradientStyle.Mirrored]: "mirrored",
+                };
+                retval["gradient_style"] = styleNames[decoded.gradientColors.style] ?? "unknown";
+            }
+            if (decoded.gradientParams !== undefined) {
+                retval["gradient_scale"] = decoded.gradientParams.scale;
+                retval["gradient_offset"] = decoded.gradientParams.offset;
             }
         }
         logger.info(`convert() after parsing: ${JSON.stringify(retval)}`, "A");
@@ -125,6 +172,8 @@ const philipsModernExtend = {
         result.toZigbee = [];
 
         const keys = toZigbee.map((value, index, array) => value.key).flat().filter((value, index, array) => array.indexOf(value) == index);
+        // Add keys for Philips2-specific features not handled by standard converters
+        keys.push("effect_speed", "gradient_scale", "gradient_offset");
         const philipsLightTz = {
             key: keys,
             convertSet: async (entity, key, value, meta) => {
@@ -140,21 +189,26 @@ const philipsModernExtend = {
                     newState.state = data.onOff ? "ON" : "OFF";
                 }
                 if (message.brightness != null) {
-                    data.brightness = Number(message.brightness);
+                    // Bifrost spec: brightness values 0 and 255 are INVALID, valid range 1..254
+                    data.brightness = clamp(Number(message.brightness), 1, 254);
                 } else if (message.brightness_percent != null) {
-                    data.brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
+                    data.brightness = clamp(utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255), 1, 254);
                 }
                 if (data.brightness !== undefined) {
                     newState.brightness = data.brightness;
                 }
                 if (message.color != null) {
                     let newColor = libColor.Color.fromConverterArg(message.color);
-                    if (!newColor.isHSV()) {
+                    if (newColor.isHSV()) {
+                        // Convert HSV → RGB → XY instead of silently dropping
+                        const xy = newColor.hsv.toRGB().gammaCorrected().toXY().rounded(4);
+                        data.colorXY = xy;
+                    } else {
                         const xy = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY().rounded(4) : newColor.xy;
                         data.colorXY = xy;
-                        newState.color_mode = "xy";
-                        newState.color = xy.toObject();
                     }
+                    newState.color_mode = "xy";
+                    newState.color = data.colorXY.toObject();
                 }
                 if (message.color_temp != null || message.color_temp_percent != null) {
                     const [colorTempMin, colorTempMax] = light.findColorTempRange(entity);
@@ -175,9 +229,39 @@ const philipsModernExtend = {
                     newState.color_temp = data.colorMirek;
                 }
 
-                const foo = Buffer.from(EncodeManuSpecificPhilips2(data));
-                if (foo.every((val) => val == 0)) {
-                    logger.info(`convertSet() failed to parse`, "A");
+                // Map transition time to Philips2 fadeSpeed
+                // Bifrost spec: 0 = instant, practical range ~2..8, >0x100 = very slow
+                if (message.transition != null) {
+                    data.fadeSpeed = Math.round(Number(message.transition));
+                }
+
+                // Effect speed: 0.0 = slowest, 1.0 = fastest (maps to 0..255 byte)
+                if (message.effect_speed != null) {
+                    data.effectSpeed = clamp(Number(message.effect_speed), 0, 1);
+                }
+
+                // Gradient scale/offset: fixed-point 5.3 format, exposed as float
+                if (message.gradient_scale != null) {
+                    if (data.gradientParams === undefined) {
+                        data.gradientParams = {scale: Number(message.gradient_scale), offset: 0};
+                    } else {
+                        data.gradientParams.scale = Number(message.gradient_scale);
+                    }
+                }
+                if (message.gradient_offset != null) {
+                    if (data.gradientParams === undefined) {
+                        data.gradientParams = {scale: 1.0, offset: Number(message.gradient_offset)};
+                    } else {
+                        data.gradientParams.offset = Number(message.gradient_offset);
+                    }
+                }
+
+                const encodedPayload = Buffer.from(EncodeManuSpecificPhilips2(data));
+                // An empty Philips2Data encodes as just 2 zero bytes (the flags header).
+                // Check length rather than all-zeros, since a valid payload could
+                // legitimately contain zero-valued fields.
+                if (encodedPayload.length <= 2) {
+                    logger.info(`convertSet() no Philips2 fields to send, falling back to standard converters`, "A");
                     // We cannot parse this message, send it to the regular 'toZigbee' objects
                     // TODO: I am not sure this logic is correct; what if multiple keys overlap?
                     for (const tz of toZigbee) {
@@ -187,10 +271,10 @@ const philipsModernExtend = {
                     }
                 } else {
                     logger.info(`convertSet() after parsing: '${JSON.stringify(data)}'`, "A");
-                    logger.info(`convertSet(): ${foo.toString("hex")}`, "A");
+                    logger.info(`convertSet(): ${encodedPayload.toString("hex")}`, "A");
                     logger.info(`convertSet(): new state: '${JSON.stringify(newState)}'`, "A");
 
-                    const payload = {data: foo};
+                    const payload = {data: encodedPayload};
                     await entity.command("manuSpecificPhilips2", "multiColor", payload);
 
                     // TODO: syncColorState ruins the state, since it happily removes "state": "ON" from the KeyValue
@@ -200,7 +284,11 @@ const philipsModernExtend = {
             },
             convertGet: async (entity, key, meta) => {
                 logger.info(`convertGet() with key '${key}'`, "A");
-                await entity.read("manuSpecificPhilips2", ["state"]);
+                try {
+                    await entity.read("manuSpecificPhilips2", ["state"]);
+                } catch (e) {
+                    logger.debug(`Reading manuSpecificPhilips2 state failed: ${e}`, NS);
+                }
             },
         } satisfies Tz.Converter;
 
@@ -236,8 +324,44 @@ const philipsModernExtend = {
                     }
                 });
             }
+            // All Hue-specific effects per Bifrost spec
+            effects.push("sunset", "sparkle", "opal", "glisten", "underwater", "cosmos", "sunbeam", "enchant");
             effects.push("finish_effect", "stop_effect", "stop_hue_effect");
             result.exposes.push(...exposeEndpoints(e.enum("effect", ea.SET, effects), args.endpointNames));
+
+            // Expose effect_speed as a numeric 0..1 (0=slowest, 1=fastest)
+            result.exposes.push(
+                ...exposeEndpoints(
+                    new eNumeric("effect_speed", ea.SET)
+                        .withValueMin(0)
+                        .withValueMax(1)
+                        .withValueStep(0.01)
+                        .withDescription("Animation speed for the active effect (0=slowest, 1=fastest)"),
+                    args.endpointNames,
+                ),
+            );
+
+            if (args.gradient) {
+                // Expose gradient scale and offset as numerics (fixed-point 5.3 format)
+                result.exposes.push(
+                    ...exposeEndpoints(
+                        new eNumeric("gradient_scale", ea.SET)
+                            .withValueMin(0)
+                            .withValueMax(31)
+                            .withValueStep(0.125)
+                            .withDescription("Gradient scale (0=auto fit, 1.0+=number of colors visible)"),
+                        args.endpointNames,
+                    ),
+                    ...exposeEndpoints(
+                        new eNumeric("gradient_offset", ea.SET)
+                            .withValueMin(0)
+                            .withValueMax(31)
+                            .withValueStep(0.125)
+                            .withDescription("Gradient color offset (0=start from first color)"),
+                        args.endpointNames,
+                    ),
+                );
+            }
         }
 
         const customCluster = modernExtend.deviceAddCustomCluster("manuSpecificPhilips3", {
@@ -425,7 +549,11 @@ const philipsTz = {
                 await entity.command("manuSpecificPhilips2", "multiColor", payload);
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificPhilips2", ["state"]);
+                try {
+                    await entity.read("manuSpecificPhilips2", ["state"]);
+                } catch (e) {
+                    logger.debug(`Reading manuSpecificPhilips2 state for gradient failed: ${e}`, NS);
+                }
             },
         } satisfies Tz.Converter;
     },
@@ -647,6 +775,7 @@ export const hueEffects = {
     sparkle: "2100010a",
     opal: "2100010b",
     glisten: "2100010c",
+    sunset: "2100010d",
     underwater: "2100010e",
     cosmos: "2100010f",
     sunbeam: "21000110",
@@ -802,7 +931,7 @@ const BRIGHTNESS_DETAILS: HueTypeDetails<'brightness'> = {
     name: 'brightness',
     flag: HueFlags.Brightness,
     maxLength: 1,
-    encode: (v,p,d) => {v.setUint8(p, d.brightness); return p+1;},
+    encode: (v,p,d) => {v.setUint8(p, clamp(d.brightness, 1, 254)); return p+1;},
     decode: (v,p,d) => {logger.info(`Retrieving brightness from position ${p}: '${v.getUint8(p)}'`, "A"); d.brightness=v.getUint8(p); return p+1;},
 }
 
@@ -852,8 +981,8 @@ const GRADIENT_PARAMS_DETAILS: HueTypeDetails<'gradientParams'> = {
     flag: HueFlags.GradientParams,
     maxLength: 2,
     encode: (v,p,d) => {
-        v.setUint8(p, clamp(d.gradientParams.scale * 8, 0, 255));
-        v.setUint8(p+1, clamp(d.gradientParams.offset * 8, 0, 255));
+        v.setUint8(p, Math.round(clamp(d.gradientParams.scale * 8, 0, 255)));
+        v.setUint8(p+1, Math.round(clamp(d.gradientParams.offset * 8, 0, 255)));
         return p+2;
     },
     decode: (v,p,d) => {
@@ -873,15 +1002,17 @@ const EFFECT_SPEED_DETAILS: HueTypeDetails<'effectSpeed'> = {
     decode: (v,p,d) => {d.effectSpeed = scaleIntPow2ToFloat(v.getUint8(p),8); return p+1;},
 }
 
-const GRADIENT_COLORS_MAX_X = 0.7347;
-const GRADIENT_COLORS_MAX_Y = 0.8264;
+// GRADIENT_COLORS_MAX_X and GRADIENT_COLORS_MAX_Y defined at top of file
 
 const GRADIENT_COLORS_DETAILS: HueTypeDetails<'gradientColors'> = {
     name: 'gradientColors',
     flag: HueFlags.GradientColors,
-    maxLength: 5+(15*3),
+    // Max: 1 byte size + 4 bytes header + 9 colors * 3 bytes = 32 bytes
+    maxLength: 5+(9*3),
     encode: (v, p, d) => {
-        const color_count = clamp(d.gradientColors.colors.length,0,15);
+        // Bifrost spec: max 9 colors; 10+ causes device to reject entire message
+        const color_count = clamp(d.gradientColors.colors.length,0,9);
+        // Size byte: 4 bytes header (count + style + 2 reserved) + 3 bytes per color
         v.setUint8(p, 4 + (color_count * 3));
         v.setUint8(p + 1, color_count << 4);
         v.setUint8(p + 2, d.gradientColors.style);
@@ -889,17 +1020,25 @@ const GRADIENT_COLORS_DETAILS: HueTypeDetails<'gradientColors'> = {
         d.gradientColors.colors.slice(0, color_count).forEach(({x,y},i) => {
             const scaled_x = scaleFloatToIntPow2(x/GRADIENT_COLORS_MAX_X, 12);
             const scaled_y = scaleFloatToIntPow2(y/GRADIENT_COLORS_MAX_Y, 12);
+            // Byte packing per Bifrost spec:
+            //   byte 0: x[7:0]
+            //   byte 1: y[3:0] << 4 | x[11:8]
+            //   byte 2: y[11:4]
             v.setUint8(p+5 + (i*3), scaled_x & 0xff);
             v.setUint8(p+6 + (i*3), ((scaled_y & 0xf) << 4) | ((scaled_x & 0xf00) >> 8));
-            v.setUint8(p+7 + (i*3), scaled_y & 0xff)
+            v.setUint8(p+7 + (i*3), (scaled_y >> 4) & 0xff);
         });
-        return p+7+(3*color_count);
+        // Header: 1 byte size + 4 bytes (count, style, 2 reserved) = 5 bytes + 3*N colors
+        return p+5+(3*color_count);
     },
     decode: (v,p,d) => {
         const size = v.getUint8(p);
         const color_count = v.getUint8(p + 1) >> 4;
         //assert.equal(size, 4 + (color_count*3), "Gradient colors size does not match color count");
-        const style = v.getUint8(p + 2);
+        const rawStyle = v.getUint8(p + 2);
+        // Validate gradient style per Bifrost spec: Linear=0x00, Scattered=0x02, Mirrored=0x04
+        const validStyles = [HueGradientStyle.Linear, HueGradientStyle.Scattered, HueGradientStyle.Mirrored];
+        const style: HueGradientStyle = validStyles.includes(rawStyle) ? rawStyle : HueGradientStyle.Linear;
         const colors: ColorXY[] = Array.from(
             {length: color_count},
             (_, i) => {
@@ -917,8 +1056,14 @@ const GRADIENT_COLORS_DETAILS: HueTypeDetails<'gradientColors'> = {
     },
 }
 
+// Ordered as they appear in the wire format per Bifrost spec.
+// IMPORTANT: the wire order does NOT match the flag bit order.
+// Specifically, GRADIENT_COLORS (flag 0x0100) appears BEFORE
+// EFFECT_SPEED (flag 0x0080) and GRADIENT_PARAMS (flag 0x0040)
+// in the actual byte stream. Both encode and decode MUST iterate
+// in this order, not in flag-bit order.
+// Reference: https://github.com/chrivers/bifrost/blob/master/doc/hue-zigbee-format.md
 const HUE_DATA_TYPES = [
-    //Ordered as they appear in the data stream
     ON_OFF_DETAILS,
     BRIGHTNESS_DETAILS,
     COLOR_MIREK_DETAILS,
