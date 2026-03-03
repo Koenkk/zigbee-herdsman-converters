@@ -76,7 +76,8 @@ export function ledvanceLight(args?: m.LightArgs): ModernExtend {
     if (args.color) args.color = {modes: ["xy", "hs"], ...(utils.isObject(args.color) ? args.color : {})};
     const extend = m.light(args);
     const customCluster = ledvanceExtend.addmanuSpecificOsramCluster();
-    extend.toZigbee.push(ledvanceTz.ledvance_commands);
+    extend.onEvent = [...(customCluster.onEvent ?? []), ...(extend.onEvent ?? [])];
     extend.configure = [...(customCluster.configure ?? []), ...(extend.configure ?? [])];
+    extend.toZigbee.push(ledvanceTz.ledvance_commands);
     return extend;
 }
