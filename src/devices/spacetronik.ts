@@ -10,9 +10,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZB-DG02",
         vendor: "Spacetronik",
         description: "Gas leakage sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         meta: {
             tuyaDatapoints: [[1, "gas", tuya.valueConverter.trueFalse0]],
         },
