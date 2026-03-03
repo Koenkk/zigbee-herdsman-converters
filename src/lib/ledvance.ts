@@ -7,6 +7,17 @@ import {isObject} from "./utils";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
 
+interface OsramCluster {
+    attributes: never;
+    commands: {
+        // biome-ignore lint/complexity/noBannedTypes: empty payload
+        saveStartupParams: {};
+        // biome-ignore lint/complexity/noBannedTypes: empty payload
+        resetStartupParams: {};
+    };
+    commandResponses: never;
+}
+
 export const ledvanceFz = {
     pbc_level_to_action: {
         cluster: "genLevelCtrl",
@@ -43,9 +54,19 @@ export const ledvanceTz = {
                 }
             } else if (key === "osram_remember_state" || key === "remember_state") {
                 if (value === true) {
-                    await entity.command("manuSpecificOsram", "saveStartupParams", {}, manufacturerOptions);
+                    await entity.command<"manuSpecificOsram", "saveStartupParams", OsramCluster>(
+                        "manuSpecificOsram",
+                        "saveStartupParams",
+                        {},
+                        manufacturerOptions,
+                    );
                 } else if (value === false) {
-                    await entity.command("manuSpecificOsram", "resetStartupParams", {}, manufacturerOptions);
+                    await entity.command<"manuSpecificOsram", "resetStartupParams", OsramCluster>(
+                        "manuSpecificOsram",
+                        "resetStartupParams",
+                        {},
+                        manufacturerOptions,
+                    );
                 }
             }
         },

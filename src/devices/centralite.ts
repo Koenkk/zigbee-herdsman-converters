@@ -11,7 +11,7 @@ import type {DefinitionWithExtend, Fz} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
-interface ManuSpecificCentraliteHumidity {
+export interface ManuSpecificCentraliteHumidity {
     attributes: {
         /** ID=0x0000 | type=UINT16 | write=true | max=65535 */
         measuredValue: number;
@@ -370,9 +370,13 @@ export const definitions: DefinitionWithExtend[] = [
                     reportableChange: 10,
                 },
             ];
-            await endpoint.configureReporting("manuSpecificCentraliteHumidity", payload, {
-                manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
-            });
+            await endpoint.configureReporting<"manuSpecificCentraliteHumidity", ManuSpecificCentraliteHumidity>(
+                "manuSpecificCentraliteHumidity",
+                payload,
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
+                },
+            );
 
             await reporting.batteryVoltage(endpoint);
         },

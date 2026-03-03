@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import type {WiserDeviceInfo} from "src/devices/schneider_electric";
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -4527,7 +4528,7 @@ export const idlock_fw: Fz.Converter<"genBasic", undefined, ["attributeReport", 
         return result;
     },
 };
-export const schneider_ui_action: Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport"> = {
+export const schneider_ui_action: Fz.Converter<"wiserDeviceInfo", WiserDeviceInfo, "attributeReport"> = {
     cluster: "wiserDeviceInfo",
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {

@@ -6,7 +6,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
-import {centraliteExtend, fzLocal as fzCentralite} from "./centralite";
+import {centraliteExtend, fzLocal as fzCentralite, type ManuSpecificCentraliteHumidity} from "./centralite";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -342,9 +342,13 @@ export const definitions: DefinitionWithExtend[] = [
                     reportableChange: 10,
                 },
             ];
-            await endpoint.configureReporting("manuSpecificCentraliteHumidity", payload, {
-                manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
-            });
+            await endpoint.configureReporting<"manuSpecificCentraliteHumidity", ManuSpecificCentraliteHumidity>(
+                "manuSpecificCentraliteHumidity",
+                payload,
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
+                },
+            );
 
             await reporting.batteryVoltage(endpoint);
         },
