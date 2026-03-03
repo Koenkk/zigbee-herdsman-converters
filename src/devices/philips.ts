@@ -4248,6 +4248,27 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
+        zigbeeModel: ["929004611201", "929003812601", "929003812801"],
+        model: "929004611201",
+        vendor: "Philips",
+        description: "Hue Xamento White and Color Ambiance Spot (White)",
+        whiteLabel: [
+            {
+                model: "929003812601",
+                vendor: "Philips",
+                description: "Hue Xamento White and Color Ambiance Spot (Black)",
+                fingerprint: [{modelID: "929003812601"}],
+            },
+            {
+                model: "929003812801",
+                vendor: "Philips",
+                description: "Hue Xamento White and Color Ambiance Spot (Silver)",
+                fingerprint: [{modelID: "929003812801"}],
+            },
+        ],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["LWE008"],
         model: "929003021301",
         vendor: "Philips",
@@ -4594,13 +4615,6 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["929003812901_01", "929003812901_02", "929003812901_03"],
         model: "929003812901",
-        vendor: "Philips",
-        description: "Hue White and Color Ambiance GU10",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
-        zigbeeModel: ["929003812801"],
-        model: "929003812801",
         vendor: "Philips",
         description: "Hue White and Color Ambiance GU10",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],

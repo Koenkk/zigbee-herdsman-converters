@@ -301,6 +301,7 @@ import {definitions as somfy} from "./somfy";
 import {definitions as somgoms} from "./somgoms";
 import {definitions as sonoff} from "./sonoff";
 import {definitions as sowilo} from "./sowilo";
+import {definitions as spacetronik} from "./spacetronik";
 import {definitions as spotmau} from "./spotmau";
 import {definitions as sprut} from "./sprut";
 import {definitions as stello} from "./stello";
@@ -349,6 +350,7 @@ import {definitions as woolley} from "./woolley";
 import {definitions as woox} from "./woox";
 import {definitions as wyze} from "./wyze";
 import {definitions as xal} from "./xal";
+import {definitions as xenon} from "./xenon";
 import {definitions as xinghuoyuan} from "./xinghuoyuan";
 import {definitions as xyzroe} from "./xyzroe";
 import {definitions as yale} from "./yale";
@@ -357,6 +359,7 @@ import {definitions as ynoa} from "./ynoa";
 import {definitions as yokis} from "./yokis";
 import {definitions as yookee} from "./yookee";
 import {definitions as ysrsai} from "./ysrsai";
+import {definitions as zbeacon} from "./zbeacon";
 import {definitions as zemismart} from "./zemismart";
 import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
@@ -664,6 +667,7 @@ const definitions: DefinitionWithExtend[] = [
     ...somgoms,
     ...sonoff,
     ...sowilo,
+    ...spacetronik,
     ...spotmau,
     ...sprut,
     ...stello,
@@ -711,6 +715,7 @@ const definitions: DefinitionWithExtend[] = [
     ...wmun,
     ...wyze,
     ...xal,
+    ...xenon,
     ...xinghuoyuan,
     ...xyzroe,
     ...yale,
@@ -719,6 +724,7 @@ const definitions: DefinitionWithExtend[] = [
     ...yokis,
     ...yookee,
     ...ysrsai,
+    ...zbeacon,
     ...zemismart,
     ...zen,
     ...zigbeetlc,

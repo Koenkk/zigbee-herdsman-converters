@@ -1511,10 +1511,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["4512758"],
+        zigbeeModel: ["4512758", "4512759"],
         model: "4512758",
         vendor: "Namron",
         description: "Zigbee thermostat 16A",
+        whiteLabel: [{model: "4512759", fingerprint: [{modelID: "4512759"}]}],
         fromZigbee: [fzLocal.namron_thermostat2, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
         toZigbee: [
             {
@@ -1955,10 +1956,14 @@ export const definitions: DefinitionWithExtend[] = [
                 defaultIntervalSeconds: 60 * 60 * 24,
                 poll: async (device) => {
                     const endpoint = device.getEndpoint(1);
+
+                    // Device expects LOCAL Unix time, not UTC
+                    const localTimeSeconds = Math.floor(Date.now() / 1000) - new Date().getTimezoneOffset() * 60;
+
                     // Device does not asks for the time with binding, therefore we write the time every 24 hours
                     await endpoint.write("hvacThermostat", {
                         [0x800b]: {
-                            value: Date.now() / 1000,
+                            value: localTimeSeconds,
                             type: Zcl.DataType.UINT32,
                         },
                     });

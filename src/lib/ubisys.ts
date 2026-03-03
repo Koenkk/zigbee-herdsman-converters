@@ -418,12 +418,6 @@ export const ubisysModernExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.UBISYS_TECHNOLOGIES_GMBH,
                     write: true,
                 },
-                // writable version of the same standard attribute
-                ubisysWindowCoveringMode: {
-                    ID: 0x0017,
-                    type: Zcl.DataType.BITMAP8,
-                    write: true,
-                },
                 ubisysTurnaroundGuardTime: {
                     ID: 0x1000,
                     type: Zcl.DataType.UINT8,

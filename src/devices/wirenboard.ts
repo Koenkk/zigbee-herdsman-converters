@@ -24,7 +24,47 @@ interface SprutDevice {
     commandResponses: never;
 }
 
-const sprutCode = 0x6666;
+interface SprutVoc {
+    attributes: {
+        voc: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SprutNoise {
+    attributes: {
+        noise: number;
+        noiseDetected: number;
+        noiseDetectLevel: number;
+        noiseAfterDetectDelay: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface _SprutIrBlaster {
+    attributes: never;
+    commands: {
+        playStore: {
+            param: number;
+        };
+        learnStart: {
+            value: number;
+        };
+        learnStop: {
+            value: number;
+        };
+        clearStore: Record<string, never>;
+        playRam: Record<string, never>;
+        learnRamStart: Record<string, never>;
+        learnRamStop: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
+const sprutCode = Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE;
+
 const manufacturerOptions = {manufacturerCode: sprutCode};
 const switchActionValues = ["OFF", "ON"];
 const co2Lookup = {
@@ -58,7 +98,7 @@ const fzLocal = {
                 return {voc: msg.data.voc};
             }
         },
-    } satisfies Fz.Converter<"sprutVoc", undefined, ["readResponse", "attributeReport"]>,
+    } satisfies Fz.Converter<"sprutVoc", SprutVoc, ["readResponse", "attributeReport"]>,
     noise: {
         cluster: "sprutNoise",
         type: ["readResponse", "attributeReport"],
@@ -67,7 +107,7 @@ const fzLocal = {
                 return {noise: msg.data.noise.toFixed(2)};
             }
         },
-    } satisfies Fz.Converter<"sprutNoise", undefined, ["readResponse", "attributeReport"]>,
+    } satisfies Fz.Converter<"sprutNoise", SprutNoise, ["readResponse", "attributeReport"]>,
     noise_detected: {
         cluster: "sprutNoise",
         type: ["readResponse", "attributeReport"],
@@ -76,7 +116,7 @@ const fzLocal = {
                 return {noise_detected: msg.data.noiseDetected === 1};
             }
         },
-    } satisfies Fz.Converter<"sprutNoise", undefined, ["readResponse", "attributeReport"]>,
+    } satisfies Fz.Converter<"sprutNoise", SprutNoise, ["readResponse", "attributeReport"]>,
     occupancy_timeout: {
         cluster: "msOccupancySensing",
         type: ["readResponse", "attributeReport"],
@@ -90,7 +130,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {noise_timeout: msg.data.noiseAfterDetectDelay};
         },
-    } satisfies Fz.Converter<"sprutNoise", undefined, ["readResponse", "attributeReport"]>,
+    } satisfies Fz.Converter<"sprutNoise", SprutNoise, ["readResponse", "attributeReport"]>,
     occupancy_sensitivity: {
         cluster: "msOccupancySensing",
         type: ["readResponse", "attributeReport"],
@@ -104,7 +144,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {noise_detect_level: msg.data.noiseDetectLevel};
         },
-    } satisfies Fz.Converter<"sprutNoise", undefined, ["readResponse", "attributeReport"]>,
+    } satisfies Fz.Converter<"sprutNoise", SprutNoise, ["readResponse", "attributeReport"]>,
     co2_mh_z19b_config: {
         cluster: "msCO2",
         type: ["attributeReport", "readResponse"],
@@ -265,6 +305,45 @@ const tzLocal = {
 };
 
 const sprutModernExtend = {
+    addSprutVocCluster: () =>
+        m.deviceAddCustomCluster("sprutVoc", {
+            ID: 0x6601,
+            manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
+            attributes: {
+                voc: {ID: 0x6600, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addSprutNoiseCluster: () =>
+        m.deviceAddCustomCluster("sprutNoise", {
+            ID: 0x6602,
+            manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
+            attributes: {
+                noise: {ID: 0x6600, type: Zcl.DataType.SINGLE_PREC, write: true},
+                noiseDetected: {ID: 0x6601, type: Zcl.DataType.BITMAP8, write: true},
+                noiseDetectLevel: {ID: 0x6602, type: Zcl.DataType.SINGLE_PREC, write: true},
+                noiseAfterDetectDelay: {ID: 0x6603, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addSprutIrBlasterCluster: () =>
+        m.deviceAddCustomCluster("sprutIrBlaster", {
+            ID: 0x6603,
+            manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
+            attributes: {},
+            commands: {
+                playStore: {ID: 0x00, parameters: [{name: "param", type: Zcl.DataType.UINT8, max: 0xff}]},
+                learnStart: {ID: 0x01, parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}]},
+                learnStop: {ID: 0x02, parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}]},
+                clearStore: {ID: 0x03, parameters: []},
+                playRam: {ID: 0x04, parameters: []},
+                learnRamStart: {ID: 0x05, parameters: []},
+                learnRamStop: {ID: 0x06, parameters: []},
+            },
+            commandsResponse: {},
+        }),
     sprutActivityIndicator: (args?: Partial<m.BinaryArgs<"genBinaryOutput">>) =>
         m.binary({
             name: "activity_led",
@@ -484,6 +563,9 @@ const sprutModernExtend = {
 };
 
 const {
+    addSprutVocCluster,
+    addSprutNoiseCluster,
+    addSprutIrBlasterCluster,
     sprutActivityIndicator,
     sprutIsConnected,
     sprutUartBaudRate,
@@ -640,7 +722,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ["humidity"]},
         ota: true,
-        extend: [m.illuminance()],
+        extend: [addSprutVocCluster(), addSprutNoiseCluster(), addSprutIrBlasterCluster(), m.illuminance()],
     },
     {
         zigbeeModel: ["WBMSW4"],
@@ -648,6 +730,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Wirenboard",
         description: "Wall-mounted multi sensor",
         extend: [
+            addSprutVocCluster(),
+            addSprutNoiseCluster(),
+            addSprutIrBlasterCluster(),
             m.deviceAddCustomCluster("genBasic", {
                 ID: 0,
                 attributes: {
@@ -662,7 +747,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.deviceAddCustomCluster("sprutDevice", {
                 ID: 26112,
-                manufacturerCode: 26214,
+                manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
                 attributes: {
                     isConnected: {ID: 26116, type: Zcl.DataType.BOOLEAN, write: true},
                     UartBaudRate: {ID: 26113, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},

@@ -6,6 +6,7 @@ import {
     addCustomClusterManuSpecificIkeaSmartPlug,
     addCustomClusterManuSpecificIkeaUnknown,
     addCustomClusterManuSpecificIkeaVocIndexMeasurement,
+    addCustomClusterTradfriButton,
     ikeaAirPurifier,
     ikeaArrowClick,
     ikeaBattery,
@@ -977,7 +978,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with buttons",
         extend: [
-            m.battery({voltage: true, voltageReporting: true}),
+            m.battery({voltage: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
@@ -991,7 +992,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with scroll wheel",
         extend: [
-            m.battery({voltage: true, voltageReporting: true}),
+            m.battery({voltage: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_to_level"]}),
@@ -1090,6 +1091,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "SYMFONISK sound remote, gen 2",
         extend: [
+            addCustomClusterTradfriButton(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.deviceEndpoints({endpoints: {"1": 2, "2": 3}}),
             m.identify({isSleepy: true}),
@@ -1122,6 +1124,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "SOMRIG shortcut button",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
+            addCustomClusterTradfriButton(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
             m.identify({isSleepy: true}),

@@ -1,15 +1,12 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
-import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
-
-const NS = "zhc:smartthings";
+import {centraliteExtend, fzLocal as fzCentralite} from "./centralite";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -308,15 +305,6 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg", "manuSpecificSamsungAccelerometer"]);
             await endpoint.write("manuSpecificSamsungAccelerometer", {0: {value: 0x14, type: 0x20}}, options);
             await endpoint.write("genPollCtrl", {checkinInterval: 14400});
-            try {
-                await endpoint.write("genPollCtrl", {longPollInterval: 3600});
-            } catch (error) {
-                if ((error as Error).message.includes("READ_ONLY")) {
-                    logger.debug("Writing `longPollInterval` failed, ignoring...", NS);
-                } else {
-                    throw e;
-                }
-            }
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
             const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.HOUR, 5);
@@ -335,7 +323,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3310-S",
         vendor: "SmartThings",
         description: "Temperature and humidity sensor",
-        fromZigbee: [fz.temperature, fz._3310_humidity, fz.battery],
+        extend: [centraliteExtend.addManuSpecificCentraliteHumidityCluster()],
+        fromZigbee: [fz.temperature, fzCentralite.d3310_humidity, fz.battery],
         exposes: [e.temperature(), e.humidity(), e.battery()],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},

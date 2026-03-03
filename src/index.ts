@@ -412,7 +412,6 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
     const finalDefinition = processExtensions(definition);
 
     finalDefinition.toZigbee = [
-        ...finalDefinition.toZigbee,
         toZigbee.scene_store,
         toZigbee.scene_recall,
         toZigbee.scene_add,
@@ -424,6 +423,9 @@ export function prepareDefinition(definition: DefinitionWithExtend): Definition 
         toZigbee.command,
         toZigbee.factory_reset,
         toZigbee.zcl_command,
+        // Add device specific toZigbee converters as last, otherwise the Tuya datapoints
+        // converters consume e.g. the `read` and `write`.
+        ...finalDefinition.toZigbee,
     ];
 
     if (definition.externalConverterName) {

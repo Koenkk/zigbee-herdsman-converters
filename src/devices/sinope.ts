@@ -619,6 +619,106 @@ const tzLocal = {
 };
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["HP6000ZB-GE", "HP6000ZB-HS", "HP6000ZB-MA"],
+        model: "HP6000ZB",
+        vendor: "Sinopé",
+        description: "Mini-split air conditioner interface",
+        fromZigbee: [
+            fz.fan,
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: Record<string, unknown> = {};
+                    if (Object.hasOwn(msg.data, "localTemp")) {
+                        result.local_temperature = Number.parseFloat((msg.data["localTemp"] / 100).toFixed(1));
+                    }
+                    if (Object.hasOwn(msg.data, "systemMode")) {
+                        const modeLookup: Record<number, string> = {0: "off", 3: "cool", 4: "heat", 6: "fan_only", 8: "dry"};
+                        result.system_mode = modeLookup[msg.data["systemMode"]];
+                    }
+                    // Unified setpoint to prevent "Range" UI issues in Home Assistant
+                    if (Object.hasOwn(msg.data, "occupiedHeatingSetpoint") || Object.hasOwn(msg.data, "occupiedCoolingSetpoint")) {
+                        const val = msg.data["occupiedHeatingSetpoint"] || msg.data["occupiedCoolingSetpoint"];
+                        result.occupied_heating_setpoint = Number.parseFloat((val / 100).toFixed(1));
+                    }
+                    return result;
+                },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+            {
+                cluster: "manuSpecificSinope",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: Record<string, unknown> = {};
+                    if (msg.data["610"] !== undefined) result.swing_mode = msg.data["610"] === 1 ? "ON" : "OFF";
+                    if (msg.data["613"] !== undefined) result.display_led = msg.data["613"] === 1 ? "ON" : "OFF";
+                    if (msg.data["currentSetpoint"] !== undefined) {
+                        result.occupied_heating_setpoint = Number.parseFloat((msg.data["currentSetpoint"] / 100).toFixed(1));
+                    }
+                    return result;
+                },
+            } satisfies Fz.Converter<"manuSpecificSinope", undefined, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_system_mode,
+            tz.fan_mode,
+            {
+                key: ["occupied_heating_setpoint"],
+                convertSet: async (entity, key, value, meta) => {
+                    const temp = Math.round(Number(value) * 100);
+                    await entity.write("manuSpecificSinope", {currentSetpoint: temp}, {manufacturerCode: 0x119c});
+                    return {state: {occupied_heating_setpoint: value}};
+                },
+            },
+            {
+                key: ["swing_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    const val = value === "ON" ? 1 : 0;
+                    await entity.write("manuSpecificSinope", {610: {value: val, type: 0x30}}, {manufacturerCode: 0x119c});
+                    return {state: {swing_mode: value}};
+                },
+            },
+            {
+                key: ["display_led"],
+                convertSet: async (entity, key, value, meta) => {
+                    const val = value === "ON" ? 1 : 0;
+                    await entity.write("manuSpecificSinope", {613: {value: val, type: 0x30}}, {manufacturerCode: 0x119c});
+                    return {state: {display_led: value}};
+                },
+            },
+        ],
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSetpoint("occupied_heating_setpoint", 16, 30, 1)
+                .withSystemMode(["off", "heat", "cool", "dry", "fan_only"])
+                .withFanMode(["low", "medium", "high", "auto"]),
+            e.binary("swing_mode", ea.ALL, "ON", "OFF").withDescription("Vertical Swing"),
+            e.binary("display_led", ea.ALL, "ON", "OFF").withDescription("Display LED"),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["hvacThermostat", "hvacFanCtrl", "manuSpecificSinope"];
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await endpoint.configureReporting(
+                "manuSpecificSinope",
+                [
+                    {
+                        attribute: "currentSetpoint",
+                        minimumReportInterval: 1,
+                        maximumReportInterval: 3600,
+                        reportableChange: 10,
+                    },
+                ],
+                {manufacturerCode: 0x119c},
+            );
+        },
+    },
+    {
         zigbeeModel: ["TH1123ZB"],
         model: "TH1123ZB",
         vendor: "Sinopé",
@@ -682,7 +782,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("temperature_display_mode", ea.ALL, ["celsius", "fahrenheit"])
                 .withDescription("The temperature format displayed on the thermostat screen"),
             e.enum("time_format", ea.ALL, ["24h", "12h"]).withDescription("The time format featured on the thermostat display"),
-            e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "off"]).withDescription("Control backlight dimming behavior"),
+            e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
             e.enum("main_cycle_output", ea.ALL, ["15_sec", "15_min"]).withDescription("The length of the control cycle: 15_sec=normal 15_min=fan"),
             e
@@ -924,8 +1024,12 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacUserInterfaceCfg",
                 "msTemperatureMeasurement",
                 "manuSpecificSinope",
+                "seMetering",
+                "haElectricalMeasurement",
             ];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds); // This G2 version has limited memory space
+            // This G2 version has limited memory space
+            // from experimenting we can configure a maximum of 8 reporting entities
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
             const thermostatDate = new Date();
             const thermostatTimeSec = thermostatDate.getTime() / 1000;
             const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
@@ -936,9 +1040,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
 
-            await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // Disable default reporting
             await endpoint.configureReporting("msTemperatureMeasurement", [
                 {
                     attribute: "tolerance",
@@ -948,8 +1051,17 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             ]);
 
-            // Disable default reporting (not used by Sinope)
-            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 60, max: 300, change: 10});
+
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await endpoint.configureReporting("haElectricalMeasurement", [
+                {attribute: "rmsVoltage", minimumReportInterval: 60, maximumReportInterval: 300, reportableChange: 5},
+                {attribute: "rmsCurrent", minimumReportInterval: 10, maximumReportInterval: 60, reportableChange: 0.1},
+                {attribute: "activePower", minimumReportInterval: 10, maximumReportInterval: 60, reportableChange: 5},
+            ]);
+
+            // for some older version it migth still work
             try {
                 await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             } catch {
@@ -962,7 +1074,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1124ZB-G2",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [m.electricityMeter()],
+        extend: [m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
         meta: {sinopeAlternateBacklightAutoDim: true},
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
@@ -1045,8 +1157,12 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacUserInterfaceCfg",
                 "msTemperatureMeasurement",
                 "manuSpecificSinope",
+                "seMetering",
+                "haElectricalMeasurement",
             ];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds); // This G2 version has limited memory space
+            // This G2 version has limited memory space
+            // from experimenting we can configure a maximum of 8 reporting entities
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
             const thermostatDate = new Date();
             const thermostatTimeSec = thermostatDate.getTime() / 1000;
             const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
@@ -1057,9 +1173,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatSystemMode(endpoint);
+            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
 
-            await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // Disable default reporting
             await endpoint.configureReporting("msTemperatureMeasurement", [
                 {
                     attribute: "tolerance",
@@ -1069,8 +1184,17 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             ]);
 
-            // Disable default reporting (not used by Sinope)
-            await reporting.thermostatRunningState(endpoint, {min: 1, max: 0xffff});
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 60, max: 300, change: 10});
+
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await endpoint.configureReporting("haElectricalMeasurement", [
+                {attribute: "rmsVoltage", minimumReportInterval: 60, maximumReportInterval: 300, reportableChange: 5},
+                {attribute: "rmsCurrent", minimumReportInterval: 10, maximumReportInterval: 60, reportableChange: 0.1},
+                {attribute: "activePower", minimumReportInterval: 10, maximumReportInterval: 60, reportableChange: 5},
+            ]);
+
+            // for some older version it migth still work
             try {
                 await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             } catch {
@@ -1449,7 +1573,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SW2500ZB",
         vendor: "Sinopé",
         description: "Zigbee smart light switch",
-        extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
+        // Some SW2500ZB firmware variants reject `seMetering` config/reporting and
+        // also fail `instantaneousDemand` reads with UNSUPPORTED_ATTRIBUTE.
+        // Keep metering support for delivered energy, but disable power handling.
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering", configureReporting: false, power: false})],
         fromZigbee: [fzLocal.sinope],
         toZigbee: [
             tzLocal.timer_seconds,

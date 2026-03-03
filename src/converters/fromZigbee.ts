@@ -93,8 +93,8 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             result[postfixWithEndpointName("setpoint_change_amount", msg, model, meta)] = msg.data.setpointChangeAmount / 100;
         }
         if (msg.data.setpointChangeSource !== undefined) {
-            const lookup: KeyValueAny = {0: "manual", 1: "schedule", 2: "externally"};
-            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] = lookup[msg.data.setpointChangeSource];
+            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] =
+                constants.thermostatSetpointChangeSource[msg.data.setpointChangeSource];
         }
         if (msg.data.setpointChangeSourceTimeStamp !== undefined) {
             const date = new Date(2000, 0, 1);
@@ -2044,86 +2044,6 @@ export const namron_hvac_user_interface: Fz.Converter<"hvacUserInterfaceCfg", un
         return result;
     },
 };
-export const elko_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    options: [exposes.options.local_temperature_based_on_sensor()],
-    convert: (model, msg, publish, options, meta) => {
-        const result = thermostat.convert(model, msg, publish, options, meta) as KeyValue;
-        const data = msg.data;
-        if (data.localTemp !== undefined) {
-            let value = precisionRound(msg.data.localTemp, 2) / 100;
-            const valuesFloorSensor = ["floor", "supervisor_floor"];
-            const sensorType = meta.state.sensor as string;
-            const floorTemperature = meta.state.floor_temp as number;
-            if (valuesFloorSensor.includes(sensorType) && options.local_temperature_based_on_sensor) {
-                value = floorTemperature;
-            }
-            if (value >= -273.15) {
-                result[postfixWithEndpointName("local_temperature", msg, model, meta)] = value;
-            }
-        }
-        if (data.elkoDisplayText !== undefined) {
-            // Display text
-            result.display_text = data.elkoDisplayText;
-        }
-        if (data.elkoSensor !== undefined) {
-            // Sensor
-            const sensorModeLookup = {
-                0: "air",
-                1: "floor",
-                3: "supervisor_floor",
-            };
-            const value = utils.getFromLookup(data.elkoSensor, sensorModeLookup);
-            result.sensor = value;
-        }
-        if (data.elkoPowerStatus !== undefined) {
-            // Power status
-            result.system_mode = data.elkoPowerStatus ? "heat" : "off";
-        }
-        if (data.elkoExternalTemp !== undefined) {
-            // External temp (floor)
-            result.floor_temp = utils.precisionRound(data.elkoExternalTemp, 2) / 100;
-        }
-        if (data.elkoRelayState !== undefined) {
-            // Relay state
-            result.running_state = data.elkoRelayState ? "heat" : "idle";
-        }
-        if (data.elkoCalibration !== undefined) {
-            // Calibration
-            result.local_temperature_calibration = precisionRound(data.elkoCalibration, 2) / 10;
-        }
-        if (data.elkoLoad !== undefined) {
-            // Load
-            result.load = data.elkoLoad;
-        }
-        if (data.elkoRegulatorMode !== undefined) {
-            // Regulator mode
-            result.regulator_mode = data.elkoRegulatorMode ? "regulator" : "thermostat";
-        }
-        if (data.elkoMeanPower !== undefined) {
-            // Mean power
-            result.mean_power = data.elkoMeanPower;
-        }
-        if (data.elkoNightSwitching !== undefined) {
-            // Night switching
-            result.night_switching = data.elkoNightSwitching ? "on" : "off";
-        }
-        if (data.elkoFrostGuard !== undefined) {
-            // Frost guard
-            result.frost_guard = data.elkoFrostGuard ? "on" : "off";
-        }
-        if (data.elkoChildLock !== undefined) {
-            // Child lock
-            result.child_lock = data.elkoChildLock ? "lock" : "unlock";
-        }
-        if (data.elkoMaxFloorTemp !== undefined) {
-            // Max floor temp
-            result.max_floor_temp = data.elkoMaxFloorTemp;
-        }
-        return result;
-    },
-};
 export const ias_smoke_alarm_1_develco: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -2212,41 +2132,6 @@ export const tuya_led_controller: Fz.Converter<"lightingColorCtrl", undefined, [
         return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
     },
 };
-export const wiser_device_info: Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport"> = {
-    cluster: "wiserDeviceInfo",
-    type: "attributeReport",
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        const data = msg.data.deviceInfo.split(",");
-        if (data[0] === "ALG") {
-            // TODO What is ALG
-            const alg = data.slice(1);
-            result.ALG = alg.join(",");
-            result.occupied_heating_setpoint = Number.parseInt(alg[2], 10) / 10;
-            result.local_temperature = Number.parseInt(alg[3], 10) / 10;
-            result.pi_heating_demand = Number.parseInt(alg[9], 10);
-        } else if (data[0] === "ADC") {
-            // TODO What is ADC
-            const adc = data.slice(1);
-            result.ADC = adc.join(",");
-            // TODO: should parseInt?
-            result.occupied_heating_setpoint = Number.parseInt(adc[5], 10) / 100;
-            result.local_temperature = Number.parseInt(adc[3], 10) / 10;
-        } else if (data[0] === "UI") {
-            if (data[1] === "BoostUp") {
-                result.boost = "Up";
-            } else if (data[1] === "BoostDown") {
-                result.boost = "Down";
-            } else {
-                result.boost = "None";
-            }
-        } else if (data[0] === "MOT") {
-            // Info about the motor
-            result.MOT = data[1];
-        }
-        return result;
-    },
-};
 export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -2259,17 +2144,6 @@ export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "command
             tamper: (zoneStatus & (1 << 2)) > 0,
             battery_low: (zoneStatus & (1 << 3)) > 0,
         };
-    },
-};
-export const terncy_knob: Fz.Converter<"manuSpecificClusterAduroSmart", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "manuSpecificClusterAduroSmart",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (typeof msg.data["27"] === "number") {
-            const direction = msg.data["27"] > 0 ? "clockwise" : "counterclockwise";
-            const number = Math.abs(msg.data["27"]) / 12;
-            return {action: "rotate", action_direction: direction, action_number: number};
-        }
     },
 };
 export const DTB190502A1: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
@@ -2318,21 +2192,6 @@ export const ZigUP: Fz.Converter<"genOnOff", undefined, ["attributeReport", "rea
             reason: lookup[msg.data["41367"] as number],
             [`${ds18b20Id}`]: ds18b20Value,
         };
-    },
-};
-export const terncy_contact: Fz.Converter<"genBinaryInput", undefined, "attributeReport"> = {
-    cluster: "genBinaryInput",
-    type: "attributeReport",
-    convert: (model, msg, publish, options, meta) => {
-        return {contact: msg.data.presentValue === 0};
-    },
-};
-export const terncy_temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "msTemperatureMeasurement",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const temperature = msg.data.measuredValue / 10.0;
-        return {temperature: temperature};
     },
 };
 export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]> = {
@@ -3603,15 +3462,6 @@ export const kmpcil_res005_on_off: Fz.Converter<"genBinaryOutput", undefined, ["
         return {state: msg.data.presentValue === 0 ? "OFF" : "ON"};
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const _3310_humidity: Fz.Converter<"manuSpecificCentraliteHumidity", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "manuSpecificCentraliteHumidity",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const humidity = msg.data.measuredValue / 100.0;
-        return {humidity};
-    },
-};
 export const smartthings_acceleration: Fz.Converter<"manuSpecificSamsungAccelerometer", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "manuSpecificSamsungAccelerometer",
     type: ["attributeReport", "readResponse"],
@@ -3720,44 +3570,6 @@ export const legrand_scenes: Fz.Converter<"genScenes", undefined, "commandRecall
             65520: "ambiance_III",
         };
         return {action: lookup[msg.data.groupid] ? lookup[msg.data.groupid] : "default"};
-    },
-};
-export const legrand_master_switch_center: Fz.Converter<"manuSpecificLegrandDevices", undefined, "raw"> = {
-    cluster: "manuSpecificLegrandDevices",
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        if (
-            msg.data &&
-            msg.data.length === 6 &&
-            msg.data[0] === 0x15 &&
-            msg.data[1] === 0x21 &&
-            msg.data[2] === 0x10 &&
-            msg.data[3] === 0x00 &&
-            msg.data[4] === 0x03 &&
-            msg.data[5] === 0xff
-        ) {
-            return {action: "center"};
-        }
-    },
-};
-export const legrand_pilot_wire_mode: Fz.Converter<"manuSpecificLegrandDevices2", undefined, ["readResponse"]> = {
-    cluster: "manuSpecificLegrandDevices2",
-    type: ["readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        const mode = msg.data["0"];
-
-        if (mode === 0x00) payload.pilot_wire_mode = "comfort";
-        else if (mode === 0x01) payload.pilot_wire_mode = "comfort_-1";
-        else if (mode === 0x02) payload.pilot_wire_mode = "comfort_-2";
-        else if (mode === 0x03) payload.pilot_wire_mode = "eco";
-        else if (mode === 0x04) payload.pilot_wire_mode = "frost_protection";
-        else if (mode === 0x05) payload.pilot_wire_mode = "off";
-        else {
-            logger.warning(`Bad mode : ${mode}`, NS);
-            payload.pilot_wire_mode = "unknown";
-        }
-        return payload;
     },
 };
 export const legrand_power_alarm: Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]> = {
@@ -4715,18 +4527,6 @@ export const idlock_fw: Fz.Converter<"genBasic", undefined, ["attributeReport", 
         return result;
     },
 };
-export const schneider_pilot_mode: Fz.Converter<"schneiderSpecificPilotMode", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "schneiderSpecificPilotMode",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        const lookup: KeyValueAny = {1: "contactor", 3: "pilot"};
-        if ("pilotMode" in msg.data) {
-            result.schneider_pilot_mode = lookup[msg.data.pilotMode];
-        }
-        return result;
-    },
-};
 export const schneider_ui_action: Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport"> = {
     cluster: "wiserDeviceInfo",
     type: "attributeReport",
@@ -5381,52 +5181,6 @@ export const eurotronic_thermostat: Fz.Converter<"hvacThermostat", undefined, ["
             }
         }
         return result;
-    },
-};
-export const terncy_raw: Fz.Converter<"manuSpecificClusterAduroSmart", undefined, "raw"> = {
-    cluster: "manuSpecificClusterAduroSmart",
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        // 13,40,18,104, 0,8,1 - single
-        // 13,40,18,22,  0,17,1
-        // 13,40,18,32,  0,18,1
-        // 13,40,18,6,   0,16,1
-        // 13,40,18,111, 0,4,2 - double
-        // 13,40,18,58,  0,7,2
-        // 13,40,18,6,   0,2,3 - triple
-        // motion messages:
-        // 13,40,18,105, 4,167,0,7 - motion on right side
-        // 13,40,18,96,  4,27,0,5
-        // 13,40,18,101, 4,27,0,7
-        // 13,40,18,125, 4,28,0,5
-        // 13,40,18,85,  4,28,0,7
-        // 13,40,18,3,   4,24,0,5
-        // 13,40,18,81,  4,10,1,7
-        // 13,40,18,72,  4,30,1,5
-        // 13,40,18,24,  4,25,0,40 - motion on left side
-        // 13,40,18,47,  4,28,0,56
-        // 13,40,18,8,   4,32,0,40
-        let value = null;
-        if (msg.data[4] === 0) {
-            value = msg.data[6];
-            if (1 <= value && value <= 3) {
-                const actionLookup: KeyValueAny = {1: "single", 2: "double", 3: "triple", 4: "quadruple"};
-                return {action: actionLookup[value]};
-            }
-        } else if (msg.data[4] === 4) {
-            value = msg.data[7];
-            const sidelookup: KeyValueAny = {5: "right", 7: "right", 40: "left", 56: "left"};
-            if (sidelookup[value]) {
-                const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
-                const payload = occupancy_with_timeout.convert(model, newMsg, publish, options, meta) as KeyValueAny;
-                if (payload) {
-                    payload.action_side = sidelookup[value];
-                    payload.side = sidelookup[value]; /* legacy: remove this line (replaced by action_side) */
-                }
-
-                return payload;
-            }
-        }
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`

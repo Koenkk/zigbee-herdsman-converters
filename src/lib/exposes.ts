@@ -736,6 +736,22 @@ export class Climate extends Base {
         return this;
     }
 
+    withProgrammingOperationMode(modes: string[], access = a.ALL) {
+        const allowed = ["setpoint", "schedule", "schedule_with_preheat", "eco"];
+        modes.forEach((m) => {
+            assert(allowed.includes(m));
+        });
+        this.addFeature(presets.programming_operation_mode(modes).withAccess(access));
+        return this;
+    }
+
+    withSetpointChangeSource(access = a.STATE) {
+        this.addFeature(
+            new Enum("setpoint_change_source", access, ["manual", "schedule", "externally"]).withDescription("Source of the current setpoint change"),
+        );
+        return this;
+    }
+
     withAcLouverPosition(positions: string[], access = a.ALL) {
         const allowed = ["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"];
         positions.forEach((m) => {
@@ -1339,6 +1355,9 @@ export const presets = {
             .withUnit("V")
             .withDescription("Measured electrical potential value on phase C"),
     water_leak: () => new Binary("water_leak", access.STATE, true, false).withDescription("Indicates whether the device detected a water leak"),
+    // fits one usecase  (leak = true)
+    water: () => new Binary("water", access.STATE, true, false).withDescription("Indicates whether the device detects water"),
+    // fits two usecases (users interprets leak as true or false, depending on device placement)
     pilot_wire_mode: (values = ["comfort", "eco", "frost_protection", "off", "comfort_-1", "comfort_-2"]) =>
         new Enum("pilot_wire_mode", access.ALL, values).withDescription(
             "Controls the target temperature of the heater, with respect to the temperature set on that heater. Possible values: comfort (target temperature = heater set temperature) eco (target temperature = heater set temperature - 3.5°C), frost_protection (target temperature = 7 to 8°C), off (heater stops heating), and the less commonly used comfort_-1 (target temperature = heater set temperature - 1°C), comfort_-2 (target temperature = heater set temperature - 2°C),.",

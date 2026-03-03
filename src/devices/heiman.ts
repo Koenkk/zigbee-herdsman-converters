@@ -1830,6 +1830,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.co2(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 0.00005}); // 50 ppm change
         },
         exposes: [e.co2(), e.battery(), e.humidity(), e.temperature()],
+        extend: [m.writeTimeDaily({endpointId: 1})],
     },
     {
         zigbeeModel: ["RouteLight-EF-3.0"],

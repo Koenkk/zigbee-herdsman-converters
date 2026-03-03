@@ -48,6 +48,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Indicates if the frost protection mode is enabled")
                 .withCategory("config"),
             e.valve_alarm(),
+            e.battery(),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
         ],
         meta: {
@@ -137,6 +138,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Indicates if the frost protection mode is enabled")
                 .withCategory("config"),
             e.valve_alarm(),
+            e.battery(),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
         ],
         meta: {

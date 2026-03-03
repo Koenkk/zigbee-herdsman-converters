@@ -1,5 +1,6 @@
 import {Buffer} from "node:buffer";
 import {Zcl} from "zigbee-herdsman";
+import {DataType} from "zigbee-herdsman/dist/zspec/zcl";
 import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import {repInterval} from "../lib/constants";
@@ -1872,6 +1873,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZLinky_TIC",
         vendor: "LiXee",
         description: "Lixee ZLinky",
+        version: "0.0.1",
         fromZigbee: [fzLocal.lixee_metering, fz.meter_identification, fzLocal.lixee_ha_electrical_measurement, fzLocal.lixee_private_fz],
         toZigbee: [],
         exposes: (device, options) => {
@@ -1917,7 +1919,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(1)
                 .withDescription(
                     "Number of attributes requested from the ZLinky in each poll to reduce Zigbee network load. " +
-                        "Requesting too many at once may exceed the device's limit and cause read errors. Requires Z2M restart. Default: 4.",
+                        "Requesting too many at once may exceed the device's limit and cause read errors. Requires Z2M restart. Default: 2.",
                 ),
             e
                 .text("tic_command_whitelist", ea.SET)
@@ -2017,7 +2019,7 @@ export const definitions: DefinitionWithExtend[] = [
                     ),
                 poll: async (device, options) => {
                     const endpoint = device.getEndpoint(1);
-                    const measurement_poll_chunk = options?.measurement_poll_chunk ? options.measurement_poll_chunk : 4;
+                    const measurement_poll_chunk = options?.measurement_poll_chunk ? options.measurement_poll_chunk : 2;
                     utils.assertNumber(measurement_poll_chunk);
                     const currentExposes = getCurrentConfig(device, options).filter(
                         (e) => !endpoint.configuredReportings.some((r) => r.cluster.name === e.cluster && r.attribute.name === e.att),
@@ -2057,6 +2059,18 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Lixee ZiPulses",
         fromZigbee: [fz.battery, fz.temperature, fz.metering, fzZiPulses],
         toZigbee: [tzSeMetering],
+        extend: [
+            m.deviceAddCustomCluster("seMetering", {
+                ID: 0x0702,
+                attributes: {
+                    unitOfMeasure: {ID: 0x0300, type: DataType.ENUM8, required: true, max: 0xff, default: 0x00, write: true},
+                    multiplier: {ID: 0x0301, type: DataType.UINT24, max: 0xffffff, write: true},
+                    divisor: {ID: 0x0302, type: DataType.UINT24, max: 0xffffff, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
         exposes: [
             e.battery(),
             e.battery_voltage(),

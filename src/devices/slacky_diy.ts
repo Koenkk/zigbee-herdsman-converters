@@ -32,6 +32,7 @@ const model_r09 = "THERM_SLACKY_DIY_R09";
 //const model_r0a = "THERM_SLACKY_DIY_R0A";
 const model_r0b = "THERM_SLACKY_DIY_R0B";
 const modelR0c = "THERM_SLACKY_DIY_R0C";
+const model_r0d = "THERM_SLACKY_DIY_R0D";
 
 const attrThermSensorUser = 0xf000;
 const attrThermFrostProtect = 0xf001;
@@ -48,6 +49,8 @@ const attrThermEcoModeCoolTemperature = 0xf00b;
 const attrThermExtTemperatureCalibration = 0xf00c;
 const attrThermModeKeyLock = 0xf00d;
 const attrThermManufName = 0xf00e;
+const attrThermScreenOffTime = 0xf00f;
+const attrThermLedIndicator = 0xf010;
 const attrFanCtrlControl = 0xf000;
 
 const switchSensorUsed = ["Inner (IN)", "All (AL)", "Outer (OU)"];
@@ -85,11 +88,37 @@ const attrPlugSwitchTimeReload = 0xf004;
 const attrPlugSwitchProtectCtrl = 0xf005;
 const attrPlugSwitchAutoRestart = 0xf006;
 
+const attrSwitchType = 0xf000;
+const attrSwitchDecoupled = 0xf001;
+
+const attrDeviceModelNumber = 0xf002;
+
+const attrDoorDelayOn = 0xf003;
+const attrDoorDelayOff = 0xf004;
+const attrDoorOnCmdOff = 0xf005;
+const attrDoorOffCmdOff = 0xf006;
+
+const attrSceneId = 0xf000;
+const attrGroupId = 0xf001;
+
+interface SlackyDiyScene {
+    attributes: {
+        customSceneId: number;
+        customGroupId: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface SlackyDiyOnOffCfg {
     attributes: {
         customSwitchType: number;
         customRelayControl: number;
-        customSwitchModel: number;
+        customDeviceModelNumber: number;
+        customDelayOn: number;
+        customDelayOff: number;
+        customOnCmdOff: number;
+        customOffCmdOff: number;
     };
     commands: never;
     commandResponses: never;
@@ -126,7 +155,7 @@ const fzLocal = {
             if (msg.data.minSetpointDeadBand !== undefined) {
                 //logger.info(`Model: ${model.model}`, NS);
                 let data: number;
-                if (model.model === model_r06 || model.model === model_r09 || model.model === model_r0b) {
+                if (model.model === model_r06 || model.model === model_r09 || model.model === model_r0b || model.model === model_r0d) {
                     data = msg.data.minSetpointDeadBand / 10;
                     result.hysteresis_temperature = data;
                 } else {
@@ -165,6 +194,15 @@ const fzLocal = {
                     const lookup = {0: "Off", 1: "Low", 2: "Medium", 3: "High"};
                     result.brightness_level = utils.getFromLookup(msg.data[attrThermLevel], lookup);
                 }
+            }
+            if (msg.data[attrThermScreenOffTime] !== undefined) {
+                if (model.model === model_r0d) {
+                    const lookup_time = {0: "10s", 1: "20s", 2: "30s", 3: "40s", 4: "50s", 5: "60s"};
+                    result.screen_sleep_time = utils.getFromLookup(msg.data[attrThermScreenOffTime], lookup_time);
+                }
+            }
+            if (msg.data[attrThermLedIndicator] !== undefined) {
+                result.led_indicator = msg.data[attrThermLedIndicator] === 1 ? "On" : "Off";
             }
             if (msg.data[attrThermSound] !== undefined) {
                 result.sound = msg.data[attrThermSound] === 1 ? "On" : "Off";
@@ -439,6 +477,29 @@ const tzLocal = {
             await entity.read("hvacThermostat", [attrThermLevel]);
         },
     } satisfies Tz.Converter,
+    thermostat_screen_sleep_time: {
+        key: ["screen_sleep_time"],
+        convertSet: async (entity, key, value, meta) => {
+            //utils.assertNumber(value);
+            const lookup = {"10s": 0, "20s": 1, "30s": 2, "40s": 3, "50s": 4, "60s": 5};
+            await entity.write("hvacThermostat", {[attrThermScreenOffTime]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
+            return {state: {screen_sleep_time: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("hvacThermostat", [attrThermScreenOffTime]);
+        },
+    } satisfies Tz.Converter,
+    thermostat_led_indicator: {
+        key: ["led_indicator"],
+        convertSet: async (entity, key, value, meta) => {
+            const led_indicator = Number(value === "On");
+            await entity.write("hvacThermostat", {[attrThermLedIndicator]: {value: led_indicator, type: 0x10}});
+            return {readAfterWriteTime: 250, state: {led_indicator: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("hvacThermostat", [attrThermLedIndicator]);
+        },
+    } satisfies Tz.Converter,
     thermostat_inversion: {
         key: ["relay_type"],
         convertSet: async (entity, key, value, meta) => {
@@ -505,6 +566,17 @@ const tzLocal = {
             await entity.read("hvacThermostat", [attrThermManufName]);
         },
     } satisfies Tz.Converter,
+    device_model_number: {
+        key: ["door_device_number", "switch_device_number"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {model_0: 0, model_1: 1, model_2: 2, model_3: 3, model_4: 4, model_5: 5};
+            await entity.write("genOnOffSwitchCfg", {[attrDeviceModelNumber]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOffSwitchCfg", [attrDeviceModelNumber]);
+        },
+    } satisfies Tz.Converter,
 };
 
 const localFromZigbeeThermostat = [
@@ -546,6 +618,8 @@ const localToZigbeeThermostat = [
     tzLocal.thermostat_frost_protect_onoff,
     tzLocal.thermostat_brightness_level,
     tzLocal.thermostat_screen_sleep_mode,
+    tzLocal.thermostat_screen_sleep_time,
+    tzLocal.thermostat_led_indicator,
     tzLocal.thermostat_sound,
     tzLocal.thermostat_inversion,
     tzLocal.thermostat_schedule_mode,
@@ -559,6 +633,7 @@ const localToZigbeeThermostat = [
 
 interface LocalActionExtendArgs {
     localAction?: string[]; //("hold" | "single" | "double" | "triple" | "quadruple" | "quintuple" | "release")[];
+    bind?: boolean;
     reporting?: boolean;
     reportingConfig?: m.ReportingConfigWithoutAttribute;
     endpointNames?: string[];
@@ -567,6 +642,7 @@ interface LocalActionExtendArgs {
 function localActionExtend(args: LocalActionExtendArgs = {}): ModernExtend {
     const {
         localAction = ["hold", "single", "double", "triple", "quadruple", "quintuple", "release"],
+        bind = true,
         reporting = true,
         reportingConfig = {min: 10, max: 0, change: 1},
         endpointNames = undefined,
@@ -603,11 +679,13 @@ function localActionExtend(args: LocalActionExtendArgs = {}): ModernExtend {
         } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
     ];
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
+
     if (reporting)
         result.configure = [
             m.setupConfigureForBinding("genMultistateInput", "input", endpointNames),
             m.setupConfigureForReporting("genMultistateInput", "presentValue", {config: reportingConfig, access: ea.GET, endpointNames}),
         ];
+    else if (bind) result.configure = [m.setupConfigureForBinding("genMultistateInput", "input", endpointNames)];
 
     return result;
 }
@@ -2212,7 +2290,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withLocalTemperature()
                 .withSetpoint("occupied_heating_setpoint", 5, 45, 0.5)
-                .withLocalTemperatureCalibration(-9.9, 9.9, 1)
+                .withLocalTemperatureCalibration(-9, 9, 1)
                 .withSystemMode(["off", "heat"])
                 .withRunningState(["idle", "heat"], ea.STATE)
                 .withWeeklySchedule(["heat"], ea.ALL),
@@ -2591,6 +2669,108 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("schedule_friday", ea.STATE).withDescription("Friday's schedule"),
             e.text("schedule_saturday", ea.STATE).withDescription("Saturday's schedule"),
             e.text("schedule_sunday", ea.STATE).withDescription("Sunday's schedule"),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["Tuya_Thermostat_r0D"],
+        model: "THERM_SLACKY_DIY_R0D",
+        vendor: "Slacky-DIY",
+        description: "Tuya Thermostat for Floor Heating with custom Firmware",
+        endpoint: (device) => {
+            return {day: 1, night: 2};
+        },
+        fromZigbee: localFromZigbeeThermostat,
+        toZigbee: localToZigbeeThermostat,
+        configure: configureCommon,
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
+        exposes: [
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
+            e.enum("brightness_level", ea.ALL, ["Off", "Low", "Medium", "High"]).withDescription("Screen idle brightness"),
+            e.enum("screen_sleep_time", ea.ALL, ["10s", "20s", "30s", "40s", "50s", "60s"]).withDescription("Screen sleep timeout"),
+            e.binary("led_indicator", ea.ALL, "On", "Off").withDescription("Enables/disables light ring indicator"),
+            e.programming_operation_mode(["setpoint", "schedule", "schedule_with_preheat", "eco"]).withDescription("Setpoint or Schedule mode"),
+            e
+                .numeric("hysteresis_temperature", ea.ALL)
+                .withDescription("The delta between local_temperature and current_heating_setpoint to trigger activity")
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueMax(5)
+                .withValueStep(0.5),
+            e
+                .numeric("min_heat_setpoint_limit", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Minimum Heating set point limit")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(1),
+            e
+                .numeric("max_heat_setpoint_limit", ea.ALL)
+                .withDescription("Maximum Heating set point limit")
+                .withUnit("°C")
+                .withValueMin(35)
+                .withValueMax(45)
+                .withValueStep(1),
+            e
+                .numeric("frost_protect", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Protection against minimum freezing temperature")
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1),
+            e
+                .numeric("heat_protect", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Protection against maximum heating temperature")
+                .withValueMin(10)
+                .withValueMax(70)
+                .withValueStep(1),
+            e
+                .numeric("eco_mode_cool_temperature", ea.ALL)
+                .withUnit("°C")
+                .withDescription("Set cool temperature in eco mode")
+                .withValueMin(10)
+                .withValueMax(30)
+                .withValueStep(1),
+            e.enum("sensor", ea.ALL, switchSensorUsed).withDescription("Select temperature sensor to use"),
+            e.numeric("outdoor_temperature", ea.STATE_GET).withUnit("°C").withDescription("Current temperature measured from the floor outer sensor"),
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSetpoint("occupied_heating_setpoint", 5, 45, 1)
+                .withLocalTemperatureCalibration(-10, 10, 1)
+                .withSystemMode(["off", "heat"])
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withWeeklySchedule(["heat"], ea.ALL),
+            e.text("schedule_monday", ea.STATE).withDescription("Monday's schedule"),
+            e.text("schedule_tuesday", ea.STATE).withDescription("Tuesday's schedule"),
+            e.text("schedule_wednesday", ea.STATE).withDescription("Wednesday's schedule"),
+            e.text("schedule_thursday", ea.STATE).withDescription("Thursday's schedule"),
+            e.text("schedule_friday", ea.STATE).withDescription("Friday's schedule"),
+            e.text("schedule_saturday", ea.STATE).withDescription("Saturday's schedule"),
+            e.text("schedule_sunday", ea.STATE).withDescription("Sunday's schedule"),
+            e.enum("settings_reset", ea.SET, ["Default"]).withDescription("Default settings"),
         ],
         meta: {},
         ota: true,
@@ -3261,23 +3441,20 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0x0007,
                 attributes: {
                     customSwitchType: {
-                        ID: 0xf000,
+                        ID: attrSwitchType,
                         type: 0x30,
-                        manufacturerCode: 0x6565,
                         write: true,
                         max: 0xff,
                     },
                     customRelayControl: {
-                        ID: 0xf001,
+                        ID: attrSwitchDecoupled,
                         type: 0x30,
-                        manufacturerCode: 0x6565,
                         write: true,
                         max: 0xff,
                     },
-                    customSwitchModel: {
-                        ID: 0xf002,
+                    customDeviceModelNumber: {
+                        ID: attrDeviceModelNumber,
                         type: 0x30,
-                        manufacturerCode: 0x6565,
                         write: true,
                         max: 0xff,
                     },
@@ -3310,12 +3487,279 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: {min: 0, max: 65000, change: 0},
                 description: "Relay decoupled",
             }),
-            m.enumLookup<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
-                name: "switch_model",
-                lookup: {none: 0, model_1: 1, model_2: 2, model_3: 3, model_4: 4, model_5: 5},
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["TS0203-z20-Sld"],
+        model: "TS0203-z-Sld",
+        vendor: "Slacky-DIY",
+        description: "Tuya door/window sensor with custom firmware",
+        toZigbee: [tzLocal.device_model_number],
+        extend: [
+            m.deviceAddCustomCluster("genOnOffSwitchCfg", {
+                ID: 0x0007,
+                attributes: {
+                    customDelayOn: {
+                        ID: attrDoorDelayOn,
+                        type: 0x20,
+                        write: true,
+                        max: 0xff,
+                    },
+                    customDelayOff: {
+                        ID: attrDoorDelayOff,
+                        type: 0x20,
+                        write: true,
+                        max: 0xff,
+                    },
+                    customDeviceModelNumber: {
+                        ID: attrDeviceModelNumber,
+                        type: 0x30,
+                        write: true,
+                        max: 0xff,
+                    },
+                    customOnCmdOff: {
+                        ID: attrDoorOnCmdOff,
+                        type: 0x10,
+                        write: true,
+                        max: 0x01,
+                    },
+                    customOffCmdOff: {
+                        ID: attrDoorOffCmdOff,
+                        type: 0x10,
+                        write: true,
+                        max: 0x01,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.text({
+                name: "model_number",
+                cluster: "genBasic",
+                attribute: "productLabel",
+                access: "STATE_GET",
+                description: "Door sensor model number",
+            }),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]}),
+            m.battery({
+                voltage: true,
+                voltageReporting: true,
+                percentageReportingConfig: {min: 3600, max: 0, change: 0},
+                voltageReportingConfig: {min: 3600, max: 0, change: 0},
+            }),
+            m.enumLookup({
+                name: "switch_actions",
+                lookup: {off: 0, on: 1, toggle: 2},
                 cluster: "genOnOffSwitchCfg",
-                attribute: "customSwitchModel",
-                description: "Switch model",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+            m.numeric<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "delay_on",
+                unit: "sec",
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customDelayOn",
+                description: "Delay On",
+                valueMin: 0,
+                valueMax: 120,
+            }),
+            m.numeric<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "delay_off",
+                unit: "sec",
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customDelayOff",
+                description: "Delay Off",
+                valueMin: 0,
+                valueMax: 120,
+            }),
+            m.binary<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "on_command_off",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customOnCmdOff",
+                description: "Disable command 'On'",
+            }),
+            m.binary<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "off_command_off",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customOffCmdOff",
+                description: "Disable command 'Off'",
+            }),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["TS0044-z-SlD"],
+        model: "TS0044-z-SlD",
+        vendor: "Slacky-DIY",
+        description: "Tuya wireless switch with 4 buttons with custom firmware",
+        extend: [
+            m.deviceAddCustomCluster("genOnOffSwitchCfg", {
+                ID: 0x0007,
+                attributes: {
+                    customSwitchType: {
+                        ID: attrSwitchType,
+                        type: 0x30,
+                        write: true,
+                        max: 0xff,
+                    },
+                    customDeviceModelNumber: {
+                        ID: attrDeviceModelNumber,
+                        type: 0x30,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("genScenes", {
+                ID: 0x0005,
+                attributes: {
+                    customSceneId: {
+                        ID: attrSceneId,
+                        type: 0x20,
+                        write: true,
+                        max: 0xff,
+                    },
+                    customGroupId: {
+                        ID: attrGroupId,
+                        type: 0x21,
+                        write: true,
+                        max: 0xffff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery({
+                percentageReportingConfig: {min: 3600, max: 14400, change: 0},
+            }),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            localActionExtend({
+                endpointNames: ["1", "2", "3", "4"],
+                reporting: false,
+            }),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+            m.enumLookup({
+                name: "switch_actions",
+                endpointName: "1",
+                lookup: {off: 0, on: 1, toggle: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+            m.enumLookup({
+                name: "switch_actions",
+                endpointName: "2",
+                lookup: {off: 0, on: 1, toggle: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+            m.enumLookup({
+                name: "switch_actions",
+                endpointName: "3",
+                lookup: {off: 0, on: 1, toggle: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+            m.enumLookup({
+                name: "switch_actions",
+                endpointName: "4",
+                lookup: {off: 0, on: 1, toggle: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+            m.enumLookup<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "switch_type",
+                endpointName: "1",
+                lookup: {
+                    toggle: 0,
+                    momentary: 1,
+                    multifunction: 2,
+                    brightness_level_up: 3,
+                    brightness_level_down: 4,
+                    scene: 5,
+                },
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customSwitchType",
+                description: "Switch type",
+            }),
+            m.enumLookup<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "switch_type",
+                endpointName: "2",
+                lookup: {
+                    toggle: 0,
+                    momentary: 1,
+                    multifunction: 2,
+                    brightness_level_up: 3,
+                    brightness_level_down: 4,
+                    scene: 5,
+                },
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customSwitchType",
+                description: "Switch type",
+            }),
+            m.enumLookup<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "switch_type",
+                endpointName: "3",
+                lookup: {
+                    toggle: 0,
+                    momentary: 1,
+                    multifunction: 2,
+                    brightness_level_up: 3,
+                    brightness_level_down: 4,
+                    scene: 5,
+                },
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customSwitchType",
+                description: "Switch type",
+            }),
+            m.enumLookup<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
+                name: "switch_type",
+                endpointName: "4",
+                lookup: {
+                    toggle: 0,
+                    momentary: 1,
+                    multifunction: 2,
+                    brightness_level_up: 3,
+                    brightness_level_down: 4,
+                    scene: 5,
+                },
+                cluster: "genOnOffSwitchCfg",
+                attribute: "customSwitchType",
+                description: "Switch type",
+            }),
+            m.commandsScenes({endpointNames: ["1", "2", "3", "4"]}),
+            m.numeric<"genScenes", SlackyDiyScene>({
+                name: "scene_id",
+                endpointNames: ["1", "2", "3", "4"],
+                access: "ALL",
+                cluster: "genScenes",
+                attribute: "customSceneId",
+                valueMin: 0,
+                valueMax: 255,
+                description: "Scene ID",
+            }),
+            m.numeric<"genScenes", SlackyDiyScene>({
+                name: "group_id",
+                endpointNames: ["1", "2", "3", "4"],
+                access: "ALL",
+                cluster: "genScenes",
+                attribute: "customGroupId",
+                valueMin: 0,
+                valueMax: 65527,
+                description: "Group ID for scenes",
             }),
         ],
         meta: {},

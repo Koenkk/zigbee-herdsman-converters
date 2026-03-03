@@ -148,18 +148,6 @@ const develco = {
                 return state;
             },
         } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
-        input: {
-            cluster: "genBinaryInput",
-            type: ["attributeReport", "readResponse"],
-            convert: (model, msg, publish, options, meta) => {
-                const result: KeyValue = {};
-                if (msg.data.presentValue !== undefined) {
-                    const value = msg.data.presentValue;
-                    result[utils.postfixWithEndpointName("input", msg, model, meta)] = value === 1;
-                }
-                return result;
-            },
-        } satisfies Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>,
     },
     tz: {
         pulse_configuration: {
@@ -214,12 +202,6 @@ const develco = {
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
-            },
-        } satisfies Tz.Converter,
-        input: {
-            key: ["input"],
-            convertGet: async (entity, key, meta) => {
-                await entity.read("genBinaryInput", ["presentValue"]);
             },
         } satisfies Tz.Converter,
     },
@@ -1015,46 +997,39 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IOMZB-110",
         vendor: "Develco",
         description: "IO module",
-        fromZigbee: [fz.on_off, develco.fz.input],
-        toZigbee: [tz.on_off, develco.tz.input],
         meta: {multiEndpoint: true},
-        exposes: [
-            e.binary("input", ea.STATE_GET, true, false).withEndpoint("l1").withDescription("State of input 1"),
-            e.binary("input", ea.STATE_GET, true, false).withEndpoint("l2").withDescription("State of input 2"),
-            e.binary("input", ea.STATE_GET, true, false).withEndpoint("l3").withDescription("State of input 3"),
-            e.binary("input", ea.STATE_GET, true, false).withEndpoint("l4").withDescription("State of input 4"),
-            e.switch().withEndpoint("l11"),
-            e.switch().withEndpoint("l12"),
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            m.deviceEndpoints({
+                endpoints: {l1: 112, l2: 113, l3: 114, l4: 115, l11: 116, l12: 117},
+            }),
+
+            ...["l1", "l2", "l3", "l4"].map((ep, i) =>
+                m.binary({
+                    name: "input",
+                    cluster: "genBinaryInput",
+                    attribute: "presentValue",
+                    description: `State of input ${i + 1}`,
+                    access: "STATE_GET",
+                    endpointName: ep,
+                    valueOn: ["ON", 1],
+                    valueOff: ["OFF", 0],
+                    reporting: {
+                        min: 0,
+                        max: "1_HOUR",
+                        change: null,
+                    },
+                }),
+            ),
+            m.onOff({
+                powerOnBehavior: false,
+                endpointNames: ["l11", "l12"],
+            }),
+            develcoModernExtend.customPulseTrigger({
+                endpointNames: ["l11", "l12"],
+            }),
         ],
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
-        configure: async (device, coordinatorEndpoint) => {
-            const ep2 = device.getEndpoint(112);
-            await reporting.bind(ep2, coordinatorEndpoint, ["genBinaryInput", "genBasic"]);
-            await reporting.presentValue(ep2, {min: 0});
-
-            const ep3 = device.getEndpoint(113);
-            await reporting.bind(ep3, coordinatorEndpoint, ["genBinaryInput"]);
-            await reporting.presentValue(ep3, {min: 0});
-
-            const ep4 = device.getEndpoint(114);
-            await reporting.bind(ep4, coordinatorEndpoint, ["genBinaryInput"]);
-            await reporting.presentValue(ep4, {min: 0});
-
-            const ep5 = device.getEndpoint(115);
-            await reporting.bind(ep5, coordinatorEndpoint, ["genBinaryInput"]);
-            await reporting.presentValue(ep5, {min: 0});
-
-            const ep6 = device.getEndpoint(116);
-            await reporting.bind(ep6, coordinatorEndpoint, ["genOnOff", "genBinaryInput"]);
-            await reporting.onOff(ep6);
-
-            const ep7 = device.getEndpoint(117);
-            await reporting.bind(ep7, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(ep7);
-        },
-        endpoint: (device) => {
-            return {l1: 112, l2: 113, l3: 114, l4: 115, l11: 116, l12: 117};
-        },
     },
     {
         zigbeeModel: ["SBTZB-110"],

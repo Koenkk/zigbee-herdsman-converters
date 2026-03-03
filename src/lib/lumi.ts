@@ -1,6 +1,4 @@
-import assert from "node:assert";
 import {Buffer} from "node:buffer";
-import {DataType} from "zigbee-herdsman/dist/zspec/zcl";
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
@@ -888,7 +886,7 @@ export const numericAttributes2Payload = async (
                 }
                 break;
             case "1289":
-                payload.dimmer_mode = getFromLookup(value, {3: "rgbw", 1: "dual_ct"});
+                payload.dimmer_mode = getFromLookup(value, {1: "dual_ct", 2: "rgb", 3: "rgbw"});
                 break;
             case "1299":
                 if (["ZNXDD01LM"].includes(model.model)) {
@@ -1849,7 +1847,7 @@ export const lumiModernExtend = {
             cluster: "manuSpecificLumi",
             attribute: {ID: 0x051f, type: 0x23},
             description: "RGB dynamic effect type",
-            zigbeeCommandOptions: {manufacturerCode},
+            zigbeeCommandOptions: {manufacturerCode, disableDefaultResponse: true},
             ...args,
         });
     },
@@ -1859,7 +1857,7 @@ export const lumiModernExtend = {
             cluster: "manuSpecificLumi",
             attribute: {ID: 0x0520, type: 0x20},
             description: "RGB dynamic effect speed (1-100%)",
-            zigbeeCommandOptions: {manufacturerCode},
+            zigbeeCommandOptions: {manufacturerCode, disableDefaultResponse: true},
             unit: "%",
             valueMin: 1,
             valueMax: 100,
@@ -1897,7 +1895,7 @@ export const lumiModernExtend = {
                         await targetEndpoint.write(
                             "manuSpecificLumi",
                             {1315: {value: packet, type: 0x41}},
-                            {manufacturerCode, disableDefaultResponse: false},
+                            {manufacturerCode, disableDefaultResponse: true},
                         );
 
                         return {
@@ -1946,7 +1944,7 @@ export const lumiModernExtend = {
                         await endpoint.write(
                             "manuSpecificLumi",
                             {1311: {value: effectValue, type: 0x23}},
-                            {manufacturerCode, disableDefaultResponse: false},
+                            {manufacturerCode, disableDefaultResponse: true},
                         );
 
                         return {state: {effect: value}};
@@ -2027,12 +2025,8 @@ export const lumiModernExtend = {
                             await entity.write(
                                 "manuSpecificLumi",
                                 {[ATTR_SEGMENT_CONTROL]: {value: Buffer.from(packet), type: 0x41}},
-                                {manufacturerCode, disableDefaultResponse: false},
+                                {manufacturerCode, disableDefaultResponse: true},
                             );
-
-                            if (i < groups.length - 1) {
-                                await sleep(50);
-                            }
                         }
 
                         if (deviceType === "strip") {
@@ -2081,7 +2075,7 @@ export const lumiModernExtend = {
 
                         const mask = Buffer.from(lumiGenerateSegmentMask(segments, "strip", maxSegments));
 
-                        await entity.write("manuSpecificLumi", {1328: {value: mask, type: 0x41}}, {manufacturerCode, disableDefaultResponse: false});
+                        await entity.write("manuSpecificLumi", {1328: {value: mask, type: 0x41}}, {manufacturerCode, disableDefaultResponse: true});
 
                         return {state: {effect_segments: value}};
                     },
@@ -2224,17 +2218,7 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiCurtainReverse: (args?: Partial<modernExtend.BinaryArgs<"closuresWindowCovering">>) => {
-        const {onEvent, configure} = modernExtend.deviceAddCustomCluster("hvacThermostat", {
-            ID: 0x0201,
-            attributes: {
-                // Make windowCoveringMode writable
-                // https://github.com/Koenkk/zigbee2mqtt/issues/30768
-                windowCoveringMode: {ID: 0x0017, type: DataType.BITMAP8, required: true, default: 4, write: true, max: 0xffff},
-            },
-            commands: {},
-            commandsResponse: {},
-        });
-        const result = modernExtend.binary({
+        return modernExtend.binary({
             name: "reverse_direction",
             valueOn: [true, 1],
             valueOff: [false, 0],
@@ -2245,10 +2229,6 @@ export const lumiModernExtend = {
             entityCategory: "config",
             ...args,
         });
-        result.configure.push(...configure);
-        assert(result.onEvent === undefined);
-        result.onEvent = onEvent;
-        return result;
     },
     lumiCurtainStatus: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificLumi">>) =>
         modernExtend.enumLookup({
