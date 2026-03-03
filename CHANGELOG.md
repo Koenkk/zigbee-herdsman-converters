@@ -1,5 +1,23 @@
 # Changelog
 
+## [26.14.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.13.0...v26.14.0) (2026-03-03)
+
+
+### Features
+
+* **add:** AE-720K ([#11639](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11639)) ([05c5da7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/05c5da71d62b8395a8637f600810dd84cb9f522f))
+* **add:** EC-SL-FK86ZPCS31 ([#11633](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11633)) ([45f31dc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/45f31dc0aa71158d58023c1cf91dce3d0d96fea5))
+* **add:** ZB-DG02 ([#11632](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11632)) ([1b4ac87](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1b4ac87b8d37b1578133906290eafef3baf26864))
+* General thermostat improvements ([#11614](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11614)) ([ddabfc4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ddabfc4b13f077645f2772bcccb9be8b1c1220e2))
+
+
+### Bug Fixes
+
+* Correct definition of elko specific attributes in hvacThermostat cluster ([#11634](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11634)) ([c9c50ca](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c9c50ca5f4a739e6cc2ff0aaed3ccdbdf2c1d45f))
+* IKEA E2489 and E2490: remove unsupported voltage reporting ([#11635](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11635)) ([bdd1624](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bdd1624039779cc90038e93ba7f618165b689383))
+* LiXee ZLinky: bump definition version to trigger reconfigure ([#11636](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11636)) ([32668a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/32668a4e45fc5cfe9cbe1fbf14ed74f01cf3b55b))
+* Move sprutVoc, sprutNoise and sprutIrBlaster from ZH to ZHC ([#11637](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11637)) ([005fe17](https://github.com/Koenkk/zigbee-herdsman-converters/commit/005fe17f8e6caa0442bebb2cf264e71c52e009ec))
+
 ## [26.13.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.12.0...v26.13.0) (2026-03-02)
 
 
