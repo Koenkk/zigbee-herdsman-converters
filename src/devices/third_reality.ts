@@ -562,6 +562,14 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["3RTHS0324Z"],
+        model: "3RTHS0324Z",
+        vendor: "Third Reality",
+        description: 'Temperature and Humidity Sensor Lite Gen2',
+        extend: [m.battery(), m.temperature(), m.humidity(), m.commandsOnOff()],
+        ota: true,
+    },
+    {
         zigbeeModel: ["3RSM0147Z"],
         model: "3RSM0147Z",
         vendor: "Third Reality",
