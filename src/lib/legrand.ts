@@ -86,9 +86,9 @@ export const legrandExtend = {
             ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
             attributes: {
-                deviceMode: {ID: 0x0000, type: Zcl.DataType.DATA16},
-                ledInDark: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
-                ledIfOn: {ID: 0x0002, type: Zcl.DataType.BOOLEAN},
+                deviceMode: {ID: 0x0000, type: Zcl.DataType.DATA16, write: true},
+                ledInDark: {ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
+                ledIfOn: {ID: 0x0002, type: Zcl.DataType.BOOLEAN, write: true},
             },
             commands: {},
             commandsResponse: {},
