@@ -11,7 +11,29 @@ import type {DefinitionWithExtend, Fz} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const fzLocal = {
+interface ManuSpecificCentraliteHumidity {
+    attributes: {
+        /** ID=0x0000 | type=UINT16 | write=true | max=65535 */
+        measuredValue: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export const centraliteExtend = {
+    addManuSpecificCentraliteHumidityCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificCentraliteHumidity", {
+            ID: 0xfc45,
+            manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
+            attributes: {
+                measuredValue: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+};
+
+export const fzLocal = {
     thermostat_3156105: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -39,6 +61,14 @@ const fzLocal = {
             return fz.thermostat.convert(model, msg, publish, options, meta);
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    d3310_humidity: {
+        cluster: "manuSpecificCentraliteHumidity",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const humidity = msg.data.measuredValue / 100.0;
+            return {humidity};
+        },
+    } satisfies Fz.Converter<"manuSpecificCentraliteHumidity", ManuSpecificCentraliteHumidity, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -321,7 +351,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3310-G",
         vendor: "Centralite",
         description: "Temperature and humidity sensor",
-        fromZigbee: [fz.temperature, fz._3310_humidity, fz.battery],
+        extend: [centraliteExtend.addManuSpecificCentraliteHumidityCluster()],
+        fromZigbee: [fz.temperature, fzLocal.d3310_humidity, fz.battery],
         exposes: [e.temperature(), e.humidity(), e.battery()],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},

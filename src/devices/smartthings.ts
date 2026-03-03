@@ -6,6 +6,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
+import {centraliteExtend, fzLocal as fzCentralite} from "./centralite";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -322,7 +323,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3310-S",
         vendor: "SmartThings",
         description: "Temperature and humidity sensor",
-        fromZigbee: [fz.temperature, fz._3310_humidity, fz.battery],
+        extend: [centraliteExtend.addManuSpecificCentraliteHumidityCluster()],
+        fromZigbee: [fz.temperature, fzCentralite.d3310_humidity, fz.battery],
         exposes: [e.temperature(), e.humidity(), e.battery()],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
