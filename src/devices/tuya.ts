@@ -10472,7 +10472,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_lcjsewlo", "_TZ3000_kfkqkjqe", "_TZ3000_cziew6eu", "_TZ3002_vsom92pp"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_lcjsewlo", "_TZ3000_kfkqkjqe", "_TZ3000_cziew6eu"]),
         model: "TS0726_3_gang",
         vendor: "Tuya",
         description: "3 gang switch with neutral wire",
@@ -21187,12 +21187,16 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3002_kq3kqwjt",
             "_TZ3002_ybtqbyk3",
             "_TZ3002_iedhxgyi",
+            "_TZ3002_vsom92pp",
             "_TZ300A_vqrs45nj",
         ]),
         model: "TS0726_3_gang_scene_switch",
         vendor: "Tuya",
         description: "3 gang switch with scene and backlight",
-        whiteLabel: [tuya.whitelabel("BSEED", "EC-GL86ZPCS31", "3 gang switch with scene and backlight", ["_TZ3002_iedhxgyi"])],
+        whiteLabel: [
+            tuya.whitelabel("BSEED", "EC-GL86ZPCS31", "3 gang switch with scene and backlight", ["_TZ3002_iedhxgyi"]),
+            tuya.whitelabel("BSEED", "EC-SL-FK86ZPCS31", "3 gang switch with scene and backlight (no neutral line required)", ["_TZ3002_vsom92pp"]),
+        ],
         fromZigbee: [fzLocal.TS0726_action],
         exposes: [e.action(["scene_1", "scene_2", "scene_3"])],
         extend: [
@@ -21217,11 +21221,21 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_rsylfthg", "_TZ3002_umdkr64x", "_TZ3002_hkaktryd", "_TZ3002_pzao9ls1", "_TZ300A_vkflnsl0"]),
+        fingerprint: tuya.fingerprint("TS0726", [
+            "_TZ3000_rsylfthg",
+            "_TZ3002_umdkr64x",
+            "_TZ3002_hkaktryd",
+            "_TZ3002_pzao9ls1",
+            "_TZ300A_vkflnsl0",
+            // "BSEED_TODO",
+        ]),
         model: "TS0726_4_gang_scene_switch",
         vendor: "Tuya",
         description: "4 gang switch with scene and backlight",
-        whiteLabel: [tuya.whitelabel("BSEED", "EC-GL86ZPCS41", "4 gang switch with scene and backlight", ["_TZ3002_pzao9ls1"])],
+        whiteLabel: [
+            tuya.whitelabel("BSEED", "EC-GL86ZPCS41", "4 gang switch with scene and backlight", ["_TZ3002_pzao9ls1"]),
+            // tuya.whitelabel("BSEED", "EC-SL-FK86ZPCS41", "4 gang switch with scene and backlight (no neutral line required)", ["BSEED_TODO"]),
+        ],
         fromZigbee: [fzLocal.TS0726_action],
         exposes: [e.action(["scene_1", "scene_2", "scene_3", "scene_4"])],
         extend: [
