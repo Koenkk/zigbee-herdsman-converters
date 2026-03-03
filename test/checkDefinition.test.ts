@@ -36,17 +36,17 @@ describe("Check definition", () => {
                     ],
                     [
                         "manuSpecificSamsungAccelerometer",
-                        [reportingItem("x_axis", 10, repInterval.HOUR, 5)],
+                        [reportingItem("xAxis", 10, repInterval.HOUR, 5)],
                         {manufacturerCode: Zcl.ManufacturerCode.SAMJIN_CO_LTD},
                     ],
                     [
                         "manuSpecificSamsungAccelerometer",
-                        [reportingItem("y_axis", 10, repInterval.HOUR, 5)],
+                        [reportingItem("yAxis", 10, repInterval.HOUR, 5)],
                         {manufacturerCode: Zcl.ManufacturerCode.SAMJIN_CO_LTD},
                     ],
                     [
                         "manuSpecificSamsungAccelerometer",
-                        [reportingItem("z_axis", 10, repInterval.HOUR, 5)],
+                        [reportingItem("zAxis", 10, repInterval.HOUR, 5)],
                         {manufacturerCode: Zcl.ManufacturerCode.SAMJIN_CO_LTD},
                     ],
                 ],
