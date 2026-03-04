@@ -1,12 +1,6 @@
 import {describe, expect, test} from "vitest";
-import {
-    DecodeManuSpecificPhilips2,
-    EncodeManuSpecificPhilips2,
-    HueEffectType,
-    HueGradientStyle,
-    Philips2Data,
-} from "../src/lib/philips";
 import {ColorXY} from "../src/lib/color";
+import {DecodeManuSpecificPhilips2, EncodeManuSpecificPhilips2, HueEffectType, HueGradientStyle, type Philips2Data} from "../src/lib/philips";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -29,10 +23,10 @@ function r(n: number, dp = 4): number {
 const MAX_X = 0.7347;
 const MAX_Y = 0.8264;
 // Quantization step for 12-bit gradient colors
-const GRAD_X_STEP = MAX_X / 4095; // ~0.000179
-const GRAD_Y_STEP = MAX_Y / 4095; // ~0.000202
+const _GRAD_X_STEP = MAX_X / 4095; // ~0.000179
+const _GRAD_Y_STEP = MAX_Y / 4095; // ~0.000202
 // Quantization step for 16-bit COLOR_XY
-const XY16_STEP = 1.0 / 65535; // ~0.0000153
+const _XY16_STEP = 1.0 / 65535; // ~0.0000153
 
 // ─── Bifrost spec examples ─────────────────────────────────────────────────
 // https://github.com/chrivers/bifrost/blob/master/doc/hue-zigbee-format.md
@@ -204,7 +198,7 @@ describe("DecodeManuSpecificPhilips2", () => {
             ];
             for (const [byte, expected] of effects) {
                 // flags=0x0020 (EFFECT_TYPE), then the byte
-                const hex = "2000" + byte.toString(16).padStart(2, "0");
+                const hex = `2000${byte.toString(16).padStart(2, "0")}`;
                 const d = DecodeManuSpecificPhilips2(hexToBuffer(hex));
                 expect(d.effectType).toBe(expected);
             }
@@ -252,17 +246,21 @@ describe("EncodeManuSpecificPhilips2", () => {
         });
 
         test("gradientParams scale=7.0 offset=0.0", () => {
-            const hex = bufferToHex(EncodeManuSpecificPhilips2({
-                gradientParams: {scale: 7.0, offset: 0.0},
-            }));
+            const hex = bufferToHex(
+                EncodeManuSpecificPhilips2({
+                    gradientParams: {scale: 7.0, offset: 0.0},
+                }),
+            );
             // flags=0x0040, scale=56 (7*8), offset=0
             expect(hex).toBe("40003800");
         });
 
         test("gradientParams fractional: scale=1.125 offset=2.5", () => {
-            const hex = bufferToHex(EncodeManuSpecificPhilips2({
-                gradientParams: {scale: 1.125, offset: 2.5},
-            }));
+            const hex = bufferToHex(
+                EncodeManuSpecificPhilips2({
+                    gradientParams: {scale: 1.125, offset: 2.5},
+                }),
+            );
             // scale=1.125*8=9, offset=2.5*8=20
             expect(hex).toBe("40000914");
         });
@@ -270,37 +268,48 @@ describe("EncodeManuSpecificPhilips2", () => {
 
     describe("flag ordering matches wire format", () => {
         test("ON_OFF + BRIGHTNESS flag bits", () => {
-            const hex = bufferToHex(EncodeManuSpecificPhilips2({
-                onOff: true, brightness: 100,
-            }));
+            const hex = bufferToHex(
+                EncodeManuSpecificPhilips2({
+                    onOff: true,
+                    brightness: 100,
+                }),
+            );
             // flags=0x0003 LE, then onOff=1, brightness=100
             expect(hex).toBe("03000164");
         });
 
         test("ON_OFF + FADE_SPEED", () => {
-            const hex = bufferToHex(EncodeManuSpecificPhilips2({
-                onOff: false, fadeSpeed: 8,
-            }));
+            const hex = bufferToHex(
+                EncodeManuSpecificPhilips2({
+                    onOff: false,
+                    fadeSpeed: 8,
+                }),
+            );
             // flags=0x0011 LE = "1100", then onOff=0, fadeSpeed=8 LE
             expect(hex).toBe("1100000800");
         });
 
         test("matches Bifrost Example 5: turn off with fadeSpeed=8", () => {
-            const hex = bufferToHex(EncodeManuSpecificPhilips2({
-                onOff: false, fadeSpeed: 8,
-            }));
+            const hex = bufferToHex(
+                EncodeManuSpecificPhilips2({
+                    onOff: false,
+                    fadeSpeed: 8,
+                }),
+            );
             expect(hex).toBe(BIFROST_EXAMPLES.turn_off);
         });
     });
 
     describe("gradient colors encoding", () => {
         test("single color, Linear style", () => {
-            const hex = bufferToHex(EncodeManuSpecificPhilips2({
-                gradientColors: {
-                    style: HueGradientStyle.Linear,
-                    colors: [ColorXY.fromObject({x: 0, y: 0})],
-                },
-            }));
+            const hex = bufferToHex(
+                EncodeManuSpecificPhilips2({
+                    gradientColors: {
+                        style: HueGradientStyle.Linear,
+                        colors: [ColorXY.fromObject({x: 0, y: 0})],
+                    },
+                }),
+            );
             // flags=0x0100 LE = "0001", size=7, count=0x10, style=0x00,
             // reserved=0000, color=[00,00,00] → 10 bytes
             expect(hex).toBe("00010710000000000000");
@@ -325,11 +334,12 @@ describe("EncodeManuSpecificPhilips2", () => {
 
         test("color count byte stores count in high nibble", () => {
             const make = (n: number) => {
-                const colors = Array.from({length: n}, () =>
-                    ColorXY.fromObject({x: 0.3, y: 0.3}));
-                return Buffer.from(EncodeManuSpecificPhilips2({
-                    gradientColors: {style: HueGradientStyle.Linear, colors},
-                }));
+                const colors = Array.from({length: n}, () => ColorXY.fromObject({x: 0.3, y: 0.3}));
+                return Buffer.from(
+                    EncodeManuSpecificPhilips2({
+                        gradientColors: {style: HueGradientStyle.Linear, colors},
+                    }),
+                );
             };
             // Count byte at offset 3 (2 flags + 1 size), count in high nibble
             expect(make(1)[3]).toBe(1 << 4);
@@ -339,11 +349,12 @@ describe("EncodeManuSpecificPhilips2", () => {
 
         test("size byte = 4 + 3*color_count", () => {
             const make = (n: number) => {
-                const colors = Array.from({length: n}, () =>
-                    ColorXY.fromObject({x: 0.3, y: 0.3}));
-                return Buffer.from(EncodeManuSpecificPhilips2({
-                    gradientColors: {style: HueGradientStyle.Linear, colors},
-                }));
+                const colors = Array.from({length: n}, () => ColorXY.fromObject({x: 0.3, y: 0.3}));
+                return Buffer.from(
+                    EncodeManuSpecificPhilips2({
+                        gradientColors: {style: HueGradientStyle.Linear, colors},
+                    }),
+                );
             };
             // Size byte at offset 2 (after 2 flag bytes)
             expect(make(1)[2]).toBe(4 + 3);
@@ -357,24 +368,21 @@ describe("EncodeManuSpecificPhilips2", () => {
 describe("round-trip: Encode → Decode", () => {
     test("ON_OFF round-trips", () => {
         for (const val of [true, false]) {
-            const d = DecodeManuSpecificPhilips2(
-                Buffer.from(EncodeManuSpecificPhilips2({onOff: val})));
+            const d = DecodeManuSpecificPhilips2(Buffer.from(EncodeManuSpecificPhilips2({onOff: val})));
             expect(d.onOff).toBe(val);
         }
     });
 
     test("brightness round-trips for all valid values 1..254", () => {
         for (const val of [1, 2, 64, 127, 128, 200, 253, 254]) {
-            const d = DecodeManuSpecificPhilips2(
-                Buffer.from(EncodeManuSpecificPhilips2({brightness: val})));
+            const d = DecodeManuSpecificPhilips2(Buffer.from(EncodeManuSpecificPhilips2({brightness: val})));
             expect(d.brightness).toBe(val);
         }
     });
 
     test("colorMirek round-trips", () => {
         for (const val of [153, 250, 370, 500]) {
-            const d = DecodeManuSpecificPhilips2(
-                Buffer.from(EncodeManuSpecificPhilips2({colorMirek: val})));
+            const d = DecodeManuSpecificPhilips2(Buffer.from(EncodeManuSpecificPhilips2({colorMirek: val})));
             expect(d.colorMirek).toBe(val);
         }
     });
@@ -382,15 +390,14 @@ describe("round-trip: Encode → Decode", () => {
     test("colorXY round-trips within 16-bit precision", () => {
         const cases = [
             {x: 0.0, y: 0.0},
-            {x: 0.3127, y: 0.3290}, // D65 white point
+            {x: 0.3127, y: 0.329}, // D65 white point
             {x: 0.6915, y: 0.3083}, // Hue gamut red
-            {x: 0.17, y: 0.7},      // Hue gamut green
+            {x: 0.17, y: 0.7}, // Hue gamut green
             {x: 0.1532, y: 0.0475}, // Hue gamut blue
-            {x: 1.0, y: 1.0},       // max
+            {x: 1.0, y: 1.0}, // max
         ];
         for (const {x, y} of cases) {
-            const d = DecodeManuSpecificPhilips2(Buffer.from(
-                EncodeManuSpecificPhilips2({colorXY: ColorXY.fromObject({x, y})})));
+            const d = DecodeManuSpecificPhilips2(Buffer.from(EncodeManuSpecificPhilips2({colorXY: ColorXY.fromObject({x, y})})));
             expect(d.colorXY?.x).toBeCloseTo(x, 4);
             expect(d.colorXY?.y).toBeCloseTo(y, 4);
         }
@@ -398,24 +405,21 @@ describe("round-trip: Encode → Decode", () => {
 
     test("fadeSpeed round-trips", () => {
         for (const val of [0, 1, 4, 8, 256, 65535]) {
-            const d = DecodeManuSpecificPhilips2(
-                Buffer.from(EncodeManuSpecificPhilips2({fadeSpeed: val})));
+            const d = DecodeManuSpecificPhilips2(Buffer.from(EncodeManuSpecificPhilips2({fadeSpeed: val})));
             expect(d.fadeSpeed).toBe(val);
         }
     });
 
     test("effectType round-trips for all known effects", () => {
-        for (const et of Object.values(HueEffectType).filter(v => typeof v === "number")) {
-            const d = DecodeManuSpecificPhilips2(
-                Buffer.from(EncodeManuSpecificPhilips2({effectType: et as HueEffectType})));
+        for (const et of Object.values(HueEffectType).filter((v) => typeof v === "number")) {
+            const d = DecodeManuSpecificPhilips2(Buffer.from(EncodeManuSpecificPhilips2({effectType: et as HueEffectType})));
             expect(d.effectType).toBe(et);
         }
     });
 
     test("effectSpeed round-trips within 8-bit precision", () => {
         for (const val of [0.0, 0.25, 0.5, 0.502, 1.0]) {
-            const d = DecodeManuSpecificPhilips2(
-                Buffer.from(EncodeManuSpecificPhilips2({effectSpeed: val})));
+            const d = DecodeManuSpecificPhilips2(Buffer.from(EncodeManuSpecificPhilips2({effectSpeed: val})));
             expect(d.effectSpeed).toBeCloseTo(val, 2);
         }
     });
@@ -429,8 +433,7 @@ describe("round-trip: Encode → Decode", () => {
             {scale: 0.125, offset: 0.125},
         ];
         for (const gp of cases) {
-            const d = DecodeManuSpecificPhilips2(
-                Buffer.from(EncodeManuSpecificPhilips2({gradientParams: gp})));
+            const d = DecodeManuSpecificPhilips2(Buffer.from(EncodeManuSpecificPhilips2({gradientParams: gp})));
             expect(d.gradientParams?.scale).toBe(gp.scale);
             expect(d.gradientParams?.offset).toBe(gp.offset);
         }
@@ -439,9 +442,9 @@ describe("round-trip: Encode → Decode", () => {
     test("gradient colors round-trip within 12-bit precision", () => {
         const colors = [
             {x: 0.6915, y: 0.3083}, // red-ish
-            {x: 0.17, y: 0.7},      // green-ish
+            {x: 0.17, y: 0.7}, // green-ish
             {x: 0.1532, y: 0.0475}, // blue-ish
-        ].map(c => ColorXY.fromObject(c));
+        ].map((c) => ColorXY.fromObject(c));
         const data: Philips2Data = {
             gradientColors: {style: HueGradientStyle.Mirrored, colors},
         };
@@ -459,7 +462,8 @@ describe("round-trip: Encode → Decode", () => {
             ColorXY.fromObject({
                 x: (i / 8) * MAX_X,
                 y: (1 - i / 8) * MAX_Y,
-            }));
+            }),
+        );
         const data: Philips2Data = {
             gradientColors: {style: HueGradientStyle.Scattered, colors},
         };
@@ -482,10 +486,7 @@ describe("round-trip: Encode → Decode", () => {
             effectSpeed: 0.75,
             gradientColors: {
                 style: HueGradientStyle.Mirrored,
-                colors: [
-                    ColorXY.fromObject({x: 0.6, y: 0.3}),
-                    ColorXY.fromObject({x: 0.2, y: 0.5}),
-                ],
+                colors: [ColorXY.fromObject({x: 0.6, y: 0.3}), ColorXY.fromObject({x: 0.2, y: 0.5})],
             },
             gradientParams: {scale: 3.0, offset: 1.5},
         };
@@ -586,9 +587,9 @@ describe("gradient color byte packing", () => {
             },
         };
         const buf = Buffer.from(EncodeManuSpecificPhilips2(data));
-        expect(buf[7]).toBe(0xFF);
-        expect(buf[8]).toBe(0xFF);
-        expect(buf[9]).toBe(0xFF);
+        expect(buf[7]).toBe(0xff);
+        expect(buf[8]).toBe(0xff);
+        expect(buf[9]).toBe(0xff);
     });
 
     test("edge case: x=0xFFF, y=0x000 packs to [0xFF, 0x0F, 0x00]", () => {
@@ -599,8 +600,8 @@ describe("gradient color byte packing", () => {
             },
         };
         const buf = Buffer.from(EncodeManuSpecificPhilips2(data));
-        expect(buf[7]).toBe(0xFF);
-        expect(buf[8]).toBe(0x0F);
+        expect(buf[7]).toBe(0xff);
+        expect(buf[8]).toBe(0x0f);
         expect(buf[9]).toBe(0x00);
     });
 
@@ -613,8 +614,8 @@ describe("gradient color byte packing", () => {
         };
         const buf = Buffer.from(EncodeManuSpecificPhilips2(data));
         expect(buf[7]).toBe(0x00);
-        expect(buf[8]).toBe(0xF0);
-        expect(buf[9]).toBe(0xFF);
+        expect(buf[8]).toBe(0xf0);
+        expect(buf[9]).toBe(0xff);
     });
 });
 
@@ -636,7 +637,7 @@ describe("wire order: GRADIENT_COLORS before EFFECT_SPEED before GRADIENT_PARAMS
         };
         const buf = Buffer.from(EncodeManuSpecificPhilips2(data));
         // Flags at [0:1]: should be 0x01C0 LE = "c001"
-        expect(buf.readUInt16LE(0)).toBe(0x01C0);
+        expect(buf.readUInt16LE(0)).toBe(0x01c0);
         // After flags (2 bytes), wire order:
         // 1. GRADIENT_COLORS: size=7, count=0x10, style=0, reserved=0000, 3 color bytes
         const gradientStart = 2;
@@ -651,7 +652,7 @@ describe("wire order: GRADIENT_COLORS before EFFECT_SPEED before GRADIENT_PARAMS
         const scaleEncoded = buf[afterGradient + 1];
         const offsetEncoded = buf[afterGradient + 2];
         expect(scaleEncoded).toBe(16); // 2.0 * 8
-        expect(offsetEncoded).toBe(0);  // 0.0 * 8
+        expect(offsetEncoded).toBe(0); // 0.0 * 8
     });
 });
 
