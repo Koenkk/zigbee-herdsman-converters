@@ -1957,7 +1957,7 @@ export const definitions: DefinitionWithExtend[] = [
                             }
 
                             for (const [bit, name] of Object.entries(faultMap)) {
-                                if (value & Number.parseInt(bit)) {
+                                if (value & Number.parseInt(bit, 10)) {
                                     faults.push(name);
                                 }
                             }
@@ -22262,7 +22262,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tongou",
         description: "Zigbee energy meter (transformer clamp)",
         whiteLabel: [tuya.whitelabel("Tongou", "TOSA1-01WXJAT2A", "Smart energy meter, two wire", ["_TZE284_4hdbt6rn"])],
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnConfigure: true,
+                queryIntervalSeconds: 60,
+            }),
+        ],
         exposes: [
             e.energy(),
             e.voltage(),
@@ -25065,7 +25071,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_seq9cm6u"]),
         model: "TS0601_bed_presence_sensor",
         vendor: "Tuya",
-        description: "'Pressure Sensing Strap/Bed Occupancy Sensor",
+        description: "Pressure Sensing Strap/Bed Occupancy Sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.occupancy(),
@@ -25106,7 +25112,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "presence", tuya.valueConverter.trueFalse0],
+                [1, "occupancy", tuya.valueConverter.trueFalse0],
                 [4, "battery", tuya.valueConverter.raw],
                 [
                     9,
