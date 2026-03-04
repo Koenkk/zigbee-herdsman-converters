@@ -3499,15 +3499,6 @@ export const byun_gas_true: Fz.Converter<"ssIasZone", undefined, ["commandStatus
         }
     },
 };
-export const hue_smart_button_event: Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification"> = {
-    cluster: "manuSpecificPhilips",
-    type: "commandHueNotification",
-    convert: (model, msg, publish, options, meta) => {
-        // Philips HUE Smart Button "ROM001": these events are always from "button 1"
-        const lookup: KeyValueAny = {0: "press", 1: "hold", 2: "release", 3: "release"};
-        return {action: lookup[msg.data.type]};
-    },
-};
 export const legrand_binary_input_moving: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBinaryInput",
     type: ["attributeReport", "readResponse"],
@@ -4310,50 +4301,6 @@ export const CCTSwitch_D0001_lighting: Fz.Converter<"lightingColorCtrl", undefin
         return payload;
     },
 };
-export const hue_wall_switch: Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification"> = {
-    cluster: "manuSpecificPhilips",
-    type: "commandHueNotification",
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-        const buttonLookup: KeyValueAny = {1: "left", 2: "right"};
-        const button = buttonLookup[msg.data.button];
-        const typeLookup: KeyValueAny = {0: "press", 1: "hold", 2: "press_release", 3: "hold_release"};
-        const type = typeLookup[msg.data.type];
-        return {action: `${button}_${type}`};
-    },
-};
-export const hue_dimmer_switch: Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification"> = {
-    cluster: "manuSpecificPhilips",
-    type: "commandHueNotification",
-    options: [exposes.options.simulated_brightness()],
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-        const buttonLookup: KeyValueAny = {1: "on", 2: "up", 3: "down", 4: "off"};
-        const button = buttonLookup[msg.data.button];
-        const typeLookup: KeyValueAny = {0: "press", 1: "hold", 2: "press_release", 3: "hold_release"};
-        const type = typeLookup[msg.data.type];
-        const payload: KeyValueAny = {action: `${button}_${type}`};
-
-        // duration
-        if (type === "press") globalStore.putValue(msg.endpoint, "press_start", Date.now());
-        else if (type === "hold" || type === "release") {
-            payload.action_duration = (Date.now() - globalStore.getValue(msg.endpoint, "press_start")) / 1000;
-        }
-
-        // simulated brightness
-        if (options.simulated_brightness && (button === "down" || button === "up") && type !== "release") {
-            const opts: KeyValueAny = options.simulated_brightness;
-            const deltaOpts = typeof opts === "object" && opts.delta != null ? opts.delta : 35;
-            const delta = button === "up" ? deltaOpts : deltaOpts * -1;
-            const brightness = globalStore.getValue(msg.endpoint, "brightness", 255) + delta;
-            payload.brightness = numberWithinRange(brightness, 0, 255);
-            payload.action_brightness_delta = delta;
-            globalStore.putValue(msg.endpoint, "brightness", payload.brightness);
-        }
-
-        return payload;
-    },
-};
 export const hue_tap: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
@@ -4378,25 +4325,6 @@ export const hue_tap: Fz.Converter<"greenPower", undefined, ["commandNotificatio
         } else {
             return {action: lookup[commandID]};
         }
-    },
-};
-export const hue_twilight: Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification"> = {
-    cluster: "manuSpecificPhilips",
-    type: "commandHueNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const buttonLookup: KeyValueAny = {1: "dot", 2: "hue"};
-        const button = buttonLookup[msg.data.button];
-        const typeLookup: KeyValueAny = {0: "press", 1: "hold", 2: "press_release", 3: "hold_release"};
-        const type = typeLookup[msg.data.type];
-        const payload: KeyValueAny = {action: `${button}_${type}`};
-
-        // duration
-        if (type === "press") globalStore.putValue(msg.endpoint, "press_start", Date.now());
-        else if (type === "hold" || type === "release") {
-            payload.action_duration = (Date.now() - globalStore.getValue(msg.endpoint, "press_start")) / 1000;
-        }
-
-        return payload;
     },
 };
 export const tuya_relay_din_led_indicator: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
