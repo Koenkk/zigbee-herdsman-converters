@@ -1,7 +1,8 @@
 import {expect, vi} from "vitest";
-import type {Device} from "zigbee-herdsman/dist/controller/model";
+import {Zcl} from "zigbee-herdsman";
+import {Device, Endpoint} from "zigbee-herdsman/dist/controller/model";
+import {InterviewState} from "zigbee-herdsman/dist/controller/model/device";
 import type {DeviceType} from "zigbee-herdsman/dist/controller/tstype";
-import {Clusters} from "zigbee-herdsman/dist/zspec/zcl/definition/cluster";
 import * as tz from "../src/converters/toZigbee";
 import {findByDevice} from "../src/index";
 import type {Definition, DefinitionMeta, Fz, Zh} from "../src/lib/types";
@@ -16,8 +17,13 @@ interface MockEndpointArgs {
     outputClusters?: string[];
     inputClusterIDs?: number[];
     outputClusterIDs?: number[];
-    attributes?: {[s: string]: {[s: string]: unknown}};
+    attributes?: {
+        [cluster: string]: {
+            attributes: {[attribute: string]: number | string};
+        };
+    };
     meta?: {[s: string]: unknown};
+    read?: ReturnType<typeof vi.fn<() => Promise<Record<string, unknown>>>>;
 }
 
 export function reportingItem(attribute: string, min: number, max: number, change: number) {
@@ -25,70 +31,90 @@ export function reportingItem(attribute: string, min: number, max: number, chang
 }
 
 export function mockDevice(
-    args: {modelID: string; manufacturerID?: number; manufacturerName?: string; endpoints: MockEndpointArgs[]},
+    args: {
+        modelID: string;
+        manufacturerID?: number;
+        manufacturerName?: string;
+        endpoints: MockEndpointArgs[];
+        applicationVersion?: number;
+        powerSource?: string;
+        softwareBuildID?: string;
+        ieeeAddr?: string;
+    },
     type: DeviceType = "Router",
-    extraArgs: Record<string, unknown> = {},
-): Zh.Device {
-    const ieeeAddr = "0x12345678";
-    const device: Zh.Device = {
-        // @ts-expect-error ignore
-        constructor: {name: "Device"},
-        ieeeAddr,
-        save: vi.fn(),
-        customClusters: {},
-        addCustomCluster: vi.fn(),
+) {
+    const ieeeAddr = args.ieeeAddr ?? "0x12345678";
+    const endpoints: Endpoint[] = [];
+    // @ts-expect-error private
+    const device = new Device(
+        1,
         type,
-        ...args,
-        ...extraArgs,
-    };
+        ieeeAddr,
+        0x1234,
+        args.manufacturerID,
+        endpoints,
+        args.manufacturerName,
+        args.powerSource,
+        args.modelID,
+        args.applicationVersion,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        args.softwareBuildID,
+        InterviewState.InProgress,
+        {},
+        undefined,
+        undefined,
+        0,
+        undefined,
+        undefined,
+    );
 
-    const endpoints = args.endpoints.map((e) => mockEndpoint(e, device));
-    // @ts-expect-error ignore
-    device.endpoints = endpoints;
-    device.getEndpoint = (id: number) => {
-        const endpoint = endpoints.find((e) => e.ID === id);
-        if (!endpoint) throw new Error(`No endpoint ${id}`);
-        return endpoint;
-    };
+    for (const endpoint of args.endpoints) {
+        endpoints.push(mockEndpoint(endpoint, device));
+    }
+
     return device;
 }
 
-function getCluster(id: string | number) {
-    const cluster = Object.entries(Clusters).find((c) => (typeof id === "number" ? c[1].ID === id : c[0] === id));
-    if (!cluster) throw new Error(`Cluster '${id}' does not exist`);
-    return {name: cluster[0], ID: cluster[1].ID};
-}
+function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined) {
+    const inputClusters = args.inputClusterIDs ?? [];
 
-function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh.Endpoint {
-    const attributes = args.attributes ?? {};
-    const inputClusters = args.inputClusterIDs ?? (args.inputClusters ?? []).map((c) => getCluster(c).ID);
-    const outputClusters = args.outputClusterIDs ?? (args.outputClusters ?? []).map((c) => getCluster(c).ID);
-    return {
-        ID: args.ID ?? 1,
-        profileID: args.profileID ?? 1,
-        deviceID: args.deviceID ?? 1,
-        // @ts-expect-error ignore
-        constructor: {name: "Endpoint"},
-        bind: vi.fn(),
-        configureReporting: vi.fn(),
-        read: vi.fn(),
-        write: vi.fn(),
-        command: vi.fn(),
-        getDevice: () => device,
+    for (const inCluster of args.inputClusters ?? []) {
+        inputClusters.push(Zcl.Utils.getCluster(inCluster).ID);
+    }
+
+    const outputClusters = args.outputClusterIDs ?? [];
+
+    for (const outCluster of args.outputClusters ?? []) {
+        outputClusters.push(Zcl.Utils.getCluster(outCluster).ID);
+    }
+
+    // @ts-expect-error private
+    const endpoint: Endpoint = new Endpoint(
+        args.ID ?? 1,
+        args.profileID ?? 1,
+        args.deviceID ?? 1,
         inputClusters,
         outputClusters,
-        // @ts-expect-error ignore
-        getInputClusters: () => inputClusters.map((c) => getCluster(c)),
-        // @ts-expect-error ignore
-        getOutputClusters: () => outputClusters.map((c) => getCluster(c)),
-        supportsInputCluster: (key) => !!inputClusters.find((id) => id === getCluster(key).ID),
-        saveClusterAttributeKeyValue: vi.fn().mockImplementation((cluster, values) => {
-            attributes[cluster] = {...attributes[cluster], ...values};
-        }),
-        save: vi.fn(),
-        getClusterAttributeValue: vi.fn().mockImplementation((cluster, attribute) => attributes?.[cluster]?.[attribute]),
-        meta: args.meta,
-    };
+        device?.networkAddress ?? "0x0000",
+        device?.ieeeAddr ?? 0,
+        args.attributes ?? {},
+        [],
+        [],
+        args.meta,
+    );
+
+    vi.spyOn(endpoint, "getDevice").mockImplementation(() => device);
+    vi.spyOn(endpoint, "read").mockImplementation(args.read ? args.read : async () => ({}));
+    // no-ops
+    vi.spyOn(endpoint, "bind").mockImplementation(async () => {});
+    vi.spyOn(endpoint, "configureReporting").mockImplementation(async () => {});
+    vi.spyOn(endpoint, "write").mockImplementation(async () => {});
+    vi.spyOn(endpoint, "command").mockImplementation(async () => ({}));
+
+    return endpoint;
 }
 
 const DefaultTz = [
