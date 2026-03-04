@@ -60,8 +60,5 @@ export const definitions: DefinitionWithExtend[] = [
             m.iasWarning(),
         ],
         ota: true,
-        endpoint: (device) => {
-            return {default: 43};
-        },
     },
 ];
