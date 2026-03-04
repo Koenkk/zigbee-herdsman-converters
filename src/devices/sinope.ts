@@ -9,6 +9,7 @@ import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 import {precisionRound} from "../lib/utils";
+import type {ZclArray} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
 const e = exposes.presets;
 const ea = exposes.access;
