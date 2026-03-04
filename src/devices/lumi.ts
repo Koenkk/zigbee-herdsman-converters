@@ -2310,7 +2310,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.vibration(),
             e.action(["vibration", "tilt", "drop"]),
             e.numeric("strength", ea.STATE),
-            e.numeric("sensitivity", ea.STATE_SET).withDescription("Sensitivity, 1 = highest, 21 = lowest").withValueMin(1).withValueMax(21),
+            e.enum("sensitivity", ea.STATE_SET, ["low", "medium", "high"]).withDescription("Sensitivity of the vibration sensor"),
             e.angle_axis("angle_x"),
             e.angle_axis("angle_y"),
             e.angle_axis("angle_z"),
