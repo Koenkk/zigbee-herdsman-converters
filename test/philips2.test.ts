@@ -22,11 +22,6 @@ function r(n: number, dp = 4): number {
 // Per Bifrost spec: gradient XY scaled to Wide Gamut bounds
 const MAX_X = 0.7347;
 const MAX_Y = 0.8264;
-// Quantization step for 12-bit gradient colors
-const _GRAD_X_STEP = MAX_X / 4095; // ~0.000179
-const _GRAD_Y_STEP = MAX_Y / 4095; // ~0.000202
-// Quantization step for 16-bit COLOR_XY
-const _XY16_STEP = 1.0 / 65535; // ~0.0000153
 
 // ─── Bifrost spec examples ─────────────────────────────────────────────────
 // https://github.com/chrivers/bifrost/blob/master/doc/hue-zigbee-format.md
