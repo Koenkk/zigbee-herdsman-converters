@@ -173,7 +173,7 @@ const philipsModernExtend = {
 
         const keys = toZigbee.map((value, index, array) => value.key).flat().filter((value, index, array) => array.indexOf(value) == index);
         // Add keys for Philips2-specific features not handled by standard converters
-        keys.push("effect_speed", "gradient_scale", "gradient_offset");
+        keys.push("effect_speed", "gradient_scale", "gradient_offset", "gradient_style");
         const philipsLightTz = {
             key: keys,
             convertSet: async (entity, key, value, meta) => {
@@ -253,6 +253,24 @@ const philipsModernExtend = {
                         data.gradientParams = {scale: 1.0, offset: Number(message.gradient_offset)};
                     } else {
                         data.gradientParams.offset = Number(message.gradient_offset);
+                    }
+                }
+
+                // Gradient style: stored in state for use with gradient color commands.
+                // When gradient colors are also being sent through this path, the style
+                // is applied directly to data.gradientColors.style.
+                if (message.gradient_style != null) {
+                    const styleLookup: Record<string, HueGradientStyle> = {
+                        linear: HueGradientStyle.Linear,
+                        scattered: HueGradientStyle.Scattered,
+                        mirrored: HueGradientStyle.Mirrored,
+                    };
+                    const style = styleLookup[String(message.gradient_style).toLowerCase()];
+                    if (style !== undefined) {
+                        if (data.gradientColors !== undefined) {
+                            data.gradientColors.style = style;
+                        }
+                        newState.gradient_style = message.gradient_style;
                     }
                 }
 
@@ -342,6 +360,15 @@ const philipsModernExtend = {
             );
 
             if (args.gradient) {
+                // Expose gradient style as an enum (per Bifrost spec: Linear, Scattered, Mirrored)
+                result.exposes.push(
+                    ...exposeEndpoints(
+                        e.enum("gradient_style", ea.ALL, ["linear", "scattered", "mirrored"])
+                            .withDescription("Gradient rendering style: linear (smooth blend), scattered (color per segment), mirrored (symmetric from center)"),
+                        args.endpointNames,
+                    ),
+                );
+
                 // Expose gradient scale and offset as numerics (fixed-point 5.3 format)
                 result.exposes.push(
                     ...exposeEndpoints(
@@ -541,12 +568,36 @@ const philipsTz = {
     } satisfies Tz.Converter,
     gradient: (opts = {reverse: false}) => {
         return {
-            key: ["gradient"],
+            key: ["gradient", "gradient_style"],
             convertSet: async (entity, key, value, meta) => {
+                // Merge gradient_style from the message into opts if present
+                const mergedOpts = {...opts};
+                const {message} = meta;
+                if (message.gradient_style != null) {
+                    const styleLookup: Record<string, number> = {
+                        linear: HueGradientStyle.Linear,
+                        scattered: HueGradientStyle.Scattered,
+                        mirrored: HueGradientStyle.Mirrored,
+                    };
+                    const style = styleLookup[String(message.gradient_style).toLowerCase()];
+                    if (style !== undefined) {
+                        mergedOpts.style = style;
+                    }
+                }
+                // If only gradient_style was sent (no gradient colors), re-send current
+                // gradient from state with the new style
+                let colors = key === "gradient" ? value : message.gradient;
+                if (colors == null && meta.state?.gradient != null) {
+                    colors = meta.state.gradient;
+                }
+                if (colors == null || (Array.isArray(colors) && colors.length === 0)) {
+                    return; // Nothing to send
+                }
                 // @ts-expect-error ignore
-                const scene = encodeGradientColors(value, opts);
+                const scene = encodeGradientColors(colors, mergedOpts);
                 const payload = {data: Buffer.from(scene, "hex")};
                 await entity.command("manuSpecificPhilips2", "multiColor", payload);
+                return {state: {gradient_style: message.gradient_style}};
             },
             convertGet: async (entity, key, meta) => {
                 try {
@@ -1309,9 +1360,17 @@ export function encodeGradientColors(value: string[], opts: KeyValueAny) {
     // Payload length
     const length = (1 + 3 * (value.length + 1)).toString(16).padStart(2, "0");
 
+    // Gradient style: Linear=0x00, Scattered=0x02, Mirrored=0x04
+    // Per Bifrost spec, only these three values are valid.
+    let style = 0x00; // Default: Linear
+    if (opts.style != null) {
+        style = opts.style;
+    }
+    const stylePayload = style.toString(16).padStart(2, "0");
+
     // 5001 - mode? set gradient?
     // 0400 - unknown
-    const scene = `50010400${length}${nColors}000000${colorsPayload}${segmentsPayload}${offsetPayload}`;
+    const scene = `50010400${length}${nColors}${stylePayload}0000${colorsPayload}${segmentsPayload}${offsetPayload}`;
 
     return scene;
 }
