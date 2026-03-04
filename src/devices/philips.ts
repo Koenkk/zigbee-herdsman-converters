@@ -230,21 +230,21 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003597601",
         vendor: "Philips",
         description: "Hue white ambiance Aurelle square panel light",
-        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+        extend: [philips.m.addManuSpecificPhilips2Cluster(), philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["LCU001"],
         model: "8719514491229",
         vendor: "Philips",
         description: "Hue White and Color Ambiance E14",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+        extend: [philips.m.addManuSpecificPhilips2Cluster(), philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         zigbeeModel: ["LTV006"],
         model: "929003596101",
         vendor: "Philips",
         description: "Hue Filament Edison bulb ST64 550lm E26",
-        extend: [philips.m.light({colorTemp: {range: [222, 454]}})],
+        extend: [philips.m.addManuSpecificPhilips2Cluster(), philips.m.light({colorTemp: {range: [222, 454]}})],
     },
     {
         zigbeeModel: ["SOC001"],
@@ -2759,7 +2759,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003017102",
         vendor: "Philips",
         description: "Hue wall switch module",
-        fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, fz.hue_wall_switch, fz.command_toggle, fz.command_move, fz.command_stop],
+        extend: [philips.m.addManuSpecificPhilipsCluster()],
+        fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, philips.fz.hue_wall_switch, fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [
             e.battery(),
             e.action([
@@ -2797,7 +2798,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.ignore_command_off_with_effect,
             fz.ignore_command_step,
             fz.ignore_command_stop,
-            fz.hue_dimmer_switch,
+            philips.fz.hue_dimmer_switch,
             fz.battery,
         ],
         exposes: [
@@ -2836,7 +2837,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {ep1: 1, ep2: 2};
         },
-        extend: [m.quirkCheckinInterval("1_HOUR")],
+        extend: [philips.m.addManuSpecificPhilipsCluster(), m.quirkCheckinInterval("1_HOUR")],
         ota: true,
     },
     {
@@ -2844,12 +2845,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929002398602",
         vendor: "Philips",
         description: "Hue dimmer switch",
+        extend: [philips.m.addManuSpecificPhilipsCluster()],
         fromZigbee: [
             fz.ignore_command_on,
             fz.ignore_command_off_with_effect,
             fz.ignore_command_step,
             fz.ignore_command_stop,
-            fz.hue_dimmer_switch,
+            philips.fz.hue_dimmer_switch,
             fz.battery,
             fz.command_recall,
         ],
@@ -2891,7 +2893,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "8718699693985",
         vendor: "Philips",
         description: "Hue smart button",
-        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.command_step, fz.hue_smart_button_event, fz.battery],
+        extend: [philips.m.addManuSpecificPhilipsCluster()],
+        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.command_step, philips.fz.hue_smart_button_event, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(["on", "off", "press", "hold", "release"])],
         configure: async (device, coordinatorEndpoint) => {
@@ -3652,6 +3655,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "8719514440937/8719514440999",
         vendor: "Philips",
         description: "Hue Tap dial switch",
+        extend: [philips.m.addManuSpecificPhilipsCluster()],
         fromZigbee: [fz.ignore_command_step, philips.fz.hue_tap_dial, fz.battery, fz.command_step],
         toZigbee: [],
         exposes: [
@@ -4248,27 +4252,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
-        zigbeeModel: ["929004611201", "929003812601", "929003812801"],
-        model: "929004611201",
-        vendor: "Philips",
-        description: "Hue Xamento White and Color Ambiance Spot (White)",
-        whiteLabel: [
-            {
-                model: "929003812601",
-                vendor: "Philips",
-                description: "Hue Xamento White and Color Ambiance Spot (Black)",
-                fingerprint: [{modelID: "929003812601"}],
-            },
-            {
-                model: "929003812801",
-                vendor: "Philips",
-                description: "Hue Xamento White and Color Ambiance Spot (Silver)",
-                fingerprint: [{modelID: "929003812801"}],
-            },
-        ],
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
         zigbeeModel: ["LWE008"],
         model: "929003021301",
         vendor: "Philips",
@@ -4606,6 +4589,7 @@ export const definitions: DefinitionWithExtend[] = [
             {model: "929003711401", vendor: "Philips", description: "Hue Twilight sleep and wake-up light black", fingerprint: [{modelID: "LGT003"}]},
         ],
         extend: [
+            philips.m.addManuSpecificPhilipsCluster(),
             m.deviceEndpoints({endpoints: {switch: 1, back: 11, front: 12}}),
             philips.m.light({colorTemp: {range: [153, 500]}, color: true, endpointNames: ["front"]}),
             philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true, endpointNames: ["back"]}),
@@ -4615,6 +4599,13 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["929003812901_01", "929003812901_02", "929003812901_03"],
         model: "929003812901",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance GU10",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["929003812801"],
+        model: "929003812801",
         vendor: "Philips",
         description: "Hue White and Color Ambiance GU10",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
