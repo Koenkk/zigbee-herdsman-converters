@@ -1,5 +1,30 @@
 # Changelog
 
+## [26.15.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.14.0...v26.15.0) (2026-03-04)
+
+
+### Features
+
+* **add:** 3RTHS0324Z ([#11642](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11642)) ([6f2ae20](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f2ae20c291e374301d2c7334b0ebf30d3ff7ffa))
+* **add:** EKO01825 ([#11651](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11651)) ([0e33d8e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0e33d8e3c92fe91fb7294571f484ca05904129a3))
+* **add:** MEG5779 ([#11647](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11647)) ([9b4afed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9b4afed8e321ca912328f5d5a9c0b5e5a6f0a511))
+
+
+### Bug Fixes
+
+* 3-Phase current exposes missing ([#11645](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11645)) ([d4c0cee](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d4c0ceecb94fcd1cae4b569b5b61dcbd8db5602a))
+* **ignore:** bump the minor-patch group across 1 directory with 3 updates ([#11641](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11641)) ([a82f3b1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a82f3b1111fd31d2f5edb563aa2ace63d363e0b7))
+* Legrand: make `manuSpecificLegrandDevices` attributes writable  ([#11643](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11643)) ([f80bb75](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f80bb7509bb37b1e07de7c190fabf39c5285465c))
+* Legrand: make `manuSpecificLegrandDevices` attributes writable  ([#11643](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11643)) ([4c7bd0e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4c7bd0e577c9a800698bd7d87cd9eaa8c6254984))
+* Legrand: make `manuSpecificLegrandDevices` attributes writable  ([#11643](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11643)) ([1a5bab9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1a5bab91558de1392f580596fb26fe427175a0b6))
+* Legrand: make `manuSpecificLegrandDevices` attributes writable  ([#11643](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11643)) ([da6d482](https://github.com/Koenkk/zigbee-herdsman-converters/commit/da6d4828f637b4b894d1756127a371cfcc50621d))
+* Legrand: make `manuSpecificLegrandDevices` attributes writable  ([#11643](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11643)) ([ab32308](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab32308c7d8d2d85e6779259edb42b2003c989c6))
+* Move manuSpecificPhilips and manuSpecificPhilips2 from ZH to ZHC ([#11648](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11648)) ([e60bbbc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e60bbbc8c4a82af1133c754f86151a2e9b3e1d17))
+* Move manuSpecificSamsungAccelerometer from ZH to ZHC ([#11638](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11638)) ([a6384c9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a6384c905eedbd38cd268291200d8dbb2a79e0ce))
+* Move manuSpecificSinope cluster from ZH to ZHC ([#11650](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11650)) ([a044ac4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a044ac48d065dd0af99dc91313e61b07d25e90f7))
+* Tongou TO-Q-SA1: fix data not reporting ([#11630](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11630)) ([8add41b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8add41b1362d78807e10baeb3b293db5f2584f34))
+* Tuya TS0601_bed_presence_sensor: fix `occupancy` ([#11646](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11646)) ([5717df4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5717df4d7f0cb87a9a0dd54c1b27e1490b3302eb))
+
 ## [26.14.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.13.0...v26.14.0) (2026-03-03)
 
 
