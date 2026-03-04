@@ -87,6 +87,10 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", undefi
         logger.info(`convert() with message: ${JSON.stringify(msg)}`, "A");
 
         if (msg.data.state !== undefined) {
+            // Publish the raw, unaltered state blob so advanced clients (e.g. Bifrost)
+            // can perform their own decoding without depending on z2m's interpretation.
+            retval["philips2_raw"] = msg.data.state.toString("hex");
+
             logger.info(`convert() binary blob: ${msg.data.state.toString("hex")}`, "A");
             const decoded = DecodeManuSpecificPhilips2(msg.data.state);
             logger.info(`convert() after decoding: ${JSON.stringify(decoded)}`, "A");
@@ -129,7 +133,10 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", undefi
                 retval["effect_speed"] = decoded.effectSpeed;
             }
             if (decoded.gradientColors !== undefined) {
+                // RGB hex for backward compat with z2m frontend and existing automations
                 retval["gradient"] = decoded.gradientColors.colors.map((c: ColorXY) => c.toRGB().toHEX());
+                // Lossless XY coordinates for clients that need device-independent color
+                retval["gradient_xy"] = decoded.gradientColors.colors.map((c: ColorXY) => c.toObject());
                 const styleNames: Record<number, string> = {
                     [HueGradientStyle.Linear]: "linear",
                     [HueGradientStyle.Scattered]: "scattered",
