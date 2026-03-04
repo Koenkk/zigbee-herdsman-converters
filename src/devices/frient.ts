@@ -53,7 +53,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Frient",
         description: "Customizable siren",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "43": 43}}),
+            m.deviceEndpoints({endpoints: {"43": 43}}),
             m.onOff({powerOnBehavior: false}),
             m.battery(),
             m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
