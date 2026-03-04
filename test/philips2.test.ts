@@ -63,11 +63,11 @@ describe("DecodeManuSpecificPhilips2", () => {
             expect(d.brightness).toBeUndefined();
             expect(d.fadeSpeed).toBe(0);
             expect(d.gradientColors).toBeDefined();
-            expect(d.gradientColors!.style).toBe(HueGradientStyle.Linear);
-            expect(d.gradientColors!.colors).toHaveLength(5);
+            expect(d.gradientColors?.style).toBe(HueGradientStyle.Linear);
+            expect(d.gradientColors?.colors).toHaveLength(5);
             expect(d.gradientParams).toBeDefined();
-            expect(d.gradientParams!.scale).toBe(7.0);
-            expect(d.gradientParams!.offset).toBe(11.0);
+            expect(d.gradientParams?.scale).toBe(7.0);
+            expect(d.gradientParams?.offset).toBe(11.0);
         });
 
         test("Example 2: Cosmos effect with color and brightness", () => {
@@ -75,8 +75,8 @@ describe("DecodeManuSpecificPhilips2", () => {
             expect(d.onOff).toBe(true);
             expect(d.brightness).toBe(46);
             expect(d.colorXY).toBeDefined();
-            expect(r(d.colorXY!.x)).toBeCloseTo(0.1853, 3);
-            expect(r(d.colorXY!.y)).toBeCloseTo(0.0635, 3);
+            expect(r(d.colorXY?.x)).toBeCloseTo(0.1853, 3);
+            expect(r(d.colorXY?.y)).toBeCloseTo(0.0635, 3);
             expect(d.effectType).toBe(HueEffectType.Cosmos);
             expect(d.effectSpeed).toBeCloseTo(0.498, 2);
         });
@@ -85,17 +85,17 @@ describe("DecodeManuSpecificPhilips2", () => {
             const d = DecodeManuSpecificPhilips2(hexToBuffer(BIFROST_EXAMPLES.gradient_3_mirrored));
             expect(d.onOff).toBe(true);
             expect(d.fadeSpeed).toBe(4);
-            expect(d.gradientColors!.style).toBe(HueGradientStyle.Mirrored);
-            expect(d.gradientColors!.colors).toHaveLength(3);
-            expect(d.gradientParams!.scale).toBe(3.0);
-            expect(d.gradientParams!.offset).toBe(0.0);
+            expect(d.gradientColors?.style).toBe(HueGradientStyle.Mirrored);
+            expect(d.gradientColors?.colors).toHaveLength(3);
+            expect(d.gradientParams?.scale).toBe(3.0);
+            expect(d.gradientParams?.offset).toBe(0.0);
         });
 
         test("Example 4: simple colorXY with fadeSpeed", () => {
             const d = DecodeManuSpecificPhilips2(hexToBuffer(BIFROST_EXAMPLES.simple_color));
             expect(d.onOff).toBe(true);
-            expect(r(d.colorXY!.x)).toBeCloseTo(0.3172, 3);
-            expect(r(d.colorXY!.y)).toBeCloseTo(0.3264, 3);
+            expect(r(d.colorXY?.x)).toBeCloseTo(0.3172, 3);
+            expect(r(d.colorXY?.y)).toBeCloseTo(0.3264, 3);
             expect(d.fadeSpeed).toBe(4);
             // No brightness, no effect, no gradient
             expect(d.brightness).toBeUndefined();
@@ -119,8 +119,8 @@ describe("DecodeManuSpecificPhilips2", () => {
             expect(d.onOff).toBe(true);
             expect(d.brightness).toBe(254);
             expect(d.colorXY).toBeDefined();
-            expect(r(d.colorXY!.x)).toBeCloseTo(0.4598, 3);
-            expect(r(d.colorXY!.y)).toBeCloseTo(0.4105, 3);
+            expect(r(d.colorXY?.x)).toBeCloseTo(0.4598, 3);
+            expect(r(d.colorXY?.y)).toBeCloseTo(0.4105, 3);
             expect(d.fadeSpeed).toBe(4);
             expect(d.effectType).toBe(HueEffectType.Sparkle);
             expect(d.effectSpeed).toBeCloseTo(0.502, 2);
@@ -130,10 +130,10 @@ describe("DecodeManuSpecificPhilips2", () => {
             const d = DecodeManuSpecificPhilips2(hexToBuffer(BIFROST_EXAMPLES.gradient_5_scattered));
             expect(d.onOff).toBe(true);
             expect(d.fadeSpeed).toBe(4);
-            expect(d.gradientColors!.style).toBe(HueGradientStyle.Scattered);
-            expect(d.gradientColors!.colors).toHaveLength(5);
-            expect(d.gradientParams!.scale).toBe(5.0);
-            expect(d.gradientParams!.offset).toBe(0.0);
+            expect(d.gradientColors?.style).toBe(HueGradientStyle.Scattered);
+            expect(d.gradientColors?.colors).toHaveLength(5);
+            expect(d.gradientParams?.scale).toBe(5.0);
+            expect(d.gradientParams?.offset).toBe(0.0);
         });
 
         test("Examples 3 and 7 share colors at indices 0, 2/1, 4/2", () => {
@@ -142,14 +142,14 @@ describe("DecodeManuSpecificPhilips2", () => {
             const d3 = DecodeManuSpecificPhilips2(hexToBuffer(BIFROST_EXAMPLES.gradient_3_mirrored));
             const d7 = DecodeManuSpecificPhilips2(hexToBuffer(BIFROST_EXAMPLES.gradient_5_scattered));
             // Color 0 in both
-            expect(r(d7.gradientColors!.colors[0].x)).toBe(r(d3.gradientColors!.colors[0].x));
-            expect(r(d7.gradientColors!.colors[0].y)).toBe(r(d3.gradientColors!.colors[0].y));
+            expect(r(d7.gradientColors?.colors[0].x)).toBe(r(d3.gradientColors?.colors[0].x));
+            expect(r(d7.gradientColors?.colors[0].y)).toBe(r(d3.gradientColors?.colors[0].y));
             // Color 2 in ex7 = color 1 in ex3
-            expect(r(d7.gradientColors!.colors[2].x)).toBe(r(d3.gradientColors!.colors[1].x));
-            expect(r(d7.gradientColors!.colors[2].y)).toBe(r(d3.gradientColors!.colors[1].y));
+            expect(r(d7.gradientColors?.colors[2].x)).toBe(r(d3.gradientColors?.colors[1].x));
+            expect(r(d7.gradientColors?.colors[2].y)).toBe(r(d3.gradientColors?.colors[1].y));
             // Color 4 in ex7 = color 2 in ex3
-            expect(r(d7.gradientColors!.colors[4].x)).toBe(r(d3.gradientColors!.colors[2].x));
-            expect(r(d7.gradientColors!.colors[4].y)).toBe(r(d3.gradientColors!.colors[2].y));
+            expect(r(d7.gradientColors?.colors[4].x)).toBe(r(d3.gradientColors?.colors[2].x));
+            expect(r(d7.gradientColors?.colors[4].y)).toBe(r(d3.gradientColors?.colors[2].y));
         });
     });
 
@@ -391,8 +391,8 @@ describe("round-trip: Encode → Decode", () => {
         for (const {x, y} of cases) {
             const d = DecodeManuSpecificPhilips2(Buffer.from(
                 EncodeManuSpecificPhilips2({colorXY: ColorXY.fromObject({x, y})})));
-            expect(d.colorXY!.x).toBeCloseTo(x, 4);
-            expect(d.colorXY!.y).toBeCloseTo(y, 4);
+            expect(d.colorXY?.x).toBeCloseTo(x, 4);
+            expect(d.colorXY?.y).toBeCloseTo(y, 4);
         }
     });
 
@@ -431,8 +431,8 @@ describe("round-trip: Encode → Decode", () => {
         for (const gp of cases) {
             const d = DecodeManuSpecificPhilips2(
                 Buffer.from(EncodeManuSpecificPhilips2({gradientParams: gp})));
-            expect(d.gradientParams!.scale).toBe(gp.scale);
-            expect(d.gradientParams!.offset).toBe(gp.offset);
+            expect(d.gradientParams?.scale).toBe(gp.scale);
+            expect(d.gradientParams?.offset).toBe(gp.offset);
         }
     });
 
@@ -446,11 +446,11 @@ describe("round-trip: Encode → Decode", () => {
             gradientColors: {style: HueGradientStyle.Mirrored, colors},
         };
         const d = DecodeManuSpecificPhilips2(Buffer.from(EncodeManuSpecificPhilips2(data)));
-        expect(d.gradientColors!.style).toBe(HueGradientStyle.Mirrored);
-        expect(d.gradientColors!.colors).toHaveLength(3);
+        expect(d.gradientColors?.style).toBe(HueGradientStyle.Mirrored);
+        expect(d.gradientColors?.colors).toHaveLength(3);
         for (let i = 0; i < colors.length; i++) {
-            expect(d.gradientColors!.colors[i].x).toBeCloseTo(colors[i].x, 3);
-            expect(d.gradientColors!.colors[i].y).toBeCloseTo(colors[i].y, 3);
+            expect(d.gradientColors?.colors[i].x).toBeCloseTo(colors[i].x, 3);
+            expect(d.gradientColors?.colors[i].y).toBeCloseTo(colors[i].y, 3);
         }
     });
 
@@ -464,11 +464,11 @@ describe("round-trip: Encode → Decode", () => {
             gradientColors: {style: HueGradientStyle.Scattered, colors},
         };
         const d = DecodeManuSpecificPhilips2(Buffer.from(EncodeManuSpecificPhilips2(data)));
-        expect(d.gradientColors!.colors).toHaveLength(9);
-        expect(d.gradientColors!.style).toBe(HueGradientStyle.Scattered);
+        expect(d.gradientColors?.colors).toHaveLength(9);
+        expect(d.gradientColors?.style).toBe(HueGradientStyle.Scattered);
         for (let i = 0; i < 9; i++) {
-            expect(d.gradientColors!.colors[i].x).toBeCloseTo(colors[i].x, 3);
-            expect(d.gradientColors!.colors[i].y).toBeCloseTo(colors[i].y, 3);
+            expect(d.gradientColors?.colors[i].x).toBeCloseTo(colors[i].x, 3);
+            expect(d.gradientColors?.colors[i].y).toBeCloseTo(colors[i].y, 3);
         }
     });
 
@@ -492,19 +492,19 @@ describe("round-trip: Encode → Decode", () => {
         const d = DecodeManuSpecificPhilips2(Buffer.from(EncodeManuSpecificPhilips2(data)));
         expect(d.onOff).toBe(true);
         expect(d.brightness).toBe(180);
-        expect(d.colorXY!.x).toBeCloseTo(0.4, 4);
-        expect(d.colorXY!.y).toBeCloseTo(0.35, 4);
+        expect(d.colorXY?.x).toBeCloseTo(0.4, 4);
+        expect(d.colorXY?.y).toBeCloseTo(0.35, 4);
         expect(d.fadeSpeed).toBe(4);
         expect(d.effectType).toBe(HueEffectType.Fireplace);
         expect(d.effectSpeed).toBeCloseTo(0.75, 2);
-        expect(d.gradientColors!.style).toBe(HueGradientStyle.Mirrored);
-        expect(d.gradientColors!.colors).toHaveLength(2);
-        expect(d.gradientColors!.colors[0].x).toBeCloseTo(0.6, 3);
-        expect(d.gradientColors!.colors[0].y).toBeCloseTo(0.3, 3);
-        expect(d.gradientColors!.colors[1].x).toBeCloseTo(0.2, 3);
-        expect(d.gradientColors!.colors[1].y).toBeCloseTo(0.5, 3);
-        expect(d.gradientParams!.scale).toBe(3.0);
-        expect(d.gradientParams!.offset).toBe(1.5);
+        expect(d.gradientColors?.style).toBe(HueGradientStyle.Mirrored);
+        expect(d.gradientColors?.colors).toHaveLength(2);
+        expect(d.gradientColors?.colors[0].x).toBeCloseTo(0.6, 3);
+        expect(d.gradientColors?.colors[0].y).toBeCloseTo(0.3, 3);
+        expect(d.gradientColors?.colors[1].x).toBeCloseTo(0.2, 3);
+        expect(d.gradientColors?.colors[1].y).toBeCloseTo(0.5, 3);
+        expect(d.gradientParams?.scale).toBe(3.0);
+        expect(d.gradientParams?.offset).toBe(1.5);
     });
 });
 
@@ -523,22 +523,22 @@ describe("round-trip: Decode → Encode → Decode", () => {
 
         // Float fields within quantization precision
         if (d1.colorXY) {
-            expect(d2.colorXY!.x).toBeCloseTo(d1.colorXY.x, 4);
-            expect(d2.colorXY!.y).toBeCloseTo(d1.colorXY.y, 4);
+            expect(d2.colorXY?.x).toBeCloseTo(d1.colorXY.x, 4);
+            expect(d2.colorXY?.y).toBeCloseTo(d1.colorXY.y, 4);
         }
         if (d1.effectSpeed !== undefined) {
             expect(d2.effectSpeed).toBeCloseTo(d1.effectSpeed, 2);
         }
         if (d1.gradientParams) {
-            expect(d2.gradientParams!.scale).toBe(d1.gradientParams.scale);
-            expect(d2.gradientParams!.offset).toBe(d1.gradientParams.offset);
+            expect(d2.gradientParams?.scale).toBe(d1.gradientParams.scale);
+            expect(d2.gradientParams?.offset).toBe(d1.gradientParams.offset);
         }
         if (d1.gradientColors) {
-            expect(d2.gradientColors!.style).toBe(d1.gradientColors.style);
-            expect(d2.gradientColors!.colors).toHaveLength(d1.gradientColors.colors.length);
+            expect(d2.gradientColors?.style).toBe(d1.gradientColors.style);
+            expect(d2.gradientColors?.colors).toHaveLength(d1.gradientColors.colors.length);
             for (let i = 0; i < d1.gradientColors.colors.length; i++) {
-                expect(d2.gradientColors!.colors[i].x).toBeCloseTo(d1.gradientColors.colors[i].x, 3);
-                expect(d2.gradientColors!.colors[i].y).toBeCloseTo(d1.gradientColors.colors[i].y, 3);
+                expect(d2.gradientColors?.colors[i].x).toBeCloseTo(d1.gradientColors.colors[i].x, 3);
+                expect(d2.gradientColors?.colors[i].y).toBeCloseTo(d1.gradientColors.colors[i].y, 3);
             }
         }
     });
