@@ -578,7 +578,7 @@ const philipsTz = {
             key: ["gradient", "gradient_style"],
             convertSet: async (entity, key, value, meta) => {
                 // Merge gradient_style from the message into opts if present
-                const mergedOpts = {...opts};
+                const mergedOpts: KeyValueAny = {...opts};
                 const {message} = meta;
                 if (message.gradient_style != null) {
                     const styleLookup: Record<string, number> = {
