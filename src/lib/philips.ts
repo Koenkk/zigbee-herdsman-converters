@@ -489,7 +489,6 @@ const philipsModernExtend = {
         } satisfies Tz.Converter;
 
         result.toZigbee.push(philipsLightTz, philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
-        result.fromZigbee.push(manuSpecificPhilips2Fz);
 
         if (args.hueEffect || args.gradient) {
             result.toZigbee.push(philipsTz.effect);
@@ -497,7 +496,6 @@ const philipsModernExtend = {
             if (args.color) effects.push("fireplace", "colorloop");
             if (args.gradient) {
                 result.toZigbee.push(philipsTz.gradient_scene, philipsTz.gradient({reverse: true}));
-                //result.fromZigbee.push(philipsFz.gradient);
                 effects.push("sunrise");
                 if (args.gradient !== true) {
                     effects.push(...args.gradient.extraEffects);
@@ -515,8 +513,10 @@ const philipsModernExtend = {
                     ),
                 );
             }
-            // Bind manuSpecificPhilips2 for attribute reports (effect state, etc.)
-            // for all hueEffect/gradient devices, not just gradient
+            // Bind manuSpecificPhilips2 and register the Fz converter for all
+            // hueEffect/gradient devices, not just gradient. This enables state
+            // reports for effects, brightness, color, etc. on non-gradient bulbs too.
+            result.fromZigbee.push(manuSpecificPhilips2Fz);
             result.configure.push(async (device, coordinatorEndpoint, definition) => {
                 for (const ep of device.endpoints.filter((ep) => ep.supportsInputCluster("manuSpecificPhilips2"))) {
                     await ep.bind("manuSpecificPhilips2", coordinatorEndpoint);
