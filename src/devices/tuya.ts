@@ -18876,7 +18876,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l5"),
             tuya.exposes.switch().withEndpoint("l6"),
             tuya.exposes.switchType(),
-            e.power_on_behavior(["off", "on"]).withAccess(ea.STATE_SET),
+            e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET),
         ],
         endpoint: (device) => {
             return {
