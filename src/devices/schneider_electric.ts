@@ -2883,10 +2883,10 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: "GreenPower_254", ieeeAddr: /^0x00000000e205567e$/}],
-        model: "A9MEM1570",
+        model: "EKO01825",
         vendor: "Schneider Electric",
         description: "PowerTag power sensor",
-        whiteLabel: [{vendor: "Elko", model: "EKO01825"}],
+        whiteLabel: [{vendor: "Elko", model: "A9MEM1570"}],
         fromZigbee: [fzLocal.schneider_powertag],
         toZigbee: [],
         exposes: [
