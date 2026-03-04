@@ -2882,7 +2882,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: 'GreenPower_254', ieeeAddr: new RegExp('^0x00000000e205567e$')}],
+        fingerprint: [{modelID: "GreenPower_254", ieeeAddr: /^0x00000000e205567e$/}],
         model: "A9MEM1570",
         vendor: "Schneider Electric",
         description: "PowerTag power sensor",
@@ -2904,4 +2904,3 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-        
