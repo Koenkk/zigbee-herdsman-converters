@@ -101,6 +101,8 @@ interface SchneiderThermostatCluster {
         localTemperatureSourceSelect: number;
         controlType: number;
         thermostatApplication: number;
+        heatingFuel: number;
+        heatTransferMedium: number;
         heatingEmitter: number;
     };
     commands: never;
@@ -740,6 +742,18 @@ const schneiderElectricExtend = {
                     write: true,
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
+                heatingFuel: {
+                    ID: 0xe217,
+                    type: Zcl.DataType.ENUM8,
+                    write: true,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                heatTransferMedium: {
+                    ID: 0xe218,
+                    type: Zcl.DataType.ENUM8,
+                    write: true,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
                 heatingEmitter: {
                     ID: 0xe21a,
                     type: Zcl.DataType.ENUM8,
@@ -799,6 +813,35 @@ const schneiderElectricExtend = {
                 "This is used to specify what the Thermostat is regulating. 'Occupied Space' - heating where the room temperature is used as the control value, 'Floor' - Floor warming applications where the temperature of the floor itself is regulated.",
             entityCategory: "config",
             lookup: {"Occupied Space": 0, Floor: 1, "Not known": 0xff},
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        }),
+    heatingFuel: () =>
+        m.enumLookup<"hvacThermostat", SchneiderThermostatCluster>({
+            name: "heating_fuel",
+            cluster: "hvacThermostat",
+            attribute: "heatingFuel",
+            description: "Type of fuel used for heating.",
+            entityCategory: "config",
+            lookup: {
+                Electricity: 0x00,
+                Gas: 0x01,
+                Oil: 0x02,
+                "Solid Fuel": 0x03,
+                Solar: 0x04,
+                "Community Heating": 0x05,
+                "Heat Pump": 0x06,
+                "Not specified": 0xff,
+            },
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        }),
+    heatTransferMedium: () =>
+        m.enumLookup<"hvacThermostat", SchneiderThermostatCluster>({
+            name: "heat_transfer_medium",
+            cluster: "hvacThermostat",
+            attribute: "heatTransferMedium",
+            description: "Medium used to transfer heat.",
+            entityCategory: "config",
+            lookup: {Nothing: 0x00, Hydronic: 0x01, Air: 0x02},
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         }),
     heatingEmitter: () =>
@@ -2539,6 +2582,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5779",
         vendor: "Schneider Electric",
         description: "Merten Connected Room Temperature Controller",
+        fromZigbee: [
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.pIHeatingDemand !== undefined) {
+                        return {running_state: msg.data.pIHeatingDemand > 0 ? "heat" : "idle"};
+                    }
+                    if (msg.data.pICoolingDemand !== undefined) {
+                        return {running_state: msg.data.pICoolingDemand > 0 ? "cool" : "idle"};
+                    }
+                },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+        ],
         extend: [
             m.thermostat({
                 setpoints: {
@@ -2557,6 +2614,10 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 systemMode: {
                     values: ["off", "heat", "cool"],
+                },
+                runningState: {
+                    values: ["idle", "heat", "cool"],
+                    configure: {reporting: false},
                 },
                 piHeatingDemand: {
                     values: ea.ALL,
@@ -2580,6 +2641,11 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "keypadLockout",
                 description: "Enables/disables physical input on the device.",
             }),
+            schneiderElectricExtend.customThermostatCluster(),
+            schneiderElectricExtend.thermostatApplication(),
+            schneiderElectricExtend.heatingFuel(),
+            schneiderElectricExtend.heatTransferMedium(),
+            schneiderElectricExtend.heatingEmitter(),
         ],
     },
     {
