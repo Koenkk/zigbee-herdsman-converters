@@ -732,7 +732,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
             },
         } satisfies Fz.Converter<
             "tradfriButton",
-            undefined,
+            TradfriButton,
             ["commandAction1", "commandAction2", "commandAction3", "commandAction4", "commandAction6"]
         >,
     ];
@@ -740,6 +740,23 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
     const configure: Configure[] = [m.setupConfigureForBinding("tradfriButton", "output", args.endpointNames)];
 
     return {exposes, fromZigbee, configure, isModernExtend: true};
+}
+
+export function ikeaBilresaDouble(): ModernExtend {
+    const exposes: Expose[] = [presets.action(["off_double", "on_double"])];
+
+    const fromZigbee = [
+        {
+            cluster: "genScenes",
+            type: "commandTradfriArrowSingle",
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                return {action: `${msg.data.value === 257 ? "off" : "on"}_double`};
+            },
+        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowSingle">,
+    ];
+
+    return {exposes, fromZigbee, isModernExtend: true};
 }
 
 export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): ModernExtend {
@@ -924,6 +941,54 @@ export function addCustomClusterManuSpecificIkeaUnknown(): ModernExtend {
     });
 }
 
+export interface TradfriButton {
+    attributes: never;
+    commands: {
+        /** ID=0x01 */
+        action1: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+        /** ID=0x02 */
+        action2: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+        /** ID=0x03 */
+        action3: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+        /** ID=0x04 */
+        action4: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+        /** ID=0x06 */
+        action6: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+    };
+    commandResponses: never;
+}
+
+export function addCustomClusterTradfriButton(): ModernExtend {
+    return m.deviceAddCustomCluster("tradfriButton", {
+        ID: 0xfc80,
+        manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
+        attributes: {},
+        commands: {
+            action1: {ID: 0x01, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+            action2: {ID: 0x02, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+            action3: {ID: 0x03, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+            action4: {ID: 0x04, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+            action6: {ID: 0x06, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+        },
+        commandsResponse: {},
+    });
+}
+
 const unfreezeMechanisms: {
     [key: string]: (entity: Zh.Endpoint | Zh.Group) => Promise<void>;
 } = {
@@ -1039,21 +1104,6 @@ export const ikeaModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
         });
 
-        // NOTE: make exposes dynamic based on fw version
-        result.exposes = [
-            (device, options) => {
-                if (
-                    !isDummyDevice(device) &&
-                    device.softwareBuildID &&
-                    semverValid(device.softwareBuildID) &&
-                    semverGte(device.softwareBuildID, "2.4.25")
-                ) {
-                    return [binary(resultName, access.ALL, "LOCK", "UNLOCK").withDescription(resultDescription).withCategory("config")];
-                }
-                return [];
-            },
-        ];
-
         return result;
     },
 
@@ -1083,7 +1133,12 @@ export const ikeaModernExtend = {
                 ) {
                     return [binary(resultName, access.ALL, "TRUE", "FALSE").withDescription(resultDescription).withCategory("config")];
                 }
-                return [];
+                return [
+                    binary(resultName, access.ALL, "TRUE", "FALSE")
+                        .withDescription(resultDescription)
+                        .withCategory("config")
+                        .withLabel("Led disable"),
+                ];
             },
         ];
 

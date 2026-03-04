@@ -17,6 +17,7 @@ interface MockEndpointArgs {
     inputClusterIDs?: number[];
     outputClusterIDs?: number[];
     attributes?: {[s: string]: {[s: string]: unknown}};
+    meta?: {[s: string]: unknown};
 }
 
 export function reportingItem(attribute: string, min: number, max: number, change: number) {
@@ -71,6 +72,7 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         bind: vi.fn(),
         configureReporting: vi.fn(),
         read: vi.fn(),
+        write: vi.fn(),
         command: vi.fn(),
         getDevice: () => device,
         inputClusters,
@@ -85,6 +87,7 @@ function mockEndpoint(args: MockEndpointArgs, device: Zh.Device | undefined): Zh
         }),
         save: vi.fn(),
         getClusterAttributeValue: vi.fn().mockImplementation((cluster, attribute) => attributes?.[cluster]?.[attribute]),
+        meta: args.meta,
     };
 }
 
@@ -105,12 +108,21 @@ const DefaultTz = [
 export type AssertDefinitionArgs = {
     device: Zh.Device;
     meta: DefinitionMeta | undefined;
-    fromZigbee: Fz.Converter[];
+    // biome-ignore lint/suspicious/noExplicitAny: generic
+    fromZigbee: Fz.Converter<any, any, any>[];
     toZigbee: string[];
     exposes: string[];
     bind: {[s: number]: string[]};
-    read: {[s: number]: [string, string[]][]};
-    configureReporting: {[s: number]: [string, ReturnType<typeof reportingItem>[]][]};
+    read: {[s: number]: ([string, string[]] | [string, string[], Record<string, unknown> | undefined])[]};
+    write: {
+        [s: number]: ([string, Record<string | number, unknown>] | [string, Record<string | number, unknown>, Record<string, unknown> | undefined])[];
+    };
+    configureReporting: {
+        [s: number]: (
+            | [string, ReturnType<typeof reportingItem>[]]
+            | [string, ReturnType<typeof reportingItem>[], Record<string, unknown> | undefined]
+        )[];
+    };
     endpoints?: {[s: string]: number};
     findByDeviceFn?: (device: Device) => Promise<Definition>;
 };
@@ -130,14 +142,14 @@ export async function assertDefinition(args: AssertDefinitionArgs) {
     expect(definition.meta).toEqual(args.meta);
     expect(definition.fromZigbee).toEqual(args.fromZigbee);
 
-    const expectedToZigbee = definition.toZigbee?.slice(0, definition.toZigbee.length - DefaultTz.length).flatMap((c) => c.key);
+    const expectedToZigbee = definition.toZigbee?.slice(DefaultTz.length).flatMap((c) => c.key);
     utils.assertArray(expectedToZigbee);
     logIfNotEqual(expectedToZigbee, args.toZigbee);
     expect(expectedToZigbee).toEqual(args.toZigbee);
 
     utils.assertArray(definition.exposes);
     const expectedExposes = definition.exposes
-        ?.map((e) => e.name ?? `${e.type}${e.endpoint ? `_${e.endpoint}` : ""}(${e.features?.map((f) => f.name).join(",")})`)
+        ?.map((e) => e.property ?? `${e.type}${e.endpoint ? `_${e.endpoint}` : ""}(${e.features?.map((f) => f.name).join(",")})`)
         .sort();
     logIfNotEqual(expectedExposes, args.exposes);
     expect(expectedExposes).toEqual(args.exposes);
@@ -153,14 +165,39 @@ export async function assertDefinition(args: AssertDefinitionArgs) {
         expect(endpoint.read).toHaveBeenCalledTimes(args.read[endpoint.ID]?.length ?? 0);
         if (args.read[endpoint.ID]) {
             args.read[endpoint.ID].forEach((read, idx) => {
-                expect(endpoint.read).toHaveBeenNthCalledWith(idx + 1, read[0], read[1]);
+                const options = read[2];
+
+                if (options) {
+                    expect(endpoint.read).toHaveBeenNthCalledWith(idx + 1, read[0], read[1], options);
+                } else {
+                    expect(endpoint.read).toHaveBeenNthCalledWith(idx + 1, read[0], read[1]);
+                }
+            });
+        }
+
+        expect(endpoint.write).toHaveBeenCalledTimes(args.write[endpoint.ID]?.length ?? 0);
+        if (args.write[endpoint.ID]) {
+            args.write[endpoint.ID].forEach((write, idx) => {
+                const options = write[2];
+
+                if (options) {
+                    expect(endpoint.write).toHaveBeenNthCalledWith(idx + 1, write[0], write[1], options);
+                } else {
+                    expect(endpoint.write).toHaveBeenNthCalledWith(idx + 1, write[0], write[1]);
+                }
             });
         }
 
         expect(endpoint.configureReporting).toHaveBeenCalledTimes(args.configureReporting[endpoint.ID]?.length ?? 0);
         if (args.configureReporting[endpoint.ID]) {
             args.configureReporting[endpoint.ID].forEach((configureReporting, idx) => {
-                expect(endpoint.configureReporting).toHaveBeenNthCalledWith(idx + 1, configureReporting[0], configureReporting[1]);
+                const options = configureReporting[2];
+
+                if (options) {
+                    expect(endpoint.configureReporting).toHaveBeenNthCalledWith(idx + 1, configureReporting[0], configureReporting[1], options);
+                } else {
+                    expect(endpoint.configureReporting).toHaveBeenNthCalledWith(idx + 1, configureReporting[0], configureReporting[1]);
+                }
             });
         }
     }

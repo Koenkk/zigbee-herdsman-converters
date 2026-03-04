@@ -7,6 +7,17 @@ import {isObject} from "./utils";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
 
+interface OsramCluster {
+    attributes: never;
+    commands: {
+        // biome-ignore lint/complexity/noBannedTypes: empty payload
+        saveStartupParams: {};
+        // biome-ignore lint/complexity/noBannedTypes: empty payload
+        resetStartupParams: {};
+    };
+    commandResponses: never;
+}
+
 export const ledvanceFz = {
     pbc_level_to_action: {
         cluster: "genLevelCtrl",
@@ -43,26 +54,32 @@ export const ledvanceTz = {
                 }
             } else if (key === "osram_remember_state" || key === "remember_state") {
                 if (value === true) {
-                    await entity.command("manuSpecificOsram", "saveStartupParams", {}, manufacturerOptions);
+                    await entity.command<"manuSpecificOsram", "saveStartupParams", OsramCluster>(
+                        "manuSpecificOsram",
+                        "saveStartupParams",
+                        {},
+                        manufacturerOptions,
+                    );
                 } else if (value === false) {
-                    await entity.command("manuSpecificOsram", "resetStartupParams", {}, manufacturerOptions);
+                    await entity.command<"manuSpecificOsram", "resetStartupParams", OsramCluster>(
+                        "manuSpecificOsram",
+                        "resetStartupParams",
+                        {},
+                        manufacturerOptions,
+                    );
                 }
             }
         },
     } satisfies Tz.Converter,
 };
 
-// Ledvance OTAs are not valid against the Zigbee spec, the last image element fails to parse but the
-// update succeeds even without sending it. Therefore set suppressElementImageParseFailure to true
-// https://github.com/Koenkk/zigbee2mqtt/issues/16900
-
 export function ledvanceOnOff(args?: modernExtend.OnOffArgs) {
-    args = {ota: {suppressElementImageParseFailure: true}, configureReporting: true, ...args};
+    args = {ota: true, configureReporting: true, ...args};
     return modernExtend.onOff(args);
 }
 
 export function ledvanceLight(args?: modernExtend.LightArgs) {
-    args = {powerOnBehavior: false, ota: {suppressElementImageParseFailure: true}, ...args};
+    args = {powerOnBehavior: false, ota: true, ...args};
     if (args.colorTemp) args.colorTemp.startup = false;
     if (args.color) args.color = {modes: ["xy", "hs"], ...(isObject(args.color) ? args.color : {})};
     const result = modernExtend.light(args);

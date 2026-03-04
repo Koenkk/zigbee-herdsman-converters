@@ -1,4 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
+import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -458,26 +459,26 @@ const sdevices = {
     },
 };
 
-const sdevicesCustomClusterDefinition = {
+const sdevicesCustomClusterDefinition: ClusterDefinition = {
     ID: 0xfccf,
     manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
     attributes: {
-        buttonEnableMultiClick: {ID: 0x1002, type: Zcl.DataType.BOOLEAN},
-        childLock: {ID: 0x1003, type: Zcl.DataType.BOOLEAN},
-        ledIndicatorOnEnable: {ID: 0x2001, type: Zcl.DataType.BOOLEAN},
-        ledIndicatorOnH: {ID: 0x2002, type: Zcl.DataType.UINT16},
-        ledIndicatorOnS: {ID: 0x2003, type: Zcl.DataType.UINT8},
-        ledIndicatorOnB: {ID: 0x2004, type: Zcl.DataType.UINT8},
-        ledIndicatorOffEnable: {ID: 0x2005, type: Zcl.DataType.BOOLEAN},
-        ledIndicatorOffH: {ID: 0x2006, type: Zcl.DataType.UINT16},
-        ledIndicatorOffS: {ID: 0x2007, type: Zcl.DataType.UINT8},
-        ledIndicatorOffB: {ID: 0x2008, type: Zcl.DataType.UINT8},
+        buttonEnableMultiClick: {ID: 0x1002, type: Zcl.DataType.BOOLEAN, write: true},
+        childLock: {ID: 0x1003, type: Zcl.DataType.BOOLEAN, write: true},
+        ledIndicatorOnEnable: {ID: 0x2001, type: Zcl.DataType.BOOLEAN, write: true},
+        ledIndicatorOnH: {ID: 0x2002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+        ledIndicatorOnS: {ID: 0x2003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+        ledIndicatorOnB: {ID: 0x2004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+        ledIndicatorOffEnable: {ID: 0x2005, type: Zcl.DataType.BOOLEAN, write: true},
+        ledIndicatorOffH: {ID: 0x2006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+        ledIndicatorOffS: {ID: 0x2007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+        ledIndicatorOffB: {ID: 0x2008, type: Zcl.DataType.UINT8, write: true, max: 0xff},
         emergencyShutoffState: {ID: 0x3001, type: Zcl.DataType.BITMAP16},
-        emergencyShutoffRecovery: {ID: 0x3002, type: Zcl.DataType.BITMAP16},
-        upperVoltageThreshold: {ID: 0x3011, type: Zcl.DataType.UINT32},
-        lowerVoltageThreshold: {ID: 0x3012, type: Zcl.DataType.UINT32},
-        upperCurrentThreshold: {ID: 0x3013, type: Zcl.DataType.UINT32},
-        upperTempThreshold: {ID: 0x3014, type: Zcl.DataType.INT16},
+        emergencyShutoffRecovery: {ID: 0x3002, type: Zcl.DataType.BITMAP16, write: true, max: 0xffff},
+        upperVoltageThreshold: {ID: 0x3011, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+        lowerVoltageThreshold: {ID: 0x3012, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+        upperCurrentThreshold: {ID: 0x3013, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+        upperTempThreshold: {ID: 0x3014, type: Zcl.DataType.INT16, write: true, min: -32768},
         rmsVoltageMv: {ID: 0x4001, type: Zcl.DataType.UINT32},
         rmsCurrentMa: {ID: 0x4002, type: Zcl.DataType.UINT32},
         activePowerMw: {ID: 0x4003, type: Zcl.DataType.INT32},
@@ -486,7 +487,6 @@ const sdevicesCustomClusterDefinition = {
     commands: {},
     commandsResponse: {},
 };
-
 interface SberDevices {
     attributes: {
         buttonEnableMultiClick: number;
@@ -580,43 +580,31 @@ const sdevicesExtend = {
                     ID: 0x1001,
                     type: Zcl.DataType.UINT32,
                     manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
-                    write: true,
-                    max: 0xffffffff,
                 },
                 sdevicesButton1Clicks: {
                     ID: 0x1002,
                     type: Zcl.DataType.UINT32,
                     manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
-                    write: true,
-                    max: 0xffffffff,
                 },
                 sdevicesButton2Clicks: {
                     ID: 0x1003,
                     type: Zcl.DataType.UINT32,
                     manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
-                    write: true,
-                    max: 0xffffffff,
                 },
                 sdevicesButton3Clicks: {
                     ID: 0x1004,
                     type: Zcl.DataType.UINT32,
                     manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
-                    write: true,
-                    max: 0xffffffff,
                 },
                 sdevicesRelay1Switches: {
                     ID: 0x1005,
                     type: Zcl.DataType.UINT32,
                     manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
-                    write: true,
-                    max: 0xffffffff,
                 },
                 sdevicesRelay2Switches: {
                     ID: 0x1006,
                     type: Zcl.DataType.UINT32,
                     manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
-                    write: true,
-                    max: 0xffffffff,
                 },
             },
             commands: {},
@@ -638,7 +626,7 @@ const sdevicesExtend = {
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
                     write: true,
-                    max: 0xff,
+                    max: 0x01,
                 },
                 sdevicesMotorTimeout: {
                     ID: 0x1003,
@@ -674,7 +662,7 @@ const sdevicesExtend = {
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
                     write: true,
-                    max: 0xff,
+                    max: 0x02,
                 },
                 sdevicesHeatingHysteresis: {
                     ID: 0x4019,
@@ -711,8 +699,8 @@ const sdevicesExtend = {
                     write: true,
                     max: 0xff,
                 },
-                sdevicesSensorError: {ID: 0x4102, type: Zcl.DataType.BITMAP16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD, write: true},
-                sdevicesEventStatus: {ID: 0x4103, type: Zcl.DataType.BITMAP16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD, write: true},
+                sdevicesSensorError: {ID: 0x4102, type: Zcl.DataType.BITMAP16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
+                sdevicesEventStatus: {ID: 0x4103, type: Zcl.DataType.BITMAP16, manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD},
                 sdevicesRemoteSensorTimeout: {
                     ID: 0x4203,
                     type: Zcl.DataType.UINT16,
@@ -1688,12 +1676,12 @@ export const definitions: DefinitionWithExtend[] = [
                     const deviceCoverMode = await device.getEndpoint(3).read("genBasic", ["deviceEnabled"]);
                     device.meta.window_covering_enabled = !!deviceCoverMode.deviceEnabled;
                     device.save();
-                } catch (e) {
-                    if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                } catch (error) {
+                    if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
                         device.meta.window_covering_enabled = false;
                         device.save();
                     } else {
-                        throw e;
+                        throw error;
                     }
                 }
             } else {

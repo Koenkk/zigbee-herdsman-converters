@@ -315,14 +315,21 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "ZB-GW04-1v1", manufacturerName: "easyiot", applicationVersion: 200},
             {modelID: "ZB-GW04-1v2", manufacturerName: "easyiot", applicationVersion: 200},
             {modelID: "SkyConnect", manufacturerName: "NabuCasa", applicationVersion: 200},
+            {modelID: "ZBT-2", manufacturerName: "NabuCasa", applicationVersion: 200},
             {modelID: "SLZB-06M", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-06MG24", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-06MG26", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-07", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-07MG24", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "DONGLE-E", manufacturerName: "SONOFF", applicationVersion: 200},
+            {modelID: "Dongle-LMG21", manufacturerName: "SONOFF", applicationVersion: 200},
+            {modelID: "Dongle-M", manufacturerName: "SONOFF", applicationVersion: 200},
+            {modelID: "Dongle-PMG24", manufacturerName: "SONOFF", applicationVersion: 200},
             {modelID: "MGM240P", manufacturerName: "SparkFun", applicationVersion: 200},
             {modelID: "MGM24", manufacturerName: "TubesZB", applicationVersion: 200},
+            {modelID: "BM24", manufacturerName: "TubesZB", applicationVersion: 200},
+            {modelID: "EFR32MG21-V1", manufacturerName: "ZBGW7688", applicationVersion: 200},
+            {modelID: "EFR32MG21-V2", manufacturerName: "ZBGW7688", applicationVersion: 200},
         ],
         model: "Silabs series 2 router",
         vendor: "Silabs",
@@ -412,8 +419,16 @@ export const definitions: DefinitionWithExtend[] = [
             fz.electrical_measurement,
             fz.metering,
             fz.co2,
+            fz.color_colortemp,
         ],
-        toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tz.ptvo_switch_analog_input, tz.ptvo_switch_light_brightness, tzLocal.ptvo_on_off],
+        toZigbee: [
+            tz.ptvo_switch_trigger,
+            tz.ptvo_switch_uart,
+            tz.ptvo_switch_analog_input,
+            tz.ptvo_switch_light_brightness,
+            tzLocal.ptvo_on_off,
+            tz.light_color,
+        ],
         exposes: (device, options) => {
             const expose: Expose[] = [];
             const exposeDeviceOptions: KeyValue = {};
@@ -678,7 +693,7 @@ export const definitions: DefinitionWithExtend[] = [
                             acVoltageMultiplier: 1,
                             acCurrentDivisor: 1000,
                             acCurrentMultiplier: 1,
-                            acPowerDivisor: 10,
+                            acPowerDivisor: 1,
                             acPowerMultiplier: 1,
                         });
                     }
@@ -1263,5 +1278,13 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["MiCASAGasCounter"],
+        model: "MiCASAGasCounter",
+        vendor: "Custom devices (DiY)",
+        description: "Zigbee Gas counter",
+        ota: true,
+        extend: [m.gasMeter({cluster: "metering", power: false}), m.battery({voltage: true, lowStatus: true})],
     },
 ];

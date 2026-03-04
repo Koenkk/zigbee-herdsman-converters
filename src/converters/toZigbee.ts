@@ -21,6 +21,8 @@ const manufacturerOptions = {
     hue: {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V},
     ikea: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
     sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
+    stello: {manufacturerCode: Zcl.ManufacturerCode.STELPRO},
+    stelpro: {manufacturerCode: Zcl.ManufacturerCode.STELPRO},
     tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
     legrand: {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
     viessmann: {manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH},
@@ -346,11 +348,11 @@ export const power_on_behavior: Tz.Converter = {
         const lookup = {off: 0, on: 1, toggle: 2, previous: 255};
         try {
             await entity.write("genOnOff", {startUpOnOff: utils.getFromLookup(value, lookup)}, utils.getOptions(meta.mapped, entity));
-        } catch (e) {
-            if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+        } catch (error) {
+            if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
                 throw new Error("Got `UNSUPPORTED_ATTRIBUTE` error, device does not support power on behaviour");
             }
-            throw e;
+            throw error;
         }
         return {state: {power_on_behavior: value}};
     },
@@ -585,7 +587,14 @@ export const warning: Tz.Converter = {
         let info;
         // https://github.com/Koenkk/zigbee2mqtt/issues/8310 some devices require the info to be reversed.
         if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
-        if (["SIRZB-110", "SIRZB-111", "SRAC-23B-ZBSR", "AV2010/29A", "AV2010/24A"].includes(meta.mapped.model)) {
+        // SIRZB-110/111 require all-zero info byte to reliably stop the siren.
+        if (values.mode === "stop" && ["SIRZB-110", "SIRZB-111"].includes(meta.mapped.model)) {
+            // @ts-expect-error ignore
+            if (value.level == null) values.level = "low";
+            // @ts-expect-error ignore
+            if (value.strobe == null) values.strobe = false;
+        }
+        if (["SIRZB-110", "SRAC-23B-ZBSR", "AV2010/29A", "AV2010/24A"].includes(meta.mapped.model)) {
             info = utils.getFromLookup(values.mode, mode) + ((values.strobe ? 1 : 0) << 4) + (utils.getFromLookup(values.level, level) << 6);
         } else {
             info = (utils.getFromLookup(values.mode, mode) << 4) + ((values.strobe ? 1 : 0) << 2) + utils.getFromLookup(values.level, level);
@@ -620,6 +629,15 @@ export const warning_simple: Tz.Converter = {
         if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
         if (["SMSZB-120", "HESZB-120"].includes(meta.mapped.model)) {
             info = (alarmState << 7) + (alarmState << 6);
+        } else if (meta.mapped.model === "SIRZB-110") {
+            // ZCL-compliant layout: bits 0-3=mode, bit 4=strobe, bits 6-7=level
+            // OFF: info=0 (mode=stop, level=low, strobe=off — device requires level=0 to stop)
+            // ON: emergency(3) + strobe(1<<4) + very_high(3<<6) = 211
+            info = alarmState === 0 ? 0 : 3 + (1 << 4) + (3 << 6);
+        } else if (meta.mapped.model === "SIRZB-111") {
+            // Generic layout: bits 4-7=mode, bit 2=strobe, bits 0-1=level
+            // OFF: info=0, ON: (emergency<<4) + (strobe<<2) + very_high = 55
+            info = alarmState === 0 ? 0 : (3 << 4) + (1 << 2) + 3;
         } else {
             info = (3 << 6) + (alarmState << 2);
         }
@@ -1218,6 +1236,7 @@ export const light_onoff_brightness: Tz.Converter = {
         const transition = utils.getTransition(entity, "brightness", meta);
         const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, "turnsOffAtBrightness1", "allEqual", false);
         const moveToLevelWithOnOffDisable = utils.getMetaValue(entity, meta.mapped, "moveToLevelWithOnOffDisable", "allEqual", false);
+        const omitOptionalLevelParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelParams", "allEqual", false);
         let state = message.state !== undefined ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
         let brightness: number;
 
@@ -1350,27 +1369,47 @@ export const light_onoff_brightness: Tz.Converter = {
 
             if (typeof meta.state.state === "string" && meta.state.state.toLowerCase() !== targetState) {
                 if (targetState === "on") {
-                    await entity.command(
-                        "genLevelCtrl",
-                        "moveToLevel",
-                        {level: Number(brightness), transtime: transition.time, optionsMask: 0, optionsOverride: 0},
-                        utils.getOptions(meta.mapped, entity),
-                    );
+                    const payload = {level: Number(brightness), transtime: transition.time} as {
+                        level: number;
+                        transtime: number;
+                        optionsMask?: number;
+                        optionsOverride?: number;
+                    };
+                    if (!omitOptionalLevelParams) {
+                        payload.optionsMask = 0;
+                        payload.optionsOverride = 0;
+                    }
+                    await entity.command("genLevelCtrl", "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
                 }
                 await on_off.convertSet(entity, "state", state, meta);
             } else {
-                await entity.command(
-                    "genLevelCtrl",
-                    "moveToLevel",
-                    {level: Number(brightness), transtime: transition.time, optionsMask: 0, optionsOverride: 0},
-                    utils.getOptions(meta.mapped, entity),
-                );
+                const payload = {level: Number(brightness), transtime: transition.time} as {
+                    level: number;
+                    transtime: number;
+                    optionsMask?: number;
+                    optionsOverride?: number;
+                };
+                if (!omitOptionalLevelParams) {
+                    payload.optionsMask = 0;
+                    payload.optionsOverride = 0;
+                }
+                await entity.command("genLevelCtrl", "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
             }
         } else {
+            const payload = {level: Number(brightness), transtime: transition.time} as {
+                level: number;
+                transtime: number;
+                optionsMask?: number;
+                optionsOverride?: number;
+            };
+            if (!omitOptionalLevelParams) {
+                payload.optionsMask = 0;
+                payload.optionsOverride = 0;
+            }
             await entity.command(
                 "genLevelCtrl",
                 state === null ? "moveToLevel" : "moveToLevelWithOnOff",
-                {level: Number(brightness), transtime: transition.time, optionsMask: 0, optionsOverride: 0},
+                payload,
                 utils.getOptions(meta.mapped, entity),
             );
         }
@@ -2058,6 +2097,38 @@ export const currentsummdelivered: Tz.Converter = {
         await ep.read("seMetering", ["currentSummDelivered"]);
     },
 };
+export const currenttier1summdelivered: Tz.Converter = {
+    key: ["energy_tier_1"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier1SummDelivered"]);
+    },
+};
+export const currenttier2summdelivered: Tz.Converter = {
+    key: ["energy_tier_2"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier2SummDelivered"]);
+    },
+};
+export const currenttier3summdelivered: Tz.Converter = {
+    key: ["energy_tier_3"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier3SummDelivered"]);
+    },
+};
+export const currenttier4summdelivered: Tz.Converter = {
+    key: ["energy_tier_4"],
+    convertGet: async (entity, key, meta) => {
+        utils.assertEndpoint(entity);
+        const ep = determineEndpoint(entity, meta, "seMetering");
+        await ep.read("seMetering", ["currentTier4SummDelivered"]);
+    },
+};
 export const currentsummreceived: Tz.Converter = {
     key: ["produced_energy"],
     convertGet: async (entity, key, meta) => {
@@ -2135,6 +2206,27 @@ export const accurrent_neutral: Tz.Converter = {
         await ep.read("haElectricalMeasurement", ["neutralCurrent"]);
     },
 };
+export const dccurrent: Tz.Converter = {
+    key: ["current"],
+    convertGet: async (entity, key, meta) => {
+        const ep = determineEndpoint(entity, meta, "haElectricalMeasurement");
+        await ep.read("haElectricalMeasurement", ["dcCurrent"]);
+    },
+};
+export const dcvoltage: Tz.Converter = {
+    key: ["voltage"],
+    convertGet: async (entity, key, meta) => {
+        const ep = determineEndpoint(entity, meta, "haElectricalMeasurement");
+        await ep.read("haElectricalMeasurement", ["dcVoltage"]);
+    },
+};
+export const dcpower: Tz.Converter = {
+    key: ["power"],
+    convertGet: async (entity, key, meta) => {
+        const ep = determineEndpoint(entity, meta, "haElectricalMeasurement");
+        await ep.read("haElectricalMeasurement", ["dcPower"]);
+    },
+};
 export const temperature: Tz.Converter = {
     key: ["temperature"],
     convertGet: async (entity, key, meta) => {
@@ -2150,33 +2242,6 @@ export const humidity: Tz.Converter = {
 // #endregion
 
 // #region Non-generic converters
-export const elko_power_status: Tz.Converter = {
-    key: ["system_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("hvacThermostat", {elkoPowerStatus: value === "heat" ? 1 : 0});
-        return {state: {system_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["elkoPowerStatus"]);
-    },
-};
-export const elko_relay_state: Tz.Converter = {
-    key: ["running_state"],
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["elkoRelayState"]);
-    },
-};
-export const elko_local_temperature_calibration: Tz.Converter = {
-    key: ["local_temperature_calibration"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertNumber(value, key);
-        await entity.write("hvacThermostat", {elkoCalibration: Math.round(value * 10)});
-        return {state: {local_temperature_calibration: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["elkoCalibration"]);
-    },
-};
 export const livolo_socket_switch_on_off: Tz.Converter = {
     key: ["state"],
     convertSet: async (entity, key, value, meta) => {
@@ -3406,13 +3471,34 @@ export const eurotronic_mirror_display: Tz.Converter = {
         await entity.read("hvacThermostat", [0x4008], manufacturerOptions.eurotronic);
     },
 };
+export const stelpro_peak_demand_event_icon: Tz.Converter = {
+    key: ["peak_demand_icon"],
+    convertSet: async (entity, key, value, meta) => {
+        const hours = Number(value);
+        const seconds = hours * 3600;
+        if (seconds < 0 || seconds > 65535) {
+            throw new Error("Peak demand duration must be between 0 and 18 hours");
+        }
+
+        const payload = {
+            16645: {
+                value: seconds,
+                type: Zcl.DataType.UINT16,
+            },
+        };
+
+        await entity.write("hvacThermostat", payload);
+        return {state: {[key]: hours}};
+    },
+};
 export const stelpro_thermostat_outdoor_temperature: Tz.Converter = {
-    key: ["thermostat_outdoor_temperature"],
+    key: ["outdoor_temperature_display"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertNumber(value, key);
-        if (value > -100 && value < 100) {
-            await entity.write("hvacThermostat", {StelproOutdoorTemp: value * 100});
+        if (value < -32 || value > 119) {
+            throw new Error("Outdoor temperature must be between -32 and 119 degrees Celsius");
         }
+        await entity.write("hvacThermostat", {StelproOutdoorTemp: value * 100});
     },
 };
 export const DTB190502A1_LED: Tz.Converter = {
@@ -3586,52 +3672,6 @@ export const bticino_4027C_cover_position: Tz.Converter = {
     },
     convertGet: async (entity, key, meta) => {
         await entity.read("closuresWindowCovering", ["currentPositionLiftPercentage"]);
-    },
-};
-export const legrand_device_mode: Tz.Converter = {
-    key: ["device_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        // enable the dimmer, requires a recent firmware on the device
-        const lookup = {
-            // dimmer
-            dimmer_on: 0x0101,
-            dimmer_off: 0x0100,
-            // contactor
-            switch: 0x0003,
-            auto: 0x0004,
-            // pilot wire
-            pilot_on: 0x0002,
-            pilot_off: 0x0001,
-        };
-
-        value = value.toLowerCase();
-        utils.validateValue(value, Object.keys(lookup));
-        const payload = {0: {value: utils.getFromLookup(value, lookup), type: 9}};
-        await entity.write("manuSpecificLegrandDevices", payload, manufacturerOptions.legrand);
-        return {state: {device_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("manuSpecificLegrandDevices", [0x0000, 0x0001, 0x0002], manufacturerOptions.legrand);
-    },
-};
-export const legrand_pilot_wire_mode: Tz.Converter = {
-    key: ["pilot_wire_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        const mode = {
-            comfort: 0x00,
-            "comfort_-1": 0x01,
-            "comfort_-2": 0x02,
-            eco: 0x03,
-            frost_protection: 0x04,
-            off: 0x05,
-        };
-        const payload = {data: Buffer.from([utils.getFromLookup(value, mode)])};
-        await entity.command("manuSpecificLegrandDevices2", "command0", payload);
-        return {state: {pilot_wire_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("manuSpecificLegrandDevices2", [0x0000], manufacturerOptions.legrand);
     },
 };
 export const legrand_power_alarm: Tz.Converter = {
@@ -4502,20 +4542,6 @@ export const idlock_relock_enabled: Tz.Converter = {
     },
     convertGet: async (entity, key, meta) => {
         await entity.read("closuresDoorLock", [0x4005], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
-    },
-};
-export const schneider_pilot_mode: Tz.Converter = {
-    key: ["schneider_pilot_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        const lookup = {contactor: 1, pilot: 3};
-        value = value.toLowerCase();
-        const mode = utils.getFromLookup(value, lookup);
-        await entity.write("schneiderSpecificPilotMode", {pilotMode: mode}, {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
-        return {state: {schneider_pilot_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("schneiderSpecificPilotMode", ["pilotMode"], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
     },
 };
 export const schneider_dimmer_mode: Tz.Converter = {
