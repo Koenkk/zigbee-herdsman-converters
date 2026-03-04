@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {ZclArray} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -9,7 +9,6 @@ import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 import {precisionRound} from "../lib/utils";
-import type {ZclArray} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -158,7 +157,6 @@ const sinopeExtend = {
                 floorLimitStatus: {ID: 0x010c, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 roomTemperature: {ID: 0x010d, type: Zcl.DataType.INT16, write: true, max: 0xffff},
                 timeFormatToDisplay: {ID: 0x0114, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                // biome-ignore lint/style/useNamingConvention: Zigbee cluster property name
                 GFCiStatus: {ID: 0x0115, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 auxConnectedLoad: {ID: 0x0118, type: Zcl.DataType.UINT16, write: true, max: 0xff},
                 connectedLoad: {ID: 0x0119, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
@@ -1740,7 +1738,11 @@ export const definitions: DefinitionWithExtend[] = [
         // Some SW2500ZB firmware variants reject `seMetering` config/reporting and
         // also fail `instantaneousDemand` reads with UNSUPPORTED_ATTRIBUTE.
         // Keep metering support for delivered energy, but disable power handling.
-        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.onOff(), m.electricityMeter({cluster: "metering", configureReporting: false, power: false})],
+        extend: [
+            sinopeExtend.addManuSpecificSinopeCluster(),
+            m.onOff(),
+            m.electricityMeter({cluster: "metering", configureReporting: false, power: false}),
+        ],
         fromZigbee: [fzLocal.sinope],
         toZigbee: [
             tzLocal.timer_seconds,
@@ -1857,7 +1859,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DM2550ZB",
         vendor: "Sinopé",
         description: "Zigbee Adaptive phase smart dimmer",
-        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.light({configureReporting: true}), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        extend: [
+            sinopeExtend.addManuSpecificSinopeCluster(),
+            m.light({configureReporting: true}),
+            m.electricityMeter({energy: {divisor: 1000, multiplier: 1}}),
+        ],
         fromZigbee: [fzLocal.sinope],
         toZigbee: [
             tzLocal.timer_seconds,
@@ -2052,7 +2058,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RM3500ZB",
         vendor: "Sinopé",
         description: "Calypso smart water heater controller",
-        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.onOff({powerOnBehavior: false}), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        extend: [
+            sinopeExtend.addManuSpecificSinopeCluster(),
+            m.onOff({powerOnBehavior: false}),
+            m.electricityMeter({energy: {divisor: 1000, multiplier: 1}}),
+        ],
         fromZigbee: [fzLocal.ias_water_leak_alarm, fzLocal.sinope, fz.temperature],
         toZigbee: [tzLocal.low_water_temp_protection],
         exposes: [
