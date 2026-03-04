@@ -180,7 +180,7 @@ const philipsModernExtend = {
 
         const keys = toZigbee.map((value, index, array) => value.key).flat().filter((value, index, array) => array.indexOf(value) == index);
         // Add keys for Philips2-specific features not handled by standard converters
-        keys.push("effect_speed", "gradient_scale", "gradient_offset", "gradient_style");
+        keys.push("effect_speed", "gradient_scale", "gradient_offset", "gradient_style", "effect_color");
         const philipsLightTz = {
             key: keys,
             convertSet: async (entity, key, value, meta) => {
@@ -281,6 +281,55 @@ const philipsModernExtend = {
                     }
                 }
 
+                // When color/color_temp changes without an explicit effect command,
+                // behavior depends on the effect_color_mode option:
+                // - "stop" (default, matches Hue app): color change stops the effect
+                // - "update": color change re-sends the active effect with the new color
+                if ((data.colorXY !== undefined || data.colorMirek !== undefined) && message.effect === undefined) {
+                    const effectColorMode = (meta.options as KeyValueAny).effect_color_mode ?? "stop";
+                    const activeEffect = meta.state?.effect as string | undefined;
+                    if (effectColorMode === "update" && activeEffect && activeEffect !== "none" && activeEffect in effectLookupAll) {
+                        // Re-send the active effect with the new color
+                        data.effectType = effectLookupAll[activeEffect];
+                        newState.effect = activeEffect;
+                    } else {
+                        // Hue app behavior: color change stops effect, clear stale state
+                        newState.effect = "none";
+                    }
+                }
+
+                // Handle effect_color: explicitly set the active effect's base color
+                // without stopping it. If no effect is active, just sets the color.
+                if (message.effect_color != null) {
+                    let newColor = libColor.Color.fromConverterArg(message.effect_color);
+                    if (newColor.isHSV()) {
+                        data.colorXY = newColor.hsv.toRGB().gammaCorrected().toXY().rounded(4);
+                    } else {
+                        data.colorXY = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY().rounded(4) : newColor.xy;
+                    }
+                    newState.color = data.colorXY.toObject();
+                    // Re-send the active effect with the new color
+                    const activeEffect = meta.state?.effect as string | undefined;
+                    if (activeEffect && activeEffect !== "none" && activeEffect in effectLookupAll) {
+                        data.effectType = effectLookupAll[activeEffect];
+                        newState.effect = activeEffect;
+                    }
+                }
+
+                // When re-sending an effect (via effect_color or "update" mode),
+                // the effect resets brightness on activation. To preserve the user's
+                // brightness, we send it as a separate command AFTER the effect.
+                // Extract brightness now and send it after the main payload.
+                let deferredBrightness: number | undefined;
+                if (data.effectType !== undefined && message.effect === undefined) {
+                    if (data.brightness !== undefined) {
+                        // User explicitly sent brightness alongside color — defer it
+                        deferredBrightness = data.brightness;
+                        delete data.brightness;
+                        // Keep newState.brightness so state updates correctly
+                    }
+                }
+
                 const encodedPayload = Buffer.from(EncodeManuSpecificPhilips2(data));
                 // An empty Philips2Data encodes as just 2 zero bytes (the flags header).
                 // Check length rather than all-zeros, since a valid payload could
@@ -302,6 +351,27 @@ const philipsModernExtend = {
                     const payload = {data: encodedPayload};
                     await entity.command("manuSpecificPhilips2", "multiColor", payload);
 
+                    // Send brightness as a separate command after effect activation,
+                    // since the effect resets brightness on start.
+                    if (deferredBrightness !== undefined) {
+                        const brightnessData: Philips2Data = {brightness: deferredBrightness};
+                        const brightnessPayload = Buffer.from(EncodeManuSpecificPhilips2(brightnessData));
+                        await entity.command("manuSpecificPhilips2", "multiColor", {data: brightnessPayload});
+                        newState.brightness = deferredBrightness;
+                    }
+
+                    // When an effect is active or being set, read state after a delay
+                    // to sync brightness (effects modulate it internally).
+                    if (data.effectType !== undefined) {
+                        setTimeout(async () => {
+                            try {
+                                await entity.read("manuSpecificPhilips2", ["state"]);
+                            } catch (e) {
+                                // Best-effort sync
+                            }
+                        }, 1000);
+                    }
+
                     // TODO: syncColorState ruins the state, since it happily removes "state": "ON" from the KeyValue
                     //return {state: libColor.syncColorState(newState, meta.state, entity, meta.options)};
                     return {state: newState};
@@ -315,6 +385,13 @@ const philipsModernExtend = {
                     logger.debug(`Reading manuSpecificPhilips2 state failed: ${e}`, NS);
                 }
             },
+            options: [
+                new exposes.Enum("effect_color_mode", ea.SET, ["stop", "update"]).withDescription(
+                    "Controls what happens when color is changed while an effect is active. " +
+                    "'stop' (default): color change stops the effect (Hue app behavior). " +
+                    "'update': color change re-sends the effect with the new color.",
+                ),
+            ],
         } satisfies Tz.Converter;
 
         result.toZigbee.push(philipsLightTz, philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
@@ -343,25 +420,37 @@ const philipsModernExtend = {
                         args.endpointNames,
                     ),
                 );
-                result.configure.push(async (device, coordinatorEndpoint, definition) => {
-                    for (const ep of device.endpoints.filter((ep) => ep.supportsInputCluster("manuSpecificPhilips2"))) {
-                        await ep.bind("manuSpecificPhilips2", coordinatorEndpoint);
-                    }
-                });
             }
+            // Bind manuSpecificPhilips2 for attribute reports (effect state, etc.)
+            // for all hueEffect/gradient devices, not just gradient
+            result.configure.push(async (device, coordinatorEndpoint, definition) => {
+                for (const ep of device.endpoints.filter((ep) => ep.supportsInputCluster("manuSpecificPhilips2"))) {
+                    await ep.bind("manuSpecificPhilips2", coordinatorEndpoint);
+                }
+            });
             // All Hue-specific effects per Bifrost spec
             effects.push("sunset", "sparkle", "opal", "glisten", "underwater", "cosmos", "sunbeam", "enchant");
             effects.push("finish_effect", "stop_effect", "stop_hue_effect");
-            result.exposes.push(...exposeEndpoints(e.enum("effect", ea.SET, effects), args.endpointNames));
+            result.exposes.push(...exposeEndpoints(e.enum("effect", ea.STATE_SET, effects), args.endpointNames));
 
             // Expose effect_speed as a numeric 0..1 (0=slowest, 1=fastest)
             result.exposes.push(
                 ...exposeEndpoints(
-                    new eNumeric("effect_speed", ea.SET)
+                    new eNumeric("effect_speed", ea.STATE_SET)
                         .withValueMin(0)
                         .withValueMax(1)
                         .withValueStep(0.01)
                         .withDescription("Animation speed for the active effect (0=slowest, 1=fastest)"),
+                    args.endpointNames,
+                ),
+            );
+
+            // Expose effect_color: sets the base color of the active effect
+            // without stopping it. Accepts same formats as color (hex, xy, hs).
+            result.exposes.push(
+                ...exposeEndpoints(
+                    e.text("effect_color", ea.SET)
+                        .withDescription("Set the base color of the active effect without stopping it (hex e.g. #FF4400, or JSON {\"x\":0.6,\"y\":0.3})"),
                     args.endpointNames,
                 ),
             );
@@ -620,7 +709,50 @@ const philipsTz = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, "effect");
             if (Object.keys(hueEffects).includes(value.toLowerCase())) {
-                await entity.command("manuSpecificPhilips2", "multiColor", {data: Buffer.from(utils.getFromLookup(value, hueEffects), "hex")});
+                // Build payload dynamically so we can include optional color
+                const data: Philips2Data = {
+                    onOff: true,
+                    effectType: effectLookupAll[value.toLowerCase()],
+                };
+
+                // If color is provided alongside effect, include it in the payload
+                const msg = meta.message as KeyValueAny;
+                if (msg.color !== undefined) {
+                    const parsed = typeof msg.color === "object" ? msg.color : {};
+                    if (parsed.x !== undefined && parsed.y !== undefined) {
+                        data.colorXY = ColorXY.fromObject({x: Number(parsed.x), y: Number(parsed.y)});
+                    } else if (parsed.hex !== undefined || typeof msg.color === "string") {
+                        const hex = parsed.hex || msg.color;
+                        const rgb = ColorRGB.fromHex(hex);
+                        data.colorXY = rgb.toXY();
+                    }
+                }
+
+                // Include effect_speed if provided alongside effect
+                if (msg.effect_speed !== undefined) {
+                    data.effectSpeed = clamp(Number(msg.effect_speed), 0, 1);
+                }
+
+                const payload = {data: Buffer.from(EncodeManuSpecificPhilips2(data))};
+                await entity.command("manuSpecificPhilips2", "multiColor", payload);
+                const state: KeyValueAny = {effect: value.toLowerCase()};
+                if (data.effectSpeed !== undefined) state.effect_speed = data.effectSpeed;
+
+                // Effects modulate brightness internally (e.g. candle dims to 30-60%).
+                // Read state after a short delay so the Fz converter picks up the
+                // actual brightness the device settled on.
+                setTimeout(async () => {
+                    try {
+                        await entity.read("manuSpecificPhilips2", ["state"]);
+                    } catch (e) {
+                        // Ignore read failures — best-effort sync
+                    }
+                }, 1000);
+
+                return {state};
+            } else if (value.toLowerCase() === "stop_hue_effect") {
+                await entity.command("manuSpecificPhilips2", "multiColor", {data: Buffer.from(hueEffects.stop_hue_effect, "hex")});
+                return {state: {effect: "none"}};
             } else {
                 return await tz.effect.convertSet(entity, key, value, meta);
             }
@@ -932,6 +1064,24 @@ export enum HueGradientStyle {
     Scattered = 0x2,
     Mirrored = 0x4,
 }
+
+// Mapping from effect names to HueEffectType enum values.
+// Used by both the effect Tz converter and the philipsLightTz convertSet.
+const effectLookupAll: Record<string, HueEffectType> = {
+    candle: HueEffectType.Candle,
+    fireplace: HueEffectType.Fireplace,
+    colorloop: HueEffectType.Prism,
+    sunrise: HueEffectType.Sunrise,
+    sparkle: HueEffectType.Sparkle,
+    opal: HueEffectType.Opal,
+    glisten: HueEffectType.Glisten,
+    sunset: HueEffectType.Sunset,
+    underwater: HueEffectType.Underwater,
+    cosmos: HueEffectType.Cosmos,
+    sunbeam: HueEffectType.Sunbeam,
+    enchant: HueEffectType.Enchant,
+};
+
 export interface Philips2Data {
     onOff?: boolean;
     brightness?: number;
