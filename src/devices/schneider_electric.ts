@@ -2881,4 +2881,27 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.visaConfigCurtainStatus(1),
         ],
     },
+    {
+        fingerprint: [{modelID: 'GreenPower_254', ieeeAddr: new RegExp('^0x00000000e205567e$')}],
+        model: "A9MEM1570",
+        vendor: "Schneider Electric",
+        description: "PowerTag power sensor",
+        whiteLabel: [{vendor: "Elko", model: "EKO01825"}],
+        fromZigbee: [fzLocal.schneider_powertag],
+        toZigbee: [],
+        exposes: [
+            e.power(),
+            e.power_apparent(),
+            e.power_factor(),
+            e.energy(),
+            e.ac_frequency(),
+            e.numeric("voltage_phase_L1-L2", ea.STATE).withUnit("V").withDescription("Measured electrical potential value between phase A and B"),
+            e.numeric("voltage_phase_L2-L3", ea.STATE).withUnit("V").withDescription("Measured electrical potential value between phase B and C"),
+            e.numeric("voltage_phase_L1-L3", ea.STATE).withUnit("V").withDescription("Measured electrical potential value between phase C and A"),
+            e.numeric("current_phase_L1", ea.STATE).withUnit("A").withDescription("Instantaneous measured electrical current on phase A"),
+            e.numeric("current_phase_L2", ea.STATE).withUnit("A").withDescription("Instantaneous measured electrical current on phase B"),
+            e.numeric("current_phase_L3", ea.STATE).withUnit("A").withDescription("Instantaneous measured electrical current on phase C"),
+        ],
+    },
 ];
+        
