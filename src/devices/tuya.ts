@@ -22181,7 +22181,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaBase({
                 dp: true,
                 queryOnConfigure: true,
-                queryIntervalSeconds: 10,
+                queryIntervalSeconds: 60,
             }),
         ],
         exposes: [
