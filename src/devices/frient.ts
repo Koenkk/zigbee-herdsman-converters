@@ -56,7 +56,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {"43": 43}}),
             m.onOff({powerOnBehavior: false}),
             m.battery(),
-            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
             m.iasWarning(),
         ],
         ota: true,
