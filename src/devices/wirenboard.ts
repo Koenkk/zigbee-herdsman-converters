@@ -43,7 +43,7 @@ interface SprutNoise {
     commandResponses: never;
 }
 
-interface _SprutIrBlaster {
+interface SprutIrBlaster {
     attributes: never;
     commands: {
         playStore: {
@@ -186,25 +186,25 @@ const tzLocal = {
 
             switch (key) {
                 case "play_store":
-                    await entity.command("sprutIrBlaster", "playStore", {param: value.rom}, options);
+                    await entity.command<"sprutIrBlaster", "playStore", SprutIrBlaster>("sprutIrBlaster", "playStore", {param: value.rom}, options);
                     break;
                 case "learn_start":
-                    await entity.command("sprutIrBlaster", "learnStart", {value: value.rom}, options);
+                    await entity.command<"sprutIrBlaster", "learnStart", SprutIrBlaster>("sprutIrBlaster", "learnStart", {value: value.rom}, options);
                     break;
                 case "learn_stop":
-                    await entity.command("sprutIrBlaster", "learnStop", {value: value.rom}, options);
+                    await entity.command<"sprutIrBlaster", "learnStop", SprutIrBlaster>("sprutIrBlaster", "learnStop", {value: value.rom}, options);
                     break;
                 case "clear_store":
-                    await entity.command("sprutIrBlaster", "clearStore", {}, options);
+                    await entity.command<"sprutIrBlaster", "clearStore", SprutIrBlaster>("sprutIrBlaster", "clearStore", {}, options);
                     break;
                 case "play_ram":
-                    await entity.command("sprutIrBlaster", "playRam", {}, options);
+                    await entity.command<"sprutIrBlaster", "playRam", SprutIrBlaster>("sprutIrBlaster", "playRam", {}, options);
                     break;
                 case "learn_ram_start":
-                    await entity.command("sprutIrBlaster", "learnRamStart", {}, options);
+                    await entity.command<"sprutIrBlaster", "learnRamStart", SprutIrBlaster>("sprutIrBlaster", "learnRamStart", {}, options);
                     break;
                 case "learn_ram_stop":
-                    await entity.command("sprutIrBlaster", "learnRamStop", {}, options);
+                    await entity.command<"sprutIrBlaster", "learnRamStop", SprutIrBlaster>("sprutIrBlaster", "learnRamStop", {}, options);
                     break;
             }
         },
@@ -225,11 +225,11 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             let number = toNumber(value, "noise_timeout");
             number *= 1;
-            await entity.write("sprutNoise", {noiseAfterDetectDelay: number}, getOptions(meta.mapped, entity));
+            await entity.write<"sprutNoise", SprutNoise>("sprutNoise", {noiseAfterDetectDelay: number}, getOptions(meta.mapped, entity));
             return {state: {[key]: number}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("sprutNoise", ["noiseAfterDetectDelay"]);
+            await entity.read<"sprutNoise", SprutNoise>("sprutNoise", ["noiseAfterDetectDelay"]);
         },
     } satisfies Tz.Converter,
     occupancy_sensitivity: {
@@ -251,11 +251,11 @@ const tzLocal = {
             let number = toNumber(value, "noise_detect_level");
             number *= 1;
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
-            await entity.write("sprutNoise", {noiseDetectLevel: number}, options);
+            await entity.write<"sprutNoise", SprutNoise>("sprutNoise", {noiseDetectLevel: number}, options);
             return {state: {[key]: number}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("sprutNoise", ["noiseDetectLevel"], manufacturerOptions);
+            await entity.read<"sprutNoise", SprutNoise>("sprutNoise", ["noiseDetectLevel"], manufacturerOptions);
         },
     } satisfies Tz.Converter,
     temperature_offset: {
@@ -452,7 +452,7 @@ const sprutModernExtend = {
             ...args,
         }),
     sprutNoise: (args?: Partial<m.NumericArgs<"sprutNoise">>) =>
-        m.numeric({
+        m.numeric<"sprutNoise", SprutNoise>({
             name: "noise",
             cluster: "sprutNoise",
             attribute: "noise",
@@ -465,7 +465,7 @@ const sprutModernExtend = {
             ...args,
         }),
     sprutNoiseDetectLevel: (args?: Partial<m.NumericArgs<"sprutNoise">>) =>
-        m.numeric({
+        m.numeric<"sprutNoise", SprutNoise>({
             name: "noise_detect_level",
             cluster: "sprutNoise",
             attribute: "noiseDetectLevel",
@@ -479,7 +479,7 @@ const sprutModernExtend = {
             ...args,
         }),
     sprutNoiseDetected: (args?: Partial<m.BinaryArgs<"sprutNoise">>) =>
-        m.binary({
+        m.binary<"sprutNoise", SprutNoise>({
             name: "noise_detected",
             cluster: "sprutNoise",
             attribute: "noiseDetected",
@@ -490,7 +490,7 @@ const sprutModernExtend = {
             ...args,
         }),
     sprutNoiseTimeout: (args?: Partial<m.NumericArgs<"sprutNoise">>) =>
-        m.numeric({
+        m.numeric<"sprutNoise", SprutNoise>({
             name: "noise_timeout",
             cluster: "sprutNoise",
             attribute: "noiseAfterDetectDelay",
@@ -503,7 +503,7 @@ const sprutModernExtend = {
             ...args,
         }),
     sprutVoc: (args?: Partial<m.NumericArgs<"sprutVoc">>) =>
-        m.numeric({
+        m.numeric<"sprutVoc", SprutVoc>({
             name: "voc",
             label: "VOC",
             cluster: "sprutVoc",
@@ -533,25 +533,40 @@ const sprutModernExtend = {
 
                     switch (key) {
                         case "play_store":
-                            await entity.command("sprutIrBlaster", "playStore", {param: value.rom}, options);
+                            await entity.command<"sprutIrBlaster", "playStore", SprutIrBlaster>(
+                                "sprutIrBlaster",
+                                "playStore",
+                                {param: value.rom},
+                                options,
+                            );
                             break;
                         case "learn_start":
-                            await entity.command("sprutIrBlaster", "learnStart", {value: value.rom}, options);
+                            await entity.command<"sprutIrBlaster", "learnStart", SprutIrBlaster>(
+                                "sprutIrBlaster",
+                                "learnStart",
+                                {value: value.rom},
+                                options,
+                            );
                             break;
                         case "learn_stop":
-                            await entity.command("sprutIrBlaster", "learnStop", {value: value.rom}, options);
+                            await entity.command<"sprutIrBlaster", "learnStop", SprutIrBlaster>(
+                                "sprutIrBlaster",
+                                "learnStop",
+                                {value: value.rom},
+                                options,
+                            );
                             break;
                         case "clear_store":
-                            await entity.command("sprutIrBlaster", "clearStore", {}, options);
+                            await entity.command<"sprutIrBlaster", "clearStore", SprutIrBlaster>("sprutIrBlaster", "clearStore", {}, options);
                             break;
                         case "play_ram":
-                            await entity.command("sprutIrBlaster", "playRam", {}, options);
+                            await entity.command<"sprutIrBlaster", "playRam", SprutIrBlaster>("sprutIrBlaster", "playRam", {}, options);
                             break;
                         case "learn_ram_start":
-                            await entity.command("sprutIrBlaster", "learnRamStart", {}, options);
+                            await entity.command<"sprutIrBlaster", "learnRamStart", SprutIrBlaster>("sprutIrBlaster", "learnRamStart", {}, options);
                             break;
                         case "learn_ram_stop":
-                            await entity.command("sprutIrBlaster", "learnRamStop", {}, options);
+                            await entity.command<"sprutIrBlaster", "learnRamStop", SprutIrBlaster>("sprutIrBlaster", "learnRamStop", {}, options);
                             break;
                     }
                 },
@@ -705,7 +720,7 @@ export const definitions: DefinitionWithExtend[] = [
             let payload = reporting.payload<"msOccupancySensing">("sprutOccupancyLevel", 10, constants.repInterval.MINUTE, 5);
             await endpoint1.configureReporting("msOccupancySensing", payload, manufacturerOptions);
 
-            payload = reporting.payload<"sprutNoise">("noise", 10, constants.repInterval.MINUTE, 5);
+            payload = reporting.payload<"sprutNoise", SprutNoise>("noise", 10, constants.repInterval.MINUTE, 5);
             await endpoint1.configureReporting("sprutNoise", payload);
 
             // led_red

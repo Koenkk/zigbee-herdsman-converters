@@ -86,9 +86,9 @@ export const legrandExtend = {
             ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
             attributes: {
-                deviceMode: {ID: 0x0000, type: Zcl.DataType.DATA16},
-                ledInDark: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
-                ledIfOn: {ID: 0x0002, type: Zcl.DataType.BOOLEAN},
+                deviceMode: {ID: 0x0000, type: Zcl.DataType.DATA16, write: true},
+                ledInDark: {ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
+                ledIfOn: {ID: 0x0002, type: Zcl.DataType.BOOLEAN, write: true},
             },
             commands: {},
             commandsResponse: {},
@@ -180,7 +180,11 @@ export const tzLegrand = {
         convertSet: async (entity, key, value, meta) => {
             const mode = utils.getFromLookup(value, {off: 0x00, auto: 0x02, on_override: 0x03});
             const payload = {data: Buffer.from([mode])};
-            await entity.command("manuSpecificLegrandDevices3", "command0", payload);
+            await entity.command<"manuSpecificLegrandDevices3", "command0", LegrandDevicesCluster2>(
+                "manuSpecificLegrandDevices3",
+                "command0",
+                payload,
+            );
             return {state: {auto_mode: value}};
         },
     } satisfies Tz.Converter,
@@ -267,7 +271,11 @@ export const tzLegrand = {
             };
             utils.validateValue(value, Object.keys(modeLookup));
             const payload = {data: Buffer.from([utils.getFromLookup(value, modeLookup)])};
-            await entity.command("manuSpecificLegrandDevices2", "command0", payload);
+            await entity.command<"manuSpecificLegrandDevices2", "command0", LegrandDevicesCluster2>(
+                "manuSpecificLegrandDevices2",
+                "command0",
+                payload,
+            );
             return {state: {pilot_wire_mode: value}};
         },
         convertGet: async (entity, key, meta) => {

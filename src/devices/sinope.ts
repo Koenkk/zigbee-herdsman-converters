@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {ZclArray} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -14,6 +14,165 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const manuSinope = {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES};
+
+interface ManuSpecificSinope {
+    attributes: {
+        /** ID=0x0002 | type=ENUM8 | write=true | max=255 */
+        keypadLockout: number;
+        /** ID=0x0004 | type=CHAR_STR | write=true */
+        firmwareVersion: string;
+        /** ID=0x0010 | type=INT16 | write=true | max=65535 */
+        outdoorTempToDisplay: number;
+        /** ID=0x0011 | type=UINT16 | write=true | max=65535 */
+        outdoorTempToDisplayTimeout: number;
+        /** ID=0x0012 | type=ENUM8 | write=true | max=255 */
+        secondScreenBehavior: number;
+        /** ID=0x0020 | type=UINT32 | write=true | max=4294967295 */
+        currentTimeToDisplay: number;
+        /** ID=0x0052 | type=UINT8 | write=true | max=255 */
+        ledIntensityOn: number;
+        /** ID=0x0053 | type=UINT8 | write=true | max=255 */
+        ledIntensityOff: number;
+        /** ID=0x0050 | type=UINT24 | write=true | max=16777215 */
+        ledColorOn: number;
+        /** ID=0x0051 | type=UINT24 | write=true | max=16777215 */
+        ledColorOff: number;
+        /** ID=0x0052 | type=UINT8 | write=true | max=255 */
+        onLedIntensity: number;
+        /** ID=0x0053 | type=UINT8 | write=true | max=255 */
+        offLedIntensity: number;
+        /** ID=0x0054 | type=ENUM8 | write=true | max=255 */
+        actionReport: number;
+        /** ID=0x0055 | type=UINT16 | write=true | max=65535 */
+        minimumBrightness: number;
+        /** ID=0x0060 | type=UINT16 | write=true | max=65535 */
+        connectedLoadRM: number;
+        /** ID=0x0070 | type=BITMAP8 | write=true */
+        currentLoad: number;
+        /** ID=0x0071 | type=INT8 | write=true | min=-128 | max=127 | default=-128 */
+        ecoMode: number;
+        /** ID=0x0072 | type=UINT8 | write=true | max=255 | default=255 */
+        ecoMode1: number;
+        /** ID=0x0073 | type=UINT8 | write=true | max=255 | default=255 */
+        ecoMode2: number;
+        /** ID=0x0075 | type=BITMAP32 | write=true | max=4294967295 */
+        unknown: number;
+        /** ID=0x0076 | type=UINT8 | write=true | max=255 */
+        drConfigWaterTempMin: number;
+        /** ID=0x0077 | type=UINT8 | write=true | max=255 | default=2 */
+        drConfigWaterTempTime: number;
+        /** ID=0x0078 | type=UINT16 | write=true | max=65535 */
+        drWTTimeOn: number;
+        /** ID=0x0080 | type=UINT32 | max=4294967295 */
+        unknown1: number;
+        /** ID=0x00a0 | type=UINT32 | write=true | max=4294967295 */
+        dimmerTimmer: number;
+        /** ID=0x0100 | type=UINT8 | max=255 */
+        unknown2: number;
+        /** ID=0x0105 | type=ENUM8 | write=true | max=255 */
+        floorControlMode: number;
+        /** ID=0x0106 | type=ENUM8 | write=true | max=255 */
+        auxOutputMode: number;
+        /** ID=0x0107 | type=INT16 | write=true | max=65535 */
+        floorTemperature: number;
+        /** ID=0x0108 | type=INT16 | write=true | max=65535 */
+        ambiantMaxHeatSetpointLimit: number;
+        /** ID=0x0109 | type=INT16 | write=true | max=65535 */
+        floorMinHeatSetpointLimit: number;
+        /** ID=0x010a | type=INT16 | write=true | max=65535 */
+        floorMaxHeatSetpointLimit: number;
+        /** ID=0x010b | type=ENUM8 | write=true | max=255 */
+        temperatureSensor: number;
+        /** ID=0x010c | type=ENUM8 | write=true | max=255 */
+        floorLimitStatus: number;
+        /** ID=0x010d | type=INT16 | write=true | max=65535 */
+        roomTemperature: number;
+        /** ID=0x0114 | type=ENUM8 | write=true | max=255 */
+        timeFormatToDisplay: number;
+        /** ID=0x0115 | type=ENUM8 | write=true | max=255 */
+        // biome-ignore lint/style/useNamingConvention: Zigbee cluster property name
+        GFCiStatus: number;
+        /** ID=0x0118 | type=UINT16 | write=true | max=255 */
+        auxConnectedLoad: number;
+        /** ID=0x0119 | type=UINT16 | write=true | max=65535 */
+        connectedLoad: number;
+        /** ID=0x0128 | type=UINT8 | write=true | max=255 */
+        pumpProtection: number;
+        /** ID=0x012a | type=ENUM8 | write=true | max=255 | default=60 */
+        unknown3: number;
+        /** ID=0x012b | type=INT16 | write=true | max=65535 */
+        currentSetpoint: number;
+        /** ID=0x012d | type=INT16 | write=true | min=-32768 | max=32767 */
+        reportLocalTemperature: number;
+        /** ID=0x0240 | type=ARRAY | write=true */
+        flowMeterConfig: ZclArray | unknown[];
+        /** ID=0x0283 | type=UINT8 | write=true | max=255 */
+        coldLoadPickupStatus: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+const sinopeExtend = {
+    addManuSpecificSinopeCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificSinope", {
+            ID: 0xff01,
+            manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES,
+            attributes: {
+                // attribute ID :1's readable
+                keypadLockout: {ID: 0x0002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                // 'firmware number': {ID: 3, type: Zcl.DataType.UNKNOWN}, write: true,
+                firmwareVersion: {ID: 0x0004, type: Zcl.DataType.CHAR_STR, write: true},
+                outdoorTempToDisplay: {ID: 0x0010, type: Zcl.DataType.INT16, write: true, max: 0xffff},
+                outdoorTempToDisplayTimeout: {ID: 0x0011, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                secondScreenBehavior: {ID: 0x0012, type: Zcl.DataType.ENUM8, write: true, max: 0xff}, // auto:0,setpoint:1,outside:2
+                currentTimeToDisplay: {ID: 0x0020, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                ledIntensityOn: {ID: 0x0052, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledIntensityOff: {ID: 0x0053, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledColorOn: {ID: 0x0050, type: Zcl.DataType.UINT24, write: true, max: 0xffffff}, // inversed hex BBGGRR
+                ledColorOff: {ID: 0x0051, type: Zcl.DataType.UINT24, write: true, max: 0xffffff},
+                onLedIntensity: {ID: 0x0052, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // percent
+                offLedIntensity: {ID: 0x0053, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // percent
+                actionReport: {ID: 0x0054, type: Zcl.DataType.ENUM8, write: true, max: 0xff}, // singleTapUp: 1,2, doubleTapUp: 1,4, singleTapDown: 17,18, doubleTapDown: 17,20
+                minimumBrightness: {ID: 0x0055, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                connectedLoadRM: {ID: 0x0060, type: Zcl.DataType.UINT16, write: true, max: 0xffff}, // unit watt/hr for Calypso RM3500 & Load Controller RM3250
+                currentLoad: {ID: 0x0070, type: Zcl.DataType.BITMAP8, write: true}, // related to ecoMode(s)
+                ecoMode: {ID: 0x0071, type: Zcl.DataType.INT8, write: true, min: -128, max: 127, default: -128}, // -100-0-100%
+                ecoMode1: {ID: 0x0072, type: Zcl.DataType.UINT8, write: true, max: 0xff, default: 0xff}, // 0-99
+                ecoMode2: {ID: 0x0073, type: Zcl.DataType.UINT8, write: true, max: 0xff, default: 0xff}, // 0-100
+                unknown: {ID: 0x0075, type: Zcl.DataType.BITMAP32, write: true, max: 0xffffffff}, // RW *testing*
+                drConfigWaterTempMin: {ID: 0x0076, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // value 45 or 0
+                drConfigWaterTempTime: {ID: 0x0077, type: Zcl.DataType.UINT8, write: true, max: 0xff, default: 2}, // default 2
+                drWTTimeOn: {ID: 0x0078, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                unknown1: {ID: 0x0080, type: Zcl.DataType.UINT32, max: 0xffffffff}, // readOnly stringNumber *testing*
+                dimmerTimmer: {ID: 0x00a0, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                unknown2: {ID: 0x0100, type: Zcl.DataType.UINT8, max: 0xff}, // readOnly *testing*
+                floorControlMode: {ID: 0x0105, type: Zcl.DataType.ENUM8, write: true, max: 0xff}, // airFloorMode
+                auxOutputMode: {ID: 0x0106, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                floorTemperature: {ID: 0x0107, type: Zcl.DataType.INT16, write: true, max: 0xffff},
+                ambiantMaxHeatSetpointLimit: {ID: 0x0108, type: Zcl.DataType.INT16, write: true, max: 0xffff},
+                floorMinHeatSetpointLimit: {ID: 0x0109, type: Zcl.DataType.INT16, write: true, max: 0xffff},
+                floorMaxHeatSetpointLimit: {ID: 0x010a, type: Zcl.DataType.INT16, write: true, max: 0xffff},
+                temperatureSensor: {ID: 0x010b, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                floorLimitStatus: {ID: 0x010c, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                roomTemperature: {ID: 0x010d, type: Zcl.DataType.INT16, write: true, max: 0xffff},
+                timeFormatToDisplay: {ID: 0x0114, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                GFCiStatus: {ID: 0x0115, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                auxConnectedLoad: {ID: 0x0118, type: Zcl.DataType.UINT16, write: true, max: 0xff},
+                connectedLoad: {ID: 0x0119, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                pumpProtection: {ID: 0x0128, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                unknown3: {ID: 0x012a, type: Zcl.DataType.ENUM8, write: true, max: 0xff, default: 60}, // RW 5,10,15,20,30,60 *testing*
+                currentSetpoint: {ID: 0x012b, type: Zcl.DataType.INT16, write: true, max: 0xffff}, // W:to ocuppiedHeatSetpoint, R:depends of SinopeOccupancy
+                // attribute ID: 300's readable, returns a buffer
+                reportLocalTemperature: {ID: 0x012d, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                // attribute ID: 512's readable
+                flowMeterConfig: {ID: 0x0240, type: Zcl.DataType.ARRAY, write: true},
+                coldLoadPickupStatus: {ID: 0x0283, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+};
 
 const fzLocal = {
     ias_water_leak_alarm: {
@@ -251,7 +410,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificSinope", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificSinope", ManuSpecificSinope, ["attributeReport", "readResponse"]>,
 };
 const tzLocal = {
     thermostat_occupancy: {
@@ -623,6 +782,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HP6000ZB",
         vendor: "Sinopé",
         description: "Mini-split air conditioner interface",
+        extend: [sinopeExtend.addManuSpecificSinopeCluster()],
         fromZigbee: [
             fz.fan,
             {
@@ -657,7 +817,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<"manuSpecificSinope", undefined, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"manuSpecificSinope", ManuSpecificSinope, ["attributeReport", "readResponse"]>,
         ],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -723,7 +883,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1123ZB",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [m.electricityMeter()],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.electricityMeter()],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -832,7 +992,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1124ZB",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [m.electricityMeter()],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.electricityMeter()],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -941,7 +1101,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1123ZB-G2",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
         meta: {sinopeAlternateBacklightAutoDim: true},
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
@@ -1074,7 +1234,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1124ZB-G2",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
         meta: {sinopeAlternateBacklightAutoDim: true},
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
@@ -1210,7 +1370,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {model: "TH1320ZB-04", vendor: "Sinopé", description: "Zigbee smart floor heating thermostat", fingerprint: [{modelID: "TH1320ZB-04"}]},
         ],
-        extend: [m.electricityMeter()],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.electricityMeter()],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -1311,6 +1471,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1400ZB",
         vendor: "Sinopé",
         description: "Zigbee low volt thermostat",
+        extend: [sinopeExtend.addManuSpecificSinopeCluster()],
         fromZigbee: [
             fzLocal.thermostat,
             fzLocal.sinope,
@@ -1492,6 +1653,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1500ZB",
         vendor: "Sinopé",
         description: "Zigbee dual pole line volt thermostat",
+        extend: [sinopeExtend.addManuSpecificSinopeCluster()],
         fromZigbee: [
             fzLocal.thermostat,
             fzLocal.sinope,
@@ -1576,7 +1738,11 @@ export const definitions: DefinitionWithExtend[] = [
         // Some SW2500ZB firmware variants reject `seMetering` config/reporting and
         // also fail `instantaneousDemand` reads with UNSUPPORTED_ATTRIBUTE.
         // Keep metering support for delivered energy, but disable power handling.
-        extend: [m.onOff(), m.electricityMeter({cluster: "metering", configureReporting: false, power: false})],
+        extend: [
+            sinopeExtend.addManuSpecificSinopeCluster(),
+            m.onOff(),
+            m.electricityMeter({cluster: "metering", configureReporting: false, power: false}),
+        ],
         fromZigbee: [fzLocal.sinope],
         toZigbee: [
             tzLocal.timer_seconds,
@@ -1643,7 +1809,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DM2500ZB",
         vendor: "Sinopé",
         description: "Zigbee smart dimmer",
-        extend: [m.light({configureReporting: true})],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.light({configureReporting: true})],
         fromZigbee: [fzLocal.sinope],
         toZigbee: [
             tzLocal.timer_seconds,
@@ -1693,7 +1859,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DM2550ZB",
         vendor: "Sinopé",
         description: "Zigbee Adaptive phase smart dimmer",
-        extend: [m.light({configureReporting: true}), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        extend: [
+            sinopeExtend.addManuSpecificSinopeCluster(),
+            m.light({configureReporting: true}),
+            m.electricityMeter({energy: {divisor: 1000, multiplier: 1}}),
+        ],
         fromZigbee: [fzLocal.sinope],
         toZigbee: [
             tzLocal.timer_seconds,
@@ -1748,7 +1918,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SP2600ZB",
         vendor: "Sinopé",
         description: "Zigbee smart plug",
-        extend: [m.onOff(), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.onOff(), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["manuSpecificSinope"];
@@ -1859,6 +2029,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VA4220ZB",
         vendor: "Sinopé",
         description: "Sedna smart water valve",
+        extend: [sinopeExtend.addManuSpecificSinopeCluster()],
         fromZigbee: [fz.ignore_iaszone_statuschange, fz.cover_position_via_brightness, fz.cover_state_via_onoff, fz.battery, fz.metering],
         toZigbee: [tz.cover_via_brightness],
         meta: {battery: {voltageToPercentage: {min: 5400, max: 6800}}},
@@ -1887,7 +2058,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RM3500ZB",
         vendor: "Sinopé",
         description: "Calypso smart water heater controller",
-        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        extend: [
+            sinopeExtend.addManuSpecificSinopeCluster(),
+            m.onOff({powerOnBehavior: false}),
+            m.electricityMeter({energy: {divisor: 1000, multiplier: 1}}),
+        ],
         fromZigbee: [fzLocal.ias_water_leak_alarm, fzLocal.sinope, fz.temperature],
         toZigbee: [tzLocal.low_water_temp_protection],
         exposes: [

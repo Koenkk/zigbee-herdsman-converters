@@ -24,6 +24,14 @@ interface SchneiderOccupancyConfig {
     commandResponses: never;
 }
 
+export interface WiserDeviceInfo {
+    attributes: {
+        deviceInfo: string;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface SchneiderVisaConfig {
     attributes: {
         indicatorLuminanceLevel: number;
@@ -37,6 +45,24 @@ interface SchneiderVisaConfig {
         key2EventNotification: number;
         key3EventNotification: number;
         key4EventNotification: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SchneiderLightSwitchConfiguration {
+    attributes: {
+        ledIndication: number;
+        switchActions: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SchneiderFanSwitchConfiguration {
+    attributes: {
+        ledIndication: number;
+        ledOrientation: number;
     };
     commands: never;
     commandResponses: never;
@@ -75,6 +101,8 @@ interface SchneiderThermostatCluster {
         localTemperatureSourceSelect: number;
         controlType: number;
         thermostatApplication: number;
+        heatingFuel: number;
+        heatTransferMedium: number;
         heatingEmitter: number;
     };
     commands: never;
@@ -116,7 +144,7 @@ function indicatorMode(endpoint?: string) {
     if (endpoint) {
         description = `Set Indicator Mode for ${endpoint} switch.`;
     }
-    return m.enumLookup({
+    return m.enumLookup<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>({
         name: "indicator_mode",
         lookup: {
             reverse_with_load: 2,
@@ -132,7 +160,7 @@ function indicatorMode(endpoint?: string) {
 }
 
 function socketIndicatorMode() {
-    return m.enumLookup({
+    return m.enumLookup<"manuSpecificSchneiderFanSwitchConfiguration", SchneiderFanSwitchConfiguration>({
         name: "indicator_mode",
         lookup: {
             reverse_with_load: 0,
@@ -147,7 +175,7 @@ function socketIndicatorMode() {
 }
 
 function evlinkIndicatorMode() {
-    return m.enumLookup({
+    return m.enumLookup<"manuSpecificSchneiderFanSwitchConfiguration", SchneiderFanSwitchConfiguration>({
         name: "indicator_mode",
         lookup: {
             default: 1,
@@ -161,7 +189,7 @@ function evlinkIndicatorMode() {
 
 function fanIndicatorMode() {
     const description = "Set Indicator Mode.";
-    return m.enumLookup({
+    return m.enumLookup<"manuSpecificSchneiderFanSwitchConfiguration", SchneiderFanSwitchConfiguration>({
         name: "indicator_mode",
         lookup: {
             always_on: 3,
@@ -176,7 +204,7 @@ function fanIndicatorMode() {
 
 function fanIndicatorOrientation() {
     const description = "Set Indicator Orientation.";
-    return m.enumLookup({
+    return m.enumLookup<"manuSpecificSchneiderFanSwitchConfiguration", SchneiderFanSwitchConfiguration>({
         name: "indicator_orientation",
         lookup: {
             horizontal_left: 2,
@@ -195,7 +223,7 @@ function switchActions(endpoint?: string) {
     if (endpoint) {
         description = `Set Switch Action for ${endpoint} Button.`;
     }
-    return m.enumLookup({
+    return m.enumLookup<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>({
         name: "switch_actions",
         lookup: {
             light: 0,
@@ -714,6 +742,18 @@ const schneiderElectricExtend = {
                     write: true,
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
+                heatingFuel: {
+                    ID: 0xe217,
+                    type: Zcl.DataType.ENUM8,
+                    write: true,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                heatTransferMedium: {
+                    ID: 0xe218,
+                    type: Zcl.DataType.ENUM8,
+                    write: true,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
                 heatingEmitter: {
                     ID: 0xe21a,
                     type: Zcl.DataType.ENUM8,
@@ -773,6 +813,35 @@ const schneiderElectricExtend = {
                 "This is used to specify what the Thermostat is regulating. 'Occupied Space' - heating where the room temperature is used as the control value, 'Floor' - Floor warming applications where the temperature of the floor itself is regulated.",
             entityCategory: "config",
             lookup: {"Occupied Space": 0, Floor: 1, "Not known": 0xff},
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        }),
+    heatingFuel: () =>
+        m.enumLookup<"hvacThermostat", SchneiderThermostatCluster>({
+            name: "heating_fuel",
+            cluster: "hvacThermostat",
+            attribute: "heatingFuel",
+            description: "Type of fuel used for heating.",
+            entityCategory: "config",
+            lookup: {
+                electricity: 0x00,
+                gas: 0x01,
+                oil: 0x02,
+                solid_fuel: 0x03,
+                solar: 0x04,
+                community_heating: 0x05,
+                heat_pump: 0x06,
+                not_specified: 0xff,
+            },
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        }),
+    heatTransferMedium: () =>
+        m.enumLookup<"hvacThermostat", SchneiderThermostatCluster>({
+            name: "heat_transfer_medium",
+            cluster: "hvacThermostat",
+            attribute: "heatTransferMedium",
+            description: "Medium used to transfer heat.",
+            entityCategory: "config",
+            lookup: {nothing: 0x00, hydronic: 0x01, air: 0x02},
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         }),
     heatingEmitter: () =>
@@ -1031,7 +1100,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport">,
+    } satisfies Fz.Converter<"wiserDeviceInfo", WiserDeviceInfo, "attributeReport">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -2513,6 +2582,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5779",
         vendor: "Schneider Electric",
         description: "Merten Connected Room Temperature Controller",
+        fromZigbee: [
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.pIHeatingDemand !== undefined) {
+                        return {running_state: msg.data.pIHeatingDemand > 0 ? "heat" : "idle"};
+                    }
+                    if (msg.data.pICoolingDemand !== undefined) {
+                        return {running_state: msg.data.pICoolingDemand > 0 ? "cool" : "idle"};
+                    }
+                },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+        ],
         extend: [
             m.thermostat({
                 setpoints: {
@@ -2531,6 +2614,10 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 systemMode: {
                     values: ["off", "heat", "cool"],
+                },
+                runningState: {
+                    values: ["idle", "heat", "cool"],
+                    configure: {reporting: false},
                 },
                 piHeatingDemand: {
                     values: ea.ALL,
@@ -2554,6 +2641,11 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "keypadLockout",
                 description: "Enables/disables physical input on the device.",
             }),
+            schneiderElectricExtend.customThermostatCluster(),
+            schneiderElectricExtend.thermostatApplication(),
+            schneiderElectricExtend.heatingFuel(),
+            schneiderElectricExtend.heatTransferMedium(),
+            schneiderElectricExtend.heatingEmitter(),
         ],
     },
     {
@@ -2853,6 +2945,28 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.visaWiserCurtain(["l1"]),
             schneiderElectricExtend.visaConfigMotorType(1),
             schneiderElectricExtend.visaConfigCurtainStatus(1),
+        ],
+    },
+    {
+        fingerprint: [{modelID: "GreenPower_254", ieeeAddr: /^0x00000000e205567e$/}],
+        model: "EKO01825",
+        vendor: "Elko",
+        description: "PowerTag power sensor",
+        whiteLabel: [{vendor: "Schneider Electric", model: "A9MEM1570"}],
+        fromZigbee: [fzLocal.schneider_powertag],
+        toZigbee: [],
+        exposes: [
+            e.power(),
+            e.power_apparent(),
+            e.power_factor(),
+            e.energy(),
+            e.ac_frequency(),
+            e.numeric("voltage_phase_l1_l2", ea.STATE).withUnit("V").withDescription("Measured electrical potential value between phase L1 and L2"),
+            e.numeric("voltage_phase_l2_l3", ea.STATE).withUnit("V").withDescription("Measured electrical potential value between phase L2 and L3"),
+            e.numeric("voltage_phase_l1_l3", ea.STATE).withUnit("V").withDescription("Measured electrical potential value between phase L1 and L3"),
+            e.numeric("current_phase_l1", ea.STATE).withUnit("A").withDescription("Instantaneous measured electrical current on phase L1"),
+            e.numeric("current_phase_l2", ea.STATE).withUnit("A").withDescription("Instantaneous measured electrical current on phase L2"),
+            e.numeric("current_phase_l3", ea.STATE).withUnit("A").withDescription("Instantaneous measured electrical current on phase L3"),
         ],
     },
 ];
