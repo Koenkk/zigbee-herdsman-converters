@@ -806,11 +806,7 @@ function createHaloDefinition({zigbeeModel, model, description, supportsWeather}
         e.tamper(),
         e.battery_low(),
         e.test(),
-        e
-            .numeric("co_ppm", ea.STATE)
-            .withDescription("Current CO concentration reported by the detector")
-            .withUnit("ppm")
-            .withCategory("diagnostic"),
+        e.numeric("co_ppm", ea.STATE).withDescription("Current CO concentration reported by the detector").withUnit("ppm").withCategory("diagnostic"),
         e
             .enum("halo_alert_state", ea.STATE, [...HALO_ALERT_STATES])
             .withDescription("Device state reported by the manufacturer cluster")
