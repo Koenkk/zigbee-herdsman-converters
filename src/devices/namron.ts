@@ -1386,7 +1386,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512776/4512777",
         vendor: "Namron",
         description: "Zigbee thermostat for panel heater PRO (white 4512776 / black 4512777)",
-        fromZigbee: [fz.thermostat, fzLocal.namron_panelheater, fz.namron_hvac_user_interface, fz.electrical_measurement, fzLocal.namron_metering_pro],
+        fromZigbee: [
+            fz.thermostat,
+            fzLocal.namron_panelheater,
+            fz.namron_hvac_user_interface,
+            fz.electrical_measurement,
+            fzLocal.namron_metering_pro,
+        ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
