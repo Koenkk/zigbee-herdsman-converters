@@ -761,11 +761,31 @@ const philipsTz = {
         key: ["effect"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, "effect");
-            if (Object.keys(hueEffects).includes(value.toLowerCase())) {
+            const lower = value.toLowerCase();
+
+            // Stop commands — handle before the generic hueEffects branch,
+            // since stop_hue_effect is in the hueEffects map but not in effectLookupAll.
+            // All three stop variants also send the Hue stop command so they work
+            // regardless of whether the active effect is a ZCL or Hue effect.
+            if (lower === "stop_hue_effect" || lower === "finish_effect" || lower === "stop_effect") {
+                // Stop Hue-specific effects via manuSpecificPhilips2
+                await entity.command("manuSpecificPhilips2", "multiColor", {data: Buffer.from(hueEffects.stop_hue_effect, "hex")});
+                // Also send the ZCL effect stop for standard effects (blink, breathe, etc.)
+                if (lower !== "stop_hue_effect") {
+                    try {
+                        await tz.effect.convertSet(entity, key, value, meta);
+                    } catch (_e) {
+                        // Ignore — device may not support ZCL identify cluster
+                    }
+                }
+                return {state: {effect: "none"}};
+            }
+
+            if (lower in effectLookupAll) {
                 // Build payload dynamically so we can include optional color
                 const data: Philips2Data = {
                     onOff: true,
-                    effectType: effectLookupAll[value.toLowerCase()],
+                    effectType: effectLookupAll[lower],
                 };
 
                 // If color is provided alongside effect, include it in the payload
@@ -786,7 +806,7 @@ const philipsTz = {
 
                 const payload = {data: Buffer.from(EncodeManuSpecificPhilips2(data))};
                 await entity.command("manuSpecificPhilips2", "multiColor", payload);
-                const state: KeyValueAny = {effect: value.toLowerCase()};
+                const state: KeyValueAny = {effect: lower};
                 if (data.effectSpeed !== undefined) state.effect_speed = data.effectSpeed;
 
                 // Effects modulate brightness internally (e.g. candle dims to 30-60%).
@@ -802,10 +822,8 @@ const philipsTz = {
 
                 return {state};
             }
-            if (value.toLowerCase() === "stop_hue_effect") {
-                await entity.command("manuSpecificPhilips2", "multiColor", {data: Buffer.from(hueEffects.stop_hue_effect, "hex")});
-                return {state: {effect: "none"}};
-            }
+
+            // Standard ZCL effects (blink, breathe, okay, channel_change)
             return await tz.effect.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
