@@ -381,6 +381,7 @@ const philipsModernExtend = {
                     } else {
                         data.colorXY = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY().rounded(4) : newColor.xy;
                     }
+                    newState.color_mode = "xy";
                     newState.color = data.colorXY.toObject();
                     // Re-send the active effect with the new color
                     const activeEffect = meta.state?.effect as string | undefined;
@@ -770,13 +771,11 @@ const philipsTz = {
                 // If color is provided alongside effect, include it in the payload
                 const msg = meta.message as KeyValueAny;
                 if (msg.color !== undefined) {
-                    const parsed = typeof msg.color === "object" ? msg.color : {};
-                    if (parsed.x !== undefined && parsed.y !== undefined) {
-                        data.colorXY = ColorXY.fromObject({x: Number(parsed.x), y: Number(parsed.y)});
-                    } else if (parsed.hex !== undefined || typeof msg.color === "string") {
-                        const hex = parsed.hex || msg.color;
-                        const rgb = ColorRGB.fromHex(hex);
-                        data.colorXY = rgb.toXY();
+                    const newColor = libColor.Color.fromConverterArg(msg.color);
+                    if (newColor.isHSV()) {
+                        data.colorXY = newColor.hsv.toRGB().gammaCorrected().toXY().rounded(4);
+                    } else {
+                        data.colorXY = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY().rounded(4) : newColor.xy;
                     }
                 }
 
@@ -1244,13 +1243,14 @@ enum HueFlags {
     GradientParams = 0x0040,
     EffectSpeed = 0x0080,
     GradientColors = 0x0100,
-    Unused9 = 0x0200,
-    UnusedA = 0x0400,
-    UnusedB = 0x0800,
-    UnusedC = 0x1000,
-    UnusedD = 0x2000,
-    UnusedE = 0x4000,
-    UnusedF = 0x8000,
+    // Reserved for future use per Bifrost spec
+    Reserved9 = 0x0200,
+    ReservedA = 0x0400,
+    ReservedB = 0x0800,
+    ReservedC = 0x1000,
+    ReservedD = 0x2000,
+    ReservedE = 0x4000,
+    ReservedF = 0x8000,
 }
 
 interface HueTypeDetails<N extends keyof Philips2Data> {
@@ -1414,7 +1414,6 @@ const GRADIENT_COLORS_DETAILS: HueTypeDetails<"gradientColors"> = {
     decode: (v, p, d) => {
         const size = v.getUint8(p);
         const colorCount = v.getUint8(p + 1) >> 4;
-        //assert.equal(size, 4 + (colorCount*3), "Gradient colors size does not match color count");
         const rawStyle = v.getUint8(p + 2);
         // Validate gradient style per Bifrost spec: Linear=0x00, Scattered=0x02, Mirrored=0x04
         const validStyles = [HueGradientStyle.Linear, HueGradientStyle.Scattered, HueGradientStyle.Mirrored];
