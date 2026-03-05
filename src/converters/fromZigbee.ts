@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import type {WiserDeviceInfo} from "src/devices/schneider_electric";
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -93,8 +94,8 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             result[postfixWithEndpointName("setpoint_change_amount", msg, model, meta)] = msg.data.setpointChangeAmount / 100;
         }
         if (msg.data.setpointChangeSource !== undefined) {
-            const lookup: KeyValueAny = {0: "manual", 1: "schedule", 2: "externally"};
-            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] = lookup[msg.data.setpointChangeSource];
+            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] =
+                constants.thermostatSetpointChangeSource[msg.data.setpointChangeSource];
         }
         if (msg.data.setpointChangeSourceTimeStamp !== undefined) {
             const date = new Date(2000, 0, 1);
@@ -3462,28 +3463,6 @@ export const kmpcil_res005_on_off: Fz.Converter<"genBinaryOutput", undefined, ["
         return {state: msg.data.presentValue === 0 ? "OFF" : "ON"};
     },
 };
-export const smartthings_acceleration: Fz.Converter<"manuSpecificSamsungAccelerometer", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "manuSpecificSamsungAccelerometer",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        if (msg.data.acceleration !== undefined) payload.moving = msg.data.acceleration === 1;
-
-        // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy#L222
-        /*
-                The axes reported by the sensor are mapped differently in the SmartThings DTH.
-                Preserving that functionality here.
-                xyzResults.x = z
-                xyzResults.y = y
-                xyzResults.z = -x
-            */
-        if (msg.data.z_axis !== undefined) payload.x_axis = msg.data.z_axis;
-        if (msg.data.y_axis !== undefined) payload.y_axis = msg.data.y_axis;
-        if (msg.data.x_axis !== undefined) payload.z_axis = -msg.data.x_axis;
-
-        return payload;
-    },
-};
 export const byun_smoke_false: Fz.Converter<"pHMeasurement", undefined, ["attributeReport"]> = {
     cluster: "pHMeasurement",
     type: ["attributeReport"],
@@ -3518,15 +3497,6 @@ export const byun_gas_true: Fz.Converter<"ssIasZone", undefined, ["commandStatus
         if (msg.endpoint.ID === 1 && msg.data.zonestatus === 33) {
             return {gas: true};
         }
-    },
-};
-export const hue_smart_button_event: Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification"> = {
-    cluster: "manuSpecificPhilips",
-    type: "commandHueNotification",
-    convert: (model, msg, publish, options, meta) => {
-        // Philips HUE Smart Button "ROM001": these events are always from "button 1"
-        const lookup: KeyValueAny = {0: "press", 1: "hold", 2: "release", 3: "release"};
-        return {action: lookup[msg.data.type]};
     },
 };
 export const legrand_binary_input_moving: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
@@ -4331,50 +4301,6 @@ export const CCTSwitch_D0001_lighting: Fz.Converter<"lightingColorCtrl", undefin
         return payload;
     },
 };
-export const hue_wall_switch: Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification"> = {
-    cluster: "manuSpecificPhilips",
-    type: "commandHueNotification",
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-        const buttonLookup: KeyValueAny = {1: "left", 2: "right"};
-        const button = buttonLookup[msg.data.button];
-        const typeLookup: KeyValueAny = {0: "press", 1: "hold", 2: "press_release", 3: "hold_release"};
-        const type = typeLookup[msg.data.type];
-        return {action: `${button}_${type}`};
-    },
-};
-export const hue_dimmer_switch: Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification"> = {
-    cluster: "manuSpecificPhilips",
-    type: "commandHueNotification",
-    options: [exposes.options.simulated_brightness()],
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-        const buttonLookup: KeyValueAny = {1: "on", 2: "up", 3: "down", 4: "off"};
-        const button = buttonLookup[msg.data.button];
-        const typeLookup: KeyValueAny = {0: "press", 1: "hold", 2: "press_release", 3: "hold_release"};
-        const type = typeLookup[msg.data.type];
-        const payload: KeyValueAny = {action: `${button}_${type}`};
-
-        // duration
-        if (type === "press") globalStore.putValue(msg.endpoint, "press_start", Date.now());
-        else if (type === "hold" || type === "release") {
-            payload.action_duration = (Date.now() - globalStore.getValue(msg.endpoint, "press_start")) / 1000;
-        }
-
-        // simulated brightness
-        if (options.simulated_brightness && (button === "down" || button === "up") && type !== "release") {
-            const opts: KeyValueAny = options.simulated_brightness;
-            const deltaOpts = typeof opts === "object" && opts.delta != null ? opts.delta : 35;
-            const delta = button === "up" ? deltaOpts : deltaOpts * -1;
-            const brightness = globalStore.getValue(msg.endpoint, "brightness", 255) + delta;
-            payload.brightness = numberWithinRange(brightness, 0, 255);
-            payload.action_brightness_delta = delta;
-            globalStore.putValue(msg.endpoint, "brightness", payload.brightness);
-        }
-
-        return payload;
-    },
-};
 export const hue_tap: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
@@ -4399,25 +4325,6 @@ export const hue_tap: Fz.Converter<"greenPower", undefined, ["commandNotificatio
         } else {
             return {action: lookup[commandID]};
         }
-    },
-};
-export const hue_twilight: Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification"> = {
-    cluster: "manuSpecificPhilips",
-    type: "commandHueNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const buttonLookup: KeyValueAny = {1: "dot", 2: "hue"};
-        const button = buttonLookup[msg.data.button];
-        const typeLookup: KeyValueAny = {0: "press", 1: "hold", 2: "press_release", 3: "hold_release"};
-        const type = typeLookup[msg.data.type];
-        const payload: KeyValueAny = {action: `${button}_${type}`};
-
-        // duration
-        if (type === "press") globalStore.putValue(msg.endpoint, "press_start", Date.now());
-        else if (type === "hold" || type === "release") {
-            payload.action_duration = (Date.now() - globalStore.getValue(msg.endpoint, "press_start")) / 1000;
-        }
-
-        return payload;
     },
 };
 export const tuya_relay_din_led_indicator: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
@@ -4527,7 +4434,7 @@ export const idlock_fw: Fz.Converter<"genBasic", undefined, ["attributeReport", 
         return result;
     },
 };
-export const schneider_ui_action: Fz.Converter<"wiserDeviceInfo", undefined, "attributeReport"> = {
+export const schneider_ui_action: Fz.Converter<"wiserDeviceInfo", WiserDeviceInfo, "attributeReport"> = {
     cluster: "wiserDeviceInfo",
     type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {

@@ -1873,6 +1873,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZLinky_TIC",
         vendor: "LiXee",
         description: "Lixee ZLinky",
+        version: "0.0.1",
         fromZigbee: [fzLocal.lixee_metering, fz.meter_identification, fzLocal.lixee_ha_electrical_measurement, fzLocal.lixee_private_fz],
         toZigbee: [],
         exposes: (device, options) => {

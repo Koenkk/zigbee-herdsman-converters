@@ -380,7 +380,7 @@ const fzLocal = {
             }
             // We need to read the lock attributes as these are not reported by the device
             try {
-                await msg.endpoint.read("manuSpecificAssaDoorLock", ["batteryLevel"]);
+                await msg.endpoint.read<"manuSpecificAssaDoorLock", ManuSpecificAssaDoorLock>("manuSpecificAssaDoorLock", ["batteryLevel"]);
             } catch {
                 logger.warning("Failed to read lock attributes", NS);
             }
@@ -533,11 +533,15 @@ const tzLocal = {
                 "2minutes": 120,
                 "3minutes": 180,
             };
-            await entity.write("manuSpecificAssaDoorLock", {autoLockTime: getFromLookup(value, lookup)}, {disableDefaultResponse: true});
+            await entity.write<"manuSpecificAssaDoorLock", ManuSpecificAssaDoorLock>(
+                "manuSpecificAssaDoorLock",
+                {autoLockTime: getFromLookup(value, lookup)},
+                {disableDefaultResponse: true},
+            );
             return {state: {auto_lock_time: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificAssaDoorLock", ["autoLockTime"]);
+            await entity.read<"manuSpecificAssaDoorLock", ManuSpecificAssaDoorLock>("manuSpecificAssaDoorLock", ["autoLockTime"]);
         },
     } satisfies Tz.Converter,
     volume: {
@@ -548,11 +552,15 @@ const tzLocal = {
                 low: 2,
                 high: 3,
             };
-            await entity.write("manuSpecificAssaDoorLock", {volume: getFromLookup(value, lookup)}, {disableDefaultResponse: true});
+            await entity.write<"manuSpecificAssaDoorLock", ManuSpecificAssaDoorLock>(
+                "manuSpecificAssaDoorLock",
+                {volume: getFromLookup(value, lookup)},
+                {disableDefaultResponse: true},
+            );
             return {state: {volume: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificAssaDoorLock", ["volume"]);
+            await entity.read<"manuSpecificAssaDoorLock", ManuSpecificAssaDoorLock>("manuSpecificAssaDoorLock", ["volume"]);
         },
     } satisfies Tz.Converter,
 };
@@ -783,7 +791,13 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("closuresDoorLock", ["lockState"]);
-            await endpoint.read("manuSpecificAssaDoorLock", ["autoLockTime", "wrongCodeAttempts", "shutdownTime", "batteryLevel", "volume"]);
+            await endpoint.read<"manuSpecificAssaDoorLock", ManuSpecificAssaDoorLock>("manuSpecificAssaDoorLock", [
+                "autoLockTime",
+                "wrongCodeAttempts",
+                "shutdownTime",
+                "batteryLevel",
+                "volume",
+            ]);
             await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificAssaDoorLock"]);
         },
     },
