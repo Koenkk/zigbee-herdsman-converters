@@ -1363,8 +1363,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512776/4512777",
         vendor: "Namron",
         description: "Zigbee thermostat for panel heater PRO (white 4512776 / black 4512777)",
-        extend: [m.electricityMeter({cluster: "metering", energy: {divisor: 10}})],
-        fromZigbee: [fz.thermostat, fzLocal.namron_panelheater, fz.namron_hvac_user_interface],
+        extend: [m.electricityMeter({cluster: "metering", power: {divisor: 10}, energy: {divisor: 10}})],
+        fromZigbee: [fz.thermostat, fzLocal.namron_panelheater, fz.namron_hvac_user_interface, fz.electrical_measurement],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
@@ -1419,7 +1419,13 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genIdentify", "hvacThermostat", "hvacUserInterfaceCfg"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                "genBasic",
+                "genIdentify",
+                "hvacThermostat",
+                "hvacUserInterfaceCfg",
+                "haElectricalMeasurement",
+            ]);
 
             await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -1441,6 +1447,14 @@ export const definitions: DefinitionWithExtend[] = [
                 await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
             } catch {
                 // Ignore
+            }
+
+            // Electrical measurement for power reporting via activePower
+            try {
+                await endpoint.read("haElectricalMeasurement", ["acPowerMultiplier", "acPowerDivisor"]);
+                await reporting.activePower(endpoint);
+            } catch {
+                // Ignore - device may not support haElectricalMeasurement
             }
 
             device.powerSource = "Mains (single phase)";
