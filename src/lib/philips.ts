@@ -123,16 +123,16 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSp
     convert: (model, msg, publish, options, meta) => {
         const retval: KeyValueAny = {};
 
-        logger.info(`convert() with message: ${JSON.stringify(msg)}`, "A");
+        logger.debug(`convert() with message: ${JSON.stringify(msg)}`, NS);
 
         if (msg.data.state !== undefined) {
             // Publish the raw, unaltered state blob so advanced clients (e.g. Bifrost)
             // can perform their own decoding without depending on z2m's interpretation.
             retval["philips2_raw"] = msg.data.state.toString("hex");
 
-            logger.info(`convert() binary blob: ${msg.data.state.toString("hex")}`, "A");
+            logger.debug(`convert() binary blob: ${msg.data.state.toString("hex")}`, NS);
             const decoded = DecodeManuSpecificPhilips2(msg.data.state);
-            logger.info(`convert() after decoding: ${JSON.stringify(decoded)}`, "A");
+            logger.debug(`convert() after decoding: ${JSON.stringify(decoded)}`, NS);
             if (decoded.onOff !== undefined) {
                 retval["state"] = decoded.onOff ? "ON" : "OFF";
             }
@@ -151,21 +151,6 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSp
                 retval["transition"] = decoded.fadeSpeed;
             }
             if (decoded.effectType !== undefined) {
-                const effectNames: Record<number, string> = {
-                    [HueEffectType.NoEffect]: "none",
-                    [HueEffectType.Candle]: "candle",
-                    [HueEffectType.Fireplace]: "fireplace",
-                    [HueEffectType.Prism]: "colorloop",
-                    [HueEffectType.Sunrise]: "sunrise",
-                    [HueEffectType.Sparkle]: "sparkle",
-                    [HueEffectType.Opal]: "opal",
-                    [HueEffectType.Glisten]: "glisten",
-                    [HueEffectType.Sunset]: "sunset",
-                    [HueEffectType.Underwater]: "underwater",
-                    [HueEffectType.Cosmos]: "cosmos",
-                    [HueEffectType.Sunbeam]: "sunbeam",
-                    [HueEffectType.Enchant]: "enchant",
-                };
                 retval["effect"] = effectNames[decoded.effectType] ?? `unknown_0x${decoded.effectType.toString(16)}`;
             }
             if (decoded.effectSpeed !== undefined) {
@@ -176,19 +161,14 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSp
                 retval["gradient"] = decoded.gradientColors.colors.map((c: ColorXY) => c.toRGB().toHEX());
                 // Lossless XY coordinates for clients that need device-independent color
                 retval["gradient_xy"] = decoded.gradientColors.colors.map((c: ColorXY) => c.toObject());
-                const styleNames: Record<number, string> = {
-                    [HueGradientStyle.Linear]: "linear",
-                    [HueGradientStyle.Scattered]: "scattered",
-                    [HueGradientStyle.Mirrored]: "mirrored",
-                };
-                retval["gradient_style"] = styleNames[decoded.gradientColors.style] ?? "unknown";
+                retval["gradient_style"] = gradientStyleNames[decoded.gradientColors.style] ?? "unknown";
             }
             if (decoded.gradientParams !== undefined) {
                 retval["gradient_scale"] = decoded.gradientParams.scale;
                 retval["gradient_offset"] = decoded.gradientParams.offset;
             }
         }
-        logger.info(`convert() after parsing: ${JSON.stringify(retval)}`, "A");
+        logger.debug(`convert() after parsing: ${JSON.stringify(retval)}`, NS);
 
         return retval;
     },
@@ -272,7 +252,7 @@ const philipsModernExtend = {
         const philipsLightTz = {
             key: keys,
             convertSet: async (entity, key, value, meta) => {
-                logger.info(`convertSet() called with key '${key}'`, "A");
+                logger.debug(`convertSet() called with key '${key}'`, NS);
 
                 const {message} = meta;
                 const newState: KeyValue = {};
@@ -429,7 +409,7 @@ const philipsModernExtend = {
                 // Check length rather than all-zeros, since a valid payload could
                 // legitimately contain zero-valued fields.
                 if (encodedPayload.length <= 2) {
-                    logger.info("convertSet() no Philips2 fields to send, falling back to standard converters", "A");
+                    logger.debug("convertSet() no Philips2 fields to send, falling back to standard converters", NS);
                     // We cannot parse this message, send it to the regular 'toZigbee' objects
                     // TODO: I am not sure this logic is correct; what if multiple keys overlap?
                     for (const tz of toZigbee) {
@@ -438,9 +418,9 @@ const philipsModernExtend = {
                         }
                     }
                 } else {
-                    logger.info(`convertSet() after parsing: '${JSON.stringify(data)}'`, "A");
-                    logger.info(`convertSet(): ${encodedPayload.toString("hex")}`, "A");
-                    logger.info(`convertSet(): new state: '${JSON.stringify(newState)}'`, "A");
+                    logger.debug(`convertSet() after parsing: '${JSON.stringify(data)}'`, NS);
+                    logger.debug(`convertSet(): ${encodedPayload.toString("hex")}`, NS);
+                    logger.debug(`convertSet(): new state: '${JSON.stringify(newState)}'`, NS);
 
                     const payload = {data: encodedPayload};
                     await entity.command("manuSpecificPhilips2", "multiColor", payload);
@@ -472,7 +452,7 @@ const philipsModernExtend = {
                 }
             },
             convertGet: async (entity, key, meta) => {
-                logger.info(`convertGet() with key '${key}'`, "A");
+                logger.debug(`convertGet() with key '${key}'`, NS);
                 try {
                     await entity.read("manuSpecificPhilips2", ["state"]);
                 } catch (e) {
@@ -1207,6 +1187,12 @@ export enum HueGradientStyle {
     Mirrored = 0x4,
 }
 
+const gradientStyleNames: Record<number, string> = {
+    [HueGradientStyle.Linear]: "linear",
+    [HueGradientStyle.Scattered]: "scattered",
+    [HueGradientStyle.Mirrored]: "mirrored",
+};
+
 // Mapping from effect names to HueEffectType enum values.
 // Used by both the effect Tz converter and the philipsLightTz convertSet.
 const effectLookupAll: Record<string, HueEffectType> = {
@@ -1222,6 +1208,12 @@ const effectLookupAll: Record<string, HueEffectType> = {
     cosmos: HueEffectType.Cosmos,
     sunbeam: HueEffectType.Sunbeam,
     enchant: HueEffectType.Enchant,
+};
+
+// Inverse mapping: HueEffectType → name. Derived from effectLookupAll to stay in sync.
+const effectNames: Record<number, string> = {
+    [HueEffectType.NoEffect]: "none",
+    ...Object.fromEntries(Object.entries(effectLookupAll).map(([name, type]) => [type, name])),
 };
 
 export interface Philips2Data {
@@ -1292,7 +1284,7 @@ const BRIGHTNESS_DETAILS: HueTypeDetails<"brightness"> = {
         return p + 1;
     },
     decode: (v, p, d) => {
-        logger.info(`Retrieving brightness from position ${p}: '${v.getUint8(p)}'`, "A");
+        logger.debug(`Retrieving brightness from position ${p}: '${v.getUint8(p)}'`, NS);
         d.brightness = v.getUint8(p);
         return p + 1;
     },
@@ -1399,35 +1391,35 @@ const GRADIENT_COLORS_DETAILS: HueTypeDetails<"gradientColors"> = {
     maxLength: 5 + 9 * 3,
     encode: (v, p, d) => {
         // Bifrost spec: max 9 colors; 10+ causes device to reject entire message
-        const color_count = clamp(d.gradientColors.colors.length, 0, 9);
+        const colorCount = clamp(d.gradientColors.colors.length, 0, 9);
         // Size byte: 4 bytes header (count + style + 2 reserved) + 3 bytes per color
-        v.setUint8(p, 4 + color_count * 3);
-        v.setUint8(p + 1, color_count << 4);
+        v.setUint8(p, 4 + colorCount * 3);
+        v.setUint8(p + 1, colorCount << 4);
         v.setUint8(p + 2, d.gradientColors.style);
         v.setUint16(p + 3, 0, true);
-        d.gradientColors.colors.slice(0, color_count).forEach(({x, y}, i) => {
-            const scaled_x = scaleFloatToIntPow2(x / GRADIENT_COLORS_MAX_X, 12);
-            const scaled_y = scaleFloatToIntPow2(y / GRADIENT_COLORS_MAX_Y, 12);
+        d.gradientColors.colors.slice(0, colorCount).forEach(({x, y}, i) => {
+            const scaledX = scaleFloatToIntPow2(x / GRADIENT_COLORS_MAX_X, 12);
+            const scaledY = scaleFloatToIntPow2(y / GRADIENT_COLORS_MAX_Y, 12);
             // Byte packing per Bifrost spec:
             //   byte 0: x[7:0]
             //   byte 1: y[3:0] << 4 | x[11:8]
             //   byte 2: y[11:4]
-            v.setUint8(p + 5 + i * 3, scaled_x & 0xff);
-            v.setUint8(p + 6 + i * 3, ((scaled_y & 0xf) << 4) | ((scaled_x & 0xf00) >> 8));
-            v.setUint8(p + 7 + i * 3, (scaled_y >> 4) & 0xff);
+            v.setUint8(p + 5 + i * 3, scaledX & 0xff);
+            v.setUint8(p + 6 + i * 3, ((scaledY & 0xf) << 4) | ((scaledX & 0xf00) >> 8));
+            v.setUint8(p + 7 + i * 3, (scaledY >> 4) & 0xff);
         });
         // Header: 1 byte size + 4 bytes (count, style, 2 reserved) = 5 bytes + 3*N colors
-        return p + 5 + 3 * color_count;
+        return p + 5 + 3 * colorCount;
     },
     decode: (v, p, d) => {
         const size = v.getUint8(p);
-        const color_count = v.getUint8(p + 1) >> 4;
-        //assert.equal(size, 4 + (color_count*3), "Gradient colors size does not match color count");
+        const colorCount = v.getUint8(p + 1) >> 4;
+        //assert.equal(size, 4 + (colorCount*3), "Gradient colors size does not match color count");
         const rawStyle = v.getUint8(p + 2);
         // Validate gradient style per Bifrost spec: Linear=0x00, Scattered=0x02, Mirrored=0x04
         const validStyles = [HueGradientStyle.Linear, HueGradientStyle.Scattered, HueGradientStyle.Mirrored];
         const style: HueGradientStyle = validStyles.includes(rawStyle) ? rawStyle : HueGradientStyle.Linear;
-        const colors: ColorXY[] = Array.from({length: color_count}, (_, i) => {
+        const colors: ColorXY[] = Array.from({length: colorCount}, (_, i) => {
             const a = v.getUint8(p + 5 + i * 3);
             const b = v.getUint8(p + 6 + i * 3);
             const c = v.getUint8(p + 7 + i * 3);
@@ -1463,12 +1455,12 @@ const HUE_DATA_TYPES = [
 export function DecodeManuSpecificPhilips2(data: Buffer) {
     const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
     const flags = view.getUint16(0, true);
-    logger.info(`DecodeManuSpecificPhilips2: flags = '${flags}'`, "A");
+    logger.debug(`DecodeManuSpecificPhilips2: flags = '${flags}'`, NS);
     const decoded: Philips2Data = {};
     let position = 2;
     HUE_DATA_TYPES.forEach((htd) => {
         if (flags & htd.flag) {
-            logger.info(`DecodeManuSpecificPhilips2: name = '${htd.name}', position = '${position}'`, "A");
+            logger.debug(`DecodeManuSpecificPhilips2: name = '${htd.name}', position = '${position}'`, NS);
             position = htd.decode(view, position, decoded);
         }
     });
