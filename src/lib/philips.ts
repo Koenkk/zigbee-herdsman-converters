@@ -411,8 +411,8 @@ const philipsModernExtend = {
                 // legitimately contain zero-valued fields.
                 if (encodedPayload.length <= 2) {
                     logger.debug("convertSet() no Philips2 fields to send, falling back to standard converters", NS);
-                    // We cannot parse this message, send it to the regular 'toZigbee' objects
-                    // TODO: I am not sure this logic is correct; what if multiple keys overlap?
+                    // Delegate to the standard converter that handles this key.
+                    // Z2M calls convertSet once per key, so exactly one converter matches.
                     for (const tz of toZigbee) {
                         if (tz.key.includes(key)) {
                             return await tz.convertSet(entity, key, value, meta);
@@ -447,9 +447,12 @@ const philipsModernExtend = {
                         }, 1000);
                     }
 
-                    // TODO: syncColorState ruins the state, since it happily removes "state": "ON" from the KeyValue
-                    //return {state: libColor.syncColorState(newState, meta.state, entity, meta.options)};
-                    return {state: newState};
+                    // Merge syncColorState results into newState. syncColorState
+                    // returns only color-related keys (color, color_mode, color_temp),
+                    // so we spread it on top of newState to keep state, brightness,
+                    // effect, etc. intact.
+                    const colorState = libColor.syncColorState(newState, meta.state, entity, meta.options);
+                    return {state: {...newState, ...colorState}};
                 }
             },
             convertGet: async (entity, key, meta) => {
@@ -505,7 +508,7 @@ const philipsModernExtend = {
             });
             // All Hue-specific effects per Bifrost spec
             effects.push("sunset", "sparkle", "opal", "glisten", "underwater", "cosmos", "sunbeam", "enchant");
-            effects.push("finish_effect", "stop_effect", "stop_hue_effect");
+            effects.push("none", "finish_effect", "stop_effect", "stop_hue_effect");
             result.exposes.push(...exposeEndpoints(e.enum("effect", ea.STATE_SET, effects), args.endpointNames));
 
             // Expose effect_speed as a numeric 0..1 (0=slowest, 1=fastest)
@@ -767,11 +770,11 @@ const philipsTz = {
             // since stop_hue_effect is in the hueEffects map but not in effectLookupAll.
             // All three stop variants also send the Hue stop command so they work
             // regardless of whether the active effect is a ZCL or Hue effect.
-            if (lower === "stop_hue_effect" || lower === "finish_effect" || lower === "stop_effect") {
+            if (lower === "none" || lower === "stop_hue_effect" || lower === "finish_effect" || lower === "stop_effect") {
                 // Stop Hue-specific effects via manuSpecificPhilips2
                 await entity.command("manuSpecificPhilips2", "multiColor", {data: Buffer.from(hueEffects.stop_hue_effect, "hex")});
                 // Also send the ZCL effect stop for standard effects (blink, breathe, etc.)
-                if (lower !== "stop_hue_effect") {
+                if (lower === "finish_effect" || lower === "stop_effect") {
                     try {
                         await tz.effect.convertSet(entity, key, value, meta);
                     } catch (_e) {
