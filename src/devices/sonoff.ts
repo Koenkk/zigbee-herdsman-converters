@@ -1178,7 +1178,9 @@ const sonoffExtend = {
                     .withValueStep(0.1),
             )
             .withFeature(
-                e.binary("enable_min_power", ea.STATE_SET, "ENABLE", "DISABLE").withDescription("Enable/disable lower limit of power overload protection."),
+                e
+                    .binary("enable_min_power", ea.STATE_SET, "ENABLE", "DISABLE")
+                    .withDescription("Enable/disable lower limit of power overload protection."),
             )
             .withFeature(
                 e
