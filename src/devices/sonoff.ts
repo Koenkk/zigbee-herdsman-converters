@@ -1170,7 +1170,7 @@ const sonoffExtend = {
             .withDescription("Over load protection, max power and max current are required,other is optional")
             .withFeature(
                 e
-                    .numeric("max_power", ea.SET)
+                    .numeric("max_power", ea.STATE_SET)
                     .withDescription("max power")
                     .withUnit("W")
                     .withValueMin(0.1)
@@ -1178,11 +1178,11 @@ const sonoffExtend = {
                     .withValueStep(0.1),
             )
             .withFeature(
-                e.binary("enable_min_power", ea.SET, "ENABLE", "DISABLE").withDescription("Enable/disable lower limit of power overload protection."),
+                e.binary("enable_min_power", ea.STATE_SET, "ENABLE", "DISABLE").withDescription("Enable/disable lower limit of power overload protection."),
             )
             .withFeature(
                 e
-                    .numeric("min_power", ea.SET)
+                    .numeric("min_power", ea.STATE_SET)
                     .withDescription("Lower limit of power overload protection")
                     .withUnit("W")
                     .withValueMin(0.1)
@@ -1191,12 +1191,12 @@ const sonoffExtend = {
             )
             .withFeature(
                 e
-                    .binary("enable_max_voltage", ea.SET, "ENABLE", "DISABLE")
+                    .binary("enable_max_voltage", ea.STATE_SET, "ENABLE", "DISABLE")
                     .withDescription("Enable/disable upper limit of voltage overload protection.."),
             )
             .withFeature(
                 e
-                    .numeric("max_voltage", ea.SET)
+                    .numeric("max_voltage", ea.STATE_SET)
                     .withDescription("Upper limit of voltage overload protection.")
                     .withUnit("V")
                     .withValueMin(165)
@@ -1205,12 +1205,12 @@ const sonoffExtend = {
             )
             .withFeature(
                 e
-                    .binary("enable_min_voltage", ea.SET, "ENABLE", "DISABLE")
+                    .binary("enable_min_voltage", ea.STATE_SET, "ENABLE", "DISABLE")
                     .withDescription("Enable/disable lower limit of voltage overload protection."),
             )
             .withFeature(
                 e
-                    .numeric("min_voltage", ea.SET)
+                    .numeric("min_voltage", ea.STATE_SET)
                     .withDescription("Lower limit of voltage overload protection.")
                     .withUnit("V")
                     .withValueMin(165)
@@ -1219,7 +1219,7 @@ const sonoffExtend = {
             )
             .withFeature(
                 e
-                    .numeric("max_current", ea.SET)
+                    .numeric("max_current", ea.STATE_SET)
                     .withDescription("Upper limit of current overload protection.")
                     .withUnit("A")
                     .withValueMin(0.1)
@@ -1228,12 +1228,12 @@ const sonoffExtend = {
             )
             .withFeature(
                 e
-                    .binary("enable_min_current", ea.SET, "ENABLE", "DISABLE")
+                    .binary("enable_min_current", ea.STATE_SET, "ENABLE", "DISABLE")
                     .withDescription("Enable/disable lower limit of current overload protection."),
             )
             .withFeature(
                 e
-                    .numeric("min_current", ea.SET)
+                    .numeric("min_current", ea.STATE_SET)
                     .withDescription("Lower limit of current overload protection.")
                     .withUnit("A")
                     .withValueMin(0.1)
