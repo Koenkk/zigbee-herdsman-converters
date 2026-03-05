@@ -609,20 +609,19 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Soil Moisture Sensor Gen2",
         extend: [
             m.battery(),
-            m.temperature(), 
+            m.temperature(),
             m.soilMoisture(),
             m.deviceAddCustomCluster("3rSoilGen2SpecialCluster", {
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
                     celsiusDegreeCalibration: {ID: 0x0031, type: 0x29, write: true, min: -32768},
-                    humidityCalibration: {ID: 0x0032, type:0x29, write: true, min: -32768},
+                    humidityCalibration: {ID: 0x0032, type: 0x29, write: true, min: -32768},
                     fahrenheitDegreeCalibration: {ID: 0x0033, type: 0x29, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
-                }  
-            ),
+            }),
             m.numeric<"3rSoilGen2SpecialCluster", ThirdSoilSensor>({
                 name: "celsius_degree_calibration",
                 unit: "°C",
@@ -648,11 +647,11 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"3rSoilGen2SpecialCluster", ThirdSoilSensor>({
                 name: "fahrenheit_degree_calibration",
                 unit: "°F",
-                valueMin: -200, 
+                valueMin: -200,
                 valueMax: 200,
                 scale: 100,
                 cluster: "3rSoilGen2SpecialCluster",
-                attribute: "fahrenheitDegreeCalibration", 
+                attribute: "fahrenheitDegreeCalibration",
                 description: "Fahrenheit degree calibration",
                 access: "ALL",
             }),
