@@ -624,8 +624,8 @@ const schneiderElectricExtend = {
             entityCategory: "config",
             access: "ALL",
             lookup: {
-                contactor: 1,
-                pilot: 3,
+                Contactor: 1,
+                Pilot: 3,
             },
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
             ...args,
