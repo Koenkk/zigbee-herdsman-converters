@@ -110,10 +110,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "12256",
         vendor: "EGLO",
         description: "Decorative Zigbee filament bulb (E27, 5.5 W, 2200 K, 500 lm)",
-        extend: [
-            m.deviceEndpoints({endpoints: {1: 1, 3: 3}}),
-            m.light(),
-            m.commandsOnOff(),
-        ],
+        extend: [m.deviceEndpoints({endpoints: {1: 1, 3: 3}}), m.light(), m.commandsOnOff()],
     },
 ];
