@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -10,7 +9,7 @@ import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
-interface owonClearMetering {
+interface OwonClearMetering {
     attributes: never;
     commands: {
         owonClearMeasurementData: Record<string, never>;
@@ -399,7 +398,12 @@ const tzLocal = {
     PC321_clearMetering: {
         key: ["clear_metering"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command<"owonClearMetering", "owonClearMeasurementData", owonClearMetering>("owonClearMetering", "owonClearMeasurementData", {}, {disableDefaultResponse: true});
+            await entity.command<"owonClearMetering", "owonClearMeasurementData", OwonClearMetering>(
+                "owonClearMetering",
+                "owonClearMeasurementData",
+                {},
+                {disableDefaultResponse: true},
+            );
         },
     } satisfies Tz.Converter,
 
