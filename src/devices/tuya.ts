@@ -25181,4 +25181,37 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_hbnfokum"]),
+        model: "TS0601_water_valve",
+        vendor: "Tuya",
+        description: "Water valve with position control and feedback",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.valve(),
+    
+            exposes
+                .numeric("position", ea.STATE_SET)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(10)
+                .withDescription("Target valve position (steps of 10%)"),
+    
+            exposes
+                .numeric("position_current", ea.STATE)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(10)
+                .withDescription("Current valve position (feedback, steps of 10%)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [101, "position", tuya.valueConverter.raw],
+                [102, "position_current", tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
