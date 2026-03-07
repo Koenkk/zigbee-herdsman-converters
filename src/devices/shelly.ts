@@ -948,6 +948,48 @@ const fzLocal = {
             return {action: event};
         },
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandStep"]>,
+
+    four_buttons_double_events: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
+                "1_1": "1_double",
+                "2_1": "2_double",
+                "3_1": "3_double",
+                "4_1": "4_double",
+            });
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
+
+    four_buttons_tripple_events: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
+                "1_2": "1_tripple",
+                "2_2": "2_tripple",
+                "3_2": "3_tripple",
+                "4_2": "4_tripple",
+            });
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
+
+    four_buttons_long_events: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
+                "1_11": "1_long",
+                "2_11": "2_long",
+                "3_11": "3_long",
+                "4_11": "4_long",
+            });
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
 };
 
 // =============================================================================
@@ -1271,8 +1313,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBBT-104CUS",
         vendor: "Shelly",
         description: "BLU RC Button 4 ZB",
-        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events],
-        exposes: [e.action(["1_single", "2_single", "3_single", "4_single", "1_hold", "2_hold", "3_hold", "4_hold"])],
+        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events, fzLocal.four_buttons_double_events, fzLocal.four_buttons_tripple_events, fzLocal.four_buttons_long_events],
+        exposes: [e.action(["1_single", "2_single", "3_single", "4_single","1_double", "2_double", "3_double", "4_double", "1_tripple", "2_tripple", "3_tripple", "4_tripple", "1_long", "2_long", "3_long", "4_long", "1_hold", "2_hold", "3_hold", "4_hold"])],
         extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
         version: "0.0.2",
         configure: async (device, coordinatorEndpoint, definition) => {
