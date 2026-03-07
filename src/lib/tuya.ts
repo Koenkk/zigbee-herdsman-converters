@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {TuyaDataPointValue} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "./constants";
@@ -35,7 +35,133 @@ interface KeyValueStringEnum {
     [s: string]: Enum;
 }
 
-interface Tuya4 {
+interface ManuSpecificTuya {
+    attributes: never;
+    commands: {
+        dataRequest: {
+            seq: number;
+            dpValues: TuyaDataPointValue[];
+        };
+        dataQuery: Record<string, never>;
+        mcuVersionRequest: {
+            seq: number;
+        };
+        sendData: {
+            seq: number;
+            dpValues: TuyaDataPointValue[];
+        };
+        mcuOtaNotify: {
+            seq: number;
+            key_hi: number;
+            key_lo: number;
+            version: number;
+            imageSize: number;
+            crc: number;
+        };
+        mcuOtaBlockDataResponse: {
+            seq: number;
+            status: number;
+            key_hi: number;
+            key_lo: number;
+            version: number;
+            offset: number;
+            imageData: number[];
+        };
+        mcuSyncTime: {
+            payloadSize: number;
+            payload: number[];
+        };
+        mcuGatewayConnectionStatus: {
+            payloadSize: number;
+            payload: number;
+        };
+        tuyaWeatherSync: {
+            payload: Buffer;
+        };
+    };
+    commandResponses: {
+        dataResponse: {
+            seq: number;
+            dpValues: TuyaDataPointValue[];
+        };
+        dataReport: {
+            seq: number;
+            dpValues: TuyaDataPointValue[];
+        };
+        activeStatusReportAlt: {
+            seq: number;
+            dpValues: TuyaDataPointValue[];
+        };
+        activeStatusReport: {
+            seq: number;
+            dpValues: TuyaDataPointValue[];
+        };
+        mcuVersionResponse: {
+            seq: number;
+            version: number;
+        };
+        mcuOtaBlockDataRequest: {
+            seq: number;
+            key_hi: number;
+            key_lo: number;
+            version: number;
+            offset: number;
+            size: number;
+        };
+        mcuOtaResult: {
+            seq: number;
+            status: number;
+            key_hi: number;
+            key_lo: number;
+            version: number;
+        };
+        mcuSyncTime: {
+            payloadSize: number;
+        };
+        mcuGatewayConnectionStatus: {
+            payloadSize: number;
+        };
+        tuyaWeatherRequest: {
+            payload: Buffer;
+        };
+    };
+}
+
+interface ManuSpecificTuya2 {
+    attributes: {
+        alarm_temperature_max: number;
+        alarm_temperature_min: number;
+        alarm_humidity_max: number;
+        alarm_humidity_min: number;
+        alarm_humidity: number;
+        alarm_temperature: number;
+        unknown: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ManuSpecificTuya3 {
+    attributes: {
+        powerOnBehavior: number;
+        switchMode: number;
+        switchType: number;
+    };
+    commands: {
+        setOptions1: {
+            data: Buffer;
+        };
+        setOptions2: {
+            data: Buffer;
+        };
+        setOptions3: {
+            data: Buffer;
+        };
+    };
+    commandResponses: never;
+}
+
+interface ManuSpecificTuya4 {
     attributes: {
         // biome-ignore lint/style/useNamingConvention: TODO
         random_timing: string;
@@ -303,7 +429,12 @@ async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpV
         globalStore.putValue(entity, "sequence", (seq + 1) % 0xffff);
     }
 
-    await entity.command("manuSpecificTuya", cmd as "dataRequest", {seq, dpValues}, {disableDefaultResponse: true});
+    await entity.command<"manuSpecificTuya", "dataRequest", ManuSpecificTuya>(
+        "manuSpecificTuya",
+        cmd as "dataRequest",
+        {seq, dpValues},
+        {disableDefaultResponse: true},
+    );
     return seq;
 }
 
@@ -561,11 +692,13 @@ export const configureMagicPacket = async (device: Zh.Device, coordinatorEndpoin
 
 export const configureQuery = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
     // Required to get the device to start reporting
-    await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
+    await device.getEndpoint(1).command<"manuSpecificTuya", "dataQuery", ManuSpecificTuya>("manuSpecificTuya", "dataQuery", {});
 };
 
 export const configureMcuVersionRequest = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
-    await device.getEndpoint(1).command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
+    await device
+        .getEndpoint(1)
+        .command<"manuSpecificTuya", "mcuVersionRequest", ManuSpecificTuya>("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
 };
 
 export const configureBindBasic = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
@@ -1849,44 +1982,44 @@ const tuyaTz = {
         key: ["power_on_behavior"],
         convertSet: async (entity, key, value, meta) => {
             const powerOnBehavior = utils.getFromLookup(value, {off: 0, on: 1, previous: 2});
-            await entity.write("manuSpecificTuya3", {powerOnBehavior});
+            await entity.write<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", {powerOnBehavior});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya3", ["powerOnBehavior"]);
+            await entity.read<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", ["powerOnBehavior"]);
         },
     } satisfies Tz.Converter,
     switch_type: {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {toggle: 0, state: 1, momentary: 2});
-            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
+            await entity.write<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya3", ["switchType"]);
+            await entity.read<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     switch_type_curtain: {
         key: ["switch_type_curtain"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {"flip-switch": 0, "sync-switch": 1, "button-switch": 2, "button2-switch": 3});
-            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
+            await entity.write<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya3", ["switchType"]);
+            await entity.read<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     switch_type_button: {
         key: ["switch_type_button"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {release: 0, press: 1});
-            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
+            await entity.write<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya3", ["switchType"]);
+            await entity.read<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     backlight_indicator_mode_1: {
@@ -2089,7 +2222,7 @@ const tuyaTz = {
         key: ["inching_control_set"],
         convertSet: async (entity, key, value, meta) => {
             const endpoint = meta.device.getEndpoint(1);
-            await endpoint.command<"manuSpecificTuya4", "setInchingSwitch", Tuya4>(
+            await endpoint.command<"manuSpecificTuya4", "setInchingSwitch", ManuSpecificTuya4>(
                 "manuSpecificTuya4",
                 "setInchingSwitch",
                 // TODO: correct? seems it would take the `!(values instanceof Buffer)` codepath of ZH before
@@ -2098,6 +2231,32 @@ const tuyaTz = {
             );
 
             return {state: {inching_control_set: value}};
+        },
+    } satisfies Tz.Converter,
+    ts0201_temperature_humidity_alarm: {
+        key: ["alarm_humidity_max", "alarm_humidity_min", "alarm_temperature_max", "alarm_temperature_min"],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+                case "alarm_temperature_max":
+                case "alarm_temperature_min":
+                case "alarm_humidity_max":
+                case "alarm_humidity_min": {
+                    // await entity.write('manuSpecificTuya2', {[key]: value});
+                    // instead write as custom attribute to override incorrect herdsman dataType from uint16 to int16
+                    // https://github.com/Koenkk/zigbee-herdsman/blob/v0.13.191/src/zcl/definition/cluster.ts#L4235
+                    const keyToAttributeLookup = {
+                        alarm_temperature_max: 0xd00a,
+                        alarm_temperature_min: 0xd00b,
+                        alarm_humidity_max: 0xd00d,
+                        alarm_humidity_min: 0xd00e,
+                    };
+                    const payload = {[keyToAttributeLookup[key]]: {value: value, type: Zcl.DataType.INT16}};
+                    await entity.write<"manuSpecificTuya2", ManuSpecificTuya2>("manuSpecificTuya2", payload);
+                    break;
+                }
+                default: // Unknown key
+                    logger.warning(`Unhandled key ${key}`, NS);
+            }
         },
     } satisfies Tz.Converter,
 };
@@ -2136,7 +2295,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data[attribute]]};
             }
         },
-    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya3", ManuSpecificTuya3, ["attributeReport", "readResponse"]>,
     power_outage_memory: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2158,7 +2317,7 @@ const tuyaFz = {
                 return {switch_type: lookup[msg.data.switchType]};
             }
         },
-    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya3", ManuSpecificTuya3, ["attributeReport", "readResponse"]>,
     switch_type_curtain: {
         cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
@@ -2169,7 +2328,7 @@ const tuyaFz = {
                 return {switch_type_curtain: lookup[msg.data.switchType]};
             }
         },
-    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya3", ManuSpecificTuya3, ["attributeReport", "readResponse"]>,
     switch_type_button: {
         cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
@@ -2180,7 +2339,7 @@ const tuyaFz = {
                 return {switch_type_button: lookup[msg.data.switchType]};
             }
         },
-    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya3", ManuSpecificTuya3, ["attributeReport", "readResponse"]>,
     backlight_mode_low_medium_high: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2275,7 +2434,7 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter<
         "manuSpecificTuya",
-        undefined,
+        Tuya,
         ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
     >,
     on_off_action: {
@@ -2318,7 +2477,7 @@ const tuyaFz = {
                 return payload;
             }
         },
-    } satisfies Fz.Converter<"manuSpecificTuya4", Tuya4, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya4", ManuSpecificTuya4, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_electrical_measurement: {
         ...fz.electrical_measurement,
@@ -2370,6 +2529,44 @@ const tuyaFz = {
             return result;
         },
     } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
+    ts0201_temperature_humidity_alarm: {
+        cluster: "manuSpecificTuya2",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.alarm_temperature_max !== undefined) {
+                result.alarm_temperature_max = msg.data.alarm_temperature_max;
+            }
+            if (msg.data.alarm_temperature_min !== undefined) {
+                result.alarm_temperature_min = msg.data.alarm_temperature_min;
+            }
+            if (msg.data.alarm_humidity_max !== undefined) {
+                result.alarm_humidity_max = msg.data.alarm_humidity_max;
+            }
+            if (msg.data.alarm_humidity_min !== undefined) {
+                result.alarm_humidity_min = msg.data.alarm_humidity_min;
+            }
+            if (msg.data.alarm_humidity !== undefined) {
+                const sensorAlarmLookup: KeyValueAny = {"0": "below_min_humdity", "1": "over_humidity", "2": "off"};
+                result.alarm_humidity = sensorAlarmLookup[msg.data.alarm_humidity];
+            }
+            if (msg.data.alarm_temperature !== undefined) {
+                const sensorAlarmLookup: KeyValueAny = {"0": "below_min_temperature", "1": "over_temperature", "2": "off"};
+                result.alarm_temperature = sensorAlarmLookup[msg.data.alarm_temperature];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya2", ManuSpecificTuya2, ["attributeReport", "readResponse"]>,
+    ignore_tuya_set_time: {
+        cluster: "manuSpecificTuya",
+        type: ["commandMcuSyncTime"],
+        convert: (model, msg, publish, options, meta) => {},
+    } satisfies Fz.Converter<"manuSpecificTuya", ManuSpecificTuya, ["commandMcuSyncTime"]>,
+    ignore_tuya_raw: {
+        cluster: "manuSpecificTuya",
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {},
+    } satisfies Fz.Converter<"manuSpecificTuya", ManuSpecificTuya, ["raw"]>,
 };
 export {tuyaFz as fz};
 
@@ -2383,7 +2580,7 @@ export function getHandlersForDP(
     endpoint?: string,
     useGlobalSequence?: boolean,
     // biome-ignore lint/suspicious/noExplicitAny: generic
-): [Fz.Converter<"manuSpecificTuya", undefined, any>[], Tz.Converter[]] {
+): [Fz.Converter<"manuSpecificTuya", ManuSpecificTuya, any>[], Tz.Converter[]] {
     const keyName = endpoint ? `${name}_${endpoint}` : name;
     const fromZigbee = [
         {
@@ -2397,7 +2594,7 @@ export function getHandlersForDP(
             },
         } satisfies Fz.Converter<
             "manuSpecificTuya",
-            undefined,
+            Tuya,
             ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
         >,
     ];
@@ -2625,7 +2822,7 @@ const tuyaModernExtend = {
 
         const fzConverter: Fz.Converter<
             "manuSpecificTuya",
-            undefined,
+            Tuya,
             [
                 "commandMcuSyncTime",
                 "commandMcuVersionResponse",
@@ -2663,11 +2860,11 @@ const tuyaModernExtend = {
                         payload: [...convertDecimalValueTo4ByteHexArray(utcTime), ...convertDecimalValueTo4ByteHexArray(localTime)],
                     };
                     msg.endpoint
-                        .command("manuSpecificTuya", "mcuSyncTime", payload, {})
+                        .command<"manuSpecificTuya", "mcuSyncTime", ManuSpecificTuya>("manuSpecificTuya", "mcuSyncTime", payload, {})
                         .catch((error) => logger.error(`Failed to sync time with '${msg.device.ieeeAddr}' (${error})`, NS));
                 } else if (respondToMcuVersionResponse && msg.type === "commandMcuVersionResponse") {
                     msg.endpoint
-                        .command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002})
+                        .command<"manuSpecificTuya", "mcuVersionRequest", ManuSpecificTuya>("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002})
                         .catch((error) => logger.error(`Failed respond to version response '${msg.device.ieeeAddr}' (${error})`, NS));
                 } else if (msg.type === "commandMcuGatewayConnectionStatus") {
                     // "payload" can have the following values:
@@ -2675,7 +2872,12 @@ const tuyaModernExtend = {
                     // 0x01: The gateway is connected to the internet.
                     // 0x02: The request timed out after three seconds.
                     msg.endpoint
-                        .command("manuSpecificTuya", "mcuGatewayConnectionStatus", {payloadSize: 1, payload: 1}, {})
+                        .command<"manuSpecificTuya", "mcuGatewayConnectionStatus", ManuSpecificTuya>(
+                            "manuSpecificTuya",
+                            "mcuGatewayConnectionStatus",
+                            {payloadSize: 1, payload: 1},
+                            {},
+                        )
                         .catch((error) => logger.error(`Failed respond to gateway connection status '${msg.device.ieeeAddr}' (${error})`, NS));
                 }
             },
@@ -2706,7 +2908,7 @@ const tuyaModernExtend = {
                     // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
                     if (queryOnDeviceAnnounce && event.type === "deviceAnnounce") {
                         event.data.device.endpoints[0]
-                            .command("manuSpecificTuya", "dataQuery", {})
+                            .command<"manuSpecificTuya", "dataQuery", ManuSpecificTuya>("manuSpecificTuya", "dataQuery", {})
                             .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
                     }
 
@@ -2718,7 +2920,7 @@ const tuyaModernExtend = {
                             const setTimer = () => {
                                 const timer = setTimeout(() => {
                                     event.data.device.endpoints[0]
-                                        .command("manuSpecificTuya", "dataQuery", {})
+                                        .command<"manuSpecificTuya", "dataQuery", ManuSpecificTuya>("manuSpecificTuya", "dataQuery", {})
                                         .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on interval (${error})`, NS));
                                     if (globalStore.getValue(event.data.device.ieeeAddr, "query_interval") === timer) {
                                         setTimer();
@@ -3109,7 +3311,7 @@ const tuyaModernExtend = {
             const endpointList = args.endpoints || [];
             if (endpointList.length > 0) {
                 for (const endpoint of endpointList) {
-                    const result = modernExtend.enumLookup({
+                    const result = modernExtend.enumLookup<"manuSpecificTuya", ManuSpecificTuya>({
                         name: "power_on_behavior",
                         lookup: {off: 0, on: 1, previous: 2},
                         cluster: "manuSpecificTuya",
@@ -3123,7 +3325,7 @@ const tuyaModernExtend = {
                     exposes.push(...result.exposes);
                 }
             } else {
-                const result = modernExtend.enumLookup({
+                const result = modernExtend.enumLookup<"manuSpecificTuya", ManuSpecificTuya>({
                     name: "power_on_behavior",
                     lookup: {off: 0, on: 1, previous: 2},
                     cluster: "manuSpecificTuya",
@@ -3272,7 +3474,7 @@ const tuyaModernExtend = {
         return {exposes: [exp], fromZigbee: newFromZigbee, isModernExtend: true};
     },
     tuyaSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificTuya3">>) =>
-        modernExtend.enumLookup({
+        modernExtend.enumLookup<"manuSpecificTuya3", ManuSpecificTuya3>({
             name: "switch_mode",
             lookup: {switch: 0, scene: 1},
             cluster: "manuSpecificTuya3",
@@ -3399,7 +3601,7 @@ const tuyaModernExtend = {
             return buffer;
         }
 
-        const fzConverter: Fz.Converter<"manuSpecificTuya", undefined, ["commandTuyaWeatherRequest"]> = {
+        const fzConverter: Fz.Converter<"manuSpecificTuya", ManuSpecificTuya, ["commandTuyaWeatherRequest"]> = {
             type: ["commandTuyaWeatherRequest"],
             cluster: "manuSpecificTuya",
             convert: (model, msg, publish, options, meta) => {
@@ -3428,7 +3630,9 @@ const tuyaModernExtend = {
 
                     const pld = _prepareTuyaWeatherSyncPayload(meta, number_of_forecast_days, include_current_weather);
 
-                    msg.endpoint.command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld});
+                    msg.endpoint.command<"manuSpecificTuya", "tuyaWeatherSync", ManuSpecificTuya>("manuSpecificTuya", "tuyaWeatherSync", {
+                        payload: pld,
+                    });
                 }
             },
         };
@@ -3440,7 +3644,7 @@ const tuyaModernExtend = {
 
                 const pld = _prepareTuyaWeatherSyncPayload(meta, numberOfForecastDays, includeCurrentWeather);
 
-                entity.command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld});
+                entity.command<"manuSpecificTuya", "tuyaWeatherSync", ManuSpecificTuya>("manuSpecificTuya", "tuyaWeatherSync", {payload: pld});
 
                 return {state: {[key]: value}};
             },
@@ -3459,6 +3663,234 @@ const tuyaModernExtend = {
 export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {
+    addmManuSpecificTuyaCluster: (): ModernExtend =>
+        modernExtend.deviceAddCustomCluster("manuSpecificTuya", {
+            ID: 0xef00, // 61184
+            attributes: {},
+            commands: {
+                /**
+                 * Gateway-side data request
+                 */
+                dataRequest: {
+                    ID: 0x00,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "dpValues", type: Zcl.BuffaloZclDataType.LIST_TUYA_DATAPOINT_VALUES},
+                    ],
+                },
+                /**
+                 * GW send, trigger MCU side to report all current information, no zcl payload.
+                 * Note: Device side can make a policy, data better not to report centrally
+                 */
+                dataQuery: {ID: 0x03, parameters: []},
+                /**
+                 * Gw->Zigbee gateway query MCU version
+                 */
+                mcuVersionRequest: {ID: 0x10, parameters: [{name: "seq", type: Zcl.DataType.UINT16, max: 0xffff}]},
+                /**
+                 * FIXME: This command is not listed in Tuya zigbee cluster description,
+                 *  but there is some command 0x04 (description is: Command Issuance)
+                 *  in `Serial command list` section of the same document
+                 *  So, need to investigate more information about it
+                 */
+                sendData: {
+                    ID: 0x04,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "dpValues", type: Zcl.BuffaloZclDataType.LIST_TUYA_DATAPOINT_VALUES},
+                    ],
+                },
+                /**
+                 * Gw->Zigbee gateway notifies MCU of upgrade
+                 */
+                mcuOtaNotify: {
+                    ID: 0x12,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        // FIXME: key is fixed (8 byte) uint8 array
+                        //  Ask Koen is there any type to read fixed size uint_8t.
+                        //  currently there is `length` property in options but sems it is
+                        //  ignored in `writePayloadCluster()` and other methods.
+                        //  So, as workaround we use hi/low for key, which is not best solution
+                        {name: "key_hi", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "key_lo", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "version", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "imageSize", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "crc", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                    ],
+                },
+                /**
+                 * Gw->Zigbee gateway returns the requested upgrade package for MCU
+                 */
+                mcuOtaBlockDataResponse: {
+                    ID: 0x14,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "status", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "key_hi", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "key_lo", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "version", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "offset", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "imageData", type: Zcl.BuffaloZclDataType.LIST_UINT8},
+                    ],
+                },
+                /**
+                 * Time synchronization (bidirectional)
+                 */
+                mcuSyncTime: {
+                    ID: 0x24,
+                    parameters: [
+                        {name: "payloadSize", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "payload", type: Zcl.BuffaloZclDataType.LIST_UINT8},
+                    ],
+                },
+                /**
+                 * Gateway connection status (bidirectional)
+                 */
+                mcuGatewayConnectionStatus: {
+                    ID: 0x25,
+                    parameters: [
+                        {name: "payloadSize", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "payload", type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },
+                /**
+                 * Weather forecast synchronization (check requestWeatherInformation)
+                 */
+                tuyaWeatherSync: {ID: 0x61, parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}]},
+            },
+            commandsResponse: {
+                /**
+                 * Reply to MCU-side data request
+                 */
+                dataResponse: {
+                    ID: 0x01,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "dpValues", type: Zcl.BuffaloZclDataType.LIST_TUYA_DATAPOINT_VALUES},
+                    ],
+                },
+                /**
+                 * MCU-side data active upload (bidirectional)
+                 */
+                dataReport: {
+                    ID: 0x02,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "dpValues", type: Zcl.BuffaloZclDataType.LIST_TUYA_DATAPOINT_VALUES},
+                    ],
+                },
+                /**
+                 * FIXME: This command is not listed in Tuya zigbee cluster description,
+                 *  but there is some command 0x05 (description is: Status query)
+                 *  in `Serial command list` section of the same document
+                 *  So, need to investigate more information about it
+                 */
+                activeStatusReportAlt: {
+                    ID: 0x05,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "dpValues", type: Zcl.BuffaloZclDataType.LIST_TUYA_DATAPOINT_VALUES},
+                    ],
+                },
+                /**
+                 * FIXME: This command is not listed in Tuya zigbee cluster description,
+                 *  but there is some command 0x06 (description is: Status query)
+                 *  in `Serial command list` section of the same document
+                 *  So, need to investigate more information about it
+                 */
+                activeStatusReport: {
+                    ID: 0x06,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "dpValues", type: Zcl.BuffaloZclDataType.LIST_TUYA_DATAPOINT_VALUES},
+                    ],
+                },
+                /**
+                 * Zigbee->Gw MCU return version or actively report version
+                 */
+                mcuVersionResponse: {
+                    ID: 0x11,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "version", type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },
+                /**
+                 * Zigbee->Gw requests an upgrade package for the MCU
+                 */
+                mcuOtaBlockDataRequest: {
+                    ID: 0x13,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "key_hi", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "key_lo", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "version", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "offset", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "size", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                    ],
+                },
+                /**
+                 * Zigbee->Gw returns the upgrade result for the mcu
+                 */
+                mcuOtaResult: {
+                    ID: 0x15,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "status", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "key_hi", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "key_lo", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "version", type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },
+                /**
+                 * Time synchronization (bidirectional)
+                 */
+                mcuSyncTime: {ID: 0x24, parameters: [{name: "payloadSize", type: Zcl.DataType.UINT16, max: 0xffff}]},
+                /**
+                 * Gateway connection status (bidirectional)
+                 */
+                mcuGatewayConnectionStatus: {ID: 0x25, parameters: [{name: "payloadSize", type: Zcl.DataType.UINT16, max: 0xffff}]},
+                /**
+                 * Device can request weather forecast information and expects response respecting given parameters.
+                 * This command ID seem to be device speciffic, because there is simmilar structure documented in Tuya Serial Communication Protocol,
+                 * but with different ID (0x3a and 0x3b respectively). In this case, I'm not sure if the name should reflect the one from
+                 * docs or be also speciffic (providing space for the implementation of the correct one in the future)?
+                 *
+                 */
+                tuyaWeatherRequest: {ID: 0x60, parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}]},
+            },
+        }),
+    addmManuSpecificTuya2Cluster: (): ModernExtend =>
+        modernExtend.deviceAddCustomCluster("manuSpecificTuya2", {
+            ID: 0xe002,
+            attributes: {
+                alarm_temperature_max: {ID: 0xd00a, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarm_temperature_min: {ID: 0xd00b, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarm_humidity_max: {ID: 0xd00d, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarm_humidity_min: {ID: 0xd00e, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarm_humidity: {ID: 0xd00f, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                alarm_temperature: {ID: 0xd006, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                unknown: {ID: 0xd010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addmManuSpecificTuya3Cluster: (): ModernExtend =>
+        modernExtend.deviceAddCustomCluster("manuSpecificTuya3", {
+            ID: 0xe001,
+            attributes: {
+                powerOnBehavior: {ID: 0xd010, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                switchMode: {ID: 0xd020, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                switchType: {ID: 0xd030, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            },
+            commands: {
+                setOptions1: {ID: 0xe5, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                setOptions2: {ID: 0xe6, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                setOptions3: {ID: 0xe7, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+            },
+            commandsResponse: {},
+        }),
     addTuyaCommonPrivateCluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya4", {
             ID: 0xe000,
