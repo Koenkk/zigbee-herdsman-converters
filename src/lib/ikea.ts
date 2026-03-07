@@ -505,7 +505,7 @@ export function ikeaVoc(args?: Partial<m.NumericArgs<"manuSpecificIkeaVocIndexMe
         cluster: "manuSpecificIkeaVocIndexMeasurement",
         attribute: "measuredValue",
         reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 1},
-        description: "Sensirion VOC index",
+        description: "Sensirion VOC index: 100 = average, <100 = less tVOC, >100 = more tVOC",
         access: "STATE",
         ...args,
     });
