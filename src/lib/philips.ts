@@ -128,7 +128,7 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSp
         if (msg.data.state !== undefined) {
             // Publish the raw, unaltered state blob so advanced clients (e.g. Bifrost)
             // can perform their own decoding without depending on z2m's interpretation.
-            retval["philips2_raw"] = msg.data.state.toString("hex");
+            retval["philips_raw"] = msg.data.state.toString("hex");
 
             logger.debug(`convert() binary blob: ${msg.data.state.toString("hex")}`, NS);
             const decoded = DecodeManuSpecificPhilips2(msg.data.state);
