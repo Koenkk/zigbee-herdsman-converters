@@ -92,29 +92,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
-    namron_metering_pro: {
-        cluster: "seMetering",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
-            const data = msg.data;
-
-            if (data.currentSummDelivered != null) {
-                let value = data.currentSummDelivered;
-                if (Array.isArray(value)) {
-                    value = value[0] * 0x100000000 + value[1];
-                }
-                // Device reports 10x too high
-                result.energy = value / 10;
-            }
-
-            if (data.instantaneousDemand != null) {
-                result.power = data.instantaneousDemand;
-            }
-
-            return result;
-        },
-    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
     namron_thermostat2: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -1386,13 +1363,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512776/4512777",
         vendor: "Namron",
         description: "Zigbee thermostat for panel heater PRO (white 4512776 / black 4512777)",
-        fromZigbee: [
-            fz.thermostat,
-            fzLocal.namron_panelheater,
-            fz.namron_hvac_user_interface,
-            fz.electrical_measurement,
-            fzLocal.namron_metering_pro,
+        extend: [
+            m.electricityMeter({cluster: "both", energy: {divisor: 10}, power: false, voltage: false, current: false, configureReporting: false}),
         ],
+        fromZigbee: [fz.thermostat, fzLocal.namron_panelheater, fz.namron_hvac_user_interface, fz.electrical_measurement],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
@@ -1444,10 +1418,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Display brightness (read-only, set on the heater)"),
             e.binary("display_auto_off", ea.ALL, true, false).withDescription("Display auto off after 30s without interaction"),
             e.power(),
-            e.energy(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+
+            // Save energy divisor manually since configureReporting is disabled
+            endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 10, multiplier: 1});
+            endpoint.save();
 
             await reporting.bind(endpoint, coordinatorEndpoint, [
                 "genBasic",
@@ -1487,7 +1464,7 @@ export const definitions: DefinitionWithExtend[] = [
             }
 
             try {
-                await endpoint.read("seMetering", ["currentSummDelivered", "multiplier", "divisor"]);
+                await endpoint.read("seMetering", ["currentSummDelivered"]);
             } catch {
                 // Ignore
             }
