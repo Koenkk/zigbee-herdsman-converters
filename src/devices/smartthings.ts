@@ -5,6 +5,7 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
 import {centraliteExtend, fzLocal as fzCentralite, type ManuSpecificCentraliteHumidity} from "./centralite";
 
@@ -24,6 +25,14 @@ interface SamsungAccelerometer {
     commandResponses: never;
 }
 
+interface SmartThingsArrivalSensor {
+    attributes: never;
+    commands: never;
+    commandResponses: {
+        arrivalSensorNotify: Record<string, never>;
+    };
+}
+
 export const smartthingsExtend = {
     addManuSpecificSamsungAccelerometerCluster: () =>
         m.deviceAddCustomCluster("manuSpecificSamsungAccelerometer", {
@@ -39,6 +48,16 @@ export const smartthingsExtend = {
             },
             commands: {},
             commandsResponse: {},
+        }),
+    addManuSpecificSmartThingsArrivalSensorCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificSmartThingsArrivalSensor", {
+            ID: 0xfc05,
+            manufacturerCode: Zcl.ManufacturerCode.SMARTTHINGS_INC,
+            attributes: {},
+            commands: {},
+            commandsResponse: {
+                arrivalSensorNotify: {ID: 0x01, parameters: []},
+            },
         }),
 };
 
@@ -65,6 +84,22 @@ export const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter<"manuSpecificSamsungAccelerometer", SamsungAccelerometer, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    PGC410EU_presence: {
+        cluster: "manuSpecificSmartThingsArrivalSensor",
+        type: "commandArrivalSensorNotify",
+        options: [exposes.options.presence_timeout()],
+        convert: (model, msg, publish, options, meta) => {
+            const useOptionsTimeout = options?.presence_timeout != null;
+            const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
+            // Stop existing timer because motion is detected and set a new one.
+            clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
+
+            const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+            globalStore.putValue(msg.endpoint, "timer", timer);
+            return {presence: true};
+        },
+    } satisfies Fz.Converter<"manuSpecificSmartThingsArrivalSensor", SmartThingsArrivalSensor, "commandArrivalSensorNotify">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -112,7 +147,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "STSS-PRES-001",
         vendor: "SmartThings",
         description: "Presence sensor",
-        fromZigbee: [fz.PGC410EU_presence, fz.battery],
+        extend: [smartthingsExtend.addManuSpecificSmartThingsArrivalSensorCluster()],
+        fromZigbee: [fzLocal.PGC410EU_presence, fz.battery],
         exposes: [e.battery(), e.presence()],
         toZigbee: [],
     },
