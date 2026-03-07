@@ -123,16 +123,13 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSp
     convert: (model, msg, publish, options, meta) => {
         const retval: KeyValueAny = {};
 
-        logger.debug(`convert() with message: ${JSON.stringify(msg)}`, NS);
-
         if (msg.data.state !== undefined) {
             // Publish the raw, unaltered state blob so advanced clients (e.g. Bifrost)
             // can perform their own decoding without depending on z2m's interpretation.
             retval["philips_raw"] = msg.data.state.toString("hex");
-
-            logger.debug(`convert() binary blob: ${msg.data.state.toString("hex")}`, NS);
+            
             const decoded = DecodeManuSpecificPhilips2(msg.data.state);
-            logger.debug(`convert() after decoding: ${JSON.stringify(decoded)}`, NS);
+            logger.debug(`Decoded manuSpecificPhilips2 state: ${JSON.stringify(decoded)}`, NS);
             if (decoded.onOff !== undefined) {
                 retval["state"] = decoded.onOff ? "ON" : "OFF";
             }
@@ -168,8 +165,7 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSp
                 retval["gradient_offset"] = decoded.gradientParams.offset;
             }
         }
-        logger.debug(`convert() after parsing: ${JSON.stringify(retval)}`, NS);
-
+        
         return retval;
     },
 };
