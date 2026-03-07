@@ -501,12 +501,11 @@ export function ikeaAirPurifier(): ModernExtend {
 export function ikeaVoc(args?: Partial<m.NumericArgs<"manuSpecificIkeaVocIndexMeasurement", IkeaVocIndexMeasurement>>) {
     return m.numeric<"manuSpecificIkeaVocIndexMeasurement", IkeaVocIndexMeasurement>({
         name: "voc_index",
-        label: "tVOC",
-        unit: "μg/m³",
+        label: "VOC index",
         cluster: "manuSpecificIkeaVocIndexMeasurement",
         attribute: "measuredValue",
         reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 1},
-        description: "Sensirion tVOC",
+        description: "Sensirion VOC index",
         access: "STATE",
         ...args,
     });
