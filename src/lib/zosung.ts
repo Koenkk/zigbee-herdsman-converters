@@ -68,6 +68,16 @@ interface ZosungIrTransmit {
     };
 }
 
+interface ZosungIrControl {
+    attributes: never;
+    commands: {
+        zosungControlIRCommand00: {
+            data: Buffer;
+        };
+    };
+    commandResponses: never;
+}
+
 export const zosungExtend = {
     addZosungIRTransmitCluster: () =>
         m.deviceAddCustomCluster("zosungIRTransmit", {
@@ -152,6 +162,21 @@ export const zosungExtend = {
                     ],
                 },
             },
+        }),
+    addZosungIRControlCluster: () =>
+        m.deviceAddCustomCluster("zosungIRControl", {
+            ID: 0xe004,
+            attributes: {},
+            commands: {
+                zosungControlIRCommand00: {
+                    ID: 0x00,
+                    parameters: [
+                        // JSON string with a command.
+                        {name: "data", type: Zcl.BuffaloZclDataType.BUFFER},
+                    ],
+                },
+            },
+            commandsResponse: {},
         }),
 };
 
@@ -352,7 +377,7 @@ export const fzZosung = {
                 const learnedIRCode = rcv.buf.toString("base64");
                 logger.debug(`Received: ${learnedIRCode}`, NS);
                 messagesClear(msg.endpoint, seq);
-                await msg.endpoint.command(
+                await msg.endpoint.command<"zosungIRControl", "zosungControlIRCommand00", ZosungIrControl>(
                     "zosungIRControl",
                     "zosungControlIRCommand00",
                     {
@@ -410,7 +435,7 @@ export const tzZosung = {
         key: ["learn_ir_code"],
         convertSet: async (entity, key, value, meta) => {
             logger.debug("Starting IR Code Learning...", NS);
-            await entity.command(
+            await entity.command<"zosungIRControl", "zosungControlIRCommand00", ZosungIrControl>(
                 "zosungIRControl",
                 "zosungControlIRCommand00",
                 {
