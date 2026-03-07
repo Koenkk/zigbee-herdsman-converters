@@ -307,7 +307,7 @@ type DefinitionFeatures = {
     exposes: DefinitionExposes;
 };
 
-export type Definition = DefinitionMatcher & DefinitionBase & DefinitionConfig & DefinitionFeatures & NonNullable<Pick<DefinitionConfig, "version">>;
+export type Definition = DefinitionMatcher & DefinitionBase & DefinitionConfig & DefinitionFeatures & Required<Pick<DefinitionConfig, "version">>;
 
 export type DefinitionWithExtend = DefinitionMatcher &
     DefinitionBase &
