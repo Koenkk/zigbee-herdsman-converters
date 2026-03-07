@@ -122,7 +122,6 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSp
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const retval: KeyValueAny = {};
-
         if (msg.data.state !== undefined) {
             // Publish the raw, unaltered state blob so advanced clients (e.g. Bifrost)
             // can perform their own decoding without depending on z2m's interpretation.
@@ -169,6 +168,9 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSp
         return retval;
     },
 };
+
+// Keys for Philips2-specific features not handled by standard light converters.
+const philips2Keys = ["effect_speed", "gradient_scale", "gradient_offset", "gradient_style", "effect_color"];
 
 const philipsModernExtend = {
     addCustomClusterManuSpecificPhilipsContact: () =>
@@ -242,13 +244,32 @@ const philipsModernExtend = {
         const toZigbee = result.toZigbee;
         result.toZigbee = [];
 
-        const keys = toZigbee.flatMap((value, index, array) => value.key).filter((value, index, array) => array.indexOf(value) === index);
-        // Add keys for Philips2-specific features not handled by standard converters
-        keys.push("effect_speed", "gradient_scale", "gradient_offset", "gradient_style", "effect_color");
+        const keys = toZigbee.flatMap((value) => value.key).filter((value, index, array) => array.indexOf(value) === index);
+        keys.push(...philips2Keys);
         const philipsLightTz = {
             key: keys,
             convertSet: async (entity, key, value, meta) => {
-                logger.debug(`convertSet() called with key '${key}'`, NS);
+                // Old bulbs may not support manuSpecificPhilips2 — fall back to standard converters.
+                // Since Z2M calls us once and marks us as used for all our keys, we must delegate
+                // ALL message keys to the appropriate standard converters in one shot,
+                // mimicking Z2M's own per-key dispatch loop.
+                if (utils.isEndpoint(entity) && !entity.supportsInputCluster("manuSpecificPhilips2")) {
+                    const used = new Set<Tz.Converter>();
+                    let mergedState: KeyValue = {};
+                    for (const [msgKey, msgValue] of Object.entries(meta.message)) {
+                        for (const tz of toZigbee) {
+                            if (!used.has(tz) && tz.key.includes(msgKey) && tz.convertSet) {
+                                used.add(tz);
+                                const result = await tz.convertSet(entity, msgKey, msgValue, meta);
+                                if (result && "state" in result && result.state) {
+                                    mergedState = {...mergedState, ...result.state};
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    return Object.keys(mergedState).length > 0 ? {state: mergedState} : undefined;
+                }
 
                 const {message} = meta;
                 const newState: KeyValue = {};
@@ -406,7 +427,7 @@ const philipsModernExtend = {
                 // Check length rather than all-zeros, since a valid payload could
                 // legitimately contain zero-valued fields.
                 if (encodedPayload.length <= 2) {
-                    logger.debug("convertSet() no Philips2 fields to send, falling back to standard converters", NS);
+                    logger.debug("No Philips2 fields to send, falling back to standard converters", NS);
                     // Delegate to the standard converter that handles this key.
                     // Z2M calls convertSet once per key, so exactly one converter matches.
                     for (const tz of toZigbee) {
@@ -415,10 +436,7 @@ const philipsModernExtend = {
                         }
                     }
                 } else {
-                    logger.debug(`convertSet() after parsing: '${JSON.stringify(data)}'`, NS);
-                    logger.debug(`convertSet(): ${encodedPayload.toString("hex")}`, NS);
-                    logger.debug(`convertSet(): new state: '${JSON.stringify(newState)}'`, NS);
-
+                    logger.debug(`Sending manuSpecificPhilips2 payload: ${encodedPayload.toString("hex")}`, NS);
                     const payload = {data: encodedPayload};
                     await entity.command("manuSpecificPhilips2", "multiColor", payload);
 
@@ -452,7 +470,14 @@ const philipsModernExtend = {
                 }
             },
             convertGet: async (entity, key, meta) => {
-                logger.debug(`convertGet() with key '${key}'`, NS);
+                if (utils.isEndpoint(entity) && !entity.supportsInputCluster("manuSpecificPhilips2")) {
+                    for (const tz of toZigbee) {
+                        if (tz.key.includes(key) && tz.convertGet) {
+                            return await tz.convertGet(entity, key, meta);
+                        }
+                    }
+                    return;
+                }
                 try {
                     await entity.read("manuSpecificPhilips2", ["state"]);
                 } catch (e) {
@@ -1301,7 +1326,6 @@ const BRIGHTNESS_DETAILS: HueTypeDetails<"brightness"> = {
         return p + 1;
     },
     decode: (v, p, d) => {
-        logger.debug(`Retrieving brightness from position ${p}: '${v.getUint8(p)}'`, NS);
         d.brightness = v.getUint8(p);
         return p + 1;
     },
@@ -1471,12 +1495,10 @@ const HUE_DATA_TYPES = [
 export function DecodeManuSpecificPhilips2(data: Buffer) {
     const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
     const flags = view.getUint16(0, true);
-    logger.debug(`DecodeManuSpecificPhilips2: flags = '${flags}'`, NS);
     const decoded: Philips2Data = {};
     let position = 2;
     HUE_DATA_TYPES.forEach((htd) => {
         if (flags & htd.flag) {
-            logger.debug(`DecodeManuSpecificPhilips2: name = '${htd.name}', position = '${position}'`, NS);
             position = htd.decode(view, position, decoded);
         }
     });
