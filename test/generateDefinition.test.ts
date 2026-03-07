@@ -1,4 +1,4 @@
-import {describe, expect, test} from "vitest";
+import {describe, expect, test, vi} from "vitest";
 import {Zcl} from "zigbee-herdsman";
 import {findByDevice, generateExternalDefinitionSource} from "../src";
 import * as fz from "../src/converters/fromZigbee";
@@ -204,9 +204,11 @@ export default {
     test("input(genOnOff, lightingColorCtrl)", async () => {
         const attributes = {
             lightingColorCtrl: {
-                colorCapabilities: 254,
-                colorTempPhysicalMin: 100,
-                colorTempPhysicalMax: 500,
+                attributes: {
+                    colorCapabilities: 254,
+                    colorTempPhysicalMin: 100,
+                    colorTempPhysicalMax: 500,
+                },
             },
         };
 
@@ -272,9 +274,11 @@ export default {
     test("light with color and color temperature", async () => {
         const attributes = {
             lightingColorCtrl: {
-                colorCapabilities: 254,
-                colorTempPhysicalMin: 100,
-                colorTempPhysicalMax: 500,
+                attributes: {
+                    colorCapabilities: 254,
+                    colorTempPhysicalMin: 100,
+                    colorTempPhysicalMax: 500,
+                },
             },
         };
 
@@ -340,9 +344,11 @@ export default {
     test("Philips light with color and color temperature", async () => {
         const attributes = {
             lightingColorCtrl: {
-                colorCapabilities: 254,
-                colorTempPhysicalMin: 100,
-                colorTempPhysicalMax: 500,
+                attributes: {
+                    colorCapabilities: 254,
+                    colorTempPhysicalMin: 100,
+                    colorTempPhysicalMax: 500,
+                },
             },
         };
 
@@ -425,16 +431,20 @@ export default {
     test("Electricity meter", async () => {
         const attributes = {
             haElectricalMeasurement: {
-                acPowerDivisor: 1000,
-                acPowerMultiplier: 1,
-                acCurrentDivisor: 1000,
-                acCurrentMultiplier: 1,
-                acVoltageDivisor: 1000,
-                acVoltageMultiplier: 1,
+                attributes: {
+                    acPowerDivisor: 1000,
+                    acPowerMultiplier: 1,
+                    acCurrentDivisor: 1000,
+                    acCurrentMultiplier: 1,
+                    acVoltageDivisor: 1000,
+                    acVoltageMultiplier: 1,
+                },
             },
             seMetering: {
-                divisor: 1000,
-                multiplier: 1,
+                attributes: {
+                    divisor: 1000,
+                    multiplier: 1,
+                },
             },
         };
 
@@ -502,13 +512,15 @@ export default {
     test("Electricity DC meter", async () => {
         const attributes = {
             haElectricalMeasurement: {
-                measurementType: 1 << 6,
-                dcPowerDivisor: 10000,
-                dcPowerMultiplier: 1,
-                dcCurrentDivisor: 1000,
-                dcCurrentMultiplier: 1,
-                dcVoltageDivisor: 100,
-                dcVoltageMultiplier: 1,
+                attributes: {
+                    measurementType: 1 << 6,
+                    dcPowerDivisor: 10000,
+                    dcPowerMultiplier: 1,
+                    dcCurrentDivisor: 1000,
+                    dcCurrentMultiplier: 1,
+                    dcVoltageDivisor: 100,
+                    dcVoltageMultiplier: 1,
+                },
             },
         };
 
@@ -560,16 +572,20 @@ export default {
     test("input(genBinaryInput), output(genBinaryOutput, genAnalogOutput)", async () => {
         const attr10 = {
             genBinaryInput: {
-                description: "my_binary_name",
+                attributes: {
+                    description: "my_binary_name",
+                },
             },
             genAnalogOutput: {
-                description: "my_output_name",
-                applicationType: 0,
-                engineeringUnits: 62,
-                minPresentValue: 0.0,
-                maxPresentValue: 30.0,
-                resolution: 0.1,
-                presentValue: 15.0,
+                attributes: {
+                    description: "my_output_name",
+                    applicationType: 0,
+                    engineeringUnits: 62,
+                    minPresentValue: 0.0,
+                    maxPresentValue: 30.0,
+                    resolution: 0.1,
+                    presentValue: 15.0,
+                },
             },
         };
 
@@ -577,7 +593,13 @@ export default {
             device: mockDevice({
                 modelID: "temp",
                 endpoints: [
-                    {ID: 10, inputClusters: ["genBinaryInput", "genBinaryOutput", "genAnalogOutput"], outputClusters: [], attributes: attr10},
+                    {
+                        ID: 10,
+                        inputClusters: ["genBinaryInput", "genBinaryOutput", "genAnalogOutput"],
+                        outputClusters: [],
+                        attributes: attr10,
+                        read: vi.fn(async () => Promise.reject(new Error("use-fallback"))),
+                    },
                 ],
             }),
             meta: undefined,
@@ -611,13 +633,15 @@ export default {
     test("input(genAnalogInput), x2 endpoints", async () => {
         const attr10 = {
             genAnalogInput: {
-                description: "my_custom_name",
-                applicationType: 0,
-                engineeringUnits: 62,
-                minPresentValue: 0.0,
-                maxPresentValue: 30.0,
-                resolution: 0.1,
-                presentValue: 15.0,
+                attributes: {
+                    description: "my_custom_name",
+                    applicationType: 0,
+                    engineeringUnits: 62,
+                    minPresentValue: 0.0,
+                    maxPresentValue: 30.0,
+                    resolution: 0.1,
+                    presentValue: 15.0,
+                },
             },
         };
 
@@ -626,7 +650,12 @@ export default {
                 modelID: "temp",
                 endpoints: [
                     {ID: 10, inputClusters: ["genAnalogInput"], outputClusters: [], attributes: attr10},
-                    {ID: 11, inputClusters: ["genAnalogInput"], outputClusters: []},
+                    {
+                        ID: 11,
+                        inputClusters: ["genAnalogInput"],
+                        outputClusters: [],
+                        read: vi.fn(async () => Promise.reject(new Error("use-fallback"))),
+                    },
                 ],
             }),
             meta: {multiEndpoint: true},
