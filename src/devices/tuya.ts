@@ -12548,7 +12548,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZS06",
         vendor: "Tuya",
         description: "Universal smart IR remote control",
-        extend: [zosung.zosungExtend.addZosungIRTransmitCluster()],
+        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), zosung.zosungExtend.addZosungIRControlCluster()],
         fromZigbee: [
             fzZosung.zosung_send_ir_code_00,
             fzZosung.zosung_send_ir_code_01,
