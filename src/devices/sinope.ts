@@ -116,58 +116,59 @@ interface ManuSpecificSinope {
 const sinopeExtend = {
     addManuSpecificSinopeCluster: () =>
         m.deviceAddCustomCluster("manuSpecificSinope", {
+            name: "manuSpecificSinope",
             ID: 0xff01,
             manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES,
             attributes: {
                 // attribute ID :1's readable
-                keypadLockout: {ID: 0x0002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                keypadLockout: {name: "keypadLockout", ID: 0x0002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 // 'firmware number': {ID: 3, type: Zcl.DataType.UNKNOWN}, write: true,
-                firmwareVersion: {ID: 0x0004, type: Zcl.DataType.CHAR_STR, write: true},
-                outdoorTempToDisplay: {ID: 0x0010, type: Zcl.DataType.INT16, write: true, max: 0xffff},
-                outdoorTempToDisplayTimeout: {ID: 0x0011, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                secondScreenBehavior: {ID: 0x0012, type: Zcl.DataType.ENUM8, write: true, max: 0xff}, // auto:0,setpoint:1,outside:2
-                currentTimeToDisplay: {ID: 0x0020, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                ledIntensityOn: {ID: 0x0052, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                ledIntensityOff: {ID: 0x0053, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                ledColorOn: {ID: 0x0050, type: Zcl.DataType.UINT24, write: true, max: 0xffffff}, // inversed hex BBGGRR
-                ledColorOff: {ID: 0x0051, type: Zcl.DataType.UINT24, write: true, max: 0xffffff},
-                onLedIntensity: {ID: 0x0052, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // percent
-                offLedIntensity: {ID: 0x0053, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // percent
-                actionReport: {ID: 0x0054, type: Zcl.DataType.ENUM8, write: true, max: 0xff}, // singleTapUp: 1,2, doubleTapUp: 1,4, singleTapDown: 17,18, doubleTapDown: 17,20
-                minimumBrightness: {ID: 0x0055, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                connectedLoadRM: {ID: 0x0060, type: Zcl.DataType.UINT16, write: true, max: 0xffff}, // unit watt/hr for Calypso RM3500 & Load Controller RM3250
-                currentLoad: {ID: 0x0070, type: Zcl.DataType.BITMAP8, write: true}, // related to ecoMode(s)
-                ecoMode: {ID: 0x0071, type: Zcl.DataType.INT8, write: true, min: -128, max: 127, default: -128}, // -100-0-100%
-                ecoMode1: {ID: 0x0072, type: Zcl.DataType.UINT8, write: true, max: 0xff, default: 0xff}, // 0-99
-                ecoMode2: {ID: 0x0073, type: Zcl.DataType.UINT8, write: true, max: 0xff, default: 0xff}, // 0-100
-                unknown: {ID: 0x0075, type: Zcl.DataType.BITMAP32, write: true, max: 0xffffffff}, // RW *testing*
-                drConfigWaterTempMin: {ID: 0x0076, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // value 45 or 0
-                drConfigWaterTempTime: {ID: 0x0077, type: Zcl.DataType.UINT8, write: true, max: 0xff, default: 2}, // default 2
-                drWTTimeOn: {ID: 0x0078, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                unknown1: {ID: 0x0080, type: Zcl.DataType.UINT32, max: 0xffffffff}, // readOnly stringNumber *testing*
-                dimmerTimmer: {ID: 0x00a0, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                unknown2: {ID: 0x0100, type: Zcl.DataType.UINT8, max: 0xff}, // readOnly *testing*
-                floorControlMode: {ID: 0x0105, type: Zcl.DataType.ENUM8, write: true, max: 0xff}, // airFloorMode
-                auxOutputMode: {ID: 0x0106, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                floorTemperature: {ID: 0x0107, type: Zcl.DataType.INT16, write: true, max: 0xffff},
-                ambiantMaxHeatSetpointLimit: {ID: 0x0108, type: Zcl.DataType.INT16, write: true, max: 0xffff},
-                floorMinHeatSetpointLimit: {ID: 0x0109, type: Zcl.DataType.INT16, write: true, max: 0xffff},
-                floorMaxHeatSetpointLimit: {ID: 0x010a, type: Zcl.DataType.INT16, write: true, max: 0xffff},
-                temperatureSensor: {ID: 0x010b, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                floorLimitStatus: {ID: 0x010c, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                roomTemperature: {ID: 0x010d, type: Zcl.DataType.INT16, write: true, max: 0xffff},
-                timeFormatToDisplay: {ID: 0x0114, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                GFCiStatus: {ID: 0x0115, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                auxConnectedLoad: {ID: 0x0118, type: Zcl.DataType.UINT16, write: true, max: 0xff},
-                connectedLoad: {ID: 0x0119, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                pumpProtection: {ID: 0x0128, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                unknown3: {ID: 0x012a, type: Zcl.DataType.ENUM8, write: true, max: 0xff, default: 60}, // RW 5,10,15,20,30,60 *testing*
-                currentSetpoint: {ID: 0x012b, type: Zcl.DataType.INT16, write: true, max: 0xffff}, // W:to ocuppiedHeatSetpoint, R:depends of SinopeOccupancy
+                firmwareVersion: {name: "firmwareVersion", ID: 0x0004, type: Zcl.DataType.CHAR_STR, write: true},
+                outdoorTempToDisplay: {name: "outdoorTempToDisplay", ID: 0x0010, type: Zcl.DataType.INT16, write: true, max: 0xffff},
+                outdoorTempToDisplayTimeout: {name: "outdoorTempToDisplayTimeout", ID: 0x0011, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                secondScreenBehavior: {name: "secondScreenBehavior", ID: 0x0012, type: Zcl.DataType.ENUM8, write: true, max: 0xff}, // auto:0,setpoint:1,outside:2
+                currentTimeToDisplay: {name: "currentTimeToDisplay", ID: 0x0020, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                ledIntensityOn: {name: "ledIntensityOn", ID: 0x0052, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledIntensityOff: {name: "ledIntensityOff", ID: 0x0053, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledColorOn: {name: "ledColorOn", ID: 0x0050, type: Zcl.DataType.UINT24, write: true, max: 0xffffff}, // inversed hex BBGGRR
+                ledColorOff: {name: "ledColorOff", ID: 0x0051, type: Zcl.DataType.UINT24, write: true, max: 0xffffff},
+                onLedIntensity: {name: "onLedIntensity", ID: 0x0052, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // percent
+                offLedIntensity: {name: "offLedIntensity", ID: 0x0053, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // percent
+                actionReport: {name: "actionReport", ID: 0x0054, type: Zcl.DataType.ENUM8, write: true, max: 0xff}, // singleTapUp: 1,2, doubleTapUp: 1,4, singleTapDown: 17,18, doubleTapDown: 17,20
+                minimumBrightness: {name: "minimumBrightness", ID: 0x0055, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                connectedLoadRM: {name: "connectedLoadRM", ID: 0x0060, type: Zcl.DataType.UINT16, write: true, max: 0xffff}, // unit watt/hr for Calypso RM3500 & Load Controller RM3250
+                currentLoad: {name: "currentLoad", ID: 0x0070, type: Zcl.DataType.BITMAP8, write: true}, // related to ecoMode(s)
+                ecoMode: {name: "ecoMode", ID: 0x0071, type: Zcl.DataType.INT8, write: true, min: -128, max: 127, default: -128}, // -100-0-100%
+                ecoMode1: {name: "ecoMode1", ID: 0x0072, type: Zcl.DataType.UINT8, write: true, max: 0xff, default: 0xff}, // 0-99
+                ecoMode2: {name: "ecoMode2", ID: 0x0073, type: Zcl.DataType.UINT8, write: true, max: 0xff, default: 0xff}, // 0-100
+                unknown: {name: "unknown", ID: 0x0075, type: Zcl.DataType.BITMAP32, write: true, max: 0xffffffff}, // RW *testing*
+                drConfigWaterTempMin: {name: "drConfigWaterTempMin", ID: 0x0076, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // value 45 or 0
+                drConfigWaterTempTime: {name: "drConfigWaterTempTime", ID: 0x0077, type: Zcl.DataType.UINT8, write: true, max: 0xff, default: 2}, // default 2
+                drWTTimeOn: {name: "drWTTimeOn", ID: 0x0078, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                unknown1: {name: "unknown1", ID: 0x0080, type: Zcl.DataType.UINT32, max: 0xffffffff}, // readOnly stringNumber *testing*
+                dimmerTimmer: {name: "dimmerTimmer", ID: 0x00a0, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                unknown2: {name: "unknown2", ID: 0x0100, type: Zcl.DataType.UINT8, max: 0xff}, // readOnly *testing*
+                floorControlMode: {name: "floorControlMode", ID: 0x0105, type: Zcl.DataType.ENUM8, write: true, max: 0xff}, // airFloorMode
+                auxOutputMode: {name: "auxOutputMode", ID: 0x0106, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                floorTemperature: {name: "floorTemperature", ID: 0x0107, type: Zcl.DataType.INT16, write: true, max: 0xffff},
+                ambiantMaxHeatSetpointLimit: {name: "ambiantMaxHeatSetpointLimit", ID: 0x0108, type: Zcl.DataType.INT16, write: true, max: 0xffff},
+                floorMinHeatSetpointLimit: {name: "floorMinHeatSetpointLimit", ID: 0x0109, type: Zcl.DataType.INT16, write: true, max: 0xffff},
+                floorMaxHeatSetpointLimit: {name: "floorMaxHeatSetpointLimit", ID: 0x010a, type: Zcl.DataType.INT16, write: true, max: 0xffff},
+                temperatureSensor: {name: "temperatureSensor", ID: 0x010b, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                floorLimitStatus: {name: "floorLimitStatus", ID: 0x010c, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                roomTemperature: {name: "roomTemperature", ID: 0x010d, type: Zcl.DataType.INT16, write: true, max: 0xffff},
+                timeFormatToDisplay: {name: "timeFormatToDisplay", ID: 0x0114, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                GFCiStatus: {name: "GFCiStatus", ID: 0x0115, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                auxConnectedLoad: {name: "auxConnectedLoad", ID: 0x0118, type: Zcl.DataType.UINT16, write: true, max: 0xff},
+                connectedLoad: {name: "connectedLoad", ID: 0x0119, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                pumpProtection: {name: "pumpProtection", ID: 0x0128, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                unknown3: {name: "unknown3", ID: 0x012a, type: Zcl.DataType.ENUM8, write: true, max: 0xff, default: 60}, // RW 5,10,15,20,30,60 *testing*
+                currentSetpoint: {name: "currentSetpoint", ID: 0x012b, type: Zcl.DataType.INT16, write: true, max: 0xffff}, // W:to ocuppiedHeatSetpoint, R:depends of SinopeOccupancy
                 // attribute ID: 300's readable, returns a buffer
-                reportLocalTemperature: {ID: 0x012d, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                reportLocalTemperature: {name: "reportLocalTemperature", ID: 0x012d, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
                 // attribute ID: 512's readable
-                flowMeterConfig: {ID: 0x0240, type: Zcl.DataType.ARRAY, write: true},
-                coldLoadPickupStatus: {ID: 0x0283, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                flowMeterConfig: {name: "flowMeterConfig", ID: 0x0240, type: Zcl.DataType.ARRAY, write: true},
+                coldLoadPickupStatus: {name: "coldLoadPickupStatus", ID: 0x0283, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},

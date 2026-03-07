@@ -130,51 +130,60 @@ function binaryWithSetCommand<Cl extends string | number, Custom extends TCustom
 
 function YandexCluster(manufacturerCode: number): ModernExtend {
     return m.deviceAddCustomCluster("manuSpecificYandex", {
+        name: "manuSpecificYandex",
         ID: 0xfc03,
         manufacturerCode: manufacturerCode,
         attributes: {
-            switchMode: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-            switchType: {ID: 0x0002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-            powerType: {ID: 0x0003, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-            ledIndicator: {ID: 0x0005, type: Zcl.DataType.BOOLEAN, write: true},
-            interlock: {ID: 0x0007, type: Zcl.DataType.BOOLEAN, write: true},
-            buttonMode: {ID: 0x0008, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-            displayFlip: {ID: 0x0009, type: Zcl.DataType.BOOLEAN, write: true},
-            windowDetection: {ID: 0x000a, type: Zcl.DataType.BOOLEAN, write: true},
-            frostProtection: {ID: 0x000d, type: Zcl.DataType.BOOLEAN, write: true},
-            scaleProtection: {ID: 0x000e, type: Zcl.DataType.BOOLEAN, write: true},
-            autoCalibration: {ID: 0x000f, type: Zcl.DataType.BOOLEAN, write: true},
+            switchMode: {name: "switchMode", ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            switchType: {name: "switchType", ID: 0x0002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            powerType: {name: "powerType", ID: 0x0003, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            ledIndicator: {name: "ledIndicator", ID: 0x0005, type: Zcl.DataType.BOOLEAN, write: true},
+            interlock: {name: "interlock", ID: 0x0007, type: Zcl.DataType.BOOLEAN, write: true},
+            buttonMode: {name: "buttonMode", ID: 0x0008, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            displayFlip: {name: "displayFlip", ID: 0x0009, type: Zcl.DataType.BOOLEAN, write: true},
+            windowDetection: {name: "windowDetection", ID: 0x000a, type: Zcl.DataType.BOOLEAN, write: true},
+            frostProtection: {name: "frostProtection", ID: 0x000d, type: Zcl.DataType.BOOLEAN, write: true},
+            scaleProtection: {name: "scaleProtection", ID: 0x000e, type: Zcl.DataType.BOOLEAN, write: true},
+            autoCalibration: {name: "autoCalibration", ID: 0x000f, type: Zcl.DataType.BOOLEAN, write: true},
         },
         commands: {
             switchMode: {
+                name: "switchMode",
                 ID: 0x01,
                 parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             switchType: {
+                name: "switchType",
                 ID: 0x02,
                 parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             powerType: {
+                name: "powerType",
                 ID: 0x03,
                 parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             ledIndicator: {
+                name: "ledIndicator",
                 ID: 0x05,
                 parameters: [{name: "value", type: Zcl.DataType.BOOLEAN}],
             },
             interlock: {
+                name: "interlock",
                 ID: 0x07,
                 parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             buttonMode: {
+                name: "buttonMode",
                 ID: 0x08,
                 parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             displayFlip: {
+                name: "displayFlip",
                 ID: 0x09,
                 parameters: [{name: "value", type: Zcl.DataType.BOOLEAN}],
             },
             windowDetection: {
+                name: "windowDetection",
                 ID: 0x0a,
                 parameters: [{name: "value", type: Zcl.DataType.BOOLEAN}],
             },
@@ -195,9 +204,11 @@ interface YandexThermostat {
 
 function YandexThermostatCluster(manufacturerCode: number): ModernExtend {
     return m.deviceAddCustomCluster("hvacThermostat", {
+        name: "hvacThermostat",
         ID: Zcl.Clusters.hvacThermostat.ID,
         attributes: {
             calibrated: {
+                name: "calibrated",
                 ID: 0xf000,
                 type: Zcl.DataType.BOOLEAN,
                 manufacturerCode: manufacturerCode,
@@ -207,6 +218,7 @@ function YandexThermostatCluster(manufacturerCode: number): ModernExtend {
         },
         commands: {
             calibrate: {
+                name: "calibrate",
                 ID: 0x00,
                 parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}],
             },

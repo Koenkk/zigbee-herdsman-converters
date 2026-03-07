@@ -111,27 +111,30 @@ interface ManuSpecificPhilips2 {
 const philipsModernExtend = {
     addCustomClusterManuSpecificPhilipsContact: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificPhilipsContact", {
+            name: "manuSpecificPhilipsContact",
             ID: 0xfc06,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
-                contact: {ID: 0x0100, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                contactLastChange: {ID: 0x0101, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                tamper: {ID: 0x0102, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                tamperLastChange: {ID: 0x0103, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                contact: {name: "contact", ID: 0x0100, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                contactLastChange: {name: "contactLastChange", ID: 0x0101, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                tamper: {name: "tamper", ID: 0x0102, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                tamperLastChange: {name: "tamperLastChange", ID: 0x0103, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
             },
             commands: {},
             commandsResponse: {},
         }),
     addManuSpecificPhilipsCluster: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificPhilips", {
+            name: "manuSpecificPhilips",
             ID: 0xfc00,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
-                config: {ID: 0x0031, type: Zcl.DataType.BITMAP16, write: true},
+                config: {name: "config", ID: 0x0031, type: Zcl.DataType.BITMAP16, write: true},
             },
             commands: {},
             commandsResponse: {
                 hueNotification: {
+                    name: "hueNotification",
                     ID: 0x00,
                     parameters: [
                         {name: "button", type: Zcl.DataType.UINT8, max: 0xff},
@@ -146,27 +149,29 @@ const philipsModernExtend = {
         }),
     addManuSpecificPhilips2Cluster: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificPhilips2", {
+            name: "manuSpecificPhilips2",
             ID: 0xfc03,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
-                state: {ID: 0x0002, type: Zcl.DataType.OCTET_STR, write: true},
+                state: {name: "state", ID: 0x0002, type: Zcl.DataType.OCTET_STR, write: true},
             },
             commands: {
-                multiColor: {ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                multiColor: {name: "multiColor", ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
             commandsResponse: {},
         }),
     addManuSpecificPhilips3Cluster: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificPhilips3", {
+            name: "manuSpecificPhilips3",
             ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {},
             commands: {
-                command1: {ID: 1, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                command2: {ID: 2, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                command3: {ID: 3, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                command4: {ID: 4, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                command7: {ID: 7, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command1: {name: "command1", ID: 1, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command2: {name: "command2", ID: 2, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command3: {name: "command3", ID: 3, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command4: {name: "command4", ID: 4, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command7: {name: "command7", ID: 7, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
             commandsResponse: {},
         }),

@@ -1470,9 +1470,18 @@ export function customLocalTemperatureCalibrationRange({min, max}: {min: number;
     // Some devices have a custom range for localTemperatureCalibration attribute.
     // To find the range for a specific device: https://github.com/Koenkk/zigbee2mqtt/issues/30448#issuecomment-3707495349
     return deviceAddCustomCluster("hvacThermostat", {
+        name: "hvacThermostat",
         ID: 0x0201,
         attributes: {
-            localTemperatureCalibration: {ID: 0x0010, type: DataType.INT8, write: true, min: min * 10, max: max * 10, default: 0},
+            localTemperatureCalibration: {
+                name: "localTemperatureCalibration",
+                ID: 0x0010,
+                type: DataType.INT8,
+                write: true,
+                min: min * 10,
+                max: max * 10,
+                default: 0,
+            },
         },
         commands: {},
         commandsResponse: {},
