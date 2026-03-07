@@ -1,7 +1,7 @@
 import {describe, it} from "vitest";
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../src/converters/fromZigbee";
-import {fzLocal, smartthingsExtend} from "../src/devices/smartthings";
+import {fzLocal} from "../src/devices/smartthings";
 import {repInterval} from "../src/lib/constants";
 import {assertDefinition, mockDevice, reportingItem} from "./utils";
 
@@ -10,10 +10,9 @@ describe("Check definition", () => {
         await assertDefinition({
             device: mockDevice({
                 modelID: "multi",
-                endpoints: [{ID: 1, inputClusters: ["msTemperatureMeasurement", "genPowerCfg", "manuSpecificSamsungAccelerometer", "genPollCtrl"]}],
+                endpoints: [{ID: 1, inputClusters: ["msTemperatureMeasurement", "genPowerCfg", "genPollCtrl"], inputClusterIDs: [0xfc02]}],
             }),
             meta: undefined,
-            extend: [smartthingsExtend.addManuSpecificSamsungAccelerometerCluster()],
             fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1, fzLocal.acceleration],
             toZigbee: [],
             exposes: ["battery", "battery_low", "contact", "moving", "tamper", "temperature", "x_axis", "y_axis", "z_axis"],
