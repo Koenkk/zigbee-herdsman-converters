@@ -1,5 +1,12 @@
 # Changelog
 
+## [26.16.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.16.0...v26.16.1) (2026-03-07)
+
+
+### Bug Fixes
+
+* **ignore:** fix schneider electric ([ba9f383](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ba9f383c0b37a652350dd3637ceb94d8f4386e8d))
+
 ## [26.16.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.15.0...v26.16.0) (2026-03-07)
 
 
