@@ -147,7 +147,12 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg", "manuSpecificSamsungAccelerometer"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.MINUTE, 1);
+            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "acceleration",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
             const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
                 "xAxis",
@@ -351,7 +356,12 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.write("manuSpecificSamsungAccelerometer", {2: {value: 0x0276, type: 0x21}}, options);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.MINUTE, 1);
+            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "acceleration",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
             const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
                 "xAxis",

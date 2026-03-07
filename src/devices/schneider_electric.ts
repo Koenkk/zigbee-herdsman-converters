@@ -6,6 +6,7 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 import {postfixWithEndpointName} from "../lib/utils";
@@ -910,6 +911,44 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    schneider_ui_action: {
+        cluster: "wiserDeviceInfo",
+        type: "attributeReport",
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+
+            const data = msg.data.deviceInfo.split(",");
+            if (data[0] === "UI" && data[1]) {
+                const result: KeyValueAny = {action: utils.toSnakeCase(data[1])};
+
+                let screenAwake = globalStore.getValue(msg.endpoint, "screenAwake");
+                screenAwake = screenAwake !== undefined ? screenAwake : false;
+                const keypadLockedNumber = Number(msg.endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout"));
+                const keypadLocked = keypadLockedNumber !== undefined ? keypadLockedNumber !== 0 : false;
+
+                // Emulate UI temperature update
+                if (data[1] === "ScreenWake") {
+                    globalStore.putValue(msg.endpoint, "screenAwake", true);
+                } else if (data[1] === "ScreenSleep") {
+                    globalStore.putValue(msg.endpoint, "screenAwake", false);
+                } else if (screenAwake && !keypadLocked) {
+                    let occupiedHeatingSetpoint = Number(msg.endpoint.getClusterAttributeValue("hvacThermostat", "occupiedHeatingSetpoint"));
+                    occupiedHeatingSetpoint = occupiedHeatingSetpoint != null ? occupiedHeatingSetpoint : 400;
+
+                    if (data[1] === "ButtonPressMinusDown") {
+                        occupiedHeatingSetpoint -= 50;
+                    } else if (data[1] === "ButtonPressPlusDown") {
+                        occupiedHeatingSetpoint += 50;
+                    }
+
+                    msg.endpoint.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: occupiedHeatingSetpoint});
+                    result.occupied_heating_setpoint = occupiedHeatingSetpoint / 100;
+                }
+
+                return result;
+            }
+        },
+    } satisfies Fz.Converter<"wiserDeviceInfo", WiserDeviceInfo, "attributeReport">,
     schneider_powertag: {
         cluster: "greenPower",
         type: ["commandNotification", "commandCommissioningNotification"],
@@ -1887,7 +1926,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6400",
         vendor: "Schneider Electric",
         description: "Temperature/Humidity measurement with thermostat interface",
-        fromZigbee: [fz.battery, fz.schneider_temperature, fz.humidity, fz.thermostat, fz.schneider_ui_action],
+        fromZigbee: [fz.battery, fz.schneider_temperature, fz.humidity, fz.thermostat, fzLocal.schneider_ui_action],
         toZigbee: [
             tz.schneider_thermostat_system_mode,
             tz.schneider_thermostat_occupied_heating_setpoint,
