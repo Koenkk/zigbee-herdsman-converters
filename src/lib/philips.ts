@@ -127,7 +127,7 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSp
             // Publish the raw, unaltered state blob so advanced clients (e.g. Bifrost)
             // can perform their own decoding without depending on z2m's interpretation.
             retval["philips_raw"] = msg.data.state.toString("hex");
-            
+
             const decoded = DecodeManuSpecificPhilips2(msg.data.state);
             logger.debug(`Decoded manuSpecificPhilips2 state: ${JSON.stringify(decoded)}`, NS);
             if (decoded.onOff !== undefined) {
@@ -165,7 +165,7 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSp
                 retval["gradient_offset"] = decoded.gradientParams.offset;
             }
         }
-        
+
         return retval;
     },
 };
