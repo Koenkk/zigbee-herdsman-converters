@@ -963,15 +963,15 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
 
-    four_buttons_tripple_events: {
+    four_buttons_triple_events: {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
-                "1_2": "1_tripple",
-                "2_2": "2_tripple",
-                "3_2": "3_tripple",
-                "4_2": "4_tripple",
+                "1_2": "1_triple",
+                "2_2": "2_triple",
+                "3_2": "3_triple",
+                "4_2": "4_triple",
             });
             return {action: event};
         },
@@ -1317,7 +1317,7 @@ export const definitions: DefinitionWithExtend[] = [
             fzLocal.four_buttons_single_events,
             fzLocal.four_buttons_hold_events,
             fzLocal.four_buttons_double_events,
-            fzLocal.four_buttons_tripple_events,
+            fzLocal.four_buttons_triple_events,
             fzLocal.four_buttons_long_events,
         ],
         exposes: [
@@ -1330,10 +1330,10 @@ export const definitions: DefinitionWithExtend[] = [
                 "2_double",
                 "3_double",
                 "4_double",
-                "1_tripple",
-                "2_tripple",
-                "3_tripple",
-                "4_tripple",
+                "1_triple",
+                "2_triple",
+                "3_triple",
+                "4_triple",
                 "1_long",
                 "2_long",
                 "3_long",
