@@ -3,7 +3,7 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -236,7 +236,6 @@ interface HaloControlCluster {
     };
     commandResponses: never;
 }
-type HaloControlCommandName = keyof HaloControlCluster["commands"];
 
 interface HaloSensorsCluster {
     attributes: {
@@ -441,397 +440,268 @@ const HUSH_STATUS_LOOKUP: Record<number, (typeof HALO_HUSH_STATES)[number]> = {
     3: "disabled",
 };
 
-const fzLocal = {
-    haloZoneStatus: {
-        cluster: "ssIasZone",
-        type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
-            if (zoneStatus === undefined) return;
+function haloZoneStatus(): ModernExtend {
+    return {
+        exposes: [
+            e.smoke(),
+            e.carbon_monoxide(),
+            e.tamper(),
+            e.battery_low(),
+            e.test(),
+            e
+                .binary("mains_power_connected", ea.STATE, true, false)
+                .withDescription("Indicates whether mains power is currently available")
+                .withCategory("diagnostic"),
+        ],
+        fromZigbee: [
+            fz.ias_enroll,
+            {
+                cluster: "ssIasZone",
+                type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+                    if (zoneStatus === undefined) return;
 
-            const payload: KeyValue = {};
-            if (msg.endpoint.ID === 1) {
-                payload.smoke = (zoneStatus & 1) > 0;
-                payload.tamper = (zoneStatus & (1 << 2)) > 0;
-                payload.battery_low = (zoneStatus & (1 << 3)) > 0;
-                payload.test = (zoneStatus & (1 << 8)) > 0;
-                const acFault = (zoneStatus & (1 << 7)) > 0;
-                payload.mains_power_connected = !acFault;
-            } else if (msg.endpoint.ID === 3) {
-                payload.carbon_monoxide = (zoneStatus & 1) > 0;
-            }
+                    const payload: KeyValue = {};
+                    if (msg.endpoint.ID === 1) {
+                        payload.smoke = (zoneStatus & 1) > 0;
+                        payload.tamper = (zoneStatus & (1 << 2)) > 0;
+                        payload.battery_low = (zoneStatus & (1 << 3)) > 0;
+                        payload.test = (zoneStatus & (1 << 8)) > 0;
+                        const acFault = (zoneStatus & (1 << 7)) > 0;
+                        payload.mains_power_connected = !acFault;
+                    } else if (msg.endpoint.ID === 3) {
+                        payload.carbon_monoxide = (zoneStatus & 1) > 0;
+                    }
 
-            if (Object.keys(payload).length > 0) {
-                return payload;
-            }
-        },
-    } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
-    haloDeviceStatus: {
-        cluster: "haloDeviceStatus",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const status = msg.data.deviceStatus;
-            if (status === undefined) return;
-            const mapped = DEVICE_STATUS_LOOKUP[status] ?? "other";
-            const payload: KeyValue = {
-                halo_alert_state: mapped,
-                weather_alert: mapped === "weather",
-            };
-            if (msg.data.room !== undefined) {
-                payload.room = haloRoomIdToName(msg.data.room);
-            }
-            return payload;
-        },
-    } satisfies Fz.Converter<"haloDeviceStatus", HaloDeviceStatusCluster, ["attributeReport", "readResponse"]>,
-    haloControlStatus: {
-        cluster: "haloControl",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const payload: KeyValue = {};
-            if (msg.data.testStatus !== undefined) {
-                const mapped = TEST_STATUS_LOOKUP[msg.data.testStatus] ?? "idle";
-                payload.halo_test_result = mapped;
-                payload.test_in_progress = mapped === "running";
-            }
-            if (msg.data.hushStatus !== undefined) {
-                const mapped = HUSH_STATUS_LOOKUP[msg.data.hushStatus] ?? "ready";
-                payload.halo_hush_state = mapped;
-                payload.hush_active = mapped === "success";
-            }
-            if (Object.keys(payload).length > 0) {
-                return payload;
-            }
-        },
-    } satisfies Fz.Converter<"haloControl", HaloControlCluster, ["attributeReport", "readResponse"]>,
-    haloSensors: {
-        cluster: "haloSensors",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.coPpm !== undefined) {
-                return {co_ppm: msg.data.coPpm};
-            }
-        },
-    } satisfies Fz.Converter<"haloSensors", HaloSensorsCluster, ["attributeReport", "readResponse"]>,
-    haloWeather: {
-        cluster: "haloWeather",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const payload: KeyValue = {};
-            const weatherState = ensureHaloWeatherMetaState(meta);
-
-            if (msg.data.weatherAlertStatus !== undefined) {
-                const code = (WEATHER_ID_TO_ALERT[msg.data.weatherAlertStatus] ?? "UNKNOWN") as WeatherAlertStateCode;
-                payload.current_weather_alert = code;
-                payload.weather_alert = msg.data.weatherAlertStatus !== 0;
-            }
-
-            if (msg.data.weatherMute !== undefined) {
-                const playing = Number(msg.data.weatherMute) === 1;
-                payload.weather_playing_state = playing ? "playing" : "quiet";
-            }
-
-            if (msg.data.weatherLocation !== undefined) {
-                payload.weather_location = msg.data.weatherLocation.toString().padStart(6, "0");
-            }
-
-            if (msg.data.weatherStation !== undefined) {
-                const station = msg.data.weatherStation;
-                if (station >= WEATHER_STATION_MIN && station <= WEATHER_STATION_MAX) {
-                    payload.weather_station = station;
-                    payload.weather_frequency = WEATHER_STATION_FREQUENCIES[station];
+                    if (Object.keys(payload).length > 0) {
+                        return payload;
+                    }
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
+        ],
+        configure: [
+            async (device, coordinatorEndpoint) => {
+                const endpoint1 = device.getEndpoint(1);
+                if (endpoint1) {
+                    await reporting.bind(endpoint1, coordinatorEndpoint, ["ssIasZone"]);
+                    await endpoint1.read("ssIasZone", ["zoneStatus"]);
                 }
-            }
-
-            let eventsChanged = false;
-            if (msg.data.weatherEvent1 !== undefined) {
-                weatherState.event1 = msg.data.weatherEvent1;
-                eventsChanged = true;
-            }
-            if (msg.data.weatherEvent2 !== undefined) {
-                weatherState.event2 = msg.data.weatherEvent2;
-                eventsChanged = true;
-            }
-            if (msg.data.weatherEvent3 !== undefined) {
-                weatherState.event3 = msg.data.weatherEvent3;
-                eventsChanged = true;
-            }
-            if (eventsChanged) {
-                payload.weather_alerts_interest = decodeWeatherAlertBitmaps(weatherState);
-            }
-
-            if (Object.keys(payload).length > 0) {
-                return payload;
-            }
-        },
-    } satisfies Fz.Converter<"haloWeather", HaloWeatherCluster, ["attributeReport", "readResponse"]>,
-};
-
-async function sendHaloControlCommand(entity: Zh.Endpoint | Zh.Group, command: HaloControlCommandName, value: number) {
-    await entity.command<"haloControl", HaloControlCommandName, HaloControlCluster>(
-        "haloControl",
-        command,
-        {value},
-        {manufacturerCode: HALO_MANUFACTURER_CODE, disableDefaultResponse: true},
-    );
+                const endpoint3 = device.getEndpoint(3);
+                if (endpoint3) {
+                    await reporting.bind(endpoint3, coordinatorEndpoint, ["ssIasZone"]);
+                    await endpoint3.read("ssIasZone", ["zoneStatus"]);
+                }
+            },
+        ],
+        isModernExtend: true,
+    };
 }
 
-function getHaloEndpoint(meta: Tz.Meta, endpointId: number) {
-    const endpoint = meta.device.getEndpoint(endpointId);
-    if (!endpoint) {
-        throw new Error(`Failed to find endpoint ${endpointId} on Halo device ${meta.device.ieeeAddr}`);
-    }
-    return endpoint;
+function haloDeviceStatus(): ModernExtend {
+    return {
+        exposes: [
+            e
+                .enum("halo_alert_state", ea.STATE, [...HALO_ALERT_STATES])
+                .withDescription("Device state reported by the manufacturer cluster")
+                .withCategory("diagnostic"),
+            e.enum("room", ea.STATE_SET, [...HALO_ROOMS]).withDescription("Spoken room name used in Halo announcements"),
+        ],
+        fromZigbee: [
+            {
+                cluster: "haloDeviceStatus",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const payload: KeyValue = {};
+                    const status = msg.data.deviceStatus;
+                    if (status !== undefined) {
+                        const mapped = DEVICE_STATUS_LOOKUP[status] ?? "other";
+                        payload.halo_alert_state = mapped;
+                        payload.weather_alert = mapped === "weather";
+                    }
+                    if (msg.data.room !== undefined) {
+                        payload.room = haloRoomIdToName(msg.data.room);
+                    }
+                    if (Object.keys(payload).length > 0) {
+                        return payload;
+                    }
+                },
+            } satisfies Fz.Converter<"haloDeviceStatus", HaloDeviceStatusCluster, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["room"],
+                convertSet: async (entity, key, value, meta) => {
+                    const roomName = normalizeHaloRoom(value);
+                    const roomId = HALO_ROOM_ID_BY_NAME[roomName];
+                    const endpoint = meta.device.getEndpoint(4);
+                    if (!endpoint) {
+                        throw new Error(`Failed to find endpoint 4 on Halo device ${meta.device.ieeeAddr}`);
+                    }
+                    await endpoint.write<"haloDeviceStatus", HaloDeviceStatusCluster>(
+                        "haloDeviceStatus",
+                        {room: roomId},
+                        {manufacturerCode: HALO_MANUFACTURER_CODE},
+                    );
+                    return {state: {room: roomName}};
+                },
+            } satisfies Tz.Converter,
+        ],
+        configure: [
+            async (device, coordinatorEndpoint) => {
+                const endpoint4 = device.getEndpoint(4);
+                if (endpoint4) {
+                    await reporting.bind(endpoint4, coordinatorEndpoint, [CLUSTER_HALO_STATUS]);
+                    await endpoint4.read<"haloDeviceStatus", HaloDeviceStatusCluster>("haloDeviceStatus", ["deviceStatus", "room"], {
+                        manufacturerCode: HALO_MANUFACTURER_CODE,
+                    });
+                }
+            },
+        ],
+        isModernExtend: true,
+    };
 }
 
-const tzLocal = {
-    haloHush: {
-        key: ["hush"],
-        convertSet: async (entity, key, value, meta) => {
-            if (value === undefined) throw new Error("Value must be provided");
-            const normalized = String(value).toLowerCase();
-            if (!["start", "stop"].includes(normalized)) {
-                throw new Error("Value must be one of 'start' or 'stop'");
-            }
-            const payloadValue = normalized === "start" ? HALO_HUSH_START : HALO_HUSH_STOP;
-            const controlEndpoint = getHaloEndpoint(meta, 4);
-            await sendHaloControlCommand(controlEndpoint, "haloHush", payloadValue);
-            return {state: {hush: normalized}};
-        },
-    } satisfies Tz.Converter,
-    haloTest: {
-        key: ["test_cycle"],
-        convertSet: async (entity, key, value, meta) => {
-            if (value === undefined) throw new Error("Value must be provided");
-            const normalized = String(value).toLowerCase();
-            if (!["start", "cancel"].includes(normalized)) {
-                throw new Error("Value must be one of 'start' or 'cancel'");
-            }
-            const payloadValue = normalized === "start" ? HALO_TEST_START : HALO_TEST_CANCEL;
-            const controlEndpoint = getHaloEndpoint(meta, 4);
-            await sendHaloControlCommand(controlEndpoint, "haloTest", payloadValue);
-            return {state: {test_cycle: normalized}};
-        },
-    } satisfies Tz.Converter,
-    haloRoom: {
-        key: ["room"],
-        convertSet: async (entity, key, value, meta) => {
-            const roomName = normalizeHaloRoom(value);
-            const roomId = HALO_ROOM_ID_BY_NAME[roomName];
-            const statusEndpoint = getHaloEndpoint(meta, 4);
-            await statusEndpoint.write<"haloDeviceStatus", HaloDeviceStatusCluster>(
-                "haloDeviceStatus",
-                {room: roomId},
-                {
-                    manufacturerCode: HALO_MANUFACTURER_CODE,
+function haloControl(): ModernExtend {
+    return {
+        exposes: [
+            e
+                .enum("halo_test_result", ea.STATE, [...HALO_TEST_STATES])
+                .withDescription("Result of the most recent self-test")
+                .withCategory("diagnostic"),
+            e.binary("test_in_progress", ea.STATE, true, false).withDescription("Indicates whether a test is running").withCategory("diagnostic"),
+            e
+                .enum("halo_hush_state", ea.STATE, [...HALO_HUSH_STATES])
+                .withDescription("Current hush status")
+                .withCategory("diagnostic"),
+            e.binary("hush_active", ea.STATE, true, false).withDescription("Indicates whether the alarm is hushed").withCategory("diagnostic"),
+            e.enum("hush", ea.SET, ["start", "stop"]).withDescription("Start or cancel hush mode"),
+            e.enum("test_cycle", ea.SET, ["start", "cancel"]).withDescription("Start or cancel the built-in test"),
+        ],
+        fromZigbee: [
+            {
+                cluster: "haloControl",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const payload: KeyValue = {};
+                    if (msg.data.testStatus !== undefined) {
+                        const mapped = TEST_STATUS_LOOKUP[msg.data.testStatus] ?? "idle";
+                        payload.halo_test_result = mapped;
+                        payload.test_in_progress = mapped === "running";
+                    }
+                    if (msg.data.hushStatus !== undefined) {
+                        const mapped = HUSH_STATUS_LOOKUP[msg.data.hushStatus] ?? "ready";
+                        payload.halo_hush_state = mapped;
+                        payload.hush_active = mapped === "success";
+                    }
+                    if (Object.keys(payload).length > 0) {
+                        return payload;
+                    }
                 },
-            );
-            return {state: {room: roomName}};
-        },
-    } satisfies Tz.Converter,
-    weatherPlayback: {
-        key: ["weather_playback"],
-        convertSet: async (entity, key, value, meta) => {
-            if (value === undefined) throw new Error("Value must be provided");
-            const normalized = typeof value === "boolean" ? (value ? "play" : "stop") : String(value).toLowerCase();
-            if (!WEATHER_PLAYBACK_ACTIONS.includes(normalized as WeatherPlaybackAction)) {
-                throw new Error("Value must be 'play' or 'stop'");
-            }
-            const commandValue = normalized === "play" ? 0x01 : 0x00;
-            const weatherEndpoint = getHaloEndpoint(meta, 5);
-            await weatherEndpoint.command<"haloWeather", "weatherRadioPlay", HaloWeatherCluster>(
-                "haloWeather",
-                "weatherRadioPlay",
-                {value: commandValue},
-                {manufacturerCode: HALO_MANUFACTURER_CODE, disableDefaultResponse: true},
-            );
-            return {state: {weather_playback: normalized, weather_playing_state: normalized === "play" ? "playing" : "quiet"}};
-        },
-    } satisfies Tz.Converter,
-    weatherStation: {
-        key: ["weather_station"],
-        convertSet: async (entity, key, value, meta) => {
-            if (value === undefined) throw new Error("Value must be provided");
-            const station = normalizeWeatherStation(value);
-            const weatherEndpoint = getHaloEndpoint(meta, 5);
-            await weatherEndpoint.write<"haloWeather", HaloWeatherCluster>(
-                "haloWeather",
-                {weatherStation: station},
-                {
-                    manufacturerCode: HALO_MANUFACTURER_CODE,
+            } satisfies Fz.Converter<"haloControl", HaloControlCluster, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["hush"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (value === undefined) throw new Error("Value must be provided");
+                    const normalized = String(value).toLowerCase();
+                    if (!["start", "stop"].includes(normalized)) {
+                        throw new Error("Value must be one of 'start' or 'stop'");
+                    }
+                    const payloadValue = normalized === "start" ? HALO_HUSH_START : HALO_HUSH_STOP;
+                    const endpoint = meta.device.getEndpoint(4);
+                    if (!endpoint) {
+                        throw new Error(`Failed to find endpoint 4 on Halo device ${meta.device.ieeeAddr}`);
+                    }
+                    await endpoint.command<"haloControl", "haloHush", HaloControlCluster>(
+                        "haloControl",
+                        "haloHush",
+                        {value: payloadValue},
+                        {manufacturerCode: HALO_MANUFACTURER_CODE, disableDefaultResponse: true},
+                    );
+                    return {state: {hush: normalized}};
                 },
-            );
-            return {state: {weather_station: station, weather_frequency: WEATHER_STATION_FREQUENCIES[station]}};
-        },
-    } satisfies Tz.Converter,
-    weatherLocation: {
-        key: ["weather_location"],
-        convertSet: async (entity, key, value, meta) => {
-            if (value === undefined) throw new Error("Value must be provided");
-            const location = normalizeWeatherLocation(value);
-            const weatherEndpoint = getHaloEndpoint(meta, 5);
-            await weatherEndpoint.write<"haloWeather", HaloWeatherCluster>(
-                "haloWeather",
-                {weatherLocation: location.numeric},
-                {
-                    manufacturerCode: HALO_MANUFACTURER_CODE,
+            } satisfies Tz.Converter,
+            {
+                key: ["test_cycle"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (value === undefined) throw new Error("Value must be provided");
+                    const normalized = String(value).toLowerCase();
+                    if (!["start", "cancel"].includes(normalized)) {
+                        throw new Error("Value must be one of 'start' or 'cancel'");
+                    }
+                    const payloadValue = normalized === "start" ? HALO_TEST_START : HALO_TEST_CANCEL;
+                    const endpoint = meta.device.getEndpoint(4);
+                    if (!endpoint) {
+                        throw new Error(`Failed to find endpoint 4 on Halo device ${meta.device.ieeeAddr}`);
+                    }
+                    await endpoint.command<"haloControl", "haloTest", HaloControlCluster>(
+                        "haloControl",
+                        "haloTest",
+                        {value: payloadValue},
+                        {manufacturerCode: HALO_MANUFACTURER_CODE, disableDefaultResponse: true},
+                    );
+                    return {state: {test_cycle: normalized}};
                 },
-            );
-            return {state: {weather_location: location.padded}};
-        },
-    } satisfies Tz.Converter,
-    weatherAlertsInterest: {
-        key: ["weather_alerts_interest"],
-        convertSet: async (entity, key, value, meta) => {
-            if (value === undefined) throw new Error("Value must be provided");
-            const alerts = parseWeatherAlertList(value);
-            const {event1, event2, event3} = encodeWeatherAlertBitmaps(alerts);
-            const weatherEndpoint = getHaloEndpoint(meta, 5);
-            await weatherEndpoint.write<"haloWeather", HaloWeatherCluster>(
-                "haloWeather",
-                {weatherEvent1: event1, weatherEvent2: event2, weatherEvent3: event3},
-                {manufacturerCode: HALO_MANUFACTURER_CODE},
-            );
-            return {state: {weather_alerts_interest: alerts}};
-        },
-    } satisfies Tz.Converter,
-};
-
-type HaloDefinitionOptions = {
-    zigbeeModel: string[];
-    model: string;
-    description: string;
-    supportsWeather: boolean;
-};
-
-function createHaloDefinition({zigbeeModel, model, description, supportsWeather}: HaloDefinitionOptions): DefinitionWithExtend {
-    const extend = [
-        m.deviceEndpoints({endpoints: {default: 1, light: 2}}),
-        m.deviceAddCustomCluster("haloDeviceStatus", {
-            ID: CLUSTER_HALO_STATUS,
-            manufacturerCode: HALO_MANUFACTURER_CODE,
-            attributes: {
-                deviceStatus: {ID: 0x0000, type: Zcl.DataType.ENUM8},
-                room: {ID: 0x0002, type: Zcl.DataType.ENUM8},
+            } satisfies Tz.Converter,
+        ],
+        configure: [
+            async (device, coordinatorEndpoint) => {
+                const endpoint4 = device.getEndpoint(4);
+                if (endpoint4) {
+                    await reporting.bind(endpoint4, coordinatorEndpoint, [CLUSTER_HALO_CONTROL]);
+                    await endpoint4.read<"haloControl", HaloControlCluster>("haloControl", ["testStatus", "hushStatus"], {
+                        manufacturerCode: HALO_MANUFACTURER_CODE,
+                    });
+                }
             },
-            commands: {},
-            commandsResponse: {},
-        }),
-        m.deviceAddCustomCluster("haloControl", {
-            ID: CLUSTER_HALO_CONTROL,
-            manufacturerCode: HALO_MANUFACTURER_CODE,
-            attributes: {
-                testStatus: {ID: 0x0000, type: Zcl.DataType.ENUM8},
-                hushStatus: {ID: 0x0001, type: Zcl.DataType.ENUM8},
-            },
-            commands: {
-                haloTest: {ID: HALO_COMMAND_TEST, parameters: [{name: "value", type: Zcl.DataType.UINT8}]},
-                haloHush: {ID: HALO_COMMAND_HUSH, parameters: [{name: "value", type: Zcl.DataType.UINT8}]},
-            },
-            commandsResponse: {},
-        }),
-        m.deviceAddCustomCluster("haloSensors", {
-            ID: CLUSTER_HALO_SENSORS,
-            manufacturerCode: HALO_MANUFACTURER_CODE,
-            attributes: {
-                coPpm: {ID: 0x0002, type: Zcl.DataType.INT16},
-            },
-            commands: {},
-            commandsResponse: {},
-        }),
-    ];
+        ],
+        isModernExtend: true,
+    };
+}
 
-    if (supportsWeather) {
-        extend.push(
-            m.deviceAddCustomCluster("haloWeather", {
-                ID: CLUSTER_HALO_WEATHER,
-                manufacturerCode: HALO_MANUFACTURER_CODE,
-                attributes: {
-                    weatherAlertStatus: {ID: 0x0000, type: Zcl.DataType.ENUM8},
-                    weatherMute: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
-                    weatherLocation: {ID: 0x0002, type: Zcl.DataType.UINT32},
-                    weatherEvent1: {ID: 0x0003, type: Zcl.DataType.BITMAP32},
-                    weatherEvent2: {ID: 0x0004, type: Zcl.DataType.BITMAP32},
-                    weatherEvent3: {ID: 0x0005, type: Zcl.DataType.BITMAP32},
-                    weatherStation: {ID: 0x0006, type: Zcl.DataType.UINT8},
-                    weatherStationRssi1: {ID: 0x0007, type: Zcl.DataType.UINT8},
-                    weatherStationRssi2: {ID: 0x0008, type: Zcl.DataType.UINT8},
-                    weatherStationRssi3: {ID: 0x0009, type: Zcl.DataType.UINT8},
-                    weatherStationRssi4: {ID: 0x000a, type: Zcl.DataType.UINT8},
-                    weatherStationRssi5: {ID: 0x000b, type: Zcl.DataType.UINT8},
-                    weatherStationRssi6: {ID: 0x000c, type: Zcl.DataType.UINT8},
-                    weatherStationRssi7: {ID: 0x000d, type: Zcl.DataType.UINT8},
+function haloSensors(): ModernExtend {
+    return {
+        exposes: [
+            e
+                .numeric("co_ppm", ea.STATE)
+                .withDescription("Current CO concentration reported by the detector")
+                .withUnit("ppm")
+                .withCategory("diagnostic"),
+        ],
+        fromZigbee: [
+            {
+                cluster: "haloSensors",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.coPpm !== undefined) {
+                        return {co_ppm: msg.data.coPpm};
+                    }
                 },
-                commands: {
-                    weatherScan: {ID: HALO_WEATHER_COMMAND_SCAN, parameters: []},
-                    weatherRadioPlay: {ID: HALO_WEATHER_COMMAND_PLAY, parameters: [{name: "value", type: Zcl.DataType.UINT8}]},
-                },
-                commandsResponse: {},
-            }),
-        );
-    }
+            } satisfies Fz.Converter<"haloSensors", HaloSensorsCluster, ["attributeReport", "readResponse"]>,
+        ],
+        configure: [
+            async (device, coordinatorEndpoint) => {
+                const endpoint4 = device.getEndpoint(4);
+                if (endpoint4) {
+                    await reporting.bind(endpoint4, coordinatorEndpoint, [CLUSTER_HALO_SENSORS]);
+                    await endpoint4.read<"haloSensors", HaloSensorsCluster>("haloSensors", ["coPpm"], {
+                        manufacturerCode: HALO_MANUFACTURER_CODE,
+                    });
+                    await m.setupAttributes(endpoint4, coordinatorEndpoint, "haloSensors", [
+                        {attribute: {ID: 0x0002, type: Zcl.DataType.INT16}, min: "10_SECONDS", max: "1_HOUR", change: 1},
+                    ]);
+                }
+            },
+        ],
+        isModernExtend: true,
+    };
+}
 
-    extend.push(
-        m.light({
-            color: {modes: ["hs"], enhancedHue: false},
-            configureReporting: true,
-            effect: false,
-            powerOnBehavior: false,
-            endpointNames: ["light"],
-        }),
-        m.battery({percentage: true, voltage: true, voltageReporting: true}),
-        m.temperature(),
-        m.humidity(),
-        m.pressure(),
-    );
-
-    const fromZigbee: DefinitionWithExtend["fromZigbee"] = [
-        fz.ias_enroll,
-        fzLocal.haloZoneStatus,
-        fzLocal.haloDeviceStatus,
-        fzLocal.haloControlStatus,
-        fzLocal.haloSensors,
-    ];
-    if (supportsWeather) {
-        fromZigbee.push(fzLocal.haloWeather);
-    }
-
-    const toZigbee: DefinitionWithExtend["toZigbee"] = [tzLocal.haloHush, tzLocal.haloTest, tzLocal.haloRoom];
-    if (supportsWeather) {
-        toZigbee.push(tzLocal.weatherPlayback, tzLocal.weatherStation, tzLocal.weatherLocation, tzLocal.weatherAlertsInterest);
-    }
-
-    const exposesList: Expose[] = [
-        e.smoke(),
-        e.carbon_monoxide(),
-        e.tamper(),
-        e.battery_low(),
-        e.test(),
-        e.numeric("co_ppm", ea.STATE).withDescription("Current CO concentration reported by the detector").withUnit("ppm").withCategory("diagnostic"),
-        e
-            .enum("halo_alert_state", ea.STATE, [...HALO_ALERT_STATES])
-            .withDescription("Device state reported by the manufacturer cluster")
-            .withCategory("diagnostic"),
-        e
-            .enum("halo_test_result", ea.STATE, [...HALO_TEST_STATES])
-            .withDescription("Result of the most recent self-test")
-            .withCategory("diagnostic"),
-        e
-            .enum("halo_hush_state", ea.STATE, [...HALO_HUSH_STATES])
-            .withDescription("Current hush status")
-            .withCategory("diagnostic"),
-        e.binary("test_in_progress", ea.STATE, true, false).withDescription("Indicates whether a test is running").withCategory("diagnostic"),
-        e.binary("hush_active", ea.STATE, true, false).withDescription("Indicates whether the alarm is hushed").withCategory("diagnostic"),
-        e.enum("room", ea.STATE_SET, [...HALO_ROOMS]).withDescription("Spoken room name used in Halo announcements"),
-        e
-            .binary("mains_power_connected", ea.STATE, true, false)
-            .withDescription("Indicates whether mains power is currently available")
-            .withCategory("diagnostic"),
-        e.enum("hush", ea.SET, ["start", "stop"]).withDescription("Start or cancel hush mode"),
-        e.enum("test_cycle", ea.SET, ["start", "cancel"]).withDescription("Start or cancel the built-in test"),
-    ];
-
-    if (supportsWeather) {
-        exposesList.push(
+function haloWeather(): ModernExtend {
+    return {
+        exposes: [
             e
                 .binary("weather_alert", ea.STATE, true, false)
                 .withDescription("Indicates an active NOAA/SAME weather alert")
@@ -860,87 +730,268 @@ function createHaloDefinition({zigbeeModel, model, description, supportsWeather}
                 .withDescription("Current playback state of the weather radio")
                 .withCategory("diagnostic"),
             e.enum("weather_playback", ea.SET, [...WEATHER_PLAYBACK_ACTIONS]).withDescription("Start or stop the weather radio audio"),
-        );
-    }
+        ],
+        fromZigbee: [
+            {
+                cluster: "haloWeather",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const payload: KeyValue = {};
+                    const weatherState = ensureHaloWeatherMetaState(meta);
 
-    return {
-        zigbeeModel,
-        model,
-        vendor: "Halo Smart Labs",
-        description,
-        extend,
-        fromZigbee,
-        toZigbee,
-        exposes: exposesList,
-        meta: {disableDefaultResponse: true, forceHueAndSaturation: true},
-        configure: async (device, coordinatorEndpoint) => configureHalo(device, coordinatorEndpoint, supportsWeather),
+                    if (msg.data.weatherAlertStatus !== undefined) {
+                        const code = (WEATHER_ID_TO_ALERT[msg.data.weatherAlertStatus] ?? "UNKNOWN") as WeatherAlertStateCode;
+                        payload.current_weather_alert = code;
+                        payload.weather_alert = msg.data.weatherAlertStatus !== 0;
+                    }
+
+                    if (msg.data.weatherMute !== undefined) {
+                        const playing = Number(msg.data.weatherMute) === 1;
+                        payload.weather_playing_state = playing ? "playing" : "quiet";
+                    }
+
+                    if (msg.data.weatherLocation !== undefined) {
+                        payload.weather_location = msg.data.weatherLocation.toString().padStart(6, "0");
+                    }
+
+                    if (msg.data.weatherStation !== undefined) {
+                        const station = msg.data.weatherStation;
+                        if (station >= WEATHER_STATION_MIN && station <= WEATHER_STATION_MAX) {
+                            payload.weather_station = station;
+                            payload.weather_frequency = WEATHER_STATION_FREQUENCIES[station];
+                        }
+                    }
+
+                    let eventsChanged = false;
+                    if (msg.data.weatherEvent1 !== undefined) {
+                        weatherState.event1 = msg.data.weatherEvent1;
+                        eventsChanged = true;
+                    }
+                    if (msg.data.weatherEvent2 !== undefined) {
+                        weatherState.event2 = msg.data.weatherEvent2;
+                        eventsChanged = true;
+                    }
+                    if (msg.data.weatherEvent3 !== undefined) {
+                        weatherState.event3 = msg.data.weatherEvent3;
+                        eventsChanged = true;
+                    }
+                    if (eventsChanged) {
+                        payload.weather_alerts_interest = decodeWeatherAlertBitmaps(weatherState);
+                    }
+
+                    if (Object.keys(payload).length > 0) {
+                        return payload;
+                    }
+                },
+            } satisfies Fz.Converter<"haloWeather", HaloWeatherCluster, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["weather_playback"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (value === undefined) throw new Error("Value must be provided");
+                    const normalized = typeof value === "boolean" ? (value ? "play" : "stop") : String(value).toLowerCase();
+                    if (!WEATHER_PLAYBACK_ACTIONS.includes(normalized as WeatherPlaybackAction)) {
+                        throw new Error("Value must be 'play' or 'stop'");
+                    }
+                    const commandValue = normalized === "play" ? 0x01 : 0x00;
+                    const endpoint = meta.device.getEndpoint(5);
+                    if (!endpoint) {
+                        throw new Error(`Failed to find endpoint 5 on Halo device ${meta.device.ieeeAddr}`);
+                    }
+                    await endpoint.command<"haloWeather", "weatherRadioPlay", HaloWeatherCluster>(
+                        "haloWeather",
+                        "weatherRadioPlay",
+                        {value: commandValue},
+                        {manufacturerCode: HALO_MANUFACTURER_CODE, disableDefaultResponse: true},
+                    );
+                    return {state: {weather_playback: normalized, weather_playing_state: normalized === "play" ? "playing" : "quiet"}};
+                },
+            } satisfies Tz.Converter,
+            {
+                key: ["weather_station"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (value === undefined) throw new Error("Value must be provided");
+                    const station = normalizeWeatherStation(value);
+                    const endpoint = meta.device.getEndpoint(5);
+                    if (!endpoint) {
+                        throw new Error(`Failed to find endpoint 5 on Halo device ${meta.device.ieeeAddr}`);
+                    }
+                    await endpoint.write<"haloWeather", HaloWeatherCluster>(
+                        "haloWeather",
+                        {weatherStation: station},
+                        {manufacturerCode: HALO_MANUFACTURER_CODE},
+                    );
+                    return {state: {weather_station: station, weather_frequency: WEATHER_STATION_FREQUENCIES[station]}};
+                },
+            } satisfies Tz.Converter,
+            {
+                key: ["weather_location"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (value === undefined) throw new Error("Value must be provided");
+                    const location = normalizeWeatherLocation(value);
+                    const endpoint = meta.device.getEndpoint(5);
+                    if (!endpoint) {
+                        throw new Error(`Failed to find endpoint 5 on Halo device ${meta.device.ieeeAddr}`);
+                    }
+                    await endpoint.write<"haloWeather", HaloWeatherCluster>(
+                        "haloWeather",
+                        {weatherLocation: location.numeric},
+                        {manufacturerCode: HALO_MANUFACTURER_CODE},
+                    );
+                    return {state: {weather_location: location.padded}};
+                },
+            } satisfies Tz.Converter,
+            {
+                key: ["weather_alerts_interest"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (value === undefined) throw new Error("Value must be provided");
+                    const alerts = parseWeatherAlertList(value);
+                    const {event1, event2, event3} = encodeWeatherAlertBitmaps(alerts);
+                    const endpoint = meta.device.getEndpoint(5);
+                    if (!endpoint) {
+                        throw new Error(`Failed to find endpoint 5 on Halo device ${meta.device.ieeeAddr}`);
+                    }
+                    await endpoint.write<"haloWeather", HaloWeatherCluster>(
+                        "haloWeather",
+                        {weatherEvent1: event1, weatherEvent2: event2, weatherEvent3: event3},
+                        {manufacturerCode: HALO_MANUFACTURER_CODE},
+                    );
+                    return {state: {weather_alerts_interest: alerts}};
+                },
+            } satisfies Tz.Converter,
+        ],
+        configure: [
+            async (device, coordinatorEndpoint) => {
+                const endpoint5 = device.getEndpoint(5);
+                if (endpoint5) {
+                    await reporting.bind(endpoint5, coordinatorEndpoint, [CLUSTER_HALO_WEATHER]);
+                    await endpoint5.read<"haloWeather", HaloWeatherCluster>(
+                        "haloWeather",
+                        ["weatherAlertStatus", "weatherMute", "weatherLocation", "weatherEvent1", "weatherEvent2", "weatherEvent3", "weatherStation"],
+                        {manufacturerCode: HALO_MANUFACTURER_CODE},
+                    );
+                }
+            },
+        ],
+        isModernExtend: true,
     };
 }
 
-async function configureHalo(device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, supportsWeather: boolean) {
-    const endpoint1 = device.getEndpoint(1);
-    const endpoint2 = device.getEndpoint(2);
-    const endpoint3 = device.getEndpoint(3);
-    const endpoint4 = device.getEndpoint(4);
-    const endpoint5 = supportsWeather ? device.getEndpoint(5) : undefined;
-
-    if (endpoint1) {
-        await reporting.bind(endpoint1, coordinatorEndpoint, ["ssIasZone"]);
-        await endpoint1.read("ssIasZone", ["zoneStatus"]);
-    }
-
-    if (endpoint2) {
-        await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]);
-        endpoint2.saveClusterAttributeKeyValue("lightingColorCtrl", {
-            // Cache color capability bits so color_sync logic knows hue/sat is supported even without reporting.
-            colorCapabilities: 0x09,
-            colorTempPhysicalMin: 153,
-            colorTempPhysicalMax: 500,
-        });
-    }
-
-    if (endpoint3) {
-        await reporting.bind(endpoint3, coordinatorEndpoint, ["ssIasZone"]);
-        await endpoint3.read("ssIasZone", ["zoneStatus"]);
-    }
-
-    if (endpoint4) {
-        await reporting.bind(endpoint4, coordinatorEndpoint, [CLUSTER_HALO_STATUS, CLUSTER_HALO_CONTROL, CLUSTER_HALO_SENSORS]);
-        await endpoint4.read<"haloDeviceStatus", HaloDeviceStatusCluster>("haloDeviceStatus", ["deviceStatus", "room"], {
-            manufacturerCode: HALO_MANUFACTURER_CODE,
-        });
-        await endpoint4.read<"haloControl", HaloControlCluster>("haloControl", ["testStatus", "hushStatus"], {
-            manufacturerCode: HALO_MANUFACTURER_CODE,
-        });
-        await endpoint4.read<"haloSensors", HaloSensorsCluster>("haloSensors", ["coPpm"], {
-            manufacturerCode: HALO_MANUFACTURER_CODE,
-        });
-        await m.setupAttributes(endpoint4, coordinatorEndpoint, "haloSensors", [
-            {attribute: {ID: 0x0002, type: Zcl.DataType.INT16}, min: "10_SECONDS", max: "1_HOUR", change: 1},
-        ]);
-    }
-
-    if (supportsWeather && endpoint5) {
-        await reporting.bind(endpoint5, coordinatorEndpoint, [CLUSTER_HALO_WEATHER]);
-        await endpoint5.read<"haloWeather", HaloWeatherCluster>(
-            "haloWeather",
-            ["weatherAlertStatus", "weatherMute", "weatherLocation", "weatherEvent1", "weatherEvent2", "weatherEvent3", "weatherStation"],
-            {manufacturerCode: HALO_MANUFACTURER_CODE},
-        );
-    }
-}
+const haloCommonExtend: ModernExtend[] = [
+    m.deviceEndpoints({endpoints: {default: 1, light: 2}}),
+    m.deviceAddCustomCluster("haloDeviceStatus", {
+        ID: CLUSTER_HALO_STATUS,
+        manufacturerCode: HALO_MANUFACTURER_CODE,
+        attributes: {
+            deviceStatus: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+            room: {ID: 0x0002, type: Zcl.DataType.ENUM8},
+        },
+        commands: {},
+        commandsResponse: {},
+    }),
+    m.deviceAddCustomCluster("haloControl", {
+        ID: CLUSTER_HALO_CONTROL,
+        manufacturerCode: HALO_MANUFACTURER_CODE,
+        attributes: {
+            testStatus: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+            hushStatus: {ID: 0x0001, type: Zcl.DataType.ENUM8},
+        },
+        commands: {
+            haloTest: {ID: HALO_COMMAND_TEST, parameters: [{name: "value", type: Zcl.DataType.UINT8}]},
+            haloHush: {ID: HALO_COMMAND_HUSH, parameters: [{name: "value", type: Zcl.DataType.UINT8}]},
+        },
+        commandsResponse: {},
+    }),
+    m.deviceAddCustomCluster("haloSensors", {
+        ID: CLUSTER_HALO_SENSORS,
+        manufacturerCode: HALO_MANUFACTURER_CODE,
+        attributes: {
+            coPpm: {ID: 0x0002, type: Zcl.DataType.INT16},
+        },
+        commands: {},
+        commandsResponse: {},
+    }),
+    haloZoneStatus(),
+    haloDeviceStatus(),
+    haloControl(),
+    haloSensors(),
+    m.light({
+        color: {modes: ["hs"], enhancedHue: false},
+        configureReporting: true,
+        effect: false,
+        powerOnBehavior: false,
+        endpointNames: ["light"],
+    }),
+    m.battery({percentage: true, voltage: true, voltageReporting: true}),
+    m.temperature(),
+    m.humidity(),
+    m.pressure(),
+];
 
 export const definitions: DefinitionWithExtend[] = [
-    createHaloDefinition({
+    {
         zigbeeModel: ["halo"],
         model: "HALO",
+        vendor: "Halo Smart Labs",
         description: "Halo smart smoke & CO detector",
-        supportsWeather: false,
-    }),
-    createHaloDefinition({
+        extend: [...haloCommonExtend],
+        meta: {disableDefaultResponse: true},
+        configure: (device) => {
+            const endpoint2 = device.getEndpoint(2);
+            if (endpoint2) {
+                endpoint2.saveClusterAttributeKeyValue("lightingColorCtrl", {
+                    colorCapabilities: 0x09,
+                    colorTempPhysicalMin: 153,
+                    colorTempPhysicalMax: 500,
+                });
+            }
+        },
+    },
+    {
         zigbeeModel: ["halo+", "haloWX", "SABDA1"],
         model: "HALO+",
+        vendor: "Halo Smart Labs",
         description: "Halo+ smart smoke & CO detector with weather radio",
-        supportsWeather: true,
-    }),
+        extend: [
+            ...haloCommonExtend,
+            m.deviceAddCustomCluster("haloWeather", {
+                ID: CLUSTER_HALO_WEATHER,
+                manufacturerCode: HALO_MANUFACTURER_CODE,
+                attributes: {
+                    weatherAlertStatus: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+                    weatherMute: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
+                    weatherLocation: {ID: 0x0002, type: Zcl.DataType.UINT32},
+                    weatherEvent1: {ID: 0x0003, type: Zcl.DataType.BITMAP32},
+                    weatherEvent2: {ID: 0x0004, type: Zcl.DataType.BITMAP32},
+                    weatherEvent3: {ID: 0x0005, type: Zcl.DataType.BITMAP32},
+                    weatherStation: {ID: 0x0006, type: Zcl.DataType.UINT8},
+                    weatherStationRssi1: {ID: 0x0007, type: Zcl.DataType.UINT8},
+                    weatherStationRssi2: {ID: 0x0008, type: Zcl.DataType.UINT8},
+                    weatherStationRssi3: {ID: 0x0009, type: Zcl.DataType.UINT8},
+                    weatherStationRssi4: {ID: 0x000a, type: Zcl.DataType.UINT8},
+                    weatherStationRssi5: {ID: 0x000b, type: Zcl.DataType.UINT8},
+                    weatherStationRssi6: {ID: 0x000c, type: Zcl.DataType.UINT8},
+                    weatherStationRssi7: {ID: 0x000d, type: Zcl.DataType.UINT8},
+                },
+                commands: {
+                    weatherScan: {ID: HALO_WEATHER_COMMAND_SCAN, parameters: []},
+                    weatherRadioPlay: {ID: HALO_WEATHER_COMMAND_PLAY, parameters: [{name: "value", type: Zcl.DataType.UINT8}]},
+                },
+                commandsResponse: {},
+            }),
+            haloWeather(),
+        ],
+        meta: {disableDefaultResponse: true},
+        configure: (device) => {
+            const endpoint2 = device.getEndpoint(2);
+            if (endpoint2) {
+                endpoint2.saveClusterAttributeKeyValue("lightingColorCtrl", {
+                    colorCapabilities: 0x09,
+                    colorTempPhysicalMin: 153,
+                    colorTempPhysicalMax: 500,
+                });
+            }
+        },
+    },
 ];

@@ -212,13 +212,6 @@ export interface DefinitionMeta {
      */
     supportsHueAndSaturation?: boolean;
     /**
-     * Force incoming RGB/XY colours to be converted to hue/saturation before
-     * sending to the device. Useful for lights that only support HS mode.
-     *
-     * @defaultValue false
-     */
-    forceHueAndSaturation?: boolean;
-    /**
      * Do not set `position` or `tilt` to target value on /set. See `toZigbee.cover_position_tilt`
      *
      * @defaultValue false

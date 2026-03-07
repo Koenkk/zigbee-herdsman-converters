@@ -66,18 +66,11 @@ export const light_color: Tz.Converter = {
     key: ["color"],
     options: [exposes.options.color_sync(), exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
-        let newColor = libColor.Color.fromConverterArg(value);
+        const newColor = libColor.Color.fromConverterArg(value);
         const newState: KeyValueAny = {};
         const transtime = utils.getTransition(entity, key, meta).time;
         const supportsHueAndSaturation = utils.getMetaValue(entity, meta.mapped, "supportsHueAndSaturation", "allEqual", true);
         const supportsEnhancedHue = utils.getMetaValue(entity, meta.mapped, "supportsEnhancedHue", "allEqual", true);
-        const forceHueAndSaturation = utils.getMetaValue(entity, meta.mapped, "forceHueAndSaturation", "allEqual", false);
-
-        if (forceHueAndSaturation && (newColor.isRGB() || newColor.isXY())) {
-            const hsvConverted = newColor.isRGB() ? newColor.rgb.gammaCorrected().toHSV() : newColor.xy.toHSV();
-            const sanitizedHsv = new libColor.ColorHSV(hsvConverted.hue, hsvConverted.saturation, null);
-            newColor = new libColor.Color(sanitizedHsv, null, null);
-        }
 
         if (newColor.isHSV() && !supportsHueAndSaturation) {
             // The color we got is HSV but the bulb does not support Hue/Saturation mode
