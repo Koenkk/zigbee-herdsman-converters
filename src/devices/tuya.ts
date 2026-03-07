@@ -25189,7 +25189,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.valve(),
-    
+
             exposes
                 .numeric("position", ea.STATE_SET)
                 .withUnit("%")
@@ -25197,7 +25197,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withValueStep(10)
                 .withDescription("Target valve position (steps of 10%)"),
-    
+
             exposes
                 .numeric("position_current", ea.STATE)
                 .withUnit("%")
