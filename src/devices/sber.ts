@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
+import type {Cluster} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -459,7 +459,7 @@ const sdevices = {
     },
 };
 
-const sdevicesCustomClusterDefinition: ClusterDefinition = {
+const sdevicesCustomCluster: Cluster = {
     name: "manuSpecificSDevices",
     ID: 0xfccf,
     manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
@@ -572,7 +572,7 @@ interface SberThermostatUserInterfaceCfg {
 }
 
 const sdevicesExtend = {
-    sdevicesCustomCluster: () => m.deviceAddCustomCluster("manuSpecificSDevices", sdevicesCustomClusterDefinition),
+    sdevicesCustomCluster: () => m.deviceAddCustomCluster("manuSpecificSDevices", sdevicesCustomCluster),
     haDiagnosticCluster: () =>
         m.deviceAddCustomCluster("haDiagnostic", {
             name: "haDiagnostic",
@@ -1710,7 +1710,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             if (!device.customClusters.manuSpecificSDevices) {
-                device.addCustomCluster("manuSpecificSDevices", sdevicesCustomClusterDefinition);
+                device.addCustomCluster("manuSpecificSDevices", sdevicesCustomCluster);
             }
             const coveringEp = device.getEndpoint(3);
             if (coveringEp != null) {

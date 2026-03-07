@@ -217,8 +217,8 @@ const philipsModernExtend = {
 
         const customCluster2 = philipsModernExtend.addManuSpecificPhilips2Cluster();
         const customCluster3 = philipsModernExtend.addManuSpecificPhilips3Cluster();
-        result.onEvent = [...(result.onEvent ?? []), ...customCluster2.onEvent, ...customCluster3.onEvent];
-        result.configure = [...(result.configure ?? []), ...customCluster2.configure, ...customCluster3.configure];
+        result.onEvent = [...customCluster2.onEvent, ...customCluster3.onEvent, ...(result.onEvent ?? [])];
+        result.configure = [...customCluster2.configure, ...customCluster3.configure, ...(result.configure ?? [])];
 
         return result;
     },
@@ -361,7 +361,7 @@ const philipsTz = {
             const scene = utils.getFromLookup(value, gradientScenes);
             if (!scene) throw new Error(`Gradient scene '${value}' is unknown`);
             const payload = {data: Buffer.from(scene, "hex")};
-            await entity.command("manuSpecificPhilips2", "multiColor", payload);
+            await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
         },
     } satisfies Tz.Converter,
     gradient: (opts = {reverse: false}) => {
@@ -371,10 +371,10 @@ const philipsTz = {
                 // @ts-expect-error ignore
                 const scene = encodeGradientColors(value, opts);
                 const payload = {data: Buffer.from(scene, "hex")};
-                await entity.command("manuSpecificPhilips2", "multiColor", payload);
+                await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificPhilips2", ["state"]);
+                await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
             },
         } satisfies Tz.Converter;
     },
@@ -383,7 +383,9 @@ const philipsTz = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, "effect");
             if (Object.keys(hueEffects).includes(value.toLowerCase())) {
-                await entity.command("manuSpecificPhilips2", "multiColor", {data: Buffer.from(utils.getFromLookup(value, hueEffects), "hex")});
+                await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", {
+                    data: Buffer.from(utils.getFromLookup(value, hueEffects), "hex"),
+                });
             } else {
                 return await tz.effect.convertSet(entity, key, value, meta);
             }

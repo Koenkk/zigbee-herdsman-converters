@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
+import type {Cluster} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -65,7 +65,7 @@ const owonExtendChecks = {
     },
 };
 
-const OwonClustersDefinition: {[s: string]: ClusterDefinition} = {
+const OwonClustersDefinition: {[s: string]: Cluster} = {
     manuSpecificOwonAc: {
         name: "manuSpecificOwonAc",
         ID: 0xffac,
