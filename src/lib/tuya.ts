@@ -2434,7 +2434,7 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter<
         "manuSpecificTuya",
-        Tuya,
+        ManuSpecificTuya,
         ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
     >,
     on_off_action: {
@@ -2594,7 +2594,7 @@ export function getHandlersForDP(
             },
         } satisfies Fz.Converter<
             "manuSpecificTuya",
-            Tuya,
+            ManuSpecificTuya,
             ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
         >,
     ];
