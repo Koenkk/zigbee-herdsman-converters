@@ -81,10 +81,12 @@ interface ZosungIrControl {
 export const zosungExtend = {
     addZosungIRTransmitCluster: () =>
         m.deviceAddCustomCluster("zosungIRTransmit", {
+            name: "zosungIRTransmit",
             ID: 0xed00,
             attributes: {},
             commands: {
                 zosungSendIRCode00: {
+                    name: "zosungSendIRCode00",
                     ID: 0x00,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -97,6 +99,7 @@ export const zosungExtend = {
                     ],
                 },
                 zosungSendIRCode01: {
+                    name: "zosungSendIRCode01",
                     ID: 0x01,
                     parameters: [
                         {name: "zero", type: Zcl.DataType.UINT8, max: 0xff},
@@ -110,6 +113,7 @@ export const zosungExtend = {
                     ],
                 },
                 zosungSendIRCode02: {
+                    name: "zosungSendIRCode02",
                     ID: 0x02,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -118,6 +122,7 @@ export const zosungExtend = {
                     ],
                 },
                 zosungSendIRCode03: {
+                    name: "zosungSendIRCode03",
                     ID: 0x03,
                     parameters: [
                         {name: "zero", type: Zcl.DataType.UINT8, max: 0xff},
@@ -128,6 +133,7 @@ export const zosungExtend = {
                     ],
                 },
                 zosungSendIRCode04: {
+                    name: "zosungSendIRCode04",
                     ID: 0x04,
                     parameters: [
                         {name: "zero0", type: Zcl.DataType.UINT8, max: 0xff},
@@ -136,6 +142,7 @@ export const zosungExtend = {
                     ],
                 },
                 zosungSendIRCode05: {
+                    name: "zosungSendIRCode05",
                     ID: 0x05,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -145,6 +152,7 @@ export const zosungExtend = {
             },
             commandsResponse: {
                 zosungSendIRCode03Resp: {
+                    name: "zosungSendIRCode03Resp",
                     ID: 0x03,
                     parameters: [
                         {name: "zero", type: Zcl.DataType.UINT8, max: 0xff},
@@ -155,6 +163,7 @@ export const zosungExtend = {
                     ],
                 },
                 zosungSendIRCode05Resp: {
+                    name: "zosungSendIRCode05Resp",
                     ID: 0x05,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -165,10 +174,12 @@ export const zosungExtend = {
         }),
     addZosungIRControlCluster: () =>
         m.deviceAddCustomCluster("zosungIRControl", {
+            name: "zosungIRControl",
             ID: 0xe004,
             attributes: {},
             commands: {
                 zosungControlIRCommand00: {
+                    name: "zosungControlIRCommand00",
                     ID: 0x00,
                     parameters: [
                         // JSON string with a command.
