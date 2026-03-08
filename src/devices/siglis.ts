@@ -43,13 +43,15 @@ interface SiglisZigfred {
 const siglisExtend = {
     addManuSpecificSiglisZigfredCluster: () =>
         m.deviceAddCustomCluster("manuSpecificSiglisZigfred", {
+            name: "manuSpecificSiglisZigfred",
             ID: 0xfc42,
             manufacturerCode: Zcl.ManufacturerCode.SIGLIS_AG,
             attributes: {
-                buttonEvent: {ID: 0x0008, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                buttonEvent: {name: "buttonEvent", ID: 0x0008, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
             },
             commands: {
                 siglisZigfredButtonEvent: {
+                    name: "siglisZigfredButtonEvent",
                     ID: 0x02,
                     parameters: [
                         {name: "button", type: Zcl.DataType.UINT8, max: 0xff},
