@@ -1743,16 +1743,17 @@ const manufacturerOptions = {
 export const lumiModernExtend = {
     addManuSpecificLumiCluster: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificLumi", {
+            name: "manuSpecificLumi",
             ID: 0xfcc0,
             manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECHOLOGY_LTD_SHENZHEN,
             attributes: {
-                mode: {ID: 0x0009, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                illuminance: {ID: 0x0112, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                displayUnit: {ID: 0x0114, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                airQuality: {ID: 0x0129, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                curtainReverse: {ID: 0x0400, type: Zcl.DataType.BOOLEAN, write: true},
-                curtainHandOpen: {ID: 0x0401, type: Zcl.DataType.BOOLEAN, write: true},
-                curtainCalibrated: {ID: 0x0402, type: Zcl.DataType.BOOLEAN, write: true},
+                mode: {name: "mode", ID: 0x0009, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                illuminance: {name: "illuminance", ID: 0x0112, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                displayUnit: {name: "displayUnit", ID: 0x0114, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                airQuality: {name: "airQuality", ID: 0x0129, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                curtainReverse: {name: "curtainReverse", ID: 0x0400, type: Zcl.DataType.BOOLEAN, write: true},
+                curtainHandOpen: {name: "curtainHandOpen", ID: 0x0401, type: Zcl.DataType.BOOLEAN, write: true},
+                curtainCalibrated: {name: "curtainCalibrated", ID: 0x0402, type: Zcl.DataType.BOOLEAN, write: true},
             },
             commands: {},
             commandsResponse: {},
