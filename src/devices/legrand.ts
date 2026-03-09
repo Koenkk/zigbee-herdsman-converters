@@ -1,7 +1,7 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
-import {eLegrand, fzLegrand, legrandOptions, readInitialBatteryState, tzLegrand} from "../lib/legrand";
+import {eLegrand, fzLegrand, legrandExtend, legrandOptions, readInitialBatteryState, tzLegrand} from "../lib/legrand";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -37,10 +37,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Legrand",
         description: "DIN dry contactor module",
         whiteLabel: [{vendor: "BTicino", model: "FC80AC"}],
-        extend: [m.onOff()],
+        extend: [legrandExtend.addLegrandDevicesCluster(), m.onOff()],
         ota: true,
         fromZigbee: [fz.identify, fz.electrical_measurement, fzLegrand.cluster_fc01],
-        toZigbee: [tz.legrand_device_mode, tzLegrand.identify, tz.electrical_measurement_power],
+        toZigbee: [tzLegrand.legrand_device_mode, tzLegrand.identify, tz.electrical_measurement_power],
         exposes: [
             e.power().withAccess(ea.STATE_GET),
             e
@@ -66,10 +66,15 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Legrand",
         description: "DIN contactor module",
         whiteLabel: [{vendor: "BTicino", model: "FC80CC"}],
-        extend: [m.onOff(), m.electricityMeter({cluster: "electrical", voltage: false, current: false})],
+        extend: [
+            legrandExtend.addLegrandDevicesCluster(),
+            legrandExtend.addLegrandDevices3Cluster(),
+            m.onOff(),
+            m.electricityMeter({cluster: "electrical", voltage: false, current: false}),
+        ],
         ota: true,
         fromZigbee: [fz.identify, fzLegrand.cluster_fc01, fz.electrical_measurement],
-        toZigbee: [tz.legrand_device_mode, tzLegrand.identify, tzLegrand.auto_mode, tz.electrical_measurement_power],
+        toZigbee: [tzLegrand.legrand_device_mode, tzLegrand.identify, tzLegrand.auto_mode, tz.electrical_measurement_power],
         exposes: [
             e
                 .enum("device_mode", ea.ALL, ["switch", "auto"])
@@ -88,10 +93,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Legrand",
         description: "DIN smart relay for light control",
         whiteLabel: [{vendor: "BTicino", model: "FC80RC"}],
-        extend: [m.onOff()],
+        extend: [legrandExtend.addLegrandDevicesCluster(), m.onOff()],
         ota: true,
         fromZigbee: [fz.identify, fz.electrical_measurement, fzLegrand.cluster_fc01],
-        toZigbee: [tz.legrand_device_mode, tzLegrand.identify, tz.electrical_measurement_power],
+        toZigbee: [tzLegrand.legrand_device_mode, tzLegrand.identify, tz.electrical_measurement_power],
         exposes: [
             e.power().withAccess(ea.STATE_GET),
             e
@@ -137,6 +142,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(false), fzLegrand.command_cover],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(false)],
+        extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: (device, options) => {
             return [
                 eLegrand.getCover(device),
@@ -178,6 +184,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {coverInverted: true},
         fromZigbee: [fz.identify, fz.legrand_binary_input_moving, fz.cover_position_tilt, fzLegrand.cluster_fc01],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode],
+        extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: [e.cover_position()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -201,6 +208,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true), fzLegrand.command_cover],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(true)],
+        extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: (device, options) => {
             return [
                 eLegrand.getCover(device),
@@ -282,7 +290,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Wired switch without neutral",
         ota: true,
         fromZigbee: [fz.identify, fz.level_config, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
-        toZigbee: [tzLegrand.led_mode, tz.legrand_device_mode, tzLegrand.identify, tz.ballast_config, tz.level_config],
+        toZigbee: [tzLegrand.led_mode, tzLegrand.legrand_device_mode, tzLegrand.identify, tz.ballast_config, tz.level_config],
         exposes: [
             e.numeric("ballast_minimum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the minimum brightness value"),
             e.numeric("ballast_maximum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the maximum brightness value"),
@@ -290,7 +298,7 @@ export const definitions: DefinitionWithExtend[] = [
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
-        extend: [m.light({configureReporting: true, levelConfig: {features: ["on_level"]}})],
+        extend: [legrandExtend.addLegrandDevicesCluster(), m.light({configureReporting: true, levelConfig: {features: ["on_level"]}})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genBinaryInput", "lightingBallastCfg"]);
@@ -303,7 +311,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Wired switch without neutral",
         ota: true,
         fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
-        toZigbee: [tzLegrand.led_mode, tz.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
+        toZigbee: [tzLegrand.led_mode, tzLegrand.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
         exposes: [
             e.numeric("ballast_minimum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the minimum brightness value"),
             e.numeric("ballast_maximum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the maximum brightness value"),
@@ -311,7 +319,7 @@ export const definitions: DefinitionWithExtend[] = [
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
-        extend: [m.light({configureReporting: true})],
+        extend: [legrandExtend.addLegrandDevicesCluster(), m.light({configureReporting: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genBinaryInput", "lightingBallastCfg"]);
@@ -325,6 +333,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.power_on_behavior, fzLegrand.cluster_fc01],
         toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify, tz.power_on_behavior],
+        extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: [
             e.switch(),
             e.action(["identify"]),
@@ -376,8 +385,9 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "BTicino", model: "LN4570CWI"}],
         ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
-        fromZigbee: [fz.legrand_scenes, fz.legrand_master_switch_center, fz.battery, fzLegrand.stop_poll_on_checkin],
+        fromZigbee: [fz.legrand_scenes, fzLegrand.legrand_master_switch_center, fz.battery, fzLegrand.stop_poll_on_checkin],
         toZigbee: [],
+        extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: [e.battery(), e.action(["enter", "leave", "sleep", "wakeup", "center"])],
         onEvent: readInitialBatteryState,
         configure: async (device, coordinatorEndpoint) => {
@@ -399,6 +409,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fz.legrand_power_alarm, fzLegrand.cluster_fc01],
         toZigbee: [tzLegrand.led_mode, tz.electrical_measurement_power, tz.legrand_power_alarm, tzLegrand.identify],
+        extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: [
             e.power().withAccess(ea.STATE_GET),
             e.power_phase_b().withAccess(ea.STATE_GET),
@@ -464,6 +475,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fz.legrand_power_alarm, fzLegrand.cluster_fc01],
         toZigbee: [tzLegrand.led_mode, tzLegrand.identify, tz.electrical_measurement_power, tz.legrand_power_alarm],
+        extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: [
             e.power().withAccess(ea.STATE_GET),
             e.power_apparent(),
@@ -516,8 +528,9 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Night/day wireless switch",
         ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
-        fromZigbee: [fz.legrand_scenes, fz.battery, fz.legrand_master_switch_center],
+        fromZigbee: [fz.legrand_scenes, fz.battery, fzLegrand.legrand_master_switch_center],
         toZigbee: [],
+        extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: [e.battery(), e.action(["enter", "leave", "sleep", "wakeup", "center"])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -571,8 +584,15 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Legrand",
         description: "Cable outlet with pilot wire and consumption measurement",
         ota: true,
-        fromZigbee: [fzLegrand.cluster_fc01, fz.legrand_pilot_wire_mode, fz.on_off, fz.electrical_measurement, fz.power_on_behavior],
-        toZigbee: [tz.legrand_device_mode, tz.legrand_pilot_wire_mode, tz.on_off, tz.electrical_measurement_power, tz.power_on_behavior],
+        fromZigbee: [fzLegrand.cluster_fc01, fzLegrand.legrand_pilot_wire_mode, fz.on_off, fz.electrical_measurement, fz.power_on_behavior],
+        toZigbee: [
+            tzLegrand.legrand_device_mode,
+            tzLegrand.legrand_pilot_wire_mode,
+            tz.on_off,
+            tz.electrical_measurement_power,
+            tz.power_on_behavior,
+        ],
+        extend: [legrandExtend.addLegrandDevicesCluster(), legrandExtend.addLegrandDevices2Cluster()],
         exposes: [
             e.binary("device_mode", ea.ALL, "pilot_on", "pilot_off"),
             e.pilot_wire_mode(),
@@ -601,7 +621,11 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.identify, fz.legrand_binary_input_on_off, fzLegrand.cluster_fc01],
         toZigbee: [tzLegrand.identify, tzLegrand.led_mode],
         exposes: [e.switch().withEndpoint("left"), e.switch().withEndpoint("right"), eLegrand.ledInDark(), eLegrand.ledIfOn()],
-        extend: [m.deviceEndpoints({endpoints: {left: 2, right: 1}}), m.light({configureReporting: true, endpointNames: ["left", "right"]})],
+        extend: [
+            legrandExtend.addLegrandDevicesCluster(),
+            m.deviceEndpoints({endpoints: {left: 2, right: 1}}),
+            m.light({configureReporting: true, endpointNames: ["left", "right"]}),
+        ],
     },
     {
         zigbeeModel: [" Mobile outlet\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"],
@@ -611,6 +635,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01],
         toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify],
+        extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: [e.switch(), e.action(["identify"]), e.power()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -628,6 +653,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fz.on_off, fz.legrand_binary_input_on_off, fzLegrand.cluster_fc01],
         toZigbee: [tz.on_off, tzLegrand.led_mode],
+        extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: [e.switch(), eLegrand.ledInDark(), eLegrand.ledIfOn()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -642,7 +668,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart dimmer switch with Netatmo",
         ota: true,
         fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
-        toZigbee: [tzLegrand.led_mode, tz.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
+        toZigbee: [tzLegrand.led_mode, tzLegrand.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
         exposes: [
             e.numeric("ballast_minimum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the minimum brightness value"),
             e.numeric("ballast_maximum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the maximum brightness value"),
@@ -650,7 +676,7 @@ export const definitions: DefinitionWithExtend[] = [
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
-        extend: [m.light({configureReporting: true})],
+        extend: [legrandExtend.addLegrandDevicesCluster(), m.light({configureReporting: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genBinaryInput", "lightingBallastCfg"]);
@@ -681,6 +707,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fz.identify, fz.on_off, fz.power_on_behavior, fzLegrand.cluster_fc01],
         toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify, tz.power_on_behavior],
+        extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: [e.switch(), e.action(["identify"]), eLegrand.ledInDark(), eLegrand.ledIfOn(), e.power_on_behavior()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -701,7 +728,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Dimmer switch with neutral",
         ota: true,
         fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
-        toZigbee: [tz.on_off, tzLegrand.led_mode, tz.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
+        toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
         exposes: [
             e.numeric("ballast_minimum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the minimum brightness value"),
             e.numeric("ballast_maximum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the maximum brightness value"),
@@ -710,7 +737,7 @@ export const definitions: DefinitionWithExtend[] = [
             eLegrand.ledInDark(),
             eLegrand.ledIfOn(),
         ],
-        extend: [m.light({configureReporting: true})],
+        extend: [legrandExtend.addLegrandDevicesCluster(), m.light({configureReporting: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBinaryInput", "genOnOff", "lightingBallastCfg"]);
@@ -727,6 +754,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLegrand.identify, tzLegrand.led_mode],
         exposes: [eLegrand.ledInDark(), eLegrand.ledIfOn()],
         extend: [
+            legrandExtend.addLegrandDevicesCluster(),
             m.deviceEndpoints({endpoints: {right: 1, center: 2, left: 3}}),
             m.onOff({configureReporting: true, endpointNames: ["right", "center", "left"]}),
         ],

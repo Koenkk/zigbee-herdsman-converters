@@ -486,6 +486,23 @@ const trv603ScheduleConverter = (dayNumber: number) => {
 };
 
 const tzLocal = {
+    acmelec_ae720k_state_double_on: {
+        key: ["state"],
+        convertSet: async (entity, key, value, meta) => {
+            const on = String(value).toLowerCase() === "on";
+            if (!on) {
+                await tuya.sendDataPointBool(entity, 1, false);
+                return {state: {state: "OFF"}};
+            }
+
+            // AE-720K requires ON twice (similar to pressing ON twice on device)
+            await tuya.sendDataPointBool(entity, 1, true);
+            await new Promise((r) => setTimeout(r, 220));
+            await tuya.sendDataPointBool(entity, 1, true);
+
+            return {state: {state: "ON"}};
+        },
+    } satisfies Tz.Converter,
     ts0049_countdown: {
         key: ["water_countdown"],
         convertSet: async (entity, key, value, meta) => {
@@ -1780,7 +1797,7 @@ export const definitions: DefinitionWithExtend[] = [
                             };
 
                             if (value === 0) {
-                                return "";
+                                return "no_alarm";
                             }
 
                             for (const [bit, name] of Object.entries(faultMap)) {
@@ -1885,7 +1902,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Outlet water temperature")
                 .withValueMin(0)
                 .withValueStep(0.01),
-            e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Power supply voltage").withValueMin(0).withValueStep(0.01),
+            e.battery_voltage(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -1940,7 +1957,7 @@ export const definitions: DefinitionWithExtend[] = [
                             }
 
                             for (const [bit, name] of Object.entries(faultMap)) {
-                                if (value & Number.parseInt(bit)) {
+                                if (value & Number.parseInt(bit, 10)) {
                                     faults.push(name);
                                 }
                             }
@@ -1974,7 +1991,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // DP 22 - Outlet Water Temperature
                 [22, "outlet_water_temperature", tuya.valueConverter.divideBy100],
                 // DP 24 - Power Supply Voltage
-                [26, "voltage", tuya.valueConverter.divideBy100],
+                [26, "battery_voltage", tuya.valueConverter.divideBy100],
             ],
         },
         options: [
@@ -2113,7 +2130,7 @@ export const definitions: DefinitionWithExtend[] = [
                             };
 
                             if (value === 0) {
-                                return "";
+                                return "no_alarm";
                             }
 
                             for (const [bit, name] of Object.entries(faultMap)) {
@@ -3504,7 +3521,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0501B_dimmer",
         description: "Zigbee dimmer",
         vendor: "Tuya",
-        extend: [tuyaLight({configureReporting: true, effect: false})],
+        extend: [tuyaLight({colorTemp: {range: [153, 500]}, configureReporting: true, effect: false})],
         whiteLabel: [tuya.whitelabel("Tuya", "L1(ZW)", "Light dimmer 0-10V", ["_TZB210_rkgngb5o"])],
     },
     {
@@ -4626,9 +4643,19 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {coverInverted: true},
         extend: [
             m.deviceAddCustomCluster("closuresWindowCovering", {
+                name: "closuresWindowCovering",
                 ID: 0x0102,
                 attributes: {
-                    currentPositionLiftPercentage: {ID: 0x0008, type: DataType.UINT8, report: true, scene: true, max: 100, default: 0, write: true},
+                    currentPositionLiftPercentage: {
+                        name: "currentPositionLiftPercentage",
+                        ID: 0x0008,
+                        type: DataType.UINT8,
+                        report: true,
+                        scene: true,
+                        max: 100,
+                        default: 0,
+                        write: true,
+                    },
                 },
                 commands: {},
                 commandsResponse: {},
@@ -5941,6 +5968,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_0ghwhypc",
             "_TZ3000_1adss9de",
             "_TZ3000_x8mbwtsz",
+            "_TZ3000_iktiy8ue",
         ]),
         model: "TS0001_power",
         description: "Switch with power monitoring",
@@ -5993,6 +6021,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nous", "L6Z", "Switch with power monitoring", ["_TZ3000_qaabwu5c", "_TZ3000_1adss9de"]),
             tuya.whitelabel("Tuya", "XSH01A", "1 gang switch", ["_TZ3000_x3ewpzyr"]),
             tuya.whitelabel("Moes", "ZM-104-M-16AM", "1 gang switch with power monitoring", ["_TZ3000_x8mbwtsz"]),
+            tuya.whitelabel("Nous", "B5Z", "1 gang switch with power monitoring", ["_TZ3000_iktiy8ue"]),
         ],
         extend: [
             tuya.modernExtend.electricityMeasurementPoll({
@@ -6093,7 +6122,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "XMSJ", "Zigbee USB power switch", ["_TZ3000_8n7lqbm0"]),
             tuya.whitelabel("Tuya", "ZG-001", "Smart home relay module", ["_TZ3000_g8n1n7lg"]),
             tuya.whitelabel("Nova Digital", "SA-1", "Safira smart light switch - 1 gang", ["_TZ3000_udl7uyd2"]),
-            tuya.whitelabel("Nous", "B6Z", "1 gang switch", ["_TZ3000_qamj2vnn"]),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -6529,6 +6557,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_prits6g4",
             "_TZ3000_xfxpoxe0",
             "_TZ3000_afgzktgb",
+            "_TZ3000_qamj2vnn",
         ]),
         model: "TS0001_switch_module",
         vendor: "Tuya",
@@ -6539,6 +6568,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("AVATTO", "ZWSM16-1-Zigbee", "1 gang switch module", ["_TZ3000_4rbqgcuv"]),
             tuya.whitelabel("AVATTO", "ZBTS60-01", "1 gang switch module with backlight", ["_TZ3000_xfxpoxe0"]),
             tuya.whitelabel("Moes", "ZM4LT1", "1-gang switch module", ["_TZ3000_afgzktgb"]),
+            tuya.whitelabel("Nous", "B6Z", "1 gang switch", ["_TZ3000_qamj2vnn"]),
         ],
         extend: [
             tuya.modernExtend.tuyaMagicPacket(),
@@ -10469,12 +10499,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_lcjsewlo", "_TZ3000_kfkqkjqe"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_lcjsewlo", "_TZ3000_kfkqkjqe", "_TZ3000_cziew6eu"]),
         model: "TS0726_3_gang",
         vendor: "Tuya",
         description: "3 gang switch with neutral wire",
         fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
+        whiteLabel: [tuya.whitelabel("Zemismart", "KES-606US-L3-EESS", "3 gang switch with neutral", ["_TZ3000_cziew6eu"])],
         exposes: [
             ...[1, 2, 3].map((ep) => e.switch().withEndpoint(`l${ep}`)),
             ...[1, 2, 3].map((ep) => e.power_on_behavior().withEndpoint(`l${ep}`)),
@@ -13249,10 +13280,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.deviceAddCustomCluster("genOnOff", {
+                name: "genOnOff",
                 ID: Zcl.Clusters.genOnOff.ID,
                 attributes: {},
                 commands: {
                     tuyaCountdown: {
+                        name: "tuyaCountdown",
                         ID: 0xf0,
                         parameters: [{name: "data", type: 1008 /* BUFFER */}],
                     },
@@ -14923,6 +14956,227 @@ export const definitions: DefinitionWithExtend[] = [
                 [117, "power_factor_l2", tuya.valueConverter.raw],
                 [118, "energy_l2", tuya.valueConverter.divideBy100],
                 [119, "energy_produced_l2", tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_d2zfgtij", "_TZE284_d2zfgtij", "_TZE200_d2zfgtij"]),
+        model: "SPM01V1-GT",
+        vendor: "Tuya",
+        description: "Smart energy monitor for 1P+N system",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.voltage(),
+            e.power(),
+            e.current(),
+            e.power_factor().withUnit("%"),
+            e.ac_frequency(),
+            e.energy().withDescription("Total forward active energy"),
+            e.produced_energy().withDescription("Total reverse active energy"),
+            // e.binary('clear_energy', ea.SET, 'ON', 'OFF').withDescription('Switch to OFF to clear energy'),
+            e.binary("device_locating", ea.SET, "ON", "OFF").withDescription("Locate device"),
+            e
+                .numeric("update_frequency", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Update frequency")
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withPreset("default", 30, "Default value"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [23, "produced_energy", tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant3],
+                [32, "ac_frequency", tuya.valueConverter.divideBy100],
+                [50, "power_factor", tuya.valueConverter.raw],
+                // [12, 'clear_energy', tuya.valueConverter.onOff],
+                [101, "device_locating", tuya.valueConverter.onOff],
+                [102, "update_frequency", tuya.valueConverterBasic.divideBy(1)],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_wjk6rurm", "_TZE284_wjk6rurm", "_TZE200_wjk6rurm"]),
+        model: "SPM02V1-GT",
+        vendor: "Tuya",
+        description: "Smart energy monitor for 3P+N system",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.voltageWithPhase("a"),
+            tuya.exposes.voltageWithPhase("b"),
+            tuya.exposes.voltageWithPhase("c"),
+            tuya.exposes.powerWithPhase("a"),
+            tuya.exposes.powerWithPhase("b"),
+            tuya.exposes.powerWithPhase("c"),
+            tuya.exposes.currentWithPhase("a"),
+            tuya.exposes.currentWithPhase("b"),
+            tuya.exposes.currentWithPhase("c"),
+            e.power_factor().withUnit("%").withDescription("Total power factor"),
+            e.power().withDescription("Total active power"),
+            e.energy().withDescription("Total forward active energy"),
+            e.produced_energy().withDescription("Total reverse active energy"),
+            tuya.exposes.energyWithPhase("a"),
+            tuya.exposes.energyWithPhase("b"),
+            tuya.exposes.energyWithPhase("c"),
+            tuya.exposes.energyProducedWithPhase("a"),
+            tuya.exposes.energyProducedWithPhase("b"),
+            tuya.exposes.energyProducedWithPhase("c"),
+            tuya.exposes.powerFactorWithPhase("a"),
+            tuya.exposes.powerFactorWithPhase("b"),
+            tuya.exposes.powerFactorWithPhase("c"),
+            e
+                .numeric("update_frequency", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Update frequency")
+                .withValueMin(30)
+                .withValueMax(3600)
+                .withPreset("default", 10, "Default value"),
+            // e.binary('clear_energy', ea.SET, 'ON', 'OFF').withDescription('Switch to OFF to clear energy'),
+            e.binary("device_locating", ea.SET, "ON", "OFF").withDescription("Locate device"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [23, "produced_energy", tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant2WithPhase("a")],
+                [7, null, tuya.valueConverter.phaseVariant2WithPhase("b")],
+                [8, null, tuya.valueConverter.phaseVariant2WithPhase("c")],
+                [29, "power", tuya.valueConverter.raw],
+                [32, "ac_frequency", tuya.valueConverter.divideBy100],
+                [50, "power_factor", tuya.valueConverter.raw],
+                // [12, 'clear_energy', tuya.valueConverter.onOff],
+                [101, "device_locating", tuya.valueConverter.onOff],
+                [102, "update_frequency", tuya.valueConverterBasic.divideBy(1)],
+                [108, "power_factor_a", tuya.valueConverter.raw],
+                [53, "energy_a", tuya.valueConverter.divideBy100],
+                [57, "energy_produced_a", tuya.valueConverter.divideBy100],
+                [117, "power_factor_b", tuya.valueConverter.raw],
+                [54, "energy_b", tuya.valueConverter.divideBy100],
+                [58, "energy_produced_b", tuya.valueConverter.divideBy100],
+                [126, "power_factor_c", tuya.valueConverter.raw],
+                [55, "energy_c", tuya.valueConverter.divideBy100],
+                [59, "energy_produced_c", tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_s4sa1mcx", "_TZE284_s4sa1mcx", "_TZE200_s4sa1mcx"]),
+        model: "SDM01V1-GT",
+        vendor: "Tuya",
+        description: "Smart energy monitor for 3P+N system",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.voltageWithPhase("a"),
+            tuya.exposes.voltageWithPhase("b"),
+            tuya.exposes.voltageWithPhase("c"),
+            tuya.exposes.powerWithPhase("a"),
+            tuya.exposes.powerWithPhase("b"),
+            tuya.exposes.powerWithPhase("c"),
+            tuya.exposes.currentWithPhase("a"),
+            tuya.exposes.currentWithPhase("b"),
+            tuya.exposes.currentWithPhase("c"),
+            e.energy().withDescription("Total forward active energy"),
+            e.produced_energy().withDescription("Total reverse active energy"),
+            e.power_factor().withUnit("%").withDescription("Total power factor"),
+            e.power().withDescription("Total active power"),
+            e.ac_frequency(),
+            // e.binary('clear_energy', ea.SET, 'ON', 'OFF').withDescription('Switch to OFF to clear energy'),
+            e.binary("device_locating", ea.SET, "ON", "OFF").withDescription("Locate device"),
+            tuya.exposes.energyWithPhase("a"),
+            tuya.exposes.energyWithPhase("b"),
+            tuya.exposes.energyWithPhase("c"),
+            tuya.exposes.energyProducedWithPhase("a"),
+            tuya.exposes.energyProducedWithPhase("b"),
+            tuya.exposes.energyProducedWithPhase("c"),
+            tuya.exposes.powerFactorWithPhase("a"),
+            tuya.exposes.powerFactorWithPhase("b"),
+            tuya.exposes.powerFactorWithPhase("c"),
+            e
+                .numeric("update_frequency", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Update frequency")
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withPreset("default", 30, "Default value"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [23, "produced_energy", tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant2WithPhase("a")],
+                [7, null, tuya.valueConverter.phaseVariant2WithPhase("b")],
+                [8, null, tuya.valueConverter.phaseVariant2WithPhase("c")],
+                [29, "power", tuya.valueConverter.raw],
+                [32, "ac_frequency", tuya.valueConverter.divideBy100],
+                [50, "power_factor", tuya.valueConverter.raw],
+                // [12, 'clear_energy', tuya.valueConverter.onOff],
+                [101, "device_locating", tuya.valueConverter.onOff],
+                [102, "update_frequency", tuya.valueConverterBasic.divideBy(1)],
+                [108, "power_factor_a", tuya.valueConverter.raw],
+                [53, "energy_a", tuya.valueConverter.divideBy100],
+                [57, "energy_produced_a", tuya.valueConverter.divideBy100],
+                [117, "power_factor_b", tuya.valueConverter.raw],
+                [54, "energy_b", tuya.valueConverter.divideBy100],
+                [58, "energy_produced_b", tuya.valueConverter.divideBy100],
+                [126, "power_factor_c", tuya.valueConverter.raw],
+                [55, "energy_c", tuya.valueConverter.divideBy100],
+                [59, "energy_produced_c", tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_x8diwkqb", "_TZE284_x8diwkqb", "_TZE200_x8diwkqb"]),
+        model: "SDM02V1-GT",
+        vendor: "Tuya",
+        description: "Smart energy monitor for 2P+N system",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.voltageWithPhase("l1"),
+            tuya.exposes.voltageWithPhase("l2"),
+            tuya.exposes.powerWithPhase("l1"),
+            tuya.exposes.powerWithPhase("l2"),
+            tuya.exposes.currentWithPhase("l1"),
+            tuya.exposes.currentWithPhase("l2"),
+            e.energy().withDescription("Total forward active energy"),
+            e.produced_energy().withDescription("Total reverse active energy"),
+            e.power_factor().withUnit("%").withDescription("Total power factor"),
+            e.power().withDescription("Total active power"),
+            e.ac_frequency(),
+            // e.binary('clear_energy', ea.SET, 'ON', 'OFF').withDescription('Switch to OFF to clear energy'),
+            e.binary("device_locating", ea.SET, "ON", "OFF").withDescription("Locate device"),
+            tuya.exposes.energyWithPhase("l1"),
+            tuya.exposes.energyWithPhase("l2"),
+            tuya.exposes.energyProducedWithPhase("l1"),
+            tuya.exposes.energyProducedWithPhase("l2"),
+            tuya.exposes.powerFactorWithPhase("l1"),
+            tuya.exposes.powerFactorWithPhase("l2"),
+            e
+                .numeric("update_frequency", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Update frequency")
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withPreset("default", 30, "Default value"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [23, "produced_energy", tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant2WithPhase("l1")],
+                [7, null, tuya.valueConverter.phaseVariant2WithPhase("l2")],
+                [29, "power", tuya.valueConverter.raw],
+                [32, "ac_frequency", tuya.valueConverter.divideBy100],
+                [50, "power_factor", tuya.valueConverter.raw],
+                // [12, 'clear_energy', tuya.valueConverter.onOff],
+                [101, "device_locating", tuya.valueConverter.onOff],
+                [102, "update_frequency", tuya.valueConverterBasic.divideBy(1)],
+                [108, "power_factor_l1", tuya.valueConverter.raw],
+                [53, "energy_l1", tuya.valueConverter.divideBy100],
+                [54, "energy_produced_l1", tuya.valueConverter.divideBy100],
+                [117, "power_factor_l2", tuya.valueConverter.raw],
+                [57, "energy_l2", tuya.valueConverter.divideBy100],
+                [58, "energy_produced_l2", tuya.valueConverter.divideBy100],
             ],
         },
     },
@@ -18634,7 +18888,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l5"),
             tuya.exposes.switch().withEndpoint("l6"),
             tuya.exposes.switchType(),
-            e.power_on_behavior(["off", "on"]).withAccess(ea.STATE_SET),
+            e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET),
         ],
         endpoint: (device) => {
             return {
@@ -19055,7 +19309,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fhvdgeuh", "_TZE200_abatw3kj", "_TZE204_4bjixefp", "_TZE284_5m4nchbm"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fhvdgeuh", "_TZE200_abatw3kj", "_TZE204_4bjixefp"]),
         model: "TS0601_din_4",
         vendor: "Tuya",
         description: "Din rail switch with power monitoring and threshold settings",
@@ -20726,6 +20980,60 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_mul9abs3"]),
+        model: "AE-720K",
+        vendor: "ACMELEC",
+        description: "Compatible with Daikin vrv system",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        toZigbee: [tzLocal.acmelec_ae720k_state_double_on],
+        exposes: [
+            // Same wording as AE-940K doc: state is binary and write-only
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
+            e
+                .climate()
+                .withSystemMode(["cool", "heat", "fan_only", "dry"], ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 16, 32, 1, ea.STATE_SET)
+                .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
+                .withLocalTemperature(ea.STATE),
+            e.child_lock(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        cool: tuya.enum(0),
+                        heat: tuya.enum(1),
+                        fan_only: tuya.enum(2),
+                        dry: tuya.enum(3),
+                    }),
+                ],
+                [16, "current_heating_setpoint", tuya.valueConverter.raw],
+                [
+                    28,
+                    "fan_mode",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        medium: tuya.enum(1),
+                        high: tuya.enum(2),
+                        auto: tuya.enum(3),
+                    }),
+                ],
+                [
+                    24,
+                    "local_temperature",
+                    {
+                        from: (v) => (typeof v === "number" && v > 60 ? v / 10 : v), // supports both 257->25.7 and 26->26
+                        to: (v) => v, // not used (read-only)
+                    },
+                ],
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mul9abs3"]),
         model: "AE-669K",
         vendor: "ACMELEC",
@@ -20962,12 +21270,16 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3002_kq3kqwjt",
             "_TZ3002_ybtqbyk3",
             "_TZ3002_iedhxgyi",
+            "_TZ3002_vsom92pp",
             "_TZ300A_vqrs45nj",
         ]),
         model: "TS0726_3_gang_scene_switch",
         vendor: "Tuya",
         description: "3 gang switch with scene and backlight",
-        whiteLabel: [tuya.whitelabel("BSEED", "EC-GL86ZPCS31", "3 gang switch with scene and backlight", ["_TZ3002_iedhxgyi"])],
+        whiteLabel: [
+            tuya.whitelabel("BSEED", "EC-GL86ZPCS31", "3 gang switch with scene and backlight", ["_TZ3002_iedhxgyi"]),
+            tuya.whitelabel("BSEED", "EC-SL-FK86ZPCS31", "3 gang switch with scene and backlight (no neutral line required)", ["_TZ3002_vsom92pp"]),
+        ],
         fromZigbee: [fzLocal.TS0726_action],
         exposes: [e.action(["scene_1", "scene_2", "scene_3"])],
         extend: [
@@ -20992,11 +21304,21 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_rsylfthg", "_TZ3002_umdkr64x", "_TZ3002_hkaktryd", "_TZ3002_pzao9ls1", "_TZ300A_vkflnsl0"]),
+        fingerprint: tuya.fingerprint("TS0726", [
+            "_TZ3000_rsylfthg",
+            "_TZ3002_umdkr64x",
+            "_TZ3002_hkaktryd",
+            "_TZ3002_pzao9ls1",
+            "_TZ300A_vkflnsl0",
+            // "BSEED_TODO",
+        ]),
         model: "TS0726_4_gang_scene_switch",
         vendor: "Tuya",
         description: "4 gang switch with scene and backlight",
-        whiteLabel: [tuya.whitelabel("BSEED", "EC-GL86ZPCS41", "4 gang switch with scene and backlight", ["_TZ3002_pzao9ls1"])],
+        whiteLabel: [
+            tuya.whitelabel("BSEED", "EC-GL86ZPCS41", "4 gang switch with scene and backlight", ["_TZ3002_pzao9ls1"]),
+            // tuya.whitelabel("BSEED", "EC-SL-FK86ZPCS41", "4 gang switch with scene and backlight (no neutral line required)", ["BSEED_TODO"]),
+        ],
         fromZigbee: [fzLocal.TS0726_action],
         exposes: [e.action(["scene_1", "scene_2", "scene_3", "scene_4"])],
         extend: [
@@ -21952,7 +22274,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tongou",
         description: "Zigbee energy meter (transformer clamp)",
         whiteLabel: [tuya.whitelabel("Tongou", "TOSA1-01WXJAT2A", "Smart energy meter, two wire", ["_TZE284_4hdbt6rn"])],
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnConfigure: true,
+                queryIntervalSeconds: 60,
+            }),
+        ],
         exposes: [
             e.energy(),
             e.voltage(),
@@ -22164,7 +22492,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_3regm3h6", "_TZE204_0hcjew5p", "_TZE204_6vwfjkcj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_3regm3h6", "_TZE204_0hcjew5p", "_TZE204_6vwfjkcj", "_TZE284_3regm3h6"]),
         model: "_TZE204_3regm3h6",
         vendor: "Tuya",
         description: "Smart thermostat for electric radiator with pilot wire",
@@ -22503,7 +22831,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
-            e.illuminance(),
             e.battery(),
             e
                 .numeric("fading_time", ea.STATE_SET)
@@ -22609,10 +22936,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.onOff({powerOnBehavior: false}),
             m.deviceAddCustomCluster("manuSpecificTuyaE001", {
+                name: "manuSpecificTuyaE001",
                 ID: 0xe001,
                 attributes: {},
                 commands: {
                     setCountdown: {
+                        name: "setCountdown",
                         ID: 0xfe,
                         parameters: [{name: "data", type: 1008}],
                     },
@@ -22815,7 +23144,46 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mvtclclq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5m4nchbm"]),
+        model: "SMKG-2KNL-SD",
+        vendor: "Tuya",
+        description: "Smart leakage protector 63a with leakage monitoring",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().setAccess("state", ea.STATE_SET),
+            e.voltage(),
+            e.current(),
+            e.power(),
+            e.energy(),
+            e.temperature(),
+            e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Real-time leakage current (DP 53)"),
+            e.numeric("over_voltage_threshold", ea.STATE_SET).withUnit("V").withValueMin(220).withValueMax(265),
+            e.numeric("under_voltage_threshold", ea.STATE_SET).withUnit("V").withValueMin(76).withValueMax(240),
+            e.numeric("over_current_threshold", ea.STATE_SET).withUnit("A").withValueMin(1).withValueMax(63),
+            e.numeric("leakage_threshold", ea.STATE_SET).withUnit("mA").withValueMin(10).withValueMax(100),
+            e.numeric("temp_threshold", ea.STATE_SET).withUnit("°C").withValueMin(40).withValueMax(150),
+            e.numeric("fault_code", ea.STATE).withDescription("0 = OK"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [20, "voltage", tuya.valueConverter.divideBy10],
+                [18, "current", tuya.valueConverter.divideBy100],
+                [19, "power", tuya.valueConverter.divideBy10],
+                [17, "energy", tuya.valueConverter.divideBy100],
+                [47, "temperature", tuya.valueConverter.raw],
+                [53, "leakage_current", tuya.valueConverter.raw],
+                [41, "leakage_threshold", tuya.valueConverter.raw],
+                [42, "over_voltage_threshold", tuya.valueConverter.raw],
+                [43, "under_voltage_threshold", tuya.valueConverter.raw],
+                [44, "over_current_threshold", tuya.valueConverter.raw],
+                [45, "temp_threshold", tuya.valueConverter.raw],
+                [9, "fault_code", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mvtclclq", "_TZE284_mvtclclq"]),
         model: "DS-1450WN",
         vendor: "Tuya",
         description: "Smart Zigbee Switch with power monitoring",
@@ -24812,7 +25180,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_seq9cm6u"]),
         model: "TS0601_bed_presence_sensor",
         vendor: "Tuya",
-        description: "'Pressure Sensing Strap/Bed Occupancy Sensor",
+        description: "Pressure Sensing Strap/Bed Occupancy Sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.occupancy(),
@@ -24853,7 +25221,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "presence", tuya.valueConverter.trueFalse0],
+                [1, "occupancy", tuya.valueConverter.trueFalse0],
                 [4, "battery", tuya.valueConverter.raw],
                 [
                     9,
@@ -24880,6 +25248,37 @@ export const definitions: DefinitionWithExtend[] = [
                         none_30min: tuya.enum(5),
                     }),
                 ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_hbnfokum"]),
+        model: "TS0601_water_valve_1",
+        vendor: "Tuya",
+        description: "Water valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch(),
+            e
+                .numeric("position", ea.STATE_SET)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(10)
+                .withDescription("Target valve position"),
+            e
+                .numeric("position_current", ea.STATE)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(10)
+                .withDescription("Current valve position (feedback, steps of 10%)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [101, "position", tuya.valueConverter.raw],
+                [102, "position_current", tuya.valueConverter.raw],
             ],
         },
     },

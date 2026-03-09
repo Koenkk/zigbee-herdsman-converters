@@ -24,7 +24,47 @@ interface SprutDevice {
     commandResponses: never;
 }
 
-const sprutCode = 0x6666;
+interface SprutVoc {
+    attributes: {
+        voc: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SprutNoise {
+    attributes: {
+        noise: number;
+        noiseDetected: number;
+        noiseDetectLevel: number;
+        noiseAfterDetectDelay: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SprutIrBlaster {
+    attributes: never;
+    commands: {
+        playStore: {
+            param: number;
+        };
+        learnStart: {
+            value: number;
+        };
+        learnStop: {
+            value: number;
+        };
+        clearStore: Record<string, never>;
+        playRam: Record<string, never>;
+        learnRamStart: Record<string, never>;
+        learnRamStop: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
+const sprutCode = Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE;
+
 const manufacturerOptions = {manufacturerCode: sprutCode};
 const switchActionValues = ["OFF", "ON"];
 const co2Lookup = {
@@ -58,7 +98,7 @@ const fzLocal = {
                 return {voc: msg.data.voc};
             }
         },
-    } satisfies Fz.Converter<"sprutVoc", undefined, ["readResponse", "attributeReport"]>,
+    } satisfies Fz.Converter<"sprutVoc", SprutVoc, ["readResponse", "attributeReport"]>,
     noise: {
         cluster: "sprutNoise",
         type: ["readResponse", "attributeReport"],
@@ -67,7 +107,7 @@ const fzLocal = {
                 return {noise: msg.data.noise.toFixed(2)};
             }
         },
-    } satisfies Fz.Converter<"sprutNoise", undefined, ["readResponse", "attributeReport"]>,
+    } satisfies Fz.Converter<"sprutNoise", SprutNoise, ["readResponse", "attributeReport"]>,
     noise_detected: {
         cluster: "sprutNoise",
         type: ["readResponse", "attributeReport"],
@@ -76,7 +116,7 @@ const fzLocal = {
                 return {noise_detected: msg.data.noiseDetected === 1};
             }
         },
-    } satisfies Fz.Converter<"sprutNoise", undefined, ["readResponse", "attributeReport"]>,
+    } satisfies Fz.Converter<"sprutNoise", SprutNoise, ["readResponse", "attributeReport"]>,
     occupancy_timeout: {
         cluster: "msOccupancySensing",
         type: ["readResponse", "attributeReport"],
@@ -90,7 +130,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {noise_timeout: msg.data.noiseAfterDetectDelay};
         },
-    } satisfies Fz.Converter<"sprutNoise", undefined, ["readResponse", "attributeReport"]>,
+    } satisfies Fz.Converter<"sprutNoise", SprutNoise, ["readResponse", "attributeReport"]>,
     occupancy_sensitivity: {
         cluster: "msOccupancySensing",
         type: ["readResponse", "attributeReport"],
@@ -104,7 +144,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {noise_detect_level: msg.data.noiseDetectLevel};
         },
-    } satisfies Fz.Converter<"sprutNoise", undefined, ["readResponse", "attributeReport"]>,
+    } satisfies Fz.Converter<"sprutNoise", SprutNoise, ["readResponse", "attributeReport"]>,
     co2_mh_z19b_config: {
         cluster: "msCO2",
         type: ["attributeReport", "readResponse"],
@@ -146,25 +186,25 @@ const tzLocal = {
 
             switch (key) {
                 case "play_store":
-                    await entity.command("sprutIrBlaster", "playStore", {param: value.rom}, options);
+                    await entity.command<"sprutIrBlaster", "playStore", SprutIrBlaster>("sprutIrBlaster", "playStore", {param: value.rom}, options);
                     break;
                 case "learn_start":
-                    await entity.command("sprutIrBlaster", "learnStart", {value: value.rom}, options);
+                    await entity.command<"sprutIrBlaster", "learnStart", SprutIrBlaster>("sprutIrBlaster", "learnStart", {value: value.rom}, options);
                     break;
                 case "learn_stop":
-                    await entity.command("sprutIrBlaster", "learnStop", {value: value.rom}, options);
+                    await entity.command<"sprutIrBlaster", "learnStop", SprutIrBlaster>("sprutIrBlaster", "learnStop", {value: value.rom}, options);
                     break;
                 case "clear_store":
-                    await entity.command("sprutIrBlaster", "clearStore", {}, options);
+                    await entity.command<"sprutIrBlaster", "clearStore", SprutIrBlaster>("sprutIrBlaster", "clearStore", {}, options);
                     break;
                 case "play_ram":
-                    await entity.command("sprutIrBlaster", "playRam", {}, options);
+                    await entity.command<"sprutIrBlaster", "playRam", SprutIrBlaster>("sprutIrBlaster", "playRam", {}, options);
                     break;
                 case "learn_ram_start":
-                    await entity.command("sprutIrBlaster", "learnRamStart", {}, options);
+                    await entity.command<"sprutIrBlaster", "learnRamStart", SprutIrBlaster>("sprutIrBlaster", "learnRamStart", {}, options);
                     break;
                 case "learn_ram_stop":
-                    await entity.command("sprutIrBlaster", "learnRamStop", {}, options);
+                    await entity.command<"sprutIrBlaster", "learnRamStop", SprutIrBlaster>("sprutIrBlaster", "learnRamStop", {}, options);
                     break;
             }
         },
@@ -185,11 +225,11 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             let number = toNumber(value, "noise_timeout");
             number *= 1;
-            await entity.write("sprutNoise", {noiseAfterDetectDelay: number}, getOptions(meta.mapped, entity));
+            await entity.write<"sprutNoise", SprutNoise>("sprutNoise", {noiseAfterDetectDelay: number}, getOptions(meta.mapped, entity));
             return {state: {[key]: number}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("sprutNoise", ["noiseAfterDetectDelay"]);
+            await entity.read<"sprutNoise", SprutNoise>("sprutNoise", ["noiseAfterDetectDelay"]);
         },
     } satisfies Tz.Converter,
     occupancy_sensitivity: {
@@ -211,11 +251,11 @@ const tzLocal = {
             let number = toNumber(value, "noise_detect_level");
             number *= 1;
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
-            await entity.write("sprutNoise", {noiseDetectLevel: number}, options);
+            await entity.write<"sprutNoise", SprutNoise>("sprutNoise", {noiseDetectLevel: number}, options);
             return {state: {[key]: number}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("sprutNoise", ["noiseDetectLevel"], manufacturerOptions);
+            await entity.read<"sprutNoise", SprutNoise>("sprutNoise", ["noiseDetectLevel"], manufacturerOptions);
         },
     } satisfies Tz.Converter,
     temperature_offset: {
@@ -265,6 +305,48 @@ const tzLocal = {
 };
 
 const sprutModernExtend = {
+    addSprutVocCluster: () =>
+        m.deviceAddCustomCluster("sprutVoc", {
+            name: "sprutVoc",
+            ID: 0x6601,
+            manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
+            attributes: {
+                voc: {name: "voc", ID: 0x6600, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addSprutNoiseCluster: () =>
+        m.deviceAddCustomCluster("sprutNoise", {
+            name: "sprutNoise",
+            ID: 0x6602,
+            manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
+            attributes: {
+                noise: {name: "noise", ID: 0x6600, type: Zcl.DataType.SINGLE_PREC, write: true},
+                noiseDetected: {name: "noiseDetected", ID: 0x6601, type: Zcl.DataType.BITMAP8, write: true},
+                noiseDetectLevel: {name: "noiseDetectLevel", ID: 0x6602, type: Zcl.DataType.SINGLE_PREC, write: true},
+                noiseAfterDetectDelay: {name: "noiseAfterDetectDelay", ID: 0x6603, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addSprutIrBlasterCluster: () =>
+        m.deviceAddCustomCluster("sprutIrBlaster", {
+            name: "sprutIrBlaster",
+            ID: 0x6603,
+            manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
+            attributes: {},
+            commands: {
+                playStore: {name: "playStore", ID: 0x00, parameters: [{name: "param", type: Zcl.DataType.UINT8, max: 0xff}]},
+                learnStart: {name: "learnStart", ID: 0x01, parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}]},
+                learnStop: {name: "learnStop", ID: 0x02, parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}]},
+                clearStore: {name: "clearStore", ID: 0x03, parameters: []},
+                playRam: {name: "playRam", ID: 0x04, parameters: []},
+                learnRamStart: {name: "learnRamStart", ID: 0x05, parameters: []},
+                learnRamStop: {name: "learnRamStop", ID: 0x06, parameters: []},
+            },
+            commandsResponse: {},
+        }),
     sprutActivityIndicator: (args?: Partial<m.BinaryArgs<"genBinaryOutput">>) =>
         m.binary({
             name: "activity_led",
@@ -373,7 +455,7 @@ const sprutModernExtend = {
             ...args,
         }),
     sprutNoise: (args?: Partial<m.NumericArgs<"sprutNoise">>) =>
-        m.numeric({
+        m.numeric<"sprutNoise", SprutNoise>({
             name: "noise",
             cluster: "sprutNoise",
             attribute: "noise",
@@ -386,7 +468,7 @@ const sprutModernExtend = {
             ...args,
         }),
     sprutNoiseDetectLevel: (args?: Partial<m.NumericArgs<"sprutNoise">>) =>
-        m.numeric({
+        m.numeric<"sprutNoise", SprutNoise>({
             name: "noise_detect_level",
             cluster: "sprutNoise",
             attribute: "noiseDetectLevel",
@@ -400,7 +482,7 @@ const sprutModernExtend = {
             ...args,
         }),
     sprutNoiseDetected: (args?: Partial<m.BinaryArgs<"sprutNoise">>) =>
-        m.binary({
+        m.binary<"sprutNoise", SprutNoise>({
             name: "noise_detected",
             cluster: "sprutNoise",
             attribute: "noiseDetected",
@@ -411,7 +493,7 @@ const sprutModernExtend = {
             ...args,
         }),
     sprutNoiseTimeout: (args?: Partial<m.NumericArgs<"sprutNoise">>) =>
-        m.numeric({
+        m.numeric<"sprutNoise", SprutNoise>({
             name: "noise_timeout",
             cluster: "sprutNoise",
             attribute: "noiseAfterDetectDelay",
@@ -424,7 +506,7 @@ const sprutModernExtend = {
             ...args,
         }),
     sprutVoc: (args?: Partial<m.NumericArgs<"sprutVoc">>) =>
-        m.numeric({
+        m.numeric<"sprutVoc", SprutVoc>({
             name: "voc",
             label: "VOC",
             cluster: "sprutVoc",
@@ -454,25 +536,40 @@ const sprutModernExtend = {
 
                     switch (key) {
                         case "play_store":
-                            await entity.command("sprutIrBlaster", "playStore", {param: value.rom}, options);
+                            await entity.command<"sprutIrBlaster", "playStore", SprutIrBlaster>(
+                                "sprutIrBlaster",
+                                "playStore",
+                                {param: value.rom},
+                                options,
+                            );
                             break;
                         case "learn_start":
-                            await entity.command("sprutIrBlaster", "learnStart", {value: value.rom}, options);
+                            await entity.command<"sprutIrBlaster", "learnStart", SprutIrBlaster>(
+                                "sprutIrBlaster",
+                                "learnStart",
+                                {value: value.rom},
+                                options,
+                            );
                             break;
                         case "learn_stop":
-                            await entity.command("sprutIrBlaster", "learnStop", {value: value.rom}, options);
+                            await entity.command<"sprutIrBlaster", "learnStop", SprutIrBlaster>(
+                                "sprutIrBlaster",
+                                "learnStop",
+                                {value: value.rom},
+                                options,
+                            );
                             break;
                         case "clear_store":
-                            await entity.command("sprutIrBlaster", "clearStore", {}, options);
+                            await entity.command<"sprutIrBlaster", "clearStore", SprutIrBlaster>("sprutIrBlaster", "clearStore", {}, options);
                             break;
                         case "play_ram":
-                            await entity.command("sprutIrBlaster", "playRam", {}, options);
+                            await entity.command<"sprutIrBlaster", "playRam", SprutIrBlaster>("sprutIrBlaster", "playRam", {}, options);
                             break;
                         case "learn_ram_start":
-                            await entity.command("sprutIrBlaster", "learnRamStart", {}, options);
+                            await entity.command<"sprutIrBlaster", "learnRamStart", SprutIrBlaster>("sprutIrBlaster", "learnRamStart", {}, options);
                             break;
                         case "learn_ram_stop":
-                            await entity.command("sprutIrBlaster", "learnRamStop", {}, options);
+                            await entity.command<"sprutIrBlaster", "learnRamStop", SprutIrBlaster>("sprutIrBlaster", "learnRamStop", {}, options);
                             break;
                     }
                 },
@@ -484,6 +581,9 @@ const sprutModernExtend = {
 };
 
 const {
+    addSprutVocCluster,
+    addSprutNoiseCluster,
+    addSprutIrBlasterCluster,
     sprutActivityIndicator,
     sprutIsConnected,
     sprutUartBaudRate,
@@ -623,7 +723,7 @@ export const definitions: DefinitionWithExtend[] = [
             let payload = reporting.payload<"msOccupancySensing">("sprutOccupancyLevel", 10, constants.repInterval.MINUTE, 5);
             await endpoint1.configureReporting("msOccupancySensing", payload, manufacturerOptions);
 
-            payload = reporting.payload<"sprutNoise">("noise", 10, constants.repInterval.MINUTE, 5);
+            payload = reporting.payload<"sprutNoise", SprutNoise>("noise", 10, constants.repInterval.MINUTE, 5);
             await endpoint1.configureReporting("sprutNoise", payload);
 
             // led_red
@@ -640,7 +740,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ["humidity"]},
         ota: true,
-        extend: [m.illuminance()],
+        extend: [addSprutVocCluster(), addSprutNoiseCluster(), addSprutIrBlasterCluster(), m.illuminance()],
     },
     {
         zigbeeModel: ["WBMSW4"],
@@ -648,27 +748,39 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Wirenboard",
         description: "Wall-mounted multi sensor",
         extend: [
+            addSprutVocCluster(),
+            addSprutNoiseCluster(),
+            addSprutIrBlasterCluster(),
             m.deviceAddCustomCluster("genBasic", {
+                name: "genBasic",
                 ID: 0,
                 attributes: {
-                    deviceVersion: {ID: 26113, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
-                    deviceSignature: {ID: 26114, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
-                    deviceBootVersion: {ID: 26115, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
-                    componentVersion: {ID: 26117, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
-                    componentSignature: {ID: 26118, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    deviceVersion: {name: "deviceVersion", ID: 26113, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    deviceSignature: {name: "deviceSignature", ID: 26114, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    deviceBootVersion: {name: "deviceBootVersion", ID: 26115, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    componentVersion: {name: "componentVersion", ID: 26117, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    componentSignature: {
+                        name: "componentSignature",
+                        ID: 26118,
+                        type: Zcl.DataType.CHAR_STR,
+                        manufacturerCode: sprutCode,
+                        write: true,
+                    },
                 },
                 commands: {},
                 commandsResponse: {},
             }),
             m.deviceAddCustomCluster("sprutDevice", {
+                name: "sprutDevice",
                 ID: 26112,
-                manufacturerCode: 26214,
+                manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
                 attributes: {
-                    isConnected: {ID: 26116, type: Zcl.DataType.BOOLEAN, write: true},
-                    UartBaudRate: {ID: 26113, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    isConnected: {name: "isConnected", ID: 26116, type: Zcl.DataType.BOOLEAN, write: true},
+                    UartBaudRate: {name: "UartBaudRate", ID: 26113, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 },
                 commands: {
                     debug: {
+                        name: "debug",
                         ID: 103,
                         parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}],
                     },

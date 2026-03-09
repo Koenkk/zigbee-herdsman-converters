@@ -9,7 +9,7 @@ import type {
 } from "zigbee-herdsman/dist/controller/tstype";
 import type {TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import {DataType} from "zigbee-herdsman/dist/zspec/zcl/definition/enums";
-import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
+import type {Cluster} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -406,7 +406,7 @@ export function battery(args: BatteryArgs = {}): ModernExtend {
                     // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                     let percentage = msg.data.batteryPercentageRemaining;
                     percentage = dontDividePercentage ? percentage : percentage / 2;
-                    if (percentage) payload.battery = precisionRound(percentage, 2);
+                    payload.battery = precisionRound(percentage, 2);
                 }
 
                 if (msg.data.batteryVoltage !== undefined && msg.data.batteryVoltage < 255) {
@@ -1470,9 +1470,18 @@ export function customLocalTemperatureCalibrationRange({min, max}: {min: number;
     // Some devices have a custom range for localTemperatureCalibration attribute.
     // To find the range for a specific device: https://github.com/Koenkk/zigbee2mqtt/issues/30448#issuecomment-3707495349
     return deviceAddCustomCluster("hvacThermostat", {
+        name: "hvacThermostat",
         ID: 0x0201,
         attributes: {
-            localTemperatureCalibration: {ID: 0x0010, type: DataType.INT8, write: true, min: min * 10, max: max * 10, default: 0},
+            localTemperatureCalibration: {
+                name: "localTemperatureCalibration",
+                ID: 0x0010,
+                type: DataType.INT8,
+                write: true,
+                min: min * 10,
+                max: max * 10,
+                default: 0,
+            },
         },
         commands: {},
         commandsResponse: {},
@@ -2302,7 +2311,7 @@ function genericMeter(args: MeterArgs = {}) {
             exposes.push(e.voltage_phase_b().withAccess(ea.STATE_GET), e.voltage_phase_c().withAccess(ea.STATE_GET));
             toZigbee.push(tz.acvoltage_phase_b, tz.acvoltage_phase_c);
         }
-        if (args.current) {
+        if (args.current !== false) {
             exposes.push(e.current_phase_b().withAccess(ea.STATE_GET), e.current_phase_c().withAccess(ea.STATE_GET));
             toZigbee.push(tz.accurrent_phase_b, tz.accurrent_phase_c);
         }
@@ -3118,7 +3127,7 @@ export function deviceEndpoints(args: {endpoints: {[n: string]: number}; multiEn
     return result;
 }
 
-export function deviceAddCustomCluster(clusterName: string, clusterDefinition: ClusterDefinition): ModernExtend {
+export function deviceAddCustomCluster(clusterName: string, clusterDefinition: Cluster): ModernExtend {
     const addCluster = (device: Zh.Device) => device.addCustomCluster(clusterName, clusterDefinition);
     const onEvent: OnEvent.Handler[] = [(event) => event.type === "start" && addCluster(event.data.device)];
     const configure: Configure[] = [addCluster];
@@ -3211,6 +3220,12 @@ export interface ThermostatArgs {
         >,
         "fromZigbee"
     >;
+    programmingOperationMode?: Omit<
+        ValuesWithModernExtendConfiguration<Array<"setpoint" | "schedule" | "schedule_with_preheat" | "eco">>,
+        "fromZigbee"
+    >;
+    setpointChangeSource?: Omit<ValuesWithModernExtendConfiguration<true>, "fromZigbee" | "toZigbee">;
+    weeklySchedule?: Omit<ValuesWithModernExtendConfiguration<Array<"heat" | "cool">>, "fromZigbee">;
 }
 
 export function thermostat(args: ThermostatArgs): ModernExtend {
@@ -3228,6 +3243,9 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
         temperatureSetpointHoldDuration = false,
         endpoint = undefined,
         ctrlSeqeOfOper = undefined,
+        programmingOperationMode = undefined,
+        setpointChangeSource = undefined,
+        weeklySchedule = undefined,
     } = args;
 
     const endpointNames = endpoint ? [endpoint] : undefined;
@@ -3453,6 +3471,46 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
                     access: ctrlSeqeOfOper.configure?.access ?? ea.ALL,
                 }),
             );
+        }
+    }
+
+    if (programmingOperationMode) {
+        expose.withProgrammingOperationMode(programmingOperationMode.values);
+
+        if (!programmingOperationMode.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_programming_operation_mode);
+        }
+
+        if (!programmingOperationMode.configure?.skip) {
+            configure.push(setupConfigureForReading("hvacThermostat", ["programingOperMode"], endpointNames));
+        }
+    }
+
+    if (setpointChangeSource) {
+        expose.withSetpointChangeSource();
+
+        if (!setpointChangeSource.configure?.skip) {
+            configure.push(
+                setupConfigureForReporting("hvacThermostat", "setpointChangeSource", {
+                    config: setpointChangeSource.configure?.reporting ?? repConfigChange0,
+                    access: setpointChangeSource.configure?.access ?? ea.STATE,
+                }),
+            );
+        }
+    }
+
+    if (weeklySchedule) {
+        expose.withWeeklySchedule(weeklySchedule.values);
+
+        fromZigbee.push(fz.thermostat_weekly_schedule);
+
+        if (!weeklySchedule.toZigbee?.skip) {
+            toZigbee.push(tz.thermostat_weekly_schedule);
+            toZigbee.push(tz.thermostat_clear_weekly_schedule);
+        }
+
+        if (!weeklySchedule.configure?.skip) {
+            configure.push(setupConfigureForReading("hvacThermostat", ["numberOfWeeklyTrans", "numberOfDailyTrans", "startOfWeek"], endpointNames));
         }
     }
 

@@ -6,6 +6,7 @@ import {
     addCustomClusterManuSpecificIkeaSmartPlug,
     addCustomClusterManuSpecificIkeaUnknown,
     addCustomClusterManuSpecificIkeaVocIndexMeasurement,
+    addCustomClusterTradfriButton,
     ikeaAirPurifier,
     ikeaArrowClick,
     ikeaBattery,
@@ -977,7 +978,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with buttons",
         extend: [
-            m.battery({voltage: true, voltageReporting: true}),
+            m.battery({voltage: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
@@ -991,7 +992,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with scroll wheel",
         extend: [
-            m.battery({voltage: true, voltageReporting: true}),
+            m.battery({voltage: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_to_level"]}),
@@ -1090,6 +1091,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "SYMFONISK sound remote, gen 2",
         extend: [
+            addCustomClusterTradfriButton(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.deviceEndpoints({endpoints: {"1": 2, "2": 3}}),
             m.identify({isSleepy: true}),
@@ -1122,6 +1124,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "SOMRIG shortcut button",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
+            addCustomClusterTradfriButton(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
             m.identify({isSleepy: true}),
@@ -1155,9 +1158,10 @@ export const definitions: DefinitionWithExtend[] = [
             addCustomClusterManuSpecificIkeaUnknown(),
             addCustomClusterManuSpecificIkeaVocIndexMeasurement(),
             m.deviceAddCustomCluster("pm25Measurement", {
+                name: "pm25Measurement",
                 ID: 0x042a,
                 attributes: {
-                    measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
+                    measuredValue: {name: "measuredValue", ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1166,7 +1170,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.humidity(),
             m.pm25({reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 2}}),
             ikeaVoc(),
-            m.identify(),
         ],
         ota: true,
     },

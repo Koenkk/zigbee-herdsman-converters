@@ -1,6 +1,7 @@
 import {describe, it} from "vitest";
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../src/converters/fromZigbee";
+import {fzLocal} from "../src/devices/smartthings";
 import {repInterval} from "../src/lib/constants";
 import {assertDefinition, mockDevice, reportingItem} from "./utils";
 
@@ -9,10 +10,10 @@ describe("Check definition", () => {
         await assertDefinition({
             device: mockDevice({
                 modelID: "multi",
-                endpoints: [{ID: 1, inputClusters: ["msTemperatureMeasurement", "genPowerCfg", "manuSpecificSamsungAccelerometer", "genPollCtrl"]}],
+                endpoints: [{ID: 1, inputClusters: ["msTemperatureMeasurement", "genPowerCfg", "genPollCtrl"], inputClusterIDs: [0xfc02]}],
             }),
             meta: undefined,
-            fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1, fz.smartthings_acceleration],
+            fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1, fzLocal.acceleration],
             toZigbee: [],
             exposes: ["battery", "battery_low", "contact", "moving", "tamper", "temperature", "x_axis", "y_axis", "z_axis"],
             bind: {1: ["msTemperatureMeasurement", "genPowerCfg", "manuSpecificSamsungAccelerometer"]},
@@ -34,17 +35,17 @@ describe("Check definition", () => {
                     ],
                     [
                         "manuSpecificSamsungAccelerometer",
-                        [reportingItem("x_axis", 10, repInterval.HOUR, 5)],
+                        [reportingItem("xAxis", 10, repInterval.HOUR, 5)],
                         {manufacturerCode: Zcl.ManufacturerCode.SAMJIN_CO_LTD},
                     ],
                     [
                         "manuSpecificSamsungAccelerometer",
-                        [reportingItem("y_axis", 10, repInterval.HOUR, 5)],
+                        [reportingItem("yAxis", 10, repInterval.HOUR, 5)],
                         {manufacturerCode: Zcl.ManufacturerCode.SAMJIN_CO_LTD},
                     ],
                     [
                         "manuSpecificSamsungAccelerometer",
-                        [reportingItem("z_axis", 10, repInterval.HOUR, 5)],
+                        [reportingItem("zAxis", 10, repInterval.HOUR, 5)],
                         {manufacturerCode: Zcl.ManufacturerCode.SAMJIN_CO_LTD},
                     ],
                 ],

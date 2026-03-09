@@ -325,8 +325,23 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Tubular motor",
         fromZigbee: [legacy.fz.tuya_cover],
         toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options, legacy.tz.tuya_data_point_test],
-        exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
-        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("upper_stroke_limit", ea.STATE_SET, ["SET", "RESET"]).withDescription("Set / Reset the upper stroke limit").withCategory("config"),
+            e
+                .enum("middle_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
+                .withDescription("Set / Reset the middle stroke limit")
+                .withCategory("config"),
+            e.enum("lower_stroke_limit", ea.STATE_SET, ["SET", "RESET"]).withDescription("Set / Reset the lower stroke limit").withCategory("config"),
+        ],
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"}), tuya.modernExtend.tuyaBase({dp: true})],
+        meta: {
+            tuyaDatapoints: [
+                [103, "upper_stroke_limit", tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
+                [104, "middle_stroke_limit", tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
+                [105, "lower_stroke_limit", tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_1n2kyphz", "_TZE200_shkxsgis", "_TZE204_shkxsgis"]),

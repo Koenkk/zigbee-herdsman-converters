@@ -117,6 +117,7 @@ import {definitions as gmy} from "./gmy";
 import {definitions as gs} from "./gs";
 import {definitions as gumax} from "./gumax";
 import {definitions as halemeier} from "./halemeier";
+import {definitions as haloSmartLabs} from "./halo_smart_labs";
 import {definitions as hamptonBay} from "./hampton_bay";
 import {definitions as heatit} from "./heatit";
 import {definitions as heiman} from "./heiman";
@@ -301,6 +302,7 @@ import {definitions as somfy} from "./somfy";
 import {definitions as somgoms} from "./somgoms";
 import {definitions as sonoff} from "./sonoff";
 import {definitions as sowilo} from "./sowilo";
+import {definitions as spacetronik} from "./spacetronik";
 import {definitions as spotmau} from "./spotmau";
 import {definitions as sprut} from "./sprut";
 import {definitions as stello} from "./stello";
@@ -483,6 +485,7 @@ const definitions: DefinitionWithExtend[] = [
     ...gs,
     ...gumax,
     ...halemeier,
+    ...haloSmartLabs,
     ...hamptonBay,
     ...heatit,
     ...heiman,
@@ -666,6 +669,7 @@ const definitions: DefinitionWithExtend[] = [
     ...somgoms,
     ...sonoff,
     ...sowilo,
+    ...spacetronik,
     ...spotmau,
     ...sprut,
     ...stello,

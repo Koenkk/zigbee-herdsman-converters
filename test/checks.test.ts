@@ -228,6 +228,8 @@ describe("Check definitions", () => {
             "Slacky-DIY|THERM_SLACKY_DIY_R0B",
             "Slacky-DIY|THERM_SLACKY_DIY_R0C",
             "Slacky-DIY|THERM_SLACKY_DIY_R0C",
+            "Slacky-DIY|THERM_SLACKY_DIY_R0D",
+            "Slacky-DIY|THERM_SLACKY_DIY_R0D",
             "Tuya|SPM02",
             "Ubisys|H1",
             "Ubisys|H1",
