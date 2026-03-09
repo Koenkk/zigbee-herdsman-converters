@@ -443,6 +443,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSB02015Z",
         vendor: "Third Reality",
         description: "Third Reality Blind Gen2",
+        ota: true,
         extend: [
             m.battery(),
             m.windowCovering({controls: ["lift"]}),
