@@ -1,14 +1,27 @@
 import iconv from "iconv-lite";
-
+import {Zcl} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import {utcToDeviceLocal2000Seconds} from "../lib/sonoff";
 import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
 
 const NS = "zhc:easyiot";
 const ea = exposes.access;
 const e = exposes.presets;
+
+interface EasyiotDoorLock {
+    attributes: Record<string, never>;
+    commands: {
+        unlockDoor: {timeout: number; pincodevalue: Buffer};
+        unlockDoorWithTimeout: {timeout: number; pincodevalue: Buffer};
+        setEphemeralPin: {startTime: number; endTime: number; userid: number; validTimes: number; pincodevalue: Buffer};
+        clearEphemeralPin: {userid: number};
+        clearAllEphemeralPins: Record<string, never>;
+    };
+    commandResponses: Record<string, never>;
+}
 
 const fzLocal = {
     easyiot_ir_recv_command: {
@@ -174,6 +187,173 @@ const tzLocal = {
             logger.debug("Sending IR command success.", NS);
         },
     } satisfies Tz.Converter,
+    easyiot_zl01_open_door: {
+        key: ["unlock_door"],
+        convertSet: async (entity, key, value, meta) => {
+            if (!value) {
+                logger.error("There is no pin code to send", NS);
+                return;
+            }
+
+            logger.debug(`Sending pin code: ${value}`, NS);
+            const length = Buffer.from([value.toString().length]);
+            const pincode = Buffer.from(value.toString(), "utf-8");
+            const data = Buffer.concat([length, pincode]);
+
+            await entity.command(
+                "closuresDoorLock",
+                "unlockDoor",
+                {
+                    pincodevalue: data,
+                },
+                {disableDefaultResponse: true},
+            );
+            logger.debug("Sending unlock door command success.", NS);
+        },
+    } as Tz.Converter,
+    easyiot_zl01_open_door_with_timeout: {
+        key: ["unlock_door_with_timeout"],
+        convertSet: async (entity, key, value, meta) => {
+            if (!value || typeof value !== "object") {
+                logger.error("There is no pin code or timeout to send", NS);
+                return;
+            }
+
+            const payload = value as KeyValueAny;
+            logger.debug(`Sending pin code: ${payload.pin_code} with timeout: ${payload.timeout} seconds`, NS);
+            const length = Buffer.from([payload.pin_code.length]);
+            const pincodeBuffer = Buffer.from(payload.pin_code as string, "utf-8");
+            const data = Buffer.concat([length, pincodeBuffer]);
+            try {
+                const commandPayload: EasyiotDoorLock["commands"]["unlockDoorWithTimeout"] = {
+                    timeout: payload.timeout,
+                    pincodevalue: data,
+                };
+                await entity.command<"closuresDoorLock", "unlockDoorWithTimeout", EasyiotDoorLock>(
+                    "closuresDoorLock",
+                    "unlockDoorWithTimeout",
+                    commandPayload,
+                    {disableDefaultResponse: true},
+                );
+                logger.debug("Adding ephemeral pin success.", NS);
+            } catch (error) {
+                logger.error(`Failed to add ephemeral pin: ${error}`, NS);
+                throw error;
+            }
+
+            logger.debug("Sending unlock door with timeout command success.", NS);
+        },
+    } as Tz.Converter,
+    easyiot_zl01_add_ephemeral_pin: {
+        key: ["ephemeral_pin_code"],
+        convertSet: async (entity, key, value, meta) => {
+            if (!value || typeof value !== "object") {
+                throw new Error("ephemeral_pin_code requires an object with start_time, end_time, userid, valid_times, and pincode");
+            }
+
+            const payload = value as KeyValueAny;
+
+            // Validate required parameters
+            if (typeof payload.start_time !== "number") {
+                throw new Error("start_time must be a number (UNIX timestamp in seconds)");
+            }
+            if (typeof payload.end_time !== "number") {
+                throw new Error("end_time must be a number (UNIX timestamp in seconds)");
+            }
+            if (typeof payload.userid !== "number") {
+                throw new Error("userid must be a number (0-65535)");
+            }
+            if (typeof payload.valid_times !== "number") {
+                throw new Error("valid_times must be a number (0-255)");
+            }
+            if (typeof payload.pincode !== "string") {
+                throw new Error("pincode must be a string");
+            }
+
+            logger.debug(
+                `Adding ephemeral pin - startTime: ${payload.start_time}, endTime: ${payload.end_time}, userid: ${payload.userid}, validTimes: ${payload.valid_times}, pincode: ${payload.pincode}`,
+                NS,
+            );
+
+            // Convert UNIX timestamps to Zigbee 2000-based local time seconds
+            // Use UTC (offset 0) as default timezone for temporary passwords
+            const startTimeZigbee = utcToDeviceLocal2000Seconds(payload.start_time, 0);
+            const endTimeZigbee = utcToDeviceLocal2000Seconds(payload.end_time, 0);
+
+            // Convert pincode string to buffer
+            const pincodeBuffer = Buffer.from(payload.pincode, "utf-8");
+
+            try {
+                const commandPayload: EasyiotDoorLock["commands"]["setEphemeralPin"] = {
+                    startTime: startTimeZigbee,
+                    endTime: endTimeZigbee,
+                    userid: payload.userid,
+                    validTimes: payload.valid_times,
+                    pincodevalue: pincodeBuffer,
+                };
+                await entity.command<"closuresDoorLock", "setEphemeralPin", EasyiotDoorLock>("closuresDoorLock", "setEphemeralPin", commandPayload, {
+                    disableDefaultResponse: true,
+                });
+                logger.debug("Adding ephemeral pin success.", NS);
+            } catch (error) {
+                logger.error(`Failed to add ephemeral pin: ${error}`, NS);
+                throw error;
+            }
+        },
+    } as Tz.Converter,
+    easyiot_zl01_clear_ephemeral_pin: {
+        key: ["ephemeral_clear_pin_code"],
+        convertSet: async (entity, key, value, meta) => {
+            if (!value || typeof value !== "object") {
+                throw new Error("ephemeral_clear_pin_code requires an object with userid");
+            }
+
+            const payload = value as KeyValueAny;
+
+            // Validate required parameter
+            if (typeof payload.userid !== "number") {
+                throw new Error("userid must be a number (0-65535)");
+            }
+
+            logger.debug(`Clearing ephemeral pin - userid: ${payload.userid}`, NS);
+
+            try {
+                const commandPayload: EasyiotDoorLock["commands"]["clearEphemeralPin"] = {
+                    userid: payload.userid,
+                };
+                await entity.command<"closuresDoorLock", "clearEphemeralPin", EasyiotDoorLock>(
+                    "closuresDoorLock",
+                    "clearEphemeralPin",
+                    commandPayload,
+                    {disableDefaultResponse: true},
+                );
+                logger.debug("Clearing ephemeral pin success.", NS);
+            } catch (error) {
+                logger.error(`Failed to clear ephemeral pin: ${error}`, NS);
+                throw error;
+            }
+        },
+    } as Tz.Converter,
+    easyiot_zl01_clear_all_ephemeral_pin: {
+        key: ["ephemeral_clear_all_pin_code"],
+        convertSet: async (entity, key, value, meta) => {
+            logger.debug("Clearing all ephemeral pins.", NS);
+
+            try {
+                const commandPayload: EasyiotDoorLock["commands"]["clearAllEphemeralPins"] = {};
+                await entity.command<"closuresDoorLock", "clearAllEphemeralPins", EasyiotDoorLock>(
+                    "closuresDoorLock",
+                    "clearAllEphemeralPins",
+                    commandPayload,
+                    {disableDefaultResponse: true},
+                );
+                logger.debug("Clearing all ephemeral pins success.", NS);
+            } catch (error) {
+                logger.error(`Failed to clear all ephemeral pins: ${error}`, NS);
+                throw error;
+            }
+        },
+    } as Tz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -353,5 +533,100 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8}}),
             m.onOff({endpointNames: ["l1", "l2", "l3", "l4", "l5", "l6", "l7", "l8"], configureReporting: false, powerOnBehavior: false}),
         ],
+    },
+
+    {
+        fingerprint: [{modelID: "ZB-ZL01", manufacturerName: "easyiot"}],
+        model: "ZB-ZL01",
+        vendor: "easyiot",
+        description: "This is easyiot's smart door lock",
+        fromZigbee: [],
+        toZigbee: [
+            tzLocal.easyiot_zl01_open_door,
+            tzLocal.easyiot_zl01_open_door_with_timeout,
+            tzLocal.easyiot_zl01_add_ephemeral_pin,
+            tzLocal.easyiot_zl01_clear_ephemeral_pin,
+            tzLocal.easyiot_zl01_clear_all_ephemeral_pin,
+        ],
+        extend: [
+            m.deviceAddCustomCluster("closuresDoorLock", {
+                name: "customClusterDoorLock",
+                ID: 0x0101,
+                attributes: {},
+                commands: {
+                    unlockDoorWithTimeout: {
+                        ID: 0x03,
+                        name: "unlockDoorWithTimeout",
+                        response: 3,
+                        parameters: [
+                            {name: "timeout", type: Zcl.DataType.UINT32},
+                            {name: "pincodevalue", type: Zcl.DataType.OCTET_STR},
+                        ],
+                    },
+                    setEphemeralPin: {
+                        ID: 0xb6,
+                        name: "setEphemeralPin",
+                        response: 182,
+                        parameters: [
+                            {name: "startTime", type: Zcl.DataType.UINT32},
+                            {name: "endTime", type: Zcl.DataType.UINT32},
+                            {name: "userid", type: Zcl.DataType.UINT16},
+                            {name: "validTimes", type: Zcl.DataType.UINT8},
+                            {name: "pincodevalue", type: Zcl.DataType.OCTET_STR},
+                        ],
+                    },
+                    clearEphemeralPin: {
+                        ID: 0xb8,
+                        name: "clearEphemeralPin",
+                        response: 184,
+                        parameters: [{name: "userid", type: Zcl.DataType.UINT16}],
+                    },
+                    clearAllEphemeralPins: {
+                        ID: 0xb9,
+                        name: "clearAllEphemeralPins",
+                        response: 185,
+                        parameters: [],
+                    },
+                },
+                commandsResponse: {
+                    unlockDoorRsp: {ID: 0x01, name: "unlockDoorRsp", parameters: [{name: "status", type: Zcl.DataType.ENUM8}], required: true},
+                    unlockWithTimeoutRsp: {ID: 0x03, name: "unlockWithTimeoutRsp", parameters: [{name: "status", type: Zcl.DataType.ENUM8}]},
+                    setEphemeralPinRsp: {ID: 182, name: "setEphemeralPinRsp", parameters: [{name: "status", type: Zcl.DataType.UINT8}]},
+                    clearEphemeralPinRsp: {ID: 184, name: "clearEphemeralPinRsp", parameters: [{name: "status", type: Zcl.DataType.UINT8}]},
+                    clearAllEphemeralPinsRsp: {ID: 185, name: "clearAllEphemeralPinsRsp", parameters: [{name: "status", type: Zcl.DataType.UINT8}]},
+                },
+            }),
+            m.battery({percentageReportingConfig: {min: 30, max: 1800, change: 1}}),
+        ],
+        exposes: [
+            e.numeric("lock_status", ea.STATE | ea.GET).withDescription("Lock status reported by the lock, 0 means locked, 1 means unlocked"),
+            e.text("unlock_door", ea.SET).withDescription("Enter password to unlock door"),
+            e
+                .composite("unlock_door_with_timeout", "unlock_door_with_timeout", ea.ALL)
+                .withFeature(e.numeric("timeout", ea.SET).withDescription("Number of seconds the PIN code is valid, 0 means lock will be re-locked"))
+                .withFeature(e.text("pin_code", ea.SET).withLabel("PIN code").withDescription("Pincode to set, set pincode to null to clear")),
+            e
+                .composite("ephemeral_pin_code", "ephemeral_pin_code", ea.SET)
+                .withFeature(e.numeric("start_time", ea.SET).withDescription("Temporary PIN start time (UNIX timestamp in seconds)"))
+                .withFeature(e.numeric("end_time", ea.SET).withDescription("Temporary PIN end time (UNIX timestamp in seconds)"))
+                .withFeature(e.numeric("userid", ea.SET).withDescription("User ID for the temporary PIN (1-20)").withValueMin(1).withValueMax(20))
+                .withFeature(
+                    e
+                        .numeric("valid_times", ea.SET)
+                        .withDescription("Number of times the temporary PIN can be used (0-255, 0 means unlimited)")
+                        .withValueMin(0)
+                        .withValueMax(255),
+                )
+                .withFeature(e.text("pincode", ea.SET).withDescription("The temporary PIN code (numeric string)")),
+            e
+                .composite("ephemeral_clear_pin_code", "ephemeral_clear_pin_code", ea.SET)
+                .withFeature(e.numeric("userid", ea.SET).withDescription("User ID for the temporary PIN (1-20)").withValueMin(1).withValueMax(20)),
+            e.composite("ephemeral_clear_all_pin_code", "ephemeral_clear_all_pin_code", ea.SET),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            //await reporting.batteryPercentageRemaining(endpoint, {min: 30, max: 1800, change: 1});
+        },
     },
 ];
