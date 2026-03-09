@@ -5,10 +5,8 @@ import type {Fz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/tuya", () => {
-    describe("dpTHZBSettings", async () => {
+    describe("dpTHZBSettings", () => {
         const {toZigbee, fromZigbee} = tuya.modernExtend.dpTHZBSettings();
-        const device = mockDevice({modelID: "TS000F", manufacturerName: "_TZ3218_7fiyo3kv", endpoints: [{}]});
-        const definition = await findByDevice(device);
 
         // 0000 disable   writeInt32LE(temp_greater_value * 10)  01 on      unknown   writeInt32LE(temp_lower_value * 10)   01 on
         // 8000 enable                                           00 off     01                                              00 off
@@ -25,6 +23,8 @@ describe("lib/tuya", () => {
         };
 
         it.each([enable20OnMinus10Off, disable0Off0Dot2On])("toZigbee", async (data) => {
+            const device = mockDevice({modelID: "TS000F", manufacturerName: "_TZ3218_7fiyo3kv", endpoints: [{}]});
+            const definition = await findByDevice(device);
             const meta: Tz.Meta = {state: {}, device, message: null, mapped: definition, options: null, publish: null, endpoint_name: null};
             await toZigbee[0].convertSet(device.endpoints[0], "auto_settings", data.from.auto_settings, {
                 ...meta,
@@ -48,7 +48,10 @@ describe("lib/tuya", () => {
         });
 
         it.each([enable20OnMinus10Off, disable0Off0Dot2On])("fromZigbee", async (data) => {
-            const msg = {data: {dpValues: [data.to]}} as Fz.Message;
+            const device = mockDevice({modelID: "TS000F", manufacturerName: "_TZ3218_7fiyo3kv", endpoints: [{}]});
+            const definition = await findByDevice(device);
+            // biome-ignore lint/suspicious/noExplicitAny: generic
+            const msg = {data: {dpValues: [data.to]}} as Fz.Message<any, any, any>;
             const result = await fromZigbee[0].convert(definition, msg, null, null, null);
             expect(result).toStrictEqual(data.from);
         });
