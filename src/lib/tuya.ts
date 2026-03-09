@@ -52,7 +52,9 @@ interface ManuSpecificTuya {
         };
         mcuOtaNotify: {
             seq: number;
+            // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
             key_hi: number;
+            // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
             key_lo: number;
             version: number;
             imageSize: number;
@@ -61,7 +63,9 @@ interface ManuSpecificTuya {
         mcuOtaBlockDataResponse: {
             seq: number;
             status: number;
+            // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
             key_hi: number;
+            // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
             key_lo: number;
             version: number;
             offset: number;
@@ -102,7 +106,9 @@ interface ManuSpecificTuya {
         };
         mcuOtaBlockDataRequest: {
             seq: number;
+            // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
             key_hi: number;
+            // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
             key_lo: number;
             version: number;
             offset: number;
@@ -111,7 +117,9 @@ interface ManuSpecificTuya {
         mcuOtaResult: {
             seq: number;
             status: number;
+            // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
             key_hi: number;
+            // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
             key_lo: number;
             version: number;
         };
@@ -129,12 +137,12 @@ interface ManuSpecificTuya {
 
 interface ManuSpecificTuya2 {
     attributes: {
-        alarm_temperature_max: number;
-        alarm_temperature_min: number;
-        alarm_humidity_max: number;
-        alarm_humidity_min: number;
-        alarm_humidity: number;
-        alarm_temperature: number;
+        alarmTemperatureMax: number;
+        alarmTemperatureMin: number;
+        alarmHumidityMax: number;
+        alarmHumidityMin: number;
+        alarmHumidity: number;
+        alarmTemperature: number;
         unknown: number;
     };
     commands: never;
@@ -2234,21 +2242,21 @@ const tuyaTz = {
         },
     } satisfies Tz.Converter,
     ts0201_temperature_humidity_alarm: {
-        key: ["alarm_humidity_max", "alarm_humidity_min", "alarm_temperature_max", "alarm_temperature_min"],
+        key: ["alarmHumidityMax", "alarmHumidityMin", "alarmTemperatureMax", "alarmTemperatureMin"],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
-                case "alarm_temperature_max":
-                case "alarm_temperature_min":
-                case "alarm_humidity_max":
-                case "alarm_humidity_min": {
+                case "alarmTemperatureMax":
+                case "alarmTemperatureMin":
+                case "alarmHumidityMax":
+                case "alarmHumidityMin": {
                     // await entity.write('manuSpecificTuya2', {[key]: value});
                     // instead write as custom attribute to override incorrect herdsman dataType from uint16 to int16
                     // https://github.com/Koenkk/zigbee-herdsman/blob/v0.13.191/src/zcl/definition/cluster.ts#L4235
                     const keyToAttributeLookup = {
-                        alarm_temperature_max: 0xd00a,
-                        alarm_temperature_min: 0xd00b,
-                        alarm_humidity_max: 0xd00d,
-                        alarm_humidity_min: 0xd00e,
+                        alarmTemperatureMax: 0xd00a,
+                        alarmTemperatureMin: 0xd00b,
+                        alarmHumidityMax: 0xd00d,
+                        alarmHumidityMin: 0xd00e,
                     };
                     const payload = {[keyToAttributeLookup[key]]: {value: value, type: Zcl.DataType.INT16}};
                     await entity.write<"manuSpecificTuya2", ManuSpecificTuya2>("manuSpecificTuya2", payload);
@@ -2534,25 +2542,25 @@ const tuyaFz = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.alarm_temperature_max !== undefined) {
-                result.alarm_temperature_max = msg.data.alarm_temperature_max;
+            if (msg.data.alarmTemperatureMax !== undefined) {
+                result.alarm_temperature_max = msg.data.alarmTemperatureMax;
             }
-            if (msg.data.alarm_temperature_min !== undefined) {
-                result.alarm_temperature_min = msg.data.alarm_temperature_min;
+            if (msg.data.alarmTemperatureMin !== undefined) {
+                result.alarm_temperature_min = msg.data.alarmTemperatureMin;
             }
-            if (msg.data.alarm_humidity_max !== undefined) {
-                result.alarm_humidity_max = msg.data.alarm_humidity_max;
+            if (msg.data.alarmHumidityMax !== undefined) {
+                result.alarm_humidity_max = msg.data.alarmHumidityMax;
             }
-            if (msg.data.alarm_humidity_min !== undefined) {
-                result.alarm_humidity_min = msg.data.alarm_humidity_min;
+            if (msg.data.alarmHumidityMin !== undefined) {
+                result.alarm_humidity_min = msg.data.alarmHumidityMin;
             }
-            if (msg.data.alarm_humidity !== undefined) {
+            if (msg.data.alarmHumidity !== undefined) {
                 const sensorAlarmLookup: KeyValueAny = {"0": "below_min_humdity", "1": "over_humidity", "2": "off"};
-                result.alarm_humidity = sensorAlarmLookup[msg.data.alarm_humidity];
+                result.alarm_humidity = sensorAlarmLookup[msg.data.alarmHumidity];
             }
-            if (msg.data.alarm_temperature !== undefined) {
+            if (msg.data.alarmTemperature !== undefined) {
                 const sensorAlarmLookup: KeyValueAny = {"0": "below_min_temperature", "1": "over_temperature", "2": "off"};
-                result.alarm_temperature = sensorAlarmLookup[msg.data.alarm_temperature];
+                result.alarm_temperature = sensorAlarmLookup[msg.data.alarmTemperature];
             }
             return result;
         },
@@ -3865,12 +3873,12 @@ const tuyaClusters = {
         modernExtend.deviceAddCustomCluster("manuSpecificTuya2", {
             ID: 0xe002,
             attributes: {
-                alarm_temperature_max: {ID: 0xd00a, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
-                alarm_temperature_min: {ID: 0xd00b, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
-                alarm_humidity_max: {ID: 0xd00d, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
-                alarm_humidity_min: {ID: 0xd00e, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
-                alarm_humidity: {ID: 0xd00f, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                alarm_temperature: {ID: 0xd006, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                alarmTemperatureMax: {ID: 0xd00a, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmTemperatureMin: {ID: 0xd00b, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidityMax: {ID: 0xd00d, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidityMin: {ID: 0xd00e, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidity: {ID: 0xd00f, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                alarmTemperature: {ID: 0xd006, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 unknown: {ID: 0xd010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
