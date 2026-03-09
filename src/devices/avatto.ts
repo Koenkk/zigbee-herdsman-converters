@@ -609,41 +609,58 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_vjpaih9f']),
-        model: 'N-TVR16',
-        vendor: 'Avatto',
-        description: 'Thermostatic radiator valve',
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vjpaih9f"]),
+        model: "N-TVR16",
+        vendor: "Avatto",
+        description: "Thermostatic radiator valve",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
-            e.climate()
+            e
+                .climate()
                 .withLocalTemperature(ea.STATE)
-                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET)
-                .withSystemMode(['off', 'heat'], ea.STATE_SET)
-                .withPreset(['manual', 'schedule', 'night', 'holiday', 'frost_protection', 'boost']),
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withPreset(["manual", "schedule", "night", "holiday", "frost_protection", "boost"]),
             e.battery(),
             e.child_lock(),
         ],
         meta: {
             tuyaDatapoints: [
-                [2, 'system_mode', {
-                    from: (v: number) => (v === 6 ? 'off' : 'heat'),
-                    to: (v: string) => (v === 'off' ? tuya.enum(6) : tuya.enum(0)),
-                }],
-                [2, 'preset', tuya.valueConverterBasic.lookup({
-                    'manual': tuya.enum(0), 'schedule': tuya.enum(1), 'night': tuya.enum(2),
-                    'holiday': tuya.enum(3), 'frost_protection': tuya.enum(4), 'boost': tuya.enum(5),
-                })],
-                [4, 'current_heating_setpoint', tuya.valueConverter.divideBy10],
-                [5, 'local_temperature', tuya.valueConverter.divideBy10],
-                [6, 'battery', tuya.valueConverter.raw],
-                [7, 'child_lock', {
-                    from: (v: number) => v ? 'LOCK' : 'UNLOCK',
-                    to: (v: string) => (v === 'LOCK' ? true : false),
-                }],
-                [101, 'running_state', {from: (v: number) => (v === 1 ? 'heat' : 'idle')}],
+                [
+                    2,
+                    "system_mode",
+                    {
+                        from: (v: number) => (v === 6 ? "off" : "heat"),
+                        to: (v: string) => (v === "off" ? tuya.enum(6) : tuya.enum(0)),
+                    },
+                ],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        schedule: tuya.enum(1),
+                        night: tuya.enum(2),
+                        holiday: tuya.enum(3),
+                        frost_protection: tuya.enum(4),
+                        boost: tuya.enum(5),
+                    }),
+                ],
+                [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [5, "local_temperature", tuya.valueConverter.divideBy10],
+                [6, "battery", tuya.valueConverter.raw],
+                [
+                    7,
+                    "child_lock",
+                    {
+                        from: (v: number) => (v ? "LOCK" : "UNLOCK"),
+                        to: (v: string) => (v === "LOCK" ? true : false),
+                    },
+                ],
+                [101, "running_state", {from: (v: number) => (v === 1 ? "heat" : "idle")}],
             ],
         },
     },
