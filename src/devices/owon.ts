@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
+import type {Cluster} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -65,37 +65,44 @@ const owonExtendChecks = {
     },
 };
 
-const OwonClustersDefinition: {[s: string]: ClusterDefinition} = {
+const OwonClustersDefinition: {[s: string]: Cluster} = {
     manuSpecificOwonAc: {
+        name: "manuSpecificOwonAc",
         ID: 0xffac,
         manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
         attributes: {},
         commands: {
             oneKeyPairingRequest: {
+                name: "oneKeyPairingRequest",
                 ID: 0x52,
                 parameters: [
                     {name: "oneKeyPairingStart", type: Zcl.DataType.UINT8}, // 0x00 end, 0x01 start
                 ],
             },
             writePairingCode: {
+                name: "writePairingCode",
                 ID: 0x20,
                 parameters: [{name: "pairingCode", type: Zcl.DataType.UINT16}],
             },
             readPairingCodeRequest: {
+                name: "readPairingCodeRequest",
                 ID: 0x00,
                 parameters: [],
             },
         },
         commandsResponse: {
             oneKeyPairingResponse: {
+                name: "oneKeyPairingResponse",
                 ID: 0x52,
                 parameters: [{name: "receiveStatus", type: Zcl.DataType.UINT8}],
             },
             oneKeyPairingResultUpdate: {
+                name: "oneKeyPairingResultUpdate",
                 ID: 0x80,
                 parameters: [],
             },
             readPairingCodeResponse: {
+                name: "readPairingCodeResponse",
                 ID: 0x00,
                 parameters: [{name: "pairingCode", type: Zcl.DataType.UINT16}],
             },
@@ -879,22 +886,23 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Fall Detection Sensor",
         extend: [
             m.deviceAddCustomCluster("fallDetectionOwon", {
+                name: "fallDetectionOwon",
                 ID: 0xfd00,
                 manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
                 attributes: {
-                    status: {ID: 0x0000, type: Zcl.DataType.ENUM8},
-                    breathing_rate: {ID: 0x0002, type: Zcl.DataType.UINT8},
-                    location_x: {ID: 0x0003, type: Zcl.DataType.INT16},
-                    location_y: {ID: 0x0004, type: Zcl.DataType.INT16},
-                    bedUpperLeftX: {ID: 0x0100, type: Zcl.DataType.INT16},
-                    bedUpperLeftY: {ID: 0x0101, type: Zcl.DataType.INT16},
-                    bedLowerRightX: {ID: 0x0102, type: Zcl.DataType.INT16},
-                    bedLowerRightY: {ID: 0x0103, type: Zcl.DataType.INT16},
-                    doorCenterX: {ID: 0x0108, type: Zcl.DataType.INT16},
-                    doorCenterY: {ID: 0x0109, type: Zcl.DataType.INT16},
-                    leftFallDetectionRange: {ID: 0x010c, type: Zcl.DataType.UINT16},
-                    rightFallDetectionRange: {ID: 0x010d, type: Zcl.DataType.UINT16},
-                    frontFallDetectionRange: {ID: 0x010e, type: Zcl.DataType.UINT16},
+                    status: {name: "status", ID: 0x0000, type: Zcl.DataType.ENUM8},
+                    breathing_rate: {name: "breathing_rate", ID: 0x0002, type: Zcl.DataType.UINT8},
+                    location_x: {name: "location_x", ID: 0x0003, type: Zcl.DataType.INT16},
+                    location_y: {name: "location_y", ID: 0x0004, type: Zcl.DataType.INT16},
+                    bedUpperLeftX: {name: "bedUpperLeftX", ID: 0x0100, type: Zcl.DataType.INT16},
+                    bedUpperLeftY: {name: "bedUpperLeftY", ID: 0x0101, type: Zcl.DataType.INT16},
+                    bedLowerRightX: {name: "bedLowerRightX", ID: 0x0102, type: Zcl.DataType.INT16},
+                    bedLowerRightY: {name: "bedLowerRightY", ID: 0x0103, type: Zcl.DataType.INT16},
+                    doorCenterX: {name: "doorCenterX", ID: 0x0108, type: Zcl.DataType.INT16},
+                    doorCenterY: {name: "doorCenterY", ID: 0x0109, type: Zcl.DataType.INT16},
+                    leftFallDetectionRange: {name: "leftFallDetectionRange", ID: 0x010c, type: Zcl.DataType.UINT16},
+                    rightFallDetectionRange: {name: "rightFallDetectionRange", ID: 0x010d, type: Zcl.DataType.UINT16},
+                    frontFallDetectionRange: {name: "frontFallDetectionRange", ID: 0x010e, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},

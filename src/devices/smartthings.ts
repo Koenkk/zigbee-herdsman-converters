@@ -36,15 +36,16 @@ interface SmartThingsArrivalSensor {
 export const smartthingsExtend = {
     addManuSpecificSamsungAccelerometerCluster: () =>
         m.deviceAddCustomCluster("manuSpecificSamsungAccelerometer", {
+            name: "manuSpecificSamsungAccelerometer",
             ID: 0xfc02,
             manufacturerCode: Zcl.ManufacturerCode.SMARTTHINGS_INC,
             attributes: {
-                motionThresholdMultiplier: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                motionThreshold: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                acceleration: {ID: 0x0010, type: Zcl.DataType.BITMAP8, write: true, max: 0xff},
-                xAxis: {ID: 0x0012, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
-                yAxis: {ID: 0x0013, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
-                zAxis: {ID: 0x0014, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                motionThresholdMultiplier: {name: "motionThresholdMultiplier", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                motionThreshold: {name: "motionThreshold", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                acceleration: {name: "acceleration", ID: 0x0010, type: Zcl.DataType.BITMAP8, write: true, max: 0xff},
+                xAxis: {name: "xAxis", ID: 0x0012, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                yAxis: {name: "yAxis", ID: 0x0013, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                zAxis: {name: "zAxis", ID: 0x0014, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
             },
             commands: {},
             commandsResponse: {},

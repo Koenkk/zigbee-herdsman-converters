@@ -19,14 +19,15 @@ interface OsramCluster {
 const ledvanceExtend = {
     addmanuSpecificOsramCluster: () =>
         m.deviceAddCustomCluster("manuSpecificOsram", {
+            name: "manuSpecificOsram",
             ID: 0xfc0f,
             attributes: {},
             commands: {
-                saveStartupParams: {ID: 0x01, parameters: []},
-                resetStartupParams: {ID: 0x02, parameters: []},
+                saveStartupParams: {name: "saveStartupParams", ID: 0x01, parameters: []},
+                resetStartupParams: {name: "resetStartupParams", ID: 0x02, parameters: []},
             },
             commandsResponse: {
-                saveStartupParamsRsp: {ID: 0x00, parameters: []},
+                saveStartupParamsRsp: {name: "saveStartupParamsRsp", ID: 0x00, parameters: []},
             },
         }),
 };
