@@ -22,12 +22,13 @@ interface AduroSmart {
 const terncyExtend = {
     addClusterAduroSmart: () =>
         m.deviceAddCustomCluster("manuSpecificClusterAduroSmart", {
+            name: "manuSpecificClusterAduroSmart",
             ID: 0xfccc,
             attributes: {
-                terncyRotation: {ID: 0x001b, type: Zcl.DataType.UINT16},
+                terncyRotation: {name: "terncyRotation", ID: 0x001b, type: Zcl.DataType.UINT16},
             },
             commands: {
-                cmd0: {ID: 0x00, parameters: []},
+                cmd0: {name: "cmd0", ID: 0x00, parameters: []},
             },
             commandsResponse: {},
         }),

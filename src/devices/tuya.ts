@@ -4643,9 +4643,19 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {coverInverted: true},
         extend: [
             m.deviceAddCustomCluster("closuresWindowCovering", {
+                name: "closuresWindowCovering",
                 ID: 0x0102,
                 attributes: {
-                    currentPositionLiftPercentage: {ID: 0x0008, type: DataType.UINT8, report: true, scene: true, max: 100, default: 0, write: true},
+                    currentPositionLiftPercentage: {
+                        name: "currentPositionLiftPercentage",
+                        ID: 0x0008,
+                        type: DataType.UINT8,
+                        report: true,
+                        scene: true,
+                        max: 100,
+                        default: 0,
+                        write: true,
+                    },
                 },
                 commands: {},
                 commandsResponse: {},
@@ -13271,10 +13281,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.deviceAddCustomCluster("genOnOff", {
+                name: "genOnOff",
                 ID: Zcl.Clusters.genOnOff.ID,
                 attributes: {},
                 commands: {
                     tuyaCountdown: {
+                        name: "tuyaCountdown",
                         ID: 0xf0,
                         parameters: [{name: "data", type: 1008 /* BUFFER */}],
                     },
@@ -22481,7 +22493,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_3regm3h6", "_TZE204_0hcjew5p", "_TZE204_6vwfjkcj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_3regm3h6", "_TZE204_0hcjew5p", "_TZE204_6vwfjkcj", "_TZE284_3regm3h6"]),
         model: "_TZE204_3regm3h6",
         vendor: "Tuya",
         description: "Smart thermostat for electric radiator with pilot wire",
@@ -22925,10 +22937,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.onOff({powerOnBehavior: false}),
             m.deviceAddCustomCluster("manuSpecificTuyaE001", {
+                name: "manuSpecificTuyaE001",
                 ID: 0xe001,
                 attributes: {},
                 commands: {
                     setCountdown: {
+                        name: "setCountdown",
                         ID: 0xfe,
                         parameters: [{name: "data", type: 1008}],
                     },
@@ -25179,6 +25193,37 @@ export const definitions: DefinitionWithExtend[] = [
                         none_30min: tuya.enum(5),
                     }),
                 ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_hbnfokum"]),
+        model: "TS0601_water_valve_1",
+        vendor: "Tuya",
+        description: "Water valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch(),
+            e
+                .numeric("position", ea.STATE_SET)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(10)
+                .withDescription("Target valve position"),
+            e
+                .numeric("position_current", ea.STATE)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(10)
+                .withDescription("Current valve position (feedback, steps of 10%)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [101, "position", tuya.valueConverter.raw],
+                [102, "position_current", tuya.valueConverter.raw],
             ],
         },
     },

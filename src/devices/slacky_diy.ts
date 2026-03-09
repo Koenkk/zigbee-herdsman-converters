@@ -1497,35 +1497,42 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Electricity Meter via optical port",
         extend: [
             m.deviceAddCustomCluster("seMetering", {
+                name: "seMetering",
                 ID: 0x0702,
                 attributes: {
                     deviceModel: {
+                        name: "deviceModel",
                         ID: attrElCityMeterModelPreset,
                         type: 0x30,
                         write: true,
                         max: 0xff,
                     },
                     deviceAddress: {
+                        name: "deviceAddress",
                         ID: attrElCityMeterAddressPreset,
                         type: 0x23,
                         write: true,
                         max: 0xffffffff,
                     },
                     readPeriod: {
+                        name: "readPeriod",
                         ID: attrElCityMeterMeasurementPreset,
                         type: 0x20,
                         write: true,
                         max: 0xff,
                     },
                     dateRelease: {
+                        name: "dateRelease",
                         ID: attrElCityMeterDateRelease,
                         type: 0x41,
                     },
                     deviceName: {
+                        name: "deviceName",
                         ID: attrElCityMeterModelName,
                         type: 0x41,
                     },
                     devicePassword: {
+                        name: "devicePassword",
                         ID: attrElCityMeterPasswordPreset,
                         write: true,
                         type: 0x41,
@@ -1565,35 +1572,42 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Three phase Electricity Meter via optical port",
         extend: [
             m.deviceAddCustomCluster("seMetering", {
+                name: "seMetering",
                 ID: 0x0702,
                 attributes: {
                     deviceModel: {
+                        name: "deviceModel",
                         ID: attrElCityMeterModelPreset,
                         type: 0x30,
                         write: true,
                         max: 0xff,
                     },
                     deviceAddress: {
+                        name: "deviceAddress",
                         ID: attrElCityMeterAddressPreset,
                         type: 0x23,
                         write: true,
                         max: 0xffffffff,
                     },
                     readPeriod: {
+                        name: "readPeriod",
                         ID: attrElCityMeterMeasurementPreset,
                         type: 0x20,
                         write: true,
                         max: 0xff,
                     },
                     dateRelease: {
+                        name: "dateRelease",
                         ID: attrElCityMeterDateRelease,
                         type: 0x41,
                     },
                     deviceName: {
+                        name: "deviceName",
                         ID: attrElCityMeterModelName,
                         type: 0x41,
                     },
                     devicePassword: {
+                        name: "devicePassword",
                         ID: attrElCityMeterPasswordPreset,
                         write: true,
                         type: 0x41,
@@ -1632,15 +1646,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: 0x0201,
                 attributes: {
                     localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
                         ID: 0x0010,
                         type: 0x28,
                         write: true,
                         max: 0xff,
                     },
                     minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
                         ID: 0x0019,
                         type: 0x28,
                         write: true,
@@ -1697,15 +1714,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: 0x0201,
                 attributes: {
                     localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
                         ID: 0x0010,
                         type: 0x28,
                         write: true,
                         max: 0xff,
                     },
                     minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
                         ID: 0x0019,
                         type: 0x28,
                         write: true,
@@ -1788,15 +1808,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: 0x0201,
                 attributes: {
                     localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
                         ID: 0x0010,
                         type: 0x28,
                         write: true,
                         max: 0xff,
                     },
                     minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
                         ID: 0x0019,
                         type: 0x28,
                         write: true,
@@ -1889,15 +1912,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: 0x0201,
                 attributes: {
                     localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
                         ID: 0x0010,
                         type: 0x28,
                         write: true,
                         max: 0xff,
                     },
                     minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
                         ID: 0x0019,
                         type: 0x28,
                         write: true,
@@ -1989,15 +2015,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: 0x0201,
                 attributes: {
                     localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
                         ID: 0x0010,
                         type: 0x28,
                         write: true,
                         max: 0xff,
                     },
                     minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
                         ID: 0x0019,
                         type: 0x28,
                         write: true,
@@ -2073,15 +2102,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: 0x0201,
                 attributes: {
                     localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
                         ID: 0x0010,
                         type: 0x28,
                         write: true,
                         max: 0xff,
                     },
                     minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
                         ID: 0x0019,
                         type: 0x28,
                         write: true,
@@ -2150,15 +2182,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: 0x0201,
                 attributes: {
                     localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
                         ID: 0x0010,
                         type: 0x28,
                         write: true,
                         max: 0xff,
                     },
                     minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
                         ID: 0x0019,
                         type: 0x28,
                         write: true,
@@ -2242,15 +2277,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: 0x0201,
                 attributes: {
                     localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
                         ID: 0x0010,
                         type: 0x28,
                         write: true,
                         max: 0xff,
                     },
                     minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
                         ID: 0x0019,
                         type: 0x28,
                         write: true,
@@ -2314,15 +2352,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: 0x0201,
                 attributes: {
                     localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
                         ID: 0x0010,
                         type: 0x28,
                         write: true,
                         max: 0xff,
                     },
                     minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
                         ID: 0x0019,
                         type: 0x28,
                         write: true,
@@ -2425,15 +2466,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: 0x0201,
                 attributes: {
                     localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
                         ID: 0x0010,
                         type: 0x28,
                         write: true,
                         max: 0xff,
                     },
                     minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
                         ID: 0x0019,
                         type: 0x28,
                         write: true,
@@ -2505,15 +2549,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: 0x0201,
                 attributes: {
                     localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
                         ID: 0x0010,
                         type: 0x28,
                         write: true,
                         max: 0xff,
                     },
                     minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
                         ID: 0x0019,
                         type: 0x28,
                         write: true,
@@ -2578,15 +2625,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: 0x0201,
                 attributes: {
                     localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
                         ID: 0x0010,
                         type: 0x28,
                         write: true,
                         max: 0xff,
                     },
                     minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
                         ID: 0x0019,
                         type: 0x28,
                         write: true,
@@ -2686,15 +2736,18 @@ export const definitions: DefinitionWithExtend[] = [
         configure: configureCommon,
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: 0x0201,
                 attributes: {
                     localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
                         ID: 0x0010,
                         type: 0x28,
                         write: true,
                         max: 0xff,
                     },
                     minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
                         ID: 0x0019,
                         type: 0x28,
                         write: true,
@@ -3232,10 +3285,12 @@ export const definitions: DefinitionWithExtend[] = [
                 acFrequency: {divisor: 100},
             }),
             m.deviceAddCustomCluster("seMetering", {
+                name: "seMetering",
                 ID: 0x0702,
                 attributes: {},
                 commands: {
                     resetEnergyMeters: {
+                        name: "resetEnergyMeters",
                         ID: 0x80,
                         parameters: [],
                     },
@@ -3351,10 +3406,12 @@ export const definitions: DefinitionWithExtend[] = [
                 acFrequency: {divisor: 100},
             }),
             m.deviceAddCustomCluster("seMetering", {
+                name: "seMetering",
                 ID: 0x0702,
                 attributes: {},
                 commands: {
                     resetEnergyMeters: {
+                        name: "resetEnergyMeters",
                         ID: 0x80,
                         parameters: [],
                     },
@@ -3438,21 +3495,25 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Tuya switch module 1 gang with custom firmware",
         extend: [
             m.deviceAddCustomCluster("genOnOffSwitchCfg", {
+                name: "genOnOffSwitchCfg",
                 ID: 0x0007,
                 attributes: {
                     customSwitchType: {
+                        name: "customSwitchType",
                         ID: attrSwitchType,
                         type: 0x30,
                         write: true,
                         max: 0xff,
                     },
                     customRelayControl: {
+                        name: "customRelayControl",
                         ID: attrSwitchDecoupled,
                         type: 0x30,
                         write: true,
                         max: 0xff,
                     },
                     customDeviceModelNumber: {
+                        name: "customDeviceModelNumber",
                         ID: attrDeviceModelNumber,
                         type: 0x30,
                         write: true,
@@ -3499,33 +3560,39 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.device_model_number],
         extend: [
             m.deviceAddCustomCluster("genOnOffSwitchCfg", {
+                name: "genOnOffSwitchCfg",
                 ID: 0x0007,
                 attributes: {
                     customDelayOn: {
+                        name: "customDelayOn",
                         ID: attrDoorDelayOn,
                         type: 0x20,
                         write: true,
                         max: 0xff,
                     },
                     customDelayOff: {
+                        name: "customDelayOff",
                         ID: attrDoorDelayOff,
                         type: 0x20,
                         write: true,
                         max: 0xff,
                     },
                     customDeviceModelNumber: {
+                        name: "customDeviceModelNumber",
                         ID: attrDeviceModelNumber,
                         type: 0x30,
                         write: true,
                         max: 0xff,
                     },
                     customOnCmdOff: {
+                        name: "customOnCmdOff",
                         ID: attrDoorOnCmdOff,
                         type: 0x10,
                         write: true,
                         max: 0x01,
                     },
                     customOffCmdOff: {
+                        name: "customOffCmdOff",
                         ID: attrDoorOffCmdOff,
                         type: 0x10,
                         write: true,
@@ -3601,15 +3668,18 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Tuya wireless switch with 4 buttons with custom firmware",
         extend: [
             m.deviceAddCustomCluster("genOnOffSwitchCfg", {
+                name: "genOnOffSwitchCfg",
                 ID: 0x0007,
                 attributes: {
                     customSwitchType: {
+                        name: "customSwitchType",
                         ID: attrSwitchType,
                         type: 0x30,
                         write: true,
                         max: 0xff,
                     },
                     customDeviceModelNumber: {
+                        name: "customDeviceModelNumber",
                         ID: attrDeviceModelNumber,
                         type: 0x30,
                         write: true,
@@ -3620,15 +3690,18 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.deviceAddCustomCluster("genScenes", {
+                name: "genScenes",
                 ID: 0x0005,
                 attributes: {
                     customSceneId: {
+                        name: "customSceneId",
                         ID: attrSceneId,
                         type: 0x20,
                         write: true,
                         max: 0xff,
                     },
                     customGroupId: {
+                        name: "customGroupId",
                         ID: attrGroupId,
                         type: 0x21,
                         write: true,
