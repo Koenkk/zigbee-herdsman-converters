@@ -951,6 +951,40 @@ const fzLocal = {
             return {action: event};
         },
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandStep"]>,
+
+    four_buttons_scene_events: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
+                "1_1": "1_double",
+                "2_1": "2_double",
+                "3_1": "3_double",
+                "4_1": "4_double",
+
+                "1_2": "1_triple",
+                "2_2": "2_triple",
+                "3_2": "3_triple",
+                "4_2": "4_triple",
+
+                "1_11": "1_long",
+                "2_11": "2_long",
+                "3_11": "3_long",
+                "4_11": "4_long",
+
+                "1_12": "1_double_long",
+                "2_12": "2_double_long",
+                "3_12": "3_double_long",
+                "4_12": "4_double_long",
+
+                "1_13": "1_triple_long",
+                "2_13": "2_triple_long",
+                "3_13": "3_triple_long",
+                "4_13": "4_triple_long",
+            });
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
 };
 
 // =============================================================================
@@ -1277,8 +1311,39 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBBT-104CUS",
         vendor: "Shelly",
         description: "BLU RC Button 4 ZB",
-        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events],
-        exposes: [e.action(["1_single", "2_single", "3_single", "4_single", "1_hold", "2_hold", "3_hold", "4_hold"])],
+        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events, fzLocal.four_buttons_scene_events],
+        exposes: [
+            e.action([
+                "1_single",
+                "2_single",
+                "3_single",
+                "4_single",
+                "1_hold",
+                "2_hold",
+                "3_hold",
+                "4_hold",
+                "1_double",
+                "2_double",
+                "3_double",
+                "4_double",
+                "1_triple",
+                "2_triple",
+                "3_triple",
+                "4_triple",
+                "1_long",
+                "2_long",
+                "3_long",
+                "4_long",
+                "1_double_long",
+                "2_double_long",
+                "3_double_long",
+                "4_double_long",
+                "1_triple_long",
+                "2_triple_long",
+                "3_triple_long",
+                "4_triple_long",
+            ]),
+        ],
         extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
         version: "0.0.2",
         configure: async (device, coordinatorEndpoint, definition) => {
