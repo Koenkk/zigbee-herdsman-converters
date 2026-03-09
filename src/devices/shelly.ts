@@ -1324,6 +1324,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBBT-104CUS",
         vendor: "Shelly",
         description: "BLU RC Button 4 ZB",
+        whiteLabel: [
+            {vendor: "Shelly", model: "SBBT-004CEU", fingerprint: [{modelID: "SBBT-004CEU"}], description: "BLU Wall Switch 4 ZB"},
+            {vendor: "Shelly", model: "SBBT-104CEU", fingerprint: [{modelID: "SBBT-104CEU"}], description: "BLU Wall Switch 4 ZB DK"},
+        ],
         fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events, fzLocal.four_buttons_scene_events],
         exposes: [
             e.action([
@@ -1357,24 +1361,6 @@ export const definitions: DefinitionWithExtend[] = [
                 "4_hold",
             ]),
         ],
-        extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
-        version: "0.0.2",
-        configure: async (device, coordinatorEndpoint, definition) => {
-            for (const endpoint of device.endpoints) {
-                await endpoint.bind("genOnOff", coordinatorEndpoint);
-                await endpoint.bind("genLevelCtrl", coordinatorEndpoint);
-                await endpoint.bind("genScenes", coordinatorEndpoint);
-            }
-        },
-    },
-    {
-        zigbeeModel: ["BLU Wall Switch 4 ZB"],
-        model: "SBBT-004CEU",
-        vendor: "Shelly",
-        description: "BLU Wall Switch 4 ZB",
-        whiteLabel: [{vendor: "Shelly", model: "SBBT-104CEU", description: "BLU Wall Switch 4 ZB DK"}],
-        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events],
-        exposes: [e.action(["1_single", "2_single", "3_single", "4_single", "1_hold", "2_hold", "3_hold", "4_hold"])],
         extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
         version: "0.0.2",
         configure: async (device, coordinatorEndpoint, definition) => {
