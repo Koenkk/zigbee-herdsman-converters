@@ -35,7 +35,7 @@ interface KeyValueStringEnum {
     [s: string]: Enum;
 }
 
-interface ManuSpecificTuya {
+export interface ManuSpecificTuya {
     attributes: never;
     commands: {
         dataRequest: {
@@ -135,7 +135,7 @@ interface ManuSpecificTuya {
     };
 }
 
-interface ManuSpecificTuya2 {
+export interface ManuSpecificTuya2 {
     attributes: {
         alarmTemperatureMax: number;
         alarmTemperatureMin: number;
@@ -149,7 +149,7 @@ interface ManuSpecificTuya2 {
     commandResponses: never;
 }
 
-interface ManuSpecificTuya3 {
+export interface ManuSpecificTuya3 {
     attributes: {
         powerOnBehavior: number;
         switchMode: number;
