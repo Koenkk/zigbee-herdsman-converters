@@ -3673,6 +3673,7 @@ export {tuyaModernExtend as modernExtend};
 const tuyaClusters = {
     addmManuSpecificTuyaCluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya", {
+            name: "manuSpecificTuya",
             ID: 0xef00, // 61184
             attributes: {},
             commands: {
@@ -3680,6 +3681,7 @@ const tuyaClusters = {
                  * Gateway-side data request
                  */
                 dataRequest: {
+                    name: "dataRequest",
                     ID: 0x00,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3690,11 +3692,11 @@ const tuyaClusters = {
                  * GW send, trigger MCU side to report all current information, no zcl payload.
                  * Note: Device side can make a policy, data better not to report centrally
                  */
-                dataQuery: {ID: 0x03, parameters: []},
+                dataQuery: {name: "dataQuery", ID: 0x03, parameters: []},
                 /**
                  * Gw->Zigbee gateway query MCU version
                  */
-                mcuVersionRequest: {ID: 0x10, parameters: [{name: "seq", type: Zcl.DataType.UINT16, max: 0xffff}]},
+                mcuVersionRequest: {name: "mcuVersionRequest", ID: 0x10, parameters: [{name: "seq", type: Zcl.DataType.UINT16, max: 0xffff}]},
                 /**
                  * FIXME: This command is not listed in Tuya zigbee cluster description,
                  *  but there is some command 0x04 (description is: Command Issuance)
@@ -3702,6 +3704,7 @@ const tuyaClusters = {
                  *  So, need to investigate more information about it
                  */
                 sendData: {
+                    name: "sendData",
                     ID: 0x04,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3712,6 +3715,7 @@ const tuyaClusters = {
                  * Gw->Zigbee gateway notifies MCU of upgrade
                  */
                 mcuOtaNotify: {
+                    name: "mcuOtaNotify",
                     ID: 0x12,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3731,6 +3735,7 @@ const tuyaClusters = {
                  * Gw->Zigbee gateway returns the requested upgrade package for MCU
                  */
                 mcuOtaBlockDataResponse: {
+                    name: "mcuOtaBlockDataResponse",
                     ID: 0x14,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3746,6 +3751,7 @@ const tuyaClusters = {
                  * Time synchronization (bidirectional)
                  */
                 mcuSyncTime: {
+                    name: "mcuSyncTime",
                     ID: 0x24,
                     parameters: [
                         {name: "payloadSize", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3756,6 +3762,7 @@ const tuyaClusters = {
                  * Gateway connection status (bidirectional)
                  */
                 mcuGatewayConnectionStatus: {
+                    name: "mcuGatewayConnectionStatus",
                     ID: 0x25,
                     parameters: [
                         {name: "payloadSize", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3772,6 +3779,7 @@ const tuyaClusters = {
                  * Reply to MCU-side data request
                  */
                 dataResponse: {
+                    name: "dataResponse", 
                     ID: 0x01,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3782,6 +3790,7 @@ const tuyaClusters = {
                  * MCU-side data active upload (bidirectional)
                  */
                 dataReport: {
+                    name: "dataReport", 
                     ID: 0x02,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3795,6 +3804,7 @@ const tuyaClusters = {
                  *  So, need to investigate more information about it
                  */
                 activeStatusReportAlt: {
+                    name: "activeStatusReportAlt",
                     ID: 0x05,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3808,6 +3818,7 @@ const tuyaClusters = {
                  *  So, need to investigate more information about it
                  */
                 activeStatusReport: {
+                    name: "activeStatusReport",
                     ID: 0x06,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3818,6 +3829,7 @@ const tuyaClusters = {
                  * Zigbee->Gw MCU return version or actively report version
                  */
                 mcuVersionResponse: {
+                    name: "mcuVersionResponse", 
                     ID: 0x11,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3828,6 +3840,7 @@ const tuyaClusters = {
                  * Zigbee->Gw requests an upgrade package for the MCU
                  */
                 mcuOtaBlockDataRequest: {
+                    name: "mcuOtaBlockDataRequest", 
                     ID: 0x13,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3842,6 +3855,7 @@ const tuyaClusters = {
                  * Zigbee->Gw returns the upgrade result for the mcu
                  */
                 mcuOtaResult: {
+                    name: "mcuOtaResult",
                     ID: 0x15,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3854,11 +3868,11 @@ const tuyaClusters = {
                 /**
                  * Time synchronization (bidirectional)
                  */
-                mcuSyncTime: {ID: 0x24, parameters: [{name: "payloadSize", type: Zcl.DataType.UINT16, max: 0xffff}]},
+                mcuSyncTime: {name: "mcuSyncTime", ID: 0x24, parameters: [{name: "payloadSize", type: Zcl.DataType.UINT16, max: 0xffff}]},
                 /**
                  * Gateway connection status (bidirectional)
                  */
-                mcuGatewayConnectionStatus: {ID: 0x25, parameters: [{name: "payloadSize", type: Zcl.DataType.UINT16, max: 0xffff}]},
+                mcuGatewayConnectionStatus: {name: "mcuGatewayConnectionStatus", ID: 0x25, parameters: [{name: "payloadSize", type: Zcl.DataType.UINT16, max: 0xffff}]},
                 /**
                  * Device can request weather forecast information and expects response respecting given parameters.
                  * This command ID seem to be device speciffic, because there is simmilar structure documented in Tuya Serial Communication Protocol,
@@ -3866,36 +3880,38 @@ const tuyaClusters = {
                  * docs or be also speciffic (providing space for the implementation of the correct one in the future)?
                  *
                  */
-                tuyaWeatherRequest: {ID: 0x60, parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                tuyaWeatherRequest: {name: "tuyaWeatherRequest", ID: 0x60, parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
         }),
     addmManuSpecificTuya2Cluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya2", {
+            name: "manuSpecificTuya2",
             ID: 0xe002,
             attributes: {
-                alarmTemperatureMax: {ID: 0xd00a, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
-                alarmTemperatureMin: {ID: 0xd00b, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
-                alarmHumidityMax: {ID: 0xd00d, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
-                alarmHumidityMin: {ID: 0xd00e, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
-                alarmHumidity: {ID: 0xd00f, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                alarmTemperature: {ID: 0xd006, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                unknown: {ID: 0xd010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                alarmTemperatureMax: {name: "alarmTemperatureMax", ID: 0xd00a, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmTemperatureMin: {name: "alarmTemperatureMin", ID: 0xd00b, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidityMax: {name: "alarmHumidityMax", ID: 0xd00d, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidityMin: {name: "alarmHumidityMin", ID: 0xd00e, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidity: {name: "alarmHumidity", ID: 0xd00f, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                alarmTemperature: {name: "alarmTemperature", ID: 0xd006, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                unknown: {name: "unknown", ID: 0xd010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
         }),
     addmManuSpecificTuya3Cluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya3", {
+            name: "manuSpecificTuya3", 
             ID: 0xe001,
             attributes: {
-                powerOnBehavior: {ID: 0xd010, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                switchMode: {ID: 0xd020, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                switchType: {ID: 0xd030, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                powerOnBehavior: {name: "powerOnBehavior", ID: 0xd010, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                switchMode: {name: "switchMode", ID: 0xd020, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                switchType: {name: "switchType", ID: 0xd030, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
             },
             commands: {
-                setOptions1: {ID: 0xe5, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                setOptions2: {ID: 0xe6, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                setOptions3: {ID: 0xe7, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                setOptions1: {name: "setOptions1", ID: 0xe5, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                setOptions2: {name: "setOptions2", ID: 0xe6, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                setOptions3: {name: "setOptions3", ID: 0xe7, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
             commandsResponse: {},
         }),
