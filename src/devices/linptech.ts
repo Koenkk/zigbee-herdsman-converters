@@ -1,7 +1,7 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
+import type {ManuSpecificTuya2} from "../lib/tuya";
 import * as tuya from "../lib/tuya";
-import {ManuSpecificTuya2} from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -29,7 +29,9 @@ const tzLocal = {
                     break;
                 }
                 case "led_indicator": {
-                    await entity.write<"manuSpecificTuya2", ManuSpecificTuya2>("manuSpecificTuya2", {57353: {value: value ? 0x01 : 0x00, type: 0x10}});
+                    await entity.write<"manuSpecificTuya2", ManuSpecificTuya2>("manuSpecificTuya2", {
+                        57353: {value: value ? 0x01 : 0x00, type: 0x10},
+                    });
                     break;
                 }
             }
