@@ -5373,7 +5373,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "humidity_reporting_threshold",
                 valueMin: 2, // Min: 2%
-                valueMax: 10, // Max: 10%
+                valueMax: 15, // Max: 15%
                 valueStep: 0.5, // Step: 0,5%
                 scale: 100,
                 unit: "%",
