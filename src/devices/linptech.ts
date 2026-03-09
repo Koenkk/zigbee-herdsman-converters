@@ -1,6 +1,7 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as tuya from "../lib/tuya";
+import {ManuSpecificTuya2} from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -14,21 +15,21 @@ const tzLocal = {
             switch (key) {
                 case "motion_detection_distance": {
                     utils.assertNumber(value, "motion_detection_distance");
-                    await entity.write("manuSpecificTuya2", {57355: {value, type: 0x21}});
+                    await entity.write<"manuSpecificTuya2", ManuSpecificTuya2>("manuSpecificTuya2", {57355: {value, type: 0x21}});
                     break;
                 }
                 case "motion_detection_sensitivity": {
                     utils.assertNumber(value, "motion_detection_sensitivity");
-                    await entity.write("manuSpecificTuya2", {57348: {value, type: 0x20}});
+                    await entity.write<"manuSpecificTuya2", ManuSpecificTuya2>("manuSpecificTuya2", {57348: {value, type: 0x20}});
                     break;
                 }
                 case "static_detection_sensitivity": {
                     utils.assertNumber(value, "static_detection_sensitivity");
-                    await entity.write("manuSpecificTuya2", {57349: {value, type: 0x20}});
+                    await entity.write<"manuSpecificTuya2", ManuSpecificTuya2>("manuSpecificTuya2", {57349: {value, type: 0x20}});
                     break;
                 }
                 case "led_indicator": {
-                    await entity.write("manuSpecificTuya2", {57353: {value: value ? 0x01 : 0x00, type: 0x10}});
+                    await entity.write<"manuSpecificTuya2", ManuSpecificTuya2>("manuSpecificTuya2", {57353: {value: value ? 0x01 : 0x00, type: 0x10}});
                     break;
                 }
             }
@@ -72,7 +73,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya2", ManuSpecificTuya2, ["attributeReport"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -84,7 +85,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Momax", "SL12S", "mmWave Presence sensor", ["_TZ3218_ewrxirng"])],
         fromZigbee: [fz.ias_occupancy_alarm_1, fzLocal.TS0225, fzLocal.TS0225_illuminance],
         toZigbee: [tzLocal.TS0225],
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.clusters.addmManuSpecificTuya2Cluster(), tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.occupancy().withDescription("Presence state"),
             e.illuminance().withUnit("lx"),
