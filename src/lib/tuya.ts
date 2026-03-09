@@ -3461,22 +3461,26 @@ export {tuyaModernExtend as modernExtend};
 const tuyaClusters = {
     addTuyaCommonPrivateCluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya4", {
+            name: "manuSpecificTuya4",
             ID: 0xe000,
             attributes: {
-                random_timing: {ID: 0xd001, type: Zcl.DataType.CHAR_STR, write: true},
-                cycle_timing: {ID: 0xd002, type: Zcl.DataType.CHAR_STR, write: true},
-                inching: {ID: 0xd003, type: Zcl.DataType.CHAR_STR, write: true},
+                random_timing: {name: "random_timing", ID: 0xd001, type: Zcl.DataType.CHAR_STR, write: true},
+                cycle_timing: {name: "cycle_timing", ID: 0xd002, type: Zcl.DataType.CHAR_STR, write: true},
+                inching: {name: "inching", ID: 0xd003, type: Zcl.DataType.CHAR_STR, write: true},
             },
             commands: {
                 setRandomTiming: {
+                    name: "setRandomTiming",
                     ID: 0xf7,
                     parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}],
                 },
                 setCycleTiming: {
+                    name: "setCycleTiming",
                     ID: 0xf8,
                     parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}],
                 },
                 setInchingSwitch: {
+                    name: "setInchingSwitch",
                     ID: 0xfb,
                     parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}],
                 },

@@ -198,13 +198,14 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceAddCustomCluster("closuresWindowCovering", {
+                name: "closuresWindowCovering",
                 ID: 258,
                 attributes: {},
                 commands: {
-                    resetLimit: {ID: 0x0000, parameters: []},
-                    openLimit: {ID: 0x0001, parameters: []},
-                    closeLimit: {ID: 0x0002, parameters: []},
-                    resetBlock: {ID: 0x0003, parameters: []},
+                    resetLimit: {name: "resetLimit", ID: 0x0000, parameters: []},
+                    openLimit: {name: "openLimit", ID: 0x0001, parameters: []},
+                    closeLimit: {name: "closeLimit", ID: 0x0002, parameters: []},
+                    resetBlock: {name: "resetBlock", ID: 0x0003, parameters: []},
                 },
                 commandsResponse: {},
             }),
