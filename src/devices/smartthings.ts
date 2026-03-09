@@ -52,12 +52,13 @@ export const smartthingsExtend = {
         }),
     addManuSpecificSmartThingsArrivalSensorCluster: () =>
         m.deviceAddCustomCluster("manuSpecificSmartThingsArrivalSensor", {
+            name: "manuSpecificSmartThingsArrivalSensor",
             ID: 0xfc05,
             manufacturerCode: Zcl.ManufacturerCode.SMARTTHINGS_INC,
             attributes: {},
             commands: {},
             commandsResponse: {
-                arrivalSensorNotify: {ID: 0x01, parameters: []},
+                arrivalSensorNotify: {name: "arrivalSensorNotify", ID: 0x01, parameters: []},
             },
         }),
 };
