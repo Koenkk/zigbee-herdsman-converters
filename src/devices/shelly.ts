@@ -316,9 +316,10 @@ const shellyModernExtend = {
         // Shelly Gen4 devices report haElectricalMeasurement.powerFactor (0x0510) as INT16 (0x29)
         // while zigbee-herdsman defines it as INT8 (0x28). This breaks configureReporting (INVALID_DATA_TYPE).
         return m.deviceAddCustomCluster("haElectricalMeasurement", {
+            name: "haElectricalMeasurement",
             ID: HA_ELECTRICAL_MEASUREMENT_CLUSTER_ID,
             attributes: {
-                powerFactor: {ID: HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID, type: Zcl.DataType.INT16},
+                powerFactor: {name: "powerFactor", ID: HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID, type: Zcl.DataType.INT16},
             },
             commands: {},
             commandsResponse: {},
@@ -327,31 +328,33 @@ const shellyModernExtend = {
     shellyCustomClusters(): ModernExtend[] {
         return [
             m.deviceAddCustomCluster("shellyRPCCluster", {
+                name: "shellyRPCCluster",
                 ID: 0xfc01,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    data: {ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
-                    txCtl: {ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                    rxCtl: {ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    data: {name: "data", ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
+                    txCtl: {name: "txCtl", ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    rxCtl: {name: "rxCtl", ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
             m.deviceAddCustomCluster("shellyWiFiSetupCluster", {
+                name: "shellyWiFiSetupCluster",
                 ID: 0xfc02,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    status: {ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
-                    ip: {ID: 0x0001, type: Zcl.DataType.CHAR_STR, write: true},
-                    actionCode: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    dhcp: {ID: 0x0003, type: Zcl.DataType.BOOLEAN, write: true},
-                    enabled: {ID: 0x0004, type: Zcl.DataType.BOOLEAN, write: true},
-                    ssid: {ID: 0x0005, type: Zcl.DataType.CHAR_STR, write: true},
-                    password: {ID: 0x0006, type: Zcl.DataType.CHAR_STR, write: true},
-                    staticIp: {ID: 0x0007, type: Zcl.DataType.CHAR_STR, write: true},
-                    netMask: {ID: 0x0008, type: Zcl.DataType.CHAR_STR, write: true},
-                    gateway: {ID: 0x0009, type: Zcl.DataType.CHAR_STR, write: true},
-                    nameServer: {ID: 0x000a, type: Zcl.DataType.CHAR_STR, write: true},
+                    status: {name: "status", ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
+                    ip: {name: "ip", ID: 0x0001, type: Zcl.DataType.CHAR_STR, write: true},
+                    actionCode: {name: "actionCode", ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    dhcp: {name: "dhcp", ID: 0x0003, type: Zcl.DataType.BOOLEAN, write: true},
+                    enabled: {name: "enabled", ID: 0x0004, type: Zcl.DataType.BOOLEAN, write: true},
+                    ssid: {name: "ssid", ID: 0x0005, type: Zcl.DataType.CHAR_STR, write: true},
+                    password: {name: "password", ID: 0x0006, type: Zcl.DataType.CHAR_STR, write: true},
+                    staticIp: {name: "staticIp", ID: 0x0007, type: Zcl.DataType.CHAR_STR, write: true},
+                    netMask: {name: "netMask", ID: 0x0008, type: Zcl.DataType.CHAR_STR, write: true},
+                    gateway: {name: "gateway", ID: 0x0009, type: Zcl.DataType.CHAR_STR, write: true},
+                    nameServer: {name: "nameServer", ID: 0x000a, type: Zcl.DataType.CHAR_STR, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1103,12 +1106,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.pressure(),
             m.humidity(),
             m.deviceAddCustomCluster("shellyWS90Wind", {
+                name: "shellyWS90Wind",
                 ID: 0xfc01,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    windSpeed: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                    windDirection: {ID: 0x0004, type: Zcl.DataType.UINT16},
-                    gustSpeed: {ID: 0x0007, type: Zcl.DataType.UINT16},
+                    windSpeed: {name: "windSpeed", ID: 0x0000, type: Zcl.DataType.UINT16},
+                    windDirection: {name: "windDirection", ID: 0x0004, type: Zcl.DataType.UINT16},
+                    gustSpeed: {name: "gustSpeed", ID: 0x0007, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1150,10 +1154,11 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             m.deviceAddCustomCluster("shellyWS90UV", {
+                name: "shellyWS90UV",
                 ID: 0xfc02,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    uvIndex: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    uvIndex: {name: "uvIndex", ID: 0x0000, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1170,11 +1175,12 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             m.deviceAddCustomCluster("shellyWS90Rain", {
+                name: "shellyWS90Rain",
                 ID: 0xfc03,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    rainStatus: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
-                    precipitation: {ID: 0x0001, type: Zcl.DataType.UINT24},
+                    rainStatus: {name: "rainStatus", ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+                    precipitation: {name: "precipitation", ID: 0x0001, type: Zcl.DataType.UINT24},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1356,14 +1362,15 @@ export const definitions: DefinitionWithExtend[] = [
                 piHeatingDemand: {values: true},
             }),
             m.deviceAddCustomCluster("shellyTRVManualMode", {
+                name: "shellyTRVManualMode",
                 ID: 0xfc24,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    manualMode: {ID: 0x0000, type: Zcl.DataType.UINT8},
-                    position: {ID: 0x0001, type: Zcl.DataType.UINT8},
+                    manualMode: {name: "manualMode", ID: 0x0000, type: Zcl.DataType.UINT8},
+                    position: {name: "position", ID: 0x0001, type: Zcl.DataType.UINT8},
                 },
                 commands: {
-                    calibrate: {ID: 0x0000, parameters: []},
+                    calibrate: {name: "calibrate", ID: 0x0000, parameters: []},
                 },
                 commandsResponse: {},
             }),
