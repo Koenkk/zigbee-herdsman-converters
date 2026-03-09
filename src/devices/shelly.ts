@@ -926,17 +926,21 @@ const fzLocal = {
 
     four_buttons_single_events: {
         cluster: "genOnOff",
-        type: ["commandOn", "commandOff"],
+        type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.type}`, {
                 "1_commandOn": "1_single",
                 "1_commandOff": "2_single",
                 "2_commandOn": "3_single",
                 "2_commandOff": "4_single",
+                "1_commandToggle": "1_single",
+                "2_commandToggle": "2_single",
+                "3_commandToggle": "3_single",
+                "4_commandToggle": "4_single",
             });
             return {action: event};
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 
     four_buttons_hold_events: {
         cluster: "genLevelCtrl",
