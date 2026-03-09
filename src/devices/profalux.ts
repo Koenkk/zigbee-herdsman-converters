@@ -25,10 +25,11 @@ interface Profalux1 {
 const profaluxExtend = {
     addManuSpecificProfalux1Cluster: () =>
         m.deviceAddCustomCluster("manuSpecificProfalux1", {
+            name: "manuSpecificProfalux1",
             ID: 0xfc21,
             manufacturerCode: Zcl.ManufacturerCode.PROFALUX,
             attributes: {
-                motorCoverType: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // 0 : rolling shutters (volet), 1 : rolling shutters with tilt (BSO), 2: shade (store)
+                motorCoverType: {name: "motorCoverType", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // 0 : rolling shutters (volet), 1 : rolling shutters with tilt (BSO), 2: shade (store)
             },
             commands: {},
             commandsResponse: {},
