@@ -200,33 +200,35 @@ const lockExtend = (meta = {}, lockStateOptions: Reporting.Override | false = nu
 const yaleExtend = {
     addManuSpecificAssaDoorLockCluster: () =>
         m.deviceAddCustomCluster("manuSpecificAssaDoorLock", {
+            name: "manuSpecificAssaDoorLock",
             ID: 0xfc00,
             attributes: {
-                autoLockTime: {ID: 0x0012, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                wrongCodeAttempts: {ID: 0x0013, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                shutdownTime: {ID: 0x0014, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                batteryLevel: {ID: 0x0015, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                insideEscutcheonLED: {ID: 0x0016, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                volume: {ID: 0x0017, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                lockMode: {ID: 0x0018, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                language: {ID: 0x0019, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                allCodesLockout: {ID: 0x001a, type: Zcl.DataType.BOOLEAN, write: true},
-                oneTouchLocking: {ID: 0x001b, type: Zcl.DataType.BOOLEAN, write: true},
-                privacyButtonSetting: {ID: 0x001c, type: Zcl.DataType.BOOLEAN, write: true},
+                autoLockTime: {name: "autoLockTime", ID: 0x0012, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                wrongCodeAttempts: {name: "wrongCodeAttempts", ID: 0x0013, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                shutdownTime: {name: "shutdownTime", ID: 0x0014, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                batteryLevel: {name: "batteryLevel", ID: 0x0015, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                insideEscutcheonLED: {name: "insideEscutcheonLED", ID: 0x0016, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                volume: {name: "volume", ID: 0x0017, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                lockMode: {name: "lockMode", ID: 0x0018, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                language: {name: "language", ID: 0x0019, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                allCodesLockout: {name: "allCodesLockout", ID: 0x001a, type: Zcl.DataType.BOOLEAN, write: true},
+                oneTouchLocking: {name: "oneTouchLocking", ID: 0x001b, type: Zcl.DataType.BOOLEAN, write: true},
+                privacyButtonSetting: {name: "privacyButtonSetting", ID: 0x001c, type: Zcl.DataType.BOOLEAN, write: true},
                 /* enableLogging: {ID: 0x0020, type: Zcl.DataType.BOOLEAN, write: true},*/ // marked in C4 driver as not supported
-                numberLogRecordsSupported: {ID: 0x0021, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                numberPinsSupported: {ID: 0x0030, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                numberScheduleSlotsPerUser: {ID: 0x0040, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                alarmMask: {ID: 0x0050, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                numberLogRecordsSupported: {name: "numberLogRecordsSupported", ID: 0x0021, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                numberPinsSupported: {name: "numberPinsSupported", ID: 0x0030, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                numberScheduleSlotsPerUser: {name: "numberScheduleSlotsPerUser", ID: 0x0040, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                alarmMask: {name: "alarmMask", ID: 0x0050, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {
-                getLockStatus: {ID: 0x10, response: 0, parameters: []},
-                getBatteryLevel: {ID: 0x12, parameters: []},
-                setRFLockoutTime: {ID: 0x13, parameters: []},
+                getLockStatus: {name: "getLockStatus", ID: 0x10, response: 0, parameters: []},
+                getBatteryLevel: {name: "getBatteryLevel", ID: 0x12, parameters: []},
+                setRFLockoutTime: {name: "setRFLockoutTime", ID: 0x13, parameters: []},
                 /* getLogRecord: {ID: 0x20,
                     parameters: [],
                 },*/ // marked in C4 driver as not supported
                 userCodeSet: {
+                    name: "userCodeSet",
                     ID: 0x30,
                     parameters: [
                         // bit pack ("bbb", slot, status, pinLength) .. pin
@@ -234,6 +236,7 @@ const yaleExtend = {
                     ],
                 },
                 userCodeGet: {
+                    name: "userCodeGet",
                     ID: 0x31,
                     parameters: [
                         // bit pack ("b", slot)
@@ -241,19 +244,21 @@ const yaleExtend = {
                     ],
                 },
                 userCodeClear: {
+                    name: "userCodeClear",
                     ID: 0x32,
                     parameters: [
                         // bit pack ("b", slot)
                         {name: "payload", type: Zcl.DataType.CHAR_STR},
                     ],
                 },
-                clearAllUserCodes: {ID: 0x33, parameters: []},
-                setUserCodeStatus: {ID: 0x34, parameters: []},
-                getUserCodeStatus: {ID: 0x35, parameters: []},
-                getLastUserIdEntered: {ID: 0x36, parameters: []},
-                userAdded: {ID: 0x37, parameters: []},
-                userDeleted: {ID: 0x38, parameters: []},
+                clearAllUserCodes: {name: "clearAllUserCodes", ID: 0x33, parameters: []},
+                setUserCodeStatus: {name: "setUserCodeStatus", ID: 0x34, parameters: []},
+                getUserCodeStatus: {name: "getUserCodeStatus", ID: 0x35, parameters: []},
+                getLastUserIdEntered: {name: "getLastUserIdEntered", ID: 0x36, parameters: []},
+                userAdded: {name: "userAdded", ID: 0x37, parameters: []},
+                userDeleted: {name: "userDeleted", ID: 0x38, parameters: []},
                 setScheduleSlot: {
+                    name: "setScheduleSlot",
                     ID: 0x40,
                     parameters: [
                         // bit pack ("bbbbbbb", 0, slot, weeklyScheduleNumber, startHour, startMinute, hours, minutes)
@@ -261,6 +266,7 @@ const yaleExtend = {
                     ],
                 },
                 getScheduleSlot: {
+                    name: "getScheduleSlot",
                     ID: 0x41,
                     parameters: [
                         // bit pack ("bb", slot, userId)
@@ -268,6 +274,7 @@ const yaleExtend = {
                     ],
                 },
                 setScheduleSlotStatus: {
+                    name: "setScheduleSlotStatus",
                     ID: 0x42,
                     parameters: [
                         // bit pack ("bbb", 0, slot, status)
@@ -275,6 +282,7 @@ const yaleExtend = {
                     ],
                 },
                 reflash: {
+                    name: "reflash",
                     ID: 0x60,
                     response: 1,
                     parameters: [
@@ -283,6 +291,7 @@ const yaleExtend = {
                     ],
                 },
                 reflashData: {
+                    name: "reflashData",
                     ID: 0x61,
                     response: 2,
                     parameters: [
@@ -291,6 +300,7 @@ const yaleExtend = {
                     ],
                 },
                 reflashStatus: {
+                    name: "reflashStatus",
                     ID: 0x62,
                     response: 3,
                     parameters: [
@@ -298,22 +308,22 @@ const yaleExtend = {
                         {name: "payload", type: Zcl.DataType.CHAR_STR},
                     ],
                 },
-                getReflashLock: {ID: 0x90, parameters: []},
-                getHistory: {ID: 0xa0, parameters: []},
-                getLogin: {ID: 0xa1, parameters: []},
-                getUser: {ID: 0xa2, parameters: []},
-                getUsers: {ID: 0xa3, parameters: []},
-                getMandatoryAttributes: {ID: 0xb0, parameters: []},
-                readAttribute: {ID: 0xb1, parameters: []},
-                writeAttribute: {ID: 0xb2, parameters: []},
-                configureReporting: {ID: 0xb3, parameters: []},
-                getBasicClusterAttributes: {ID: 0xb4, parameters: []},
+                getReflashLock: {name: "getReflashLock", ID: 0x90, parameters: []},
+                getHistory: {name: "getHistory", ID: 0xa0, parameters: []},
+                getLogin: {name: "getLogin", ID: 0xa1, parameters: []},
+                getUser: {name: "getUser", ID: 0xa2, parameters: []},
+                getUsers: {name: "getUsers", ID: 0xa3, parameters: []},
+                getMandatoryAttributes: {name: "getMandatoryAttributes", ID: 0xb0, parameters: []},
+                readAttribute: {name: "readAttribute", ID: 0xb1, parameters: []},
+                writeAttribute: {name: "writeAttribute", ID: 0xb2, parameters: []},
+                configureReporting: {name: "configureReporting", ID: 0xb3, parameters: []},
+                getBasicClusterAttributes: {name: "getBasicClusterAttributes", ID: 0xb4, parameters: []},
             },
             commandsResponse: {
-                getLockStatusRsp: {ID: 0x00, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
-                reflashRsp: {ID: 0x01, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
-                reflashDataRsp: {ID: 0x02, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
-                reflashStatusRsp: {ID: 0x03, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
+                getLockStatusRsp: {name: "getLockStatusRsp", ID: 0x00, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
+                reflashRsp: {name: "reflashRsp", ID: 0x01, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
+                reflashDataRsp: {name: "reflashDataRsp", ID: 0x02, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
+                reflashStatusRsp: {name: "reflashStatusRsp", ID: 0x03, parameters: [{name: "status", type: Zcl.DataType.UINT8, max: 0xff}]},
                 /* boltStateRsp: {ID: 4,
                     parameters: [
                         {name: 'state', type: Zcl.DataType.UINT8, max: 0xff},
