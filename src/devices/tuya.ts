@@ -25226,4 +25226,97 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE204_davzgqq0']),
+        model: 'EAKCB-T-M-Z',
+        vendor: 'EARU',
+        description: 'Zigbee DIN relay',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tzDataPoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            tuya.exposes.switch(), e.energy(), e.power(), e.voltage(), e.current(),
+            exposes.composite('Leakage threshold', 'leakage_threshold', ea.STATE_SET)
+                .withFeature(
+                    exposes.switch()
+                        .withState('state', true, 'Toggle leakage threshold alarm', ea.STATE_SET)
+                )
+                .withFeature(
+                    exposes.numeric('value', ea.STATE_SET)
+                        .withUnit('mA')
+                        .withPreset('default', defaultThresholdValues.leakage, 'Default value')
+                        .withDescription('Value of trigger for leakage threshold')
+                )
+                .withDescription('Works only on 2P device'),
+            exposes.composite('Thresholds', 'thresholds', ea.STATE_SET)
+                .withFeature(
+                    exposes.composite('Overcurrent threshold', 'overcurrent_threshold', ea.STATE_SET)
+                        .withFeature(
+                            exposes.switch()
+                                .withState('state', true, 'Toggle overcurrent threshold alarm', ea.STATE_SET)
+                        )
+                        .withFeature(
+                            exposes.numeric('value', ea.STATE_SET)
+                                .withUnit('A')
+                                .withValueMax(63)
+                                .withValueMin(10)
+                                .withValueStep(1)
+                                .withPreset('default', defaultThresholdValues.overcurrent, 'Default value')
+                                .withDescription('Value of trigger for overcurrent threshold')
+                        )
+                )
+                .withFeature(
+                    exposes.composite('Overvoltage threshold', 'overvoltage_threshold', ea.STATE_SET)
+                        .withFeature(
+                            exposes.switch()
+                                .withState('state', true, 'Toggle overvoltage threshold alarm', ea.STATE_SET)
+                        )
+                        .withFeature(
+                            exposes.numeric('value', ea.STATE_SET)
+                                .withUnit('V')
+                                .withValueMax(400)
+                                .withValueMin(1)
+                                .withValueStep(1)
+                                .withPreset('default', defaultThresholdValues.overvoltage, 'Default value')
+                                .withDescription('Value of trigger for overvoltage threshold')
+                        )
+                )
+                .withFeature(
+                    exposes.composite('Undervoltage threshold', 'undervoltage_threshold', ea.STATE_SET)
+                        .withFeature(
+                            exposes.switch()
+                                .withState('state', true, 'Toggle undervoltage threshold alarm', ea.STATE_SET)
+                        )
+                        .withFeature(
+                            exposes.numeric('value', ea.STATE_SET)
+                                .withUnit('V')
+                                .withValueMax(300)
+                                .withValueMin(50)
+                                .withValueStep(1)
+                                .withPreset('default', defaultThresholdValues.undervoltage, 'Default value')
+                                .withDescription('Value of trigger for undervoltage threshold')
+                        )
+                ),
+            exposes.text('breaker_id', ea.STATE).withDescription('Device identificator from manufacturer'),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, 'energy', tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant2],
+                [16, 'state', tuya.valueConverter.onOff],
+                [17, 'leakage_threshold', valueConverter.thresholdVariant1({4: 4}, {'ON': 1, 'OFF': 0}, defaultThresholdValues.leakage)],
+                [18, 'thresholds', valueConverter.thresholdVariant2(
+                    ['overcurrent', 'overvoltage', 'undervoltage'],
+                    {1: 1, 3: 3, 4: 4},
+                    {'ON': 1, 'OFF': 0},
+                    {
+                        overcurrent: defaultThresholdValues.overcurrent,
+                        overvoltage: defaultThresholdValues.overvoltage,
+                        undervoltage: defaultThresholdValues.undervoltage,
+                    }
+                )],
+                [19, 'breaker_id', tuya.valueConverter.raw],
+            ],
+        },
+    }.
 ];
