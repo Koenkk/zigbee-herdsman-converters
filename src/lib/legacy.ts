@@ -1,11 +1,11 @@
 import fs from "node:fs";
 
 import {occupancy_with_timeout} from "../converters/fromZigbee";
+import type {ManuSpecificTuya} from "../lib/tuya";
 import * as constants from "./constants";
 import * as exposes from "./exposes";
 import * as light from "./light";
 import {logger} from "./logger";
-import {ManuSpecificTuya} from "../lib/tuya";
 import * as globalStore from "./store";
 import type {Definition, Fz, KeyValueNumberString, Publish, Tuya, Tz, Zh} from "./types";
 import * as utils from "./utils";
