@@ -615,7 +615,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Thermostatic radiator valve",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e
