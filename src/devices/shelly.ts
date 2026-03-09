@@ -924,6 +924,15 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["commandToggle"]>,
 
+    one_button_scene_events: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}`, {"1": "single_long", "2": "double_long", "3": "triple_long"});
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
+
     four_buttons_single_events: {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
@@ -1299,8 +1308,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBBT-102C",
         vendor: "Shelly",
         description: "BLU Button Tough 1 ZB",
-        fromZigbee: [fzLocal.one_button_events],
-        exposes: [e.action(["single", "double", "triple"])],
+        fromZigbee: [fzLocal.one_button_events, fzLocal.one_button_scene_events],
+        exposes: [e.action(["single", "double", "triple", "single_long", "double_long", "triple_long"])],
         extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}), m.identify()],
         version: "0.0.2",
         configure: async (device, coordinatorEndpoint, definition) => {
