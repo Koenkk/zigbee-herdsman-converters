@@ -2830,7 +2830,7 @@ const tuyaModernExtend = {
 
         const fzConverter: Fz.Converter<
             "manuSpecificTuya",
-            Tuya,
+            ManuSpecificTuya,
             [
                 "commandMcuSyncTime",
                 "commandMcuVersionResponse",
@@ -3772,14 +3772,14 @@ const tuyaClusters = {
                 /**
                  * Weather forecast synchronization (check requestWeatherInformation)
                  */
-                tuyaWeatherSync: {ID: 0x61, parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                tuyaWeatherSync: {name: "tuyaWeatherSync", ID: 0x61, parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
             commandsResponse: {
                 /**
                  * Reply to MCU-side data request
                  */
                 dataResponse: {
-                    name: "dataResponse",
+                    name: "dataResponse", 
                     ID: 0x01,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3790,7 +3790,7 @@ const tuyaClusters = {
                  * MCU-side data active upload (bidirectional)
                  */
                 dataReport: {
-                    name: "dataReport",
+                    name: "dataReport", 
                     ID: 0x02,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3829,7 +3829,7 @@ const tuyaClusters = {
                  * Zigbee->Gw MCU return version or actively report version
                  */
                 mcuVersionResponse: {
-                    name: "mcuVersionResponse",
+                    name: "mcuVersionResponse", 
                     ID: 0x11,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3840,7 +3840,7 @@ const tuyaClusters = {
                  * Zigbee->Gw requests an upgrade package for the MCU
                  */
                 mcuOtaBlockDataRequest: {
-                    name: "mcuOtaBlockDataRequest",
+                    name: "mcuOtaBlockDataRequest", 
                     ID: 0x13,
                     parameters: [
                         {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
@@ -3872,11 +3872,7 @@ const tuyaClusters = {
                 /**
                  * Gateway connection status (bidirectional)
                  */
-                mcuGatewayConnectionStatus: {
-                    name: "mcuGatewayConnectionStatus",
-                    ID: 0x25,
-                    parameters: [{name: "payloadSize", type: Zcl.DataType.UINT16, max: 0xffff}],
-                },
+                mcuGatewayConnectionStatus: {name: "mcuGatewayConnectionStatus", ID: 0x25, parameters: [{name: "payloadSize", type: Zcl.DataType.UINT16, max: 0xffff}]},
                 /**
                  * Device can request weather forecast information and expects response respecting given parameters.
                  * This command ID seem to be device speciffic, because there is simmilar structure documented in Tuya Serial Communication Protocol,
@@ -3905,7 +3901,7 @@ const tuyaClusters = {
         }),
     addmManuSpecificTuya3Cluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya3", {
-            name: "manuSpecificTuya3",
+            name: "manuSpecificTuya3", 
             ID: 0xe001,
             attributes: {
                 powerOnBehavior: {name: "powerOnBehavior", ID: 0xd010, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
