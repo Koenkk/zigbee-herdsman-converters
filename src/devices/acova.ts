@@ -88,16 +88,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ['IHC-Enki'],
-        model: 'IHC-Enki',
-        vendor: 'Acova',
-        description: 'Acova Madras IHC towel radiator (Zigbee thermostat)',
-    
-        fromZigbee: [
-            fz.thermostat,
-            fz.hvac_user_interface_cfg,
-        ],
-    
+        zigbeeModel: ["IHC-Enki"],
+        model: "IHC-Enki",
+        vendor: "Acova",
+        description: "Acova Madras IHC towel radiator (Zigbee thermostat)",
+
+        fromZigbee: [fz.thermostat, fz.hvac_user_interface_cfg],
+
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_system_mode,
@@ -105,21 +102,22 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_setpoint_raise_lower,
             tz.thermostat_local_temperature_calibration,
         ],
-    
+
         exposes: [
-            e.climate()
+            e
+                .climate()
                 .withLocalTemperature()
-                .withSetpoint('occupied_heating_setpoint', 7, 30, 0.5)
-                .withSystemMode(['off', 'heat', 'auto'])
+                .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
+                .withSystemMode(["off", "heat", "auto"])
                 .withLocalTemperatureCalibration(),
         ],
-    
+
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-    
+
             // Bind required clusters
-            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
-    
+            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
+
             // Enable reporting
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
