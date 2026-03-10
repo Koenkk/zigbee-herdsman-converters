@@ -1,3 +1,5 @@
+import {Buffer} from "node:buffer";
+import {setTimeout} from "node:timers";
 import {TextDecoder, TextEncoder} from "node:util";
 import {Zcl} from "zigbee-herdsman";
 import {DataType} from "zigbee-herdsman/dist/zspec/zcl";
@@ -15218,6 +15220,125 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_switch_8",
         vendor: "ZYXH",
         description: "8 gang switch",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [
+            {
+                key: ["state"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
+                    const datapoints = meta.mapped.meta?.tuyaDatapoints;
+                    if (!datapoints) throw new Error("No datapoints map defined");
+
+                    // Simple approach: only process the first command for each endpoint, ignore rapid follow-ups
+                    const recentCallKey = `recentCall_${meta.endpoint_name}`;
+                    const recentCall = globalStore.getValue(entity, recentCallKey, null);
+                    const currentTime = Date.now();
+
+                    // Reduced debounce to 250ms to allow fast toggling but block machine-speed duplicates
+                    if (recentCall && currentTime - recentCall.timestamp < 250) {
+                        return {}; // Don't update state
+                    }
+
+                    // Store this call
+                    globalStore.putValue(entity, recentCallKey, {
+                        value: value,
+                        timestamp: currentTime,
+                    });
+
+                    const state: KeyValue = {};
+                    for (const [attr, value] of Object.entries(meta.message)) {
+                        const convertedKey = meta.mapped.meta.multiEndpoint && meta.endpoint_name ? `${attr}_${meta.endpoint_name}` : attr;
+                        const dpEntry = datapoints.find((d) => d[1] === convertedKey);
+
+                        if (!dpEntry?.[1] || !dpEntry?.[2].to) {
+                            throw new Error(`No datapoint defined for '${attr}'`);
+                        }
+
+                        const dpId = dpEntry[0];
+                        const convertedValue = await dpEntry[2].to(value, meta);
+
+                        // Get next sequence number (global for device, not per DP)
+                        // Initialize with random value to avoid collisions on restart
+                        const seqKey = "tuyaSeq_global";
+                        let seq = globalStore.getValue(entity, seqKey, null);
+                        if (seq === null) {
+                            seq = Math.floor(Math.random() * 0xffff);
+                            globalStore.putValue(entity, seqKey, seq);
+                        }
+
+                        seq = (seq + 1) % 0xffff;
+                        globalStore.putValue(entity, seqKey, seq);
+
+                        // Send command (Attempt 1)
+                        await entity.command(
+                            "manuSpecificTuya",
+                            "dataRequest",
+                            {
+                                seq: seq,
+                                dpValues: [
+                                    {
+                                        dp: dpId,
+                                        datatype: tuya.dataTypes.bool,
+                                        data: Buffer.from([convertedValue ? 1 : 0]),
+                                    },
+                                ],
+                            },
+                            {disableDefaultResponse: true},
+                        );
+
+                        // Hack: Send command again with incremented sequence number
+                        // This simulates the "double click" that makes the device respond
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+
+                        seq = (seq + 1) % 0xffff;
+                        globalStore.putValue(entity, seqKey, seq);
+
+                        await entity.command(
+                            "manuSpecificTuya",
+                            "dataRequest",
+                            {
+                                seq: seq,
+                                dpValues: [
+                                    {
+                                        dp: dpId,
+                                        datatype: tuya.dataTypes.bool,
+                                        data: Buffer.from([convertedValue ? 1 : 0]),
+                                    },
+                                ],
+                            },
+                            {disableDefaultResponse: true},
+                        );
+
+                        state[attr] = value;
+                    }
+                    return {state};
+                },
+            } satisfies Tz.Converter,
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            // No binding needed for Tuya datapoint devices
+        },
+        onEvent: async (event) => {
+            // Replicate the old tuya.onEventSetTime behavior
+            if (event.type === "deviceAnnounce" || event.type === "stop") {
+                const device = event.type === "stop" ? undefined : event.data.device;
+                if (!device) return;
+                const endpoint = device.getEndpoint(1);
+                if (endpoint) {
+                    try {
+                        const utcTime = Math.round(Date.now() / 1000);
+                        const localTime = utcTime - new Date().getTimezoneOffset() * 60;
+                        await endpoint.command("manuSpecificTuya", "mcuSyncTime", {
+                            payloadSize: 8,
+                            payload: [...tuya.convertDecimalValueTo4ByteHexArray(utcTime), ...tuya.convertDecimalValueTo4ByteHexArray(localTime)],
+                        });
+                    } catch (e) {
+                        logger.error(`Failed to sync time for device ${device.ieeeAddr}: ${e}`, NS);
+                    }
+                }
+            }
+        },
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch().withEndpoint("l1"),
