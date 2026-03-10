@@ -175,27 +175,30 @@ const philips2Keys = ["effect_speed", "gradient_scale", "gradient_offset", "grad
 const philipsModernExtend = {
     addCustomClusterManuSpecificPhilipsContact: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificPhilipsContact", {
+            name: "manuSpecificPhilipsContact",
             ID: 0xfc06,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
-                contact: {ID: 0x0100, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                contactLastChange: {ID: 0x0101, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                tamper: {ID: 0x0102, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                tamperLastChange: {ID: 0x0103, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                contact: {name: "contact", ID: 0x0100, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                contactLastChange: {name: "contactLastChange", ID: 0x0101, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                tamper: {name: "tamper", ID: 0x0102, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                tamperLastChange: {name: "tamperLastChange", ID: 0x0103, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
             },
             commands: {},
             commandsResponse: {},
         }),
     addManuSpecificPhilipsCluster: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificPhilips", {
+            name: "manuSpecificPhilips",
             ID: 0xfc00,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
-                config: {ID: 0x0031, type: Zcl.DataType.BITMAP16, write: true},
+                config: {name: "config", ID: 0x0031, type: Zcl.DataType.BITMAP16, write: true},
             },
             commands: {},
             commandsResponse: {
                 hueNotification: {
+                    name: "hueNotification",
                     ID: 0x00,
                     parameters: [
                         {name: "button", type: Zcl.DataType.UINT8, max: 0xff},
@@ -210,27 +213,29 @@ const philipsModernExtend = {
         }),
     addManuSpecificPhilips2Cluster: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificPhilips2", {
+            name: "manuSpecificPhilips2",
             ID: 0xfc03,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
-                state: {ID: 0x0002, type: Zcl.DataType.OCTET_STR, write: true},
+                state: {name: "state", ID: 0x0002, type: Zcl.DataType.OCTET_STR, write: true},
             },
             commands: {
-                multiColor: {ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                multiColor: {name: "multiColor", ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
             commandsResponse: {},
         }),
     addManuSpecificPhilips3Cluster: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificPhilips3", {
+            name: "manuSpecificPhilips3",
             ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {},
             commands: {
-                command1: {ID: 1, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                command2: {ID: 2, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                command3: {ID: 3, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                command4: {ID: 4, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                command7: {ID: 7, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command1: {name: "command1", ID: 1, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command2: {name: "command2", ID: 2, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command3: {name: "command3", ID: 3, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command4: {name: "command4", ID: 4, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command7: {name: "command7", ID: 7, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
             commandsResponse: {},
         }),
@@ -438,14 +443,16 @@ const philipsModernExtend = {
                 } else {
                     logger.debug(`Sending manuSpecificPhilips2 payload: ${encodedPayload.toString("hex")}`, NS);
                     const payload = {data: encodedPayload};
-                    await entity.command("manuSpecificPhilips2", "multiColor", payload);
+                    await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
 
                     // Send brightness as a separate command after effect activation,
                     // since the effect resets brightness on start.
                     if (deferredBrightness !== undefined) {
                         const brightnessData: Philips2Data = {brightness: deferredBrightness};
                         const brightnessPayload = Buffer.from(EncodeManuSpecificPhilips2(brightnessData));
-                        await entity.command("manuSpecificPhilips2", "multiColor", {data: brightnessPayload});
+                        await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", {
+                            data: brightnessPayload,
+                        });
                         newState.brightness = deferredBrightness;
                     }
 
@@ -454,7 +461,7 @@ const philipsModernExtend = {
                     if (data.effectType !== undefined) {
                         setTimeout(async () => {
                             try {
-                                await entity.read("manuSpecificPhilips2", ["state"]);
+                                await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
                             } catch (_e) {
                                 // Best-effort sync
                             }
@@ -479,7 +486,7 @@ const philipsModernExtend = {
                     return;
                 }
                 try {
-                    await entity.read("manuSpecificPhilips2", ["state"]);
+                    await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
                 } catch (e) {
                     logger.debug(`Reading manuSpecificPhilips2 state failed: ${e}`, NS);
                 }
@@ -592,8 +599,8 @@ const philipsModernExtend = {
 
         const customCluster2 = philipsModernExtend.addManuSpecificPhilips2Cluster();
         const customCluster3 = philipsModernExtend.addManuSpecificPhilips3Cluster();
-        result.onEvent = [...(result.onEvent ?? []), ...customCluster2.onEvent, ...customCluster3.onEvent];
-        result.configure = [...(result.configure ?? []), ...customCluster2.configure, ...customCluster3.configure];
+        result.onEvent = [...customCluster2.onEvent, ...customCluster3.onEvent, ...(result.onEvent ?? [])];
+        result.configure = [...customCluster2.configure, ...customCluster3.configure, ...(result.configure ?? [])];
 
         return result;
     },
@@ -736,7 +743,7 @@ const philipsTz = {
             const scene = utils.getFromLookup(value, gradientScenes);
             if (!scene) throw new Error(`Gradient scene '${value}' is unknown`);
             const payload = {data: Buffer.from(scene, "hex")};
-            await entity.command("manuSpecificPhilips2", "multiColor", payload);
+            await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
         },
     } satisfies Tz.Converter,
     gradient: (opts = {reverse: false}) => {
@@ -769,12 +776,12 @@ const philipsTz = {
                 // @ts-expect-error ignore
                 const scene = encodeGradientColors(colors, mergedOpts);
                 const payload = {data: Buffer.from(scene, "hex")};
-                await entity.command("manuSpecificPhilips2", "multiColor", payload);
+                await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
                 return {state: {gradient_style: message.gradient_style}};
             },
             convertGet: async (entity, key, meta) => {
                 try {
-                    await entity.read("manuSpecificPhilips2", ["state"]);
+                    await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
                 } catch (e) {
                     logger.debug(`Reading manuSpecificPhilips2 state for gradient failed: ${e}`, NS);
                 }
@@ -793,7 +800,9 @@ const philipsTz = {
             // regardless of whether the active effect is a ZCL or Hue effect.
             if (lower === "none" || lower === "stop_hue_effect" || lower === "finish_effect" || lower === "stop_effect") {
                 // Stop Hue-specific effects via manuSpecificPhilips2
-                await entity.command("manuSpecificPhilips2", "multiColor", {data: Buffer.from(hueEffects.stop_hue_effect, "hex")});
+                await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", {
+                    data: Buffer.from(hueEffects.stop_hue_effect, "hex"),
+                });
                 // Also send the ZCL effect stop for standard effects (blink, breathe, etc.)
                 if (lower === "finish_effect" || lower === "stop_effect") {
                     try {
@@ -829,7 +838,7 @@ const philipsTz = {
                 }
 
                 const payload = {data: Buffer.from(EncodeManuSpecificPhilips2(data))};
-                await entity.command("manuSpecificPhilips2", "multiColor", payload);
+                await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
                 const state: KeyValueAny = {effect: lower};
                 if (data.effectSpeed !== undefined) state.effect_speed = data.effectSpeed;
 
@@ -838,7 +847,7 @@ const philipsTz = {
                 // actual brightness the device settled on.
                 setTimeout(async () => {
                     try {
-                        await entity.read("manuSpecificPhilips2", ["state"]);
+                        await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
                     } catch (_e) {
                         // Ignore read failures — best-effort sync
                     }
