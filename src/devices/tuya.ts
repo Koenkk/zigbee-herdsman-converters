@@ -6400,17 +6400,17 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-    fingerprint: [{modelID: 'TS0003', manufacturerName: '_TZ3000_kl72oake'}],
-    model: 'Mercurio-3',
-    vendor: 'Ekaza',
-    description: 'Smart 3-channel switch',
-    extend: [
-        modernExtend.deviceEndpoints({endpoints: {'l1': 1, 'l2': 2, 'l3': 3}}),
-        // Aqui chamamos diretamente do módulo tuya.modernExtend
-        tuya.modernExtend.tuyaOnOff({
-            powerOutageMemory: true, 
-            indicatorMode: true, 
-            endpoints: ['l1', 'l2', 'l3']
+        fingerprint: [{modelID: "TS0003", manufacturerName: "_TZ3000_kl72oake"}],
+        model: "Mercurio-3",
+        vendor: "Ekaza",
+        description: "Smart 3-channel switch",
+        extend: [
+            modernExtend.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            // Aqui chamamos diretamente do módulo tuya.modernExtend
+            tuya.modernExtend.tuyaOnOff({
+                powerOutageMemory: true,
+                indicatorMode: true,
+                endpoints: ["l1", "l2", "l3"],
             }),
         ],
     },
