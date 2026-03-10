@@ -87,7 +87,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Momax", "SL12S", "mmWave Presence sensor", ["_TZ3218_ewrxirng"])],
         fromZigbee: [fz.ias_occupancy_alarm_1, fzLocal.TS0225, fzLocal.TS0225_illuminance],
         toZigbee: [tzLocal.TS0225],
-        extend: [tuya.clusters.addmManuSpecificTuya2Cluster(), tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.clusters.addManuSpecificTuya2Cluster(), tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.occupancy().withDescription("Presence state"),
             e.illuminance().withUnit("lx"),
