@@ -83,35 +83,38 @@ interface LegrandDevicesCluster2 {
 export const legrandExtend = {
     addLegrandDevicesCluster: () =>
         m.deviceAddCustomCluster("manuSpecificLegrandDevices", {
+            name: "manuSpecificLegrandDevices",
             ID: 0xfc01,
             manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
             attributes: {
-                deviceMode: {ID: 0x0000, type: Zcl.DataType.DATA16, write: true},
-                ledInDark: {ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
-                ledIfOn: {ID: 0x0002, type: Zcl.DataType.BOOLEAN, write: true},
+                deviceMode: {name: "deviceMode", ID: 0x0000, type: Zcl.DataType.DATA16, write: true},
+                ledInDark: {name: "ledInDark", ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
+                ledIfOn: {name: "ledIfOn", ID: 0x0002, type: Zcl.DataType.BOOLEAN, write: true},
             },
             commands: {},
             commandsResponse: {},
         }),
     addLegrandDevices2Cluster: () =>
         m.deviceAddCustomCluster("manuSpecificLegrandDevices2", {
+            name: "manuSpecificLegrandDevices2",
             ID: 0xfc40,
             manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
             attributes: {
-                pilotWireMode: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+                pilotWireMode: {name: "pilotWireMode", ID: 0x0000, type: Zcl.DataType.ENUM8},
             },
             commands: {
-                command0: {ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command0: {name: "command0", ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
             commandsResponse: {},
         }),
     addLegrandDevices3Cluster: () =>
         m.deviceAddCustomCluster("manuSpecificLegrandDevices3", {
+            name: "manuSpecificLegrandDevices3",
             ID: 0xfc41,
             manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
             attributes: {},
             commands: {
-                command0: {ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command0: {name: "command0", ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
             commandsResponse: {},
         }),

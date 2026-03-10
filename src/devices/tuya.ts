@@ -4643,9 +4643,19 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {coverInverted: true},
         extend: [
             m.deviceAddCustomCluster("closuresWindowCovering", {
+                name: "closuresWindowCovering",
                 ID: 0x0102,
                 attributes: {
-                    currentPositionLiftPercentage: {ID: 0x0008, type: DataType.UINT8, report: true, scene: true, max: 100, default: 0, write: true},
+                    currentPositionLiftPercentage: {
+                        name: "currentPositionLiftPercentage",
+                        ID: 0x0008,
+                        type: DataType.UINT8,
+                        report: true,
+                        scene: true,
+                        max: 100,
+                        default: 0,
+                        write: true,
+                    },
                 },
                 commands: {},
                 commandsResponse: {},
@@ -13270,10 +13280,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.deviceAddCustomCluster("genOnOff", {
+                name: "genOnOff",
                 ID: Zcl.Clusters.genOnOff.ID,
                 attributes: {},
                 commands: {
                     tuyaCountdown: {
+                        name: "tuyaCountdown",
                         ID: 0xf0,
                         parameters: [{name: "data", type: 1008 /* BUFFER */}],
                     },
@@ -18876,7 +18888,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l5"),
             tuya.exposes.switch().withEndpoint("l6"),
             tuya.exposes.switchType(),
-            e.power_on_behavior(["off", "on"]).withAccess(ea.STATE_SET),
+            e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET),
         ],
         endpoint: (device) => {
             return {
@@ -19297,7 +19309,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fhvdgeuh", "_TZE200_abatw3kj", "_TZE204_4bjixefp", "_TZE284_5m4nchbm"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fhvdgeuh", "_TZE200_abatw3kj", "_TZE204_4bjixefp"]),
         model: "TS0601_din_4",
         vendor: "Tuya",
         description: "Din rail switch with power monitoring and threshold settings",
@@ -22480,7 +22492,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_3regm3h6", "_TZE204_0hcjew5p", "_TZE204_6vwfjkcj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_3regm3h6", "_TZE204_0hcjew5p", "_TZE204_6vwfjkcj", "_TZE284_3regm3h6"]),
         model: "_TZE204_3regm3h6",
         vendor: "Tuya",
         description: "Smart thermostat for electric radiator with pilot wire",
@@ -22924,10 +22936,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.onOff({powerOnBehavior: false}),
             m.deviceAddCustomCluster("manuSpecificTuyaE001", {
+                name: "manuSpecificTuyaE001",
                 ID: 0xe001,
                 attributes: {},
                 commands: {
                     setCountdown: {
+                        name: "setCountdown",
                         ID: 0xfe,
                         parameters: [{name: "data", type: 1008}],
                     },
@@ -23130,7 +23144,46 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mvtclclq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5m4nchbm"]),
+        model: "SMKG-2KNL-SD",
+        vendor: "Tuya",
+        description: "Smart leakage protector 63a with leakage monitoring",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().setAccess("state", ea.STATE_SET),
+            e.voltage(),
+            e.current(),
+            e.power(),
+            e.energy(),
+            e.temperature(),
+            e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Real-time leakage current (DP 53)"),
+            e.numeric("over_voltage_threshold", ea.STATE_SET).withUnit("V").withValueMin(220).withValueMax(265),
+            e.numeric("under_voltage_threshold", ea.STATE_SET).withUnit("V").withValueMin(76).withValueMax(240),
+            e.numeric("over_current_threshold", ea.STATE_SET).withUnit("A").withValueMin(1).withValueMax(63),
+            e.numeric("leakage_threshold", ea.STATE_SET).withUnit("mA").withValueMin(10).withValueMax(100),
+            e.numeric("temp_threshold", ea.STATE_SET).withUnit("°C").withValueMin(40).withValueMax(150),
+            e.numeric("fault_code", ea.STATE).withDescription("0 = OK"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [20, "voltage", tuya.valueConverter.divideBy10],
+                [18, "current", tuya.valueConverter.divideBy100],
+                [19, "power", tuya.valueConverter.divideBy10],
+                [17, "energy", tuya.valueConverter.divideBy100],
+                [47, "temperature", tuya.valueConverter.raw],
+                [53, "leakage_current", tuya.valueConverter.raw],
+                [41, "leakage_threshold", tuya.valueConverter.raw],
+                [42, "over_voltage_threshold", tuya.valueConverter.raw],
+                [43, "under_voltage_threshold", tuya.valueConverter.raw],
+                [44, "over_current_threshold", tuya.valueConverter.raw],
+                [45, "temp_threshold", tuya.valueConverter.raw],
+                [9, "fault_code", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mvtclclq", "_TZE284_mvtclclq"]),
         model: "DS-1450WN",
         vendor: "Tuya",
         description: "Smart Zigbee Switch with power monitoring",
@@ -25139,6 +25192,37 @@ export const definitions: DefinitionWithExtend[] = [
                         none_30min: tuya.enum(5),
                     }),
                 ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_hbnfokum"]),
+        model: "TS0601_water_valve_1",
+        vendor: "Tuya",
+        description: "Water valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch(),
+            e
+                .numeric("position", ea.STATE_SET)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(10)
+                .withDescription("Target valve position"),
+            e
+                .numeric("position_current", ea.STATE)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(10)
+                .withDescription("Current valve position (feedback, steps of 10%)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [101, "position", tuya.valueConverter.raw],
+                [102, "position_current", tuya.valueConverter.raw],
             ],
         },
     },

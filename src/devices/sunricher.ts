@@ -660,10 +660,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery(),
             m.deviceAddCustomCluster("sunricherRemote", {
+                name: "sunricherRemote",
                 ID: 0xff03,
                 attributes: {},
                 commands: {
                     press: {
+                        name: "press",
                         ID: 0x01,
                         parameters: [
                             {name: "messageType", type: Zcl.DataType.UINT8, max: 0xff},
@@ -685,9 +687,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee thermostatic radiator valve",
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: Zcl.Clusters.hvacThermostat.ID,
                 attributes: {
                     screenTimeout: {
+                        name: "screenTimeout",
                         ID: 0x100d,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -696,6 +700,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     antiFreezingTemp: {
+                        name: "antiFreezingTemp",
                         ID: 0x1005,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -704,6 +709,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     temperatureDisplayMode: {
+                        name: "temperatureDisplayMode",
                         ID: 0x1008,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -712,6 +718,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     windowOpenCheck: {
+                        name: "windowOpenCheck",
                         ID: 0x1009,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -720,6 +727,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     hysteresis: {
+                        name: "hysteresis",
                         ID: 0x100a,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -728,6 +736,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     windowOpenFlag: {
+                        name: "windowOpenFlag",
                         ID: 0x100b,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -736,6 +745,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     forcedHeatingTime: {
+                        name: "forcedHeatingTime",
                         ID: 0x100e,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -744,6 +754,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     errorCode: {
+                        name: "errorCode",
                         ID: 0x2003,
                         type: Zcl.DataType.BITMAP8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -751,6 +762,7 @@ export const definitions: DefinitionWithExtend[] = [
                         write: true,
                     },
                     awayOrBoostMode: {
+                        name: "awayOrBoostMode",
                         ID: 0x2002,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -997,12 +1009,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.occupancy(),
             m.commandsOnOff(),
             m.deviceAddCustomCluster("sunricherSensor", {
+                name: "sunricherSensor",
                 ID: 0xfc8b,
                 manufacturerCode: 0x120b,
                 attributes: {
-                    indicatorLight: {ID: 0xf001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    detectionArea: {ID: 0xf002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    illuminanceThreshold: {ID: 0xf004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    indicatorLight: {name: "indicatorLight", ID: 0xf001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    detectionArea: {name: "detectionArea", ID: 0xf002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    illuminanceThreshold: {name: "illuminanceThreshold", ID: 0xf004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},

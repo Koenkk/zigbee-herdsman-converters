@@ -142,19 +142,20 @@ const fzLocal = {
 const extendLocal = {
     addCustomClusterHueChime: () =>
         m.deviceAddCustomCluster("customHueChime", {
+            name: "customHueChime",
             ID: 0xfc07,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
-                sirenIsMuted: {ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
-                soundIDPlaying: {ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                unknownAttr: {ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                sirenIsMuted: {name: "sirenIsMuted", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+                soundIDPlaying: {name: "soundIDPlaying", ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                unknownAttr: {name: "unknownAttr", ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
             },
             commands: {
-                mute: {ID: 0x00, parameters: []},
-                unmute: {ID: 0x01, parameters: []},
-                triggerSiren: {ID: 0x02, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                playSound: {ID: 0x03, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                playTripleBeep: {ID: 0x04, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                mute: {name: "mute", ID: 0x00, parameters: []},
+                unmute: {name: "unmute", ID: 0x01, parameters: []},
+                triggerSiren: {name: "triggerSiren", ID: 0x02, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                playSound: {name: "playSound", ID: 0x03, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                playTripleBeep: {name: "playTripleBeep", ID: 0x04, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
             commandsResponse: {},
         }),

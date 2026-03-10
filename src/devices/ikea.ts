@@ -1158,9 +1158,10 @@ export const definitions: DefinitionWithExtend[] = [
             addCustomClusterManuSpecificIkeaUnknown(),
             addCustomClusterManuSpecificIkeaVocIndexMeasurement(),
             m.deviceAddCustomCluster("pm25Measurement", {
+                name: "pm25Measurement",
                 ID: 0x042a,
                 attributes: {
-                    measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
+                    measuredValue: {name: "measuredValue", ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1169,7 +1170,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.humidity(),
             m.pm25({reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 2}}),
             ikeaVoc(),
-            m.identify(),
         ],
         ota: true,
     },
