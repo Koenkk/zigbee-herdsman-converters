@@ -173,10 +173,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Dooya Curtain",
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
                 ID: 0xef00,
                 attributes: {},
                 commands: {
                     protocolData: {
+                        name: "protocolData",
                         ID: 0,
                         parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                     },
@@ -219,10 +221,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Reax Curtain",
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
                 ID: 0xef00,
                 attributes: {},
                 commands: {
                     protocolData: {
+                        name: "protocolData",
                         ID: 0,
                         parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                     },
@@ -262,10 +266,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "AK Curtain",
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
                 ID: 0xef00,
                 attributes: {},
                 commands: {
                     protocolData: {
+                        name: "protocolData",
                         ID: 0,
                         parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                     },

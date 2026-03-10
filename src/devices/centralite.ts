@@ -23,10 +23,11 @@ export interface ManuSpecificCentraliteHumidity {
 export const centraliteExtend = {
     addManuSpecificCentraliteHumidityCluster: () =>
         m.deviceAddCustomCluster("manuSpecificCentraliteHumidity", {
+            name: "manuSpecificCentraliteHumidity",
             ID: 0xfc45,
             manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
             attributes: {
-                measuredValue: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                measuredValue: {name: "measuredValue", ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
             },
             commands: {},
             commandsResponse: {},

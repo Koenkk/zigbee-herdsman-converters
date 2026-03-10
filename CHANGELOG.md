@@ -1,5 +1,23 @@
 # Changelog
 
+## [26.17.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.16.1...v26.17.0) (2026-03-09)
+
+
+### Features
+
+* **add:** HALO, HALO+ ([#11666](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11666)) ([77d3f12](https://github.com/Koenkk/zigbee-herdsman-converters/commit/77d3f12dc4aec4e24d3c4c927fc201864ab817c0))
+* **add:** TS0601_water_valve_1 ([#11670](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11670)) ([b18b979](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b18b97993de30cf141ab380706accf5e6203dd50))
+* Third Reality 3RSB02015Z: support OTA ([#11682](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11682)) ([562b6b9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/562b6b9ac47a6feb2ad143dba83e9176a7f89653))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_3regm3h6` as Tuya _TZE204_3regm3h6 ([8985ee4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8985ee4d1272858ccee7f182838c47af0f606e03))
+* **ignore:** bump the minor-patch group with 2 updates ([#11681](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11681)) ([c5dae77](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c5dae77f115f65146abf2e1bbe403f2a5566959d))
+* **ignore:** Innr FL 230C fix color temp range https://github.com/Koenkk/zigbee2mqtt/issues/31282 ([e2654cf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e2654cf092cb26c166dab10e677e1afcdd8416f7))
+* IKEA E2112: revert label & unit, explain VOC index ([#11677](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11677)) ([62ba0d4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/62ba0d44cd91f8d401c4efd4cf260c26b26de7e3))
+* Match new cluster-related typing from ZH ([#11671](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11671)) ([a16f17c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a16f17ce3750f10ab7ee5000fe3bccf50ef40007))
+
 ## [26.16.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.16.0...v26.16.1) (2026-03-07)
 
 
