@@ -1168,7 +1168,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.pressure(),
             m.pressure({attribute: {ID: 0xff01, type: Zcl.DataType.UINT32}, name: "pressure", unit: "Pa", scale: 1}),
             m.numeric({
-                name: "press diff level",
+                name: "press_diff_level",
                 cluster: "genLevelCtrl",
                 attribute: 'currentLevel',
                 description: "press diff level",
