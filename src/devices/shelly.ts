@@ -1027,10 +1027,35 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
+            m.electricityMeter({
+                voltage: {divisor: 100},
+                current: {divisor: 1000},
+                power: {divisor: 1},
+                energy: {divisor: 1000},
+                producedEnergy: {divisor: 1000},
+                acFrequency: {divisor: 100},
+            }),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
+        configure: (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+
+            endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: 100,
+                acCurrentMultiplier: 1,
+                acCurrentDivisor: 1000,
+                acFrequencyMultiplier: 1,
+                acFrequencyDivisor: 100,
+            });
+
+            endpoint.saveClusterAttributeKeyValue("seMetering", {
+                multiplier: 1,
+                divisor: 1000,
+            });
+        },
     },
     {
         zigbeeModel: ["EM Mini"],
