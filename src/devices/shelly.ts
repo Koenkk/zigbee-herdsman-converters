@@ -1030,7 +1030,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({
                 voltage: {divisor: 100},
                 current: {divisor: 1000},
-                power: {divisor: 1},
                 energy: {divisor: 1000},
                 producedEnergy: {divisor: 1000},
                 acFrequency: {divisor: 100},
