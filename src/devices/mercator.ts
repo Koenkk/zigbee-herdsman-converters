@@ -161,7 +161,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SSWF01G",
         vendor: "Mercator Ikuü",
         description: "AC fan controller",
-        extend: [tuya.clusters.addmManuSpecificTuyaCluster()],
+        extend: [tuya.clusters.addManuSpecificTuyaCluster()],
         fromZigbee: [fz.on_off, fz.fan],
         toZigbee: [tz.fan_mode, tz.on_off],
         exposes: [e.switch(), e.fan().withState("fan_state").withModes(["off", "low", "medium", "high", "on"])],
