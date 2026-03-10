@@ -3671,7 +3671,7 @@ const tuyaModernExtend = {
 export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {
-    addmManuSpecificTuyaCluster: (): ModernExtend =>
+    addManuSpecificTuyaCluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya", {
             name: "manuSpecificTuya",
             ID: 0xef00, // 61184
@@ -3887,7 +3887,7 @@ const tuyaClusters = {
                 tuyaWeatherRequest: {name: "tuyaWeatherRequest", ID: 0x60, parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
         }),
-    addmManuSpecificTuya2Cluster: (): ModernExtend =>
+    addManuSpecificTuya2Cluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya2", {
             name: "manuSpecificTuya2",
             ID: 0xe002,
@@ -3903,7 +3903,7 @@ const tuyaClusters = {
             commands: {},
             commandsResponse: {},
         }),
-    addmManuSpecificTuya3Cluster: (): ModernExtend =>
+    addManuSpecificTuya3Cluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya3", {
             name: "manuSpecificTuya3",
             ID: 0xe001,
