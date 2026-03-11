@@ -335,6 +335,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "404114",
         vendor: "MLI",
         description: "Tint LED Bulb, E27, 806 lumen, CCT, clear",
-        extend: [m.light({"colorTemp":{"range":[153,555]}})],
+        extend: [m.light({colorTemp: {range: [153, 555]}})],
     },
 ];
