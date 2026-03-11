@@ -1301,7 +1301,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0x0702,
                 attributes: {
                     setSummationDelivered: {
-                        ID: 0xF000,
+                        ID: 0xf000,
                         name: "setCurrentSummationDelivered",
                         type: Zcl.DataType.UINT48,
                         manufacturerCode: 0x8888,
@@ -1310,7 +1310,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
-                name: 'seMetering',
+                name: "seMetering",
             }),
 
             m.numeric<"seMetering", MiCasaGasMetering>({
@@ -1320,7 +1320,8 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Write absolute gas meter value",
                 access: "SET",
                 valueMin: 0,
+                valueMax: 281474976710655,
             }),
-        ]
+        ],
     },
 ];
