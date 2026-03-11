@@ -3419,7 +3419,7 @@ export const definitions: DefinitionWithExtend[] = [
         // https://github.com/Koenkk/zigbee2mqtt/issues/30584
         meta: {
             moveToLevelWithOnOffDisable: (e) =>
-                e.getDevice().manufacturerName === "_TZB210_uoiqhjqe" || 
+                e.getDevice().manufacturerName === "_TZB210_uoiqhjqe" ||
                 e.getDevice().manufacturerName === "_TZB210_417ikxay" ||
                 e.getDevice().manufacturerName === "_TZB210_qzsxaqqe",
         },
