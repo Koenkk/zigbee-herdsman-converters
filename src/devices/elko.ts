@@ -290,10 +290,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["on", 1],
                 valueOff: ["off", 0],
             }),
+            m.forcePowerSource({powerSource: "Mains (single phase)"})
         ],
-        configure: (device, coordinatorEndpoint) => {
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
     },
 ];
