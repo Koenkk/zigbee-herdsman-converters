@@ -104,11 +104,11 @@ export const definitions: DefinitionWithExtend[] = [
                 localTemperatureCalibration: {
                     values: {min: -5, max: 5, step: 0.1},
                 },
-                systemModes: {
-                    values: ["off", "heat", "auto"],
+                systemMode: {
+                    values: ['off', 'heat', 'auto'],
                 },
             }),
-        ],
+        ],    
 
         exposes: [
             e
