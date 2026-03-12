@@ -14799,6 +14799,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_factor().withUnit("%").withDescription("Total power factor"),
             e.power().withDescription("Total active power"),
             e.ac_frequency(),
+            e.numeric("data_report_duration", ea.SET).withValueMin(30).withValueMax(3600),
             tuya.exposes.energyWithPhase("a"),
             tuya.exposes.energyWithPhase("b"),
             tuya.exposes.energyWithPhase("c"),
@@ -14814,6 +14815,56 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "energy", tuya.valueConverter.divideBy100],
                 [2, "produced_energy", tuya.valueConverter.divideBy100],
                 [15, "power_factor", tuya.valueConverter.raw],
+                [
+                    18,
+                    "data_report_duration",
+                    {
+                        to: (v: number) => {
+                            const value = Math.max(30, Math.min(3600, Math.round(v))) * 2;
+                            // The reporting logic of this device is: for example, if 30 is input, it will report twice within 30 seconds,
+                            // Which means reporting once every 15 seconds. Therefore, the input data needs to be multiplied by 2.
+                            const byte1 = (value >> 8) & 0xff;
+                            const byte2 = value & 0xff;
+                            return [
+                                // Other settings of the device
+                                0x01,
+                                0x01,
+                                0x00,
+                                0x3c,
+                                0x02,
+                                0x00,
+                                0x00,
+                                0x0a,
+                                0x03,
+                                0x01,
+                                0x00,
+                                0xfd,
+                                0x04,
+                                0x00,
+                                0x00,
+                                0xb4,
+                                0x05,
+                                0x01,
+                                0x00,
+                                0x00,
+                                0x07,
+                                0x01,
+                                0x00,
+                                0x00,
+                                0x08,
+                                0x01,
+                                // Report duration
+                                byte1,
+                                byte2,
+                                // Only modify the report duration
+                                0x09,
+                                0x00,
+                                0x00,
+                                0x00,
+                            ];
+                        },
+                    },
+                ],
                 [101, "ac_frequency", tuya.valueConverter.divideBy100],
                 [102, "voltage_a", tuya.valueConverter.divideBy10],
                 [103, "current_a", tuya.valueConverter.divideBy1000],
