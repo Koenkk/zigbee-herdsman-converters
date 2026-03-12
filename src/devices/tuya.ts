@@ -3998,9 +3998,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_noixx2uz"]),
-        model: "TRV603",
+        model: "AR331",
         vendor: "Tuya",
-        description: "Thermostatic Radiator Valve",
+        description: "Thermostatic radiator valve",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             e.battery().withUnit("%"),
