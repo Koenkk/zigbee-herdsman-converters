@@ -98,6 +98,7 @@ interface SchneiderMeteringCluster {
 
 interface SchneiderThermostatCluster {
     attributes: {
+        schneiderWiserSpecific: number;
         controlStatus: number;
         localTemperatureSourceSelect: number;
         controlType: number;
@@ -106,7 +107,14 @@ interface SchneiderThermostatCluster {
         heatTransferMedium: number;
         heatingEmitter: number;
     };
-    commands: never;
+    commands: {
+        schneiderWiserThermostatBoost: {
+            command: number;
+            enable: number;
+            temperature: number;
+            duration: number;
+        };
+    };
     commandResponses: never;
 }
 
@@ -565,7 +573,7 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    heatingOutputMode: () =>
+    heatingOutputMode: (args?: Partial<m.EnumLookupArgs<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>>) =>
         m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
             name: "heating_output_mode",
             cluster: "heatingCoolingOutputClusterServer",
@@ -582,8 +590,9 @@ const schneiderElectricExtend = {
                 "Relay NC": 4,
             },
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
         }),
-    pilotMode: () =>
+    pilotMode: (args?: Partial<m.EnumLookupArgs<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>>) =>
         m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
             name: "schneider_pilot_mode",
             cluster: "heatingCoolingOutputClusterServer",
@@ -597,6 +606,7 @@ const schneiderElectricExtend = {
                 pilot: 3,
             },
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
         }),
     addHvacUserInterfaceCfgCustomAttributes: () =>
         m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
@@ -634,7 +644,7 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    displayBrightnessActive: () =>
+    displayBrightnessActive: (args?: Partial<m.NumericArgs<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>>) =>
         m.numeric<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>({
             name: "display_brightness_active",
             cluster: "hvacUserInterfaceCfg",
@@ -646,8 +656,9 @@ const schneiderElectricExtend = {
             valueMax: 100,
             valueStep: 1,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
         }),
-    displayBrightnessInactive: () =>
+    displayBrightnessInactive: (args?: Partial<m.NumericArgs<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>>) =>
         m.numeric<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>({
             name: "display_brightness_inactive",
             cluster: "hvacUserInterfaceCfg",
@@ -659,8 +670,9 @@ const schneiderElectricExtend = {
             valueMax: 100,
             valueStep: 1,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
         }),
-    displayActiveTimeout: () =>
+    displayActiveTimeout: (args?: Partial<m.NumericArgs<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>>) =>
         m.numeric<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>({
             name: "display_active_timeout",
             cluster: "hvacUserInterfaceCfg",
@@ -672,6 +684,7 @@ const schneiderElectricExtend = {
             valueMax: 600,
             valueStep: 5,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
         }),
     customTemperatureMeasurementCluster: () =>
         m.deviceAddCustomCluster("msTemperatureMeasurement", {
@@ -698,6 +711,44 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    sensorCorrection: (args?: Partial<m.NumericArgs<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>>) =>
+        m.numeric<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
+            name: "temperature_sensor_correction",
+            cluster: "msTemperatureMeasurement",
+            attribute: "sensorCorrection",
+            description: "This is a user correction, possibly negative, to be added to the temperature measured by the sensor.",
+            unit: "°C",
+            scale: 100,
+            valueMin: -9,
+            valueMax: 9,
+            valueStep: 0.01,
+            // endpointNames: ["floor"],
+            access: "ALL",
+            entityCategory: "config",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
+        }),
+    temperatureSensorType: (args?: Partial<m.EnumLookupArgs<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>>) =>
+        m.enumLookup<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
+            name: "temperature_sensor_type",
+            cluster: "msTemperatureMeasurement",
+            attribute: "temperatureSensorType",
+            description: "This is used to specify the type of temperature sensor connected to this input",
+            entityCategory: "config",
+            access: "ALL",
+            // endpointName: "floor",
+            lookup: {
+                "2kΩ sensor from HRT/Alre": 1,
+                "10kΩ sensor from B+J": 2,
+                "12kΩ sensor from OJ": 3,
+                "15kΩ sensor from DEVI": 4,
+                "33kΩ sensor from EBERLE": 5,
+                "47kΩ sensor from CTM": 6,
+                "No sensor": 0xff,
+            },
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
+        }),
     customMeteringCluster: () =>
         m.deviceAddCustomCluster("seMetering", {
             name: "seMetering",
@@ -715,7 +766,7 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    fixedLoadDemand: () =>
+    fixedLoadDemand: (args?: Partial<m.NumericArgs<"seMetering", SchneiderMeteringCluster>>) =>
         m.numeric<"seMetering", SchneiderMeteringCluster>({
             name: "fixed_load_demand",
             cluster: "seMetering",
@@ -726,12 +777,21 @@ const schneiderElectricExtend = {
             valueMin: 1,
             valueMax: 3600,
             valueStep: 1,
+            ...args,
         }),
     customThermostatCluster: () =>
         m.deviceAddCustomCluster("hvacThermostat", {
             name: "hvacThermostat",
             ID: Zcl.Clusters.hvacThermostat.ID,
             attributes: {
+                schneiderWiserSpecific: {
+                    name: "schneiderWiserSpecific",
+                    ID: 0xe110, 
+                    type: Zcl.DataType.ENUM8, 
+                    write: true, 
+                    max: 0xff,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC, 
+                },
                 controlStatus: {
                     name: "controlStatus",
                     ID: 0xe211,
@@ -782,10 +842,20 @@ const schneiderElectricExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
             },
-            commands: {},
+            commands: {
+                schneiderWiserThermostatBoost: {
+                    ID: 0x80,
+                    parameters: [
+                        {name: "command", type: Zcl.DataType.ENUM8, max: 0xff},
+                        {name: "enable", type: Zcl.DataType.ENUM8, max: 0xff},
+                        {name: "temperature", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "duration", type: Zcl.DataType.UINT16, max: 0xffff},
+                    ],
+                },
+            },
             commandsResponse: {},
         }),
-    controlStatus: () =>
+    controlStatus: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", SchneiderThermostatCluster>>) =>
         m.enumLookup<"hvacThermostat", SchneiderThermostatCluster>({
             name: "control_status",
             cluster: "hvacThermostat",
@@ -804,6 +874,7 @@ const schneiderElectricExtend = {
                 "Sensor Fault": 0x84,
             },
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
         }),
     localTemperatureSourceSelect: () =>
         m.enumLookup<"hvacThermostat", SchneiderThermostatCluster>({
@@ -1949,6 +2020,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6400",
         vendor: "Schneider Electric",
         description: "Temperature/Humidity measurement with thermostat interface",
+        extend: [schneiderElectricExtend.customThermostatCluster()],
         fromZigbee: [fz.battery, fz.schneider_temperature, fz.humidity, fz.thermostat, fzLocal.schneider_ui_action],
         toZigbee: [
             tz.schneider_thermostat_system_mode,
@@ -2408,6 +2480,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EKO07259",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
+        meta: {thermostat: {dontMapPIHeatingDemand: true}},
         extend: [
             schneiderElectricExtend.thermostatWithPower({
                 localTemperature: {
@@ -2444,54 +2517,65 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.thermostatApplication(),
             schneiderElectricExtend.heatingEmitter(),
             schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
-            m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
-                name: "heating_output_mode",
-                cluster: "heatingCoolingOutputClusterServer",
-                attribute: "heatingOutputMode",
+            schneiderElectricExtend.heatingOutputMode({
                 description:
                     "On devices with alternate heating output types, this selects which should be used to control the heating unit. This attribute is (mistakenly) also called pilot_mode on some devices.",
-                entityCategory: "config",
-                access: "ALL",
                 lookup: {Disabled: 0, Relay: 1},
             }),
+            // m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
+            //     name: "heating_output_mode",
+            //     cluster: "heatingCoolingOutputClusterServer",
+            //     attribute: "heatingOutputMode",
+            //     description:
+            //         "On devices with alternate heating output types, this selects which should be used to control the heating unit. This attribute is (mistakenly) also called pilot_mode on some devices.",
+            //     entityCategory: "config",
+            //     access: "ALL",
+            //     lookup: {Disabled: 0, Relay: 1},
+            // }),
             schneiderElectricExtend.customTemperatureMeasurementCluster(),
             m.deviceEndpoints({
                 endpoints: {floor: 3},
             }),
-            m.numeric<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
-                name: "temperature_sensor_correction",
-                cluster: "msTemperatureMeasurement",
-                attribute: "sensorCorrection",
-                description: "This is a user correction, possibly negative, to be added to the temperature measured by the sensor.",
-                unit: "°C",
-                scale: 100,
-                valueMin: -9,
-                valueMax: 9,
-                valueStep: 0.01,
+            schneiderElectricExtend.sensorCorrection({
                 endpointNames: ["floor"],
-                access: "ALL",
-                entityCategory: "config",
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
             }),
-            m.enumLookup<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
-                name: "temperature_sensor_type",
-                cluster: "msTemperatureMeasurement",
-                attribute: "temperatureSensorType",
-                description: "This is used to specify the type of temperature sensor connected to this input",
-                entityCategory: "config",
-                access: "ALL",
+            // m.numeric<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
+            //     name: "temperature_sensor_correction",
+            //     cluster: "msTemperatureMeasurement",
+            //     attribute: "sensorCorrection",
+            //     description: "This is a user correction, possibly negative, to be added to the temperature measured by the sensor.",
+            //     unit: "°C",
+            //     scale: 100,
+            //     valueMin: -9,
+            //     valueMax: 9,
+            //     valueStep: 0.01,
+            //     endpointNames: ["floor"],
+            //     access: "ALL",
+            //     entityCategory: "config",
+            //     zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            // }),
+            schneiderElectricExtend.temperatureSensorType({
                 endpointName: "floor",
-                lookup: {
-                    "2kΩ sensor from HRT/Alre": 1,
-                    "10kΩ sensor from B+J": 2,
-                    "12kΩ sensor from OJ": 3,
-                    "15kΩ sensor from DEVI": 4,
-                    "33kΩ sensor from EBERLE": 5,
-                    "47kΩ sensor from CTM": 6,
-                    "No sensor": 0xff,
-                },
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
             }),
+            // m.enumLookup<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
+            //     name: "temperature_sensor_type",
+            //     cluster: "msTemperatureMeasurement",
+            //     attribute: "temperatureSensorType",
+            //     description: "This is used to specify the type of temperature sensor connected to this input",
+            //     entityCategory: "config",
+            //     access: "ALL",
+            //     endpointName: "floor",
+            //     lookup: {
+            //         "2kΩ sensor from HRT/Alre": 1,
+            //         "10kΩ sensor from B+J": 2,
+            //         "12kΩ sensor from OJ": 3,
+            //         "15kΩ sensor from DEVI": 4,
+            //         "33kΩ sensor from EBERLE": 5,
+            //         "47kΩ sensor from CTM": 6,
+            //         "No sensor": 0xff,
+            //     },
+            //     zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            // }),
             m.enumLookup({
                 name: "temperature_display_mode",
                 lookup: {celsius: 0},
