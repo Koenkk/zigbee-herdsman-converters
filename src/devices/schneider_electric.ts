@@ -148,6 +148,12 @@ interface SchneiderHeatingCoolingOutputCluster {
     commandResponses: never;
 }
 
+interface SchneiderLightingBallastCfg {
+    attributes: {wiserControlMode: number};
+    commands: never;
+    commandResponses: never;
+}
+
 function indicatorMode(endpoint?: string) {
     let description = "Set Indicator Mode.";
     if (endpoint) {
@@ -454,7 +460,9 @@ const schneiderElectricExtend = {
             description: "Auto detects the correct mode for the ballast. RL-LED may have improved dimming quality for LEDs.",
             entityCategory: "config",
         });
-        extend.configure.push(m.setupConfigureForReading("lightingBallastCfg", ["wiserControlMode"]));
+        extend.configure.push(
+            m.setupConfigureForReading<"lightingBallastCfg", SchneiderLightingBallastCfg>("lightingBallastCfg", ["wiserControlMode"]),
+        );
         return extend;
     },
 
@@ -985,6 +993,23 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    addSchneiderLightingBallastCfgCluster: () =>
+        m.deviceAddCustomCluster("lightingBallastCfg", {
+            name: "lightingBallastCfg",
+            ID: Zcl.Clusters.lightingBallastCfg.ID,
+            attributes: {
+                wiserControlMode: {
+                    name: "wiserControlMode",
+                    ID: 0xe000,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                    write: true,
+                    max: 0xff,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
 };
 
 const tzLocal = {
@@ -1001,6 +1026,20 @@ const tzLocal = {
             utils.assertString(value);
             if (value.toLowerCase() === "on") value = "low";
             return await tz.fan_mode.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
+    wiser_dimmer_mode: {
+        key: ["dimmer_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write(
+                "lightingBallastCfg",
+                {wiserControlMode: utils.getKey(constants.wiserDimmerControlMode, value, value as number, Number)},
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
+            return {state: {dimmer_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("lightingBallastCfg", ["wiserControlMode"], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
         },
     } satisfies Tz.Converter,
 };
@@ -1235,6 +1274,17 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"wiserDeviceInfo", WiserDeviceInfo, "attributeReport">,
+    wiser_lighting_ballast_configuration: {
+        cluster: "lightingBallastCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.lighting_ballast_configuration.convert(model, msg, publish, options, meta) as KeyValueAny;
+            if (result && msg.data.wiserControlMode !== undefined) {
+                result.dimmer_mode = constants.wiserDimmerControlMode[msg.data.wiserControlMode];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"lightingBallastCfg", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -1343,8 +1393,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Micro module dimmer",
         ota: true,
         extend: [m.light({powerOnBehavior: false, configureReporting: true, levelConfig: {}})],
-        fromZigbee: [fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
+        fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e
                 .numeric("ballast_minimum_level", ea.ALL)
@@ -1381,8 +1431,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Micro module dimmer with neutral lead",
         ota: true,
         extend: [m.light({configureReporting: true, levelConfig: {}})],
-        fromZigbee: [fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
+        fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e
                 .numeric("ballast_minimum_level", ea.ALL)
@@ -1412,8 +1462,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002334",
         vendor: "Schneider Electric",
         description: "Rotary dimmer",
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e.light_brightness().withLevelConfig(),
             e
@@ -1469,8 +1519,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002960",
         vendor: "Schneider Electric",
         description: "Push button dimmer",
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e.light_brightness().withLevelConfig(),
             e
@@ -1730,8 +1780,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5116-0300/MEG5171-0000",
         vendor: "Schneider Electric",
         description: "Merten MEG5171 PlusLink Dimmer insert with Merten Wiser System M Push Button (1fold)",
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e.light_brightness().withLevelConfig(),
             e
@@ -1761,8 +1811,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5126-0300/MEG5171-0000",
         vendor: "Schneider Electric",
         description: "Merten MEG5171 PlusLink Dimmer insert with Merten Wiser System M Push Button (2fold)",
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e.light_brightness().withLevelConfig(),
             e
@@ -1802,8 +1852,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5126-0300/MEG5172-0000",
         vendor: "Schneider Electric",
         description: "Merten MEG5172 PlusLink Dimmer insert with Merten Wiser System M Push Button (2fold)",
-        fromZigbee: [fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
+        fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e
                 .numeric("ballast_minimum_level", ea.ALL)

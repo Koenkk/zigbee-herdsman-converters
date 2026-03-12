@@ -4556,20 +4556,6 @@ export const schneider_dimmer_mode: Tz.Converter = {
         await entity.read("lightingBallastCfg", [0xe000], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
     },
 };
-export const wiser_dimmer_mode: Tz.Converter = {
-    key: ["dimmer_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write(
-            "lightingBallastCfg",
-            {wiserControlMode: utils.getKey(constants.wiserDimmerControlMode, value, value as number, Number)},
-            {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-        );
-        return {state: {dimmer_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("lightingBallastCfg", ["wiserControlMode"], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
-    },
-};
 export const schneider_temperature_measured_value: Tz.Converter = {
     key: ["temperature_measured_value"],
     convertSet: async (entity, key, value, meta) => {

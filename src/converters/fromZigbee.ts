@@ -5067,17 +5067,6 @@ export const schneider_lighting_ballast_configuration: Fz.Converter<"lightingBal
         return result;
     },
 };
-export const wiser_lighting_ballast_configuration: Fz.Converter<"lightingBallastCfg", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "lightingBallastCfg",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = lighting_ballast_configuration.convert(model, msg, publish, options, meta) as KeyValueAny;
-        if (result && msg.data.wiserControlMode !== undefined) {
-            result.dimmer_mode = constants.wiserDimmerControlMode[msg.data.wiserControlMode];
-        }
-        return result;
-    },
-};
 export const wiser_smart_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
