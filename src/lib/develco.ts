@@ -614,7 +614,7 @@ export const develcoModernExtend = {
                     await endpoint.write<"seMetering", DevelcoSeMetering>(
                         "seMetering",
                         // {develcoInterfaceMode: {value: modeData.payload, type: Zcl.DataType.ENUM16}},
-                        {develcoInterfaceMode: {value: modeData.payload, type: Zcl.DataType.ENUM16}},
+                        {develcoInterfaceMode: modeData.payload},
                         {manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
                     );
                     // We prime the haElectricalMeasurement cache so that the very next current reading is divided by the correct number.
