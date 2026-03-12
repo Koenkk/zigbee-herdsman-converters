@@ -93,7 +93,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IHC-Enki",
         vendor: "Acova",
         description: "Acova Madras IHC towel radiator (Zigbee thermostat)",
-    
+
         extend: [
             m.thermostat({
                 setpoints: {
@@ -108,9 +108,10 @@ export const definitions: DefinitionWithExtend[] = [
                 temperatureSetpointHoldDuration: false,
             }),
         ],
-    
+
         exposes: [
-            e.climate()
+            e
+                .climate()
                 .withLocalTemperature()
                 .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                 .withSystemMode(["off", "heat", "auto"])
