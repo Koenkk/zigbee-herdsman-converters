@@ -14,7 +14,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "WMUN",
         description: "Universal smart IR remote control on batteries",
         exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
-        extend: [m.battery()],
+        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), zosung.zosungExtend.addZosungIRControlCluster(), m.battery()],
         fromZigbee: [
             fzZosung.zosung_send_ir_code_00,
             fzZosung.zosung_send_ir_code_01,

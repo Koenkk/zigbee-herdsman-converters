@@ -4663,6 +4663,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         whiteLabel: [
             tuya.whitelabel("BSEED", "EC-GL86ZPCRS31", "Curtain/blind switch", ["_TZ3000_bs93npae"]),
+            tuya.whitelabel("BSEED", "S-PC86ZPCS11B", "Curtain/blind switch", ["_TZ3000_dojqjapa"]),
             tuya.whitelabel("Danor", "SK-Z802C-US", "Smart curtain/shutter switch", ["_TZ3000_8h7wgocw"]),
             {vendor: "LoraTap", model: "SC400"},
             tuya.whitelabel("LoraTap", "SC500ZB", "Smart curtain/shutter switch", ["_TZ3000_e3vhyirx", "_TZ3000_femsaaua"]),
@@ -9055,11 +9056,15 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_ysiog9xi",
             "_TZ3000_o1jzcxou",
             "_TZ3210_nhqka112", // https://github.com/Koenkk/zigbee2mqtt/issues/30889
+            "_TZ3000_uyrhiafs",
         ]),
         model: "TS011F_plug_2",
         description: "Smart plug (without power monitoring)",
         vendor: "Tuya",
-        whiteLabel: [tuya.whitelabel("BSEED", "_TZ3000_o1jzcxou", "Wall-mounted electrical EU/FR/UK socket", ["_TZ3000_o1jzcxou"])],
+        whiteLabel: [
+            tuya.whitelabel("BSEED", "_TZ3000_o1jzcxou", "Wall-mounted electrical EU/FR/UK socket", ["_TZ3000_o1jzcxou"]),
+            tuya.whitelabel("BSEED", "S-PC86ZEUSK1B", "Wall-mounted electrical EU socket", ["_TZ3000_uyrhiafs"]),
+        ],
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 powerOutageMemory: true,
@@ -12558,6 +12563,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZS06",
         vendor: "Tuya",
         description: "Universal smart IR remote control",
+        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), zosung.zosungExtend.addZosungIRControlCluster()],
         fromZigbee: [
             fzZosung.zosung_send_ir_code_00,
             fzZosung.zosung_send_ir_code_01,
