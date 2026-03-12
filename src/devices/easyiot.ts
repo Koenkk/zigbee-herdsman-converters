@@ -6,6 +6,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {utcToDeviceLocal2000Seconds} from "../lib/sonoff";
 import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
+import {assertObject, assertString} from "../lib/utils";
 
 const NS = "zhc:easyiot";
 const ea = exposes.access;
@@ -190,67 +191,37 @@ const tzLocal = {
     easyiot_zl01_open_door: {
         key: ["unlock_door"],
         convertSet: async (entity, key, value, meta) => {
-            if (!value) {
-                logger.error("There is no pin code to send", NS);
-                return;
-            }
-
-            logger.debug(`Sending pin code: ${value}`, NS);
+            assertString(value, "PIN code must be a string");
             const length = Buffer.from([value.toString().length]);
             const pincode = Buffer.from(value.toString(), "utf-8");
             const data = Buffer.concat([length, pincode]);
-
-            await entity.command(
-                "closuresDoorLock",
-                "unlockDoor",
-                {
-                    pincodevalue: data,
-                },
-                {disableDefaultResponse: true},
-            );
-            logger.debug("Sending unlock door command success.", NS);
+            await entity.command("closuresDoorLock", "unlockDoor", {pincodevalue: data}, {disableDefaultResponse: true});
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     easyiot_zl01_open_door_with_timeout: {
         key: ["unlock_door_with_timeout"],
         convertSet: async (entity, key, value, meta) => {
-            if (!value || typeof value !== "object") {
-                logger.error("There is no pin code or timeout to send", NS);
-                return;
-            }
-
+            assertObject(value, "PIN code must be an object");
             const payload = value as KeyValueAny;
             logger.debug(`Sending pin code: ${payload.pin_code} with timeout: ${payload.timeout} seconds`, NS);
             const length = Buffer.from([payload.pin_code.length]);
             const pincodeBuffer = Buffer.from(payload.pin_code as string, "utf-8");
             const data = Buffer.concat([length, pincodeBuffer]);
-            try {
-                const commandPayload: EasyiotDoorLock["commands"]["unlockDoorWithTimeout"] = {
+            await entity.command<"closuresDoorLock", "unlockDoorWithTimeout", EasyiotDoorLock>(
+                "closuresDoorLock",
+                "unlockDoorWithTimeout",
+                {
                     timeout: payload.timeout,
                     pincodevalue: data,
-                };
-                await entity.command<"closuresDoorLock", "unlockDoorWithTimeout", EasyiotDoorLock>(
-                    "closuresDoorLock",
-                    "unlockDoorWithTimeout",
-                    commandPayload,
-                    {disableDefaultResponse: true},
-                );
-                logger.debug("Adding ephemeral pin success.", NS);
-            } catch (error) {
-                logger.error(`Failed to add ephemeral pin: ${error}`, NS);
-                throw error;
-            }
-
-            logger.debug("Sending unlock door with timeout command success.", NS);
+                },
+                {disableDefaultResponse: true},
+            );
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     easyiot_zl01_add_ephemeral_pin: {
         key: ["ephemeral_pin_code"],
         convertSet: async (entity, key, value, meta) => {
-            if (!value || typeof value !== "object") {
-                throw new Error("ephemeral_pin_code requires an object with start_time, end_time, userid, valid_times, and pincode");
-            }
-
+            assertObject(value, "ephemeral_pin_code requires an object with start_time, end_time, userid, valid_times, and pincode");
             const payload = value as KeyValueAny;
 
             // Validate required parameters
@@ -283,31 +254,22 @@ const tzLocal = {
             // Convert pincode string to buffer
             const pincodeBuffer = Buffer.from(payload.pincode, "utf-8");
 
-            try {
-                const commandPayload: EasyiotDoorLock["commands"]["setEphemeralPin"] = {
-                    startTime: startTimeZigbee,
-                    endTime: endTimeZigbee,
-                    userid: payload.userid,
-                    validTimes: payload.valid_times,
-                    pincodevalue: pincodeBuffer,
-                };
-                await entity.command<"closuresDoorLock", "setEphemeralPin", EasyiotDoorLock>("closuresDoorLock", "setEphemeralPin", commandPayload, {
-                    disableDefaultResponse: true,
-                });
-                logger.debug("Adding ephemeral pin success.", NS);
-            } catch (error) {
-                logger.error(`Failed to add ephemeral pin: ${error}`, NS);
-                throw error;
-            }
+            const commandPayload: EasyiotDoorLock["commands"]["setEphemeralPin"] = {
+                startTime: startTimeZigbee,
+                endTime: endTimeZigbee,
+                userid: payload.userid,
+                validTimes: payload.valid_times,
+                pincodevalue: pincodeBuffer,
+            };
+            await entity.command<"closuresDoorLock", "setEphemeralPin", EasyiotDoorLock>("closuresDoorLock", "setEphemeralPin", commandPayload, {
+                disableDefaultResponse: true,
+            });
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     easyiot_zl01_clear_ephemeral_pin: {
         key: ["ephemeral_clear_pin_code"],
         convertSet: async (entity, key, value, meta) => {
-            if (!value || typeof value !== "object") {
-                throw new Error("ephemeral_clear_pin_code requires an object with userid");
-            }
-
+            assertObject(value, "ephemeral_clear_pin_code requires an object with userid");
             const payload = value as KeyValueAny;
 
             // Validate required parameter
@@ -315,45 +277,29 @@ const tzLocal = {
                 throw new Error("userid must be a number (0-65535)");
             }
 
-            logger.debug(`Clearing ephemeral pin - userid: ${payload.userid}`, NS);
-
-            try {
-                const commandPayload: EasyiotDoorLock["commands"]["clearEphemeralPin"] = {
+            await entity.command<"closuresDoorLock", "clearEphemeralPin", EasyiotDoorLock>(
+                "closuresDoorLock",
+                "clearEphemeralPin",
+                {
                     userid: payload.userid,
-                };
-                await entity.command<"closuresDoorLock", "clearEphemeralPin", EasyiotDoorLock>(
-                    "closuresDoorLock",
-                    "clearEphemeralPin",
-                    commandPayload,
-                    {disableDefaultResponse: true},
-                );
-                logger.debug("Clearing ephemeral pin success.", NS);
-            } catch (error) {
-                logger.error(`Failed to clear ephemeral pin: ${error}`, NS);
-                throw error;
-            }
+                },
+                {
+                    disableDefaultResponse: true,
+                },
+            );
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     easyiot_zl01_clear_all_ephemeral_pin: {
         key: ["ephemeral_clear_all_pin_code"],
         convertSet: async (entity, key, value, meta) => {
-            logger.debug("Clearing all ephemeral pins.", NS);
-
-            try {
-                const commandPayload: EasyiotDoorLock["commands"]["clearAllEphemeralPins"] = {};
-                await entity.command<"closuresDoorLock", "clearAllEphemeralPins", EasyiotDoorLock>(
-                    "closuresDoorLock",
-                    "clearAllEphemeralPins",
-                    commandPayload,
-                    {disableDefaultResponse: true},
-                );
-                logger.debug("Clearing all ephemeral pins success.", NS);
-            } catch (error) {
-                logger.error(`Failed to clear all ephemeral pins: ${error}`, NS);
-                throw error;
-            }
+            await entity.command<"closuresDoorLock", "clearAllEphemeralPins", EasyiotDoorLock>(
+                "closuresDoorLock",
+                "clearAllEphemeralPins",
+                {},
+                {disableDefaultResponse: true},
+            );
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -539,7 +485,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "ZB-ZL01", manufacturerName: "easyiot"}],
         model: "ZB-ZL01",
         vendor: "easyiot",
-        description: "This is easyiot's smart door lock",
+        description: "Smart door lock",
         fromZigbee: [],
         toZigbee: [
             tzLocal.easyiot_zl01_open_door,
@@ -626,7 +572,6 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            //await reporting.batteryPercentageRemaining(endpoint, {min: 30, max: 1800, change: 1});
         },
     },
 ];
