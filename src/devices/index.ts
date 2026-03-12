@@ -255,6 +255,7 @@ import {definitions as quotra} from "./quotra";
 import {definitions as rademacher} from "./rademacher";
 import {definitions as radium} from "./radium";
 import {definitions as raex} from "./raex";
+import {definitions as repenicLtd} from "./repenic_ltd";
 import {definitions as rgbGenie} from "./rgb_genie";
 import {definitions as robb} from "./robb";
 import {definitions as roome} from "./roome";
@@ -621,6 +622,7 @@ const definitions: DefinitionWithExtend[] = [
     ...rademacher,
     ...radium,
     ...raex,
+    ...repenicLtd,
     ...rgbGenie,
     ...robb,
     ...roome,
