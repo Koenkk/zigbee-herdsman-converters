@@ -1,5 +1,32 @@
 # Changelog
 
+## [26.18.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.17.0...v26.18.0) (2026-03-12)
+
+
+### Features
+
+* **add:** 929003736701 ([#11699](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11699)) ([953fcb9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/953fcb96400590678fe75593bfd4b33ecc206d3a))
+* **add:** RD-250ZG ([#11659](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11659)) ([17a2616](https://github.com/Koenkk/zigbee-herdsman-converters/commit/17a2616b882d365c20f5d3301566ea062c3cc9df))
+* **add:** S-PC86ZEUSK1B ([#11703](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11703)) ([2a2e9c0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a2e9c03375f28e8a4b95f1b0b71db79c569fbc8))
+* **add:** S-PC86ZPCS11B ([#11701](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11701)) ([57fa024](https://github.com/Koenkk/zigbee-herdsman-converters/commit/57fa024a2aace1c062daaac8fc75d0a2621205ab))
+* **add:** ZB-ZL01 ([#11686](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11686)) ([0da3a8e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0da3a8eb58f742af331fe36b77eca319e090740c))
+* MiCASAGasCounter: allow to set gas counter value ([#11705](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11705)) ([587dedb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/587dedba2a99c9687f1dfbb2eb8dbfcc8ac9c31f))
+* Shelly remotes: Add toggle to 4 buttons, add long press to 1 button ([#11688](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11688)) ([404b7a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/404b7a6c8626526e59bb83eff33e679b4062615d))
+* Shelly SBBT-104CUS: Add support for double, triple, and long events  ([#11678](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11678)) ([e8c865b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8c865be639a55bb97c249ba77b92c2ea93a15dc))
+
+
+### Bug Fixes
+
+* AduroSmart 81895: fix red color https://github.com/Koenkk/zigbee2mqtt/issues/31319 ([f6bcee6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f6bcee620246ae457efc92cf2a00d35c2d88ec0e))
+* Aqara FP300: adjust max value of humidity reporting threshold ([#11691](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11691)) ([a061bc9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a061bc9a332ed87d65cbbdb5d1250efd66c2af90))
+* Elko 4523430: use modernextend instead of configure for powersource ([#11702](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11702)) ([bebe7d7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bebe7d7b74495f65cd20776c9a65d108e05d8f69))
+* Move cluster manuSpecificLumi from ZH to ZHC ([#11672](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11672)) ([91ea1cc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/91ea1ccf38f5a2bf15555023fa5851ac6b158d2c))
+* Move cluster manuSpecificSiglisZigfred from ZH to ZHC ([#11673](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11673)) ([28159b4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/28159b4743d83dc8eead9aedc9d6810ac0f8efb9))
+* Move cluster manuSpecificSmartThingsArrivalSensor from ZH to ZHC ([#11675](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11675)) ([649b6f5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/649b6f564432e40e50b1fe2a5b7a1ddc23d02520))
+* Move cluster owonClearMetering from ZH to ZHC ([#11674](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11674)) ([e3ee0fd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e3ee0fd559b334cf1e4fdab25617ce0ec5e8a216))
+* Move clusters zosungIRTransmit and zosungIRControl from ZH to ZHC ([#11676](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11676)) ([48758c7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/48758c733eb90346dcf49610c18af32c054f1140))
+* ROB_200-018-0: fix battery percentage multiplied by 2 https://github.com/Koenkk/zigbee2mqtt/issues/31334 ([c01601f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c01601fee1a163a270d4414cd7c187bff7a0aa13))
+
 ## [26.17.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.16.1...v26.17.0) (2026-03-09)
 
 
