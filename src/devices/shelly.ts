@@ -924,19 +924,32 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["commandToggle"]>,
 
+    one_button_scene_events: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}`, {"1": "single_long", "2": "double_long", "3": "triple_long"});
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
+
     four_buttons_single_events: {
         cluster: "genOnOff",
-        type: ["commandOn", "commandOff"],
+        type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.type}`, {
                 "1_commandOn": "1_single",
                 "1_commandOff": "2_single",
                 "2_commandOn": "3_single",
                 "2_commandOff": "4_single",
+                "1_commandToggle": "1_single",
+                "2_commandToggle": "2_single",
+                "3_commandToggle": "3_single",
+                "4_commandToggle": "4_single",
             });
             return {action: event};
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 
     four_buttons_hold_events: {
         cluster: "genLevelCtrl",
@@ -967,10 +980,10 @@ const fzLocal = {
                 "3_2": "3_triple",
                 "4_2": "4_triple",
 
-                "1_11": "1_long",
-                "2_11": "2_long",
-                "3_11": "3_long",
-                "4_11": "4_long",
+                "1_11": "1_single_long",
+                "2_11": "2_single_long",
+                "3_11": "3_single_long",
+                "4_11": "4_single_long",
 
                 "1_12": "1_double_long",
                 "2_12": "2_double_long",
@@ -1295,8 +1308,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBBT-102C",
         vendor: "Shelly",
         description: "BLU Button Tough 1 ZB",
-        fromZigbee: [fzLocal.one_button_events],
-        exposes: [e.action(["single", "double", "triple"])],
+        fromZigbee: [fzLocal.one_button_events, fzLocal.one_button_scene_events],
+        exposes: [e.action(["single", "double", "triple", "single_long", "double_long", "triple_long"])],
         extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}), m.identify()],
         version: "0.0.2",
         configure: async (device, coordinatorEndpoint, definition) => {
@@ -1311,6 +1324,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBBT-104CUS",
         vendor: "Shelly",
         description: "BLU RC Button 4 ZB",
+        whiteLabel: [
+            {vendor: "Shelly", model: "SBBT-004CEU", fingerprint: [{modelID: "SBBT-004CEU"}], description: "BLU Wall Switch 4 ZB"},
+            {vendor: "Shelly", model: "SBBT-104CEU", fingerprint: [{modelID: "SBBT-104CEU"}], description: "BLU Wall Switch 4 ZB DK"},
+        ],
         fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events, fzLocal.four_buttons_scene_events],
         exposes: [
             e.action([
@@ -1318,10 +1335,6 @@ export const definitions: DefinitionWithExtend[] = [
                 "2_single",
                 "3_single",
                 "4_single",
-                "1_hold",
-                "2_hold",
-                "3_hold",
-                "4_hold",
                 "1_double",
                 "2_double",
                 "3_double",
@@ -1330,10 +1343,10 @@ export const definitions: DefinitionWithExtend[] = [
                 "2_triple",
                 "3_triple",
                 "4_triple",
-                "1_long",
-                "2_long",
-                "3_long",
-                "4_long",
+                "1_single_long",
+                "2_single_long",
+                "3_single_long",
+                "4_single_long",
                 "1_double_long",
                 "2_double_long",
                 "3_double_long",
@@ -1342,26 +1355,12 @@ export const definitions: DefinitionWithExtend[] = [
                 "2_triple_long",
                 "3_triple_long",
                 "4_triple_long",
+                "1_hold",
+                "2_hold",
+                "3_hold",
+                "4_hold",
             ]),
         ],
-        extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
-        version: "0.0.2",
-        configure: async (device, coordinatorEndpoint, definition) => {
-            for (const endpoint of device.endpoints) {
-                await endpoint.bind("genOnOff", coordinatorEndpoint);
-                await endpoint.bind("genLevelCtrl", coordinatorEndpoint);
-                await endpoint.bind("genScenes", coordinatorEndpoint);
-            }
-        },
-    },
-    {
-        zigbeeModel: ["BLU Wall Switch 4 ZB"],
-        model: "SBBT-004CEU",
-        vendor: "Shelly",
-        description: "BLU Wall Switch 4 ZB",
-        whiteLabel: [{vendor: "Shelly", model: "SBBT-104CEU", description: "BLU Wall Switch 4 ZB DK"}],
-        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events],
-        exposes: [e.action(["1_single", "2_single", "3_single", "4_single", "1_hold", "2_hold", "3_hold", "4_hold"])],
         extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
         version: "0.0.2",
         configure: async (device, coordinatorEndpoint, definition) => {
