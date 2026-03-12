@@ -786,11 +786,11 @@ const schneiderElectricExtend = {
             attributes: {
                 schneiderWiserSpecific: {
                     name: "schneiderWiserSpecific",
-                    ID: 0xe110, 
-                    type: Zcl.DataType.ENUM8, 
-                    write: true, 
+                    ID: 0xe110,
+                    type: Zcl.DataType.ENUM8,
+                    write: true,
                     max: 0xff,
-                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC, 
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
                 controlStatus: {
                     name: "controlStatus",
@@ -844,6 +844,7 @@ const schneiderElectricExtend = {
             },
             commands: {
                 schneiderWiserThermostatBoost: {
+                    name: "schneiderWiserThermostatBoost",
                     ID: 0x80,
                     parameters: [
                         {name: "command", type: Zcl.DataType.ENUM8, max: 0xff},
