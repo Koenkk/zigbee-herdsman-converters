@@ -43,6 +43,16 @@ export interface DevelcoIasZone {
     commandResponses: never;
 }
 
+export interface DevelcoSeMetering {
+    attributes: {
+        develcoPulseConfiguration: number;
+        develcoCurrentSummation: number;
+        develcoInterfaceMode?: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 export const develcoModernExtend = {
     addCustomClusterManuSpecificDevelcoGenBasic: () =>
         deviceAddCustomCluster("genBasic", {
@@ -109,6 +119,39 @@ export const develcoModernExtend = {
                 minMeasuredValue: {name: "minMeasuredValue", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 maxMeasuredValue: {name: "maxMeasuredValue", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 resolution: {name: "resolution", ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addCustomDevelcoSeMeteringCluster: () =>
+        deviceAddCustomCluster("seMetering", {
+            name: "seMetering",
+            ID: Zcl.Clusters.seMetering.ID,
+            attributes: {
+                develcoPulseConfiguration: {
+                    name: "develcoPulseConfiguration",
+                    ID: 0x0300,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xffff,
+                },
+                develcoCurrentSummation: {
+                    name: "develcoCurrentSummation",
+                    ID: 0x0301,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                develcoInterfaceMode: {
+                    name: "develcoInterfaceMode",
+                    ID: 0x0302,
+                    type: Zcl.DataType.ENUM16,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xffff,
+                },
             },
             commands: {},
             commandsResponse: {},
@@ -548,7 +591,7 @@ export const develcoModernExtend = {
                 cluster: "seMetering",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    const value = msg.data[0x0302] ?? msg.data[0x0000];
+                    const value = msg.data.develcoInterfaceMode ?? msg.data[0x0000];
                     if (value !== undefined) {
                         const mode = Object.keys(emizb132InterfaceModeLookup).find((key) => emizb132InterfaceModeLookup[key].payload === value);
                         return mode ? {interface_mode: mode} : undefined;
@@ -568,34 +611,24 @@ export const develcoModernExtend = {
 
                     // 1. Write the mode to the device using Enum8 (0x30)
                     // We use 0x30 to avoid the 'INVALID_DATA_TYPE' error seen with 0x21
-                    await endpoint.write(
+                    await endpoint.write<"seMetering", DevelcoSeMetering>(
                         "seMetering",
-                        {770: {value: modeData.payload, type: Zcl.DataType.ENUM16}},
+                        // {develcoInterfaceMode: {value: modeData.payload, type: Zcl.DataType.ENUM16}},
+                        {develcoInterfaceMode: {value: modeData.payload, type: Zcl.DataType.ENUM16}},
                         {manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
                     );
-
-                    // 2. Immediate Cache Injection
-                    // We prime the haElectricalMeasurement cache so that the very next
-                    // current reading is divided by the correct number.
+                    // We prime the haElectricalMeasurement cache so that the very next current reading is divided by the correct number.
                     const cache = {
                         acCurrentDivisor: modeData.divisor,
                         acCurrentMultiplier: 1,
                     };
                     endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", cache);
 
-                    // endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
-                    //     acCurrentDivisor: modeData.divisor,
-                    //     acCurrentMultiplier: 1,
-                    // });
-
-                    logger.info(`EMIZB-132: Mode set to ${value}. Divisor cache updated to ${modeData.divisor}.`, "zhc:develco");
-
+                    // logger.info(`EMIZB-132: Mode set to ${value}. Divisor cache updated to ${modeData.divisor}.`, "zhc:develco");
                     return {state: {interface_mode: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    await meta.device.getEndpoint(2).read("seMetering", [0x0302]);
-                    // const endpoint = meta.device.getEndpoint(2);
-                    // await endpoint.read("seMetering", [0x0302]);
+                    await meta.device.getEndpoint(2).read<"seMetering", DevelcoSeMetering>("seMetering", ["develcoInterfaceMode"]);
                 },
             },
         ];

@@ -167,7 +167,7 @@ const develco = {
                 }
                 return result;
             },
-        } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,        
+        } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
     },
     tz: {
         pulse_configuration: {
