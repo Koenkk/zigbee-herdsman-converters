@@ -849,12 +849,10 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["929003736701_01", "929003736701_02"],
         model: "929003736701",
-        vendor: "Signify Netherlands B.V.",
+        vendor: "Philips",
         description: "Hue White and Color Ambiance Datura Ceiling Light Square",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-        ota: true,
     },
-
     {
         zigbeeModel: ["929003055901", "929003055901_01", "929003055901_02", "929003055901_03"],
         model: "929003055901",
