@@ -105,10 +105,10 @@ export const definitions: DefinitionWithExtend[] = [
                     values: {min: -5, max: 5, step: 0.1},
                 },
                 systemMode: {
-                    values: ['off', 'heat', 'auto'],
+                    values: ["off", "heat", "auto"],
                 },
             }),
-        ],    
+        ],
 
         exposes: [
             e
