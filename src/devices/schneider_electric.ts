@@ -4,6 +4,7 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
@@ -14,6 +15,7 @@ import {postfixWithEndpointName} from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
+const NS = "zhc:schneider_electric";
 interface SchneiderOccupancyConfig {
     attributes: {
         ambienceLightThreshold: number;
@@ -106,6 +108,9 @@ interface SchneiderThermostatCluster {
         heatingFuel: number;
         heatTransferMedium: number;
         heatingEmitter: number;
+        wiserSmartZoneMode: number;
+        wiserSmartHactConfig: number;
+        wiserSmartCurrentFilPiloteMode: number;
     };
     commands: {
         schneiderWiserThermostatBoost: {
@@ -113,6 +118,17 @@ interface SchneiderThermostatCluster {
             enable: number;
             temperature: number;
             duration: number;
+        };
+        wiserSmartSetSetpoint: {
+            operatingmode: number;
+            zonemode: number;
+            setpoint: number;
+            reserved: number;
+        };
+        wiserSmartSetFipMode: {
+            zonemode: number;
+            fipmode: number;
+            reserved: number;
         };
     };
     commandResponses: never;
@@ -849,6 +865,27 @@ const schneiderElectricExtend = {
                     write: true,
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
+                wiserSmartZoneMode: {
+                    name: "wiserSmartZoneMode",
+                    ID: 0xe010,
+                    type: Zcl.DataType.ENUM8,
+                    write: true,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                wiserSmartHactConfig: {
+                    name: "wiserSmartHactConfig",
+                    ID: 0xe011,
+                    type: Zcl.DataType.BITMAP8,
+                    write: true,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                wiserSmartCurrentFilPiloteMode: {
+                    name: "wiserSmartCurrentFilPiloteMode",
+                    ID: 0xe020,
+                    type: Zcl.DataType.ENUM8,
+                    write: true,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
             },
             commands: {
                 schneiderWiserThermostatBoost: {
@@ -859,6 +896,25 @@ const schneiderElectricExtend = {
                         {name: "enable", type: Zcl.DataType.ENUM8, max: 0xff},
                         {name: "temperature", type: Zcl.DataType.UINT16, max: 0xffff},
                         {name: "duration", type: Zcl.DataType.UINT16, max: 0xffff},
+                    ],
+                },
+                wiserSmartSetSetpoint: {
+                    name: "wiserSmartSetSetpoint",
+                    ID: 0xe0,
+                    parameters: [
+                        {name: "operatingmode", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "zonemode", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "setpoint", type: Zcl.DataType.INT16, min: -32768, max: 32767},
+                        {name: "reserved", type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },
+                wiserSmartSetFipMode: {
+                    name: "wiserSmartSetFipMode",
+                    ID: 0xe1,
+                    parameters: [
+                        {name: "zonemode", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "fipmode", type: Zcl.DataType.ENUM8, max: 0xff},
+                        {name: "reserved", type: Zcl.DataType.UINT8, max: 0xff},
                     ],
                 },
             },
@@ -1039,7 +1095,77 @@ const tzLocal = {
             return {state: {dimmer_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("lightingBallastCfg", ["wiserControlMode"], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
+            await entity.read<"lightingBallastCfg", SchneiderLightingBallastCfg>("lightingBallastCfg", ["wiserControlMode"], {
+                manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            });
+        },
+    } satisfies Tz.Converter,
+    wiser_fip_setting: {
+        key: ["fip_setting"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, key);
+            const zoneLookup = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
+            const zonemodeNum = utils.getFromLookup(meta.state.zone_mode, zoneLookup);
+
+            const fipLookup = {comfort: 0, "comfort_-1": 1, "comfort_-2": 2, energy_saving: 3, frost_protection: 4, off: 5};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(fipLookup));
+            const fipmodeNum = utils.getFromLookup(value, fipLookup);
+
+            const payload = {
+                zonemode: zonemodeNum,
+                fipmode: fipmodeNum,
+                reserved: 0xff,
+            };
+            await entity.command<"hvacThermostat", "wiserSmartSetFipMode", SchneiderThermostatCluster>(
+                "hvacThermostat",
+                "wiserSmartSetFipMode",
+                payload,
+                {srcEndpoint: 11, disableDefaultResponse: true},
+            );
+
+            return {state: {fip_setting: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"hvacThermostat", SchneiderThermostatCluster>("hvacThermostat", ["wiserSmartCurrentFilPiloteMode"]);
+        },
+    } satisfies Tz.Converter,
+    wiser_hact_config: {
+        key: ["hact_config"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, key);
+            const lookup = {unconfigured: 0x00, setpoint_switch: 0x80, setpoint_fip: 0x82, fip_fip: 0x83};
+            value = value.toLowerCase();
+            const mode = utils.getFromLookup(value, lookup);
+            await entity.write<"hvacThermostat", SchneiderThermostatCluster>("hvacThermostat", {57361: {value: mode, type: 0x18}});
+            return {state: {hact_config: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"hvacThermostat", SchneiderThermostatCluster>("hvacThermostat", ["wiserSmartHactConfig"]);
+        },
+    } satisfies Tz.Converter,
+    wiser_zone_mode: {
+        key: ["zone_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
+            const zonemodeNum = utils.getFromLookup(value, lookup);
+            await entity.write<"hvacThermostat", SchneiderThermostatCluster>("hvacThermostat", {57360: {value: zonemodeNum, type: 0x30}});
+            return {state: {zone_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"hvacThermostat", SchneiderThermostatCluster>("hvacThermostat", ["wiserSmartZoneMode"]);
+        },
+    } satisfies Tz.Converter,
+    wiser_vact_calibrate_valve: {
+        key: ["calibrate_valve"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command<"hvacThermostat", "wiserSmartCalibrateValve", SchneiderThermostatCluster>(
+                "hvacThermostat",
+                "wiserSmartCalibrateValve",
+                {},
+                {srcEndpoint: 11, disableDefaultResponse: true},
+            );
+            return {state: {calibrate_valve: value}};
         },
     } satisfies Tz.Converter,
 };
@@ -1284,7 +1410,115 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"lightingBallastCfg", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"lightingBallastCfg", SchneiderLightingBallastCfg, ["attributeReport", "readResponse"]>,
+    wiser_smart_setpoint_command_client: {
+        cluster: "hvacThermostat",
+        type: ["commandWiserSmartSetSetpoint"],
+        convert: (model, msg, publish, options, meta) => {
+            const attribute: KeyValueAny = {};
+            const result: KeyValueAny = {};
+
+            // The UI client on the thermostat also updates the server, so no need to readback/send again on next sync.
+            // This also ensures the next client read of setpoint is in sync with the latest commanded value.
+            attribute.occupiedHeatingSetpoint = msg.data.setpoint;
+            msg.endpoint.saveClusterAttributeKeyValue("hvacThermostat", attribute);
+            result.occupied_heating_setpoint = msg.data.setpoint / 100.0;
+            logger.debug(`received wiser setpoint command with value: '${msg.data.setpoint}'`, NS);
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["commandWiserSmartSetSetpoint"]>,
+    wiser_smart_thermostat: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: async (model, msg, publish, options, meta) => {
+            const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
+            if (result) {
+                if (msg.data.wiserSmartZoneMode !== undefined) {
+                    // wiserSmartZoneMode
+                    const lookup: Record<number, string> = {1: "manual", 2: "schedule", 3: "energy_saver", 6: "holiday"};
+                    result.zone_mode = lookup[msg.data.wiserSmartZoneMode];
+                }
+                if (msg.data.wiserSmartHactConfig !== undefined) {
+                    // wiserSmartHactConfig
+                    const lookup: Record<number, string> = {0: "unconfigured", 128: "setpoint_switch", 130: "setpoint_fip", 131: "fip_fip"};
+                    result.hact_config = lookup[msg.data.wiserSmartHactConfig as number];
+                }
+                if (msg.data.wiserSmartCurrentFilPiloteMode !== undefined) {
+                    // wiserSmartCurrentFilPiloteMode
+                    const lookup: Record<number, string> = {
+                        0: "comfort",
+                        1: "comfort_-1",
+                        2: "comfort_-2",
+                        3: "energy_saving",
+                        4: "frost_protection",
+                        5: "off",
+                    };
+                    result.fip_setting = lookup[msg.data.wiserSmartCurrentFilPiloteMode as number];
+                }
+                if (msg.data[0xe030] !== undefined) {
+                    // wiserSmartValvePosition
+                    result.pi_heating_demand = msg.data[0xe030];
+                }
+                if (msg.data[0xe031] !== undefined) {
+                    // wiserSmartValveCalibrationStatus
+                    const lookup: Record<number, string> = {
+                        0: "ongoing",
+                        1: "successful",
+                        2: "uncalibrated",
+                        3: "failed_e1",
+                        4: "failed_e2",
+                        5: "failed_e3",
+                    };
+                    result.valve_calibration_status = lookup[msg.data[0xe031] as number];
+                }
+                // Radiator thermostats command changes from UI, but report value periodically for sync,
+                // force an update of the value if it doesn't match the current existing value
+                if (
+                    meta.device.modelID === "EH-ZB-VACT" &&
+                    msg.data.occupiedHeatingSetpoint !== undefined &&
+                    meta.state.occupied_heating_setpoint !== undefined
+                ) {
+                    if (result.occupied_heating_setpoint !== meta.state.occupied_heating_setpoint) {
+                        const lookup: KeyValueAny = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
+                        const zonemodeNum = lookup[Number(meta.state.zone_mode)];
+                        const setpoint =
+                            Number((Math.round(Number((Number(meta.state.occupied_heating_setpoint) * 2).toFixed(1))) / 2).toFixed(1)) * 100;
+                        const payload = {
+                            operatingmode: 0,
+                            zonemode: zonemodeNum,
+                            setpoint: setpoint,
+                            reserved: 0xff,
+                        };
+                        await msg.endpoint.command("hvacThermostat", "wiserSmartSetSetpoint", payload, {
+                            srcEndpoint: 11,
+                            disableDefaultResponse: true,
+                        });
+
+                        logger.debug(
+                            `syncing vact setpoint was: '${result.occupied_heating_setpoint}' now: '${meta.state.occupied_heating_setpoint}'`,
+                            NS,
+                        );
+                    }
+                } else {
+                    publish(result);
+                }
+            }
+        },
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["attributeReport", "readResponse"]>,
+    wiser_smart_thermostat_client: {
+        cluster: "hvacThermostat",
+        type: "read",
+        convert: async (model, msg, publish, options, meta: KeyValueAny) => {
+            const response: KeyValueAny = {};
+            if (msg.data.includes("wiserSmartZoneMode") || msg.data.includes(0xe010)) {
+                // Zone Mode
+                const lookup: KeyValueAny = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
+                const zonemodeNum = meta.state.zone_mode ? lookup[meta.state.zone_mode] : 1;
+                response.wiserSmartZoneMode = {value: zonemodeNum};
+                await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response, {srcEndpoint: 11});
+            }
+        },
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, "read">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -2149,15 +2383,15 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.battery,
             fz.hvac_user_interface,
-            fz.wiser_smart_thermostat,
-            fz.wiser_smart_thermostat_client,
-            fz.wiser_smart_setpoint_command_client,
+            fzLocal.wiser_smart_thermostat,
+            fzLocal.wiser_smart_thermostat_client,
+            fzLocal.wiser_smart_setpoint_command_client,
         ],
         toZigbee: [
             tz.wiser_sed_thermostat_local_temperature_calibration,
             tz.wiser_sed_occupied_heating_setpoint,
             tz.wiser_sed_thermostat_keypad_lockout,
-            tz.wiser_vact_calibrate_valve,
+            tzLocal.wiser_vact_calibrate_valve,
             tz.wiser_sed_zone_mode,
         ],
         exposes: [
@@ -2206,8 +2440,8 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.battery,
             fz.hvac_user_interface,
-            fz.wiser_smart_thermostat_client,
-            fz.wiser_smart_setpoint_command_client,
+            fzLocal.wiser_smart_thermostat_client,
+            fzLocal.wiser_smart_setpoint_command_client,
             fz.schneider_temperature,
         ],
         toZigbee: [tz.wiser_sed_zone_mode, tz.wiser_sed_occupied_heating_setpoint],
@@ -2254,13 +2488,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EER50000",
         vendor: "Schneider Electric",
         description: "Wiser H-Relay (HACT)",
-        fromZigbee: [fz.wiser_smart_thermostat, fz.metering, fz.identify],
+        fromZigbee: [fzLocal.wiser_smart_thermostat, fz.metering, fz.identify],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
-            tz.wiser_fip_setting,
-            tz.wiser_hact_config,
-            tz.wiser_zone_mode,
+            tzLocal.wiser_fip_setting,
+            tzLocal.wiser_hact_config,
+            tzLocal.wiser_zone_mode,
             tz.identify,
         ],
         exposes: [
@@ -2747,7 +2981,7 @@ export const definitions: DefinitionWithExtend[] = [
                         return {running_state: msg.data.pICoolingDemand > 0 ? "cool" : "idle"};
                     }
                 },
-            } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["attributeReport", "readResponse"]>,
         ],
         extend: [
             m.thermostat({

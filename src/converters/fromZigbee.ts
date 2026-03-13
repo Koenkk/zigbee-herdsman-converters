@@ -4424,38 +4424,6 @@ export const schneider_temperature: Fz.Converter<"msTemperatureMeasurement", und
         return {[property]: temperature};
     },
 };
-export const wiser_smart_thermostat_client: Fz.Converter<"hvacThermostat", undefined, "read"> = {
-    cluster: "hvacThermostat",
-    type: "read",
-    convert: async (model, msg, publish, options, meta: KeyValueAny) => {
-        const response: KeyValueAny = {};
-        if (msg.data[0] === 0xe010) {
-            // Zone Mode
-            const lookup: KeyValueAny = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
-            const zonemodeNum = meta.state.zone_mode ? lookup[meta.state.zone_mode] : 1;
-            response[0xe010] = {value: zonemodeNum, type: 0x30};
-            await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response, {srcEndpoint: 11});
-        }
-    },
-};
-export const wiser_smart_setpoint_command_client: Fz.Converter<"hvacThermostat", undefined, ["commandWiserSmartSetSetpoint"]> = {
-    cluster: "hvacThermostat",
-    type: ["commandWiserSmartSetSetpoint"],
-    convert: (model, msg, publish, options, meta) => {
-        const attribute: KeyValueAny = {};
-        const result: KeyValueAny = {};
-
-        // The UI client on the thermostat also updates the server, so no need to readback/send again on next sync.
-        // This also ensures the next client read of setpoint is in sync with the latest commanded value.
-        attribute.occupiedHeatingSetpoint = msg.data.setpoint;
-        msg.endpoint.saveClusterAttributeKeyValue("hvacThermostat", attribute);
-
-        result.occupied_heating_setpoint = msg.data.setpoint / 100.0;
-
-        logger.debug(`received wiser setpoint command with value: '${msg.data.setpoint}'`, NS);
-        return result;
-    },
-};
 export const rc_110_level_to_scene: Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevel", "commandMoveToLevelWithOnOff"]> = {
     cluster: "genLevelCtrl",
     type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff"],
@@ -5065,84 +5033,6 @@ export const schneider_lighting_ballast_configuration: Fz.Converter<"lightingBal
             result.dimmer_mode = lookup[msg.data[0xe000] as number];
         }
         return result;
-    },
-};
-export const wiser_smart_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    convert: async (model, msg, publish, options, meta) => {
-        const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
-
-        if (result) {
-            if (msg.data[0xe010] !== undefined) {
-                // wiserSmartZoneMode
-                const lookup: Record<number, string> = {1: "manual", 2: "schedule", 3: "energy_saver", 6: "holiday"};
-                result.zone_mode = lookup[msg.data[0xe010] as number];
-            }
-            if (msg.data[0xe011] !== undefined) {
-                // wiserSmartHactConfig
-                const lookup: Record<number, string> = {0: "unconfigured", 128: "setpoint_switch", 130: "setpoint_fip", 131: "fip_fip"};
-                result.hact_config = lookup[msg.data[0xe011] as number];
-            }
-            if (msg.data[0xe020] !== undefined) {
-                // wiserSmartCurrentFilPiloteMode
-                const lookup: Record<number, string> = {
-                    0: "comfort",
-                    1: "comfort_-1",
-                    2: "comfort_-2",
-                    3: "energy_saving",
-                    4: "frost_protection",
-                    5: "off",
-                };
-                result.fip_setting = lookup[msg.data[0xe020] as number];
-            }
-            if (msg.data[0xe030] !== undefined) {
-                // wiserSmartValvePosition
-                result.pi_heating_demand = msg.data[0xe030];
-            }
-            if (msg.data[0xe031] !== undefined) {
-                // wiserSmartValveCalibrationStatus
-                const lookup: Record<number, string> = {
-                    0: "ongoing",
-                    1: "successful",
-                    2: "uncalibrated",
-                    3: "failed_e1",
-                    4: "failed_e2",
-                    5: "failed_e3",
-                };
-                result.valve_calibration_status = lookup[msg.data[0xe031] as number];
-            }
-            // Radiator thermostats command changes from UI, but report value periodically for sync,
-            // force an update of the value if it doesn't match the current existing value
-            if (
-                meta.device.modelID === "EH-ZB-VACT" &&
-                msg.data.occupiedHeatingSetpoint !== undefined &&
-                meta.state.occupied_heating_setpoint !== undefined
-            ) {
-                if (result.occupied_heating_setpoint !== meta.state.occupied_heating_setpoint) {
-                    const lookup: KeyValueAny = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
-                    const zonemodeNum = lookup[Number(meta.state.zone_mode)];
-                    const setpoint = Number((Math.round(Number((Number(meta.state.occupied_heating_setpoint) * 2).toFixed(1))) / 2).toFixed(1)) * 100;
-                    const payload = {
-                        operatingmode: 0,
-                        zonemode: zonemodeNum,
-                        setpoint: setpoint,
-                        reserved: 0xff,
-                    };
-                    await msg.endpoint.command("hvacThermostat", "wiserSmartSetSetpoint", payload, {
-                        srcEndpoint: 11,
-                        disableDefaultResponse: true,
-                    });
-
-                    logger.debug(
-                        `syncing vact setpoint was: '${result.occupied_heating_setpoint}' now: '${meta.state.occupied_heating_setpoint}'`,
-                        NS,
-                    );
-                }
-            } else {
-                publish(result);
-            }
-        }
     },
 };
 export const TS110E: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {

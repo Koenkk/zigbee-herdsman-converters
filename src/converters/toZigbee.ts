@@ -4610,64 +4610,6 @@ export const schneider_thermostat_keypad_lockout: Tz.Converter = {
         return {state: {keypad_lockout: value}};
     },
 };
-export const wiser_fip_setting: Tz.Converter = {
-    key: ["fip_setting"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        const zoneLookup = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
-        const zonemodeNum = utils.getFromLookup(meta.state.zone_mode, zoneLookup);
-
-        const fipLookup = {comfort: 0, "comfort_-1": 1, "comfort_-2": 2, energy_saving: 3, frost_protection: 4, off: 5};
-        value = value.toLowerCase();
-        utils.validateValue(value, Object.keys(fipLookup));
-        const fipmodeNum = utils.getFromLookup(value, fipLookup);
-
-        const payload = {
-            zonemode: zonemodeNum,
-            fipmode: fipmodeNum,
-            reserved: 0xff,
-        };
-        await entity.command("hvacThermostat", "wiserSmartSetFipMode", payload, {srcEndpoint: 11, disableDefaultResponse: true});
-
-        return {state: {fip_setting: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", [0xe020]);
-    },
-};
-export const wiser_hact_config: Tz.Converter = {
-    key: ["hact_config"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        const lookup = {unconfigured: 0x00, setpoint_switch: 0x80, setpoint_fip: 0x82, fip_fip: 0x83};
-        value = value.toLowerCase();
-        const mode = utils.getFromLookup(value, lookup);
-        await entity.write("hvacThermostat", {57361: {value: mode, type: 0x18}});
-        return {state: {hact_config: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", [0xe011]);
-    },
-};
-export const wiser_zone_mode: Tz.Converter = {
-    key: ["zone_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        const lookup = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
-        const zonemodeNum = utils.getFromLookup(value, lookup);
-        await entity.write("hvacThermostat", {57360: {value: zonemodeNum, type: 0x30}});
-        return {state: {zone_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", [0xe010]);
-    },
-};
-export const wiser_vact_calibrate_valve: Tz.Converter = {
-    key: ["calibrate_valve"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.command("hvacThermostat", "wiserSmartCalibrateValve", {}, {srcEndpoint: 11, disableDefaultResponse: true});
-        return {state: {calibrate_valve: value}};
-    },
-};
 export const wiser_sed_zone_mode: Tz.Converter = {
     key: ["zone_mode"],
     convertSet: (entity, key, value, meta) => {
