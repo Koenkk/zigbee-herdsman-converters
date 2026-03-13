@@ -130,6 +130,7 @@ interface SchneiderThermostatCluster {
             fipmode: number;
             reserved: number;
         };
+        wiserSmartCalibrateValve:  Record<string, never>;
     };
     commandResponses: never;
 }
@@ -917,6 +918,7 @@ const schneiderElectricExtend = {
                         {name: "reserved", type: Zcl.DataType.UINT8, max: 0xff},
                     ],
                 },
+                wiserSmartCalibrateValve: {name: "wiserSmartCalibrateValve", ID: 0xe2, parameters: []},
             },
             commandsResponse: {},
         }),
