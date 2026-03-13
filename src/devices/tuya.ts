@@ -10406,6 +10406,21 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_icoxotza"]),
+        model: "TS0726_2_gang_switch",
+        vendor: "Zemismart",
+        description: "2-gang switch",
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ["l1", "l2"],
+                powerOnBehavior: false,
+            }),
+        ],
+        meta: {multiEndpoint: true},
+    },
+    {
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_1s0vfmtv", "_TZ3002_gdwja9a7", "_TZ3002_u7d3nes3"]),
         model: "TS0726_2_gang",
         vendor: "Tuya",
