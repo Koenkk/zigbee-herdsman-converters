@@ -1,5 +1,26 @@
 # Changelog
 
+## [26.19.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.18.0...v26.19.0) (2026-03-13)
+
+
+### Features
+
+* **add:** 12256 ([#11667](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11667)) ([3e99165](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3e991655966fc7e202f1ed7a421b1debc5a04621))
+* **add:** 404114 ([#11707](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11707)) ([a7596bc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a7596bcbe2d75b8a56a20e347a5c90071b2714d5))
+* **add:** CCTFR6000 ([#11715](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11715)) ([a0171be](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a0171be5eaaa3865cbc69569149679ebc461ec5d))
+* **add:** IHC-Enki ([#11694](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11694)) ([e4f709b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e4f709b8d80312bf849f6dc3a1de7e65e258921c))
+* Third Reality 3RPL01084Z: support more features ([#11714](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11714)) ([ec66089](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ec660893573dddbf8e19c14216af796ec5f67c28))
+* Third Reality 3RWK0148Z: support more features ([#11713](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11713)) ([7344d95](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7344d95f9391454b4cd01c68c09d2396109e803c))
+* Tuya TS0601_switch_6_gang: expose more features ([#11704](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11704)) ([fac4196](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fac41963fe0a3cd62b5a3a3b21ea928e5b36944f))
+
+
+### Bug Fixes
+
+* Inovelli: 3.05 firmware changes ([#11692](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11692)) ([5626d94](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5626d943317d43d6e1db43f191bd8d7a396340fd))
+* Tuya _TZB210_qzsxaqqe: fix RGB color setting is not preserved when light turned off and back on ([#11706](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11706)) ([249e449](https://github.com/Koenkk/zigbee-herdsman-converters/commit/249e449582c29bd7594db4dc4d3e5259fe98b58f))
+* Tuya SDM01: expose `data_report_duration` ([#11709](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11709)) ([d498008](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d498008469e48c2ce0398dd172111f117ac71a1c))
+* Tuya: rename TRV603 to AR331 ([#11711](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11711)) ([b047b74](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b047b74c39c71e9b264bb4ba87955a2833aca03a))
+
 ## [26.18.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.17.0...v26.18.0) (2026-03-12)
 
 
