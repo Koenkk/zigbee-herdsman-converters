@@ -1579,10 +1579,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WV704R0A0902",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat",
+        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fzLocal.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
-        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         exposes: [
             e
                 .climate()
@@ -1626,7 +1626,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Micro module dimmer",
         ota: true,
-        extend: [m.light({powerOnBehavior: false, configureReporting: true, levelConfig: {}})],
+        extend: [
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
+            m.light({powerOnBehavior: false, configureReporting: true, levelConfig: {}}),
+        ],
         fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
@@ -1664,7 +1667,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Micro module dimmer with neutral lead",
         ota: true,
-        extend: [m.light({configureReporting: true, levelConfig: {}})],
+        extend: [schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(), m.light({configureReporting: true, levelConfig: {}})],
         fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
@@ -1696,6 +1699,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002334",
         vendor: "Schneider Electric",
         description: "Rotary dimmer",
+        extend: [schneiderElectricExtend.addSchneiderLightingBallastCfgCluster()],
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
@@ -1753,6 +1757,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002960",
         vendor: "Schneider Electric",
         description: "Push button dimmer",
+        extend: [schneiderElectricExtend.addSchneiderLightingBallastCfgCluster()],
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
@@ -1947,9 +1952,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6100Z3",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat",
+        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fzLocal.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
-        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         exposes: [
             e
                 .climate()
@@ -2032,7 +2037,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("dimmer_mode", ea.ALL, ["auto", "rc", "rl", "rl_led"])
                 .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
         ],
-        extend: [schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(), indicatorMode(), switchActions()],
+        extend: [
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
+            indicatorMode(),
+            switchActions(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingBallastCfg"]);
@@ -2064,6 +2074,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
         ],
         extend: [
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
             schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             indicatorMode("right"),
             indicatorMode("left"),
@@ -2104,9 +2115,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
         ],
         extend: [
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             m.deviceEndpoints({endpoints: {left: 4, right: 3, left_btn: 22, right_btn: 21}}),
             m.light({endpointNames: ["left", "right"], configureReporting: true}),
-            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             switchActions("left_btn"),
             switchActions("right_btn"),
             indicatorMode("left_btn"),
@@ -2380,6 +2392,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EER53000",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat (VACT)",
+        extend: [schneiderElectricExtend.customThermostatCluster()],
         fromZigbee: [
             fz.battery,
             fz.hvac_user_interface,
@@ -2437,6 +2450,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EER51000",
         vendor: "Schneider Electric",
         description: "Wiser thermostat (RTS)",
+        extend: [schneiderElectricExtend.customThermostatCluster()],
         fromZigbee: [
             fz.battery,
             fz.hvac_user_interface,
@@ -2488,6 +2502,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EER50000",
         vendor: "Schneider Electric",
         description: "Wiser H-Relay (HACT)",
+        extend: [schneiderElectricExtend.customThermostatCluster()],
         fromZigbee: [fzLocal.wiser_smart_thermostat, fz.metering, fz.identify],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -2843,6 +2858,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002497",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
+        extend: [
+            schneiderElectricExtend.addWiserDeviceInfoCluster(),
+            schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
+            schneiderElectricExtend.pilotMode(),
+        ],
         fromZigbee: [fz.stelpro_thermostat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
@@ -2852,11 +2872,6 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_control_sequence_of_operation,
             tz.schneider_thermostat_keypad_lockout,
             tz.thermostat_temperature_display_mode,
-        ],
-        extend: [
-            schneiderElectricExtend.addWiserDeviceInfoCluster(),
-            schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
-            schneiderElectricExtend.pilotMode(),
         ],
         exposes: [
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
