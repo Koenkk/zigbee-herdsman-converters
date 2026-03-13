@@ -40,6 +40,14 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
+interface ThirdRadarSpecialCluster {
+    attributes: {
+        volatileCrganiccCompounds: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface ThirdWateringKit {
     attributes: {
         wateringTimes: number;
