@@ -3030,12 +3030,15 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("current_phase_l2", ea.STATE).withUnit("A").withDescription("Instantaneous measured electrical current on phase L2"),
             e.numeric("current_phase_l3", ea.STATE).withUnit("A").withDescription("Instantaneous measured electrical current on phase L3"),
         ],
-        },
-      {
-        zigbeeModel: ['UFH'],
-        model: 'CCTFR6000',
-    vendor: 'Schneider Electric',
-    description: '6 Channel Boiler Actuator',
-    extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8}}), m.onOff({"powerOnBehavior":false,"endpointNames":["1","2","3","4","5","6","7","8"]})],
-};
+    },
+    {
+        zigbeeModel: ["UFH"],
+        model: "CCTFR6000",
+        vendor: "Schneider Electric",
+        description: "6 Channel Boiler Actuator",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"]}),
+        ],
+    },
 ];
