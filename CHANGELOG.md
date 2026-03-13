@@ -1,5 +1,12 @@
 # Changelog
 
+## [26.19.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.19.0...v26.19.1) (2026-03-13)
+
+
+### Bug Fixes
+
+* **ignore:** Acova IHC-Enki: fix exposes ([05b37ba](https://github.com/Koenkk/zigbee-herdsman-converters/commit/05b37ba8efb376e242c7878042dc22c4db8732f6))
+
 ## [26.19.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.18.0...v26.19.0) (2026-03-13)
 
 
