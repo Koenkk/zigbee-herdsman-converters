@@ -25306,135 +25306,134 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-    fingerprint: [
-        {
-            modelID: "TS0601",
-            manufacturerName: "_TZE284_4vbj3fxh",
-        },
-    ],
-    model: "TS0601_Tuya-L2-T-F-MF",
-    vendor: "Tuya",
-    description: "Tuya smart Zigbee fan coil thermostat",
-    extend: [
-        tuya.modernExtend.tuyaBase({
-            dp: true,
-            timeStart: "1970",
-        }),
-    ],
-    exposes: [
-
-        e.switch().withDescription("Thermostat power"),
-
-        e.temperature().withUnit("°C").withDescription("Measured room temperature"),
-
-        e
-            .numeric("current_heating_setpoint", ea.STATE_SET)
-            .withUnit("°C")
-            .withValueMin(5)
-            .withValueMax(45)
-            .withValueStep(0.5)
-            .withDescription("Target temperature"),
-
-        e.enum("system_mode", ea.STATE_SET, ["cool", "heat", "fan_only"]).withDescription("Operating mode"),
-
-        e.enum("fan_mode", ea.STATE_SET, ["auto", "low", "medium", "high"]).withDescription("Fan speed"),
-
-        // Configuration Parameters
-        
-        e.numeric("screen_brightness", ea.STATE_SET).withValueMin(1).withValueMax(9).withValueStep(1).withDescription("Display brightness level"),
-
-        e
-            .numeric("temperature_compensation", ea.STATE_SET)
-            .withUnit("°C")
-            .withValueMin(-9)
-            .withValueMax(9)
-            .withValueStep(1)
-            .withDescription("Temperature compensation setting"),
-
-        e
-            .numeric("deadband_temperature", ea.STATE_SET)
-            .withUnit("°C")
-            .withValueMin(0.5)
-            .withValueMax(5)
-            .withValueStep(0.5)
-            .withDescription("Temperature deadband"),
-
-        e
-            .numeric("min_temperature_limit", ea.STATE_SET)
-            .withUnit("°C")
-            .withValueMin(5)
-            .withValueMax(15)
-            .withValueStep(1)
-            .withDescription("Minimum temperature limit"),
-
-        e
-            .numeric("max_temperature_limit", ea.STATE_SET)
-            .withUnit("°C")
-            .withValueMin(16)
-            .withValueMax(45)
-            .withValueStep(1)
-            .withDescription("Maximun temperature limit"),
-
-        e.enum("child_lock", ea.STATE_SET, ["locked", "unlocked"]).withDescription("Child lock"),
-
-        // Max Temp
-
-        e
-            .numeric("eco_temperature_heating", ea.STATE_SET)
-            .withUnit("°C")
-            .withValueMin(20)
-            .withValueMax(30)
-            .withValueStep(1)
-            .withDescription("Eco heating temperature"),
-
-        e
-            .numeric("eco_temperature_cooling", ea.STATE_SET)
-            .withUnit("°C")
-            .withValueMin(20)
-            .withValueMax(30)
-            .withValueStep(1)
-            .withDescription("Eco cooling temperature"),
-    ],
-    meta: {
-        tuyaDatapoints: [
-            [1, "state", tuya.valueConverter.onOff],
-            [
-                2,
-                "system_mode",
-                tuya.valueConverterBasic.lookup({
-                    cool: tuya.enum(0),
-                    heat: tuya.enum(1),
-                    fan_only: tuya.enum(2),
-                }),
-            ],
-            [16, "temperature", tuya.valueConverter.divideBy10],
-            [18, "min_temperature_limit", tuya.valueConverter.divideBy10],
-            [34, "max_temperature_limit", tuya.valueConverter.divideBy10],
-            [
-                39,
-                "child_lock",
-                tuya.valueConverterBasic.lookup({
-                    unlocked: false,
-                    locked: true,
-                }),
-            ],
-            [
-                49,
-                "fan_mode",
-                tuya.valueConverterBasic.lookup({
-                    auto: tuya.enum(0),
-                    high: tuya.enum(1),
-                    medium: tuya.enum(2),
-                    low: tuya.enum(3),
-                }),
-            ],
-            [50, "current_heating_setpoint", tuya.valueConverter.divideBy10],
-            [101, "screen_brightness", tuya.valueConverter.raw],
-            [102, "temperature_compensation", tuya.valueConverter.raw],
-            [104, "deadband_temperature", tuya.valueConverter.divideBy10],
-            [107, "eco_temperature_heating", tuya.valueConverter.raw],
-            [109, "eco_temperature_cooling", tuya.valueConverter.raw],
+        fingerprint: [
+            {
+                modelID: "TS0601",
+                manufacturerName: "_TZE284_4vbj3fxh",
+            },
         ],
+        model: "TS0601_Tuya-L2-T-F-MF",
+        vendor: "Tuya",
+        description: "Tuya smart Zigbee fan coil thermostat",
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                timeStart: "1970",
+            }),
+        ],
+        exposes: [
+            e.switch().withDescription("Thermostat power"),
+
+            e.temperature().withUnit("°C").withDescription("Measured room temperature"),
+
+            e
+                .numeric("current_heating_setpoint", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(45)
+                .withValueStep(0.5)
+                .withDescription("Target temperature"),
+
+            e.enum("system_mode", ea.STATE_SET, ["cool", "heat", "fan_only"]).withDescription("Operating mode"),
+
+            e.enum("fan_mode", ea.STATE_SET, ["auto", "low", "medium", "high"]).withDescription("Fan speed"),
+
+            // Configuration Parameters
+
+            e.numeric("screen_brightness", ea.STATE_SET).withValueMin(1).withValueMax(9).withValueStep(1).withDescription("Display brightness level"),
+
+            e
+                .numeric("temperature_compensation", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(-9)
+                .withValueMax(9)
+                .withValueStep(1)
+                .withDescription("Temperature compensation setting"),
+
+            e
+                .numeric("deadband_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueMax(5)
+                .withValueStep(0.5)
+                .withDescription("Temperature deadband"),
+
+            e
+                .numeric("min_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(1)
+                .withDescription("Minimum temperature limit"),
+
+            e
+                .numeric("max_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(16)
+                .withValueMax(45)
+                .withValueStep(1)
+                .withDescription("Maximun temperature limit"),
+
+            e.enum("child_lock", ea.STATE_SET, ["locked", "unlocked"]).withDescription("Child lock"),
+
+            // Max Temp
+
+            e
+                .numeric("eco_temperature_heating", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(20)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withDescription("Eco heating temperature"),
+
+            e
+                .numeric("eco_temperature_cooling", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(20)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withDescription("Eco cooling temperature"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        cool: tuya.enum(0),
+                        heat: tuya.enum(1),
+                        fan_only: tuya.enum(2),
+                    }),
+                ],
+                [16, "temperature", tuya.valueConverter.divideBy10],
+                [18, "min_temperature_limit", tuya.valueConverter.divideBy10],
+                [34, "max_temperature_limit", tuya.valueConverter.divideBy10],
+                [
+                    39,
+                    "child_lock",
+                    tuya.valueConverterBasic.lookup({
+                        unlocked: false,
+                        locked: true,
+                    }),
+                ],
+                [
+                    49,
+                    "fan_mode",
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        high: tuya.enum(1),
+                        medium: tuya.enum(2),
+                        low: tuya.enum(3),
+                    }),
+                ],
+                [50, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [101, "screen_brightness", tuya.valueConverter.raw],
+                [102, "temperature_compensation", tuya.valueConverter.raw],
+                [104, "deadband_temperature", tuya.valueConverter.divideBy10],
+                [107, "eco_temperature_heating", tuya.valueConverter.raw],
+                [109, "eco_temperature_cooling", tuya.valueConverter.raw],
+            ],
+        },
     },
-}
 ];
