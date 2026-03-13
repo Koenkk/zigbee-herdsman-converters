@@ -10415,7 +10415,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             tuya.modernExtend.tuyaOnOff({
                 endpoints: ["l1", "l2"],
-                powerOnBehavior: false,
+                powerOnBehavior2: false,
             }),
         ],
         meta: {multiEndpoint: true},
