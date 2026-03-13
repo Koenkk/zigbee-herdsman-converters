@@ -4935,48 +4935,12 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l4"),
             tuya.exposes.switch().withEndpoint("l5"),
             tuya.exposes.switch().withEndpoint("l6"),
+            tuya.exposes.powerOnBehavior(),
+            tuya.exposes.indicatorModeNoneRelayPos(),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
         },
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, "state_l1", tuya.valueConverter.onOff],
-                [2, "state_l2", tuya.valueConverter.onOff],
-                [3, "state_l3", tuya.valueConverter.onOff],
-                [4, "state_l4", tuya.valueConverter.onOff],
-                [5, "state_l5", tuya.valueConverter.onOff],
-                [6, "state_l6", tuya.valueConverter.onOff],
-            ],
-        },
-        whiteLabel: [
-            tuya.whitelabel("Mercator Ikuü", "SSW06G", "6 Gang switch", ["_TZE200_wnp4d4va"]),
-            tuya.whitelabel("Nova Digital", "NTZB-04-W-B", "4 gang switch with 2 gang socket 4x4", ["_TZE204_lmgrbuwf"]),
-            tuya.whitelabel("Nova Digital", "SYZB-6W", "6 gang switch 4x4", ["_TZE284_tdhnhhiy"]),
-            tuya.whitelabel("Nova Digital", "FZB-6", "6 gang switch 4x4", ["_TZE204_wskr3up8"]),
-            tuya.whitelabel("Nova Digital", "SA-6", "Safira smart switch - 6 gang", ["_TZE204_gxbdnfrh"]),
-            tuya.whitelabel("Ekaza", "EKAT-T3074-6WZ", "6 gang switch", ["_TZE284_g1enhdsi"]),
-        ],
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_gxbdnfrh"]),
-        model: "SA-6",
-        vendor: "Nova Digital",
-        description: "Safira smart switch - 6 gang",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [
-            e.switch().withEndpoint("l1"),
-            e.switch().withEndpoint("l2"),
-            e.switch().withEndpoint("l3"),
-            e.switch().withEndpoint("l4"),
-            e.switch().withEndpoint("l5"),
-            e.switch().withEndpoint("l6"),
-            e.enum("power_on_behavior", ea.STATE_SET, ["off", "on", "memory"]).withDescription("Comportamento ao religar após falta de energia"),
-            e.enum("indicator_mode", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("Modo da luz indicadora"),
-        ],
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
@@ -5006,6 +4970,14 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             ],
         },
+        whiteLabel: [
+            tuya.whitelabel("Mercator Ikuü", "SSW06G", "6 Gang switch", ["_TZE200_wnp4d4va"]),
+            tuya.whitelabel("Nova Digital", "NTZB-04-W-B", "4 gang switch with 2 gang socket 4x4", ["_TZE204_lmgrbuwf"]),
+            tuya.whitelabel("Nova Digital", "SYZB-6W", "6 gang switch 4x4", ["_TZE284_tdhnhhiy"]),
+            tuya.whitelabel("Nova Digital", "FZB-6", "6 gang switch 4x4", ["_TZE204_wskr3up8"]),
+            tuya.whitelabel("Nova Digital", "SA-6", "Safira smart switch - 6 gang", ["_TZE204_gxbdnfrh"]),
+            tuya.whitelabel("Ekaza", "EKAT-T3074-6WZ", "6 gang switch", ["_TZE284_g1enhdsi"]),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_raz9qavg"]),
