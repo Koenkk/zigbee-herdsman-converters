@@ -224,12 +224,6 @@ const develco = {
                 await entity.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
             },
         } satisfies Tz.Converter,
-        input: {
-            key: ["input"],
-            convertGet: async (entity, key, meta) => {
-                await entity.read("genBinaryInput", ["presentValue"]);
-            },
-        } satisfies Tz.Converter,
     },
 };
 
