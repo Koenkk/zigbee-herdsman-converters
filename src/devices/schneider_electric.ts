@@ -130,7 +130,7 @@ interface SchneiderThermostatCluster {
             fipmode: number;
             reserved: number;
         };
-        wiserSmartCalibrateValve:  Record<string, never>;
+        wiserSmartCalibrateValve: Record<string, never>;
     };
     commandResponses: never;
 }
