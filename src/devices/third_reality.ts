@@ -752,8 +752,8 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfff2,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    wateringTimes: {name: "wateringTimes", ID: 0x0000, type: 0x21, write: true, min: 1, max: 1800},
-                    intervalDay: {name: "intervalDay", ID: 0x0001, type: 0x20, write: true, min: 0, max: 30},
+                    wateringTimes: {name: "wateringTimes", ID: 0x0000, type: Zcl.DataType.UINT16, write: true, min: 1, max: 1800},
+                    intervalDay: {name: "intervalDay", ID: 0x0001, type: Zcl.DataType.UINT8, write: true, min: 0, max: 30},
                 },
                 commands: {},
                 commandsResponse: {},
