@@ -322,9 +322,9 @@ export const definitions: DefinitionWithExtend[] = [
                         write: true,
                         max: 0xffffffff,
                     },
-                    presenceSensorSensitivity: { name: "presenceSensorSensitivity", ID: 0xF002, type: Zcl.DataType.UINT8, write: true, min: 1, max: 6 },
-                    tvocSensorCalibration: { name: "tvocSensorCalibration", ID: 0xF001, type: Zcl.DataType.UINT8, write: true, min: 1, max: 1 },
-                    airThreshold: { name: "airThreshold", ID: 0xF003, type: Zcl.DataType.UINT16, write: true, min: 3000, max: 15000 },
+                    presenceSensorSensitivity: {name: "presenceSensorSensitivity", ID: 0xf002, type: Zcl.DataType.UINT8, write: true, min: 1, max: 6},
+                    tvocSensorCalibration: {name: "tvocSensorCalibration", ID: 0xf001, type: Zcl.DataType.UINT8, write: true, min: 1, max: 1},
+                    airThreshold: {name: "airThreshold", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, min: 3000, max: 15000},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -336,7 +336,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "ppb",
                 description: "Measured TVOC value",
                 access: "STATE_GET",
-                }),
+            }),
             m.enumLookup<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
                 name: "tvoc_sensor_calibration",
                 lookup: {Reset: 1},
@@ -344,7 +344,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "tvocSensorCalibration",
                 description: "TVOC sensor calibration",
                 access: "ALL",
-                }),
+            }),
             m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
                 name: "presence_sensor_sensitivity",
                 valueMin: 1,
@@ -353,7 +353,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "presenceSensorSensitivity",
                 description: "Presence sensor sensitivity",
                 access: "ALL",
-                }),
+            }),
             m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
                 name: "air_threshold",
                 valueMin: 3000,
@@ -363,7 +363,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "ppb",
                 description: "Air threshold",
                 access: "ALL",
-                }),
+            }),
             m.light({
                 color: {modes: ["xy"], enhancedHue: true},
             }),
