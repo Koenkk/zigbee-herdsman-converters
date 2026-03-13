@@ -100,13 +100,5 @@ export const definitions: DefinitionWithExtend[] = [
                 systemMode: {values: ["off", "heat", "auto"]},
             }),
         ],
-        exposes: [
-            e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
-                .withSystemMode(["off", "heat", "auto"])
-                .withLocalTemperatureCalibration(),
-        ],
     },
 ];
