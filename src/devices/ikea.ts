@@ -1232,7 +1232,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VARMBLIXT table/wall lamp",
         vendor: "LED Light0x07C2 ",
         description: "VARMBLIXT table/wall lamp (Matter version)",
-        extend: [m.light({"colorTemp":{"range":[153,555]},"color":true})],
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
     },
     // #endregion sensors
 ];
