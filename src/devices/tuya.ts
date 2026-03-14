@@ -25321,22 +25321,22 @@ export const definitions: DefinitionWithExtend[] = [
                 timeStart: "1970",
             }),
         ],
-    
+
         exposes: (device, options) => {
             return [
                 // Basic Operation
-    
+
                 //e.switch().withDescription("Thermostat power"), # Mapped into a System mode
-    
+
                 e
                     .climate()
                     .withLocalTemperature(ea.STATE)
                     .withSystemMode(["off", "cool", "heat", "fan_only"], ea.STATE_SET)
                     .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
                     .withSetpoint("current_heating_setpoint", 5, 45, 0.5, ea.STATE_SET),
-    
+
                 // Configuration Parameters
-    
+
                 e
                     .numeric("local_temperature_calibration", ea.STATE_SET)
                     .withUnit("°C")
@@ -25344,9 +25344,14 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueMax(9)
                     .withValueStep(1)
                     .withDescription("Temperature compensation setting"),
-    
-                e.numeric("screen_brightness", ea.STATE_SET).withValueMin(1).withValueMax(9).withValueStep(1).withDescription("Display brightness level"),
-    
+
+                e
+                    .numeric("screen_brightness", ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(9)
+                    .withValueStep(1)
+                    .withDescription("Display brightness level"),
+
                 e
                     .numeric("deadzone_temperature", ea.STATE_SET)
                     .withUnit("°C")
@@ -25354,7 +25359,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueMax(5)
                     .withValueStep(0.5)
                     .withDescription("Temperature deadzone"),
-    
+
                 e
                     .numeric("min_temperature_limit", ea.STATE_SET)
                     .withUnit("°C")
@@ -25362,7 +25367,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueMax(15)
                     .withValueStep(1)
                     .withDescription("Minimum temperature limit"),
-    
+
                 e
                     .numeric("max_temperature_limit", ea.STATE_SET)
                     .withUnit("°C")
@@ -25370,9 +25375,9 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueMax(45)
                     .withValueStep(1)
                     .withDescription("Maximun temperature limit"),
-    
+
                 e.enum("child_lock", ea.STATE_SET, ["locked", "unlocked"]).withDescription("Child lock"),
-    
+
                 e
                     .numeric("eco_temperature_heating", ea.STATE_SET)
                     .withUnit("°C")
@@ -25380,7 +25385,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueMax(30)
                     .withValueStep(1)
                     .withDescription("Eco heating temperature"),
-    
+
                 e
                     .numeric("eco_temperature_cooling", ea.STATE_SET)
                     .withUnit("°C")
@@ -25412,16 +25417,16 @@ export const definitions: DefinitionWithExtend[] = [
                     {
                         to: async (v, meta) => {
                             const ep = meta.device.endpoints[0];
-    
+
                             if (v === "off") {
                                 // mode off we redirect to datapoint 1, and that is
                                 await tuya.sendDataPointBool(ep, 1, false, "dataRequest", 1);
                                 return;
                             }
-    
+
                             // any other mode, we force ON state
                             await tuya.sendDataPointBool(ep, 1, true, "dataRequest", 1);
-    
+
                             if (v === "cool") await tuya.sendDataPointEnum(ep, 2, 0, "dataRequest", 1);
                             if (v === "heat") await tuya.sendDataPointEnum(ep, 2, 1, "dataRequest", 1);
                             if (v === "fan_only") await tuya.sendDataPointEnum(ep, 2, 2, "dataRequest", 1);
@@ -25462,5 +25467,5 @@ export const definitions: DefinitionWithExtend[] = [
                 [109, "eco_temperature_cooling", tuya.valueConverter.raw],
             ],
         },
-    }
+    },
 ];
