@@ -25403,7 +25403,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "state",
                     {
                         to: async (v: string, meta: Tz.Meta) => {},
-                        from: (v: number, meta: Fz.Meta) => {
+                        from: (v: boolean, meta: Fz.Meta) => {
                             // when the thermstat is returned to ON, we setup to fan_only, but would be better
                             // to remain in the mode it was (and it is, even while off)
                             meta.state.system_mode = v === true ? (meta.state.system_mode_device ?? "fan_only") : "off";
