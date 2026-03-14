@@ -25402,8 +25402,8 @@ export const definitions: DefinitionWithExtend[] = [
                     1,
                     "state",
                     {
-                        to: async (v, meta) => {},
-                        from: (v, meta) => {
+                        to: async (v: string, meta: Tz.Meta) => {},
+                        from: (v: number, meta: Fz.Meta) => {
                             // when the thermstat is returned to ON, we setup to fan_only, but would be better
                             // to remain in the mode it was (and it is, even while off)
                             meta.state.system_mode = v === true ? (meta.state.system_mode_device ?? "fan_only") : "off";
@@ -25415,7 +25415,7 @@ export const definitions: DefinitionWithExtend[] = [
                     2,
                     "system_mode",
                     {
-                        to: async (v, meta) => {
+                         to: async (v: string, meta: Tz.Meta) => {
                             const ep = meta.device.endpoints[0];
 
                             if (v === "off") {
@@ -25431,7 +25431,7 @@ export const definitions: DefinitionWithExtend[] = [
                             if (v === "heat") await tuya.sendDataPointEnum(ep, 2, 1, "dataRequest", 1);
                             if (v === "fan_only") await tuya.sendDataPointEnum(ep, 2, 2, "dataRequest", 1);
                         },
-                        from: (v, meta) => {
+                        from: (v: number, meta: Fz.Meta) => {
                             const modes = ["cool", "heat", "fan_only"];
                             meta.state.system_mode_device = modes[v];
                             return modes[v];
