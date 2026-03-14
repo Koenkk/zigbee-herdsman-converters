@@ -25415,7 +25415,7 @@ export const definitions: DefinitionWithExtend[] = [
                     2,
                     "system_mode",
                     {
-                         to: async (v: string, meta: Tz.Meta) => {
+                        to: async (v: string, meta: Tz.Meta) => {
                             const ep = meta.device.endpoints[0];
 
                             if (v === "off") {
