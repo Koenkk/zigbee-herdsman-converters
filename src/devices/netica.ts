@@ -50,9 +50,11 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             // custom attributes
             m.deviceAddCustomCluster("hvacThermostat", {
-                ID: 0x0201,
+                name: "hvacThermostat",
+                ID: Zcl.Clusters.hvacThermostat.ID,
                 attributes: {
                     remoteTemperature: {
+                        name: "remoteTemperature",
                         ID: 0x4000,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
                         type: Zcl.DataType.INT16,
@@ -61,6 +63,7 @@ export const definitions: DefinitionWithExtend[] = [
                         write: true,
                     },
                     useRemoteTemperature: {
+                        name: "useRemoteTemperature",
                         ID: 0x4001,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
                         type: Zcl.DataType.BOOLEAN,
