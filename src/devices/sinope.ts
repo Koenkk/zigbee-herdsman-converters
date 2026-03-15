@@ -113,6 +113,21 @@ interface ManuSpecificSinope {
     commandResponses: never;
 }
 
+interface SinopeHvacThermostat {
+    attributes: {
+        /** ID=0x0400 | type=ENUM8 | manufacturerCode=SINOPE_TECHNOLOGIES(0x119c) | write=true | max=255 */
+        sinopeOccupancy?: number;
+        /** ID=0x0401 | type=UINT16 | manufacturerCode=SINOPE_TECHNOLOGIES(0x119c) | write=true | max=65535 */
+        sinopeMainCycleOutput?: number;
+        /** ID=0x0402 | type=ENUM8 | manufacturerCode=SINOPE_TECHNOLOGIES(0x119c) | write=true | max=255 */
+        sinopeBacklight?: number;
+        /** ID=0x0404 | type=UINT16 | manufacturerCode=SINOPE_TECHNOLOGIES(0x119c) | write=true | max=65535 */
+        sinopeAuxCycleOutput?: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const sinopeExtend = {
     addManuSpecificSinopeCluster: () =>
         m.deviceAddCustomCluster("manuSpecificSinope", {
@@ -163,12 +178,53 @@ const sinopeExtend = {
                 connectedLoad: {name: "connectedLoad", ID: 0x0119, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 pumpProtection: {name: "pumpProtection", ID: 0x0128, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 unknown3: {name: "unknown3", ID: 0x012a, type: Zcl.DataType.ENUM8, write: true, max: 0xff, default: 60}, // RW 5,10,15,20,30,60 *testing*
-                currentSetpoint: {name: "currentSetpoint", ID: 0x012b, type: Zcl.DataType.INT16, write: true, max: 0xffff}, // W:to ocuppiedHeatSetpoint, R:depends of SinopeOccupancy
+                currentSetpoint: {name: "currentSetpoint", ID: 0x012b, type: Zcl.DataType.INT16, write: true, max: 0xffff}, // W:to ocuppiedHeatSetpoint, R:depends of sinopeOccupancy
                 // attribute ID: 300's readable, returns a buffer
                 reportLocalTemperature: {name: "reportLocalTemperature", ID: 0x012d, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
                 // attribute ID: 512's readable
                 flowMeterConfig: {name: "flowMeterConfig", ID: 0x0240, type: Zcl.DataType.ARRAY, write: true},
                 coldLoadPickupStatus: {name: "coldLoadPickupStatus", ID: 0x0283, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addSinopeHvacThermostatCluster: () =>
+        m.deviceAddCustomCluster("hvacThermostat", {
+            name: "hvacThermostat",
+            ID: Zcl.Clusters.hvacThermostat.ID,
+            attributes: {
+                sinopeOccupancy: {
+                    name: "sinopeOccupancy",
+                    ID: 0x0400,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES,
+                    write: true,
+                    max: 0xff,
+                },
+                sinopeMainCycleOutput: {
+                    name: "sinopeMainCycleOutput",
+                    ID: 0x0401,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES,
+                    write: true,
+                    max: 0xffff,
+                },
+                sinopeBacklight: {
+                    name: "sinopeBacklight",
+                    ID: 0x0402,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES,
+                    write: true,
+                    max: 0xff,
+                },
+                sinopeAuxCycleOutput: {
+                    name: "sinopeAuxCycleOutput",
+                    ID: 0x0404,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES,
+                    write: true,
+                    max: 0xffff,
+                },
             },
             commands: {},
             commandsResponse: {},
@@ -201,14 +257,14 @@ const fzLocal = {
             if (msg.data["1024"] !== undefined) {
                 result.thermostat_occupancy = utils.getFromLookup(msg.data["1024"], occupancyLookup);
             }
-            if (msg.data.SinopeOccupancy !== undefined) {
-                result.thermostat_occupancy = utils.getFromLookup(msg.data.SinopeOccupancy, occupancyLookup);
+            if (msg.data.sinopeOccupancy !== undefined) {
+                result.thermostat_occupancy = utils.getFromLookup(msg.data.sinopeOccupancy, occupancyLookup);
             }
             if (msg.data["1025"] !== undefined) {
                 result.main_cycle_output = utils.getFromLookup(msg.data["1025"], cycleOutputLookup);
             }
-            if (msg.data.SinopeMainCycleOutput !== undefined) {
-                result.main_cycle_output = utils.getFromLookup(msg.data.SinopeMainCycleOutput, cycleOutputLookup);
+            if (msg.data.sinopeMainCycleOutput !== undefined) {
+                result.main_cycle_output = utils.getFromLookup(msg.data.sinopeMainCycleOutput, cycleOutputLookup);
             }
             if (msg.data["1026"] !== undefined) {
                 const lookup = utils.getMetaValue(msg.endpoint, model, "sinopeAlternateBacklightAutoDim", "allEqual", false)
@@ -216,11 +272,11 @@ const fzLocal = {
                     : {0: "on_demand", 1: "sensing", 2: "off"};
                 result.backlight_auto_dim = utils.getFromLookup(msg.data["1026"], lookup);
             }
-            if (msg.data.SinopeBacklight !== undefined) {
+            if (msg.data.sinopeBacklight !== undefined) {
                 const lookup = utils.getMetaValue(msg.endpoint, model, "sinopeAlternateBacklightAutoDim", "allEqual", false)
                     ? {0: "on_demand", 1: "off", 2: "sensing"}
                     : {0: "on_demand", 1: "sensing", 2: "off"};
-                result.backlight_auto_dim = utils.getFromLookup(msg.data.SinopeBacklight, lookup);
+                result.backlight_auto_dim = utils.getFromLookup(msg.data.sinopeBacklight, lookup);
             }
             if (msg.data["1028"] !== undefined) {
                 result.aux_cycle_output = utils.getFromLookup(msg.data["1028"], cycleOutputLookup);
@@ -272,7 +328,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"hvacThermostat", SinopeHvacThermostat, ["attributeReport", "readResponse"]>,
     tank_level: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -417,13 +473,13 @@ const tzLocal = {
     thermostat_occupancy: {
         key: ["thermostat_occupancy"],
         convertSet: async (entity, key, value, meta) => {
-            const sinopeOccupancy = {0: "unoccupied", 1: "occupied"};
-            const SinopeOccupancy = utils.getKey(sinopeOccupancy, value, value as number, Number);
-            await entity.write("hvacThermostat", {SinopeOccupancy}, manuSinope);
+            const lookup = {0: "unoccupied", 1: "occupied"};
+            const sinopeOccupancy = utils.getKey(lookup, value, value as number, Number);
+            await entity.write<"hvacThermostat", SinopeHvacThermostat>("hvacThermostat", {sinopeOccupancy}, manuSinope);
             return {state: {thermostat_occupancy: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", ["SinopeOccupancy"], manuSinope);
+            await entity.read<"hvacThermostat", SinopeHvacThermostat>("hvacThermostat", ["sinopeOccupancy"], manuSinope);
         },
     } satisfies Tz.Converter,
     backlight_autodim: {
@@ -432,23 +488,27 @@ const tzLocal = {
             const sinopeBacklightParam = utils.getMetaValue(entity, meta.mapped, "sinopeAlternateBacklightAutoDim", "allEqual", false)
                 ? {0: "on_demand", 1: "off", 2: "sensing"}
                 : {0: "on_demand", 1: "sensing", 2: "off"};
-            const SinopeBacklight = utils.getKey(sinopeBacklightParam, value, value as number, Number);
-            await entity.write("hvacThermostat", {SinopeBacklight}, manuSinope);
+            const sinopeBacklight = utils.getKey(sinopeBacklightParam, value, value as number, Number);
+            await entity.write<"hvacThermostat", SinopeHvacThermostat>("hvacThermostat", {sinopeBacklight}, manuSinope);
             return {state: {backlight_auto_dim: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", ["SinopeBacklight"], manuSinope);
+            await entity.read<"hvacThermostat", SinopeHvacThermostat>("hvacThermostat", ["sinopeBacklight"], manuSinope);
         },
     } satisfies Tz.Converter,
     main_cycle_output: {
         key: ["main_cycle_output"],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {"15_sec": 15, "5_min": 300, "10_min": 600, "15_min": 900, "20_min": 1200, "30_min": 1800};
-            await entity.write("hvacThermostat", {SinopeMainCycleOutput: utils.getFromLookup(value, lookup)}, manuSinope);
+            await entity.write<"hvacThermostat", SinopeHvacThermostat>(
+                "hvacThermostat",
+                {sinopeMainCycleOutput: utils.getFromLookup(value, lookup)},
+                manuSinope,
+            );
             return {state: {main_cycle_output: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", ["SinopeMainCycleOutput"], manuSinope);
+            await entity.read<"hvacThermostat", SinopeHvacThermostat>("hvacThermostat", ["sinopeMainCycleOutput"], manuSinope);
         },
     } satisfies Tz.Converter,
     aux_cycle_output: {
@@ -456,11 +516,11 @@ const tzLocal = {
         key: ["aux_cycle_output"],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {off: 65535, "15_sec": 15, "5_min": 300, "10_min": 600, "15_min": 900, "20_min": 1200, "30_min": 1800};
-            await entity.write("hvacThermostat", {SinopeAuxCycleOutput: utils.getFromLookup(value, lookup)});
+            await entity.write<"hvacThermostat", SinopeHvacThermostat>("hvacThermostat", {sinopeAuxCycleOutput: utils.getFromLookup(value, lookup)});
             return {state: {aux_cycle_output: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", ["SinopeAuxCycleOutput"]);
+            await entity.read<"hvacThermostat", SinopeHvacThermostat>("hvacThermostat", ["sinopeAuxCycleOutput"]);
         },
     } satisfies Tz.Converter,
     enable_outdoor_temperature: {
@@ -469,26 +529,28 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value);
             if (value.toLowerCase() === "on") {
-                await entity.write("manuSpecificSinope", {outdoorTempToDisplayTimeout: 10800}, manuSinope);
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {outdoorTempToDisplayTimeout: 10800}, manuSinope);
             } else if (value.toLowerCase() === "off") {
                 // set timer to 12 sec in order to disable outdoor temperature
-                await entity.write("manuSpecificSinope", {outdoorTempToDisplayTimeout: 12}, manuSinope);
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {outdoorTempToDisplayTimeout: 12}, manuSinope);
             }
             return {state: {enable_outdoor_temperature: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["outdoorTempToDisplayTimeout"], manuSinope);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["outdoorTempToDisplayTimeout"], manuSinope);
         },
     } satisfies Tz.Converter,
     second_display_mode: {
         key: ["second_display_mode"],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {auto: 0, setpoint: 1, "outdoor temp": 2};
-            await entity.write("manuSpecificSinope", {secondScreenBehavior: utils.getFromLookup(value, lookup)});
+            await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {
+                secondScreenBehavior: utils.getFromLookup(value, lookup),
+            });
             return {state: {second_display_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["secondScreenBehavior"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["secondScreenBehavior"]);
         },
     } satisfies Tz.Converter,
     thermostat_outdoor_temperature: {
@@ -496,12 +558,12 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const number = utils.toNumber(value);
             if (number >= -99.5 && number <= 99.5) {
-                await entity.write("manuSpecificSinope", {outdoorTempToDisplay: number * 100}, manuSinope);
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {outdoorTempToDisplay: number * 100}, manuSinope);
             }
             return {state: {thermostat_outdoor_temperature: number}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["outdoorTempToDisplay"], manuSinope);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["outdoorTempToDisplay"], manuSinope);
         },
     } satisfies Tz.Converter,
     outdoor_temperature_timeout: {
@@ -509,12 +571,12 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const number = utils.toNumber(value);
             if (number >= 30 && number <= 64800) {
-                await entity.write("manuSpecificSinope", {outdoorTempToDisplayTimeout: number});
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {outdoorTempToDisplayTimeout: number});
                 return {state: {outdoor_temperature_timeout: number}};
             }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["outdoorTempToDisplayTimeout"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["outdoorTempToDisplayTimeout"]);
         },
     } satisfies Tz.Converter,
     thermostat_time: {
@@ -525,9 +587,13 @@ const tzLocal = {
                 const thermostatTimeSec = thermostatDate.getTime() / 1000;
                 const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
                 const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
-                await entity.write("manuSpecificSinope", {currentTimeToDisplay}, manuSinope);
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {currentTimeToDisplay}, manuSinope);
             } else if (value !== "") {
-                await entity.write("manuSpecificSinope", {currentTimeToDisplay: value as number}, manuSinope);
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>(
+                    "manuSpecificSinope",
+                    {currentTimeToDisplay: value as number},
+                    manuSinope,
+                );
             }
         },
     } satisfies Tz.Converter,
@@ -542,12 +608,14 @@ const tzLocal = {
             value = value.toLowerCase();
             // @ts-expect-error ignore
             if (lookup[value] !== undefined) {
-                await entity.write("manuSpecificSinope", {floorControlMode: utils.getFromLookup(value, lookup)});
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {
+                    floorControlMode: utils.getFromLookup(value, lookup),
+                });
             }
             return {state: {floor_control_mode: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["floorControlMode"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorControlMode"]);
         },
     } satisfies Tz.Converter,
     ambiant_max_heat_setpoint: {
@@ -556,13 +624,14 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             // @ts-expect-error ignore
             if ((value >= 5 && value <= 36) || value === "off") {
-                // @ts-expect-error ignore
-                await entity.write("manuSpecificSinope", {ambiantMaxHeatSetpointLimit: value === "off" ? -32768 : value * 100});
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {
+                    ambiantMaxHeatSetpointLimit: value === "off" ? -32768 : (value as number) * 100,
+                });
                 return {state: {ambiant_max_heat_setpoint: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["ambiantMaxHeatSetpointLimit"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["ambiantMaxHeatSetpointLimit"]);
         },
     } satisfies Tz.Converter,
     floor_min_heat_setpoint: {
@@ -571,13 +640,14 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             // @ts-expect-error ignore
             if ((value >= 5 && value <= 34) || value === "off") {
-                // @ts-expect-error ignore
-                await entity.write("manuSpecificSinope", {floorMinHeatSetpointLimit: value === "off" ? -32768 : value * 100});
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {
+                    floorMinHeatSetpointLimit: value === "off" ? -32768 : (value as number) * 100,
+                });
                 return {state: {floor_min_heat_setpoint: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["floorMinHeatSetpointLimit"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorMinHeatSetpointLimit"]);
         },
     } satisfies Tz.Converter,
     floor_max_heat_setpoint: {
@@ -586,13 +656,14 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             // @ts-expect-error ignore
             if ((value >= 7 && value <= 36) || value === "off") {
-                // @ts-expect-error ignore
-                await entity.write("manuSpecificSinope", {floorMaxHeatSetpointLimit: value === "off" ? -32768 : value * 100});
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {
+                    floorMaxHeatSetpointLimit: value === "off" ? -32768 : (value as number) * 100,
+                });
                 return {state: {floor_max_heat_setpoint: value}};
             }
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["floorMaxHeatSetpointLimit"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorMaxHeatSetpointLimit"]);
         },
     } satisfies Tz.Converter,
     temperature_sensor: {
@@ -606,44 +677,50 @@ const tzLocal = {
             value = value.toLowerCase();
             // @ts-expect-error ignore
             if (lookup[value] !== undefined) {
-                await entity.write("manuSpecificSinope", {temperatureSensor: utils.getFromLookup(value, lookup)});
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {
+                    temperatureSensor: utils.getFromLookup(value, lookup),
+                });
             }
             return {state: {floor_temperature_sensor: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["temperatureSensor"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["temperatureSensor"]);
         },
     } satisfies Tz.Converter,
     time_format: {
         key: ["time_format"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("manuSpecificSinope", {timeFormatToDisplay: utils.getFromLookup(value, {"24h": 0, "12h": 1})}, manuSinope);
+            await entity.write<"manuSpecificSinope", ManuSpecificSinope>(
+                "manuSpecificSinope",
+                {timeFormatToDisplay: utils.getFromLookup(value, {"24h": 0, "12h": 1})},
+                manuSinope,
+            );
             return {state: {time_format: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["timeFormatToDisplay"], manuSinope);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["timeFormatToDisplay"], manuSinope);
         },
     } satisfies Tz.Converter,
     connected_load: {
         // TH1400ZB and SW2500ZB
         key: ["connected_load"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("manuSpecificSinope", {connectedLoad: value as number});
+            await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {connectedLoad: value as number});
             return {state: {connected_load: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["connectedLoad"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["connectedLoad"]);
         },
     } satisfies Tz.Converter,
     aux_connected_load: {
         // TH1400ZB specific
         key: ["aux_connected_load"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("manuSpecificSinope", {auxConnectedLoad: value as number});
+            await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {auxConnectedLoad: value as number});
             return {state: {aux_connected_load: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["auxConnectedLoad"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["auxConnectedLoad"]);
         },
     } satisfies Tz.Converter,
     pump_protection: {
@@ -652,14 +729,14 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value);
             if (value.toLowerCase() === "on") {
-                await entity.write("manuSpecificSinope", {pumpProtection: 1});
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {pumpProtection: 1});
             } else if (value.toLowerCase() === "off") {
-                await entity.write("manuSpecificSinope", {pumpProtection: 255});
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {pumpProtection: 255});
             }
             return {state: {pump_protection: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["pumpProtection"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["pumpProtection"]);
         },
     } satisfies Tz.Converter,
     led_intensity_on: {
@@ -668,12 +745,12 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const number = utils.toNumber(value);
             if (number >= 0 && number <= 100) {
-                await entity.write("manuSpecificSinope", {ledIntensityOn: number});
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {ledIntensityOn: number});
             }
             return {state: {led_intensity_on: number}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["ledIntensityOn"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["ledIntensityOn"]);
         },
     } satisfies Tz.Converter,
     led_intensity_off: {
@@ -682,12 +759,12 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const number = utils.toNumber(value);
             if (number >= 0 && number <= 100) {
-                await entity.write("manuSpecificSinope", {ledIntensityOff: number});
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {ledIntensityOff: number});
             }
             return {state: {led_intensity_off: number}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["ledIntensityOff"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["ledIntensityOff"]);
         },
     } satisfies Tz.Converter,
     led_color_on: {
@@ -699,7 +776,7 @@ const tzLocal = {
             const b = value.b >= 0 && value.b <= 255 ? value.b : 0;
 
             const valueHex = r + g * 256 + b * 256 ** 2;
-            await entity.write("manuSpecificSinope", {ledColorOn: valueHex});
+            await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {ledColorOn: valueHex});
         },
     } satisfies Tz.Converter,
     led_color_off: {
@@ -711,7 +788,7 @@ const tzLocal = {
             const b = value.b >= 0 && value.b <= 255 ? value.b : 0;
 
             const valueHex = r + g * 256 + b * 256 ** 2;
-            await entity.write("manuSpecificSinope", {ledColorOff: valueHex});
+            await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {ledColorOff: valueHex});
         },
     } satisfies Tz.Converter,
     minimum_brightness: {
@@ -720,12 +797,12 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const number = utils.toNumber(value);
             if (number >= 0 && number <= 3000) {
-                await entity.write("manuSpecificSinope", {minimumBrightness: number});
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {minimumBrightness: number});
             }
             return {state: {minimumBrightness: number}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["minimumBrightness"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["minimumBrightness"]);
         },
     } satisfies Tz.Converter,
     timer_seconds: {
@@ -734,12 +811,12 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const number = utils.toNumber(value);
             if (number >= 0 && number <= 65535) {
-                await entity.write("manuSpecificSinope", {dimmerTimmer: number});
+                await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {dimmerTimmer: number});
             }
             return {state: {timer_seconds: number}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["dimmerTimmer"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["dimmerTimmer"]);
         },
     } satisfies Tz.Converter,
     keypad_lockout: {
@@ -747,33 +824,33 @@ const tzLocal = {
         key: ["keypad_lockout"],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {unlock: 0, lock: 1};
-            await entity.write("manuSpecificSinope", {keypadLockout: utils.getFromLookup(value, lookup)});
+            await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {keypadLockout: utils.getFromLookup(value, lookup)});
             return {state: {keypad_lockout: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["keypadLockout"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["keypadLockout"]);
         },
     } satisfies Tz.Converter,
     low_water_temp_protection: {
         // RM3500ZB specific
         key: ["low_water_temp_protection"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("manuSpecificSinope", {drConfigWaterTempMin: value as number});
+            await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {drConfigWaterTempMin: value as number});
             return {state: {low_water_temp_protection: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["drConfigWaterTempMin"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["drConfigWaterTempMin"]);
         },
     } satisfies Tz.Converter,
     eco_mode: {
         key: ["eco_mode"],
         convertSet: async (entity, key, value, meta) => {
             const defaultedValue: number = (value as number | null) ?? -12.8;
-            await entity.write("manuSpecificSinope", {ecoMode: defaultedValue * 10});
+            await entity.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {ecoMode: defaultedValue * 10});
             return {state: {eco_mode: defaultedValue}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificSinope", ["ecoMode"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["ecoMode"]);
         },
     } satisfies Tz.Converter,
 };
@@ -828,7 +905,11 @@ export const definitions: DefinitionWithExtend[] = [
                 key: ["occupied_heating_setpoint"],
                 convertSet: async (entity, key, value, meta) => {
                     const temp = Math.round(Number(value) * 100);
-                    await entity.write("manuSpecificSinope", {currentSetpoint: temp}, {manufacturerCode: 0x119c});
+                    await entity.write<"manuSpecificSinope", ManuSpecificSinope>(
+                        "manuSpecificSinope",
+                        {currentSetpoint: temp},
+                        {manufacturerCode: 0x119c},
+                    );
                     return {state: {occupied_heating_setpoint: value}};
                 },
             },
@@ -836,7 +917,11 @@ export const definitions: DefinitionWithExtend[] = [
                 key: ["swing_mode"],
                 convertSet: async (entity, key, value, meta) => {
                     const val = value === "ON" ? 1 : 0;
-                    await entity.write("manuSpecificSinope", {610: {value: val, type: 0x30}}, {manufacturerCode: 0x119c});
+                    await entity.write<"manuSpecificSinope", ManuSpecificSinope>(
+                        "manuSpecificSinope",
+                        {610: {value: val, type: 0x30}},
+                        {manufacturerCode: 0x119c},
+                    );
                     return {state: {swing_mode: value}};
                 },
             },
@@ -844,7 +929,11 @@ export const definitions: DefinitionWithExtend[] = [
                 key: ["display_led"],
                 convertSet: async (entity, key, value, meta) => {
                     const val = value === "ON" ? 1 : 0;
-                    await entity.write("manuSpecificSinope", {613: {value: val, type: 0x30}}, {manufacturerCode: 0x119c});
+                    await entity.write<"manuSpecificSinope", ManuSpecificSinope>(
+                        "manuSpecificSinope",
+                        {613: {value: val, type: 0x30}},
+                        {manufacturerCode: 0x119c},
+                    );
                     return {state: {display_led: value}};
                 },
             },
@@ -884,7 +973,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1123ZB",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.electricityMeter()],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), sinopeExtend.addSinopeHvacThermostatCluster(), m.electricityMeter()],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -993,7 +1082,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1124ZB",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.electricityMeter()],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), sinopeExtend.addSinopeHvacThermostatCluster(), m.electricityMeter()],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -1102,7 +1191,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1123ZB-G2",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        extend: [
+            sinopeExtend.addManuSpecificSinopeCluster(),
+            sinopeExtend.addSinopeHvacThermostatCluster(),
+            m.electricityMeter({energy: {divisor: 1000, multiplier: 1}}),
+        ],
         meta: {sinopeAlternateBacklightAutoDim: true},
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
@@ -1195,8 +1288,8 @@ export const definitions: DefinitionWithExtend[] = [
             const thermostatTimeSec = thermostatDate.getTime() / 1000;
             const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
             const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
-            await endpoint.write("manuSpecificSinope", {currentTimeToDisplay}, manuSinope);
-            await endpoint.write("manuSpecificSinope", {secondScreenBehavior: 0}, manuSinope); // Mode auto
+            await endpoint.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {currentTimeToDisplay}, manuSinope);
+            await endpoint.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {secondScreenBehavior: 0}, manuSinope); // Mode auto
 
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
@@ -1235,7 +1328,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1124ZB-G2",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.electricityMeter({energy: {divisor: 1000, multiplier: 1}})],
+        extend: [
+            sinopeExtend.addManuSpecificSinopeCluster(),
+            sinopeExtend.addSinopeHvacThermostatCluster(),
+            m.electricityMeter({energy: {divisor: 1000, multiplier: 1}}),
+        ],
         meta: {sinopeAlternateBacklightAutoDim: true},
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
@@ -1328,8 +1425,8 @@ export const definitions: DefinitionWithExtend[] = [
             const thermostatTimeSec = thermostatDate.getTime() / 1000;
             const thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
             const currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
-            await endpoint.write("manuSpecificSinope", {currentTimeToDisplay}, manuSinope);
-            await endpoint.write("manuSpecificSinope", {secondScreenBehavior: 0}, manuSinope); // Mode auto
+            await endpoint.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {currentTimeToDisplay}, manuSinope);
+            await endpoint.write<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", {secondScreenBehavior: 0}, manuSinope); // Mode auto
 
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
@@ -1371,7 +1468,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {model: "TH1320ZB-04", vendor: "Sinopé", description: "Zigbee smart floor heating thermostat", fingerprint: [{modelID: "TH1320ZB-04"}]},
         ],
-        extend: [sinopeExtend.addManuSpecificSinopeCluster(), m.electricityMeter()],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), sinopeExtend.addSinopeHvacThermostatCluster(), m.electricityMeter()],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -1472,7 +1569,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1400ZB",
         vendor: "Sinopé",
         description: "Zigbee low volt thermostat",
-        extend: [sinopeExtend.addManuSpecificSinopeCluster()],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), sinopeExtend.addSinopeHvacThermostatCluster()],
         fromZigbee: [
             fzLocal.thermostat,
             fzLocal.sinope,
@@ -1621,19 +1718,19 @@ export const definitions: DefinitionWithExtend[] = [
                 /* Not all support this */
             }
 
-            await endpoint.read("hvacThermostat", [
+            await endpoint.read<"hvacThermostat", SinopeHvacThermostat>("hvacThermostat", [
                 "occupiedHeatingSetpoint",
                 "localTemp",
                 "systemMode",
                 "pIHeatingDemand",
-                "SinopeBacklight",
+                "sinopeBacklight",
                 "maxHeatSetpointLimit",
                 "minHeatSetpointLimit",
-                "SinopeMainCycleOutput",
-                "SinopeAuxCycleOutput",
+                "sinopeMainCycleOutput",
+                "sinopeAuxCycleOutput",
             ]);
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
-            await endpoint.read("manuSpecificSinope", [
+            await endpoint.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", [
                 "timeFormatToDisplay",
                 "connectedLoad",
                 "auxConnectedLoad",
@@ -1654,7 +1751,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1500ZB",
         vendor: "Sinopé",
         description: "Zigbee dual pole line volt thermostat",
-        extend: [sinopeExtend.addManuSpecificSinopeCluster()],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), sinopeExtend.addSinopeHvacThermostatCluster()],
         fromZigbee: [
             fzLocal.thermostat,
             fzLocal.sinope,
