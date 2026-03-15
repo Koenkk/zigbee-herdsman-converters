@@ -213,6 +213,7 @@ import {definitions as nanoleaf} from "./nanoleaf";
 import {definitions as nedis} from "./nedis";
 import {definitions as neo} from "./neo";
 import {definitions as net2grid} from "./net2grid";
+import {definitions as netica} from "./netica";
 import {definitions as netvox} from "./netvox";
 import {definitions as nexelec} from "./nexelec";
 import {definitions as niko} from "./niko";
@@ -581,6 +582,7 @@ const definitions: DefinitionWithExtend[] = [
     ...neo,
     ...nedis,
     ...net2grid,
+    ...netica,
     ...netvox,
     ...nexelec,
     ...niko,
