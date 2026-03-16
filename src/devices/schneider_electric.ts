@@ -4,6 +4,7 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
@@ -14,6 +15,7 @@ import {postfixWithEndpointName} from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
+const NS = "zhc:schneider_electric";
 interface SchneiderOccupancyConfig {
     attributes: {
         ambienceLightThreshold: number;
@@ -98,6 +100,7 @@ interface SchneiderMeteringCluster {
 
 interface SchneiderThermostatCluster {
     attributes: {
+        schneiderWiserSpecific: number;
         controlStatus: number;
         localTemperatureSourceSelect: number;
         controlType: number;
@@ -105,8 +108,32 @@ interface SchneiderThermostatCluster {
         heatingFuel: number;
         heatTransferMedium: number;
         heatingEmitter: number;
+        wiserSmartZoneMode: number;
+        wiserSmartHactConfig: number;
+        wiserSmartCurrentFilPiloteMode: number;
+        wiserSmartValvePosition: number;
+        wiserSmartValveCalibrationStatus: number;
     };
-    commands: never;
+    commands: {
+        schneiderWiserThermostatBoost: {
+            command: number;
+            enable: number;
+            temperature: number;
+            duration: number;
+        };
+        wiserSmartSetSetpoint: {
+            operatingmode: number;
+            zonemode: number;
+            setpoint: number;
+            reserved: number;
+        };
+        wiserSmartSetFipMode: {
+            zonemode: number;
+            fipmode: number;
+            reserved: number;
+        };
+        wiserSmartCalibrateValve: Record<string, never>;
+    };
     commandResponses: never;
 }
 
@@ -136,6 +163,12 @@ interface SchneiderHeatingCoolingOutputCluster {
         overallDutyCyclePeriod: number;
         clusterRevision: number;
     };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SchneiderLightingBallastCfg {
+    attributes: {wiserControlMode: number};
     commands: never;
     commandResponses: never;
 }
@@ -446,7 +479,9 @@ const schneiderElectricExtend = {
             description: "Auto detects the correct mode for the ballast. RL-LED may have improved dimming quality for LEDs.",
             entityCategory: "config",
         });
-        extend.configure.push(m.setupConfigureForReading("lightingBallastCfg", ["wiserControlMode"]));
+        extend.configure.push(
+            m.setupConfigureForReading<"lightingBallastCfg", SchneiderLightingBallastCfg>("lightingBallastCfg", ["wiserControlMode"]),
+        );
         return extend;
     },
 
@@ -565,7 +600,7 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    heatingOutputMode: () =>
+    heatingOutputMode: (args?: Partial<m.EnumLookupArgs<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>>) =>
         m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
             name: "heating_output_mode",
             cluster: "heatingCoolingOutputClusterServer",
@@ -582,8 +617,9 @@ const schneiderElectricExtend = {
                 "Relay NC": 4,
             },
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
         }),
-    pilotMode: () =>
+    pilotMode: (args?: Partial<m.EnumLookupArgs<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>>) =>
         m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
             name: "schneider_pilot_mode",
             cluster: "heatingCoolingOutputClusterServer",
@@ -597,6 +633,7 @@ const schneiderElectricExtend = {
                 pilot: 3,
             },
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
         }),
     addHvacUserInterfaceCfgCustomAttributes: () =>
         m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
@@ -634,7 +671,7 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    displayBrightnessActive: () =>
+    displayBrightnessActive: (args?: Partial<m.NumericArgs<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>>) =>
         m.numeric<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>({
             name: "display_brightness_active",
             cluster: "hvacUserInterfaceCfg",
@@ -646,8 +683,9 @@ const schneiderElectricExtend = {
             valueMax: 100,
             valueStep: 1,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
         }),
-    displayBrightnessInactive: () =>
+    displayBrightnessInactive: (args?: Partial<m.NumericArgs<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>>) =>
         m.numeric<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>({
             name: "display_brightness_inactive",
             cluster: "hvacUserInterfaceCfg",
@@ -659,8 +697,9 @@ const schneiderElectricExtend = {
             valueMax: 100,
             valueStep: 1,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
         }),
-    displayActiveTimeout: () =>
+    displayActiveTimeout: (args?: Partial<m.NumericArgs<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>>) =>
         m.numeric<"hvacUserInterfaceCfg", SchneiderUserInterfaceCfgCluster>({
             name: "display_active_timeout",
             cluster: "hvacUserInterfaceCfg",
@@ -672,6 +711,7 @@ const schneiderElectricExtend = {
             valueMax: 600,
             valueStep: 5,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
         }),
     customTemperatureMeasurementCluster: () =>
         m.deviceAddCustomCluster("msTemperatureMeasurement", {
@@ -698,6 +738,42 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    sensorCorrection: (args?: Partial<m.NumericArgs<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>>) =>
+        m.numeric<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
+            name: "temperature_sensor_correction",
+            cluster: "msTemperatureMeasurement",
+            attribute: "sensorCorrection",
+            description: "This is a user correction, possibly negative, to be added to the temperature measured by the sensor.",
+            unit: "°C",
+            scale: 100,
+            valueMin: -9,
+            valueMax: 9,
+            valueStep: 0.01,
+            access: "ALL",
+            entityCategory: "config",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
+        }),
+    temperatureSensorType: (args?: Partial<m.EnumLookupArgs<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>>) =>
+        m.enumLookup<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
+            name: "temperature_sensor_type",
+            cluster: "msTemperatureMeasurement",
+            attribute: "temperatureSensorType",
+            description: "This is used to specify the type of temperature sensor connected to this input",
+            entityCategory: "config",
+            access: "ALL",
+            lookup: {
+                "2kΩ sensor from HRT/Alre": 1,
+                "10kΩ sensor from B+J": 2,
+                "12kΩ sensor from OJ": 3,
+                "15kΩ sensor from DEVI": 4,
+                "33kΩ sensor from EBERLE": 5,
+                "47kΩ sensor from CTM": 6,
+                "No sensor": 0xff,
+            },
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
+        }),
     customMeteringCluster: () =>
         m.deviceAddCustomCluster("seMetering", {
             name: "seMetering",
@@ -715,7 +791,7 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    fixedLoadDemand: () =>
+    fixedLoadDemand: (args?: Partial<m.NumericArgs<"seMetering", SchneiderMeteringCluster>>) =>
         m.numeric<"seMetering", SchneiderMeteringCluster>({
             name: "fixed_load_demand",
             cluster: "seMetering",
@@ -726,12 +802,21 @@ const schneiderElectricExtend = {
             valueMin: 1,
             valueMax: 3600,
             valueStep: 1,
+            ...args,
         }),
     customThermostatCluster: () =>
         m.deviceAddCustomCluster("hvacThermostat", {
             name: "hvacThermostat",
             ID: Zcl.Clusters.hvacThermostat.ID,
             attributes: {
+                schneiderWiserSpecific: {
+                    name: "schneiderWiserSpecific",
+                    ID: 0xe110,
+                    type: Zcl.DataType.ENUM8,
+                    write: true,
+                    max: 0xff,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
                 controlStatus: {
                     name: "controlStatus",
                     ID: 0xe211,
@@ -781,11 +866,75 @@ const schneiderElectricExtend = {
                     write: true,
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
+                wiserSmartZoneMode: {
+                    name: "wiserSmartZoneMode",
+                    ID: 0xe010,
+                    type: Zcl.DataType.ENUM8,
+                    write: true,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                wiserSmartHactConfig: {
+                    name: "wiserSmartHactConfig",
+                    ID: 0xe011,
+                    type: Zcl.DataType.BITMAP8,
+                    write: true,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                wiserSmartCurrentFilPiloteMode: {
+                    name: "wiserSmartCurrentFilPiloteMode",
+                    ID: 0xe020,
+                    type: Zcl.DataType.ENUM8,
+                    write: true,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                wiserSmartValvePosition: {
+                    name: "wiserSmartValvePosition",
+                    ID: 0xe030,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                wiserSmartValveCalibrationStatus: {
+                    name: "wiserSmartValveCalibrationStatus",
+                    ID: 0xe031,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
             },
-            commands: {},
+            commands: {
+                schneiderWiserThermostatBoost: {
+                    name: "schneiderWiserThermostatBoost",
+                    ID: 0x80,
+                    parameters: [
+                        {name: "command", type: Zcl.DataType.ENUM8, max: 0xff},
+                        {name: "enable", type: Zcl.DataType.ENUM8, max: 0xff},
+                        {name: "temperature", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "duration", type: Zcl.DataType.UINT16, max: 0xffff},
+                    ],
+                },
+                wiserSmartSetSetpoint: {
+                    name: "wiserSmartSetSetpoint",
+                    ID: 0xe0,
+                    parameters: [
+                        {name: "operatingmode", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "zonemode", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "setpoint", type: Zcl.DataType.INT16, min: -32768, max: 32767},
+                        {name: "reserved", type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },
+                wiserSmartSetFipMode: {
+                    name: "wiserSmartSetFipMode",
+                    ID: 0xe1,
+                    parameters: [
+                        {name: "zonemode", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "fipmode", type: Zcl.DataType.ENUM8, max: 0xff},
+                        {name: "reserved", type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },
+                wiserSmartCalibrateValve: {name: "wiserSmartCalibrateValve", ID: 0xe2, parameters: []},
+            },
             commandsResponse: {},
         }),
-    controlStatus: () =>
+    controlStatus: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", SchneiderThermostatCluster>>) =>
         m.enumLookup<"hvacThermostat", SchneiderThermostatCluster>({
             name: "control_status",
             cluster: "hvacThermostat",
@@ -804,6 +953,7 @@ const schneiderElectricExtend = {
                 "Sensor Fault": 0x84,
             },
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            ...args,
         }),
     localTemperatureSourceSelect: () =>
         m.enumLookup<"hvacThermostat", SchneiderThermostatCluster>({
@@ -913,6 +1063,23 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    addSchneiderLightingBallastCfgCluster: () =>
+        m.deviceAddCustomCluster("lightingBallastCfg", {
+            name: "lightingBallastCfg",
+            ID: Zcl.Clusters.lightingBallastCfg.ID,
+            attributes: {
+                wiserControlMode: {
+                    name: "wiserControlMode",
+                    ID: 0xe000,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                    write: true,
+                    max: 0xff,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
 };
 
 const tzLocal = {
@@ -929,6 +1096,90 @@ const tzLocal = {
             utils.assertString(value);
             if (value.toLowerCase() === "on") value = "low";
             return await tz.fan_mode.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
+    wiser_dimmer_mode: {
+        key: ["dimmer_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write(
+                "lightingBallastCfg",
+                {wiserControlMode: utils.getKey(constants.wiserDimmerControlMode, value, value as number, Number)},
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
+            return {state: {dimmer_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"lightingBallastCfg", SchneiderLightingBallastCfg>("lightingBallastCfg", ["wiserControlMode"], {
+                manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            });
+        },
+    } satisfies Tz.Converter,
+    wiser_fip_setting: {
+        key: ["fip_setting"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, key);
+            const zoneLookup = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
+            const zonemodeNum = utils.getFromLookup(meta.state.zone_mode, zoneLookup);
+
+            const fipLookup = {comfort: 0, "comfort_-1": 1, "comfort_-2": 2, energy_saving: 3, frost_protection: 4, off: 5};
+            value = value.toLowerCase();
+            utils.validateValue(value, Object.keys(fipLookup));
+            const fipmodeNum = utils.getFromLookup(value, fipLookup);
+
+            const payload = {
+                zonemode: zonemodeNum,
+                fipmode: fipmodeNum,
+                reserved: 0xff,
+            };
+            await entity.command<"hvacThermostat", "wiserSmartSetFipMode", SchneiderThermostatCluster>(
+                "hvacThermostat",
+                "wiserSmartSetFipMode",
+                payload,
+                {srcEndpoint: 11, disableDefaultResponse: true},
+            );
+
+            return {state: {fip_setting: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"hvacThermostat", SchneiderThermostatCluster>("hvacThermostat", ["wiserSmartCurrentFilPiloteMode"]);
+        },
+    } satisfies Tz.Converter,
+    wiser_hact_config: {
+        key: ["hact_config"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, key);
+            const lookup = {unconfigured: 0x00, setpoint_switch: 0x80, setpoint_fip: 0x82, fip_fip: 0x83};
+            value = value.toLowerCase();
+            const mode = utils.getFromLookup(value, lookup);
+            await entity.write<"hvacThermostat", SchneiderThermostatCluster>("hvacThermostat", {57361: {value: mode, type: 0x18}});
+            return {state: {hact_config: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"hvacThermostat", SchneiderThermostatCluster>("hvacThermostat", ["wiserSmartHactConfig"]);
+        },
+    } satisfies Tz.Converter,
+    wiser_zone_mode: {
+        key: ["zone_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
+            const zonemodeNum = utils.getFromLookup(value, lookup);
+            await entity.write<"hvacThermostat", SchneiderThermostatCluster>("hvacThermostat", {57360: {value: zonemodeNum, type: 0x30}});
+            return {state: {zone_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"hvacThermostat", SchneiderThermostatCluster>("hvacThermostat", ["wiserSmartZoneMode"]);
+        },
+    } satisfies Tz.Converter,
+    wiser_vact_calibrate_valve: {
+        key: ["calibrate_valve"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command<"hvacThermostat", "wiserSmartCalibrateValve", SchneiderThermostatCluster>(
+                "hvacThermostat",
+                "wiserSmartCalibrateValve",
+                {},
+                {srcEndpoint: 11, disableDefaultResponse: true},
+            );
+            return {state: {calibrate_valve: value}};
         },
     } satisfies Tz.Converter,
 };
@@ -1163,6 +1414,120 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"wiserDeviceInfo", WiserDeviceInfo, "attributeReport">,
+    wiser_lighting_ballast_configuration: {
+        cluster: "lightingBallastCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.lighting_ballast_configuration.convert(model, msg, publish, options, meta) as KeyValueAny;
+            if (result && msg.data.wiserControlMode !== undefined) {
+                result.dimmer_mode = constants.wiserDimmerControlMode[msg.data.wiserControlMode];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"lightingBallastCfg", SchneiderLightingBallastCfg, ["attributeReport", "readResponse"]>,
+    wiser_smart_setpoint_command_client: {
+        cluster: "hvacThermostat",
+        type: ["commandWiserSmartSetSetpoint"],
+        convert: (model, msg, publish, options, meta) => {
+            const attribute: KeyValueAny = {};
+            const result: KeyValueAny = {};
+
+            // The UI client on the thermostat also updates the server, so no need to readback/send again on next sync.
+            // This also ensures the next client read of setpoint is in sync with the latest commanded value.
+            attribute.occupiedHeatingSetpoint = msg.data.setpoint;
+            msg.endpoint.saveClusterAttributeKeyValue("hvacThermostat", attribute);
+            result.occupied_heating_setpoint = msg.data.setpoint / 100.0;
+            logger.debug(`received wiser setpoint command with value: '${msg.data.setpoint}'`, NS);
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["commandWiserSmartSetSetpoint"]>,
+    wiser_smart_thermostat: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: async (model, msg, publish, options, meta) => {
+            const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
+            if (result) {
+                if (msg.data.wiserSmartZoneMode !== undefined) {
+                    const lookup: Record<number, string> = {1: "manual", 2: "schedule", 3: "energy_saver", 6: "holiday"};
+                    result.zone_mode = lookup[msg.data.wiserSmartZoneMode];
+                }
+                if (msg.data.wiserSmartHactConfig !== undefined) {
+                    const lookup: Record<number, string> = {0: "unconfigured", 128: "setpoint_switch", 130: "setpoint_fip", 131: "fip_fip"};
+                    result.hact_config = lookup[msg.data.wiserSmartHactConfig as number];
+                }
+                if (msg.data.wiserSmartCurrentFilPiloteMode !== undefined) {
+                    const lookup: Record<number, string> = {
+                        0: "comfort",
+                        1: "comfort_-1",
+                        2: "comfort_-2",
+                        3: "energy_saving",
+                        4: "frost_protection",
+                        5: "off",
+                    };
+                    result.fip_setting = lookup[msg.data.wiserSmartCurrentFilPiloteMode as number];
+                }
+                if (msg.data.wiserSmartValvePosition !== undefined) {
+                    result.pi_heating_demand = msg.data.wiserSmartValvePosition;
+                }
+                if (msg.data.wiserSmartValveCalibrationStatus !== undefined) {
+                    const lookup: Record<number, string> = {
+                        0: "ongoing",
+                        1: "successful",
+                        2: "uncalibrated",
+                        3: "failed_e1",
+                        4: "failed_e2",
+                        5: "failed_e3",
+                    };
+                    result.valve_calibration_status = lookup[msg.data.wiserSmartValveCalibrationStatus as number];
+                }
+                // Radiator thermostats command changes from UI, but report value periodically for sync,
+                // force an update of the value if it doesn't match the current existing value
+                if (
+                    meta.device.modelID === "EH-ZB-VACT" &&
+                    msg.data.occupiedHeatingSetpoint !== undefined &&
+                    meta.state.occupied_heating_setpoint !== undefined
+                ) {
+                    if (result.occupied_heating_setpoint !== meta.state.occupied_heating_setpoint) {
+                        const lookup: KeyValueAny = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
+                        const zonemodeNum = lookup[Number(meta.state.zone_mode)];
+                        const setpoint =
+                            Number((Math.round(Number((Number(meta.state.occupied_heating_setpoint) * 2).toFixed(1))) / 2).toFixed(1)) * 100;
+                        const payload = {
+                            operatingmode: 0,
+                            zonemode: zonemodeNum,
+                            setpoint: setpoint,
+                            reserved: 0xff,
+                        };
+                        await msg.endpoint.command("hvacThermostat", "wiserSmartSetSetpoint", payload, {
+                            srcEndpoint: 11,
+                            disableDefaultResponse: true,
+                        });
+
+                        logger.debug(
+                            `syncing vact setpoint was: '${result.occupied_heating_setpoint}' now: '${meta.state.occupied_heating_setpoint}'`,
+                            NS,
+                        );
+                    }
+                } else {
+                    publish(result);
+                }
+            }
+        },
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["attributeReport", "readResponse"]>,
+    wiser_smart_thermostat_client: {
+        cluster: "hvacThermostat",
+        type: "read",
+        convert: async (model, msg, publish, options, meta: KeyValueAny) => {
+            const response: KeyValueAny = {};
+            if (msg.data.includes("wiserSmartZoneMode") || msg.data.includes(0xe010)) {
+                // Zone Mode
+                const lookup: KeyValueAny = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
+                const zonemodeNum = meta.state.zone_mode ? lookup[meta.state.zone_mode] : 1;
+                response.wiserSmartZoneMode = {value: zonemodeNum};
+                await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response, {srcEndpoint: 11});
+            }
+        },
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, "read">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -1223,10 +1588,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WV704R0A0902",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat",
+        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fzLocal.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
-        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         exposes: [
             e
                 .climate()
@@ -1270,9 +1635,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Micro module dimmer",
         ota: true,
-        extend: [m.light({powerOnBehavior: false, configureReporting: true, levelConfig: {}})],
-        fromZigbee: [fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
+        extend: [
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
+            m.light({powerOnBehavior: false, configureReporting: true, levelConfig: {}}),
+        ],
+        fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e
                 .numeric("ballast_minimum_level", ea.ALL)
@@ -1308,9 +1676,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Micro module dimmer with neutral lead",
         ota: true,
-        extend: [m.light({configureReporting: true, levelConfig: {}})],
-        fromZigbee: [fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
+        extend: [schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(), m.light({configureReporting: true, levelConfig: {}})],
+        fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e
                 .numeric("ballast_minimum_level", ea.ALL)
@@ -1340,8 +1708,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002334",
         vendor: "Schneider Electric",
         description: "Rotary dimmer",
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
+        extend: [schneiderElectricExtend.addSchneiderLightingBallastCfgCluster()],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e.light_brightness().withLevelConfig(),
             e
@@ -1397,8 +1766,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002960",
         vendor: "Schneider Electric",
         description: "Push button dimmer",
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
+        extend: [schneiderElectricExtend.addSchneiderLightingBallastCfgCluster()],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e.light_brightness().withLevelConfig(),
             e
@@ -1591,9 +1961,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6100Z3",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat",
+        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fzLocal.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
-        extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         exposes: [
             e
                 .climate()
@@ -1658,39 +2028,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5116-0300/MEG5171-0000",
         vendor: "Schneider Electric",
         description: "Merten MEG5171 PlusLink Dimmer insert with Merten Wiser System M Push Button (1fold)",
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
-        exposes: [
-            e.light_brightness().withLevelConfig(),
-            e
-                .numeric("ballast_minimum_level", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription("Specifies the minimum light output of the ballast"),
-            e
-                .numeric("ballast_maximum_level", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(254)
-                .withDescription("Specifies the maximum light output of the ballast"),
-            e
-                .enum("dimmer_mode", ea.ALL, ["auto", "rc", "rl", "rl_led"])
-                .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
-        ],
-        extend: [schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(), indicatorMode(), switchActions()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(3);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingBallastCfg"]);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
-        },
-    },
-    {
-        zigbeeModel: ["2GANG/DIMMER/1"],
-        model: "MEG5126-0300/MEG5171-0000",
-        vendor: "Schneider Electric",
-        description: "Merten MEG5171 PlusLink Dimmer insert with Merten Wiser System M Push Button (2fold)",
-        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.wiser_dimmer_mode],
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e.light_brightness().withLevelConfig(),
             e
@@ -1708,6 +2047,43 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
         ],
         extend: [
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
+            indicatorMode(),
+            switchActions(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(3);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingBallastCfg"]);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ["2GANG/DIMMER/1"],
+        model: "MEG5126-0300/MEG5171-0000",
+        vendor: "Schneider Electric",
+        description: "Merten MEG5171 PlusLink Dimmer insert with Merten Wiser System M Push Button (2fold)",
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
+        exposes: [
+            e.light_brightness().withLevelConfig(),
+            e
+                .numeric("ballast_minimum_level", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
+                .withDescription("Specifies the minimum light output of the ballast"),
+            e
+                .numeric("ballast_maximum_level", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
+                .withDescription("Specifies the maximum light output of the ballast"),
+            e
+                .enum("dimmer_mode", ea.ALL, ["auto", "rc", "rl", "rl_led"])
+                .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
+        ],
+        extend: [
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
             schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             indicatorMode("right"),
             indicatorMode("left"),
@@ -1730,8 +2106,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5126-0300/MEG5172-0000",
         vendor: "Schneider Electric",
         description: "Merten MEG5172 PlusLink Dimmer insert with Merten Wiser System M Push Button (2fold)",
-        fromZigbee: [fz.wiser_lighting_ballast_configuration],
-        toZigbee: [tz.ballast_config, tz.wiser_dimmer_mode],
+        fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
+        toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e
                 .numeric("ballast_minimum_level", ea.ALL)
@@ -1748,9 +2124,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
         ],
         extend: [
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             m.deviceEndpoints({endpoints: {left: 4, right: 3, left_btn: 22, right_btn: 21}}),
             m.light({endpointNames: ["left", "right"], configureReporting: true}),
-            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             switchActions("left_btn"),
             switchActions("right_btn"),
             indicatorMode("left_btn"),
@@ -1949,6 +2326,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6400",
         vendor: "Schneider Electric",
         description: "Temperature/Humidity measurement with thermostat interface",
+        extend: [schneiderElectricExtend.customThermostatCluster()],
         fromZigbee: [fz.battery, fz.schneider_temperature, fz.humidity, fz.thermostat, fzLocal.schneider_ui_action],
         toZigbee: [
             tz.schneider_thermostat_system_mode,
@@ -2023,18 +2401,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EER53000",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat (VACT)",
+        extend: [schneiderElectricExtend.customThermostatCluster()],
         fromZigbee: [
             fz.battery,
             fz.hvac_user_interface,
-            fz.wiser_smart_thermostat,
-            fz.wiser_smart_thermostat_client,
-            fz.wiser_smart_setpoint_command_client,
+            fzLocal.wiser_smart_thermostat,
+            fzLocal.wiser_smart_thermostat_client,
+            fzLocal.wiser_smart_setpoint_command_client,
         ],
         toZigbee: [
             tz.wiser_sed_thermostat_local_temperature_calibration,
             tz.wiser_sed_occupied_heating_setpoint,
             tz.wiser_sed_thermostat_keypad_lockout,
-            tz.wiser_vact_calibrate_valve,
+            tzLocal.wiser_vact_calibrate_valve,
             tz.wiser_sed_zone_mode,
         ],
         exposes: [
@@ -2080,11 +2459,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EER51000",
         vendor: "Schneider Electric",
         description: "Wiser thermostat (RTS)",
+        extend: [schneiderElectricExtend.customThermostatCluster()],
         fromZigbee: [
             fz.battery,
             fz.hvac_user_interface,
-            fz.wiser_smart_thermostat_client,
-            fz.wiser_smart_setpoint_command_client,
+            fzLocal.wiser_smart_thermostat_client,
+            fzLocal.wiser_smart_setpoint_command_client,
             fz.schneider_temperature,
         ],
         toZigbee: [tz.wiser_sed_zone_mode, tz.wiser_sed_occupied_heating_setpoint],
@@ -2131,13 +2511,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EER50000",
         vendor: "Schneider Electric",
         description: "Wiser H-Relay (HACT)",
-        fromZigbee: [fz.wiser_smart_thermostat, fz.metering, fz.identify],
+        extend: [schneiderElectricExtend.customThermostatCluster()],
+        fromZigbee: [fzLocal.wiser_smart_thermostat, fz.metering, fz.identify],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
-            tz.wiser_fip_setting,
-            tz.wiser_hact_config,
-            tz.wiser_zone_mode,
+            tzLocal.wiser_fip_setting,
+            tzLocal.wiser_hact_config,
+            tzLocal.wiser_zone_mode,
             tz.identify,
         ],
         exposes: [
@@ -2408,6 +2789,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EKO07259",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
+        meta: {thermostat: {dontMapPIHeatingDemand: true}},
         extend: [
             schneiderElectricExtend.thermostatWithPower({
                 localTemperature: {
@@ -2444,53 +2826,20 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.thermostatApplication(),
             schneiderElectricExtend.heatingEmitter(),
             schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
-            m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
-                name: "heating_output_mode",
-                cluster: "heatingCoolingOutputClusterServer",
-                attribute: "heatingOutputMode",
+            schneiderElectricExtend.heatingOutputMode({
                 description:
                     "On devices with alternate heating output types, this selects which should be used to control the heating unit. This attribute is (mistakenly) also called pilot_mode on some devices.",
-                entityCategory: "config",
-                access: "ALL",
                 lookup: {Disabled: 0, Relay: 1},
             }),
             schneiderElectricExtend.customTemperatureMeasurementCluster(),
             m.deviceEndpoints({
                 endpoints: {floor: 3},
             }),
-            m.numeric<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
-                name: "temperature_sensor_correction",
-                cluster: "msTemperatureMeasurement",
-                attribute: "sensorCorrection",
-                description: "This is a user correction, possibly negative, to be added to the temperature measured by the sensor.",
-                unit: "°C",
-                scale: 100,
-                valueMin: -9,
-                valueMax: 9,
-                valueStep: 0.01,
+            schneiderElectricExtend.sensorCorrection({
                 endpointNames: ["floor"],
-                access: "ALL",
-                entityCategory: "config",
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
             }),
-            m.enumLookup<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
-                name: "temperature_sensor_type",
-                cluster: "msTemperatureMeasurement",
-                attribute: "temperatureSensorType",
-                description: "This is used to specify the type of temperature sensor connected to this input",
-                entityCategory: "config",
-                access: "ALL",
+            schneiderElectricExtend.temperatureSensorType({
                 endpointName: "floor",
-                lookup: {
-                    "2kΩ sensor from HRT/Alre": 1,
-                    "10kΩ sensor from B+J": 2,
-                    "12kΩ sensor from OJ": 3,
-                    "15kΩ sensor from DEVI": 4,
-                    "33kΩ sensor from EBERLE": 5,
-                    "47kΩ sensor from CTM": 6,
-                    "No sensor": 0xff,
-                },
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
             }),
             m.enumLookup({
                 name: "temperature_display_mode",
@@ -2721,7 +3070,7 @@ export const definitions: DefinitionWithExtend[] = [
                         return {running_state: msg.data.pICoolingDemand > 0 ? "cool" : "idle"};
                     }
                 },
-            } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+            } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["attributeReport", "readResponse"]>,
         ],
         extend: [
             m.thermostat({
