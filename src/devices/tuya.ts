@@ -25305,76 +25305,36 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
- const indicatorModeEnum = tuya.valueConverterBasic.lookup({
-    off: tuya.enum(0),
-    on_off_status: tuya.enum(1),
-    switch_position: tuya.enum(2),
-});
-
-const coupleDecoupleEnum = tuya.valueConverterBasic.lookup({
-    OFF: tuya.enum(1),
-    ON: tuya.enum(2),
-});
-
-export const definitions: DefinitionWithExtend[] = [
-    // other devices above   
     {
-        fingerprint: [
-            {modelID: "TS0601", manufacturerName: "_TZE284_0kihjsys"},
-        ],
-        model: "EyZEE_5GANG_TS0601_0kihjsys",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_0kihjsys"]),
+        model: "_TZE284_0kihjsys",
         vendor: "EyZEE",
         description: "5-Gang TZExxx Zigbee Touch Switch",
-
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.switch().withEndpoint("l1").withDescription("Switch 1"),
-            e.switch().withEndpoint("l2").withDescription("Switch 2"),
-            e.switch().withEndpoint("l3").withDescription("Switch 3"),
-            e.switch().withEndpoint("l4").withDescription("Switch 4"),
-            e.switch().withEndpoint("l5").withDescription("Switch 5"),
-
-            e.binary("couple_decouple", ea.STATE_SET, "ON", "OFF")
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e.switch().withEndpoint("l4"),
+            e.switch().withEndpoint("l5"),
+            e
+                .binary("couple_decouple", ea.STATE_SET, "ON", "OFF")
                 .withDescription(
                     "Effective with EyZEE Decouplar switch only. " +
-                    "Couple/Decouple (DP15): Click ON, then DOUBLE-TAP the physical button to activate Decouple mode. " +
-                    "Click OFF, then DOUBLE-TAP the physical button to deactivate Decouple mode.",
+                        "Couple/Decouple: Click ON, then DOUBLE-TAP the physical button to activate Decouple mode. " +
+                        "Click OFF, then DOUBLE-TAP the physical button to deactivate Decouple mode.",
                 ),
-
-            e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"])
-                .withDescription(
-                    "Indicator Mode (DP15): " +
-                    "off=Backlight off, " +
-                    "on_off_status=Red ON / Blue OFF, " +
-                    "switch_position=Pink ON / Off when OFF",
-                ),
-
-            e.enum("restart_status_1", ea.STATE_SET, ["off", "on", "previous"])
-                .withDescription("Power-on behavior for Switch 1"),
-            e.enum("restart_status_2", ea.STATE_SET, ["off", "on", "previous"])
-                .withDescription("Power-on behavior for Switch 2"),
-            e.enum("restart_status_3", ea.STATE_SET, ["off", "on", "previous"])
-                .withDescription("Power-on behavior for Switch 3"),
-            e.enum("restart_status_4", ea.STATE_SET, ["off", "on", "previous"])
-                .withDescription("Power-on behavior for Switch 4"),
-            e.enum("restart_status_5", ea.STATE_SET, ["off", "on", "previous"])
-                .withDescription("Power-on behavior for Switch 5"),
-
-            e.binary("restart_status", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Global power restoration status"),
+            e
+                .enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"])
+                .withDescription("Indicator Mode: off=Backlight off, on_off_status=Red ON / Blue OFF, switch_position=Pink ON / Off when OFF"),
+            e.enum("restart_status_1", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power-on behavior for Switch 1"),
+            e.enum("restart_status_2", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power-on behavior for Switch 2"),
+            e.enum("restart_status_3", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power-on behavior for Switch 3"),
+            e.enum("restart_status_4", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power-on behavior for Switch 4"),
+            e.enum("restart_status_5", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power-on behavior for Switch 5"),
+            e.binary("restart_status", ea.STATE_SET, "ON", "OFF").withDescription("Global power restoration status"),
         ],
-
-        endpoint: () => ({
-            l1: 1,
-            l2: 1,
-            l3: 1,
-            l4: 1,
-            l5: 1,
-        }),
-
+        endpoint: () => ({l1: 1, l2: 1, l3: 1, l4: 1, l5: 1}),
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
@@ -25383,18 +25343,18 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "state_l3", tuya.valueConverter.onOff],
                 [4, "state_l4", tuya.valueConverter.onOff],
                 [5, "state_l5", tuya.valueConverter.onOff],
-
                 [7, "timer_1", tuya.valueConverter.countdown],
                 [8, "timer_2", tuya.valueConverter.countdown],
                 [9, "timer_3", tuya.valueConverter.countdown],
                 [10, "timer_4", tuya.valueConverter.countdown],
                 [11, "timer_5", tuya.valueConverter.countdown],
-
                 [14, "restart_status", tuya.valueConverter.onOff],
-
-                [15, "indicator_mode", indicatorModeEnum],
-                [15, "couple_decouple", coupleDecoupleEnum],
-
+                [15, "indicator_mode", tuya.valueConverterBasic.lookup({OFF: tuya.enum(1), ON: tuya.enum(2)})],
+                [
+                    15,
+                    "couple_decouple",
+                    tuya.valueConverterBasic.lookup({off: tuya.enum(0), on_off_status: tuya.enum(1), switch_position: tuya.enum(2)}),
+                ],
                 [29, "restart_status_1", tuya.valueConverter.powerOnBehaviorEnum],
                 [30, "restart_status_2", tuya.valueConverter.powerOnBehaviorEnum],
                 [31, "restart_status_3", tuya.valueConverter.powerOnBehaviorEnum],
@@ -25404,4 +25364,3 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
