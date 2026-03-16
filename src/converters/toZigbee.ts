@@ -3307,37 +3307,6 @@ export const tuya_led_controller: Tz.Converter = {
         }
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const EMIZB_132_mode: Tz.Converter = {
-    key: ["interface_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        const endpoint = meta.device.getEndpoint(2);
-        const lookup = {
-            norwegian_han: {value: 0x0200, acVoltageDivisor: 10, acCurrentDivisor: 10},
-            norwegian_han_extra_load: {value: 0x0201, acVoltageDivisor: 10, acCurrentDivisor: 10},
-            aidon_meter: {value: 0x0202, acVoltageDivisor: 10, acCurrentDivisor: 10},
-            kaifa_and_kamstrup: {value: 0x0203, acVoltageDivisor: 10, acCurrentDivisor: 1000},
-        };
-
-        await endpoint.write(
-            "seMetering",
-            {770: {value: utils.getFromLookup(value, lookup).value, type: 49}},
-            {manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
-        );
-
-        // As the device reports the incorrect divisor, we need to set it here
-        // https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-604347303
-        // Values for norwegian_han and aidon_meter have not been been checked
-        endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
-            acVoltageMultiplier: 1,
-            acVoltageDivisor: utils.getFromLookup(value, lookup).acVoltageDivisor,
-            acCurrentMultiplier: 1,
-            acCurrentDivisor: utils.getFromLookup(value, lookup).acCurrentDivisor,
-        });
-
-        return {state: {interface_mode: value}};
-    },
-};
 export const eurotronic_host_flags: Tz.Converter = {
     key: ["eurotronic_host_flags", "system_mode"],
     convertSet: async (entity, key, value, meta) => {
