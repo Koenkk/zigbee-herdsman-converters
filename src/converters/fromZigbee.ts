@@ -3858,24 +3858,6 @@ export const ZMCSW032D_cover_position: Fz.Converter<"closuresWindowCovering", un
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const PGC410EU_presence: Fz.Converter<"manuSpecificSmartThingsArrivalSensor", undefined, "commandArrivalSensorNotify"> = {
-    cluster: "manuSpecificSmartThingsArrivalSensor",
-    type: "commandArrivalSensorNotify",
-    options: [exposes.options.presence_timeout()],
-    convert: (model, msg, publish, options, meta) => {
-        const useOptionsTimeout = options?.presence_timeout != null;
-        const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
-
-        // Stop existing timer because motion is detected and set a new one.
-        clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
-
-        const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
-        globalStore.putValue(msg.endpoint, "timer", timer);
-
-        return {presence: true};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const STS_PRS_251_presence: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBinaryInput",
     type: ["attributeReport", "readResponse"],

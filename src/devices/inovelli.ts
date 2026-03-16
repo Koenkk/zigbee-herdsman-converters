@@ -39,6 +39,8 @@ interface Inovelli {
         quickStartLevel: number;
         higherOutputInNonNeutral: number;
         dimmingMode: number;
+        dimmingAlgorithm: number;
+        auxDetectionLevel: number;
         nonNeutralAuxMediumGear: number;
         nonNeutralAuxLowGear: number;
         internalTemperature: number;
@@ -376,6 +378,8 @@ const inovelliExtend = {
                 quickStartLevel: {name: "quickStartLevel", ID: 0x0018, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 higherOutputInNonNeutral: {name: "higherOutputInNonNeutral", ID: 0x0019, type: Zcl.DataType.BOOLEAN, write: true},
                 dimmingMode: {name: "dimmingMode", ID: 0x001a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                dimmingAlgorithm: {name: "dimmingAlgorithm", ID: 0x001b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                auxDetectionLevel: {name: "auxDetectionLevel", ID: 0x007c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 nonNeutralAuxMediumGear: {name: "nonNeutralAuxMediumGear", ID: 0x001e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 nonNeutralAuxLowGear: {name: "nonNeutralAuxLowGear", ID: 0x001f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 internalTemperature: {name: "internalTemperature", ID: 0x0020, type: Zcl.DataType.INT8, write: true, max: 0xff},
@@ -1697,6 +1701,27 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
             "only will turn onto 100 or off to 0.",
         values: {"Disabled (Click Sound On)": 0, "Enabled (Click Sound Off)": 1},
         displayType: "enum",
+    },
+    dimmingAlgorithm: {
+        ID: 27,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {"Old dimming algorithm (v2.18)": 0, "New dimming algorithm (v3.04)": 1},
+        min: 0,
+        max: 1,
+        description:
+            "Switches the dimming algorithm from old to new. When switching the algorithm, the switch will restart. " +
+            "Some non-neutral setups may not support the new algorithm, in which case you can use the old algorithm." +
+            "0 = old dimming algorithm (v2.18), 1 = new dimming algorithm (v3.04+) (default).",
+    },
+    auxDetectionLevel: {
+        ID: 124,
+        dataType: Zcl.DataType.UINT8,
+        min: 0,
+        max: 4,
+        description:
+            "Aux detection level (P124). Range: 0-4, default: 1. " +
+            "If you are having issues with the aux function, start setting from 0 and continue until the aux function operates normally.",
     },
 };
 
