@@ -1045,7 +1045,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PC321",
         vendor: "OWON",
         description: "3-Phase clamp power meter",
-        extend: [owonExtend.addOwonClearMeteringCluster()],
+        extend: [owonExtend.addOwonClearMeteringCluster(), owonExtend.addOwonSeMeteringCluster()],
         fromZigbee: [fz.metering, fzLocal.PC321_metering],
         toZigbee: [tzLocal.PC321_clearMetering],
         configure: async (device, coordinatorEndpoint) => {
