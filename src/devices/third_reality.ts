@@ -651,6 +651,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature and Humidity Sensor Lite Gen2",
         extend: [
             m.deviceAddCustomCluster("3rSpecialCluster", {
+                name: "3rSpecialCluster",
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
