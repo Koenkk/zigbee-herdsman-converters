@@ -654,9 +654,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    celsiusDegreeCalibration: {name: "celsiusDegreeCalibration", ID: 0x0031, type: 0x29, write: true, min: -32768},
-                    humidityCalibration: {name: "humidityCalibration", ID: 0x0032, type: 0x29, write: true, min: -32768},
-                    fahrenheitDegreeCalibration: {name: "fahrenheitDegreeCalibration", ID: 0x0033, type: 0x29, write: true, min: -32768},
+                    celsiusDegreeCalibration: {name: "celsiusDegreeCalibration", ID: 0x0031, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x0032, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    fahrenheitDegreeCalibration: {name: "fahrenheitDegreeCalibration", ID: 0x0033, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
