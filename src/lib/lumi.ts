@@ -533,7 +533,7 @@ export const numericAttributes2Payload = async (
                 payload.consumption = payload.energy;
                 break;
             case "150":
-                if (["KD-R01D"].includes(model.model)) {
+                if (["KD-R01D", "WS-K05E"].includes(model.model)) {
                     assertNumber(value);
                     payload.voltage = value * 0.01;
                 } else if (!["JTYJ-GD-01LM/BW"].includes(model.model)) {
