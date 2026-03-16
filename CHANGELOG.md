@@ -1,5 +1,30 @@
 # Changelog
 
+## [26.20.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.19.1...v26.20.0) (2026-03-16)
+
+
+### Features
+
+* **add:** E2499 ([#11724](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11724)) ([eead3e3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eead3e3ce15e5cbdb4529a9002badbb59af5a2cf))
+* **add:** FRZ1 ([#11725](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11725)) ([568eb36](https://github.com/Koenkk/zigbee-herdsman-converters/commit/568eb3690a3f7c5297891e80b1da8ad83457badb))
+* **add:** SR-ZG9032A-PIR ([#11723](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11723)) ([6a6eced](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6a6eced36bfe490a9e434920ca3180607e86cbc2))
+* **add:** TS0046-z-SlD, TS0043-z-SlD, TS0042-z-SlD, TS0041-M001-SlD ([#11738](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11738)) ([dd1cc57](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dd1cc57d0cf6efbf14b9c3dae675f3ffb02e762d))
+* **add:** WS-K05E ([#11712](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11712)) ([10a28d3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/10a28d3a4c3e13221d331f27495119c427feed01))
+* Third Reality 3RTHS0324Z: support more features ([#11733](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11733)) ([83e3e35](https://github.com/Koenkk/zigbee-herdsman-converters/commit/83e3e35ad3e478a969e3e34e2412ade284d68d48))
+* ZB-IR01: support more features ([#11710](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11710)) ([cc1f6db](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cc1f6db08fe5a80832452c1d98b1547161f29a1a))
+
+
+### Bug Fixes
+
+* Add Develvo specific attributes from cluster "DevelcoSeMetering" and update of Develco EMIZB-132 and  ([#11717](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11717)) ([3e77bef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3e77bef83fac3368a4c961b326556ae1c5f0a98b))
+* **ignore:** bump the minor-patch group with 2 updates ([#11730](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11730)) ([94fcb8a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/94fcb8afee3dba5c7fe14b397a3b00fa2cf681c5))
+* MiCASAGasCounter: fix duplicate publishes ([#11728](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11728)) ([a3a1252](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a3a1252d373959d4561ea526951041c42932da96))
+* Move SchneiderWisercustom cluster from ZH to ZHC ([#11736](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11736)) ([22af5e6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/22af5e6e369bf39c34cad4f81c1b338275e19f50))
+* Move Sinope hvacThermostat attributes from ZH to ZHC ([#11729](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11729)) ([89a24b8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/89a24b867be730b553f9f9c6dffbfe9cae45e4a1))
+* Namron 4512776/4512777: fix power/energy reporting ([#11662](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11662)) ([3a69211](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3a69211df3d821acea969714501975784c0a5ad6))
+* Schneider Electric WDE002497: various improvements ([#11726](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11726)) ([0e65e1c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0e65e1c41cccc96a1beb173839e967921bb9f911))
+* Third Reality 3RSB02015Z: update private cluster ([#11732](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11732)) ([6aafe7e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6aafe7edbea5b7cf177850b1f0cbcb1fd8016fbc))
+
 ## [26.19.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.19.0...v26.19.1) (2026-03-13)
 
 
