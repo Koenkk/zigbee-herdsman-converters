@@ -25310,8 +25310,7 @@ export const definitions: DefinitionWithExtend[] = [
     model: 'EyZEE_5GANG_TS0601_0kihjsys',
     vendor: 'EyZEE',
     description: '5-Gang TZExxx Zigbee Touch Switch',
-    icon: 'images/eyzee_5gang.png',
-
+    
     fromZigbee: [tuya.fz.datapoints],
     toZigbee: [tuya.tz.datapoints],
     onEvent: tuya.onEventSetTime,
