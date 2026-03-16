@@ -2868,44 +2868,109 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Smart thermostat",
         extend: [
-            schneiderElectricExtend.addWiserDeviceInfoCluster(),
+            schneiderElectricExtend.thermostatWithPower({
+                localTemperature: {
+                    values: {
+                        description: "The temperature measured by the selected sensor (see 'Local temperature source select', Ambient or External).",
+                    },
+                },
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 4, max: 40, step: 0.5}}},
+                setpointsLimit: {
+                    maxHeatSetpointLimit: {min: 4, max: 40, step: 0.5},
+                    minHeatSetpointLimit: {min: 4, max: 40, step: 0.5},
+                },
+                systemMode: {values: ["off", "heat"]},
+                piHeatingDemand: {values: true},
+                ctrlSeqeOfOper: {values: ["cooling_only", "heating_only"]},
+            }),
+            m.electricityMeter({
+                cluster: "metering",
+                voltage: false,
+                current: false,
+                configureReporting: true,
+                energy: {divisor: 1000, multiplier: 1},
+            }),
+            schneiderElectricExtend.customMeteringCluster(),
+            schneiderElectricExtend.fixedLoadDemand(),
+            schneiderElectricExtend.addHvacUserInterfaceCfgCustomAttributes(),
+            schneiderElectricExtend.displayBrightnessActive(),
+            schneiderElectricExtend.displayBrightnessInactive(),
+            schneiderElectricExtend.displayActiveTimeout(),
+            schneiderElectricExtend.customThermostatCluster(),
+            schneiderElectricExtend.localTemperatureSourceSelect(),
+            schneiderElectricExtend.controlType(),
+            schneiderElectricExtend.controlStatus(),
+            schneiderElectricExtend.thermostatApplication(),
+            schneiderElectricExtend.heatingEmitter(),
             schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
-            schneiderElectricExtend.pilotMode(),
+            m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
+                name: "heating_output_mode",
+                cluster: "heatingCoolingOutputClusterServer",
+                attribute: "heatingOutputMode",
+                description:
+                    "On devices with alternate heating output types, this selects which should be used to control the heating unit. This attribute is (mistakenly) also called pilot_mode on some devices.",
+                entityCategory: "config",
+                access: "ALL",
+                lookup: {Disabled: 0, Relay: 1},
+            }),
+            schneiderElectricExtend.customTemperatureMeasurementCluster(),
+            m.deviceEndpoints({
+                endpoints: {floor: 3},
+            }),
+            m.numeric<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
+                name: "temperature_sensor_correction",
+                cluster: "msTemperatureMeasurement",
+                attribute: "sensorCorrection",
+                description: "This is a user correction, possibly negative, to be added to the temperature measured by the sensor.",
+                unit: "°C",
+                scale: 100,
+                valueMin: -9,
+                valueMax: 9,
+                valueStep: 0.01,
+                endpointNames: ["floor"],
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.enumLookup<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
+                name: "temperature_sensor_type",
+                cluster: "msTemperatureMeasurement",
+                attribute: "temperatureSensorType",
+                description: "This is used to specify the type of temperature sensor connected to this input",
+                entityCategory: "config",
+                access: "ALL",
+                endpointName: "floor",
+                lookup: {
+                    "2kΩ sensor from HRT/Alre": 1,
+                    "10kΩ sensor from B+J": 2,
+                    "12kΩ sensor from OJ": 3,
+                    "15kΩ sensor from DEVI": 4,
+                    "33kΩ sensor from EBERLE": 5,
+                    "47kΩ sensor from CTM": 6,
+                    "No sensor": 0xff,
+                },
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                lookup: {celsius: 0},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "tempDisplayMode",
+                description: "The unit of the temperature displayed on the device screen. Celsius is the only supported unit.",
+                entityCategory: "config",
+            }),
+            m.binary({
+                name: "child_lock",
+                valueOn: ["LOCK", 1],
+                valueOff: ["UNLOCK", 0],
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Enables/disables physical input on the device",
+                access: "ALL",
+                reporting: {min: 0, max: 3600, change: 0},
+            }),
+            schneiderElectricExtend.addWiserDeviceInfoCluster(),
         ],
-        fromZigbee: [fz.stelpro_thermostat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
-        toZigbee: [
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_system_mode,
-            tz.thermostat_running_state,
-            tz.thermostat_local_temperature,
-            tz.thermostat_control_sequence_of_operation,
-            tz.schneider_thermostat_keypad_lockout,
-            tz.thermostat_temperature_display_mode,
-        ],
-        exposes: [
-            e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
-            e
-                .enum("temperature_display_mode", ea.ALL, ["celsius", "fahrenheit"])
-                .withDescription("The temperature format displayed on the thermostat screen"),
-            e
-                .climate()
-                .withSetpoint("occupied_heating_setpoint", 4, 30, 0.5)
-                .withLocalTemperature()
-                .withSystemMode(["off", "heat"])
-                .withRunningState(["idle", "heat"])
-                .withPiHeatingDemand(),
-            e.temperature(),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat"]);
-            await reporting.thermostatPIHeatingDemand(endpoint1);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["msTemperatureMeasurement"]);
-            await reporting.temperature(endpoint2);
-            await endpoint1.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
-        },
     },
     {
         zigbeeModel: ["WDE011680"],
