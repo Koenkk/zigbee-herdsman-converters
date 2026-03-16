@@ -468,7 +468,7 @@ const schneiderElectricExtend = {
     },
 
     dimmingMode: (): ModernExtend => {
-        const extend = m.enumLookup({
+        const extend = m.enumLookup<"lightingBallastCfg", SchneiderLightingBallastCfg>({
             name: "dimmer_mode",
             lookup: {
                 Auto: 0,
@@ -1101,7 +1101,7 @@ const tzLocal = {
     wiser_dimmer_mode: {
         key: ["dimmer_mode"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write(
+            await entity.write<"lightingBallastCfg", SchneiderLightingBallastCfg>(
                 "lightingBallastCfg",
                 {wiserControlMode: utils.getKey(constants.wiserDimmerControlMode, value, value as number, Number)},
                 {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
@@ -1498,10 +1498,15 @@ const fzLocal = {
                             setpoint: setpoint,
                             reserved: 0xff,
                         };
-                        await msg.endpoint.command("hvacThermostat", "wiserSmartSetSetpoint", payload, {
-                            srcEndpoint: 11,
-                            disableDefaultResponse: true,
-                        });
+                        await msg.endpoint.command<"hvacThermostat", "wiserSmartSetSetpoint", SchneiderThermostatCluster>(
+                            "hvacThermostat",
+                            "wiserSmartSetSetpoint",
+                            payload,
+                            {
+                                srcEndpoint: 11,
+                                disableDefaultResponse: true,
+                            },
+                        );
 
                         logger.debug(
                             `syncing vact setpoint was: '${result.occupied_heating_setpoint}' now: '${meta.state.occupied_heating_setpoint}'`,
