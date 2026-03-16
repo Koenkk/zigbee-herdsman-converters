@@ -424,13 +424,11 @@ const tzLocal = {
                 "hvacThermostat",
                 "danfossSetpointCommand",
                 payload,
-                // manufacturerOptions.danfoss,
             );
             await entity.command<"hvacThermostat", "danfossSetpointCommand", DanfossHvacThermostat>(
                 "hvacThermostat",
                 "danfossSetpointCommand",
                 payload,
-                // manufacturerOptions.danfoss,
             );
         },
         convertGet: async (entity, key, meta) => {
@@ -451,7 +449,6 @@ const tzLocal = {
                 "hvacThermostat",
                 "danfossSetpointCommand",
                 payload,
-                // manufacturerOptions.danfoss,
             );
         },
         convertGet: async (entity, key, meta) => {
@@ -481,11 +478,7 @@ const tzLocal = {
             return {state: {thermostat_vertical_orientation: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                ["danfossThermostatOrientation"],
-                // manufacturerOptions.danfoss,
-            );
+            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossThermostatOrientation"]);
         },
     } satisfies Tz.Converter,
     danfoss_external_measured_room_sensor: {
@@ -495,11 +488,7 @@ const tzLocal = {
             return {state: {external_measured_room_sensor: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                ["danfossExternalMeasuredRoomSensor"],
-                // manufacturerOptions.danfoss,
-            );
+            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossExternalMeasuredRoomSensor"]);
         },
     } satisfies Tz.Converter,
     danfoss_radiator_covered: {
@@ -531,11 +520,7 @@ const tzLocal = {
             return {state: {algorithm_scale_factor: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                ["danfossAlgorithmScaleFactor"],
-                // manufacturerOptions.danfoss,
-            );
+            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossAlgorithmScaleFactor"]);
         },
     } satisfies Tz.Converter,
     danfoss_heat_available: {
@@ -582,11 +567,7 @@ const tzLocal = {
             return {state: {window_open_feature: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                ["danfossWindowOpenFeatureEnable"],
-                // manufacturerOptions.danfoss,
-            );
+            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossWindowOpenFeatureEnable"]);
         },
     } satisfies Tz.Converter,
     danfoss_window_open_internal: {
@@ -657,11 +638,9 @@ const tzLocal = {
     danfoss_adaptation_control: {
         key: ["adaptation_run_control"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossAdaptionRunControl: utils.getKey(constants.danfossAdaptionRunControl, value, value as number, Number)},
-                // manufacturerOptions.danfoss,
-            );
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {
+                danfossAdaptionRunControl: utils.getKey(constants.danfossAdaptionRunControl, value, value as number, Number),
+            });
             return {state: {adaptation_run_control: value}};
         },
 
@@ -677,11 +656,7 @@ const tzLocal = {
         },
 
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                ["danfossRegulationSetpointOffset"],
-                // manufacturerOptions.danfoss,
-            );
+            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossRegulationSetpointOffset"]);
         },
     } satisfies Tz.Converter,
     danfoss_output_status: {
