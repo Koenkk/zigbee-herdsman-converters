@@ -111,6 +111,8 @@ interface SchneiderThermostatCluster {
         wiserSmartZoneMode: number;
         wiserSmartHactConfig: number;
         wiserSmartCurrentFilPiloteMode: number;
+        wiserSmartValvePosition: number;
+        wiserSmartValveCalibrationStatus: number;
     };
     commands: {
         schneiderWiserThermostatBoost: {
@@ -747,7 +749,6 @@ const schneiderElectricExtend = {
             valueMin: -9,
             valueMax: 9,
             valueStep: 0.01,
-            // endpointNames: ["floor"],
             access: "ALL",
             entityCategory: "config",
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
@@ -761,7 +762,6 @@ const schneiderElectricExtend = {
             description: "This is used to specify the type of temperature sensor connected to this input",
             entityCategory: "config",
             access: "ALL",
-            // endpointName: "floor",
             lookup: {
                 "2kΩ sensor from HRT/Alre": 1,
                 "10kΩ sensor from B+J": 2,
@@ -885,6 +885,18 @@ const schneiderElectricExtend = {
                     ID: 0xe020,
                     type: Zcl.DataType.ENUM8,
                     write: true,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                wiserSmartValvePosition: {
+                    name: "wiserSmartValvePosition",
+                    ID: 0xe030,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                wiserSmartValveCalibrationStatus: {
+                    name: "wiserSmartValveCalibrationStatus",
+                    ID: 0xe031,
+                    type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
             },
@@ -1436,17 +1448,14 @@ const fzLocal = {
             const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (result) {
                 if (msg.data.wiserSmartZoneMode !== undefined) {
-                    // wiserSmartZoneMode
                     const lookup: Record<number, string> = {1: "manual", 2: "schedule", 3: "energy_saver", 6: "holiday"};
                     result.zone_mode = lookup[msg.data.wiserSmartZoneMode];
                 }
                 if (msg.data.wiserSmartHactConfig !== undefined) {
-                    // wiserSmartHactConfig
                     const lookup: Record<number, string> = {0: "unconfigured", 128: "setpoint_switch", 130: "setpoint_fip", 131: "fip_fip"};
                     result.hact_config = lookup[msg.data.wiserSmartHactConfig as number];
                 }
                 if (msg.data.wiserSmartCurrentFilPiloteMode !== undefined) {
-                    // wiserSmartCurrentFilPiloteMode
                     const lookup: Record<number, string> = {
                         0: "comfort",
                         1: "comfort_-1",
@@ -1457,12 +1466,10 @@ const fzLocal = {
                     };
                     result.fip_setting = lookup[msg.data.wiserSmartCurrentFilPiloteMode as number];
                 }
-                if (msg.data[0xe030] !== undefined) {
-                    // wiserSmartValvePosition
-                    result.pi_heating_demand = msg.data[0xe030];
+                if (msg.data.wiserSmartValvePosition !== undefined) {
+                    result.pi_heating_demand = msg.data.wiserSmartValvePosition;
                 }
-                if (msg.data[0xe031] !== undefined) {
-                    // wiserSmartValveCalibrationStatus
+                if (msg.data.wiserSmartValveCalibrationStatus !== undefined) {
                     const lookup: Record<number, string> = {
                         0: "ongoing",
                         1: "successful",
@@ -1471,7 +1478,7 @@ const fzLocal = {
                         4: "failed_e2",
                         5: "failed_e3",
                     };
-                    result.valve_calibration_status = lookup[msg.data[0xe031] as number];
+                    result.valve_calibration_status = lookup[msg.data.wiserSmartValveCalibrationStatus as number];
                 }
                 // Radiator thermostats command changes from UI, but report value periodically for sync,
                 // force an update of the value if it doesn't match the current existing value
