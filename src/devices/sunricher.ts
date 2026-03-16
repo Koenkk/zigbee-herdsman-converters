@@ -2507,4 +2507,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "DIM RGB 3 in 1 Zigbee remote",
         extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
     },
+    {
+        zigbeeModel: ['ZGRC-KEY-005'],
+        model: 'SR-ZG9001K4-RGBW',
+        vendor: 'Sunricher',
+        description: 'RGB CCT 3 in 1 Remote Controller',
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+    }
 ];
