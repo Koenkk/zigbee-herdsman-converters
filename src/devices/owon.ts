@@ -88,8 +88,13 @@ interface OwonSeMetering {
         owonReportMode?: number;
         owonPercentChangeInPower?: number;
     };
-    commands: never;
-    commandResponses: never;
+    commands: {
+        owonGetHistoryRecord: Record<string, never>;
+        owonStopSendingHistoricalRecord: Record<string, never>;
+    };
+    commandResponses: {
+        owonGetHistoryRecordRsp: Record<string, never>;
+    };
 }
 
 const owonExtend = {
@@ -465,8 +470,13 @@ const owonExtend = {
                     max: 0xff,
                 },
             },
-            commands: {},
-            commandsResponse: {},
+            commands: {
+                owonGetHistoryRecord: {name: "owonGetHistoryRecord", ID: 0x20, parameters: []},
+                owonStopSendingHistoricalRecord: {name: "owonStopSendingHistoricalRecord", ID: 0x21, parameters: []},
+            },
+            commandsResponse: {
+                owonGetHistoryRecordRsp: {name: "owonGetHistoryRecordRsp", ID: 0x20, parameters: []},
+            },
         }),
 };
 
