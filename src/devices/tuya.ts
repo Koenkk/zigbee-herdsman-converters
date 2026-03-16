@@ -25304,7 +25304,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "position_current", tuya.valueConverter.raw],
             ],
         },
-        {
+    },
+    {
     fingerprint: [
         {modelID: 'TS0601', manufacturerName: '_TZE284_0kihjsys'},
     ],
@@ -25388,7 +25389,6 @@ export const definitions: DefinitionWithExtend[] = [
             [32, 'restart_status_4', tuya.valueConverter.powerOnBehaviorEnum],
             [33, 'restart_status_5', tuya.valueConverter.powerOnBehaviorEnum],
         ],
+      },  
     },
-],
-};
-    
+];
