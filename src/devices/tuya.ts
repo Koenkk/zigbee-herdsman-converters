@@ -25304,13 +25304,14 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "position_current", tuya.valueConverter.raw],
             ],
         },
+        {
     fingerprint: [
         {modelID: 'TS0601', manufacturerName: '_TZE284_0kihjsys'},
     ],
     model: 'EyZEE_5GANG_TS0601_0kihjsys',
     vendor: 'EyZEE',
     description: '5-Gang TZExxx Zigbee Touch Switch',
-    
+
     fromZigbee: [tuya.fz.datapoints],
     toZigbee: [tuya.tz.datapoints],
     onEvent: tuya.onEventSetTime,
@@ -25319,7 +25320,7 @@ export const definitions: DefinitionWithExtend[] = [
     exposes: [
         e.switch().withEndpoint('l1').withDescription('Switch 1'),
         e.switch().withEndpoint('l2').withDescription('Switch 2'),
-        e.switch().withEndpoint('l3').withDescription('Switch 3'),
+        e.switch().withDescription('Switch 3').withEndpoint('l3'),
         e.switch().withEndpoint('l4').withDescription('Switch 4'),
         e.switch().withEndpoint('l5').withDescription('Switch 5'),
 
@@ -25327,7 +25328,7 @@ export const definitions: DefinitionWithExtend[] = [
             .withDescription(
                 'Effective with EyZEE Decouplar switch only. ' +
                 'Couple/Decouple (DP15): Click ON, then DOUBLE-TAP the physical button to activate Decouple mode. ' +
-                'Click OFF, then DOUBLE-TAP the physical button to deactivate Decouple mode.'
+                'Click OFF, then DOUBLE-TAP the physical button to deactivate Decouple mode.',
             ),
 
         e.enum('indicator_mode', ea.STATE_SET, ['off', 'on_off_status', 'switch_position'])
@@ -25335,7 +25336,7 @@ export const definitions: DefinitionWithExtend[] = [
                 'Indicator Mode (DP15): ' +
                 'off=Backlight off, ' +
                 'on_off_status=Red ON / Blue OFF, ' +
-                'switch_position=Pink ON / Off when OFF'
+                'switch_position=Pink ON / Off when OFF',
             ),
 
         e.enum('restart_status_1', ea.STATE_SET, ['off', 'on', 'previous'])
@@ -25364,28 +25365,23 @@ export const definitions: DefinitionWithExtend[] = [
     meta: {
         multiEndpoint: true,
         tuyaDatapoints: [
-            // Switch states
             [1, 'state_l1', tuya.valueConverter.onOff],
             [2, 'state_l2', tuya.valueConverter.onOff],
             [3, 'state_l3', tuya.valueConverter.onOff],
             [4, 'state_l4', tuya.valueConverter.onOff],
             [5, 'state_l5', tuya.valueConverter.onOff],
 
-            // Timers
             [7, 'timer_1', tuya.valueConverter.countdown],
             [8, 'timer_2', tuya.valueConverter.countdown],
             [9, 'timer_3', tuya.valueConverter.countdown],
             [10, 'timer_4', tuya.valueConverter.countdown],
             [11, 'timer_5', tuya.valueConverter.countdown],
 
-            // Global power restore status
             [14, 'restart_status', tuya.valueConverter.onOff],
 
-            // DP15 backlight / decouple trigger
             [15, 'indicator_mode', indicatorModeEnum],
             [15, 'couple_decouple', coupleDecoupleEnum],
 
-            // Power-on behavior per gang
             [29, 'restart_status_1', tuya.valueConverter.powerOnBehaviorEnum],
             [30, 'restart_status_2', tuya.valueConverter.powerOnBehaviorEnum],
             [31, 'restart_status_3', tuya.valueConverter.powerOnBehaviorEnum],
@@ -25393,4 +25389,4 @@ export const definitions: DefinitionWithExtend[] = [
             [33, 'restart_status_5', tuya.valueConverter.powerOnBehaviorEnum],
         ],
     },
-};
+}
