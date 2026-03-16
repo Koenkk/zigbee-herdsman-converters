@@ -299,7 +299,7 @@ export const develcoModernExtend = {
             ...args,
         }),
     currentSummation: (args?: Partial<NumericArgs<"seMetering">>) =>
-        numeric({
+        numeric<"seMetering", DevelcoSeMetering>({
             name: "current_summation",
             cluster: "seMetering",
             attribute: "develcoCurrentSummation",
@@ -310,7 +310,7 @@ export const develcoModernExtend = {
             ...args,
         }),
     pulseConfiguration: (args?: Partial<NumericArgs<"seMetering">>) =>
-        numeric({
+        numeric<"seMetering", DevelcoSeMetering>({
             name: "pulse_configuration",
             cluster: "seMetering",
             attribute: "develcoPulseConfiguration",

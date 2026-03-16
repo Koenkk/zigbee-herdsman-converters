@@ -540,6 +540,7 @@ const tuyaExposes = {
         return x;
     },
 };
+
 export {tuyaExposes as exposes};
 
 export const skip = {
@@ -599,6 +600,7 @@ class Base {
 
 export class Enum extends Base {}
 const enumConstructor = (value: number) => new Enum(value);
+
 export {enumConstructor as enum};
 
 export const BacklightColorEnum = {
@@ -2101,6 +2103,7 @@ const tuyaTz = {
         },
     } satisfies Tz.Converter,
 };
+
 export {tuyaTz as tz};
 
 const tuyaFz = {
@@ -2371,6 +2374,7 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
 };
+
 export {tuyaFz as fz};
 
 export function getHandlersForDP(
@@ -3456,6 +3460,7 @@ const tuyaModernExtend = {
         return result;
     },
 };
+
 export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {

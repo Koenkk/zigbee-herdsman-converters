@@ -2,7 +2,7 @@ import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
-import {type DevelcoGenBasic, develcoModernExtend} from "../lib/develco";
+import {type DevelcoGenBasic, type DevelcoSeMetering, develcoModernExtend} from "../lib/develco";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
@@ -62,7 +62,7 @@ const develco = {
 
                 return result;
             },
-        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+        } satisfies Fz.Converter<"seMetering", DevelcoSeMetering, ["attributeReport", "readResponse"]>,
         interface_mode: {
             cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
@@ -81,7 +81,7 @@ const develco = {
 
                 return result;
             },
-        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+        } satisfies Fz.Converter<"seMetering", DevelcoSeMetering, ["attributeReport", "readResponse"]>,
         fault_status: {
             cluster: "genBinaryInput",
             type: ["attributeReport", "readResponse"],
@@ -173,28 +173,28 @@ const develco = {
         pulse_configuration: {
             key: ["pulse_configuration"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("seMetering", {develcoPulseConfiguration: value as number}, manufacturerOptions);
+                await entity.write<"seMetering", DevelcoSeMetering>("seMetering", {develcoPulseConfiguration: value as number}, manufacturerOptions);
                 return {state: {pulse_configuration: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("seMetering", ["develcoPulseConfiguration"], manufacturerOptions);
+                await entity.read<"seMetering", DevelcoSeMetering>("seMetering", ["develcoPulseConfiguration"], manufacturerOptions);
             },
         } satisfies Tz.Converter,
         interface_mode: {
             key: ["interface_mode"],
             convertSet: async (entity, key, value, meta) => {
                 const payload = {develcoInterfaceMode: utils.getKey(constants.develcoInterfaceMode, value, undefined, Number)};
-                await entity.write("seMetering", payload, manufacturerOptions);
+                await entity.write<"seMetering", DevelcoSeMetering>("seMetering", payload, manufacturerOptions);
                 return {state: {interface_mode: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("seMetering", ["develcoInterfaceMode"], manufacturerOptions);
+                await entity.read<"seMetering", DevelcoSeMetering>("seMetering", ["develcoInterfaceMode"], manufacturerOptions);
             },
         } satisfies Tz.Converter,
         current_summation: {
             key: ["current_summation"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("seMetering", {develcoCurrentSummation: value as number}, manufacturerOptions);
+                await entity.write<"seMetering", DevelcoSeMetering>("seMetering", {develcoCurrentSummation: value as number}, manufacturerOptions);
                 return {state: {current_summation: value}};
             },
         } satisfies Tz.Converter,
