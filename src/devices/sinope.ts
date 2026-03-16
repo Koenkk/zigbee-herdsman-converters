@@ -954,7 +954,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatSystemMode(endpoint);
-            await endpoint.configureReporting(
+            await endpoint.configureReporting<"manuSpecificSinope", ManuSpecificSinope>(
                 "manuSpecificSinope",
                 [
                     {
@@ -1555,10 +1555,10 @@ export const definitions: DefinitionWithExtend[] = [
                 // Not all support this: https://github.com/Koenkk/zigbee2mqtt/issues/3760
             }
 
-            await endpoint.configureReporting("manuSpecificSinope", [
+            await endpoint.configureReporting<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", [
                 {attribute: "GFCiStatus", minimumReportInterval: 1, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1},
             ]);
-            await endpoint.configureReporting("manuSpecificSinope", [
+            await endpoint.configureReporting<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", [
                 {attribute: "floorLimitStatus", minimumReportInterval: 1, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1},
             ]);
             await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // disable reporting
@@ -1899,7 +1899,7 @@ export const definitions: DefinitionWithExtend[] = [
                     reportableChange: 0,
                 },
             ];
-            await endpoint.configureReporting("manuSpecificSinope", payload);
+            await endpoint.configureReporting<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", payload);
         },
     },
     {

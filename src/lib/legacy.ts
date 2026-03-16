@@ -7045,19 +7045,19 @@ const thermostatSystemModes: {[s: number]: string} = {
 const toZigbee = {...toZigbee1, ...toZigbee2};
 
 export {
+    dataPoints,
     fromZigbee as fz,
     fromZigbee,
-    toZigbee as tz,
-    toZigbee,
+    giexWaterValve,
+    moesSwitch,
+    msLookups,
+    thermostatPresets,
     thermostatSystemModes,
-    tuyaHPSCheckingResult,
     thermostatSystemModes2,
     thermostatSystemModes3,
     thermostatSystemModes4,
-    thermostatPresets,
-    giexWaterValve,
-    msLookups,
+    toZigbee as tz,
+    toZigbee,
+    tuyaHPSCheckingResult,
     ZMLookups,
-    dataPoints,
-    moesSwitch,
 };
