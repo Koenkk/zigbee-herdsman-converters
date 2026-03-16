@@ -436,7 +436,7 @@ const tzLocal = {
                 throw new Error("ac_power must be 'on' or 'off'");
             }
 
-            // 设备类型 0x01 = 空调
+            // deviceType 0x01 = AC
             const deviceType = 0x01;
             const buttonId = protocolUtils.acButtonMap.power.buttonId;
             const powerValue = value === "on" ? 0x00 : 0x01;
