@@ -847,6 +847,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff(), m.electricityMeter()],
     },
     {
+        zigbeeModel: ["FL 230 C"],
+        model: "FL 230 C",
+        vendor: "Innr",
+        description: "Lightstrip colour",
+        extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
+    },
+    {
         zigbeeModel: ["OFL 120 C"],
         model: "OFL 120 C",
         vendor: "Innr",

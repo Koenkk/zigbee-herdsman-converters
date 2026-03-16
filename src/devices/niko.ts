@@ -37,6 +37,7 @@ const local = {
     modernExtend: {
         addCustomClusterManuSpecificNikoConfig: () =>
             deviceAddCustomCluster("manuSpecificNikoConfig", {
+                name: "manuSpecificNikoConfig",
                 ID: 0xfc00,
                 manufacturerCode: Zcl.ManufacturerCode.NIKO_NV,
 
@@ -94,19 +95,20 @@ const local = {
                      *          enum8 (switch) vs. bitmap8 (outlet)
                      *          unknown usage/function on outlet
                      */
-                    switchOperationMode: {ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                    outletLedColor: {ID: 0x0100, type: Zcl.DataType.UINT24, write: true, max: 0xffffff},
-                    outletChildLock: {ID: 0x0101, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    ledEnable: {ID: 0x0104, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    ledState: {ID: 0x0105, type: Zcl.DataType.BITMAP8, write: true, max: 0x03},
+                    switchOperationMode: {name: "switchOperationMode", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    outletLedColor: {name: "outletLedColor", ID: 0x0100, type: Zcl.DataType.UINT24, write: true, max: 0xffffff},
+                    outletChildLock: {name: "outletChildLock", ID: 0x0101, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    ledEnable: {name: "ledEnable", ID: 0x0104, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    ledState: {name: "ledState", ID: 0x0105, type: Zcl.DataType.BITMAP8, write: true, max: 0x03},
                     /* WARNING: 0x0107 is not supported on older switches */
-                    ledSyncMode: {ID: 0x0107, type: Zcl.DataType.BITMAP32, write: true},
+                    ledSyncMode: {name: "ledSyncMode", ID: 0x0107, type: Zcl.DataType.BITMAP32, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
         addCustomClusterManuSpecificNikoState: () =>
             deviceAddCustomCluster("manuSpecificNikoState", {
+                name: "manuSpecificNikoState",
                 ID: 0xfc01,
                 manufacturerCode: Zcl.ManufacturerCode.NIKO_NV,
 
@@ -127,8 +129,8 @@ const local = {
                 //   Cluster revision
 
                 attributes: {
-                    switchActionReporting: {ID: 0x0001, type: Zcl.DataType.BITMAP8, write: true},
-                    switchAction: {ID: 0x0002, type: Zcl.DataType.BITMAP32, write: true, max: 0x7ffff},
+                    switchActionReporting: {name: "switchActionReporting", ID: 0x0001, type: Zcl.DataType.BITMAP8, write: true},
+                    switchAction: {name: "switchAction", ID: 0x0002, type: Zcl.DataType.BITMAP32, write: true, max: 0x7ffff},
                 },
                 commands: {},
                 commandsResponse: {},

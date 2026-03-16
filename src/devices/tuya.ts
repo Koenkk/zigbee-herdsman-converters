@@ -3419,7 +3419,9 @@ export const definitions: DefinitionWithExtend[] = [
         // https://github.com/Koenkk/zigbee2mqtt/issues/30584
         meta: {
             moveToLevelWithOnOffDisable: (e) =>
-                e.getDevice().manufacturerName === "_TZB210_uoiqhjqe" || e.getDevice().manufacturerName === "_TZB210_417ikxay",
+                e.getDevice().manufacturerName === "_TZB210_uoiqhjqe" ||
+                e.getDevice().manufacturerName === "_TZB210_417ikxay" ||
+                e.getDevice().manufacturerName === "_TZB210_qzsxaqqe",
         },
         toZigbee: [tzLocal.TS0505B_1_transitionFixesOnOffBrightness],
         configure: (device, coordinatorEndpoint) => {
@@ -3998,9 +4000,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_noixx2uz"]),
-        model: "TRV603",
+        model: "AR331",
         vendor: "Tuya",
-        description: "Thermostatic Radiator Valve",
+        description: "Thermostatic radiator valve",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             e.battery().withUnit("%"),
@@ -4643,9 +4645,19 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {coverInverted: true},
         extend: [
             m.deviceAddCustomCluster("closuresWindowCovering", {
+                name: "closuresWindowCovering",
                 ID: 0x0102,
                 attributes: {
-                    currentPositionLiftPercentage: {ID: 0x0008, type: DataType.UINT8, report: true, scene: true, max: 100, default: 0, write: true},
+                    currentPositionLiftPercentage: {
+                        name: "currentPositionLiftPercentage",
+                        ID: 0x0008,
+                        type: DataType.UINT8,
+                        report: true,
+                        scene: true,
+                        max: 100,
+                        default: 0,
+                        write: true,
+                    },
                 },
                 commands: {},
                 commandsResponse: {},
@@ -4653,6 +4665,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         whiteLabel: [
             tuya.whitelabel("BSEED", "EC-GL86ZPCRS31", "Curtain/blind switch", ["_TZ3000_bs93npae"]),
+            tuya.whitelabel("BSEED", "S-PC86ZPCS11B", "Curtain/blind switch", ["_TZ3000_dojqjapa"]),
             tuya.whitelabel("Danor", "SK-Z802C-US", "Smart curtain/shutter switch", ["_TZ3000_8h7wgocw"]),
             {vendor: "LoraTap", model: "SC400"},
             tuya.whitelabel("LoraTap", "SC500ZB", "Smart curtain/shutter switch", ["_TZ3000_e3vhyirx", "_TZ3000_femsaaua"]),
@@ -4925,6 +4938,8 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l4"),
             tuya.exposes.switch().withEndpoint("l5"),
             tuya.exposes.switch().withEndpoint("l6"),
+            tuya.exposes.powerOnBehavior(),
+            tuya.exposes.indicatorModeNoneRelayPos(),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
@@ -4938,6 +4953,24 @@ export const definitions: DefinitionWithExtend[] = [
                 [4, "state_l4", tuya.valueConverter.onOff],
                 [5, "state_l5", tuya.valueConverter.onOff],
                 [6, "state_l6", tuya.valueConverter.onOff],
+                [
+                    14,
+                    "power_on_behavior",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on: tuya.enum(1),
+                        memory: tuya.enum(2),
+                    }),
+                ],
+                [
+                    15,
+                    "indicator_mode",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        relay: tuya.enum(1),
+                        pos: tuya.enum(2),
+                    }),
+                ],
             ],
         },
         whiteLabel: [
@@ -9045,11 +9078,15 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_ysiog9xi",
             "_TZ3000_o1jzcxou",
             "_TZ3210_nhqka112", // https://github.com/Koenkk/zigbee2mqtt/issues/30889
+            "_TZ3000_uyrhiafs",
         ]),
         model: "TS011F_plug_2",
         description: "Smart plug (without power monitoring)",
         vendor: "Tuya",
-        whiteLabel: [tuya.whitelabel("BSEED", "_TZ3000_o1jzcxou", "Wall-mounted electrical EU/FR/UK socket", ["_TZ3000_o1jzcxou"])],
+        whiteLabel: [
+            tuya.whitelabel("BSEED", "_TZ3000_o1jzcxou", "Wall-mounted electrical EU/FR/UK socket", ["_TZ3000_o1jzcxou"]),
+            tuya.whitelabel("BSEED", "S-PC86ZEUSK1B", "Wall-mounted electrical EU socket", ["_TZ3000_uyrhiafs"]),
+        ],
         extend: [
             tuya.modernExtend.tuyaOnOff({
                 powerOutageMemory: true,
@@ -12548,6 +12585,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZS06",
         vendor: "Tuya",
         description: "Universal smart IR remote control",
+        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), zosung.zosungExtend.addZosungIRControlCluster()],
         fromZigbee: [
             fzZosung.zosung_send_ir_code_00,
             fzZosung.zosung_send_ir_code_01,
@@ -13270,10 +13308,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.deviceAddCustomCluster("genOnOff", {
+                name: "genOnOff",
                 ID: Zcl.Clusters.genOnOff.ID,
                 attributes: {},
                 commands: {
                     tuyaCountdown: {
+                        name: "tuyaCountdown",
                         ID: 0xf0,
                         parameters: [{name: "data", type: 1008 /* BUFFER */}],
                     },
@@ -14787,6 +14827,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_factor().withUnit("%").withDescription("Total power factor"),
             e.power().withDescription("Total active power"),
             e.ac_frequency(),
+            e.numeric("data_report_duration", ea.SET).withValueMin(30).withValueMax(3600),
             tuya.exposes.energyWithPhase("a"),
             tuya.exposes.energyWithPhase("b"),
             tuya.exposes.energyWithPhase("c"),
@@ -14802,6 +14843,56 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "energy", tuya.valueConverter.divideBy100],
                 [2, "produced_energy", tuya.valueConverter.divideBy100],
                 [15, "power_factor", tuya.valueConverter.raw],
+                [
+                    18,
+                    "data_report_duration",
+                    {
+                        to: (v: number) => {
+                            const value = Math.max(30, Math.min(3600, Math.round(v))) * 2;
+                            // The reporting logic of this device is: for example, if 30 is input, it will report twice within 30 seconds,
+                            // Which means reporting once every 15 seconds. Therefore, the input data needs to be multiplied by 2.
+                            const byte1 = (value >> 8) & 0xff;
+                            const byte2 = value & 0xff;
+                            return [
+                                // Other settings of the device
+                                0x01,
+                                0x01,
+                                0x00,
+                                0x3c,
+                                0x02,
+                                0x00,
+                                0x00,
+                                0x0a,
+                                0x03,
+                                0x01,
+                                0x00,
+                                0xfd,
+                                0x04,
+                                0x00,
+                                0x00,
+                                0xb4,
+                                0x05,
+                                0x01,
+                                0x00,
+                                0x00,
+                                0x07,
+                                0x01,
+                                0x00,
+                                0x00,
+                                0x08,
+                                0x01,
+                                // Report duration
+                                byte1,
+                                byte2,
+                                // Only modify the report duration
+                                0x09,
+                                0x00,
+                                0x00,
+                                0x00,
+                            ];
+                        },
+                    },
+                ],
                 [101, "ac_frequency", tuya.valueConverter.divideBy100],
                 [102, "voltage_a", tuya.valueConverter.divideBy10],
                 [103, "current_a", tuya.valueConverter.divideBy1000],
@@ -18876,7 +18967,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l5"),
             tuya.exposes.switch().withEndpoint("l6"),
             tuya.exposes.switchType(),
-            e.power_on_behavior(["off", "on"]).withAccess(ea.STATE_SET),
+            e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET),
         ],
         endpoint: (device) => {
             return {
@@ -19297,7 +19388,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fhvdgeuh", "_TZE200_abatw3kj", "_TZE204_4bjixefp", "_TZE284_5m4nchbm"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fhvdgeuh", "_TZE200_abatw3kj", "_TZE204_4bjixefp"]),
         model: "TS0601_din_4",
         vendor: "Tuya",
         description: "Din rail switch with power monitoring and threshold settings",
@@ -22480,7 +22571,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_3regm3h6", "_TZE204_0hcjew5p", "_TZE204_6vwfjkcj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_3regm3h6", "_TZE204_0hcjew5p", "_TZE204_6vwfjkcj", "_TZE284_3regm3h6"]),
         model: "_TZE204_3regm3h6",
         vendor: "Tuya",
         description: "Smart thermostat for electric radiator with pilot wire",
@@ -22924,10 +23015,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.onOff({powerOnBehavior: false}),
             m.deviceAddCustomCluster("manuSpecificTuyaE001", {
+                name: "manuSpecificTuyaE001",
                 ID: 0xe001,
                 attributes: {},
                 commands: {
                     setCountdown: {
+                        name: "setCountdown",
                         ID: 0xfe,
                         parameters: [{name: "data", type: 1008}],
                     },
@@ -23130,7 +23223,46 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mvtclclq"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5m4nchbm"]),
+        model: "SMKG-2KNL-SD",
+        vendor: "Tuya",
+        description: "Smart leakage protector 63a with leakage monitoring",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().setAccess("state", ea.STATE_SET),
+            e.voltage(),
+            e.current(),
+            e.power(),
+            e.energy(),
+            e.temperature(),
+            e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Real-time leakage current (DP 53)"),
+            e.numeric("over_voltage_threshold", ea.STATE_SET).withUnit("V").withValueMin(220).withValueMax(265),
+            e.numeric("under_voltage_threshold", ea.STATE_SET).withUnit("V").withValueMin(76).withValueMax(240),
+            e.numeric("over_current_threshold", ea.STATE_SET).withUnit("A").withValueMin(1).withValueMax(63),
+            e.numeric("leakage_threshold", ea.STATE_SET).withUnit("mA").withValueMin(10).withValueMax(100),
+            e.numeric("temp_threshold", ea.STATE_SET).withUnit("°C").withValueMin(40).withValueMax(150),
+            e.numeric("fault_code", ea.STATE).withDescription("0 = OK"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [20, "voltage", tuya.valueConverter.divideBy10],
+                [18, "current", tuya.valueConverter.divideBy100],
+                [19, "power", tuya.valueConverter.divideBy10],
+                [17, "energy", tuya.valueConverter.divideBy100],
+                [47, "temperature", tuya.valueConverter.raw],
+                [53, "leakage_current", tuya.valueConverter.raw],
+                [41, "leakage_threshold", tuya.valueConverter.raw],
+                [42, "over_voltage_threshold", tuya.valueConverter.raw],
+                [43, "under_voltage_threshold", tuya.valueConverter.raw],
+                [44, "over_current_threshold", tuya.valueConverter.raw],
+                [45, "temp_threshold", tuya.valueConverter.raw],
+                [9, "fault_code", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mvtclclq", "_TZE284_mvtclclq"]),
         model: "DS-1450WN",
         vendor: "Tuya",
         description: "Smart Zigbee Switch with power monitoring",
@@ -25139,6 +25271,37 @@ export const definitions: DefinitionWithExtend[] = [
                         none_30min: tuya.enum(5),
                     }),
                 ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_hbnfokum"]),
+        model: "TS0601_water_valve_1",
+        vendor: "Tuya",
+        description: "Water valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch(),
+            e
+                .numeric("position", ea.STATE_SET)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(10)
+                .withDescription("Target valve position"),
+            e
+                .numeric("position_current", ea.STATE)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(10)
+                .withDescription("Current valve position (feedback, steps of 10%)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [101, "position", tuya.valueConverter.raw],
+                [102, "position_current", tuya.valueConverter.raw],
             ],
         },
     },

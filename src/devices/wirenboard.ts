@@ -307,40 +307,43 @@ const tzLocal = {
 const sprutModernExtend = {
     addSprutVocCluster: () =>
         m.deviceAddCustomCluster("sprutVoc", {
+            name: "sprutVoc",
             ID: 0x6601,
             manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
             attributes: {
-                voc: {ID: 0x6600, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                voc: {name: "voc", ID: 0x6600, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
             },
             commands: {},
             commandsResponse: {},
         }),
     addSprutNoiseCluster: () =>
         m.deviceAddCustomCluster("sprutNoise", {
+            name: "sprutNoise",
             ID: 0x6602,
             manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
             attributes: {
-                noise: {ID: 0x6600, type: Zcl.DataType.SINGLE_PREC, write: true},
-                noiseDetected: {ID: 0x6601, type: Zcl.DataType.BITMAP8, write: true},
-                noiseDetectLevel: {ID: 0x6602, type: Zcl.DataType.SINGLE_PREC, write: true},
-                noiseAfterDetectDelay: {ID: 0x6603, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                noise: {name: "noise", ID: 0x6600, type: Zcl.DataType.SINGLE_PREC, write: true},
+                noiseDetected: {name: "noiseDetected", ID: 0x6601, type: Zcl.DataType.BITMAP8, write: true},
+                noiseDetectLevel: {name: "noiseDetectLevel", ID: 0x6602, type: Zcl.DataType.SINGLE_PREC, write: true},
+                noiseAfterDetectDelay: {name: "noiseAfterDetectDelay", ID: 0x6603, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
             },
             commands: {},
             commandsResponse: {},
         }),
     addSprutIrBlasterCluster: () =>
         m.deviceAddCustomCluster("sprutIrBlaster", {
+            name: "sprutIrBlaster",
             ID: 0x6603,
             manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
             attributes: {},
             commands: {
-                playStore: {ID: 0x00, parameters: [{name: "param", type: Zcl.DataType.UINT8, max: 0xff}]},
-                learnStart: {ID: 0x01, parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}]},
-                learnStop: {ID: 0x02, parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}]},
-                clearStore: {ID: 0x03, parameters: []},
-                playRam: {ID: 0x04, parameters: []},
-                learnRamStart: {ID: 0x05, parameters: []},
-                learnRamStop: {ID: 0x06, parameters: []},
+                playStore: {name: "playStore", ID: 0x00, parameters: [{name: "param", type: Zcl.DataType.UINT8, max: 0xff}]},
+                learnStart: {name: "learnStart", ID: 0x01, parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}]},
+                learnStop: {name: "learnStop", ID: 0x02, parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}]},
+                clearStore: {name: "clearStore", ID: 0x03, parameters: []},
+                playRam: {name: "playRam", ID: 0x04, parameters: []},
+                learnRamStart: {name: "learnRamStart", ID: 0x05, parameters: []},
+                learnRamStop: {name: "learnRamStop", ID: 0x06, parameters: []},
             },
             commandsResponse: {},
         }),
@@ -749,26 +752,35 @@ export const definitions: DefinitionWithExtend[] = [
             addSprutNoiseCluster(),
             addSprutIrBlasterCluster(),
             m.deviceAddCustomCluster("genBasic", {
+                name: "genBasic",
                 ID: 0,
                 attributes: {
-                    deviceVersion: {ID: 26113, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
-                    deviceSignature: {ID: 26114, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
-                    deviceBootVersion: {ID: 26115, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
-                    componentVersion: {ID: 26117, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
-                    componentSignature: {ID: 26118, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    deviceVersion: {name: "deviceVersion", ID: 26113, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    deviceSignature: {name: "deviceSignature", ID: 26114, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    deviceBootVersion: {name: "deviceBootVersion", ID: 26115, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    componentVersion: {name: "componentVersion", ID: 26117, type: Zcl.DataType.CHAR_STR, manufacturerCode: sprutCode, write: true},
+                    componentSignature: {
+                        name: "componentSignature",
+                        ID: 26118,
+                        type: Zcl.DataType.CHAR_STR,
+                        manufacturerCode: sprutCode,
+                        write: true,
+                    },
                 },
                 commands: {},
                 commandsResponse: {},
             }),
             m.deviceAddCustomCluster("sprutDevice", {
+                name: "sprutDevice",
                 ID: 26112,
                 manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
                 attributes: {
-                    isConnected: {ID: 26116, type: Zcl.DataType.BOOLEAN, write: true},
-                    UartBaudRate: {ID: 26113, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    isConnected: {name: "isConnected", ID: 26116, type: Zcl.DataType.BOOLEAN, write: true},
+                    UartBaudRate: {name: "UartBaudRate", ID: 26113, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 },
                 commands: {
                     debug: {
+                        name: "debug",
                         ID: 103,
                         parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}],
                     },

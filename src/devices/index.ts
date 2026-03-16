@@ -117,6 +117,7 @@ import {definitions as gmy} from "./gmy";
 import {definitions as gs} from "./gs";
 import {definitions as gumax} from "./gumax";
 import {definitions as halemeier} from "./halemeier";
+import {definitions as haloSmartLabs} from "./halo_smart_labs";
 import {definitions as hamptonBay} from "./hampton_bay";
 import {definitions as heatit} from "./heatit";
 import {definitions as heiman} from "./heiman";
@@ -212,6 +213,7 @@ import {definitions as nanoleaf} from "./nanoleaf";
 import {definitions as nedis} from "./nedis";
 import {definitions as neo} from "./neo";
 import {definitions as net2grid} from "./net2grid";
+import {definitions as netica} from "./netica";
 import {definitions as netvox} from "./netvox";
 import {definitions as nexelec} from "./nexelec";
 import {definitions as niko} from "./niko";
@@ -254,6 +256,7 @@ import {definitions as quotra} from "./quotra";
 import {definitions as rademacher} from "./rademacher";
 import {definitions as radium} from "./radium";
 import {definitions as raex} from "./raex";
+import {definitions as repenicLtd} from "./repenic_ltd";
 import {definitions as rgbGenie} from "./rgb_genie";
 import {definitions as robb} from "./robb";
 import {definitions as roome} from "./roome";
@@ -484,6 +487,7 @@ const definitions: DefinitionWithExtend[] = [
     ...gs,
     ...gumax,
     ...halemeier,
+    ...haloSmartLabs,
     ...hamptonBay,
     ...heatit,
     ...heiman,
@@ -578,6 +582,7 @@ const definitions: DefinitionWithExtend[] = [
     ...neo,
     ...nedis,
     ...net2grid,
+    ...netica,
     ...netvox,
     ...nexelec,
     ...niko,
@@ -619,6 +624,7 @@ const definitions: DefinitionWithExtend[] = [
     ...rademacher,
     ...radium,
     ...raex,
+    ...repenicLtd,
     ...rgbGenie,
     ...robb,
     ...roome,

@@ -142,19 +142,20 @@ const fzLocal = {
 const extendLocal = {
     addCustomClusterHueChime: () =>
         m.deviceAddCustomCluster("customHueChime", {
+            name: "customHueChime",
             ID: 0xfc07,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
-                sirenIsMuted: {ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
-                soundIDPlaying: {ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                unknownAttr: {ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                sirenIsMuted: {name: "sirenIsMuted", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+                soundIDPlaying: {name: "soundIDPlaying", ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                unknownAttr: {name: "unknownAttr", ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
             },
             commands: {
-                mute: {ID: 0x00, parameters: []},
-                unmute: {ID: 0x01, parameters: []},
-                triggerSiren: {ID: 0x02, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                playSound: {ID: 0x03, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                playTripleBeep: {ID: 0x04, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                mute: {name: "mute", ID: 0x00, parameters: []},
+                unmute: {name: "unmute", ID: 0x01, parameters: []},
+                triggerSiren: {name: "triggerSiren", ID: 0x02, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                playSound: {name: "playSound", ID: 0x03, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                playTripleBeep: {name: "playTripleBeep", ID: 0x04, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
             commandsResponse: {},
         }),
@@ -843,6 +844,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Ensis (black)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+
+    {
+        zigbeeModel: ["929003736701_01", "929003736701_02"],
+        model: "929003736701",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance Datura Ceiling Light Square",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["929003055901", "929003055901_01", "929003055901_02", "929003055901_03"],

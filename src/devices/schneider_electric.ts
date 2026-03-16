@@ -6,6 +6,7 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 import {postfixWithEndpointName} from "../lib/utils";
@@ -251,20 +252,21 @@ function switchActions(endpoint?: string) {
 const schneiderElectricExtend = {
     addVisaConfigurationCluster: (enumDataType: Zcl.DataType.ENUM8 | Zcl.DataType.UINT8) =>
         m.deviceAddCustomCluster("visaConfiguration", {
+            name: "visaConfiguration",
             ID: 0xfc04,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
-                indicatorLuminanceLevel: {ID: 0x0000, type: enumDataType, write: true},
-                indicatorColor: {ID: 0x0001, type: enumDataType, write: true},
-                indicatorMode: {ID: 0x0002, type: enumDataType, write: true},
-                motorTypeChannel1: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                motorTypeChannel2: {ID: 0x0004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                curtainStatusChannel1: {ID: 0x0005, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                curtainStatusChannel2: {ID: 0x0006, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                key1EventNotification: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                key2EventNotification: {ID: 0x0021, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                key3EventNotification: {ID: 0x0022, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                key4EventNotification: {ID: 0x0023, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                indicatorLuminanceLevel: {name: "indicatorLuminanceLevel", ID: 0x0000, type: enumDataType, write: true},
+                indicatorColor: {name: "indicatorColor", ID: 0x0001, type: enumDataType, write: true},
+                indicatorMode: {name: "indicatorMode", ID: 0x0002, type: enumDataType, write: true},
+                motorTypeChannel1: {name: "motorTypeChannel1", ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                motorTypeChannel2: {name: "motorTypeChannel2", ID: 0x0004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                curtainStatusChannel1: {name: "curtainStatusChannel1", ID: 0x0005, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                curtainStatusChannel2: {name: "curtainStatusChannel2", ID: 0x0006, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key1EventNotification: {name: "key1EventNotification", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key2EventNotification: {name: "key2EventNotification", ID: 0x0021, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key3EventNotification: {name: "key3EventNotification", ID: 0x0022, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                key4EventNotification: {name: "key4EventNotification", ID: 0x0023, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
@@ -450,13 +452,14 @@ const schneiderElectricExtend = {
 
     addOccupancyConfigurationCluster: () =>
         m.deviceAddCustomCluster("occupancyConfiguration", {
+            name: "occupancyConfiguration",
             ID: 0xff19,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
-                ambienceLightThreshold: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                occupancyActions: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                unoccupiedLevelDflt: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                unoccupiedLevel: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ambienceLightThreshold: {name: "ambienceLightThreshold", ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                occupancyActions: {name: "occupancyActions", ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                unoccupiedLevelDflt: {name: "unoccupiedLevelDflt", ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                unoccupiedLevel: {name: "unoccupiedLevel", ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
@@ -531,32 +534,33 @@ const schneiderElectricExtend = {
     },
     addHeatingCoolingOutputClusterServer: () =>
         m.deviceAddCustomCluster("heatingCoolingOutputClusterServer", {
+            name: "heatingCoolingOutputClusterServer",
             ID: 0xff23,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
-                measuredTemperature: {ID: 0x0000, type: Zcl.DataType.INT16, max: 0x7fff},
-                absMinHeatTemperatureLimit: {ID: 0x0003, type: Zcl.DataType.INT16, max: 0x7fff},
-                absMaxHeatTemperatureLimit: {ID: 0x0004, type: Zcl.DataType.INT16, max: 0x7fff},
-                absMinCoolTemperatureLimit: {ID: 0x0005, type: Zcl.DataType.INT16, max: 0x7fff},
-                absMaxCoolTemperatureLimit: {ID: 0x0006, type: Zcl.DataType.INT16, max: 0x7fff},
-                minHeatTemperatureLimit: {ID: 0x0015, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
-                maxHeatTemperatureLimit: {ID: 0x0016, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
-                minCoolTemperatureLimit: {ID: 0x0017, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
-                maxCoolTemperatureLimit: {ID: 0x0018, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
-                heatTemperatureHighLimit: {ID: 0x0020, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
-                heatTemperatureLowLimit: {ID: 0x0021, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
-                coolTemperatureHighLimit: {ID: 0x0022, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
-                coolTemperatureLowLimit: {ID: 0x0023, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
-                coolingOutputMode: {ID: 0x0030, type: Zcl.DataType.ENUM8, write: true},
-                heatingOutputMode: {ID: 0x0031, type: Zcl.DataType.ENUM8, write: true},
-                maximumIdleTime: {ID: 0x0041, type: Zcl.DataType.UINT16, write: true, max: 8784},
-                antiIdleExerciseTime: {ID: 0x0042, type: Zcl.DataType.UINT16, write: true, max: 3600},
-                preferredExerciseTime: {ID: 0x0043, type: Zcl.DataType.UINT16, write: true, max: 1439},
-                minOffTime: {ID: 0x0044, type: Zcl.DataType.UINT16, write: true},
-                minOnTime: {ID: 0x0045, type: Zcl.DataType.UINT16, write: true},
-                maxOverallDutyCycle: {ID: 0xe207, type: Zcl.DataType.UINT16, write: true, min: 900, max: 3600},
-                overallDutyCyclePeriod: {ID: 0xe208, type: Zcl.DataType.UINT16, write: true, max: 1440},
-                clusterRevision: {ID: 0xfffd, type: Zcl.DataType.UINT16, max: 0xfffe},
+                measuredTemperature: {name: "measuredTemperature", ID: 0x0000, type: Zcl.DataType.INT16, max: 0x7fff},
+                absMinHeatTemperatureLimit: {name: "absMinHeatTemperatureLimit", ID: 0x0003, type: Zcl.DataType.INT16, max: 0x7fff},
+                absMaxHeatTemperatureLimit: {name: "absMaxHeatTemperatureLimit", ID: 0x0004, type: Zcl.DataType.INT16, max: 0x7fff},
+                absMinCoolTemperatureLimit: {name: "absMinCoolTemperatureLimit", ID: 0x0005, type: Zcl.DataType.INT16, max: 0x7fff},
+                absMaxCoolTemperatureLimit: {name: "absMaxCoolTemperatureLimit", ID: 0x0006, type: Zcl.DataType.INT16, max: 0x7fff},
+                minHeatTemperatureLimit: {name: "minHeatTemperatureLimit", ID: 0x0015, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                maxHeatTemperatureLimit: {name: "maxHeatTemperatureLimit", ID: 0x0016, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                minCoolTemperatureLimit: {name: "minCoolTemperatureLimit", ID: 0x0017, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                maxCoolTemperatureLimit: {name: "maxCoolTemperatureLimit", ID: 0x0018, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                heatTemperatureHighLimit: {name: "heatTemperatureHighLimit", ID: 0x0020, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                heatTemperatureLowLimit: {name: "heatTemperatureLowLimit", ID: 0x0021, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                coolTemperatureHighLimit: {name: "coolTemperatureHighLimit", ID: 0x0022, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                coolTemperatureLowLimit: {name: "coolTemperatureLowLimit", ID: 0x0023, type: Zcl.DataType.INT16, write: true, max: 0x7fff},
+                coolingOutputMode: {name: "coolingOutputMode", ID: 0x0030, type: Zcl.DataType.ENUM8, write: true},
+                heatingOutputMode: {name: "heatingOutputMode", ID: 0x0031, type: Zcl.DataType.ENUM8, write: true},
+                maximumIdleTime: {name: "maximumIdleTime", ID: 0x0041, type: Zcl.DataType.UINT16, write: true, max: 8784},
+                antiIdleExerciseTime: {name: "antiIdleExerciseTime", ID: 0x0042, type: Zcl.DataType.UINT16, write: true, max: 3600},
+                preferredExerciseTime: {name: "preferredExerciseTime", ID: 0x0043, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                minOffTime: {name: "minOffTime", ID: 0x0044, type: Zcl.DataType.UINT16, write: true},
+                minOnTime: {name: "minOnTime", ID: 0x0045, type: Zcl.DataType.UINT16, write: true},
+                maxOverallDutyCycle: {name: "maxOverallDutyCycle", ID: 0xe207, type: Zcl.DataType.UINT16, write: true, min: 900, max: 3600},
+                overallDutyCyclePeriod: {name: "overallDutyCyclePeriod", ID: 0xe208, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                clusterRevision: {name: "clusterRevision", ID: 0xfffd, type: Zcl.DataType.UINT16, max: 0xfffe},
             },
             commands: {},
             commandsResponse: {},
@@ -596,9 +600,11 @@ const schneiderElectricExtend = {
         }),
     addHvacUserInterfaceCfgCustomAttributes: () =>
         m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
+            name: "hvacUserInterfaceCfg",
             ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
             attributes: {
                 displayBrightnessActive: {
+                    name: "displayBrightnessActive",
                     ID: 0xe000,
                     type: Zcl.DataType.UINT8,
                     write: true,
@@ -607,6 +613,7 @@ const schneiderElectricExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
                 displayBrightnessInactive: {
+                    name: "displayBrightnessInactive",
                     ID: 0xe001,
                     type: Zcl.DataType.UINT8,
                     write: true,
@@ -615,6 +622,7 @@ const schneiderElectricExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
                 displayActiveTimeout: {
+                    name: "displayActiveTimeout",
                     ID: 0xe002,
                     type: Zcl.DataType.UINT16,
                     write: true,
@@ -667,9 +675,11 @@ const schneiderElectricExtend = {
         }),
     customTemperatureMeasurementCluster: () =>
         m.deviceAddCustomCluster("msTemperatureMeasurement", {
+            name: "msTemperatureMeasurement",
             ID: Zcl.Clusters.msTemperatureMeasurement.ID,
             attributes: {
                 sensorCorrection: {
+                    name: "sensorCorrection",
                     ID: 0xe020,
                     type: Zcl.DataType.INT16,
                     write: true,
@@ -678,6 +688,7 @@ const schneiderElectricExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
                 temperatureSensorType: {
+                    name: "temperatureSensorType",
                     ID: 0xe021,
                     type: Zcl.DataType.ENUM8,
                     write: true,
@@ -689,9 +700,11 @@ const schneiderElectricExtend = {
         }),
     customMeteringCluster: () =>
         m.deviceAddCustomCluster("seMetering", {
+            name: "seMetering",
             ID: Zcl.Clusters.seMetering.ID,
             attributes: {
                 fixedLoadDemand: {
+                    name: "fixedLoadDemand",
                     ID: 0x4510,
                     type: Zcl.DataType.UINT24,
                     write: true,
@@ -716,14 +729,17 @@ const schneiderElectricExtend = {
         }),
     customThermostatCluster: () =>
         m.deviceAddCustomCluster("hvacThermostat", {
+            name: "hvacThermostat",
             ID: Zcl.Clusters.hvacThermostat.ID,
             attributes: {
                 controlStatus: {
+                    name: "controlStatus",
                     ID: 0xe211,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
                 localTemperatureSourceSelect: {
+                    name: "localTemperatureSourceSelect",
                     ID: 0xe212,
                     type: Zcl.DataType.UINT8,
                     write: true,
@@ -731,30 +747,35 @@ const schneiderElectricExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
                 controlType: {
+                    name: "controlType",
                     ID: 0xe213,
                     type: Zcl.DataType.ENUM8,
                     write: true,
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
                 thermostatApplication: {
+                    name: "thermostatApplication",
                     ID: 0xe216,
                     type: Zcl.DataType.ENUM8,
                     write: true,
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
                 heatingFuel: {
+                    name: "heatingFuel",
                     ID: 0xe217,
                     type: Zcl.DataType.ENUM8,
                     write: true,
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
                 heatTransferMedium: {
+                    name: "heatTransferMedium",
                     ID: 0xe218,
                     type: Zcl.DataType.ENUM8,
                     write: true,
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
                 heatingEmitter: {
+                    name: "heatingEmitter",
                     ID: 0xe21a,
                     type: Zcl.DataType.ENUM8,
                     write: true,
@@ -856,35 +877,38 @@ const schneiderElectricExtend = {
         }),
     addWiserDeviceInfoCluster: () =>
         m.deviceAddCustomCluster("wiserDeviceInfo", {
+            name: "wiserDeviceInfo",
             ID: 0xfe03,
             attributes: {
-                deviceInfo: {ID: 0x0020, type: Zcl.DataType.CHAR_STR, write: true},
+                deviceInfo: {name: "deviceInfo", ID: 0x0020, type: Zcl.DataType.CHAR_STR, write: true},
             },
             commands: {},
             commandsResponse: {},
         }),
     addSchneiderLightSwitchConfigurationCluster: () =>
         m.deviceAddCustomCluster("manuSpecificSchneiderLightSwitchConfiguration", {
+            name: "manuSpecificSchneiderLightSwitchConfiguration",
             ID: 0xff17,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
-                ledIndication: {ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                upSceneID: {ID: 0x0010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                upGroupID: {ID: 0x0011, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                downSceneID: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                downGroupID: {ID: 0x0021, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                switchActions: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                ledIndication: {name: "ledIndication", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                upSceneID: {name: "upSceneID", ID: 0x0010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                upGroupID: {name: "upGroupID", ID: 0x0011, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                downSceneID: {name: "downSceneID", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                downGroupID: {name: "downGroupID", ID: 0x0021, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                switchActions: {name: "switchActions", ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
         }),
     addSchneiderFanSwitchConfigurationCluster: () =>
         m.deviceAddCustomCluster("manuSpecificSchneiderFanSwitchConfiguration", {
+            name: "manuSpecificSchneiderFanSwitchConfiguration",
             ID: 0xfc04,
             manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
             attributes: {
-                ledIndication: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                ledOrientation: {ID: 0x0060, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledIndication: {name: "ledIndication", ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledOrientation: {name: "ledOrientation", ID: 0x0060, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
@@ -910,6 +934,44 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    schneider_ui_action: {
+        cluster: "wiserDeviceInfo",
+        type: "attributeReport",
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+
+            const data = msg.data.deviceInfo.split(",");
+            if (data[0] === "UI" && data[1]) {
+                const result: KeyValueAny = {action: utils.toSnakeCase(data[1])};
+
+                let screenAwake = globalStore.getValue(msg.endpoint, "screenAwake");
+                screenAwake = screenAwake !== undefined ? screenAwake : false;
+                const keypadLockedNumber = Number(msg.endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout"));
+                const keypadLocked = keypadLockedNumber !== undefined ? keypadLockedNumber !== 0 : false;
+
+                // Emulate UI temperature update
+                if (data[1] === "ScreenWake") {
+                    globalStore.putValue(msg.endpoint, "screenAwake", true);
+                } else if (data[1] === "ScreenSleep") {
+                    globalStore.putValue(msg.endpoint, "screenAwake", false);
+                } else if (screenAwake && !keypadLocked) {
+                    let occupiedHeatingSetpoint = Number(msg.endpoint.getClusterAttributeValue("hvacThermostat", "occupiedHeatingSetpoint"));
+                    occupiedHeatingSetpoint = occupiedHeatingSetpoint != null ? occupiedHeatingSetpoint : 400;
+
+                    if (data[1] === "ButtonPressMinusDown") {
+                        occupiedHeatingSetpoint -= 50;
+                    } else if (data[1] === "ButtonPressPlusDown") {
+                        occupiedHeatingSetpoint += 50;
+                    }
+
+                    msg.endpoint.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: occupiedHeatingSetpoint});
+                    result.occupied_heating_setpoint = occupiedHeatingSetpoint / 100;
+                }
+
+                return result;
+            }
+        },
+    } satisfies Fz.Converter<"wiserDeviceInfo", WiserDeviceInfo, "attributeReport">,
     schneider_powertag: {
         cluster: "greenPower",
         type: ["commandNotification", "commandCommissioningNotification"],
@@ -1887,7 +1949,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6400",
         vendor: "Schneider Electric",
         description: "Temperature/Humidity measurement with thermostat interface",
-        fromZigbee: [fz.battery, fz.schneider_temperature, fz.humidity, fz.thermostat, fz.schneider_ui_action],
+        fromZigbee: [fz.battery, fz.schneider_temperature, fz.humidity, fz.thermostat, fzLocal.schneider_ui_action],
         toZigbee: [
             tz.schneider_thermostat_system_mode,
             tz.schneider_thermostat_occupied_heating_setpoint,
@@ -2456,45 +2518,110 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002497",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
-        toZigbee: [
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_system_mode,
-            tz.thermostat_running_state,
-            tz.thermostat_local_temperature,
-            tz.thermostat_control_sequence_of_operation,
-            tz.schneider_thermostat_keypad_lockout,
-            tz.thermostat_temperature_display_mode,
-        ],
         extend: [
-            schneiderElectricExtend.addWiserDeviceInfoCluster(),
+            schneiderElectricExtend.thermostatWithPower({
+                localTemperature: {
+                    values: {
+                        description: "The temperature measured by the selected sensor (see 'Local temperature source select', Ambient or External).",
+                    },
+                },
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 4, max: 40, step: 0.5}}},
+                setpointsLimit: {
+                    maxHeatSetpointLimit: {min: 4, max: 40, step: 0.5},
+                    minHeatSetpointLimit: {min: 4, max: 40, step: 0.5},
+                },
+                systemMode: {values: ["off", "heat"]},
+                piHeatingDemand: {values: true},
+                ctrlSeqeOfOper: {values: ["cooling_only", "heating_only"]},
+            }),
+            m.electricityMeter({
+                cluster: "metering",
+                voltage: false,
+                current: false,
+                configureReporting: true,
+                energy: {divisor: 1000, multiplier: 1},
+            }),
+            schneiderElectricExtend.customMeteringCluster(),
+            schneiderElectricExtend.fixedLoadDemand(),
+            schneiderElectricExtend.addHvacUserInterfaceCfgCustomAttributes(),
+            schneiderElectricExtend.displayBrightnessActive(),
+            schneiderElectricExtend.displayBrightnessInactive(),
+            schneiderElectricExtend.displayActiveTimeout(),
+            schneiderElectricExtend.customThermostatCluster(),
+            schneiderElectricExtend.localTemperatureSourceSelect(),
+            schneiderElectricExtend.controlType(),
+            schneiderElectricExtend.controlStatus(),
+            schneiderElectricExtend.thermostatApplication(),
+            schneiderElectricExtend.heatingEmitter(),
             schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
-            schneiderElectricExtend.pilotMode(),
+            m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
+                name: "heating_output_mode",
+                cluster: "heatingCoolingOutputClusterServer",
+                attribute: "heatingOutputMode",
+                description:
+                    "On devices with alternate heating output types, this selects which should be used to control the heating unit. This attribute is (mistakenly) also called pilot_mode on some devices.",
+                entityCategory: "config",
+                access: "ALL",
+                lookup: {Disabled: 0, Relay: 1},
+            }),
+            schneiderElectricExtend.customTemperatureMeasurementCluster(),
+            m.deviceEndpoints({
+                endpoints: {floor: 3},
+            }),
+            m.numeric<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
+                name: "temperature_sensor_correction",
+                cluster: "msTemperatureMeasurement",
+                attribute: "sensorCorrection",
+                description: "This is a user correction, possibly negative, to be added to the temperature measured by the sensor.",
+                unit: "°C",
+                scale: 100,
+                valueMin: -9,
+                valueMax: 9,
+                valueStep: 0.01,
+                endpointNames: ["floor"],
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.enumLookup<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
+                name: "temperature_sensor_type",
+                cluster: "msTemperatureMeasurement",
+                attribute: "temperatureSensorType",
+                description: "This is used to specify the type of temperature sensor connected to this input",
+                entityCategory: "config",
+                access: "ALL",
+                endpointName: "floor",
+                lookup: {
+                    "2kΩ sensor from HRT/Alre": 1,
+                    "10kΩ sensor from B+J": 2,
+                    "12kΩ sensor from OJ": 3,
+                    "15kΩ sensor from DEVI": 4,
+                    "33kΩ sensor from EBERLE": 5,
+                    "47kΩ sensor from CTM": 6,
+                    "No sensor": 0xff,
+                },
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                lookup: {celsius: 0},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "tempDisplayMode",
+                description: "The unit of the temperature displayed on the device screen. Celsius is the only supported unit.",
+                entityCategory: "config",
+            }),
+            m.binary({
+                name: "child_lock",
+                valueOn: ["LOCK", 1],
+                valueOff: ["UNLOCK", 0],
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Enables/disables physical input on the device",
+                access: "ALL",
+                reporting: {min: 0, max: 3600, change: 0},
+            }),
+            schneiderElectricExtend.addWiserDeviceInfoCluster(),
         ],
-        exposes: [
-            e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
-            e
-                .enum("temperature_display_mode", ea.ALL, ["celsius", "fahrenheit"])
-                .withDescription("The temperature format displayed on the thermostat screen"),
-            e
-                .climate()
-                .withSetpoint("occupied_heating_setpoint", 4, 30, 0.5)
-                .withLocalTemperature()
-                .withSystemMode(["off", "heat"])
-                .withRunningState(["idle", "heat"])
-                .withPiHeatingDemand(),
-            e.temperature(),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["hvacThermostat"]);
-            await reporting.thermostatPIHeatingDemand(endpoint1);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["msTemperatureMeasurement"]);
-            await reporting.temperature(endpoint2);
-            await endpoint1.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
-        },
     },
     {
         zigbeeModel: ["WDE011680"],
@@ -2967,6 +3094,16 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("current_phase_l1", ea.STATE).withUnit("A").withDescription("Instantaneous measured electrical current on phase L1"),
             e.numeric("current_phase_l2", ea.STATE).withUnit("A").withDescription("Instantaneous measured electrical current on phase L2"),
             e.numeric("current_phase_l3", ea.STATE).withUnit("A").withDescription("Instantaneous measured electrical current on phase L3"),
+        ],
+    },
+    {
+        zigbeeModel: ["UFH"],
+        model: "CCTFR6000",
+        vendor: "Schneider Electric",
+        description: "6 Channel Boiler Actuator",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"]}),
         ],
     },
 ];

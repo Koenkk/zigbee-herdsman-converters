@@ -1,5 +1,4 @@
 import assert from "node:assert";
-import type {WiserDeviceInfo} from "src/devices/schneider_electric";
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -3859,24 +3858,6 @@ export const ZMCSW032D_cover_position: Fz.Converter<"closuresWindowCovering", un
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const PGC410EU_presence: Fz.Converter<"manuSpecificSmartThingsArrivalSensor", undefined, "commandArrivalSensorNotify"> = {
-    cluster: "manuSpecificSmartThingsArrivalSensor",
-    type: "commandArrivalSensorNotify",
-    options: [exposes.options.presence_timeout()],
-    convert: (model, msg, publish, options, meta) => {
-        const useOptionsTimeout = options?.presence_timeout != null;
-        const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
-
-        // Stop existing timer because motion is detected and set a new one.
-        clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
-
-        const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
-        globalStore.putValue(msg.endpoint, "timer", timer);
-
-        return {presence: true};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const STS_PRS_251_presence: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBinaryInput",
     type: ["attributeReport", "readResponse"],
@@ -4432,44 +4413,6 @@ export const idlock_fw: Fz.Converter<"genBasic", undefined, ["attributeReport", 
             result.idlock_lock_fw = msg.data[0x5000];
         }
         return result;
-    },
-};
-export const schneider_ui_action: Fz.Converter<"wiserDeviceInfo", WiserDeviceInfo, "attributeReport"> = {
-    cluster: "wiserDeviceInfo",
-    type: "attributeReport",
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-
-        const data = msg.data.deviceInfo.split(",");
-        if (data[0] === "UI" && data[1]) {
-            const result: KeyValueAny = {action: utils.toSnakeCase(data[1])};
-
-            let screenAwake = globalStore.getValue(msg.endpoint, "screenAwake");
-            screenAwake = screenAwake !== undefined ? screenAwake : false;
-            const keypadLockedNumber = Number(msg.endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout"));
-            const keypadLocked = keypadLockedNumber !== undefined ? keypadLockedNumber !== 0 : false;
-
-            // Emulate UI temperature update
-            if (data[1] === "ScreenWake") {
-                globalStore.putValue(msg.endpoint, "screenAwake", true);
-            } else if (data[1] === "ScreenSleep") {
-                globalStore.putValue(msg.endpoint, "screenAwake", false);
-            } else if (screenAwake && !keypadLocked) {
-                let occupiedHeatingSetpoint = Number(msg.endpoint.getClusterAttributeValue("hvacThermostat", "occupiedHeatingSetpoint"));
-                occupiedHeatingSetpoint = occupiedHeatingSetpoint != null ? occupiedHeatingSetpoint : 400;
-
-                if (data[1] === "ButtonPressMinusDown") {
-                    occupiedHeatingSetpoint -= 50;
-                } else if (data[1] === "ButtonPressPlusDown") {
-                    occupiedHeatingSetpoint += 50;
-                }
-
-                msg.endpoint.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: occupiedHeatingSetpoint});
-                result.occupied_heating_setpoint = occupiedHeatingSetpoint / 100;
-            }
-
-            return result;
-        }
     },
 };
 export const schneider_temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {

@@ -1158,9 +1158,10 @@ export const definitions: DefinitionWithExtend[] = [
             addCustomClusterManuSpecificIkeaUnknown(),
             addCustomClusterManuSpecificIkeaVocIndexMeasurement(),
             m.deviceAddCustomCluster("pm25Measurement", {
+                name: "pm25Measurement",
                 ID: 0x042a,
                 attributes: {
-                    measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
+                    measuredValue: {name: "measuredValue", ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1169,7 +1170,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.humidity(),
             m.pm25({reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 2}}),
             ikeaVoc(),
-            m.identify(),
         ],
         ota: true,
     },
@@ -1226,6 +1226,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery({voltage: true, voltageReporting: true}),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["VARMBLIXT table/wall lamp"],
+        model: "E2499",
+        vendor: "IKEA",
+        description: "VARMBLIXT table/wall lamp, color/white spectrum, 180 lm",
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"]}}), m.identify()],
     },
     // #endregion sensors
 ];

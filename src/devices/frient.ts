@@ -47,4 +47,18 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         endpoint: (device) => ({default: 2}),
     },
+    {
+        zigbeeModel: ["SIRZB-112"],
+        model: "SIRZB-112",
+        vendor: "Frient",
+        description: "Customizable siren",
+        extend: [
+            m.deviceEndpoints({endpoints: {"43": 43}}),
+            m.onOff({powerOnBehavior: false}),
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
+            m.iasWarning(),
+        ],
+        ota: true,
+    },
 ];

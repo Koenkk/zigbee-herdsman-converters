@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterDefinition} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -10,6 +9,14 @@ import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface OwonClearMetering {
+    attributes: never;
+    commands: {
+        owonClearMeasurementData: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
 interface OwonAcControl {
     attributes: Record<string, never>;
     commands: {
@@ -19,6 +26,109 @@ interface OwonAcControl {
     };
     commandResponses: never;
 }
+
+interface OwonFallDetection {
+    attributes: {
+        status: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        breathing_rate: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        location_x: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        location_y: number;
+        bedUpperLeftX: number;
+        bedUpperLeftY: number;
+        bedLowerRightX: number;
+        bedLowerRightY: number;
+        doorCenterX: number;
+        doorCenterY: number;
+        leftFallDetectionRange: number;
+        rightFallDetectionRange: number;
+        frontFallDetectionRange: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+const owonExtend = {
+    addOwonClearMeteringCluster: () =>
+        m.deviceAddCustomCluster("owonClearMetering", {
+            name: "owonClearMetering",
+            ID: 0xffe0,
+            manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+            attributes: {},
+            commands: {
+                owonClearMeasurementData: {name: "owonClearMeasurementData", ID: 0x00, parameters: []},
+            },
+            commandsResponse: {},
+        }),
+    addManuSpecificOwonAcCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificOwonAc", {
+            name: "manuSpecificOwonAc",
+            ID: 0xffac,
+            manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+            attributes: {},
+            commands: {
+                oneKeyPairingRequest: {
+                    name: "oneKeyPairingRequest",
+                    ID: 0x52,
+                    parameters: [
+                        {name: "oneKeyPairingStart", type: Zcl.DataType.UINT8}, // 0x00 end, 0x01 start
+                    ],
+                },
+                writePairingCode: {
+                    name: "writePairingCode",
+                    ID: 0x20,
+                    parameters: [{name: "pairingCode", type: Zcl.DataType.UINT16}],
+                },
+                readPairingCodeRequest: {
+                    name: "readPairingCodeRequest",
+                    ID: 0x00,
+                    parameters: [],
+                },
+            },
+            commandsResponse: {
+                oneKeyPairingResponse: {
+                    name: "oneKeyPairingResponse",
+                    ID: 0x52,
+                    parameters: [{name: "receiveStatus", type: Zcl.DataType.UINT8}],
+                },
+                oneKeyPairingResultUpdate: {
+                    name: "oneKeyPairingResultUpdate",
+                    ID: 0x80,
+                    parameters: [],
+                },
+                readPairingCodeResponse: {
+                    name: "readPairingCodeResponse",
+                    ID: 0x00,
+                    parameters: [{name: "pairingCode", type: Zcl.DataType.UINT16}],
+                },
+            },
+        }),
+    addFallDetectionOwonCluster: () =>
+        m.deviceAddCustomCluster("fallDetectionOwon", {
+            name: "fallDetectionOwon",
+            ID: 0xfd00,
+            manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+            attributes: {
+                status: {name: "status", ID: 0x0000, type: Zcl.DataType.ENUM8},
+                breathing_rate: {name: "breathing_rate", ID: 0x0002, type: Zcl.DataType.UINT8},
+                location_x: {name: "location_x", ID: 0x0003, type: Zcl.DataType.INT16},
+                location_y: {name: "location_y", ID: 0x0004, type: Zcl.DataType.INT16},
+                bedUpperLeftX: {name: "bedUpperLeftX", ID: 0x0100, type: Zcl.DataType.INT16},
+                bedUpperLeftY: {name: "bedUpperLeftY", ID: 0x0101, type: Zcl.DataType.INT16},
+                bedLowerRightX: {name: "bedLowerRightX", ID: 0x0102, type: Zcl.DataType.INT16},
+                bedLowerRightY: {name: "bedLowerRightY", ID: 0x0103, type: Zcl.DataType.INT16},
+                doorCenterX: {name: "doorCenterX", ID: 0x0108, type: Zcl.DataType.INT16},
+                doorCenterY: {name: "doorCenterY", ID: 0x0109, type: Zcl.DataType.INT16},
+                leftFallDetectionRange: {name: "leftFallDetectionRange", ID: 0x010c, type: Zcl.DataType.UINT16},
+                rightFallDetectionRange: {name: "rightFallDetectionRange", ID: 0x010d, type: Zcl.DataType.UINT16},
+                frontFallDetectionRange: {name: "frontFallDetectionRange", ID: 0x010e, type: Zcl.DataType.UINT16},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+};
 
 const owonExtendChecks = {
     parseOneKeyPairingInput: (input: unknown) => {
@@ -64,67 +174,6 @@ const owonExtendChecks = {
         };
     },
 };
-
-const OwonClustersDefinition: {[s: string]: ClusterDefinition} = {
-    manuSpecificOwonAc: {
-        ID: 0xffac,
-        manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
-        attributes: {},
-        commands: {
-            oneKeyPairingRequest: {
-                ID: 0x52,
-                parameters: [
-                    {name: "oneKeyPairingStart", type: Zcl.DataType.UINT8}, // 0x00 end, 0x01 start
-                ],
-            },
-            writePairingCode: {
-                ID: 0x20,
-                parameters: [{name: "pairingCode", type: Zcl.DataType.UINT16}],
-            },
-            readPairingCodeRequest: {
-                ID: 0x00,
-                parameters: [],
-            },
-        },
-        commandsResponse: {
-            oneKeyPairingResponse: {
-                ID: 0x52,
-                parameters: [{name: "receiveStatus", type: Zcl.DataType.UINT8}],
-            },
-            oneKeyPairingResultUpdate: {
-                ID: 0x80,
-                parameters: [],
-            },
-            readPairingCodeResponse: {
-                ID: 0x00,
-                parameters: [{name: "pairingCode", type: Zcl.DataType.UINT16}],
-            },
-        },
-    },
-};
-
-interface OwonFallDetection {
-    attributes: {
-        status: number;
-        // biome-ignore lint/style/useNamingConvention: TODO
-        breathing_rate: number;
-        // biome-ignore lint/style/useNamingConvention: TODO
-        location_x: number;
-        // biome-ignore lint/style/useNamingConvention: TODO
-        location_y: number;
-        bedUpperLeftX: number;
-        bedUpperLeftY: number;
-        bedLowerRightX: number;
-        bedLowerRightY: number;
-        doorCenterX: number;
-        doorCenterY: number;
-        leftFallDetectionRange: number;
-        rightFallDetectionRange: number;
-        frontFallDetectionRange: number;
-    };
-    commands: never;
-    commandResponses: never;
-}
 
 const fzLocal = {
     temperature: {
@@ -332,7 +381,7 @@ const fzLocal = {
             return payload;
         },
         // biome-ignore lint/suspicious/noExplicitAny: third-party converter signature requires any
-    } satisfies Fz.Converter<"manuSpecificOwonAc", undefined, any>,
+    } satisfies Fz.Converter<"manuSpecificOwonAc", OwonAcControl, any>,
 
     owonAcReadPairingCodeResponse: {
         cluster: "manuSpecificOwonAc",
@@ -350,7 +399,7 @@ const fzLocal = {
             return {};
         },
         // biome-ignore lint/suspicious/noExplicitAny: third-party converter signature requires any
-    } satisfies Fz.Converter<"manuSpecificOwonAc", undefined, any>,
+    } satisfies Fz.Converter<"manuSpecificOwonAc", OwonAcControl, any>,
 };
 
 const tzLocal = {
@@ -358,7 +407,12 @@ const tzLocal = {
     PC321_clearMetering: {
         key: ["clear_metering"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command(0xffe0, 0x00, {}, {disableDefaultResponse: true});
+            await entity.command<"owonClearMetering", "owonClearMeasurementData", OwonClearMetering>(
+                "owonClearMetering",
+                "owonClearMeasurementData",
+                {},
+                {disableDefaultResponse: true},
+            );
         },
     } satisfies Tz.Converter,
 
@@ -560,7 +614,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AC221",
         vendor: "OWON",
         description: "AC controller / IR blaster",
-        extend: [m.deviceAddCustomCluster("manuSpecificOwonAc", OwonClustersDefinition.manuSpecificOwonAc)],
+        extend: [owonExtend.addManuSpecificOwonAcCluster()],
         fromZigbee: [fz.fan, fz.thermostat, fzLocal.owonAcOneKeyPairingResponse, fzLocal.owonAcReadPairingCodeResponse],
         toZigbee: [
             tz.fan_mode,
@@ -651,6 +705,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PC321",
         vendor: "OWON",
         description: "3-Phase clamp power meter",
+        extend: [owonExtend.addOwonClearMeteringCluster()],
         fromZigbee: [fz.metering, fzLocal.PC321_metering],
         toZigbee: [tzLocal.PC321_clearMetering],
         configure: async (device, coordinatorEndpoint) => {
@@ -877,29 +932,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FDS315",
         vendor: "OWON",
         description: "Fall Detection Sensor",
-        extend: [
-            m.deviceAddCustomCluster("fallDetectionOwon", {
-                ID: 0xfd00,
-                manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
-                attributes: {
-                    status: {ID: 0x0000, type: Zcl.DataType.ENUM8},
-                    breathing_rate: {ID: 0x0002, type: Zcl.DataType.UINT8},
-                    location_x: {ID: 0x0003, type: Zcl.DataType.INT16},
-                    location_y: {ID: 0x0004, type: Zcl.DataType.INT16},
-                    bedUpperLeftX: {ID: 0x0100, type: Zcl.DataType.INT16},
-                    bedUpperLeftY: {ID: 0x0101, type: Zcl.DataType.INT16},
-                    bedLowerRightX: {ID: 0x0102, type: Zcl.DataType.INT16},
-                    bedLowerRightY: {ID: 0x0103, type: Zcl.DataType.INT16},
-                    doorCenterX: {ID: 0x0108, type: Zcl.DataType.INT16},
-                    doorCenterY: {ID: 0x0109, type: Zcl.DataType.INT16},
-                    leftFallDetectionRange: {ID: 0x010c, type: Zcl.DataType.UINT16},
-                    rightFallDetectionRange: {ID: 0x010d, type: Zcl.DataType.UINT16},
-                    frontFallDetectionRange: {ID: 0x010e, type: Zcl.DataType.UINT16},
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
-        ],
+        extend: [owonExtend.addFallDetectionOwonCluster()],
         fromZigbee: [fz.identify, fzLocal.owonFds315],
         toZigbee: [tzLocal.owonFds315SetFallSettings],
         exposes: [
