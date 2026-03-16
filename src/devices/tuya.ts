@@ -25389,4 +25389,6 @@ export const definitions: DefinitionWithExtend[] = [
             [33, 'restart_status_5', tuya.valueConverter.powerOnBehaviorEnum],
         ],
     },
-}
+],
+};
+    
