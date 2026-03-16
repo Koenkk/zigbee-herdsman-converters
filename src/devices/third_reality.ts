@@ -60,15 +60,6 @@ interface ThirdWateringKit {
     commandResponses: never;
 }
 
-interface ThirdWateringKit {
-    attributes: {
-        wateringTimes: number;
-        intervalDay: number;
-    };
-    commands: never;
-    commandResponses: never;
-}
-
 interface ThirdBlindGen2 {
     attributes: {
         infraredEnable: number;
