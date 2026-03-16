@@ -467,7 +467,7 @@ const tzLocal = {
     danfoss_mounted_mode_control: {
         key: ["mounted_mode_control"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacThermostat", {danfossMountedModeControl: value as number});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossMountedModeControl: value as number});
             return {state: {mounted_mode_control: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -477,7 +477,7 @@ const tzLocal = {
     danfoss_thermostat_vertical_orientation: {
         key: ["thermostat_vertical_orientation"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacThermostat", {danfossThermostatOrientation: value as number});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossThermostatOrientation: value as number});
             return {state: {thermostat_vertical_orientation: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -491,7 +491,7 @@ const tzLocal = {
     danfoss_external_measured_room_sensor: {
         key: ["external_measured_room_sensor"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacThermostat", {danfossExternalMeasuredRoomSensor: value as number});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossExternalMeasuredRoomSensor: value as number});
             return {state: {external_measured_room_sensor: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -505,7 +505,7 @@ const tzLocal = {
     danfoss_radiator_covered: {
         key: ["radiator_covered"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacThermostat", {danfossRadiatorCovered: value as number});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossRadiatorCovered: value as number});
             return {state: {radiator_covered: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -515,7 +515,9 @@ const tzLocal = {
     danfoss_viewing_direction: {
         key: ["viewing_direction"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacUserInterfaceCfg", {danfossViewingDirection: value as number});
+            await entity.write<"hvacUserInterfaceCfg", DanfossHvacUserInterfaceCfg>("hvacUserInterfaceCfg", {
+                danfossViewingDirection: value as number,
+            });
             return {state: {viewing_direction: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -525,7 +527,7 @@ const tzLocal = {
     danfoss_algorithm_scale_factor: {
         key: ["algorithm_scale_factor"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacThermostat", {danfossAlgorithmScaleFactor: value as number});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossAlgorithmScaleFactor: value as number});
             return {state: {algorithm_scale_factor: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -539,7 +541,7 @@ const tzLocal = {
     danfoss_heat_available: {
         key: ["heat_available"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacThermostat", {danfossHeatAvailable: value as number});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossHeatAvailable: value as number});
             return {state: {heat_available: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -556,7 +558,7 @@ const tzLocal = {
         key: ["day_of_week"],
         convertSet: async (entity, key, value, meta) => {
             const payload = {danfossDayOfWeek: utils.getKey(constants.thermostatDayOfWeek, value, undefined, Number)};
-            await entity.write("hvacThermostat", payload);
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", payload);
             return {state: {day_of_week: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -566,7 +568,7 @@ const tzLocal = {
     danfoss_trigger_time: {
         key: ["trigger_time"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacThermostat", {danfossTriggerTime: value as number});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossTriggerTime: value as number});
             return {state: {trigger_time: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -576,7 +578,7 @@ const tzLocal = {
     danfoss_window_open_feature: {
         key: ["window_open_feature"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacThermostat", {danfossWindowOpenFeatureEnable: value as number});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossWindowOpenFeatureEnable: value as number});
             return {state: {window_open_feature: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -596,7 +598,7 @@ const tzLocal = {
     danfoss_window_open_external: {
         key: ["window_open_external"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacThermostat", {danfossWindowOpenExternal: value as number});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossWindowOpenExternal: value as number});
             return {state: {window_open_external: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -606,7 +608,7 @@ const tzLocal = {
     danfoss_load_balancing_enable: {
         key: ["load_balancing_enable"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacThermostat", {danfossLoadBalancingEnable: value as number});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossLoadBalancingEnable: value as number});
             return {state: {load_balancing_enable: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -616,7 +618,7 @@ const tzLocal = {
     danfoss_load_room_mean: {
         key: ["load_room_mean"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacThermostat", {danfossLoadRoomMean: value as number});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossLoadRoomMean: value as number});
             return {state: {load_room_mean: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -644,7 +646,7 @@ const tzLocal = {
     danfoss_adaptation_settings: {
         key: ["adaptation_run_settings"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacThermostat", {danfossAdaptionRunSettings: value as number});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossAdaptionRunSettings: value as number});
             return {state: {adaptation_run_settings: value}};
         },
 
@@ -655,7 +657,7 @@ const tzLocal = {
     danfoss_adaptation_control: {
         key: ["adaptation_run_control"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write(
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
                 "hvacThermostat",
                 {danfossAdaptionRunControl: utils.getKey(constants.danfossAdaptionRunControl, value, value as number, Number)},
                 // manufacturerOptions.danfoss,
@@ -670,7 +672,7 @@ const tzLocal = {
     danfoss_regulation_setpoint_offset: {
         key: ["regulation_setpoint_offset"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.write("hvacThermostat", {danfossRegulationSetpointOffset: value as number});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossRegulationSetpointOffset: value as number});
             return {state: {regulation_setpoint_offset: value}};
         },
 
@@ -705,7 +707,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value, key);
             const danfossFloorMinSetpoint = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
-            await entity.write("hvacThermostat", {danfossFloorMinSetpoint});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossFloorMinSetpoint});
             return {state: {floor_min_setpoint: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -717,7 +719,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value, key);
             const danfossFloorMaxSetpoint = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
-            await entity.write("hvacThermostat", {danfossFloorMaxSetpoint});
+            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossFloorMaxSetpoint});
             return {state: {floor_max_setpoint: value}};
         },
         convertGet: async (entity, key, meta) => {
