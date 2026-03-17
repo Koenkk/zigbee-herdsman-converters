@@ -45,6 +45,7 @@ import {definitions as casaia} from "./casaia";
 import {definitions as cel} from "./cel";
 import {definitions as centralite} from "./centralite";
 import {definitions as chacon} from "./chacon";
+import {definitions as cigol} from "./cigol";
 import {definitions as cleode} from "./cleode";
 import {definitions as cleverio} from "./cleverio";
 import {definitions as climax} from "./climax";
@@ -416,6 +417,7 @@ const definitions: DefinitionWithExtend[] = [
     ...cel,
     ...centralite,
     ...chacon,
+    ...cigol,
     ...cleode,
     ...cleverio,
     ...climax,
