@@ -3,7 +3,7 @@
 
 import * as exposes from "../lib/exposes";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
-import {determineEndpoint, isDummyDevice} from "../lib/utils";
+import {determineEndpoint, getFromLookup, isDummyDevice} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -21,25 +21,8 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValue = {};
             const value = msg.data.presentValue as number | undefined;
-            let action = "Off";
-            switch (value) {
-                case 0:
-                    action = "Off";
-                    break;
-                case 1:
-                    action = "Single";
-                    break;
-                case 2:
-                    action = "Double";
-                    break;
-                case 4:
-                    action = "Hold";
-                    break;
-                default:
-                    action = "Off";
-                    break;
-            }
-            payload[`input_${msg.endpoint.ID}`] = action;
+            const lookup = {0: "Off", 1: "Single", 2: "Double", 4: "Hold"};
+            payload[`input_${msg.endpoint.ID}`] = getFromLookup(value, lookup, "Off");
             return payload;
         },
     } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
@@ -63,21 +46,8 @@ const fzLocal = {
                 return {};
             }
             const value = msg.data.switchActions as number;
-            let action = "Off";
-            switch (value) {
-                case 0:
-                    action = "On";
-                    break;
-                case 1:
-                    action = "Off";
-                    break;
-                case 2:
-                    action = "Toggle";
-                    break;
-                default:
-                    action = "Off";
-                    break;
-            }
+            const lookup = {0: "on", 1: "off", 2: "toggle"};
+            const action = getFromLookup(value, lookup, "off");
             return {[`switch_action_${msg.endpoint.ID}`]: action};
         },
     } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["attributeReport", "readResponse"]>,
@@ -122,20 +92,10 @@ const tzLocal = {
             if (typeof value !== "string") {
                 throw new Error(`Invalid switch action payload: ${JSON.stringify(value)}. Expected a string value: Off, On, Toggle`);
             }
-            const normalizedValue = value.toLowerCase();
-            let switchActionsValue = -1;
-            switch (normalizedValue) {
-                case "on":
-                    switchActionsValue = 0;
-                    break;
-                case "off":
-                    switchActionsValue = 1;
-                    break;
-                case "toggle":
-                    switchActionsValue = 2;
-                    break;
-                default:
-                    throw new Error(`Invalid switch action: ${value}. Valid values: Off, On, Toggle`);
+            const lookup = {on: 0, off: 1, toggle: 2} as const;
+            const switchActionsValue = getFromLookup(value.toLowerCase(), lookup);
+            if (switchActionsValue === undefined) {
+                throw new Error(`Invalid switch action: ${value}. Valid values: Off, On, Toggle`);
             }
             await endpoint.write("genOnOffSwitchCfg", {switchActions: switchActionsValue});
             await endpoint.read("genOnOffSwitchCfg", ["switchActions"]);
@@ -179,7 +139,7 @@ export const definitions: DefinitionWithExtend[] = [
                     else label = `Input B-${ep - 30}`;
                     exposesArray.push(
                         e
-                            .enum("input", ea.STATE, ["Off", "Single", "Double", "Hold"])
+                            .enum("input", ea.STATE, ["off", "single", "double", "hold"])
                             .withDescription(`${label} (Off, Single, Double, Hold)`)
                             .withLabel(label)
                             .withEndpoint(`${ep}`),
@@ -203,7 +163,7 @@ export const definitions: DefinitionWithExtend[] = [
                     else label = `B-${ep - 30}`;
                     exposesArray.push(
                         e
-                            .enum("switch_action", ea.ALL, ["Off", "On", "Toggle"])
+                            .enum("switch_action", ea.ALL, ["off", "on", "toggle"])
                             .withDescription("Select what activating the input should do: Turn Off, Turn On, or Toggle")
                             .withLabel(`Activation function for input ${label}`)
                             .withEndpoint(`${ep}`),
