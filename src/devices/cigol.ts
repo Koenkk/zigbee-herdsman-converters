@@ -1,6 +1,3 @@
-// cigol.ts
-// CIGOL Electronics - Zigbee2MQTT converters
-
 import * as exposes from "../lib/exposes";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import {determineEndpoint, getFromLookup, isDummyDevice} from "../lib/utils";
@@ -21,12 +18,11 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const payload: KeyValue = {};
             const value = msg.data.presentValue as number | undefined;
-            const lookup = {0: "Off", 1: "Single", 2: "Double", 4: "Hold"};
-            payload[`input_${msg.endpoint.ID}`] = getFromLookup(value, lookup, "Off");
+            const lookup = {0: "off", 1: "single", 2: "double", 4: "hold"};
+            payload[`input_${msg.endpoint.ID}`] = getFromLookup(value, lookup, "off");
             return payload;
         },
     } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
-
     cigolOutputStateReport: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -37,7 +33,6 @@ const fzLocal = {
             return {};
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
-
     cigolSwitchActionReport: {
         cluster: "genOnOffSwitchCfg",
         type: ["attributeReport", "readResponse"],
@@ -90,7 +85,7 @@ const tzLocal = {
                 throw new Error("Endpoint not found");
             }
             if (typeof value !== "string") {
-                throw new Error(`Invalid switch action payload: ${JSON.stringify(value)}. Expected a string value: Off, On, Toggle`);
+                throw new Error(`Invalid switch action payload: ${JSON.stringify(value)}. Expected a string value: off, on, toggle`);
             }
             const lookup = {on: 0, off: 1, toggle: 2} as const;
             const switchActionsValue = getFromLookup(value.toLowerCase(), lookup);
@@ -120,7 +115,6 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fzLocal.cigolInput, fzLocal.cigolOutputStateReport, fzLocal.cigolSwitchActionReport],
         toZigbee: [tzLocal.cigolOutputWrite, tzLocal.cigolSwitchAction],
-
         exposes: (device, options) => {
             if (isDummyDevice(device)) {
                 return [e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Output state")];
@@ -140,7 +134,7 @@ export const definitions: DefinitionWithExtend[] = [
                     exposesArray.push(
                         e
                             .enum("input", ea.STATE, ["off", "single", "double", "hold"])
-                            .withDescription(`${label} (Off, Single, Double, Hold)`)
+                            .withDescription(`${label} (off, single, double, hold)`)
                             .withLabel(label)
                             .withEndpoint(`${ep}`),
                     );
