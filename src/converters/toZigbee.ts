@@ -3307,37 +3307,6 @@ export const tuya_led_controller: Tz.Converter = {
         }
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const EMIZB_132_mode: Tz.Converter = {
-    key: ["interface_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        const endpoint = meta.device.getEndpoint(2);
-        const lookup = {
-            norwegian_han: {value: 0x0200, acVoltageDivisor: 10, acCurrentDivisor: 10},
-            norwegian_han_extra_load: {value: 0x0201, acVoltageDivisor: 10, acCurrentDivisor: 10},
-            aidon_meter: {value: 0x0202, acVoltageDivisor: 10, acCurrentDivisor: 10},
-            kaifa_and_kamstrup: {value: 0x0203, acVoltageDivisor: 10, acCurrentDivisor: 1000},
-        };
-
-        await endpoint.write(
-            "seMetering",
-            {770: {value: utils.getFromLookup(value, lookup).value, type: 49}},
-            {manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
-        );
-
-        // As the device reports the incorrect divisor, we need to set it here
-        // https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-604347303
-        // Values for norwegian_han and aidon_meter have not been been checked
-        endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
-            acVoltageMultiplier: 1,
-            acVoltageDivisor: utils.getFromLookup(value, lookup).acVoltageDivisor,
-            acCurrentMultiplier: 1,
-            acCurrentDivisor: utils.getFromLookup(value, lookup).acCurrentDivisor,
-        });
-
-        return {state: {interface_mode: value}};
-    },
-};
 export const eurotronic_host_flags: Tz.Converter = {
     key: ["eurotronic_host_flags", "system_mode"],
     convertSet: async (entity, key, value, meta) => {
@@ -4556,20 +4525,6 @@ export const schneider_dimmer_mode: Tz.Converter = {
         await entity.read("lightingBallastCfg", [0xe000], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
     },
 };
-export const wiser_dimmer_mode: Tz.Converter = {
-    key: ["dimmer_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write(
-            "lightingBallastCfg",
-            {wiserControlMode: utils.getKey(constants.wiserDimmerControlMode, value, value as number, Number)},
-            {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-        );
-        return {state: {dimmer_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("lightingBallastCfg", ["wiserControlMode"], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
-    },
-};
 export const schneider_temperature_measured_value: Tz.Converter = {
     key: ["temperature_measured_value"],
     convertSet: async (entity, key, value, meta) => {
@@ -4622,64 +4577,6 @@ export const schneider_thermostat_keypad_lockout: Tz.Converter = {
         await entity.write("hvacUserInterfaceCfg", {keypadLockout});
         entity.saveClusterAttributeKeyValue("hvacUserInterfaceCfg", {keypadLockout});
         return {state: {keypad_lockout: value}};
-    },
-};
-export const wiser_fip_setting: Tz.Converter = {
-    key: ["fip_setting"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        const zoneLookup = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
-        const zonemodeNum = utils.getFromLookup(meta.state.zone_mode, zoneLookup);
-
-        const fipLookup = {comfort: 0, "comfort_-1": 1, "comfort_-2": 2, energy_saving: 3, frost_protection: 4, off: 5};
-        value = value.toLowerCase();
-        utils.validateValue(value, Object.keys(fipLookup));
-        const fipmodeNum = utils.getFromLookup(value, fipLookup);
-
-        const payload = {
-            zonemode: zonemodeNum,
-            fipmode: fipmodeNum,
-            reserved: 0xff,
-        };
-        await entity.command("hvacThermostat", "wiserSmartSetFipMode", payload, {srcEndpoint: 11, disableDefaultResponse: true});
-
-        return {state: {fip_setting: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", [0xe020]);
-    },
-};
-export const wiser_hact_config: Tz.Converter = {
-    key: ["hact_config"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        const lookup = {unconfigured: 0x00, setpoint_switch: 0x80, setpoint_fip: 0x82, fip_fip: 0x83};
-        value = value.toLowerCase();
-        const mode = utils.getFromLookup(value, lookup);
-        await entity.write("hvacThermostat", {57361: {value: mode, type: 0x18}});
-        return {state: {hact_config: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", [0xe011]);
-    },
-};
-export const wiser_zone_mode: Tz.Converter = {
-    key: ["zone_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        const lookup = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
-        const zonemodeNum = utils.getFromLookup(value, lookup);
-        await entity.write("hvacThermostat", {57360: {value: zonemodeNum, type: 0x30}});
-        return {state: {zone_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", [0xe010]);
-    },
-};
-export const wiser_vact_calibrate_valve: Tz.Converter = {
-    key: ["calibrate_valve"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.command("hvacThermostat", "wiserSmartCalibrateValve", {}, {srcEndpoint: 11, disableDefaultResponse: true});
-        return {state: {calibrate_valve: value}};
     },
 };
 export const wiser_sed_zone_mode: Tz.Converter = {
