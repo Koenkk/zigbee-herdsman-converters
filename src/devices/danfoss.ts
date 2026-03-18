@@ -5,7 +5,7 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValueAny, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {postfixWithEndpointName, precisionRound} from "../lib/utils";
 
@@ -407,6 +407,388 @@ const danfossExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    keypadLockout: (args?: Partial<m.EnumLookupArgs<"hvacUserInterfaceCfg", undefined>>) =>
+        m.enumLookup({
+            name: "keypad_lockout",
+            cluster: "hvacUserInterfaceCfg",
+            attribute: "keypadLockout",
+            description: "Enables/disables physical input on the device",
+            lookup: {
+                unlock: 0,
+                lock: 1,
+            },
+            access: "ALL",
+            fzConvert: (model, msg, publish, options, meta) => {
+                const result: KeyValueAny = {};
+                if ("keypadLockout" in msg.data) {
+                    result[postfixWithEndpointName("keypad_lockout", msg, model, meta)] = msg.data.keypadLockout > 0 ? "lock" : "unlock";
+                }
+                return result;
+            },
+            ...args,
+        }),
+    danfossMountedModeActive: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.binary<"hvacThermostat", DanfossHvacThermostat>({
+            name: "mounted_mode_active",
+            cluster: "hvacThermostat",
+            attribute: "danfossMountedModeActive",
+            description:
+                "Is the unit in mounting mode. This is set to `false` for mounted (already on the radiator) or `true` for not mounted (after factory reset)",
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            access: "STATE_GET",
+            ...args,
+        }),
+    danfossMountedModeControl: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.binary<"hvacThermostat", DanfossHvacThermostat>({
+            name: "mounted_mode_control",
+            cluster: "hvacThermostat",
+            attribute: "danfossMountedModeControl",
+            description: "Set the unit mounting mode. `false` Go to Mounted Mode or `true` Go to Mounting Mode",
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            access: "ALL",
+            ...args,
+        }),
+    danfossThermostatOrientation: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.binary<"hvacThermostat", DanfossHvacThermostat>({
+            name: "thermostat_vertical_orientation",
+            cluster: "hvacThermostat",
+            attribute: "danfossThermostatOrientation",
+            description: "Thermostat Orientation. This is important for the PID in how it assesses temperature.",
+            valueOn: ["Vertical", true],
+            valueOff: ["Horizontal", false],
+            access: "ALL",
+            ...args,
+        }),
+    danfossViewingDirection: (args?: Partial<m.BinaryArgs<"hvacUserInterfaceCfg", DanfossHvacUserInterfaceCfg>>) =>
+        m.binary<"hvacUserInterfaceCfg", DanfossHvacUserInterfaceCfg>({
+            name: "viewing_direction",
+            cluster: "hvacUserInterfaceCfg",
+            attribute: "danfossViewingDirection",
+            description: "Viewing/display direction",
+            valueOn: ["Upside-down", true],
+            valueOff: ["Normal", false],
+            access: "ALL",
+            ...args,
+        }),
+    danfossHeatAvailable: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.binary<"hvacThermostat", DanfossHvacThermostat>({
+            name: "heat_available",
+            cluster: "hvacThermostat",
+            attribute: "danfossHeatAvailable",
+            description:
+                "Not clear how this affects operation. However, it would appear that the device does not execute any " +
+                "motor functions if this is set to false. This may be a means to conserve battery during periods that the heating " +
+                "system is not energized (e.g. during summer).",
+            valueOn: ["Heat Available", true],
+            valueOff: ["No Heat Available", false],
+            access: "ALL",
+            ...args,
+        }),
+    danfossHeatRequired: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.binary<"hvacThermostat", DanfossHvacThermostat>({
+            name: "heat_required",
+            cluster: "hvacThermostat",
+            attribute: "danfossHeatRequired",
+            description: "Whether or not the unit needs warm water.",
+            valueOn: ["Heat Request", true],
+            valueOff: ["No Heat Request", false],
+            access: "STATE_GET",
+            ...args,
+        }),
+    setpointChangeSource: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", undefined>>) =>
+        m.enumLookup({
+            name: "setpoint_change_source",
+            cluster: "hvacThermostat",
+            attribute: "setpointChangeSource",
+            description: "Values observed",
+            access: "STATE",
+            lookup: {
+                Manual: 0,
+                Schedule: 1,
+                Externally: 2,
+            },
+            ...args,
+        }),
+
+    danfossExternalMeasuredRoomSensor: (args?: Partial<m.NumericArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", DanfossHvacThermostat>({
+            name: "external_measured_room_sensor",
+            cluster: "hvacThermostat",
+            attribute: "danfossExternalMeasuredRoomSensor",
+            description:
+                "The temperature sensor of the TRV is — due to its design — relatively close to the heat source " +
+                "(i.e. the hot water in the radiator). Thus there are situations where the `local_temperature` measured by the " +
+                "TRV is not accurate enough: If the radiator is covered behind curtains or furniture, if the room is rather big, or " +
+                "if the radiator itself is big and the flow temperature is high, then the temperature in the room may easily diverge " +
+                "from the `local_temperature` measured by the TRV by 5°C to 8°C. In this case you might choose to use an external " +
+                "room sensor and send the measured value of the external room sensor to the `External_measured_room_sensor` property. " +
+                "The way the TRV operates on the `External_measured_room_sensor` depends on the setting of the `Radiator_covered` " +
+                "property: If `Radiator_covered` is `false` (Auto Offset Mode): You *must* set the `External_measured_room_sensor` " +
+                "property *at least* every 3 hours. After 3 hours the TRV disables this function and resets the value of the " +
+                "`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` " +
+                "property *at most* every 30 minutes or every 0.1°C change in measured room temperature. " +
+                "If `Radiator_covered` is `true` (Room Sensor Mode): You *must* set the `External_measured_room_sensor` property *at " +
+                "least* every 30 minutes. After 35 minutes the TRV disables this function and resets the value of the " +
+                "`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` " +
+                "property *at most* every 5 minutes or every 0.1°C change in measured room temperature. " +
+                "The unit of this value is 0.01 `°C` (so e.g. 21°C would be represented as 2100).",
+            valueMin: -8000,
+            valueMax: 3500,
+            ...args,
+        }),
+    danfossRadiatorCovered: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.binary<"hvacThermostat", DanfossHvacThermostat>({
+            name: "radiator_covered",
+            cluster: "hvacThermostat",
+            attribute: "danfossRadiatorCovered",
+            description:
+                "Controls whether the TRV should solely rely on an external room sensor or operate in offset mode. " +
+                "`false` = Auto Offset Mode (use this e.g. for exposed radiators) or `true` = Room Sensor Mode (use this e.g. for " +
+                "covered radiators). Please note that this flag only controls how the TRV operates on the value of " +
+                "`External_measured_room_sensor`; only setting this flag without setting the `External_measured_room_sensor` " +
+                "has no (noticeable?) effect.",
+            valueOn: ["Room Sensor Mode", true],
+            valueOff: ["Auto Offset Mode", false],
+            access: "ALL",
+            ...args,
+        }),
+    danfossWindowOpenFeatureEnable: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.binary<"hvacThermostat", DanfossHvacThermostat>({
+            name: "window_open_feature",
+            cluster: "hvacThermostat",
+            attribute: "danfossWindowOpenFeatureEnable",
+            description: "Whether or not the window open feature is enabled",
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            access: "ALL",
+            ...args,
+        }),
+    danfossWindowOpenInternal: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.enumLookup<"hvacThermostat", DanfossHvacThermostat>({
+            name: "window_open_internal",
+            cluster: "hvacThermostat",
+            attribute: "danfossWindowOpenInternal",
+            description:
+                "0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, " +
+                "3=Open window detected, 4=In window open state from external but detected closed locally",
+            lookup: {
+                quarantine: 0,
+                closed: 1,
+                hold: 2,
+                open: 3,
+                external_open: 4,
+            },
+            access: "STATE_GET",
+            ...args,
+        }),
+    danfossWindowOpenExternal: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.binary<"hvacThermostat", DanfossHvacThermostat>({
+            name: "window_open_external",
+            cluster: "hvacThermostat",
+            attribute: "danfossWindowOpenExternal",
+            description: "Set if the window is open or close. This setting will trigger a change in the internal window and heating demand.",
+            valueOn: ["Open", true],
+            valueOff: ["Closed", false],
+            access: "ALL",
+            ...args,
+        }),
+    danfossDayOfWeek: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.enumLookup<"hvacThermostat", DanfossHvacThermostat>({
+            name: "day_of_week",
+            cluster: "hvacThermostat",
+            attribute: "danfossDayOfWeek",
+            lookup: {
+                sunday: 0,
+                monday: 1,
+                tuesday: 2,
+                wednesday: 3,
+                thursday: 4,
+                friday: 5,
+                saturday: 6,
+                away_or_vacation: 7,
+            },
+            description: "Exercise day of week: 0=Sun...6=Sat, 7=undefined",
+            access: "ALL",
+            ...args,
+        }),
+
+    danfossTriggerTime: (args?: Partial<m.NumericArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", DanfossHvacThermostat>({
+            name: "trigger_time",
+            cluster: "hvacThermostat",
+            attribute: "danfossTriggerTime",
+            description: "Exercise trigger time. Minutes since midnight (65535=undefined). Range 0 to 1439",
+            valueMin: 0,
+            valueMax: 1439,
+            access: "ALL",
+            ...args,
+        }),
+    danfossAlgorithmScaleFactor: (args?: Partial<m.NumericArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", DanfossHvacThermostat>({
+            name: "algorithm_scale_factor",
+            cluster: "hvacThermostat",
+            attribute: "danfossAlgorithmScaleFactor",
+            description: 'Scale factor of setpoint filter timeconstant ("aggressiveness" of control algorithm) 1= Quick ... 5=Moderate ... 10=Slow',
+            valueMin: 1,
+            valueMax: 10,
+            access: "ALL",
+            ...args,
+        }),
+    danfossLoadBalancingEnable: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.binary<"hvacThermostat", DanfossHvacThermostat>({
+            name: "load_balancing_enable",
+            cluster: "hvacThermostat",
+            attribute: "danfossLoadBalancingEnable",
+            description:
+                "Whether or not the thermostat acts as standalone thermostat or shares load with other thermostats in the room. The gateway must update load_room_mean if enabled.",
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            access: "ALL",
+            ...args,
+        }),
+    danfossLoadRoomMean: (args?: Partial<m.NumericArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", DanfossHvacThermostat>({
+            name: "load_room_mean",
+            cluster: "hvacThermostat",
+            attribute: "danfossLoadRoomMean",
+            description: "Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)",
+            valueMin: -8000,
+            valueMax: 3600,
+            access: "ALL",
+            ...args,
+        }),
+    danfossLoadEstimate: (args?: Partial<m.NumericArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", DanfossHvacThermostat>({
+            name: "load_estimate",
+            cluster: "hvacThermostat",
+            attribute: "danfossLoadEstimate",
+            description: "Load estimate on this radiator",
+            valueMin: -8000,
+            valueMax: 3600,
+            access: "STATE_GET",
+            ...args,
+        }),
+    danfossPreheatStatus: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.binary<"hvacThermostat", DanfossHvacThermostat>({
+            name: "preheat_status",
+            cluster: "hvacThermostat",
+            attribute: "danfossPreheatStatus",
+            description: "Specific for pre-heat running in Zigbee Weekly Schedule mode",
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            access: "STATE_GET",
+            ...args,
+        }),
+    danfossAdaptionRunStatus: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.enumLookup<"hvacThermostat", DanfossHvacThermostat>({
+            name: "adaptation_run_status",
+            cluster: "hvacThermostat",
+            attribute: "danfossAdaptionRunStatus",
+            description: "Status of adaptation run: None (before first run), In Progress, Valve Characteristic Found, Valve Characteristic Lost",
+            lookup: {
+                none: 0,
+                in_progress: 1,
+                found: 2,
+                lost: 3,
+                lost_in_progress: 4,
+            },
+            access: "STATE_GET",
+            ...args,
+        }),
+    danfossAdaptionRunSettings: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.binary<"hvacThermostat", DanfossHvacThermostat>({
+            name: "adaptation_run_settings",
+            cluster: "hvacThermostat",
+            attribute: "danfossAdaptionRunSettings",
+            description: "Automatic adaptation run enabled (the one during the night)",
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            access: "ALL",
+            ...args,
+        }),
+    danfossAdaptionRunControl: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.enumLookup<"hvacThermostat", DanfossHvacThermostat>({
+            name: "adaptation_run_control",
+            cluster: "hvacThermostat",
+            attribute: "danfossAdaptionRunControl",
+            description: "Adaptation run control: Initiate Adaptation Run or Cancel Adaptation Run",
+            lookup: {
+                none: 0,
+                initiate_adaptation: 1,
+                cancel_adaptation: 2,
+            },
+            access: "ALL",
+            ...args,
+        }),
+    danfossRegulationSetpointOffset: (args?: Partial<m.NumericArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", DanfossHvacThermostat>({
+            name: "regulation_setpoint_offset",
+            cluster: "hvacThermostat",
+            attribute: "danfossRegulationSetpointOffset",
+            description: "Regulation SetPoint Offset in range -2.5°C to 2.5°C in steps of 0.1°C.",
+            valueMin: -2.5,
+            valueMax: 2.5,
+            valueStep: 0.1,
+            scale: 10,
+            unit: "°C",
+            access: "ALL",
+            ...args,
+        }),
+    danfossThermostat: (options: m.ThermostatArgs): ModernExtend => {
+        const extend = m.thermostat(options);
+
+        const danfossSetpointConverter: Tz.Converter = {
+            key: ["occupied_heating_setpoint"],
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertNumber(value, key);
+                const payload = {
+                    // setpointType 1 = "User Interaction" (Aggressive reaction)
+                    setpointType: 1,
+                    setpoint: Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100,
+                };
+
+                // Danfoss devices often require double-sending or specific command sequences
+                // to wake up the radio/actuator for immediate response.
+                await entity.command<"hvacThermostat", "danfossSetpointCommand", DanfossHvacThermostat>(
+                    "hvacThermostat",
+                    "danfossSetpointCommand",
+                    payload,
+                );
+                await entity.command<"hvacThermostat", "danfossSetpointCommand", DanfossHvacThermostat>(
+                    "hvacThermostat",
+                    "danfossSetpointCommand",
+                    payload,
+                );
+                return {state: {occupied_heating_setpoint: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["occupiedHeatingSetpoint"]);
+            },
+        };
+        extend.toZigbee.unshift(danfossSetpointConverter);
+
+        const climateExpose = extend.exposes.find((exp) => typeof exp !== "function" && "type" in exp && exp.type === "climate");
+        if (climateExpose) {
+            climateExpose.withRunningState(["idle", "heat"]);
+            const runningStateFeature = climateExpose.features.find((f) => typeof f !== "function" && "name" in f && f.name === "running_state");
+            if (runningStateFeature) {
+                runningStateFeature.withDescription("Running state based on danfossOutputStatus and danfossHeatRequired");
+            }
+        }
+        extend.fromZigbee.push({
+            cluster: "hvacThermostat",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if ("danfossHeatRequired" in msg.data || "danfossOutputStatus" in msg.data) {
+                    const isHeating = (msg.data.danfossOutputStatus ?? msg.data.danfossHeatRequired) === 1;
+                    return {running_state: isHeating ? "heat" : "idle"};
+                }
+            },
+        });
+        return extend;
+    },
 };
 
 const tzLocal = {
@@ -1011,8 +1393,6 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        // eTRV0100 is the same as Hive TRV001 and Popp eT093WRO. If implementing anything, please consider
-        // changing those two too.
         zigbeeModel: ["eTRV0100", "eTRV0101", "eTRV0103", "TRV001", "TRV003", "eT093WRO", "eT093WRG"],
         model: "014G2461",
         vendor: "Danfoss",
@@ -1022,6 +1402,76 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Hive", model: "UK7004240", description: "Radiator valve", fingerprint: [{modelID: "TRV001"}, {modelID: "TRV003"}]},
             {vendor: "Popp", model: "701721", description: "Smart thermostat", fingerprint: [{modelID: "eT093WRO"}, {modelID: "eT093WRG"}]},
         ],
+        // zigbeeModel: ["eTRV0100x"],
+        // model: "014G2461x",
+        // vendor: "Danfoss",
+        // description: "Ally thermostat",
+
+        meta: {thermostat: {dontMapPIHeatingDemand: true}},
+        extend: [
+            m.battery(),
+            danfossExtend.keypadLockout(),
+            danfossExtend.danfossMountedModeActive(),
+            danfossExtend.danfossMountedModeControl(),
+            danfossExtend.danfossThermostatOrientation(),
+            danfossExtend.danfossViewingDirection(),
+            danfossExtend.danfossHeatAvailable(),
+            danfossExtend.danfossHeatRequired(),
+            danfossExtend.setpointChangeSource(),
+
+            danfossExtend.danfossThermostat({
+                // maxSetpoint 32 eller 35
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 35, step: 0.5}}},
+                piHeatingDemand: {values: true},
+                systemMode: {values: ["heat"]},
+                programmingOperationMode: {values: ["setpoint", "schedule", "schedule_with_preheat", "eco"]},
+                setpointsLimit: {
+                    maxHeatSetpointLimit: {min: 5, max: 35, step: 0.5},
+                    minHeatSetpointLimit: {min: 5, max: 20, step: 0.5},
+                },
+            }),
+            // e.numeric("occupied_heating_setpoint_scheduled", ea.ALL)
+            //     .withValueMin(5).withValueMax(maxSetpoint)
+            //     .withValueStep(0.5).withUnit("°C").withDescription(
+            //         "Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite " +
+            //             "to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. " +
+            //             "(more suitable for scheduled changes)", ),
+            danfossExtend.danfossExternalMeasuredRoomSensor(),
+            danfossExtend.danfossRadiatorCovered(),
+            danfossExtend.danfossWindowOpenFeatureEnable(),
+            danfossExtend.danfossWindowOpenInternal(),
+            danfossExtend.danfossWindowOpenExternal(),
+            danfossExtend.danfossDayOfWeek(),
+            danfossExtend.danfossTriggerTime(),
+            danfossExtend.danfossAlgorithmScaleFactor(),
+            danfossExtend.danfossLoadBalancingEnable(),
+            danfossExtend.danfossLoadRoomMean(),
+            danfossExtend.danfossLoadEstimate(),
+            danfossExtend.danfossPreheatStatus(),
+            danfossExtend.danfossAdaptionRunStatus(),
+            danfossExtend.danfossAdaptionRunStatus(),
+            danfossExtend.danfossAdaptionRunSettings(),
+            danfossExtend.danfossAdaptionRunControl(),
+            danfossExtend.danfossRegulationSetpointOffset(),
+        ],
+    },
+    {
+        zigbeeModel: ["eTRV0100x"],
+        model: "014G2461x",
+        vendor: "Danfoss",
+        description: "Ally thermostat",
+
+        // eTRV0100 is the same as Hive TRV001 and Popp eT093WRO. If implementing anything, please consider
+        // changing those two too.
+        // zigbeeModel: ["eTRV0100", "eTRV0101", "eTRV0103", "TRV001", "TRV003", "eT093WRO", "eT093WRG"],
+        // model: "014G2461",
+        // vendor: "Danfoss",
+        // description: "Ally thermostat",
+        // whiteLabel: [
+        //     {vendor: "Danfoss", model: "014G2463"},
+        //     {vendor: "Hive", model: "UK7004240", description: "Radiator valve", fingerprint: [{modelID: "TRV001"}, {modelID: "TRV003"}]},
+        //     {vendor: "Popp", model: "701721", description: "Smart thermostat", fingerprint: [{modelID: "eT093WRO"}, {modelID: "eT093WRG"}]},
+        // ],
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [
             fz.battery,
