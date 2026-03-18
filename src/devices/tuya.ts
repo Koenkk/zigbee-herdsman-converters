@@ -9002,7 +9002,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nedis", "ZBPO130FWT", "Outdoor smart plug (with power monitoring)", ["_TZ3000_3ias4w4o"]),
             tuya.whitelabel("Nous", "A9Z", "Smart Zigbee Socket", ["_TZ3210_ddigca5n"]),
             tuya.whitelabel("Girier", "JR-ZPM01", "Smart Plug", ["_TZ3000_ww6drja5"]),
-            tuya.whitelabel("Nous", "A7Z", "Smart Zigbee Socket", ["_TZ3210_rwmitwj4"]),
+            tuya.whitelabel("Nous", "A7Z", "Smart Zigbee Socket", ["_TZ3210_rwmitwj4", "_TZ3008_reatplte"]),
             tuya.whitelabel("Zbeacon", "TS011F_plug_1_1", "Smart plug (with power monitoring)", ["Zbeacon"]),
             tuya.whitelabel("NEO", "NAS-WR01B", "Smart plug (with electrical measurements)", ["_TZ3000_gjnozsaz"]),
             tuya.whitelabel("GreenSun", "HSC-ZW-EU", "Outdoor Smart Plug (with power monitoring)", ["_TZ3000_cicwjqth"]),
@@ -11398,7 +11398,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_8bxrzyxz", "_TZ3000_ky0fq4ho"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_8bxrzyxz", "_TZ3000_ky0fq4ho", "_TZ3210_vbfp8eyv"]),
         model: "TS011F_din_smart_relay",
         description: "Din smart relay (with power monitoring)",
         vendor: "Tuya",

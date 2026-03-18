@@ -969,7 +969,8 @@ export const definitions: DefinitionWithExtend[] = [
             {model: "SP 244", vendor: "Innr", description: "Smart plug (US)", fingerprint: [{modelID: "SP 244"}]},
         ],
         // Needs FW 1.9.27/1.9.28+
-        extend: [m.onOff(), m.electricityMeter()],
+        extend: [m.onOff({configureReporting: true}), m.electricityMeter()],
+        version: "0.0.1",
         ota: true,
     },
     {
