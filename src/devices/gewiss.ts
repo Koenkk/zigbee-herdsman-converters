@@ -31,10 +31,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ["l1", "l2"]})],
     },
     {
-        zigbeeModel: ["GWA1531_Shutter"],
+        zigbeeModel: ["GWA1531_Shutter", "GWA1231_SHUTTER"],
         model: "GWA1531",
         description: "Shutter actuator",
         vendor: "Gewiss",
+        whiteLabel: [{model: "GWA1231", fingerprint: [{modelID: "GWA1231_SHUTTER"}]}],
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {coverInverted: true},

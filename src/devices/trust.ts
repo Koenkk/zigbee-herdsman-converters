@@ -9,6 +9,7 @@ const e = exposes.presets;
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "SmokeSensor-EM", manufacturerName: "Trust"}],
+        zigbeeModel: ["ZSDR-850"],
         model: "ZSDR-850",
         vendor: "Trust",
         description: "Smoke detector",

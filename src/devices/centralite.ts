@@ -11,7 +11,30 @@ import type {DefinitionWithExtend, Fz} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const fzLocal = {
+export interface ManuSpecificCentraliteHumidity {
+    attributes: {
+        /** ID=0x0000 | type=UINT16 | write=true | max=65535 */
+        measuredValue: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export const centraliteExtend = {
+    addManuSpecificCentraliteHumidityCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificCentraliteHumidity", {
+            name: "manuSpecificCentraliteHumidity",
+            ID: 0xfc45,
+            manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
+            attributes: {
+                measuredValue: {name: "measuredValue", ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+};
+
+export const fzLocal = {
     thermostat_3156105: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -39,6 +62,14 @@ const fzLocal = {
             return fz.thermostat.convert(model, msg, publish, options, meta);
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    d3310_humidity: {
+        cluster: "manuSpecificCentraliteHumidity",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const humidity = msg.data.measuredValue / 100.0;
+            return {humidity};
+        },
+    } satisfies Fz.Converter<"manuSpecificCentraliteHumidity", ManuSpecificCentraliteHumidity, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -321,7 +352,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3310-G",
         vendor: "Centralite",
         description: "Temperature and humidity sensor",
-        fromZigbee: [fz.temperature, fz._3310_humidity, fz.battery],
+        extend: [centraliteExtend.addManuSpecificCentraliteHumidityCluster()],
+        fromZigbee: [fz.temperature, fzLocal.d3310_humidity, fz.battery],
         exposes: [e.temperature(), e.humidity(), e.battery()],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
@@ -339,37 +371,26 @@ export const definitions: DefinitionWithExtend[] = [
                     reportableChange: 10,
                 },
             ];
-            await endpoint.configureReporting("manuSpecificCentraliteHumidity", payload, {
-                manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
-            });
+            await endpoint.configureReporting<"manuSpecificCentraliteHumidity", ManuSpecificCentraliteHumidity>(
+                "manuSpecificCentraliteHumidity",
+                payload,
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
+                },
+            );
 
             await reporting.batteryVoltage(endpoint);
         },
     },
     {
-        zigbeeModel: ["3200-fr"],
+        zigbeeModel: ["3200-fr", "3200-de", "3200-gb"],
         model: "3200-fr",
         vendor: "Centralite",
         description: "Smart outlet",
-        fromZigbee: [fz.on_off, fz.electrical_measurement],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.voltage(), e.current()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement"]);
-            await reporting.onOff(endpoint);
-            await endpoint.read("haElectricalMeasurement", ["acCurrentMultiplier", "acCurrentDivisor"]);
-            await endpoint.read("haElectricalMeasurement", ["acPowerMultiplier", "acPowerDivisor"]);
-            await reporting.rmsVoltage(endpoint, {change: 2});
-            await reporting.rmsCurrent(endpoint, {change: 10});
-            await reporting.activePower(endpoint, {change: 2});
-        },
-    },
-    {
-        zigbeeModel: ["3200-de"],
-        model: "3200-de",
-        vendor: "Centralite",
-        description: "Smart outlet",
+        whiteLabel: [
+            {model: "3200-de", fingerprint: [{modelID: "3200-de"}]},
+            {model: "3200-gb", fingerprint: [{modelID: "3200-gb"}]},
+        ],
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         exposes: [e.switch(), e.power(), e.voltage(), e.current()],

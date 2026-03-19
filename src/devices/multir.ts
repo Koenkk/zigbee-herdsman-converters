@@ -35,10 +35,11 @@ const tzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["MIR-MC100"],
+        zigbeeModel: ["MIR-MC100", "MIR-MC100-E"],
         model: "MIR-MC100",
         vendor: "MultIR",
         description: "Door sensor",
+        whiteLabel: [{model: "MIR-MC100-E", fingerprint: [{modelID: "MIR-MC100-E"}]}],
         extend: [
             m.battery(),
             m.iasZoneAlarm({
@@ -48,8 +49,8 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["MIR-IL100"],
-        model: "MIR-IL100",
+        zigbeeModel: ["MIR-IL100", "MIR-IR100"],
+        model: "MIR-IR100",
         vendor: "MultIR",
         description: "PIR sensor",
         extend: [

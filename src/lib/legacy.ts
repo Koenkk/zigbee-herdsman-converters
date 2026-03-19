@@ -130,7 +130,6 @@ async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpV
             gSec++;
             gSec %= 0xffff;
         }
-        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
         seq = gSec;
     }
 
@@ -3098,10 +3097,19 @@ const fromZigbee = {
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             let result = null;
+            let fixedValue = null;
             switch (dp) {
                 case dataPoints.coverPosition: {
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/11408
+                    if (value >= 100 && value <= 127) {
+                        fixedValue = 100;
+                    } else if (value > 127 || value < 0) {
+                        fixedValue = 0;
+                    } else {
+                        fixedValue = value;
+                    }
                     const invert = !isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
-                    const position = invert ? 100 - value : value;
+                    const position = invert ? 100 - fixedValue : fixedValue;
                     result = {position: position};
                     break;
                 }
@@ -4150,7 +4158,6 @@ const toZigbee1 = {
                 if (value >= 0 && value <= 100) {
                     const invert = isCoverInverted(meta.device.manufacturerName) ? !meta.options.invert_cover : meta.options.invert_cover;
 
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = invert ? 100 - value : value;
                     await sendDataPointValue(entity, dataPoints.coverPosition, value);
                 } else {
@@ -4163,7 +4170,6 @@ const toZigbee1 = {
                     "zhc:legacy:tz:tuya_cover_control",
                 );
 
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = value.toLowerCase();
                 switch (value) {
                     case "close":
@@ -4191,7 +4197,6 @@ const toZigbee2 = {
             switch (key) {
                 case "position": {
                     const invert = meta.state ? !meta.state.invert_cover : false;
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = invert ? 100 - value : value;
                     if (value >= 0 && value <= 100) {
                         await sendDataPointValue(entity, dataPoints.coverPosition, value);
@@ -4204,7 +4209,6 @@ const toZigbee2 = {
                     const stateEnums = getCoverStateEnums(meta.device.manufacturerName);
                     logger.debug(`Using state enums for ${meta.device.manufacturerName}: ${JSON.stringify(stateEnums)}`, "zhc:legacy:tz:zb_sm_cover");
 
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value.toLowerCase();
                     switch (value) {
                         case "close":
@@ -4242,10 +4246,8 @@ const toZigbee2 = {
                 }
                 case "goto_positon": {
                     if (value === "FAVORITE") {
-                        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                         value = meta.state ? meta.state.favorite_position : null;
                     } else {
-                        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                         value = Number.parseInt(value, 10);
                     }
                     return await toZigbee1.tuya_cover_control.convertSet(entity, "position", value, meta);
@@ -4282,11 +4284,9 @@ const toZigbee2 = {
                     await sendDataPointBool(entity, dataPoints.x5hState, value === "heat");
                     break;
                 case "preset": {
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value.toLowerCase();
                     const lookup: KeyValueAny = {manual: 0, program: 1};
                     utils.validateValue(value, Object.keys(lookup));
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = lookup[value];
                     await sendDataPointEnum(entity, dataPoints.x5hMode, value);
                     break;
@@ -4304,7 +4304,6 @@ const toZigbee2 = {
                     break;
                 case "deadzone_temperature":
                     if (value >= 0.5 && value <= 9.5) {
-                        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                         value = Math.round(value * 10);
                         await sendDataPointValue(entity, dataPoints.x5hTempDiff, value);
                     } else {
@@ -4320,11 +4319,9 @@ const toZigbee2 = {
                     break;
                 case "local_temperature_calibration":
                     if (value >= -9.9 && value <= 9.9) {
-                        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                         value = Math.round(value * 10);
 
                         if (value < 0) {
-                            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                             value = 0xffffffff + value + 1;
                         }
 
@@ -4346,28 +4343,23 @@ const toZigbee2 = {
                     await sendDataPointBool(entity, dataPoints.x5hSound, value === "ON");
                     break;
                 case "brightness_state": {
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value.toLowerCase();
                     const lookup: KeyValueAny = {off: 0, low: 1, medium: 2, high: 3};
                     utils.validateValue(value, Object.keys(lookup));
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = lookup[value];
                     await sendDataPointEnum(entity, dataPoints.x5hBackplaneBrightness, value);
                     break;
                 }
                 case "sensor": {
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value.toLowerCase();
                     const lookup: KeyValueAny = {internal: 0, external: 1, both: 2};
                     utils.validateValue(value, Object.keys(lookup));
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = lookup[value];
                     await sendDataPointEnum(entity, dataPoints.x5hSensorSelection, value);
                     break;
                 }
                 case "current_heating_setpoint":
                     if (value >= 5 && value <= 60) {
-                        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                         value = Math.round(value * 10);
                         await sendDataPointValue(entity, dataPoints.x5hSetTemp, value);
                     } else {
@@ -4631,9 +4623,7 @@ const toZigbee2 = {
                     results.push(Math.round(rt));
                 }
             }
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (value > 0) value = value * 10;
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (value < 0) value = value * 10 + 0x100000000;
             await sendDataPointRaw(entity, 109 + day - 1, Buffer.from(results));
         },
@@ -4721,7 +4711,6 @@ const toZigbee2 = {
                     break;
                 case "local_temperature_calibration":
                     // @ts-expect-error ignore
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     if (value < 0) value = 0xffffffff + value + 1;
                     await sendDataPointValue(entity, dataPoints.connecteTempCalibration, value as number);
                     break;
@@ -4805,7 +4794,6 @@ const toZigbee2 = {
         key: ["local_temperature_calibration"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
         convertSet: async (entity, key, value: any, meta) => {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (value < 0) value = 4096 + value;
             await sendDataPointValue(entity, dataPoints.moesTempCalibration, value);
         },
@@ -5090,11 +5078,9 @@ const toZigbee2 = {
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
         convertSet: async (entity, key, value: any, meta) => {
             if (typeof value === "string") {
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = value.toLowerCase();
                 const lookup: KeyValueAny = {in: 0, al: 1, ou: 2};
                 utils.validateValue(value, Object.keys(lookup));
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = lookup[value];
             }
             if (typeof value === "number" && value >= 0 && value <= 2) {
@@ -5971,7 +5957,6 @@ const toZigbee2 = {
         key: ["local_temperature_calibration"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
         convertSet: async (entity, key, value: any, meta) => {
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (value < 0) value = 0xffffffff + value + 1;
             await sendDataPointValue(entity, dataPoints.saswellTempCalibration, value);
         },
@@ -6240,14 +6225,11 @@ const toZigbee2 = {
                     await sendDataPointValue(entity, dataPoints.hyAwayTemp, value);
                     break;
                 case "local_temperature_calibration":
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = Math.round(value * 10);
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     if (value < 0) value = 0xffffffff + value + 1;
                     await sendDataPointValue(entity, dataPoints.hyTempCalibration, value);
                     break;
                 case "hysteresis":
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.hyHysteresis, value);
                     break;
@@ -6267,7 +6249,6 @@ const toZigbee2 = {
                     await sendDataPointValue(entity, dataPoints.hyMinTemp, value);
                     break;
                 case "current_heating_setpoint":
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.hyHeatingSetpoint, value);
                     break;
@@ -6322,19 +6303,15 @@ const toZigbee2 = {
                     await sendDataPointValue(entity, dataPoints.fantemReportingTime, value, "sendData");
                     break;
                 case "temperature_calibration":
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = Math.round(value * 10);
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     if (value < 0) value = 0xffffffff + value + 1;
                     await sendDataPointValue(entity, dataPoints.fantemTempCalibration, value, "sendData");
                     break;
                 case "humidity_calibration":
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     if (value < 0) value = 0xffffffff + value + 1;
                     await sendDataPointValue(entity, dataPoints.fantemHumidityCalibration, value, "sendData");
                     break;
                 case "illuminance_calibration":
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     if (value < 0) value = 0xffffffff + value + 1;
                     await sendDataPointValue(entity, dataPoints.fantemLuxCalibration, value, "sendData");
                     break;
@@ -6500,29 +6477,23 @@ const toZigbee2 = {
                     await sendDataPointBool(entity, dataPoints.tvChildLock, value === "LOCK");
                     break;
                 case "local_temperature_calibration":
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = Math.round(value * 10);
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = value < 0 ? 0xffffffff + value + 1 : value;
                     await sendDataPointValue(entity, dataPoints.tvTempCalibration, value);
                     break;
                 case "current_heating_setpoint":
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.tvHeatingSetpoint, value);
                     break;
                 case "holiday_temperature":
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.tvHolidayTemp, value);
                     break;
                 case "comfort_temperature":
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.tvComfortTemp, value);
                     break;
                 case "eco_temperature":
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.tvEcoTemp, value);
                     break;
@@ -6540,7 +6511,6 @@ const toZigbee2 = {
                 //     await sendDataPointEnum(entity, dataPoints.tvBoostMode, (value) ? 0 : 1);
                 //     break;
                 case "open_window_temperature":
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = Math.round(value * 10);
                     await sendDataPointValue(entity, dataPoints.tvOpenWindowTemp, value);
                     break;
@@ -6591,13 +6561,11 @@ const toZigbee2 = {
                 if (typeof value === "string" && Number.isNaN(value)) {
                     const presetName = value.toLowerCase();
                     if (presetName in preset) {
-                        // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                         value = preset[presetName];
                     } else {
                         throw new Error(`Unknown preset '${value}'`);
                     }
                 } else {
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = light.clampColorTemp(Number(value), colorTempMin, colorTempMax);
                 }
                 const data = utils.mapNumberRange(value, colorTempMax, colorTempMin, 0, 1000);
@@ -6649,7 +6617,6 @@ const toZigbee2 = {
                     if (h) {
                         // The device expects 0-359
                         if (h >= 360) {
-                            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                             h = 359;
                         }
                         hsb.h = make4sizedString(h.toString(16));
@@ -6708,7 +6675,6 @@ const toZigbee2 = {
                 if (value >= 0 && value <= 100) {
                     const invert = isCoverInverted(meta.device.manufacturerName) ? !meta.options.invert_cover : meta.options.invert_cover;
 
-                    // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                     value = invert ? 100 - value : value;
                     await sendDataPointValue(entity, dataPoints.coverPosition, value);
                 } else {
@@ -6717,7 +6683,6 @@ const toZigbee2 = {
             } else if (key === "state") {
                 const stateEnums = getCoverStateEnums(meta.device.manufacturerName);
                 logger.debug(`Using state enums for ${meta.device.manufacturerName}: ${JSON.stringify(stateEnums)}`, "zhc:legacy:tz:zmam02");
-                // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
                 value = value.toLowerCase();
                 switch (value) {
                     case "close":
@@ -7080,19 +7045,19 @@ const thermostatSystemModes: {[s: number]: string} = {
 const toZigbee = {...toZigbee1, ...toZigbee2};
 
 export {
+    dataPoints,
     fromZigbee as fz,
     fromZigbee,
-    toZigbee as tz,
-    toZigbee,
+    giexWaterValve,
+    moesSwitch,
+    msLookups,
+    thermostatPresets,
     thermostatSystemModes,
-    tuyaHPSCheckingResult,
     thermostatSystemModes2,
     thermostatSystemModes3,
     thermostatSystemModes4,
-    thermostatPresets,
-    giexWaterValve,
-    msLookups,
+    toZigbee as tz,
+    toZigbee,
+    tuyaHPSCheckingResult,
     ZMLookups,
-    dataPoints,
-    moesSwitch,
 };

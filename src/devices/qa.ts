@@ -255,12 +255,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("action_5", ea.STATE).withDescription("Scene 5"),
             e.numeric("action_6", ea.STATE).withDescription("Scene 6"),
             // Backlight brightness control (0-99%)
-            e
-                .numeric("backlight_brightness", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(99)
-                .withDescription("Backlight brightness (0-99)")
-                .withUnit("%"),
+            e.numeric("backlight_brightness", ea.ALL).withValueMin(0).withValueMax(99).withDescription("Backlight brightness (0-99)").withUnit("%"),
         ],
         meta: {
             multiEndpoint: true,

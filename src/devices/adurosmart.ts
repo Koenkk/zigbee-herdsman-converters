@@ -66,7 +66,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "81895",
         vendor: "AduroSmart",
         description: "ERIA E14 Candle Color",
-        extend: [m.light({colorTemp: {range: [153, 500]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 500]}, color: {applyRedFix: true}})],
     },
     {
         zigbeeModel: ["AD-DimmableLight3001"],

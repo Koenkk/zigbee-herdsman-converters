@@ -5,6 +5,7 @@ import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as philips from "../lib/philips";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -42,7 +43,6 @@ const tzLocal = {
         key: ["preset"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, "preset");
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             utils.validateValue(value, ["activity", "boost", "eco", "none"]);
             const activity = value === "activity" ? 1 : 0;
@@ -60,7 +60,6 @@ const tzLocal = {
         key: ["swing_mode"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, "swing_mode");
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             value = value.toLowerCase();
             utils.validateValue(value, ["on", "off"]);
             await entity.write(
@@ -80,6 +79,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Atlantic Group",
         description: "Interface Naviclim for Takao air conditioners",
         fromZigbee: [fz.thermostat, fz.fan],
+        extend: [philips.m.addManuSpecificPhilips2Cluster()],
         toZigbee: [
             tzLocal.ac_louver_position,
             tzLocal.preset,

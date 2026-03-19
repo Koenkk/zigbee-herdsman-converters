@@ -70,7 +70,7 @@ const tzLocal = {
                 }
             };
 
-            retryRead(3);
+            void retryRead(3);
         },
     } satisfies Tz.Converter,
 };

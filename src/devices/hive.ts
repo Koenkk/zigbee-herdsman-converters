@@ -593,10 +593,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["SLR2c"],
+        zigbeeModel: ["SLR2c", "SLR2d"],
         model: "SLR2c",
         vendor: "Hive",
         description: "Dual channel heating and hot water thermostat",
+        whiteLabel: [{vendor: "Hive", model: "SLR2d", fingerprint: [{modelID: "SLR2d"}]}],
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -796,5 +797,12 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
             await reporting.batteryPercentageRemaining(endpoint);
         },
+    },
+    {
+        zigbeeModel: ["SLT6b"],
+        model: "SLT6b",
+        vendor: "Hive",
+        description: "Heating thermostat remote control",
+        extend: [m.battery(), m.temperature()],
     },
 ];

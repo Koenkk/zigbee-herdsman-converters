@@ -253,7 +253,6 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {CLOSE: "off"}; // open is not supported.
             const state = utils.getFromLookup(value, lookup);
-            // biome-ignore lint/style/noParameterAssign: ignored using `--suppress`
             if (state !== "off") value = "CLOSE";
             else await entity.command("genOnOff", state, {}, utils.getOptions(meta.mapped, entity));
             return {state: {[key]: value}};
@@ -947,7 +946,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "volume",
-                lookup: {voice: 1, high: 2, low: 2},
+                lookup: {voice: 1, high: 2, low: 3},
                 cluster: "genOnOff",
                 attribute: {ID: 0x9008, type: 0x20},
                 description: "Values observed are `1` (voice), `2` (high) or `3` (low).",
