@@ -407,6 +407,17 @@ const danfossExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    absMaxHeatSetpointLimit: (args?: Partial<m.BinaryArgs<"hvacThermostat", undefined>>) =>
+        m.numeric<"hvacThermostat", undefined>({
+            name: "abs_max_heat_setpoint_limit",
+            cluster: "hvacThermostat",
+            attribute: "absMaxHeatSetpointLimit",
+            description: "Absolute Maximum Heating Setpoint Limit. ",
+            unit: "°C",
+            scale: 100,
+            entityCategory: "diagnostic",
+            access: "STATE_GET",
+        }),
     keypadLockout: (args?: Partial<m.EnumLookupArgs<"hvacUserInterfaceCfg", undefined>>) =>
         m.enumLookup({
             name: "keypad_lockout",
@@ -418,6 +429,7 @@ const danfossExtend = {
                 lock: 1,
             },
             access: "ALL",
+            entityCategory: "config",
             fzConvert: (model, msg, publish, options, meta) => {
                 const result: KeyValueAny = {};
                 if ("keypadLockout" in msg.data) {
@@ -437,6 +449,7 @@ const danfossExtend = {
             valueOn: [true, 1],
             valueOff: [false, 0],
             access: "STATE_GET",
+            entityCategory: "diagnostic",
             ...args,
         }),
     danfossMountedModeControl: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
@@ -448,6 +461,7 @@ const danfossExtend = {
             valueOn: [true, 1],
             valueOff: [false, 0],
             access: "ALL",
+            entityCategory: "config",
             ...args,
         }),
     danfossThermostatOrientation: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
@@ -459,6 +473,7 @@ const danfossExtend = {
             valueOn: ["Vertical", true],
             valueOff: ["Horizontal", false],
             access: "ALL",
+            entityCategory: "config",
             ...args,
         }),
     danfossViewingDirection: (args?: Partial<m.BinaryArgs<"hvacUserInterfaceCfg", DanfossHvacUserInterfaceCfg>>) =>
@@ -470,6 +485,7 @@ const danfossExtend = {
             valueOn: ["Upside-down", true],
             valueOff: ["Normal", false],
             access: "ALL",
+            entityCategory: "config",
             ...args,
         }),
     danfossHeatAvailable: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
@@ -484,6 +500,7 @@ const danfossExtend = {
             valueOn: ["Heat Available", true],
             valueOff: ["No Heat Available", false],
             access: "ALL",
+            entityCategory: "config",
             ...args,
         }),
     danfossHeatRequired: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
@@ -495,6 +512,7 @@ const danfossExtend = {
             valueOn: ["Heat Request", true],
             valueOff: ["No Heat Request", false],
             access: "STATE_GET",
+            entityCategory: "diagnostic",
             ...args,
         }),
     setpointChangeSource: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", undefined>>) =>
@@ -509,9 +527,26 @@ const danfossExtend = {
                 Schedule: 1,
                 Externally: 2,
             },
+            entityCategory: "diagnostic",
             ...args,
         }),
-
+    occupiedHeatingSetpointScheduled: (args?: Partial<m.NumericArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.numeric({
+            name: "occupied_heating_setpoint_scheduled",
+            cluster: "hvacThermostat",
+            attribute: "occupiedHeatingSetpoint",
+            description:
+                "Scheduled change of the setpoint. Alternative method for changing the setpoint. " +
+                "In the opposite to occupied_heating_setpoint it does not trigger an aggressive " +
+                "response from the actuator. (more suitable for scheduled changes)",
+            access: "ALL",
+            unit: "°C",
+            valueMin: 5,
+            valueMax: 35,
+            valueStep: 0.5,
+            scale: 100,
+            ...args,
+        }),
     danfossExternalMeasuredRoomSensor: (args?: Partial<m.NumericArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
         m.numeric<"hvacThermostat", DanfossHvacThermostat>({
             name: "external_measured_room_sensor",
@@ -563,6 +598,7 @@ const danfossExtend = {
             valueOn: [true, 1],
             valueOff: [false, 0],
             access: "ALL",
+            entityCategory: "config",
             ...args,
         }),
     danfossWindowOpenInternal: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
@@ -581,6 +617,7 @@ const danfossExtend = {
                 external_open: 4,
             },
             access: "STATE_GET",
+            entityCategory: "diagnostic",
             ...args,
         }),
     danfossWindowOpenExternal: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
@@ -588,7 +625,7 @@ const danfossExtend = {
             name: "window_open_external",
             cluster: "hvacThermostat",
             attribute: "danfossWindowOpenExternal",
-            description: "Set if the window is open or close. This setting will trigger a change in the internal window and heating demand.",
+            description: "Set if the window is open or closed. This setting will trigger a change in the internal window and heating demand.",
             valueOn: ["Open", true],
             valueOff: ["Closed", false],
             access: "ALL",
@@ -734,40 +771,61 @@ const danfossExtend = {
             scale: 10,
             unit: "°C",
             access: "ALL",
+            entityCategory: "config",
             ...args,
         }),
     danfossThermostat: (options: m.ThermostatArgs): ModernExtend => {
         const extend = m.thermostat(options);
 
         const danfossSetpointConverter: Tz.Converter = {
-            key: ["occupied_heating_setpoint"],
+            key: ["occupied_heating_setpoint", "occupied_heating_setpoint_scheduled"],
             convertSet: async (entity, key, value, meta) => {
                 utils.assertNumber(value, key);
+                const isScheduled = key === "occupied_heating_setpoint_scheduled";
                 const payload = {
-                    // setpointType 1 = "User Interaction" (Aggressive reaction)
-                    setpointType: 1,
-                    setpoint: Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100,
+                    setpointType: isScheduled ? 0 : 1, // 0 for scheduled, 1 for aggressive
+                    setpoint: Math.round(value * 2) * 50,
                 };
-
-                // Danfoss devices often require double-sending or specific command sequences
-                // to wake up the radio/actuator for immediate response.
+                // Send the command
                 await entity.command<"hvacThermostat", "danfossSetpointCommand", DanfossHvacThermostat>(
                     "hvacThermostat",
                     "danfossSetpointCommand",
                     payload,
                 );
-                await entity.command<"hvacThermostat", "danfossSetpointCommand", DanfossHvacThermostat>(
-                    "hvacThermostat",
-                    "danfossSetpointCommand",
-                    payload,
-                );
-                return {state: {occupied_heating_setpoint: value}};
+                if (!isScheduled) {
+                    await entity.command<"hvacThermostat", "danfossSetpointCommand", DanfossHvacThermostat>(
+                        "hvacThermostat",
+                        "danfossSetpointCommand",
+                        payload,
+                    );
+                }
+                // return {state: {[key]: value}};
+                return {
+                    state: {
+                        [key]: value,
+                        // If we change one, we usually want the other to reflect it in the UI until the next official report comes in from the device.
+                        occupied_heating_setpoint: value,
+                        occupied_heating_setpoint_scheduled: value,
+                    },
+                };
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["occupiedHeatingSetpoint"]);
+                await entity.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
             },
         };
         extend.toZigbee.unshift(danfossSetpointConverter);
+
+        const absMaxExtend = m.numeric({
+            name: "abs_max_heat_setpoint_limit",
+            cluster: "hvacThermostat",
+            attribute: "absMaxHeatSetpointLimit",
+            access: "STATE_GET",
+            description: "Abs Max Heating Setpoint Limit",
+            scale: 100,
+        });
+        extend.fromZigbee.push(...absMaxExtend.fromZigbee);
+        if (absMaxExtend.toZigbee) extend.toZigbee.push(...absMaxExtend.toZigbee);
+        // extend.exposes = extend.exposes.filter((e) => (typeof e !== "function" && "name" in e ? e.name !== "abs_max_heat_setpoint_limit" : true));
 
         const climateExpose = extend.exposes.find((exp) => typeof exp !== "function" && "type" in exp && exp.type === "climate");
         if (climateExpose) {
@@ -776,15 +834,47 @@ const danfossExtend = {
             if (runningStateFeature) {
                 runningStateFeature.withDescription("Running state based on danfossOutputStatus and danfossHeatRequired");
             }
+            // const finalMaxLimit = options?.occupiedHeatingSetpoint?.max ?? 35;
+            const setpointFeature = climateExpose.features.find(
+                (f) => typeof f !== "function" && "name" in f && f.name === "occupied_heating_setpoint",
+            );
+            // console.log(`[Danfoss Debug] setpointFeature.valuMmax : ${setpointFeature.valueMax}`);
+
+            if (setpointFeature && "valueMax" in setpointFeature) {
+                // const maxLimit = setpointFeature.valueMax;
+                const maxLimit = (setpointFeature as KeyValueAny).valueMax;
+                const finalMaxLimit: number = typeof maxLimit === "number" ? maxLimit : 38;
+
+                // Add your scheduled setpoint using the limit found from the climate feature
+                console.log(`[Danfoss Debug] Found setpointFeature for model. Setting scheduled max limit to: ${finalMaxLimit}`);
+                extend.exposes.push(
+                    e
+                        .numeric("occupied_heating_setpoint_scheduled", ea.ALL)
+                        .withValueMin(5)
+                        .withValueMax(finalMaxLimit)
+                        .withValueStep(0.5)
+                        .withUnit("°C")
+                        .withDescription("Setpoint for scheduled changes (softer valve movement)"),
+                );
+            }
         }
         extend.fromZigbee.push({
             cluster: "hvacThermostat",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
+                const result: KeyValueAny = {};
                 if ("danfossHeatRequired" in msg.data || "danfossOutputStatus" in msg.data) {
                     const isHeating = (msg.data.danfossOutputStatus ?? msg.data.danfossHeatRequired) === 1;
-                    return {running_state: isHeating ? "heat" : "idle"};
+                    result.running_state = isHeating ? "heat" : "idle";
                 }
+                if ("occupiedHeatingSetpoint" in msg.data) {
+                    const value = precisionRound(msg.data.occupiedHeatingSetpoint, 2) / 100;
+                    result[postfixWithEndpointName("occupied_heating_setpoint", msg, model, meta)] = value;
+                    result[postfixWithEndpointName("occupied_heating_setpoint_scheduled", msg, model, meta)] = value;
+                    // const key = postfixWithEndpointName("occupied_heating_setpoint_scheduled", msg, model, meta);
+                    // result[key] = value;
+                }
+                return result;
             },
         });
         return extend;
@@ -814,7 +904,7 @@ const tzLocal = {
             );
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["occupiedHeatingSetpoint"]);
+            await entity.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
         },
     } satisfies Tz.Converter,
     danfoss_thermostat_occupied_heating_setpoint_scheduled: {
@@ -1409,6 +1499,25 @@ export const definitions: DefinitionWithExtend[] = [
 
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
         extend: [
+            danfossExtend.danfossThermostat({
+                // maxSetpoint 32 eller 35
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 35, step: 0.5}}},
+                piHeatingDemand: {values: true},
+                systemMode: {values: ["heat"]},
+                programmingOperationMode: {values: ["setpoint", "schedule", "schedule_with_preheat", "eco"]},
+                setpointsLimit: {
+                    maxHeatSetpointLimit: {min: 5, max: 35, step: 0.5},
+                },
+            }),
+            danfossExtend.absMaxHeatSetpointLimit(),
+            danfossExtend.occupiedHeatingSetpointScheduled(),
+            // danfossExtend.danfoss
+            // e.numeric("occupied_heating_setpoint_scheduled", ea.ALL)
+            //     .withValueMin(5).withValueMax(maxSetpoint)
+            //     .withValueStep(0.5).withUnit("°C").withDescription(
+            //         "Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite " +
+            //             "to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. " +
+            //             "(more suitable for scheduled changes)", ),
             m.battery(),
             danfossExtend.keypadLockout(),
             danfossExtend.danfossMountedModeActive(),
@@ -1419,23 +1528,6 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossHeatRequired(),
             danfossExtend.setpointChangeSource(),
 
-            danfossExtend.danfossThermostat({
-                // maxSetpoint 32 eller 35
-                setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 35, step: 0.5}}},
-                piHeatingDemand: {values: true},
-                systemMode: {values: ["heat"]},
-                programmingOperationMode: {values: ["setpoint", "schedule", "schedule_with_preheat", "eco"]},
-                setpointsLimit: {
-                    maxHeatSetpointLimit: {min: 5, max: 35, step: 0.5},
-                    minHeatSetpointLimit: {min: 5, max: 20, step: 0.5},
-                },
-            }),
-            // e.numeric("occupied_heating_setpoint_scheduled", ea.ALL)
-            //     .withValueMin(5).withValueMax(maxSetpoint)
-            //     .withValueStep(0.5).withUnit("°C").withDescription(
-            //         "Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite " +
-            //             "to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. " +
-            //             "(more suitable for scheduled changes)", ),
             danfossExtend.danfossExternalMeasuredRoomSensor(),
             danfossExtend.danfossRadiatorCovered(),
             danfossExtend.danfossWindowOpenFeatureEnable(),
@@ -1448,7 +1540,6 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossLoadRoomMean(),
             danfossExtend.danfossLoadEstimate(),
             danfossExtend.danfossPreheatStatus(),
-            danfossExtend.danfossAdaptionRunStatus(),
             danfossExtend.danfossAdaptionRunStatus(),
             danfossExtend.danfossAdaptionRunSettings(),
             danfossExtend.danfossAdaptionRunControl(),
