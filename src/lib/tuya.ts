@@ -3478,7 +3478,7 @@ const tuyaModernExtend = {
 export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {
-        addManuSpecificTuya2Cluster: (): ModernExtend =>
+    addManuSpecificTuya2Cluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya2", {
             name: "manuSpecificTuya2",
             ID: 0xe002,

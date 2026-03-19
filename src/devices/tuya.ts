@@ -723,7 +723,7 @@ const tzLocal = {
             switch (key) {
                 case "temperature_unit": {
                     utils.assertString(value, "temperature_unit");
-                    await entity.write("manuSpecificTuya2", {
+                    await entity.write<"manuSpecificTuya2", tuya.ManuSpecificTuya2>("manuSpecificTuya2", {
                         "57355": {value: {celsius: 0, fahrenheit: 1}[value], type: 48},
                     });
                     break;
@@ -996,6 +996,32 @@ const tzLocal = {
             };
         },
     } satisfies Tz.Converter,
+    ts0201_temperature_humidity_alarm: {
+        key: ["alarm_humidity_max", "alarm_humidity_min", "alarm_temperature_max", "alarm_temperature_min"],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+                case "alarm_temperature_max":
+                case "alarm_temperature_min":
+                case "alarm_humidity_max":
+                case "alarm_humidity_min": {
+                    // await entity.write('manuSpecificTuya2', {[key]: value});
+                    // instead write as custom attribute to override incorrect herdsman dataType from uint16 to int16
+                    // https://github.com/Koenkk/zigbee-herdsman/blob/v0.13.191/src/zcl/definition/cluster.ts#L4235
+                    const keyToAttributeLookup = {
+                        alarm_temperature_max: 0xd00a,
+                        alarm_temperature_min: 0xd00b,
+                        alarm_humidity_max: 0xd00d,
+                        alarm_humidity_min: 0xd00e,
+                    };
+                    const payload = {[keyToAttributeLookup[key]]: {value: value, type: Zcl.DataType.INT16}};
+                    await entity.write<"manuSpecificTuya2", tuya.ManuSpecificTuya2>("manuSpecificTuya2", payload);
+                    break;
+                }
+                default: // Unknown key
+                    logger.warning(`Unhandled key ${key}`, NS);
+            }
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -1073,6 +1099,34 @@ const fzLocal = {
             return fz.humidity.convert(model, msg, publish, options, meta);
         },
     } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
+    ts0201_temperature_humidity_alarm: {
+        cluster: "manuSpecificTuya2",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.alarm_temperature_max !== undefined) {
+                result.alarm_temperature_max = msg.data.alarm_temperature_max;
+            }
+            if (msg.data.alarm_temperature_min !== undefined) {
+                result.alarm_temperature_min = msg.data.alarm_temperature_min;
+            }
+            if (msg.data.alarm_humidity_max !== undefined) {
+                result.alarm_humidity_max = msg.data.alarm_humidity_max;
+            }
+            if (msg.data.alarm_humidity_min !== undefined) {
+                result.alarm_humidity_min = msg.data.alarm_humidity_min;
+            }
+            if (msg.data.alarm_humidity !== undefined) {
+                const sensorAlarmLookup: KeyValueAny = {"0": "below_min_humdity", "1": "over_humidity", "2": "off"};
+                result.alarm_humidity = sensorAlarmLookup[msg.data.alarm_humidity];
+            }
+            if (msg.data.alarm_temperature !== undefined) {
+                const sensorAlarmLookup: KeyValueAny = {"0": "below_min_temperature", "1": "over_temperature", "2": "off"};
+                result.alarm_temperature = sensorAlarmLookup[msg.data.alarm_temperature];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya2", tuya.ManuSpecificTuya2, ["attributeReport", "readResponse"]>,
     humidity10: {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"],
@@ -1096,7 +1150,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya2", tuya.ManuSpecificTuya2, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_threshold: {
         cluster: "manuSpecificTuya3",
@@ -1183,7 +1237,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya2", tuya.ManuSpecificTuya2, ["attributeReport"]>,
     ts0049_countdown: {
         cluster: "manuSpecificTuyaE001",
         type: "raw",
@@ -11608,8 +11662,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LCZ030",
         vendor: "Tuya",
         description: "Temperature & humidity & illuminance sensor with display",
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.ts0201_temperature_humidity_alarm],
-        toZigbee: [tz.ts0201_temperature_humidity_alarm],
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fzLocal.ts0201_temperature_humidity_alarm],
+        toZigbee: [tzLocal.ts0201_temperature_humidity_alarm],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             // Enables reporting of measurement state changes
