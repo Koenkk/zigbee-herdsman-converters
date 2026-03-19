@@ -582,6 +582,7 @@ const inovelliExtend = {
                     ],
                 },
                 reportTargetInfo: {
+                    name: "reportTargetInfo",
                     ID: 1,
                     parameters: [
                         {name: "targetNum", type: Zcl.DataType.UINT8},
