@@ -2755,6 +2755,10 @@ const tuyaModernExtend = {
             ];
         }
 
+        const customCluster = tuyaClusters.addManuSpecificTuya3Cluster();
+        result.onEvent = [...(customCluster.onEvent ?? []), ...(result.onEvent ?? [])];
+        result.configure = [...(customCluster.configure ?? []), ...(result.configure ?? [])];
+
         if (dp) {
             result.fromZigbee.push(tuyaFz.datapoints);
             result.toZigbee.push(tuyaTz.datapoints);
