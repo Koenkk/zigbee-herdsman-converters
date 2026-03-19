@@ -1540,7 +1540,10 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        fingerprint: [{modelID: "HS2AQ-EM", manufacturerName: "HEIMAN"}],
+        fingerprint: [
+            {modelID: "HS2AQ-EM", manufacturerName: "HEIMAN"},
+            {modelID: "HS2AQ-EM-3.0", manufacturerName: "HEIMAN"},
+        ],
         model: "HS2AQ-EM",
         vendor: "Heiman",
         description: "Air quality monitor",
