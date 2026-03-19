@@ -459,7 +459,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(30)
                 .withValueStep(0.1)
                 .withDescription("Reactive power threshold. Switch turns on when real power exceeds this value"),
-            e.numeric("max_effective_power", ea.STATE_SET).withUnit("W").withValueMin(0).withValueMax(4800).withDescription("Maximum effective power supported"),
+            e
+                .numeric("max_effective_power", ea.STATE_SET)
+                .withUnit("W")
+                .withValueMin(0)
+                .withValueMax(4800)
+                .withDescription("Maximum effective power supported"),
             e.enum("status_report", ea.STATE_SET, ["ON", "OFF"]).withDescription("Enable threshold monitoring"),
             e.enum("switch_status", ea.STATE, ["ON", "OFF"]).withDescription("Switch status"),
         ],
