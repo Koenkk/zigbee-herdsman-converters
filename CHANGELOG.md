@@ -1,5 +1,22 @@
 # Changelog
 
+## [26.22.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.21.0...v26.22.0) (2026-03-19)
+
+
+### Features
+
+* **add:** FL 250 C ([#11754](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11754)) ([2b8ebf0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2b8ebf0e77cf760694e9eb29689a35651bdf6cf0))
+
+
+### Bug Fixes
+
+* Add generation to Philips remotes' description ([#11748](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11748)) ([3b0cffa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3b0cffa85b2b018ed8ede2a5d1dbfcfc30c77a66))
+* **detect:** Detect `_TZ3000_icoxotza` as Tuya TS0726_2_gang  ([#11720](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11720)) ([30d5512](https://github.com/Koenkk/zigbee-herdsman-converters/commit/30d55127301b59f45739102f44f3710dd8622972))
+* **detect:** Detect HS2AQ-EM-3.0 as HS2AQ-EM ([#11753](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11753)) ([075b81a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/075b81a7e73e9d39e48c8f1e692d125164027097))
+* **ignore:** fix c7f160d9610a1005a5a4ef8e376644a1225302f5 ([dad31b1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dad31b12571ab08c0783448ed5c1e978e8614946))
+* Tuya: enable polling for `_TZ3000_mkhkxx1p` and `_TZ3000_kqvb5akv` ([#11755](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11755)) ([b5e981d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b5e981d402ca9a8718a3ade527e8c0226e177269))
+* Weiser: add endpoint mapping for SmartCode 10 locks ([#11756](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11756)) ([ebb7d8d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ebb7d8dae42608a45e1a385a7be1991c764c1c67))
+
 ## [26.21.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.20.0...v26.21.0) (2026-03-17)
 
 

@@ -850,8 +850,15 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["FL 230 C"],
         model: "FL 230 C",
         vendor: "Innr",
-        description: "Lightstrip colour",
+        description: "Lightstrip colour, 3m",
         extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
+    },
+    {
+        zigbeeModel: ["FL 250 C"],
+        model: "FL 250 C",
+        vendor: "Innr",
+        description: "Lightstrip colour, 5m",
+        extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["OFL 120 C"],
