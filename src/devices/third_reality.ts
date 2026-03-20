@@ -333,7 +333,7 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                     presenceSensorSensitivity: {name: "presenceSensorSensitivity", ID: 0xf002, type: Zcl.DataType.UINT8, write: true, min: 1, max: 6},
                     tvocSensorCalibration: {name: "tvocSensorCalibration", ID: 0xf001, type: Zcl.DataType.UINT8, write: true, min: 1, max: 1},
-                    airThreshold: {name: "airThreshold", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, min: 3000, max: 15000},
+                    airThreshold: {name: "airThreshold", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, min: 3000, max: 50000},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -366,7 +366,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
                 name: "air_threshold",
                 valueMin: 3000,
-                valueMax: 15000,
+                valueMax: 50000,
                 cluster: "3r60gRadarSpecialCluster",
                 attribute: "airThreshold",
                 unit: "ppb",
