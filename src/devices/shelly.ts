@@ -338,6 +338,17 @@ const shellyModernExtend = {
             {attribute: "acFrequency", minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 100},
         ]);
     },
+    // Polls seMetering.currentSummDelivered/currentSummReceived periodically because the Shelly
+    // Gen 4 firmware rejects configureReporting for seMetering (Status FAILURE).
+    shellyGen4EnergyPoll(): ModernExtend {
+        return m.poll({
+            key: "energy",
+            defaultIntervalSeconds: 300,
+            poll: async (device) => {
+                await device.getEndpoint(1).read("seMetering", ["currentSummDelivered", "currentSummReceived"]);
+            },
+        });
+    },
     shellyPowerFactorInt16Fix(): ModernExtend {
         // Shelly Gen4 devices report haElectricalMeasurement.powerFactor (0x0510) as INT16 (0x29)
         // while zigbee-herdsman defines it as INT8 (0x28). This breaks configureReporting (INVALID_DATA_TYPE).
@@ -1056,6 +1067,7 @@ export const definitions: DefinitionWithExtend[] = [
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            shellyModernExtend.shellyGen4EnergyPoll(),
         ],
         configure: shellyModernExtend.shellyGen4ElectricityMeterConfigure,
     },
@@ -1070,6 +1082,7 @@ export const definitions: DefinitionWithExtend[] = [
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            shellyModernExtend.shellyGen4EnergyPoll(),
         ],
         configure: shellyModernExtend.shellyGen4ElectricityMeterConfigure,
     },
