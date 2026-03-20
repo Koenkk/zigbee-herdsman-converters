@@ -183,15 +183,25 @@ export async function setupAttributes<Cl extends string | number, Custom extends
         if (configureReporting) {
             await endpoint.bind(cluster, coordinatorEndpoint);
             for (const chunk of chunks) {
-                await endpoint.configureReporting<Cl, Custom>(
-                    cluster,
-                    chunk.map((a) => ({
-                        minimumReportInterval: convertReportingConfigTime(a.min),
-                        maximumReportInterval: convertReportingConfigTime(a.max),
-                        reportableChange: a.change,
-                        attribute: a.attribute,
-                    })),
-                );
+                try {
+                    await endpoint.configureReporting<Cl, Custom>(
+                        cluster,
+                        chunk.map((a) => ({
+                            minimumReportInterval: convertReportingConfigTime(a.min),
+                            maximumReportInterval: convertReportingConfigTime(a.max),
+                            reportableChange: a.change,
+                            attribute: a.attribute,
+                        })),
+                    );
+                } catch (e) {
+                    // Some devices reject configureReporting for certain clusters
+                    // (e.g. Shelly Gen 4 returns FAILURE for seMetering). Log a warning
+                    // and continue so that other clusters are still configured.
+                    logger.warning(
+                        `Failed to configure reporting for cluster '${cluster}' on ` + `${endpoint.getDevice().ieeeAddr}/${endpoint.ID}: ${e}`,
+                        "zhc:modernExtend",
+                    );
+                }
             }
         }
 

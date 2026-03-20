@@ -312,6 +312,32 @@ function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: 
 // =============================================================================
 
 const shellyModernExtend = {
+    // Custom configure for Shelly Gen 4 devices with electricity metering.
+    // Uses a 5-minute maximum reporting interval instead of the default MAX (65000 s / ~18 h).
+    // At stable, low loads the change thresholds are rarely crossed, causing haElectricalMeasurement
+    // values to go unreported for many hours. seMetering.configureReporting is intentionally
+    // omitted because Shelly Gen 4 firmware rejects it with Status FAILURE; energy values are
+    // still included in every haElectricalMeasurement report.
+    shellyGen4ElectricityMeterConfigure: async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+        const endpoint = device.getEndpoint(1);
+        await endpoint.read("haElectricalMeasurement", [
+            "acPowerDivisor",
+            "acPowerMultiplier",
+            "acCurrentDivisor",
+            "acCurrentMultiplier",
+            "acVoltageDivisor",
+            "acVoltageMultiplier",
+            "acFrequencyDivisor",
+            "acFrequencyMultiplier",
+        ]);
+        await endpoint.read("seMetering", ["divisor", "multiplier"]);
+        await endpoint.configureReporting("haElectricalMeasurement", [
+            {attribute: "activePower", minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 5},
+            {attribute: "rmsCurrent", minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 50},
+            {attribute: "rmsVoltage", minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 500},
+            {attribute: "acFrequency", minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 100},
+        ]);
+    },
     shellyPowerFactorInt16Fix(): ModernExtend {
         // Shelly Gen4 devices report haElectricalMeasurement.powerFactor (0x0510) as INT16 (0x29)
         // while zigbee-herdsman defines it as INT8 (0x28). This breaks configureReporting (INVALID_DATA_TYPE).
@@ -1026,11 +1052,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "1PM Mini Gen 4",
         extend: [
             m.onOff({powerOnBehavior: false}),
-            m.electricityMeter({producedEnergy: true, acFrequency: true}),
+            m.electricityMeter({producedEnergy: true, acFrequency: true, configureReporting: false}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
+        configure: shellyModernExtend.shellyGen4ElectricityMeterConfigure,
     },
     {
         zigbeeModel: ["1PM"],
@@ -1039,11 +1066,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "1PM Gen 4",
         extend: [
             m.onOff({powerOnBehavior: false}),
-            m.electricityMeter({producedEnergy: true, acFrequency: true}),
+            m.electricityMeter({producedEnergy: true, acFrequency: true, configureReporting: false}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
+        configure: shellyModernExtend.shellyGen4ElectricityMeterConfigure,
     },
     {
         zigbeeModel: ["EM Mini"],
