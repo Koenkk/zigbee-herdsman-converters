@@ -1249,11 +1249,6 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Hive", model: "UK7004240", description: "Radiator valve", fingerprint: [{modelID: "TRV001"}, {modelID: "TRV003"}]},
             {vendor: "Popp", model: "701721", description: "Smart thermostat", fingerprint: [{modelID: "eT093WRO"}, {modelID: "eT093WRG"}]},
         ],
-        // zigbeeModel: ["eTRV0100x"],
-        // model: "014G2461x",
-        // vendor: "Danfoss",
-        // description: "Ally thermostat",
-
         ota: true,
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
         extend: [
@@ -1530,7 +1525,7 @@ export const definitions: DefinitionWithExtend[] = [
                     await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
                     await reporting.temperature(endpoint, {change: 10});
 
-                    await endpoint.configureReporting(
+                    await endpoint.configureReporting<"hvacThermostat", DanfossHvacThermostat>(
                         "hvacThermostat",
                         [
                             {
@@ -1864,7 +1859,7 @@ export const definitions: DefinitionWithExtend[] = [
                 if (typeof mainController === "undefined") {
                     await endpoint.read("genBasic", ["modelId", "powerSource"]);
                 } else {
-                    await endpoint.configureReporting(
+                    await endpoint.configureReporting<"hvacThermostat", DanfossHvacThermostat>(
                         "hvacThermostat",
                         [
                             {
