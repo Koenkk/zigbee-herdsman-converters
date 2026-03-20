@@ -894,8 +894,8 @@ const danfossExtend = {
             .withValueStep(0.5)
             .withUnit("°C")
             .withDescription(
-                "Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite " +
-                    "to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. " +
+                "Scheduled change of the setpoint. Alternative method for changing the setpoint. In contrast to" +
+                    "occupied heating setpoint it does not trigger an aggressive response from the actuator. " +
                     "(more suitable for scheduled changes)",
             );
 
@@ -1081,83 +1081,6 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.danfossWindowOpenFeatureEnable !== undefined) {
-                result[postfixWithEndpointName("window_open_feature", msg, model, meta)] = msg.data.danfossWindowOpenFeatureEnable === 1;
-            }
-            if (msg.data.danfossWindowOpenInternal !== undefined) {
-                result[postfixWithEndpointName("window_open_internal", msg, model, meta)] =
-                    constants.danfossWindowOpen[msg.data.danfossWindowOpenInternal] !== undefined
-                        ? constants.danfossWindowOpen[msg.data.danfossWindowOpenInternal]
-                        : msg.data.danfossWindowOpenInternal;
-            }
-            if (msg.data.danfossWindowOpenExternal !== undefined) {
-                result[postfixWithEndpointName("window_open_external", msg, model, meta)] = msg.data.danfossWindowOpenExternal === 1;
-            }
-            if (msg.data.danfossDayOfWeek !== undefined) {
-                result[postfixWithEndpointName("day_of_week", msg, model, meta)] =
-                    constants.thermostatDayOfWeek[msg.data.danfossDayOfWeek] !== undefined
-                        ? constants.thermostatDayOfWeek[msg.data.danfossDayOfWeek]
-                        : msg.data.danfossDayOfWeek;
-            }
-            if (msg.data.danfossTriggerTime !== undefined) {
-                result[postfixWithEndpointName("trigger_time", msg, model, meta)] = msg.data.danfossTriggerTime;
-            }
-            if (msg.data.danfossMountedModeActive !== undefined) {
-                result[postfixWithEndpointName("mounted_mode_active", msg, model, meta)] = msg.data.danfossMountedModeActive === 1;
-            }
-            if (msg.data.danfossMountedModeControl !== undefined) {
-                result[postfixWithEndpointName("mounted_mode_control", msg, model, meta)] = msg.data.danfossMountedModeControl === 1;
-            }
-            if (msg.data.danfossThermostatOrientation !== undefined) {
-                result[postfixWithEndpointName("thermostat_vertical_orientation", msg, model, meta)] = msg.data.danfossThermostatOrientation === 1;
-            }
-            if (msg.data.danfossExternalMeasuredRoomSensor !== undefined) {
-                result[postfixWithEndpointName("external_measured_room_sensor", msg, model, meta)] = msg.data.danfossExternalMeasuredRoomSensor;
-            }
-            if (msg.data.danfossRadiatorCovered !== undefined) {
-                result[postfixWithEndpointName("radiator_covered", msg, model, meta)] = msg.data.danfossRadiatorCovered === 1;
-            }
-            if (msg.data.danfossAlgorithmScaleFactor !== undefined) {
-                result[postfixWithEndpointName("algorithm_scale_factor", msg, model, meta)] = msg.data.danfossAlgorithmScaleFactor;
-            }
-            if (msg.data.danfossHeatAvailable !== undefined) {
-                result[postfixWithEndpointName("heat_available", msg, model, meta)] = msg.data.danfossHeatAvailable === 1;
-            }
-            if (msg.data.danfossHeatRequired !== undefined) {
-                if (msg.data.danfossHeatRequired === 1) {
-                    result[postfixWithEndpointName("heat_required", msg, model, meta)] = true;
-                    result[postfixWithEndpointName("running_state", msg, model, meta)] = "heat";
-                } else {
-                    result[postfixWithEndpointName("heat_required", msg, model, meta)] = false;
-                    result[postfixWithEndpointName("running_state", msg, model, meta)] = "idle";
-                }
-            }
-            if (msg.data.danfossLoadBalancingEnable !== undefined) {
-                result[postfixWithEndpointName("load_balancing_enable", msg, model, meta)] = msg.data.danfossLoadBalancingEnable === 1;
-            }
-            if (msg.data.danfossLoadRoomMean !== undefined) {
-                result[postfixWithEndpointName("load_room_mean", msg, model, meta)] = msg.data.danfossLoadRoomMean;
-            }
-            if (msg.data.danfossLoadEstimate !== undefined) {
-                result[postfixWithEndpointName("load_estimate", msg, model, meta)] = msg.data.danfossLoadEstimate;
-            }
-            if (msg.data.danfossPreheatStatus !== undefined) {
-                result[postfixWithEndpointName("preheat_status", msg, model, meta)] = msg.data.danfossPreheatStatus === 1;
-            }
-            if (msg.data.danfossAdaptionRunStatus !== undefined) {
-                result[postfixWithEndpointName("adaptation_run_status", msg, model, meta)] =
-                    constants.danfossAdaptionRunStatus[msg.data.danfossAdaptionRunStatus];
-            }
-            if (msg.data.danfossAdaptionRunSettings !== undefined) {
-                result[postfixWithEndpointName("adaptation_run_settings", msg, model, meta)] = msg.data.danfossAdaptionRunSettings === 1;
-            }
-            if (msg.data.danfossAdaptionRunControl !== undefined) {
-                result[postfixWithEndpointName("adaptation_run_control", msg, model, meta)] =
-                    constants.danfossAdaptionRunControl[msg.data.danfossAdaptionRunControl];
-            }
-            if (msg.data.danfossRegulationSetpointOffset !== undefined) {
-                result[postfixWithEndpointName("regulation_setpoint_offset", msg, model, meta)] = msg.data.danfossRegulationSetpointOffset;
-            }
             // Danfoss Icon Converters
             if (msg.data.danfossRoomStatusCode !== undefined) {
                 result[postfixWithEndpointName("room_status_code", msg, model, meta)] =
