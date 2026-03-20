@@ -1221,7 +1221,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
 
             // danfoss attributes
-            await endpoint.configureReporting(
+            await endpoint.configureReporting<"hvacThermostat", DanfossHvacThermostat>(
                 "hvacThermostat",
                 [
                     {
@@ -1233,7 +1233,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-            await endpoint.configureReporting(
+            await endpoint.configureReporting<"hvacThermostat", DanfossHvacThermostat>(
                 "hvacThermostat",
                 [
                     {
@@ -1245,7 +1245,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-            await endpoint.configureReporting(
+            await endpoint.configureReporting<"hvacThermostat", DanfossHvacThermostat>(
                 "hvacThermostat",
                 [
                     {
@@ -1257,7 +1257,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-            await endpoint.configureReporting(
+            await endpoint.configureReporting<"hvacThermostat", DanfossHvacThermostat>(
                 "hvacThermostat",
                 [
                     {
@@ -1269,7 +1269,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 options,
             );
-            await endpoint.configureReporting(
+            await endpoint.configureReporting<"hvacThermostat", DanfossHvacThermostat>(
                 "hvacThermostat",
                 [
                     {
@@ -1283,7 +1283,7 @@ export const definitions: DefinitionWithExtend[] = [
             );
 
             try {
-                await endpoint.configureReporting(
+                await endpoint.configureReporting<"hvacThermostat", DanfossHvacThermostat>(
                     "hvacThermostat",
                     [
                         {
@@ -1566,7 +1566,7 @@ export const definitions: DefinitionWithExtend[] = [
                     await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
                     await reporting.temperature(endpoint, {change: 10});
 
-                    await endpoint.configureReporting(
+                    await endpoint.configureReporting<"hvacThermostat", DanfossHvacThermostat>(
                         "hvacThermostat",
                         [
                             {
@@ -1900,7 +1900,7 @@ export const definitions: DefinitionWithExtend[] = [
                 if (typeof mainController === "undefined") {
                     await endpoint.read("genBasic", ["modelId", "powerSource"]);
                 } else {
-                    await endpoint.configureReporting(
+                    await endpoint.configureReporting<"hvacThermostat", DanfossHvacThermostat>(
                         "hvacThermostat",
                         [
                             {
