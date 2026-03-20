@@ -1323,5 +1323,8 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 281474976710655,
             }),
         ],
+        meta: {
+            publishDuplicateTransaction: true,
+        },
     },
 ];

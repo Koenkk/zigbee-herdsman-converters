@@ -50,6 +50,53 @@ interface OwonFallDetection {
     commandResponses: never;
 }
 
+interface OwonSeMetering {
+    attributes: {
+        owonL1PhasePower?: number;
+        owonL2PhasePower?: number;
+        owonL3PhasePower?: number;
+        owonL1PhaseReactivePower?: number;
+        owonL2PhaseReactivePower?: number;
+        owonL3PhaseReactivePower?: number;
+        owonReactivePowerSum?: number;
+        owonL1PhaseVoltage?: number;
+        owonL2PhaseVoltage?: number;
+        owonL3PhaseVoltage?: number;
+        owonL1PhaseCurrent?: number;
+        owonL2PhaseCurrent?: number;
+        owonL3PhaseCurrent?: number;
+        owonCurrentSum?: number;
+        owonLeakageCurrent?: number;
+        owonL1Energy?: number;
+        owonL2Energy?: number;
+        owonL3Energy?: number;
+        owonL1ReactiveEnergy?: number;
+        owonL2ReactiveEnergy?: number;
+        owonL3ReactiveEnergy?: number;
+        owonReactiveEnergySum?: number;
+        owonL1PowerFactor?: number;
+        owonL2PowerFactor?: number;
+        owonL3PowerFactor?: number;
+        owonFrequency?: number;
+        owonReportMap?: number;
+        owonLastHistoricalRecordTime?: number;
+        owonOldestHistoricalRecordTime?: number;
+        owonMinimumReportCycle?: number;
+        owonMaximumReportCycle?: number;
+        owonSentHistoricalRecordState?: number;
+        owonAccumulativeEnergyThreshold?: number;
+        owonReportMode?: number;
+        owonPercentChangeInPower?: number;
+    };
+    commands: {
+        owonGetHistoryRecord: Record<string, never>;
+        owonStopSendingHistoricalRecord: Record<string, never>;
+    };
+    commandResponses: {
+        owonGetHistoryRecordRsp: Record<string, never>;
+    };
+}
+
 const owonExtend = {
     addOwonClearMeteringCluster: () =>
         m.deviceAddCustomCluster("owonClearMetering", {
@@ -127,6 +174,309 @@ const owonExtend = {
             },
             commands: {},
             commandsResponse: {},
+        }),
+    addOwonSeMeteringCluster: () =>
+        m.deviceAddCustomCluster("seMetering", {
+            name: "seMetering",
+            ID: Zcl.Clusters.seMetering.ID,
+            attributes: {
+                owonL1PhasePower: {
+                    name: "owonL1PhasePower",
+                    ID: 0x2000,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonL2PhasePower: {
+                    name: "owonL2PhasePower",
+                    ID: 0x2001,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonL3PhasePower: {
+                    name: "owonL3PhasePower",
+                    ID: 0x2002,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonL1PhaseReactivePower: {
+                    name: "owonL1PhaseReactivePower",
+                    ID: 0x2100,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonL2PhaseReactivePower: {
+                    name: "owonL2PhaseReactivePower",
+                    ID: 0x2101,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonL3PhaseReactivePower: {
+                    name: "owonL3PhaseReactivePower",
+                    ID: 0x2102,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonReactivePowerSum: {
+                    name: "owonReactivePowerSum",
+                    ID: 0x2103,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonL1PhaseVoltage: {
+                    name: "owonL1PhaseVoltage",
+                    ID: 0x3000,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonL2PhaseVoltage: {
+                    name: "owonL2PhaseVoltage",
+                    ID: 0x3001,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonL3PhaseVoltage: {
+                    name: "owonL3PhaseVoltage",
+                    ID: 0x3002,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonL1PhaseCurrent: {
+                    name: "owonL1PhaseCurrent",
+                    ID: 0x3100,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonL2PhaseCurrent: {
+                    name: "owonL2PhaseCurrent",
+                    ID: 0x3101,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonL3PhaseCurrent: {
+                    name: "owonL3PhaseCurrent",
+                    ID: 0x3102,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonCurrentSum: {
+                    name: "owonCurrentSum",
+                    ID: 0x3103,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonLeakageCurrent: {
+                    name: "owonLeakageCurrent",
+                    ID: 0x3104,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonL1Energy: {
+                    name: "owonL1Energy",
+                    ID: 0x4000,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonL2Energy: {
+                    name: "owonL2Energy",
+                    ID: 0x4001,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonL3Energy: {
+                    name: "owonL3Energy",
+                    ID: 0x4002,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonL1ReactiveEnergy: {
+                    name: "owonL1ReactiveEnergy",
+                    ID: 0x4100,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonL2ReactiveEnergy: {
+                    name: "owonL2ReactiveEnergy",
+                    ID: 0x4101,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonL3ReactiveEnergy: {
+                    name: "owonL3ReactiveEnergy",
+                    ID: 0x4102,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonReactiveEnergySum: {
+                    name: "owonReactiveEnergySum",
+                    ID: 0x4103,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonL1PowerFactor: {
+                    name: "owonL1PowerFactor",
+                    ID: 0x4104,
+                    type: Zcl.DataType.INT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -128,
+                    max: 127,
+                },
+                owonL2PowerFactor: {
+                    name: "owonL2PowerFactor",
+                    ID: 0x4105,
+                    type: Zcl.DataType.INT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -128,
+                    max: 127,
+                },
+                owonL3PowerFactor: {
+                    name: "owonL3PowerFactor",
+                    ID: 0x4106,
+                    type: Zcl.DataType.INT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -128,
+                    max: 127,
+                },
+                owonFrequency: {
+                    name: "owonFrequency",
+                    ID: 0x5005,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xff,
+                },
+                owonReportMap: {
+                    name: "owonReportMap",
+                    ID: 0x1000,
+                    type: Zcl.DataType.BITMAP8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                },
+                owonLastHistoricalRecordTime: {
+                    name: "owonLastHistoricalRecordTime",
+                    ID: 0x5000,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffff,
+                },
+                owonOldestHistoricalRecordTime: {
+                    name: "owonOldestHistoricalRecordTime",
+                    ID: 0x5001,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffff,
+                },
+                owonMinimumReportCycle: {
+                    name: "owonMinimumReportCycle",
+                    ID: 0x5002,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffff,
+                },
+                owonMaximumReportCycle: {
+                    name: "owonMaximumReportCycle",
+                    ID: 0x5003,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffff,
+                },
+                owonSentHistoricalRecordState: {
+                    name: "owonSentHistoricalRecordState",
+                    ID: 0x5004,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xff,
+                },
+                owonAccumulativeEnergyThreshold: {
+                    name: "owonAccumulativeEnergyThreshold",
+                    ID: 0x5006,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xff,
+                },
+                owonReportMode: {
+                    name: "owonReportMode",
+                    ID: 0x5007,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xff,
+                },
+                owonPercentChangeInPower: {
+                    name: "owonPercentChangeInPower",
+                    ID: 0x5008,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xff,
+                },
+            },
+            commands: {
+                owonGetHistoryRecord: {name: "owonGetHistoryRecord", ID: 0x20, parameters: []},
+                owonStopSendingHistoricalRecord: {name: "owonStopSendingHistoricalRecord", ID: 0x21, parameters: []},
+            },
+            commandsResponse: {
+                owonGetHistoryRecordRsp: {name: "owonGetHistoryRecordRsp", ID: 0x20, parameters: []},
+            },
         }),
 };
 
@@ -283,7 +633,7 @@ const fzLocal = {
 
             return payload;
         },
-    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"seMetering", OwonSeMetering, ["attributeReport", "readResponse"]>,
 
     owonFds315: {
         cluster: "fallDetectionOwon",
@@ -705,7 +1055,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PC321",
         vendor: "OWON",
         description: "3-Phase clamp power meter",
-        extend: [owonExtend.addOwonClearMeteringCluster()],
+        extend: [owonExtend.addOwonClearMeteringCluster(), owonExtend.addOwonSeMeteringCluster()],
         fromZigbee: [fz.metering, fzLocal.PC321_metering],
         toZigbee: [tzLocal.PC321_clearMetering],
         configure: async (device, coordinatorEndpoint) => {

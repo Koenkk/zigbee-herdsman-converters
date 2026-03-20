@@ -2801,7 +2801,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RWL020", "RWL021"],
         model: "324131092621",
         vendor: "Philips",
-        description: "Hue dimmer switch",
+        description: "Hue dimmer switch gen 1",
         fromZigbee: [
             fz.ignore_command_on,
             fz.ignore_command_off_with_effect,
@@ -2853,7 +2853,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RWL022"],
         model: "929002398602",
         vendor: "Philips",
-        description: "Hue dimmer switch",
+        description: "Hue dimmer switch gen 2",
         extend: [philips.m.addManuSpecificPhilipsCluster()],
         fromZigbee: [
             fz.ignore_command_on,
@@ -4945,5 +4945,12 @@ export const definitions: DefinitionWithExtend[] = [
                 gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
             }),
         ],
+    },
+    {
+        zigbeeModel: ["929004294903"],
+        model: "929004294903",
+        vendor: "Philips",
+        description: "Hue Essential lightstrip (16ft)",
+        extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
 ];

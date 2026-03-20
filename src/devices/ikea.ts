@@ -1227,5 +1227,12 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
     },
+    {
+        zigbeeModel: ["VARMBLIXT table/wall lamp"],
+        model: "E2499",
+        vendor: "IKEA",
+        description: "VARMBLIXT table/wall lamp, color/white spectrum, 180 lm",
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"]}}), m.identify()],
+    },
     // #endregion sensors
 ];
