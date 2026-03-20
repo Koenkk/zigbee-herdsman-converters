@@ -1,5 +1,21 @@
 # Changelog
 
+## [26.23.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.22.0...v26.23.0) (2026-03-20)
+
+
+### Features
+
+* SONOFF S60ZBTPF and S60ZBTPG: various improvements ([#11762](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11762)) ([814f518](https://github.com/Koenkk/zigbee-herdsman-converters/commit/814f5186e6a8d692addb6e2c910b6176d79dbf43))
+
+
+### Bug Fixes
+
+* **detect:** Detect `KAJPLATS E27 806lm 95mm smart WS` as IKEA LED2401G5 ([#11765](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11765)) ([d29ab04](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d29ab04c2adc8990812ae5716fc39993401abb09))
+* **ignore:** bump the minor-patch group with 2 updates ([#11759](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11759)) ([26f23f6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/26f23f6bb570aaa5946fc031e990e9578c736316))
+* Move manuSpecificTuya3Cluster from ZH to ZHC ([#11751](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11751)) ([b2e6f36](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b2e6f36fb14a1c975c766473fb438b16abf46a1f))
+* Schneider Electric WDE002497: minor improvements ([#11760](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11760)) ([952bc1a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/952bc1a102dd82fb689a3c96fac9d47226846b06))
+* Third Reality 3RPL01084Z：fix airThreshold max value ([#11764](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11764)) ([be1e9fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/be1e9fc80e2795b5dc50dab70ace0d4e96e0efa0))
+
 ## [26.22.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.21.0...v26.22.0) (2026-03-19)
 
 
