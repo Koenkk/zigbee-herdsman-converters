@@ -3515,6 +3515,8 @@ const tuyaClusters = {
                 unknown: {name: "unknown", ID: 0xd010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {},
+            commandsResponse: {},
+              }),
     addManuSpecificTuya3Cluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya3", {
             name: "manuSpecificTuya3",
