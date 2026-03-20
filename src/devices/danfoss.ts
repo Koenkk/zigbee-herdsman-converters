@@ -678,6 +678,60 @@ const danfossExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
             ...args,
         }),
+    danfossTriggerTime2: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            exposes: [
+                e
+                    .text("trigger_time", ea.ALL)
+                    .withDescription("Exercise trigger time. Format: 'HH:MM' (e.g., '14:30'). Send 'undefined' to disable."),
+            ],
+            fromZigbee: [
+                {
+                    cluster: "hvacThermostat",
+                    type: ["attributeReport", "readResponse"],
+                    convert: (model, msg, publish, options, meta) => {
+                        if (msg.data.danfossTriggerTime !== undefined) {
+                            const val = msg.data.danfossTriggerTime;
+                            if (val === 65535) {
+                                return {trigger_time: "undefined"};
+                            }
+                            const hours = Math.floor(val / 60)
+                                .toString()
+                                .padStart(2, "0");
+                            const mins = (val % 60).toString().padStart(2, "0");
+                            return {trigger_time: `${hours}:${mins}`};
+                        }
+                    },
+                },
+            ],
+            toZigbee: [
+                {
+                    key: ["trigger_time"],
+                    convertSet: async (entity, key, value, meta) => {
+                        let val = 65535; // Default to undefined (65535)
+
+                        if (typeof value === "string" && value.toLowerCase() !== "undefined") {
+                            const [hours, mins] = value.split(":").map(Number);
+
+                            if (!Number.isNaN(hours) && !Number.isNaN(mins)) {
+                                val = hours * 60 + mins;
+                            } else {
+                                throw new Error(`Invalid time format for trigger_time: '${value}'. Please use 'HH:MM'.`);
+                            }
+                        }
+
+                        await entity.write("hvacThermostat", {danfossTriggerTime: val}, {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S});
+
+                        return {state: {trigger_time: value}};
+                    },
+                    convertGet: async (entity, key, meta) => {
+                        await entity.read("hvacThermostat", ["danfossTriggerTime"], {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S});
+                    },
+                },
+            ],
+        };
+    },
     danfossAlgorithmScaleFactor: (args?: Partial<m.NumericArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
         m.numeric<"hvacThermostat", DanfossHvacThermostat>({
             name: "algorithm_scale_factor",
@@ -803,28 +857,6 @@ const danfossExtend = {
         const extend = m.thermostat(options);
 
         const danfossSetpointConverter: Tz.Converter = {
-            // key: ["occupied_heating_setpoint"],
-            // convertSet: async (entity, key, value, meta) => {
-            //     utils.assertNumber(value, key);
-            //     const payload = {
-            //         // 1: "User Interaction" Changes occupied heating setpoint and triggers an aggressive reaction
-            //         //   of the actuator as soon as control SW runs, to replicate the behavior of turning the dial on the eTRV.
-            //         setpointType: 1,
-            //         setpoint: Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100,
-            //     };
-            //     await entity.command<"hvacThermostat", "danfossSetpointCommand", DanfossHvacThermostat>(
-            //         "hvacThermostat",
-            //         "danfossSetpointCommand",
-            //         payload,
-            //         {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            //     );
-            //     await entity.command<"hvacThermostat", "danfossSetpointCommand", DanfossHvacThermostat>(
-            //         "hvacThermostat",
-            //         "danfossSetpointCommand",
-            //         payload,
-            //         {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            //     );
-            // },
             key: ["occupied_heating_setpoint", "occupied_heating_setpoint_scheduled"],
             convertSet: async (entity, key, value, meta) => {
                 utils.assertNumber(value, key);
@@ -838,23 +870,16 @@ const danfossExtend = {
                     "hvacThermostat",
                     "danfossSetpointCommand",
                     payload,
+                    {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
                 );
                 if (!isScheduled) {
                     await entity.command<"hvacThermostat", "danfossSetpointCommand", DanfossHvacThermostat>(
                         "hvacThermostat",
                         "danfossSetpointCommand",
                         payload,
+                        {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
                     );
                 }
-                //     // return {state: {[key]: value}};
-                //     return {
-                //         state: {
-                //             [key]: value,
-                //             // If we change one, we usually want the other to reflect it in the UI until the next official report comes in from the device.
-                //             occupied_heating_setpoint: value,
-                //             occupied_heating_setpoint_scheduled: value,
-                //         },
-                //     };
             },
             convertGet: async (entity, key, meta) => {
                 await entity.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
@@ -862,9 +887,17 @@ const danfossExtend = {
         };
         extend.toZigbee.unshift(danfossSetpointConverter);
 
-        // extend.fromZigbee.push(...absMaxExtend.fromZigbee);
-        // if (absMaxExtend.toZigbee) extend.toZigbee.push(...absMaxExtend.toZigbee);
-        // extend.exposes = extend.exposes.filter((e) => (typeof e !== "function" && "name" in e ? e.name !== "abs_max_heat_setpoint_limit" : true));
+        const scheduledSetpointExpose = e
+            .numeric("occupied_heating_setpoint_scheduled", ea.ALL)
+            .withValueMin(5)
+            .withValueMax(35)
+            .withValueStep(0.5)
+            .withUnit("°C")
+            .withDescription(
+                "Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite " +
+                    "to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. " +
+                    "(more suitable for scheduled changes)",
+            );
 
         const climateExpose = extend.exposes.find((exp) => typeof exp !== "function" && "type" in exp && exp.type === "climate");
         if (climateExpose) {
@@ -873,21 +906,16 @@ const danfossExtend = {
             if (runningStateFeature) {
                 runningStateFeature.withDescription("Running state based on danfossOutputStatus and danfossHeatRequired");
             }
+            const setpointIndex = climateExpose.features.findIndex(
+                (f) => typeof f !== "function" && "name" in f && f.name === "occupied_heating_setpoint",
+            );
+            if (setpointIndex !== -1) {
+                // Insert right after 'occupied_heating_setpoint'
+                climateExpose.features.splice(setpointIndex + 1, 0, scheduledSetpointExpose);
+            } else {
+                climateExpose.features.push(scheduledSetpointExpose);
+            }
         }
-
-        extend.exposes.push(
-            e
-                .numeric("occupied_heating_setpoint_scheduled", ea.ALL)
-                .withValueMin(5)
-                .withValueMax(35)
-                .withValueStep(0.5)
-                .withUnit("°C")
-                .withDescription(
-                    "Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite " +
-                        "to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. " +
-                        "(more suitable for scheduled changes)",
-                ),
-        );
 
         extend.fromZigbee.push({
             cluster: "hvacThermostat",
@@ -913,364 +941,6 @@ const danfossExtend = {
 };
 
 const tzLocal = {
-    danfoss_thermostat_occupied_heating_setpoint: {
-        key: ["occupied_heating_setpoint"],
-        convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value, key);
-            const payload = {
-                // 1: "User Interaction" Changes occupied heating setpoint and triggers an aggressive reaction
-                //   of the actuator as soon as control SW runs, to replicate the behavior of turning the dial on the eTRV.
-                setpointType: 1,
-                setpoint: Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100,
-            };
-            await entity.command<"hvacThermostat", "danfossSetpointCommand", DanfossHvacThermostat>(
-                "hvacThermostat",
-                "danfossSetpointCommand",
-                payload,
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            await entity.command<"hvacThermostat", "danfossSetpointCommand", DanfossHvacThermostat>(
-                "hvacThermostat",
-                "danfossSetpointCommand",
-                payload,
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-        },
-    } satisfies Tz.Converter,
-    danfoss_thermostat_occupied_heating_setpoint_scheduled: {
-        key: ["occupied_heating_setpoint_scheduled"],
-        convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value, key);
-            const payload = {
-                // 0: "Schedule Change" Just changes occupied heating setpoint. No special behavior,
-                //   the PID control setpoint will be update with the new setpoint.
-                setpointType: 0,
-                setpoint: Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100,
-            };
-            await entity.command<"hvacThermostat", "danfossSetpointCommand", DanfossHvacThermostat>(
-                "hvacThermostat",
-                "danfossSetpointCommand",
-                payload,
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
-        },
-    } satisfies Tz.Converter,
-    danfoss_mounted_mode_active: {
-        key: ["mounted_mode_active"],
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossMountedModeActive"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_mounted_mode_control: {
-        key: ["mounted_mode_control"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossMountedModeControl: value as number},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {mounted_mode_control: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossMountedModeControl"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_thermostat_vertical_orientation: {
-        key: ["thermostat_vertical_orientation"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossThermostatOrientation: value as number},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {thermostat_vertical_orientation: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossThermostatOrientation"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_external_measured_room_sensor: {
-        key: ["external_measured_room_sensor"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossExternalMeasuredRoomSensor: value as number},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {external_measured_room_sensor: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossExternalMeasuredRoomSensor"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_radiator_covered: {
-        key: ["radiator_covered"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossRadiatorCovered: value as number},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {radiator_covered: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossRadiatorCovered"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_viewing_direction: {
-        key: ["viewing_direction"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacUserInterfaceCfg", DanfossHvacUserInterfaceCfg>(
-                "hvacUserInterfaceCfg",
-                {
-                    danfossViewingDirection: value as number,
-                },
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {viewing_direction: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacUserInterfaceCfg", DanfossHvacUserInterfaceCfg>("hvacUserInterfaceCfg", ["danfossViewingDirection"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_algorithm_scale_factor: {
-        key: ["algorithm_scale_factor"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossAlgorithmScaleFactor: value as number},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {algorithm_scale_factor: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossAlgorithmScaleFactor"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_heat_available: {
-        key: ["heat_available"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossHeatAvailable: value as number},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {heat_available: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossHeatAvailable"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_heat_required: {
-        key: ["heat_required"],
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossHeatRequired"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_day_of_week: {
-        key: ["day_of_week"],
-        convertSet: async (entity, key, value, meta) => {
-            const payload = {danfossDayOfWeek: utils.getKey(constants.thermostatDayOfWeek, value, undefined, Number)};
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", payload, {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-            return {state: {day_of_week: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossDayOfWeek"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_trigger_time: {
-        key: ["trigger_time"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossTriggerTime: value as number},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {trigger_time: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossTriggerTime"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_window_open_feature: {
-        key: ["window_open_feature"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossWindowOpenFeatureEnable: value as number},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {window_open_feature: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossWindowOpenFeatureEnable"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_window_open_internal: {
-        key: ["window_open_internal"],
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossWindowOpenInternal"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_window_open_external: {
-        key: ["window_open_external"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossWindowOpenExternal: value as number},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {window_open_external: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossWindowOpenExternal"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_load_balancing_enable: {
-        key: ["load_balancing_enable"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossLoadBalancingEnable: value as number},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {load_balancing_enable: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossLoadBalancingEnable"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_load_room_mean: {
-        key: ["load_room_mean"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossLoadRoomMean: value as number},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {load_room_mean: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossLoadRoomMean"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_load_estimate: {
-        key: ["load_estimate"],
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossLoadEstimate"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_preheat_status: {
-        key: ["preheat_status"],
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossPreheatStatus"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_adaptation_status: {
-        key: ["adaptation_run_status"],
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossAdaptionRunStatus"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_adaptation_settings: {
-        key: ["adaptation_run_settings"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossAdaptionRunSettings: value as number},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {adaptation_run_settings: value}};
-        },
-
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossAdaptionRunSettings"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_adaptation_control: {
-        key: ["adaptation_run_control"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {
-                    danfossAdaptionRunControl: utils.getKey(constants.danfossAdaptionRunControl, value, value as number, Number),
-                },
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {adaptation_run_control: value}};
-        },
-
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossAdaptionRunControl"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
-    danfoss_regulation_setpoint_offset: {
-        key: ["regulation_setpoint_offset"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write<"hvacThermostat", DanfossHvacThermostat>(
-                "hvacThermostat",
-                {danfossRegulationSetpointOffset: value as number},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {regulation_setpoint_offset: value}};
-        },
-
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossRegulationSetpointOffset"], {
-                manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
-            });
-        },
-    } satisfies Tz.Converter,
     danfoss_output_status: {
         key: ["output_status"],
         convertGet: async (entity, key, meta) => {
@@ -1518,18 +1188,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacUserInterfaceCfg", DanfossHvacUserInterfaceCfg, ["attributeReport", "readResponse"]>,
-    danfoss_thermostat_setpoint_scheduled: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.occupiedHeatingSetpoint !== undefined) {
-                result[postfixWithEndpointName("occupied_heating_setpoint_scheduled", msg, model, meta)] =
-                    precisionRound(msg.data.occupiedHeatingSetpoint, 2) / 100;
-            }
-            return result;
-        },
-    } satisfies Fz.Converter<"hvacThermostat", DanfossHvacThermostat, ["attributeReport", "readResponse"]>,
     danfoss_icon_floor_sensor: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -1673,10 +1331,13 @@ export const definitions: DefinitionWithExtend[] = [
         // vendor: "Danfoss",
         // description: "Ally thermostat",
 
+        ota: true,
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
         extend: [
+            danfossExtend.addDanfossHvacThermostatCluster(),
+            danfossExtend.addDanfossHvacUserInterfaceCfgCluster(),
             danfossExtend.danfossThermostat({
-                // maxSetpoint 32 eller 35
+                // maxSetpoint 32 or 35
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 35, step: 0.5}}},
                 piHeatingDemand: {values: true},
                 systemMode: {values: ["heat"]},
@@ -1686,14 +1347,6 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             }),
             danfossExtend.absMaxHeatSetpointLimit(),
-            // danfossExtend.occupiedHeatingSetpointScheduled(),
-
-            // e.numeric("occupied_heating_setpoint_scheduled", ea.ALL)
-            //     .withValueMin(5).withValueMax(maxSetpoint)
-            //     .withValueStep(0.5).withUnit("°C").withDescription(
-            //         "Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite " +
-            //             "to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. " +
-            //             "(more suitable for scheduled changes)", ),
             m.battery(),
             danfossExtend.keypadLockout(),
             danfossExtend.danfossMountedModeActive(),
@@ -1703,14 +1356,13 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossHeatAvailable(),
             danfossExtend.danfossHeatRequired(),
             danfossExtend.setpointChangeSource(),
-
             danfossExtend.danfossExternalMeasuredRoomSensor(),
             danfossExtend.danfossRadiatorCovered(),
             danfossExtend.danfossWindowOpenFeatureEnable(),
             danfossExtend.danfossWindowOpenInternal(),
             danfossExtend.danfossWindowOpenExternal(),
             danfossExtend.danfossDayOfWeek(),
-            danfossExtend.danfossTriggerTime(),
+            danfossExtend.danfossTriggerTime2(),
             danfossExtend.danfossAlgorithmScaleFactor(),
             danfossExtend.danfossLoadBalancingEnable(),
             danfossExtend.danfossLoadRoomMean(),
@@ -1720,341 +1372,6 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossAdaptionRunSettings(),
             danfossExtend.danfossAdaptionRunControl(),
             danfossExtend.danfossRegulationSetpointOffset(),
-        ],
-    },
-    {
-        zigbeeModel: ["eTRV0100x"],
-        model: "014G2461x",
-        vendor: "Danfoss",
-        description: "Ally thermostat",
-
-        // eTRV0100 is the same as Hive TRV001 and Popp eT093WRO. If implementing anything, please consider
-        // changing those two too.
-        // zigbeeModel: ["eTRV0100", "eTRV0101", "eTRV0103", "TRV001", "TRV003", "eT093WRO", "eT093WRG"],
-        // model: "014G2461",
-        // vendor: "Danfoss",
-        // description: "Ally thermostat",
-        // whiteLabel: [
-        //     {vendor: "Danfoss", model: "014G2463"},
-        //     {vendor: "Hive", model: "UK7004240", description: "Radiator valve", fingerprint: [{modelID: "TRV001"}, {modelID: "TRV003"}]},
-        //     {vendor: "Popp", model: "701721", description: "Smart thermostat", fingerprint: [{modelID: "eT093WRO"}, {modelID: "eT093WRG"}]},
-        // ],
-        meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [
-            fz.battery,
-            fz.thermostat,
-            fz.thermostat_weekly_schedule,
-            fz.hvac_user_interface,
-            fzLocal.danfoss_thermostat,
-            fzLocal.danfoss_hvac_ui,
-            fzLocal.danfoss_thermostat_setpoint_scheduled,
-        ],
-        toZigbee: [
-            tzLocal.danfoss_thermostat_occupied_heating_setpoint,
-            tz.thermostat_local_temperature,
-            tzLocal.danfoss_mounted_mode_active,
-            tzLocal.danfoss_mounted_mode_control,
-            tzLocal.danfoss_thermostat_vertical_orientation,
-            tzLocal.danfoss_algorithm_scale_factor,
-            tzLocal.danfoss_heat_available,
-            tzLocal.danfoss_heat_required,
-            tzLocal.danfoss_day_of_week,
-            tzLocal.danfoss_trigger_time,
-            tzLocal.danfoss_window_open_internal,
-            tzLocal.danfoss_window_open_external,
-            tzLocal.danfoss_load_estimate,
-            tzLocal.danfoss_viewing_direction,
-            tzLocal.danfoss_external_measured_room_sensor,
-            tzLocal.danfoss_radiator_covered,
-            tz.thermostat_keypad_lockout,
-            tz.thermostat_system_mode,
-            tzLocal.danfoss_load_balancing_enable,
-            tzLocal.danfoss_load_room_mean,
-            tz.thermostat_weekly_schedule,
-            tz.thermostat_clear_weekly_schedule,
-            tz.thermostat_programming_operation_mode,
-            tzLocal.danfoss_window_open_feature,
-            tzLocal.danfoss_preheat_status,
-            tzLocal.danfoss_adaptation_status,
-            tzLocal.danfoss_adaptation_settings,
-            tzLocal.danfoss_adaptation_control,
-            tzLocal.danfoss_regulation_setpoint_offset,
-            tzLocal.danfoss_thermostat_occupied_heating_setpoint_scheduled,
-        ],
-        exposes: (device, options) => {
-            const maxSetpoint = !utils.isDummyDevice(device) && ["TRV001", "TRV003"].includes(device.modelID) ? 32 : 35;
-            return [
-                e.battery(),
-                e.keypad_lockout(),
-                e.programming_operation_mode(),
-                e
-                    .binary("mounted_mode_active", ea.STATE_GET, true, false)
-                    .withDescription(
-                        "Is the unit in mounting mode. This is set to `false` for mounted (already on " +
-                            "the radiator) or `true` for not mounted (after factory reset)",
-                    ),
-                e
-                    .binary("mounted_mode_control", ea.ALL, true, false)
-                    .withDescription("Set the unit mounting mode. `false` Go to Mounted Mode or `true` Go to Mounting Mode"),
-                e
-                    .binary("thermostat_vertical_orientation", ea.ALL, true, false)
-                    .withDescription(
-                        "Thermostat Orientation. This is important for the PID in how it assesses temperature. " +
-                            "`false` Horizontal or `true` Vertical",
-                    ),
-                e.binary("viewing_direction", ea.ALL, true, false).withDescription("Viewing/display direction, `false` normal or `true` upside-down"),
-                e
-                    .binary("heat_available", ea.ALL, true, false)
-                    .withDescription(
-                        "Not clear how this affects operation. However, it would appear that the device does not execute any " +
-                            "motor functions if this is set to false. This may be a means to conserve battery during periods that the heating " +
-                            "system is not energized (e.g. during summer). `false` No Heat Available or `true` Heat Available",
-                    ),
-                e
-                    .binary("heat_required", ea.STATE_GET, true, false)
-                    .withDescription("Whether or not the unit needs warm water. `false` No Heat Request or `true` Heat Request"),
-                e
-                    .enum("setpoint_change_source", ea.STATE, ["manual", "schedule", "externally"])
-                    .withDescription("Values observed are `0` (manual), `1` (schedule) or `2` (externally)"),
-                e
-                    .climate()
-                    .withSetpoint("occupied_heating_setpoint", 5, maxSetpoint, 0.5)
-                    .withLocalTemperature()
-                    .withPiHeatingDemand()
-                    .withSystemMode(["heat"])
-                    .withRunningState(["idle", "heat"], ea.STATE),
-                e
-                    .numeric("occupied_heating_setpoint_scheduled", ea.ALL)
-                    .withValueMin(5)
-                    .withValueMax(maxSetpoint)
-                    .withValueStep(0.5)
-                    .withUnit("°C")
-                    .withDescription(
-                        "Scheduled change of the setpoint. Alternative method for changing the setpoint. In the opposite " +
-                            "to occupied_heating_setpoint it does not trigger an aggressive response from the actuator. " +
-                            "(more suitable for scheduled changes)",
-                    ),
-                e
-                    .numeric("external_measured_room_sensor", ea.ALL)
-                    .withDescription(
-                        "The temperature sensor of the TRV is — due to its design — relatively close to the heat source " +
-                            "(i.e. the hot water in the radiator). Thus there are situations where the `local_temperature` measured by the " +
-                            "TRV is not accurate enough: If the radiator is covered behind curtains or furniture, if the room is rather big, or " +
-                            "if the radiator itself is big and the flow temperature is high, then the temperature in the room may easily diverge " +
-                            "from the `local_temperature` measured by the TRV by 5°C to 8°C. In this case you might choose to use an external " +
-                            "room sensor and send the measured value of the external room sensor to the `External_measured_room_sensor` property. " +
-                            "The way the TRV operates on the `External_measured_room_sensor` depends on the setting of the `Radiator_covered` " +
-                            "property: If `Radiator_covered` is `false` (Auto Offset Mode): You *must* set the `External_measured_room_sensor` " +
-                            "property *at least* every 3 hours. After 3 hours the TRV disables this function and resets the value of the " +
-                            "`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` " +
-                            "property *at most* every 30 minutes or every 0.1°C change in measured room temperature. " +
-                            "If `Radiator_covered` is `true` (Room Sensor Mode): You *must* set the `External_measured_room_sensor` property *at " +
-                            "least* every 30 minutes. After 35 minutes the TRV disables this function and resets the value of the " +
-                            "`External_measured_room_sensor` property to -8000 (disabled). You *should* set the `External_measured_room_sensor` " +
-                            "property *at most* every 5 minutes or every 0.1°C change in measured room temperature. " +
-                            "The unit of this value is 0.01 `°C` (so e.g. 21°C would be represented as 2100).",
-                    )
-                    .withValueMin(-8000)
-                    .withValueMax(3500),
-                e
-                    .binary("radiator_covered", ea.ALL, true, false)
-                    .withDescription(
-                        "Controls whether the TRV should solely rely on an external room sensor or operate in offset mode. " +
-                            "`false` = Auto Offset Mode (use this e.g. for exposed radiators) or `true` = Room Sensor Mode (use this e.g. for " +
-                            "covered radiators). Please note that this flag only controls how the TRV operates on the value of " +
-                            "`External_measured_room_sensor`; only setting this flag without setting the `External_measured_room_sensor` " +
-                            "has no (noticeable?) effect.",
-                    ),
-                e.binary("window_open_feature", ea.ALL, true, false).withDescription("Whether or not the window open feature is enabled"),
-                e
-                    .enum("window_open_internal", ea.STATE_GET, ["quarantine", "closed", "hold", "open", "external_open"])
-                    .withDescription(
-                        "0=Quarantine, 1=Windows are closed, 2=Hold - Windows are maybe about to open, " +
-                            "3=Open window detected, 4=In window open state from external but detected closed locally",
-                    ),
-                e
-                    .binary("window_open_external", ea.ALL, true, false)
-                    .withDescription(
-                        "Set if the window is open or close. This setting will trigger a change in the internal " +
-                            "window and heating demand. `false` (windows are closed) or `true` (windows are open)",
-                    ),
-                e
-                    .enum("day_of_week", ea.ALL, ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "away_or_vacation"])
-                    .withDescription("Exercise day of week: 0=Sun...6=Sat, 7=undefined"),
-                e
-                    .numeric("trigger_time", ea.ALL)
-                    .withValueMin(0)
-                    .withValueMax(65535)
-                    .withDescription("Exercise trigger time. Minutes since midnight (65535=undefined). Range 0 to 1439"),
-                e
-                    .numeric("algorithm_scale_factor", ea.ALL)
-                    .withValueMin(1)
-                    .withValueMax(10)
-                    .withDescription(
-                        'Scale factor of setpoint filter timeconstant ("aggressiveness" of control algorithm) ' +
-                            "1= Quick ...  5=Moderate ... 10=Slow",
-                    ),
-                e
-                    .binary("load_balancing_enable", ea.ALL, true, false)
-                    .withDescription(
-                        "Whether or not the thermostat acts as standalone thermostat or shares load with other " +
-                            "thermostats in the room. The gateway must update load_room_mean if enabled.",
-                    ),
-                e
-                    .numeric("load_room_mean", ea.ALL)
-                    .withDescription("Mean radiator load for room calculated by gateway for load balancing purposes (-8000=undefined)")
-                    .withValueMin(-8000)
-                    .withValueMax(3600),
-                e.numeric("load_estimate", ea.STATE_GET).withDescription("Load estimate on this radiator").withValueMin(-8000).withValueMax(3600),
-                e.binary("preheat_status", ea.STATE_GET, true, false).withDescription("Specific for pre-heat running in Zigbee Weekly Schedule mode"),
-                e
-                    .enum("adaptation_run_status", ea.STATE_GET, ["none", "in_progress", "found", "lost", "lost_in_progress"])
-                    .withDescription(
-                        "Status of adaptation run: None (before first run), In Progress, Valve Characteristic Found, Valve Characteristic Lost",
-                    ),
-                e
-                    .binary("adaptation_run_settings", ea.ALL, true, false)
-                    .withDescription("Automatic adaptation run enabled (the one during the night)"),
-                e
-                    .enum("adaptation_run_control", ea.ALL, ["none", "initiate_adaptation", "cancel_adaptation"])
-                    .withDescription("Adaptation run control: Initiate Adaptation Run or Cancel Adaptation Run"),
-                e
-                    .numeric("regulation_setpoint_offset", ea.ALL)
-                    .withDescription("Regulation SetPoint Offset in range -2.5°C to 2.5°C in steps of 0.1°C. Value 2.5°C = 25.")
-                    .withValueMin(-25)
-                    .withValueMax(25),
-            ];
-        },
-        ota: true,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat"]);
-
-            // standard ZCL attributes
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatPIHeatingDemand(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-
-            // danfoss attributes
-            await endpoint.configureReporting(
-                "hvacThermostat",
-                [
-                    {
-                        attribute: "danfossMountedModeActive",
-                        minimumReportInterval: constants.repInterval.MINUTE,
-                        maximumReportInterval: constants.repInterval.MAX,
-                        reportableChange: 1,
-                    },
-                ],
-                options,
-            );
-            await endpoint.configureReporting(
-                "hvacThermostat",
-                [
-                    {
-                        attribute: "danfossWindowOpenInternal",
-                        minimumReportInterval: constants.repInterval.MINUTE,
-                        maximumReportInterval: constants.repInterval.HOUR,
-                        reportableChange: 1,
-                    },
-                ],
-                options,
-            );
-            await endpoint.configureReporting(
-                "hvacThermostat",
-                [
-                    {
-                        attribute: "danfossHeatRequired",
-                        minimumReportInterval: constants.repInterval.MINUTE,
-                        maximumReportInterval: constants.repInterval.HOUR,
-                        reportableChange: 1,
-                    },
-                ],
-                options,
-            );
-            await endpoint.configureReporting(
-                "hvacThermostat",
-                [
-                    {
-                        attribute: "danfossExternalMeasuredRoomSensor",
-                        minimumReportInterval: constants.repInterval.MINUTE,
-                        maximumReportInterval: constants.repInterval.MAX,
-                        reportableChange: 1,
-                    },
-                ],
-                options,
-            );
-            await endpoint.configureReporting(
-                "hvacThermostat",
-                [
-                    {
-                        attribute: "danfossAdaptionRunStatus",
-                        minimumReportInterval: constants.repInterval.MINUTE,
-                        maximumReportInterval: constants.repInterval.HOUR,
-                        reportableChange: 1,
-                    },
-                ],
-                options,
-            );
-
-            try {
-                await endpoint.configureReporting(
-                    "hvacThermostat",
-                    [
-                        {
-                            attribute: "danfossPreheatStatus",
-                            minimumReportInterval: constants.repInterval.MINUTE,
-                            maximumReportInterval: constants.repInterval.MAX,
-                            reportableChange: 1,
-                        },
-                    ],
-                    options,
-                );
-            } catch {
-                /* not supported by all */
-            }
-
-            try {
-                await endpoint.read<"hvacThermostat", DanfossHvacThermostat>(
-                    "hvacThermostat",
-                    [
-                        "danfossWindowOpenFeatureEnable",
-                        "danfossWindowOpenExternal",
-                        "danfossDayOfWeek",
-                        "danfossTriggerTime",
-                        "danfossAlgorithmScaleFactor",
-                        "danfossHeatAvailable",
-                        "danfossMountedModeControl",
-                        "danfossMountedModeActive",
-                        "danfossExternalMeasuredRoomSensor",
-                        "danfossRadiatorCovered",
-                        "danfossLoadBalancingEnable",
-                        "danfossLoadRoomMean",
-                        "danfossAdaptionRunControl",
-                        "danfossAdaptionRunSettings",
-                        "danfossRegulationSetpointOffset",
-                    ],
-                    options,
-                );
-            } catch {
-                /* not supported by all https://github.com/Koenkk/zigbee2mqtt/issues/11872 */
-            }
-
-            // read systemMode to have an initial value
-            await endpoint.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["systemMode"]);
-
-            // read keypadLockout, we don't need reporting as it cannot be set physically on the device
-            await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-
-            // Seems that it is bug in Danfoss, device does not asks for the time with binding
-            // So, we need to write time during configure (same as for HEIMAN devices)
-            await setTime(device);
-        },
-        extend: [
-            danfossExtend.addDanfossHvacThermostatCluster(),
-            danfossExtend.addDanfossHvacUserInterfaceCfgCluster(),
             m.poll({
                 key: "time_sync",
                 defaultIntervalSeconds: 60 * 60 * 24,
@@ -2067,6 +1384,13 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             }),
         ],
+        // // read systemMode to have an initial value
+        // await endpoint.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["systemMode"]);
+        // // read keypadLockout, we don't need reporting as it cannot be set physically on the device
+        // await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
+        // // Seems that it is bug in Danfoss, device does not asks for the time with binding
+        // // So, we need to write time during configure (same as for HEIMAN devices)
+        // await setTime(device);
     },
     {
         fingerprint: [
