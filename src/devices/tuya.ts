@@ -1567,10 +1567,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "PIR sensor",
         fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fzLocal.ts020cIlluminance],
-        extend: [
-            tuya.clusters.addManuSpecificTuya2Cluster(),
-            tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true, queryOnConfigure: true}),
-        ],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true, queryOnConfigure: true})],
         exposes: [
             e.occupancy(),
             e.battery(),
@@ -11758,7 +11755,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("alarm_humidity", ea.STATE, ["below_min_humdity", "over_humidity", "off"]).withDescription("Alarm humidity status"),
             e.enum("alarm_temperature", ea.STATE, ["below_min_temperature", "over_temperature", "off"]).withDescription("Alarm temperature status"),
         ],
-        extend: [tuya.clusters.addManuSpecificTuya2Cluster(), m.illuminance()],
+        extend: [tuya.modernExtend.tuyaBase(), m.illuminance()],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_auin8mzr"]),
@@ -12730,7 +12727,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature & humidity sensor with LCD",
         fromZigbee: [fz.temperature, fzLocal.humidity10, fzLocal.temperature_unit, fz.battery, fz.ignore_tuya_set_time],
         toZigbee: [tzLocal.temperature_unit],
-        extend: [tuya.clusters.addManuSpecificTuya2Cluster(), tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         exposes: [
             e.temperature(),
             e.humidity(),
