@@ -3516,7 +3516,7 @@ const tuyaClusters = {
             },
             commands: {},
             commandsResponse: {},
-              }),
+        }),
     addManuSpecificTuya3Cluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya3", {
             name: "manuSpecificTuya3",
