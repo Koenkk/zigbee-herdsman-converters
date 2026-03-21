@@ -338,6 +338,27 @@ const shellyModernExtend = {
             {attribute: "acFrequency", minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 100},
         ]);
     },
+    // Filters out spurious energy=0 reports from Shelly Gen 4 firmware.
+    // The firmware occasionally emits currentSummDelivered=0 which would corrupt
+    // Home Assistant energy statistics (treated as a meter reset). When a valid
+    // previous energy value is known, the zero is replaced by the last good value.
+    shellyGen4EnergyZeroFilter(): ModernExtend {
+        const fzFilter: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
+            cluster: "seMetering",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.currentSummDelivered !== undefined) {
+                    const multiplier = (msg.endpoint.getClusterAttributeValue("seMetering", "multiplier") as number) || 1;
+                    const divisor = (msg.endpoint.getClusterAttributeValue("seMetering", "divisor") as number) || 1;
+                    const energy = (msg.data.currentSummDelivered * multiplier) / divisor;
+                    if (energy === 0 && (meta.state?.energy as number) > 0) {
+                        return {energy: meta.state.energy as number, produced_energy: (meta.state.produced_energy as number) ?? 0};
+                    }
+                }
+            },
+        };
+        return {fromZigbee: [fzFilter], isModernExtend: true};
+    },
     // Polls seMetering.currentSummDelivered/currentSummReceived periodically because the Shelly
     // Gen 4 firmware rejects configureReporting for seMetering (Status FAILURE).
     shellyGen4EnergyPoll(): ModernExtend {
@@ -1068,6 +1089,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
             shellyModernExtend.shellyGen4EnergyPoll(),
+            shellyModernExtend.shellyGen4EnergyZeroFilter(),
         ],
         configure: shellyModernExtend.shellyGen4ElectricityMeterConfigure,
     },
@@ -1083,6 +1105,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
             shellyModernExtend.shellyGen4EnergyPoll(),
+            shellyModernExtend.shellyGen4EnergyZeroFilter(),
         ],
         configure: shellyModernExtend.shellyGen4ElectricityMeterConfigure,
     },
