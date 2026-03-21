@@ -662,6 +662,7 @@ const danfossExtend = {
             },
             description: "Exercise day of week: 0=Sun...6=Sat, 7=undefined",
             access: "ALL",
+            entityCategory: "config",
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
             ...args,
         }),
@@ -675,6 +676,7 @@ const danfossExtend = {
             valueMin: 0,
             valueMax: 1439,
             access: "ALL",
+            entityCategory: "config",
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
             ...args,
         }),
@@ -684,7 +686,8 @@ const danfossExtend = {
             exposes: [
                 e
                     .text("trigger_time", ea.ALL)
-                    .withDescription("Exercise trigger time. Format: 'HH:MM' (e.g., '14:30'). Send 'undefined' to disable."),
+                    .withDescription("Exercise trigger time. Format: 'HH:MM' (e.g., '14:30'). Send 'undefined' to disable.")
+                    .withCategory("config"),
             ],
             fromZigbee: [
                 {
@@ -930,8 +933,6 @@ const danfossExtend = {
                     const value = precisionRound(msg.data.occupiedHeatingSetpoint, 2) / 100;
                     result[postfixWithEndpointName("occupied_heating_setpoint", msg, model, meta)] = value;
                     result[postfixWithEndpointName("occupied_heating_setpoint_scheduled", msg, model, meta)] = value;
-                    //             // const key = postfixWithEndpointName("occupied_heating_setpoint_scheduled", msg, model, meta);
-                    //             // result[key] = value;
                 }
                 return result;
             },
