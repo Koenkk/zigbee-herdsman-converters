@@ -145,7 +145,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
-        zigbeeModel: ["RB 282 C"],
+    {    
+    zigbeeModel: ["RB 282 C"],
         model: "RB 282 C",
         vendor: "Innr",
         description: "E27 bulb RGBW",
