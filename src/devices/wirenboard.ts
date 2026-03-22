@@ -88,6 +88,15 @@ interface SprutMsTemperatureMeasurement {
     commandResponses: never;
 }
 
+interface SprutMsCO2 {
+    attributes: {
+        sprutCO2Calibration?: number;
+        sprutCO2AutoCalibration?: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const sprutCode = Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE;
 
 const manufacturerOptions = {manufacturerCode: sprutCode};
@@ -181,7 +190,7 @@ const fzLocal = {
                 return {co2_manual_calibration: switchActionValues[msg.data.sprutCO2Calibration]};
             }
         },
-    } satisfies Fz.Converter<"msCO2", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"msCO2", SprutMsCO2, ["attributeReport", "readResponse"]>,
     th_heater: {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"],
@@ -309,7 +318,7 @@ const tzLocal = {
                 [getFromLookup(key, co2Lookup)]: newValue,
             };
 
-            await entity.write("msCO2", payload, options);
+            await entity.write<"msCO2", SprutMsCO2>("msCO2", payload, options);
 
             return {state: {[key]: value}};
         },
@@ -430,6 +439,29 @@ const sprutModernExtend = {
                     write: true,
                     min: -32768,
                     max: 32767,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addSprutMsCO2Cluster: () =>
+        m.deviceAddCustomCluster("msCO2", {
+            name: "msCO2",
+            ID: Zcl.Clusters.msCO2.ID,
+            attributes: {
+                sprutCO2Calibration: {
+                    name: "sprutCO2Calibration",
+                    ID: 0x6600,
+                    type: Zcl.DataType.BOOLEAN,
+                    manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
+                    write: true,
+                },
+                sprutCO2AutoCalibration: {
+                    name: "sprutCO2AutoCalibration",
+                    ID: 0x6601,
+                    type: Zcl.DataType.BOOLEAN,
+                    manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
+                    write: true,
                 },
             },
             commands: {},
@@ -675,6 +707,7 @@ const {
     addSprutMsRelativeHumidityCluster,
     addSprutMsOccupancySensingCluster,
     addSprutMsTemperatureMeasurementCluster,
+    addSprutMsCO2Cluster,
     sprutActivityIndicator,
     sprutIsConnected,
     sprutUartBaudRate,
@@ -842,6 +875,8 @@ export const definitions: DefinitionWithExtend[] = [
             addSprutIrBlasterCluster(),
             addSprutMsRelativeHumidityCluster(),
             addSprutMsOccupancySensingCluster(),
+            addSprutMsTemperatureMeasurementCluster(),
+            addSprutMsCO2Cluster(),
             m.illuminance(),
         ],
     },
