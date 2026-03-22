@@ -407,16 +407,17 @@ const danfossExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    absMaxHeatSetpointLimit: (args?: Partial<m.BinaryArgs<"hvacThermostat", undefined>>) =>
+    absMaxHeatSetpointLimit: (args?: Partial<m.NumericArgs<"hvacThermostat", undefined>>) =>
         m.numeric<"hvacThermostat", undefined>({
             name: "abs_max_heat_setpoint_limit",
             cluster: "hvacThermostat",
             attribute: "absMaxHeatSetpointLimit",
-            description: "Absolute Maximum Heating Setpoint Limit. ",
+            description: "Absolute Maximum Heating Setpoint Limit.",
             unit: "°C",
             scale: 100,
             entityCategory: "diagnostic",
             access: "STATE_GET",
+            ...args,
         }),
     keypadLockout: (args?: Partial<m.EnumLookupArgs<"hvacUserInterfaceCfg", undefined>>) =>
         m.enumLookup({
@@ -713,19 +714,15 @@ const danfossExtend = {
                     key: ["trigger_time"],
                     convertSet: async (entity, key, value, meta) => {
                         let val = 65535; // Default to undefined (65535)
-
                         if (typeof value === "string" && value.toLowerCase() !== "undefined") {
                             const [hours, mins] = value.split(":").map(Number);
-
                             if (!Number.isNaN(hours) && !Number.isNaN(mins)) {
                                 val = hours * 60 + mins;
                             } else {
                                 throw new Error(`Invalid time format for trigger_time: '${value}'. Please use 'HH:MM'.`);
                             }
                         }
-
                         await entity.write("hvacThermostat", {danfossTriggerTime: val}, {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S});
-
                         return {state: {trigger_time: value}};
                     },
                     convertGet: async (entity, key, meta) => {
@@ -890,18 +887,6 @@ const danfossExtend = {
         };
         extend.toZigbee.unshift(danfossSetpointConverter);
 
-        const scheduledSetpointExpose = e
-            .numeric("occupied_heating_setpoint_scheduled", ea.ALL)
-            .withValueMin(5)
-            .withValueMax(35)
-            .withValueStep(0.5)
-            .withUnit("°C")
-            .withDescription(
-                "Scheduled change of the setpoint. Alternative method for changing the setpoint. In contrast to" +
-                    "occupied heating setpoint it does not trigger an aggressive response from the actuator. " +
-                    "(more suitable for scheduled changes)",
-            );
-
         const climateExpose = extend.exposes.find((exp) => typeof exp !== "function" && "type" in exp && exp.type === "climate");
         if (climateExpose) {
             climateExpose.withRunningState(["idle", "heat"]);
@@ -909,16 +894,18 @@ const danfossExtend = {
             if (runningStateFeature) {
                 runningStateFeature.withDescription("Running state based on danfossOutputStatus and danfossHeatRequired");
             }
-            const setpointIndex = climateExpose.features.findIndex(
-                (f) => typeof f !== "function" && "name" in f && f.name === "occupied_heating_setpoint",
-            );
-            if (setpointIndex !== -1) {
-                // Insert right after 'occupied_heating_setpoint'
-                climateExpose.features.splice(setpointIndex + 1, 0, scheduledSetpointExpose);
-            } else {
-                climateExpose.features.push(scheduledSetpointExpose);
-            }
         }
+        extend.exposes.push(
+            e
+                .numeric("occupied_heating_setpoint_scheduled", ea.ALL)
+                .withValueMin(5)
+                .withValueMax(35)
+                .withValueStep(0.5)
+                .withUnit("°C")
+                .withDescription(
+                    "Scheduled change of the setpoint. Alternative method for changing the setpoint. In contrast to occupied heating setpoint it does not trigger an aggressive response from the actuator. (more suitable for scheduled changes)",
+                ),
+        );
 
         extend.fromZigbee.push({
             cluster: "hvacThermostat",
@@ -937,6 +924,14 @@ const danfossExtend = {
                 return result;
             },
         });
+
+        extend.configure.push(
+            m.setupConfigureForReading<"hvacThermostat", undefined>("hvacThermostat", ["systemMode"]),
+            m.setupConfigureForReading<"hvacUserInterfaceCfg", undefined>("hvacUserInterfaceCfg", ["keypadLockout"]),
+            async (device, coordinatorEndpoint) => {
+                await setTime(device);
+            },
+        );
         return extend;
     },
 };
@@ -1256,7 +1251,6 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.addDanfossHvacThermostatCluster(),
             danfossExtend.addDanfossHvacUserInterfaceCfgCluster(),
             danfossExtend.danfossThermostat({
-                // maxSetpoint 32 or 35
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 35, step: 0.5}}},
                 piHeatingDemand: {values: true},
                 systemMode: {values: ["heat"]},
@@ -1265,7 +1259,9 @@ export const definitions: DefinitionWithExtend[] = [
                     maxHeatSetpointLimit: {min: 5, max: 35, step: 0.5},
                 },
             }),
-            danfossExtend.absMaxHeatSetpointLimit(),
+            danfossExtend.absMaxHeatSetpointLimit({
+                description: "Absolute Maximum Heating Setpoint Limit for the device. Adjust the 'Max heat setpoint limit' accordingly.",
+            }),
             m.battery(),
             danfossExtend.keypadLockout(),
             danfossExtend.danfossMountedModeActive(),
@@ -1291,25 +1287,8 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossAdaptionRunSettings(),
             danfossExtend.danfossAdaptionRunControl(),
             danfossExtend.danfossRegulationSetpointOffset(),
-            m.poll({
-                key: "time_sync",
-                defaultIntervalSeconds: 60 * 60 * 24,
-                poll: async (device) => {
-                    // The device might have lost its time, so reset it. It would be more proper to check if
-                    // the danfossSystemStatusCode has bit 10 of the SW error code attribute (0x4000) in the
-                    // diagnostics cluster (0x0b05) is set to indicate time lost, but setting it once too many
-                    // times shouldn't hurt.
-                    await setTime(device);
-                },
-            }),
+            m.writeTimeDaily({endpointId: 1}),
         ],
-        // // read systemMode to have an initial value
-        // await endpoint.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["systemMode"]);
-        // // read keypadLockout, we don't need reporting as it cannot be set physically on the device
-        // await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-        // // Seems that it is bug in Danfoss, device does not asks for the time with binding
-        // // So, we need to write time during configure (same as for HEIMAN devices)
-        // await setTime(device);
     },
     {
         fingerprint: [
