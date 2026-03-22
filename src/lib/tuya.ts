@@ -34,6 +34,21 @@ const ea = exposes.access;
 interface KeyValueStringEnum {
     [s: string]: Enum;
 }
+
+export interface ManuSpecificTuya2 {
+    attributes: {
+        alarmTemperatureMax: number;
+        alarmTemperatureMin: number;
+        alarmHumidityMax: number;
+        alarmHumidityMin: number;
+        alarmHumidity: number;
+        alarmTemperature: number;
+        unknown: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 export interface ManuSpecificTuya3 {
     attributes: {
         powerOnBehavior: number;
@@ -2755,9 +2770,10 @@ const tuyaModernExtend = {
             ];
         }
 
-        const customCluster = tuyaClusters.addManuSpecificTuya3Cluster();
-        result.onEvent = [...(customCluster.onEvent ?? []), ...(result.onEvent ?? [])];
-        result.configure = [...(customCluster.configure ?? []), ...(result.configure ?? [])];
+        const customCluster2 = tuyaClusters.addManuSpecificTuya2Cluster();
+        const customCluster3 = tuyaClusters.addManuSpecificTuya3Cluster();
+        result.onEvent = [...(customCluster2.onEvent ?? []), ...(customCluster3.onEvent ?? []), ...(result.onEvent ?? [])];
+        result.configure = [...(customCluster2.configure ?? []), ...(customCluster3.configure ?? []), ...(result.configure ?? [])];
 
         if (dp) {
             result.fromZigbee.push(tuyaFz.datapoints);
@@ -3486,6 +3502,22 @@ const tuyaModernExtend = {
 export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {
+    addManuSpecificTuya2Cluster: (): ModernExtend =>
+        modernExtend.deviceAddCustomCluster("manuSpecificTuya2", {
+            name: "manuSpecificTuya2",
+            ID: 0xe002,
+            attributes: {
+                alarmTemperatureMax: {name: "alarmTemperatureMax", ID: 0xd00a, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmTemperatureMin: {name: "alarmTemperatureMin", ID: 0xd00b, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidityMax: {name: "alarmHumidityMax", ID: 0xd00d, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidityMin: {name: "alarmHumidityMin", ID: 0xd00e, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidity: {name: "alarmHumidity", ID: 0xd00f, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                alarmTemperature: {name: "alarmTemperature", ID: 0xd006, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                unknown: {name: "unknown", ID: 0xd010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
     addManuSpecificTuya3Cluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya3", {
             name: "manuSpecificTuya3",
