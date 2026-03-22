@@ -28,7 +28,9 @@ const tzLocal = {
                     break;
                 }
                 case "led_indicator": {
-                    await entity.write<"manuSpecificTuya2", tuya.ManuSpecificTuya2>("manuSpecificTuya2", {57353: {value: value ? 0x01 : 0x00, type: 0x10}});
+                    await entity.write<"manuSpecificTuya2", tuya.ManuSpecificTuya2>("manuSpecificTuya2", {
+                        57353: {value: value ? 0x01 : 0x00, type: 0x10},
+                    });
                     break;
                 }
             }
