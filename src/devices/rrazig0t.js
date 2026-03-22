@@ -51,8 +51,8 @@
  *   entirely driven by device reports.
  */
 
-const exposes = require('zigbee-herdsman-converters/lib/exposes');
-const tuya = require('zigbee-herdsman-converters/lib/tuya');
+const exposes = require("zigbee-herdsman-converters/lib/exposes");
+const tuya = require("zigbee-herdsman-converters/lib/tuya");
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -158,9 +158,9 @@ function debugLog(meta, message) {
 const lightStateCacheByDevice = {};
 
 function getLightCache(meta) {
-    const ieee = meta?.device?.ieeeAddr ?? 'default';
+    const ieee = meta?.device?.ieeeAddr ?? "default";
     if (!lightStateCacheByDevice[ieee]) {
-        lightStateCacheByDevice[ieee] = { 1: {}, 2: {}, 3: {}, 4: {} };
+        lightStateCacheByDevice[ieee] = {1: {}, 2: {}, 3: {}, 4: {}};
     }
     return lightStateCacheByDevice[ieee];
 }
@@ -188,7 +188,7 @@ function dpToHue(dp) {
         const [x1, y1] = HUE_TABLE[i + 1];
         if (dp >= x0 && dp <= x1) {
             if (x1 === x0) return y0;
-            return y0 + (y1 - y0) * (dp - x0) / (x1 - x0);
+            return y0 + ((y1 - y0) * (dp - x0)) / (x1 - x0);
         }
     }
     return 360;
@@ -201,7 +201,7 @@ function hueToDp(hue) {
         const [x1, y1] = HUE_TABLE[i + 1];
         if (y1 === y0) continue;
         if (hue >= y0 && hue <= y1) {
-            return Math.round(x0 + (x1 - x0) * (hue - y0) / (y1 - y0));
+            return Math.round(x0 + ((x1 - x0) * (hue - y0)) / (y1 - y0));
         }
     }
     return 0;
@@ -225,28 +225,55 @@ function hsvToXy(h, s, v) {
     let g;
     let b;
     switch (hi) {
-        case 0: r = v; g = t; b = p; break;
-        case 1: r = q; g = v; b = p; break;
-        case 2: r = p; g = v; b = t; break;
-        case 3: r = p; g = q; b = v; break;
-        case 4: r = t; g = p; b = v; break;
-        case 5: r = v; g = p; b = q; break;
-        default: r = 0; g = 0; b = 0;
+        case 0:
+            r = v;
+            g = t;
+            b = p;
+            break;
+        case 1:
+            r = q;
+            g = v;
+            b = p;
+            break;
+        case 2:
+            r = p;
+            g = v;
+            b = t;
+            break;
+        case 3:
+            r = p;
+            g = q;
+            b = v;
+            break;
+        case 4:
+            r = t;
+            g = p;
+            b = v;
+            break;
+        case 5:
+            r = v;
+            g = p;
+            b = q;
+            break;
+        default:
+            r = 0;
+            g = 0;
+            b = 0;
     }
     // Gamma expansion (IEC 61966-2-1 sRGB)
-    const gamma = (c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    const gamma = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
     const rl = gamma(r);
     const gl = gamma(g);
     const bl = gamma(b);
     // Wide-gamut sRGB → CIE XYZ (Philips Hue matrix)
     const X = rl * 0.664511 + gl * 0.154324 + bl * 0.162028;
     const Y = rl * 0.283881 + gl * 0.668433 + bl * 0.047685;
-    const Z = rl * 0.000088 + gl * 0.072310 + bl * 0.986039;
+    const Z = rl * 0.000088 + gl * 0.07231 + bl * 0.986039;
     const sum = X + Y + Z;
-    if (sum === 0) return { x: 0.3127, y: 0.3290 }; // D65 white point fallback
+    if (sum === 0) return {x: 0.3127, y: 0.329}; // D65 white point fallback
     return {
-        x: parseFloat((X / sum).toFixed(4)),
-        y: parseFloat((Y / sum).toFixed(4)),
+        x: Number.parseFloat((X / sum).toFixed(4)),
+        y: Number.parseFloat((Y / sum).toFixed(4)),
     };
 }
 
@@ -264,10 +291,14 @@ function xyToHue(x, y) {
     // Inverse wide-gamut sRGB matrix
     let r = X * 1.656492 - Y * 0.354851 - Z * 0.255038;
     let g = -X * 0.707196 + Y * 1.655397 + Z * 0.036152;
-    let b = X * 0.051713 - Y * 0.121364 + Z * 1.011530;
+    let b = X * 0.051713 - Y * 0.121364 + Z * 1.01153;
     // Rescale only if necessary, then clamp negatives
     const mx = Math.max(r, g, b);
-    if (mx > 1) { r /= mx; g /= mx; b /= mx; }
+    if (mx > 1) {
+        r /= mx;
+        g /= mx;
+        b /= mx;
+    }
     r = Math.max(0, r);
     g = Math.max(0, g);
     b = Math.max(0, b);
@@ -324,7 +355,7 @@ const colorXyConverter = {
                 const h = Number(v.hs[0]);
                 if (!Number.isNaN(h)) return hueToDp(h);
             }
-        } catch (_) { }
+        } catch (_) {}
         return null;
     },
 };
@@ -373,25 +404,14 @@ const colorEndpointToLightSuffix = Object.fromEntries(LIGHT_IDS.map((i) => [`lig
 const tzCustomKeys = [
     ...RELAY_IDS.map((i) => `state_l${i}`),
     ...CURTAIN_IDS.map((i) => `curtain_${i}`),
-    ...LIGHT_IDS.flatMap((i) => [
-        `state_light_${i}`,
-        `brightness_light_${i}`,
-        `color_light_${i}`,
-        `color_temp_light_${i}`,
-    ]),
+    ...LIGHT_IDS.flatMap((i) => [`state_light_${i}`, `brightness_light_${i}`, `color_light_${i}`, `color_temp_light_${i}`]),
 ];
 
 // ─── FROM-ZIGBEE CONVERTER ────────────────────────────────────────────────────
 
 const fzCustom = {
-    cluster: 'manuSpecificTuya',
-    type: [
-        'commandDataResponse',
-        'commandDataReport',
-        'commandActiveStatusReport',
-        'commandActiveStatusReportAlt',
-        'commandSetDataResponse',
-    ],
+    cluster: "manuSpecificTuya",
+    type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt", "commandSetDataResponse"],
     convert: (model, msg, publish, options, meta) => {
         debugLog(meta, `[rrazig0t][ANY-MSG] type=${msg?.type} cluster=${msg?.cluster}`);
         if (msg?.data?.dpValues) {
@@ -403,7 +423,7 @@ const fzCustom = {
         if (result) {
             debugLog(meta, `[rrazig0t][CONVERTED] ${JSON.stringify(result)}`);
         } else {
-            debugLog(meta, '[rrazig0t][CONVERTED] null/undefined');
+            debugLog(meta, "[rrazig0t][CONVERTED] null/undefined");
             return result;
         }
 
@@ -430,13 +450,13 @@ const fzCustom = {
             if (hasBri) cache.brightness = result[briKey];
             if (hasTemp) {
                 cache.color_temp = result[tempKey];
-                cache.color_mode = 'color_temp';
-                if (cache.state === undefined) cache.state = 'ON';
+                cache.color_mode = "color_temp";
+                if (cache.state === undefined) cache.state = "ON";
             }
             if (hasColor) {
                 cache.color = result[colorKey];
-                cache.color_mode = 'xy';
-                if (cache.state === undefined) cache.state = 'ON';
+                cache.color_mode = "xy";
+                if (cache.state === undefined) cache.state = "ON";
             }
 
             if (cache.state !== undefined) result[stateKey] = cache.state;
@@ -450,7 +470,10 @@ const fzCustom = {
             }
 
             if (hasColor || hasTemp) {
-                debugLog(meta, `[rrazig0t][RX-MERGED] light_${i} mode=${result[modeKey]} state=${result[stateKey]} color=${JSON.stringify(result[colorKey])} temp=${result[tempKey]}`);
+                debugLog(
+                    meta,
+                    `[rrazig0t][RX-MERGED] light_${i} mode=${result[modeKey]} state=${result[stateKey]} color=${JSON.stringify(result[colorKey])} temp=${result[tempKey]}`,
+                );
             }
         }
 
@@ -461,28 +484,22 @@ const fzCustom = {
 // ─── TO-ZIGBEE: COLOR PICKER ──────────────────────────────────────────────────
 
 const tzColorPicker = {
-    key: [
-        'color',
-        'state',
-        'brightness',
-        'color_temp',
-        ...LIGHT_IDS.map((i) => `color_light_${i}`),
-    ],
+    key: ["color", "state", "brightness", "color_temp", ...LIGHT_IDS.map((i) => `color_light_${i}`)],
 
     convertSet: async (entity, key, value, meta) => {
         debugLog(meta, `[rrazig0t][SET] key=${key} endpoint=${meta?.endpoint_name} value=${JSON.stringify(value)}`);
 
         let endpointName = meta?.endpoint_name ?? undefined;
 
-        if (!endpointName && key?.startsWith('color_light_')) {
-            const suffix = key.split('_').pop();
+        if (!endpointName && key?.startsWith("color_light_")) {
+            const suffix = key.split("_").pop();
             endpointName = `light_${suffix}`;
         }
 
-        if (!endpointName && key === 'color') {
+        if (!endpointName && key === "color") {
             // Some UIs publish color without endpoint; default to light_1.
-            endpointName = 'light_1';
-            debugLog(meta, '[rrazig0t][SET] missing endpoint for color, defaulting to light_1');
+            endpointName = "light_1";
+            debugLog(meta, "[rrazig0t][SET] missing endpoint for color, defaulting to light_1");
         }
 
         if (!endpointName || !colorEndpointToDp[endpointName]) {
@@ -495,7 +512,7 @@ const tzColorPicker = {
         const cache = getLightCache(meta)[idx];
 
         // ── Color (xy / hue) ──────────────────────────────────────────────────
-        if (key === 'color' || key.startsWith('color_light_')) {
+        if (key === "color" || key.startsWith("color_light_")) {
             const dp = colorEndpointToDp[endpointName];
             const dpValue = colorXyConverter.to(value);
 
@@ -504,49 +521,51 @@ const tzColorPicker = {
                 if (meta?.logger) {
                     meta.logger.warn(`[rrazig0t] Invalid color payload for ${endpointName}: ${JSON.stringify(value)}`);
                 }
-                return { state: {} };
+                return {state: {}};
             }
 
             await tuya.sendDataPointValue(entity, dp, dpValue);
             cache.color = colorXyConverter.from(dpValue);
-            cache.color_mode = 'xy';
-            if (cache.state === undefined) cache.state = 'ON';
+            cache.color_mode = "xy";
+            if (cache.state === undefined) cache.state = "ON";
 
             debugLog(meta, `[rrazig0t][TX] ${endpointName} dp=${dp} value=${dpValue} payload=${JSON.stringify(value)}`);
             return {
                 state: {
                     color: colorXyConverter.from(dpValue),
-                    color_mode: 'xy',
-                    state: 'ON',
+                    color_mode: "xy",
+                    state: "ON",
                 },
             };
         }
 
         // ── State (on/off) ────────────────────────────────────────────────────
-        if (key === 'state') {
+        if (key === "state") {
             cache.state = value;
             return tuya.tz.datapoints.convertSet(entity, `state_light_${suffix}`, value, meta);
         }
 
         // ── Brightness ────────────────────────────────────────────────────────
-        if (key === 'brightness') {
+        if (key === "brightness") {
             const dpBrightness = normalizePercent(value);
             cache.brightness = percentToHass(dpBrightness);
             return tuya.tz.datapoints.convertSet(entity, `brightness_light_${suffix}`, value, meta);
         }
 
         // ── Color temperature ─────────────────────────────────────────────────
-        if (key === 'color_temp') {
+        if (key === "color_temp") {
             cache.color_temp = toMired(value);
-            cache.color_mode = 'color_temp';
+            cache.color_mode = "color_temp";
             return tuya.tz.datapoints.convertSet(entity, `color_temp_light_${suffix}`, value, meta);
         }
 
-        return { state: {} };
+        return {state: {}};
     },
 
     // TS0601 firmware does not support DP polling; state is report-driven only.
-    convertGet: async (_entity, _key, _meta) => { /* no-op: poll not supported */ },
+    convertGet: async (_entity, _key, _meta) => {
+        /* no-op: poll not supported */
+    },
 };
 
 // ─── TO-ZIGBEE: RELAY / CURTAIN / LIGHT FLAT KEYS ────────────────────────────
@@ -555,7 +574,7 @@ const tzCustom = {
     key: tzCustomKeys,
 
     convertSet: async (entity, key, value, meta) => {
-        if (key.startsWith('brightness_light_')) {
+        if (key.startsWith("brightness_light_")) {
             const dpBrightness = normalizePercent(value);
             return await tuya.tz.datapoints.convertSet(entity, key, dpBrightness, meta);
         }
@@ -563,16 +582,16 @@ const tzCustom = {
     },
 
     // TS0601 firmware does not support DP polling; state is report-driven only.
-    convertGet: async (_entity, _key, _meta) => { },
+    convertGet: async (_entity, _key, _meta) => {},
 };
 
 // ─── DEFINITION ───────────────────────────────────────────────────────────────
 
 const definition = {
-    fingerprint: tuya.fingerprint('TS0601', ['_TZE284_rrazig0t']),
-    model: 'TS0601_rrazig0t',
-    vendor: 'Tuya / Smart life',
-    description: '4-way relay — switch / 3 curtains / 8 scenes / radar / 4 RGBWCT lights',
+    fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rrazig0t"]),
+    model: "TS0601_rrazig0t",
+    vendor: "Tuya / Smart life",
+    description: "4-way relay — switch / 3 curtains / 8 scenes / radar / 4 RGBWCT lights",
     fromZigbee: [fzCustom],
     toZigbee: [tzColorPicker, tzCustom],
     onEvent: tuya.onEventSetTime,
@@ -580,22 +599,13 @@ const definition = {
 
     exposes: [
         // ── Relays on/off ─────────────────────────────────────────────────────
-        ...RELAY_IDS.map((i) =>
-            e.binary(`state_l${i}`, ea.STATE_SET, 'ON', 'OFF')
-                .withDescription(`Relay ${i}`)
-        ),
+        ...RELAY_IDS.map((i) => e.binary(`state_l${i}`, ea.STATE_SET, "ON", "OFF").withDescription(`Relay ${i}`)),
 
         // ── Curtains ──────────────────────────────────────────────────────────
-        ...CURTAIN_IDS.map((i) =>
-            e.enum(`curtain_${i}`, ea.STATE_SET, ['OPEN', 'STOP', 'CLOSE'])
-                .withDescription(`Curtain ${i}`)
-        ),
+        ...CURTAIN_IDS.map((i) => e.enum(`curtain_${i}`, ea.STATE_SET, ["OPEN", "STOP", "CLOSE"]).withDescription(`Curtain ${i}`)),
 
         // ── Scenes (read-only) ────────────────────────────────────────────────
-        ...SCENE_IDS.map((i) =>
-            e.numeric(`scene_${i}`, ea.STATE)
-                .withDescription(`Scene ${i} triggered`)
-        ),
+        ...SCENE_IDS.map((i) => e.numeric(`scene_${i}`, ea.STATE).withDescription(`Scene ${i} triggered`)),
 
         // ── RGBWCT lights ─────────────────────────────────────────────────────
         // Each channel exposes:
@@ -604,11 +614,9 @@ const definition = {
         //     firmware reports brightness on a dedicated DP (133-136) that is
         //     not bundled with the color/temp DPs in the same Zigbee frame.
         ...LIGHT_IDS.flatMap((i) => [
-            e.light()
-                .withColor(['xy'])
-                .withColorTemp([COLOR_TEMP_MIRED_MIN, COLOR_TEMP_MIRED_MAX])
-                .withEndpoint(`light_${i}`),
-            e.numeric(`brightness_light_${i}`, ea.STATE_SET)
+            e.light().withColor(["xy"]).withColorTemp([COLOR_TEMP_MIRED_MIN, COLOR_TEMP_MIRED_MAX]).withEndpoint(`light_${i}`),
+            e
+                .numeric(`brightness_light_${i}`, ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(254)
                 .withValueStep(1)
@@ -616,8 +624,7 @@ const definition = {
         ]),
 
         // ── Presence radar ────────────────────────────────────────────────────
-        e.binary('occupancy', ea.STATE, true, false)
-            .withDescription('Presence detection (radar)'),
+        e.binary("occupancy", ea.STATE, true, false).withDescription("Presence detection (radar)"),
     ],
 
     meta: {
@@ -645,7 +652,7 @@ const definition = {
             ...LIGHT_IDS.map((i, idx) => [145 + idx, `state_light_${i}`, tuya.valueConverter.onOff]),
 
             // ── Presence radar (DP 157) ───────────────────────────────────────
-            [RADAR_DP, 'occupancy', tuya.valueConverter.trueFalse1],
+            [RADAR_DP, "occupancy", tuya.valueConverter.trueFalse1],
         ],
     },
 
