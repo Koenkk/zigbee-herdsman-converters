@@ -857,6 +857,13 @@ export const definitions: DefinitionWithExtend[] = [
             ]);
         },
     },
+    {
+        zigbeeModel: ["GRILLPLATS Plug\u0000", "GRILLPLATS Plug"],
+        model: "E2491",
+        vendor: "IKEA",
+        description: "GRILLPLATS smart plug",
+        extend: [m.onOff(), m.identify()],
+    },
     // #endregion on/off controls
     // #region blinds
     {
