@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * External converter zigbee2mqtt — _TZE284_rrazig0t
  * Smart life Zigbee Multi-function Switch 4-way Relay
@@ -149,7 +147,7 @@ function toMired(value) {
 
 function debugLog(meta, message) {
     if (!DEBUG_COLOR_SYNC) return;
-    if (meta && meta.logger) meta.logger.debug(message);
+    if (meta?.logger) meta.logger.debug(message);
     else console.log(message);
 }
 
@@ -223,7 +221,9 @@ function hsvToXy(h, s, v) {
     const p = v * (1 - s);
     const q = v * (1 - f * s);
     const t = v * (1 - (1 - f) * s);
-    let r, g, b;
+    let r;
+    let g;
+    let b;
     switch (hi) {
         case 0: r = v; g = t; b = p; break;
         case 1: r = q; g = v; b = p; break;
@@ -234,8 +234,10 @@ function hsvToXy(h, s, v) {
         default: r = 0; g = 0; b = 0;
     }
     // Gamma expansion (IEC 61966-2-1 sRGB)
-    const gamma = (c) => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-    const rl = gamma(r), gl = gamma(g), bl = gamma(b);
+    const gamma = (c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    const rl = gamma(r);
+    const gl = gamma(g);
+    const bl = gamma(b);
     // Wide-gamut sRGB → CIE XYZ (Philips Hue matrix)
     const X = rl * 0.664511 + gl * 0.154324 + bl * 0.162028;
     const Y = rl * 0.283881 + gl * 0.668433 + bl * 0.047685;
@@ -256,7 +258,9 @@ function hsvToXy(h, s, v) {
  */
 function xyToHue(x, y) {
     const z = 1.0 - x - y;
-    const Y = 1.0, X = (Y / y) * x, Z = (Y / y) * z;
+    const Y = 1.0;
+    const X = (Y / y) * x;
+    const Z = (Y / y) * z;
     // Inverse wide-gamut sRGB matrix
     let r = X * 1.656492 - Y * 0.354851 - Z * 0.255038;
     let g = -X * 0.707196 + Y * 1.655397 + Z * 0.036152;
@@ -292,14 +296,16 @@ const colorXyConverter = {
     },
     to: (value) => {
         try {
-            const v = value && value.color ? value.color : value;
+            const v = value?.color ? value.color : value;
 
-            if (v && v.xy && Array.isArray(v.xy) && v.xy.length >= 2) {
-                const x = Number(v.xy[0]), y = Number(v.xy[1]);
+            if (v?.xy && Array.isArray(v.xy) && v.xy.length >= 2) {
+                const x = Number(v.xy[0]);
+                const y = Number(v.xy[1]);
                 if (!Number.isNaN(x) && !Number.isNaN(y)) return hueToDp(xyToHue(x, y));
             }
             if (v && v.x !== undefined && v.y !== undefined) {
-                const x = Number(v.x), y = Number(v.y);
+                const x = Number(v.x);
+                const y = Number(v.y);
                 if (!Number.isNaN(x) && !Number.isNaN(y)) return hueToDp(xyToHue(x, y));
             }
             if (v && v.h !== undefined) {
@@ -314,7 +320,7 @@ const colorXyConverter = {
                 const h = Number(v.hsv.h);
                 if (!Number.isNaN(h)) return hueToDp(h);
             }
-            if (v && v.hs && Array.isArray(v.hs) && v.hs.length >= 1) {
+            if (v?.hs && Array.isArray(v.hs) && v.hs.length >= 1) {
                 const h = Number(v.hs[0]);
                 if (!Number.isNaN(h)) return hueToDp(h);
             }
@@ -353,20 +359,16 @@ const colorTempInvertedConverter = {
 // ─── CURTAIN CONVERTER ────────────────────────────────────────────────────────
 
 const curtainStateConverter = tuya.valueConverterBasic.lookup({
-    'OPEN': tuya.enum(0),
-    'STOP': tuya.enum(1),
-    'CLOSE': tuya.enum(2),
+    OPEN: tuya.enum(0),
+    STOP: tuya.enum(1),
+    CLOSE: tuya.enum(2),
 });
 
 // ─── ENDPOINT MAPS ────────────────────────────────────────────────────────────
 
-const colorEndpointToDp = Object.fromEntries(
-    LIGHT_IDS.map((i) => [`light_${i}`, 140 + i])
-);
+const colorEndpointToDp = Object.fromEntries(LIGHT_IDS.map((i) => [`light_${i}`, 140 + i]));
 
-const colorEndpointToLightSuffix = Object.fromEntries(
-    LIGHT_IDS.map((i) => [`light_${i}`, String(i)])
-);
+const colorEndpointToLightSuffix = Object.fromEntries(LIGHT_IDS.map((i) => [`light_${i}`, String(i)]));
 
 const tzCustomKeys = [
     ...RELAY_IDS.map((i) => `state_l${i}`),
@@ -444,7 +446,7 @@ const fzCustom = {
             if (cache.color_mode !== undefined) {
                 result[modeKey] = cache.color_mode;
                 // Force color_mode sur la clé reconnue par l'entité light HASS
-                result[`color_mode`] = cache.color_mode;
+                result.color_mode = cache.color_mode;
             }
 
             if (hasColor || hasTemp) {
@@ -651,5 +653,4 @@ const definition = {
         ...Object.fromEntries(LIGHT_IDS.map((i) => [`light_${i}`, 1])),
     }),
 };
-
 module.exports = definition;
