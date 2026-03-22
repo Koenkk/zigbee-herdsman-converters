@@ -261,6 +261,7 @@ import {definitions as repenicLtd} from "./repenic_ltd";
 import {definitions as rgbGenie} from "./rgb_genie";
 import {definitions as robb} from "./robb";
 import {definitions as roome} from "./roome";
+import {definitions as rrazig0t} from './rrazig0t';
 import {definitions as rtx} from "./rtx";
 import {definitions as salusControls} from "./salus_controls";
 import {definitions as samotech} from "./samotech";
