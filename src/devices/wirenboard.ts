@@ -63,6 +63,14 @@ interface SprutIrBlaster {
     commandResponses: never;
 }
 
+interface SprutMsRelativeHumidity {
+    attributes: {
+        sprutHeater?: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const sprutCode = Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE;
 
 const manufacturerOptions = {manufacturerCode: sprutCode};
@@ -165,7 +173,7 @@ const fzLocal = {
                 return {th_heater: switchActionValues[msg.data.sprutHeater]};
             }
         },
-    } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"msRelativeHumidity", SprutMsRelativeHumidity, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -294,12 +302,12 @@ const tzLocal = {
             assertString(value, "th_heater");
             const newValue = switchActionValues.indexOf(value);
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
-            await entity.write("msRelativeHumidity", {sprutHeater: newValue}, options);
+            await entity.write<"msRelativeHumidity", SprutMsRelativeHumidity>("msRelativeHumidity", {sprutHeater: newValue}, options);
 
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("msRelativeHumidity", ["sprutHeater"], manufacturerOptions);
+            await entity.read<"msRelativeHumidity", SprutMsRelativeHumidity>("msRelativeHumidity", ["sprutHeater"], manufacturerOptions);
         },
     } satisfies Tz.Converter,
 };
@@ -345,6 +353,23 @@ const sprutModernExtend = {
                 learnRamStart: {name: "learnRamStart", ID: 0x05, parameters: []},
                 learnRamStop: {name: "learnRamStop", ID: 0x06, parameters: []},
             },
+            commandsResponse: {},
+        }),
+    addSprutMsRelativeHumidityCluster: () =>
+        m.deviceAddCustomCluster("msRelativeHumidity", {
+            name: "msRelativeHumidity",
+            ID: Zcl.Clusters.msRelativeHumidity.ID,
+            manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
+            attributes: {
+                sprutHeater: {
+                    name: "sprutHeater",
+                    ID: 0x6600,
+                    type: Zcl.DataType.BOOLEAN,
+                    manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
+                    write: true,
+                },
+            },
+            commands: {},
             commandsResponse: {},
         }),
     sprutActivityIndicator: (args?: Partial<m.BinaryArgs<"genBinaryOutput">>) =>
@@ -404,8 +429,8 @@ const sprutModernExtend = {
             zigbeeCommandOptions: manufacturerOptions,
             ...args,
         }),
-    sprutThHeater: (args?: Partial<m.BinaryArgs<"msRelativeHumidity">>) =>
-        m.binary({
+    sprutThHeater: (args?: Partial<m.BinaryArgs<"msRelativeHumidity", SprutMsRelativeHumidity>>) =>
+        m.binary<"msRelativeHumidity", SprutMsRelativeHumidity>({
             name: "th_heater",
             cluster: "msRelativeHumidity",
             attribute: "sprutHeater",
@@ -584,6 +609,7 @@ const {
     addSprutVocCluster,
     addSprutNoiseCluster,
     addSprutIrBlasterCluster,
+    addSprutMsRelativeHumidityCluster,
     sprutActivityIndicator,
     sprutIsConnected,
     sprutUartBaudRate,
@@ -740,7 +766,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ["humidity"]},
         ota: true,
-        extend: [addSprutVocCluster(), addSprutNoiseCluster(), addSprutIrBlasterCluster(), m.illuminance()],
+        extend: [addSprutVocCluster(), addSprutNoiseCluster(), addSprutIrBlasterCluster(), addSprutMsRelativeHumidityCluster(), m.illuminance()],
     },
     {
         zigbeeModel: ["WBMSW4"],
