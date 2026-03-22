@@ -1,5 +1,19 @@
 # Changelog
 
+## [26.24.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.23.0...v26.24.0) (2026-03-22)
+
+
+### Features
+
+* **add:** 929004610401 ([#11769](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11769)) ([e874db3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e874db34131fb1fa5eff17c82b99042fac34a4f3))
+* **add:** E2491 ([#11774](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11774)) ([3845554](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3845554477f04933f39f24f29cc4f540ef50f950))
+
+
+### Bug Fixes
+
+* Danfoss 014G2461: re-work integration ([#11770](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11770)) ([f8fda62](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f8fda62e76ac653cc0b15162d4b8106a28b478f1))
+* Move manuspecificTuya2 from ZHC to ZH ([#11752](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11752)) ([51f1da4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/51f1da41036e6a9b3f0c8d4c1b5a99e19ca917f0))
+
 ## [26.23.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.22.0...v26.23.0) (2026-03-20)
 
 
