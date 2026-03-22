@@ -1,44 +1,11 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
-import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
-import {calibrateAndPrecisionRoundOptions, postfixWithEndpointName} from "../lib/utils";
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
-
-const fzLocal = {
-    humidity: {
-        cluster: "msRelativeHumidity",
-        type: ["attributeReport", "readResponse"],
-        options: [exposes.options.precision("humidity"), exposes.options.calibration("humidity")],
-        convert: (model, msg, publish, options, meta) => {
-            const humidity = msg.data.measuredValue / 100.0;
-            // Ignore out-of-range values (https://github.com/Koenkk/zigbee2mqtt/issues/798)
-            if (humidity >= 0 && humidity <= 100) {
-                const property = postfixWithEndpointName("humidity", msg, model, meta);
-                return {[property]: calibrateAndPrecisionRoundOptions(humidity, options, "humidity")};
-            }
-        },
-    } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
-
-    pressure: {
-        cluster: "msPressureMeasurement",
-        type: ["attributeReport", "readResponse"],
-        options: [exposes.options.precision("pressure"), exposes.options.calibration("pressure")],
-        convert: (model, msg, publish, options, meta) => {
-            let pressure: number;
-            if (msg.data.scaledValue !== undefined) {
-                const scale = msg.endpoint.getClusterAttributeValue("msPressureMeasurement", "scale") as number;
-                pressure = msg.data.scaledValue / 10 ** scale / 100.0; // convert to hPa
-            } else {
-                pressure = msg.data.measuredValue;
-            }
-            const property = postfixWithEndpointName("pressure", msg, model, meta);
-            return {[property]: calibrateAndPrecisionRoundOptions(pressure, options, "pressure")};
-        },
-    } satisfies Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]>,
-};
 
 const tzLocal = {
     ptvo_senseair_calibration: {
@@ -86,17 +53,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "msh.bme280psm",
         vendor: "MySmartHouse",
         description: "[MSH outdoor thermometer with BME280](https://www.facebook.com/my.smart.house.in.ua)",
-        fromZigbee: [fz.battery, fz.temperature, fzLocal.humidity, fzLocal.pressure],
-        toZigbee: [tz.ptvo_switch_trigger],
-        exposes: [
-            e.battery(),
-            e.temperature().withEndpoint("l3"),
-            e.humidity().withEndpoint("l3"),
-            e.pressure().withUnit("hPa").withEndpoint("l3"),
-            e.battery_voltage(),
-        ],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => ({l3: 3}),
+        extend: [m.battery(), m.temperature(), m.humidity(), m.pressure()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             if (endpoint) {
@@ -109,11 +66,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "msh.ds18b20psm",
         vendor: "MySmartHouse",
         description: "[MSH outdoor thermometer with DS18B20](https://www.facebook.com/my.smart.house.in.ua)",
-        fromZigbee: [fz.battery, fz.temperature],
-        toZigbee: [tz.ptvo_switch_trigger],
-        exposes: [e.battery(), e.temperature().withEndpoint("l3"), e.battery_voltage()],
-        meta: {multiEndpoint: true},
-        endpoint: (device) => ({l3: 3}),
+        extend: [m.battery(), m.temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             if (endpoint) {
