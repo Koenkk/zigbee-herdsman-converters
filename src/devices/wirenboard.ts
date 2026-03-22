@@ -80,6 +80,14 @@ interface SprutMsOccupancySensing {
     commandResponses: never;
 }
 
+interface SprutMsTemperatureMeasurement {
+    attributes: {
+        sprutTemperatureOffset?: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const sprutCode = Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE;
 
 const manufacturerOptions = {manufacturerCode: sprutCode};
@@ -409,6 +417,24 @@ const sprutModernExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    addSprutMsTemperatureMeasurementCluster: () =>
+        m.deviceAddCustomCluster("msTemperatureMeasurement", {
+            name: "msTemperatureMeasurement",
+            ID: Zcl.Clusters.msTemperatureMeasurement.ID,
+            attributes: {
+                sprutTemperatureOffset: {
+                    name: "sprutTemperatureOffset",
+                    ID: 0x6600,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.CUSTOM_SPRUT_DEVICE,
+                    write: true,
+                    min: -32768,
+                    max: 32767,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
     sprutActivityIndicator: (args?: Partial<m.BinaryArgs<"genBinaryOutput">>) =>
         m.binary({
             name: "activity_led",
@@ -451,8 +477,8 @@ const sprutModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    sprutTemperatureOffset: (args?: Partial<m.NumericArgs<"msTemperatureMeasurement">>) =>
-        m.numeric({
+    sprutTemperatureOffset: (args?: Partial<m.NumericArgs<"msTemperatureMeasurement", SprutMsTemperatureMeasurement>>) =>
+        m.numeric<"msTemperatureMeasurement", SprutMsTemperatureMeasurement>({
             name: "temperature_offset",
             cluster: "msTemperatureMeasurement",
             attribute: "sprutTemperatureOffset",
@@ -648,6 +674,7 @@ const {
     addSprutIrBlasterCluster,
     addSprutMsRelativeHumidityCluster,
     addSprutMsOccupancySensingCluster,
+    addSprutMsTemperatureMeasurementCluster,
     sprutActivityIndicator,
     sprutIsConnected,
     sprutUartBaudRate,
@@ -828,6 +855,7 @@ export const definitions: DefinitionWithExtend[] = [
             addSprutNoiseCluster(),
             addSprutIrBlasterCluster(),
             addSprutMsOccupancySensingCluster(),
+            addSprutMsTemperatureMeasurementCluster(),
             m.deviceAddCustomCluster("genBasic", {
                 name: "genBasic",
                 ID: 0,
