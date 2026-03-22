@@ -722,11 +722,17 @@ const danfossExtend = {
                                 throw new Error(`Invalid time format for trigger_time: '${value}'. Please use 'HH:MM'.`);
                             }
                         }
-                        await entity.write<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", {danfossTriggerTime: val}, {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S});
+                        await entity.write<"hvacThermostat", DanfossHvacThermostat>(
+                            "hvacThermostat",
+                            {danfossTriggerTime: val},
+                            {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
+                        );
                         return {state: {trigger_time: value}};
                     },
                     convertGet: async (entity, key, meta) => {
-                        await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossTriggerTime"], {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S});
+                        await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossTriggerTime"], {
+                            manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
+                        });
                     },
                 },
             ],
