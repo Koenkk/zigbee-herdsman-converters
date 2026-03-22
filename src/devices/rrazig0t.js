@@ -557,9 +557,9 @@ const tzCustom = {
     convertSet: async (entity, key, value, meta) => {
         if (key.startsWith('brightness_light_')) {
             const dpBrightness = normalizePercent(value);
-            return tuya.tz.datapoints.convertSet(entity, key, dpBrightness, meta);
+            return await tuya.tz.datapoints.convertSet(entity, key, dpBrightness, meta);
         }
-        return tuya.tz.datapoints.convertSet(entity, key, value, meta);
+        return await tuya.tz.datapoints.convertSet(entity, key, value, meta);
     },
 
     // TS0601 firmware does not support DP polling; state is report-driven only.
@@ -653,4 +653,5 @@ const definition = {
         ...Object.fromEntries(LIGHT_IDS.map((i) => [`light_${i}`, 1])),
     }),
 };
+
 module.exports = definition;
