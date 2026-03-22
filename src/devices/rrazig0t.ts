@@ -51,8 +51,9 @@
  *   entirely driven by device reports.
  */
 
-const exposes = require("zigbee-herdsman-converters/lib/exposes");
-const tuya = require("zigbee-herdsman-converters/lib/tuya");
+import type {Definition} from '../lib/types';
+import * as exposes from '../lib/exposes';
+import * as tuya from '../lib/tuya';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -93,7 +94,6 @@ function clamp(value, min, max) {
 function normalizePercent(value) {
     const numeric = Number(value);
     if (Number.isNaN(numeric)) return 0;
-    // Accept both 0-100 (native firmware) and 0-254 (HASS brightness) ranges.
     if (numeric > 100) {
         return clamp(Math.round((numeric * 100) / 254), 0, 100);
     }
@@ -116,25 +116,19 @@ function percentToHass(value) {
  *  2. Mired   : 153 ≤ numeric ≤ 500                     → pass-through clamp
  *  3. Legacy  : 0 ≤ numeric < 153                        → linear map from
  *               0-254 or 0-100 scale onto [MIRED_MIN, MIRED_MAX]
- *
- * The three branches are now non-overlapping and evaluated in this explicit
- * order, removing the implicit priority dependency that existed in v1.0.0.
  */
 function toMired(value) {
     const numeric = Number(value);
     if (Number.isNaN(numeric)) return COLOR_TEMP_MIRED_MAX;
 
-    // Branch 1 — Kelvin (HA sometimes sends e.g. 3937 K for color_temp commands)
     if (numeric > KELVIN_MIRED_THRESHOLD) {
         return clamp(Math.round(1000000 / numeric), COLOR_TEMP_MIRED_MIN, COLOR_TEMP_MIRED_MAX);
     }
 
-    // Branch 2 — native mired in the expected range
     if (numeric >= COLOR_TEMP_MIRED_MIN && numeric <= KELVIN_MIRED_THRESHOLD) {
         return clamp(Math.round(numeric), COLOR_TEMP_MIRED_MIN, COLOR_TEMP_MIRED_MAX);
     }
 
-    // Branch 3 — legacy 0-254 / 0-100 payloads (backward compat)
     if (numeric >= 0 && numeric < COLOR_TEMP_MIRED_MIN) {
         const normalized = numeric <= 100 ? numeric : (numeric * 100) / 254;
         const span = COLOR_TEMP_MIRED_MAX - COLOR_TEMP_MIRED_MIN;
@@ -153,22 +147,17 @@ function debugLog(meta, message) {
 
 // ─── PER-DEVICE STATE CACHE ───────────────────────────────────────────────────
 
-// The cache is keyed by device IEEE address.
-
 const lightStateCacheByDevice = {};
 
 function getLightCache(meta) {
-    const ieee = meta?.device?.ieeeAddr ?? "default";
+    const ieee = meta?.device?.ieeeAddr ?? 'default';
     if (!lightStateCacheByDevice[ieee]) {
-        lightStateCacheByDevice[ieee] = {1: {}, 2: {}, 3: {}, 4: {}};
+        lightStateCacheByDevice[ieee] = { 1: {}, 2: {}, 3: {}, 4: {} };
     }
     return lightStateCacheByDevice[ieee];
 }
 
 // ─── HUE WHEEL CALIBRATION TABLE ─────────────────────────────────────────────
-
-// Maps firmware DP values (0-100, non-linear) to HSV hue degrees (0-360).
-// Derived empirically by sending known DP values and reading the resulting color on the panel.
 
 const HUE_TABLE = [
     [0, 30],
@@ -188,7 +177,7 @@ function dpToHue(dp) {
         const [x1, y1] = HUE_TABLE[i + 1];
         if (dp >= x0 && dp <= x1) {
             if (x1 === x0) return y0;
-            return y0 + ((y1 - y0) * (dp - x0)) / (x1 - x0);
+            return y0 + (y1 - y0) * (dp - x0) / (x1 - x0);
         }
     }
     return 360;
@@ -201,7 +190,7 @@ function hueToDp(hue) {
         const [x1, y1] = HUE_TABLE[i + 1];
         if (y1 === y0) continue;
         if (hue >= y0 && hue <= y1) {
-            return Math.round(x0 + ((x1 - x0) * (hue - y0)) / (y1 - y0));
+            return Math.round(x0 + (x1 - x0) * (hue - y0) / (y1 - y0));
         }
     }
     return 0;
@@ -209,12 +198,6 @@ function hueToDp(hue) {
 
 // ─── COLOR MATH ───────────────────────────────────────────────────────────────
 
-/**
- * Convert HSV (hue °, saturation 0-1, value 0-1) to CIE 1931 xy chromaticity.
- *
- * S and V are not exposed by this firmware over Zigbee (hue only). S=1, V=1
- * are always assumed when converting from a DP value to xy.
- */
 function hsvToXy(h, s, v) {
     const hi = Math.floor(h / 60) % 6;
     const f = h / 60 - Math.floor(h / 60);
@@ -225,80 +208,39 @@ function hsvToXy(h, s, v) {
     let g;
     let b;
     switch (hi) {
-        case 0:
-            r = v;
-            g = t;
-            b = p;
-            break;
-        case 1:
-            r = q;
-            g = v;
-            b = p;
-            break;
-        case 2:
-            r = p;
-            g = v;
-            b = t;
-            break;
-        case 3:
-            r = p;
-            g = q;
-            b = v;
-            break;
-        case 4:
-            r = t;
-            g = p;
-            b = v;
-            break;
-        case 5:
-            r = v;
-            g = p;
-            b = q;
-            break;
-        default:
-            r = 0;
-            g = 0;
-            b = 0;
+        case 0: r = v; g = t; b = p; break;
+        case 1: r = q; g = v; b = p; break;
+        case 2: r = p; g = v; b = t; break;
+        case 3: r = p; g = q; b = v; break;
+        case 4: r = t; g = p; b = v; break;
+        case 5: r = v; g = p; b = q; break;
+        default: r = 0; g = 0; b = 0;
     }
-    // Gamma expansion (IEC 61966-2-1 sRGB)
-    const gamma = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+    const gamma = (c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
     const rl = gamma(r);
     const gl = gamma(g);
     const bl = gamma(b);
-    // Wide-gamut sRGB → CIE XYZ (Philips Hue matrix)
     const X = rl * 0.664511 + gl * 0.154324 + bl * 0.162028;
     const Y = rl * 0.283881 + gl * 0.668433 + bl * 0.047685;
-    const Z = rl * 0.000088 + gl * 0.07231 + bl * 0.986039;
+    const Z = rl * 0.000088 + gl * 0.072310 + bl * 0.986039;
     const sum = X + Y + Z;
-    if (sum === 0) return {x: 0.3127, y: 0.329}; // D65 white point fallback
+    if (sum === 0) return { x: 0.3127, y: 0.3290 };
     return {
-        x: Number.parseFloat((X / sum).toFixed(4)),
-        y: Number.parseFloat((Y / sum).toFixed(4)),
+        x: parseFloat((X / sum).toFixed(4)),
+        y: parseFloat((Y / sum).toFixed(4)),
     };
 }
 
-/**
- * Convert CIE 1931 xy chromaticity back to HSV hue (degrees).
- *
- * Rescale is only applied when max(r,g,b) > 1 to avoid the systematic hue
- * error on saturated colours.
- */
 function xyToHue(x, y) {
     const z = 1.0 - x - y;
     const Y = 1.0;
     const X = (Y / y) * x;
     const Z = (Y / y) * z;
-    // Inverse wide-gamut sRGB matrix
     let r = X * 1.656492 - Y * 0.354851 - Z * 0.255038;
     let g = -X * 0.707196 + Y * 1.655397 + Z * 0.036152;
-    let b = X * 0.051713 - Y * 0.121364 + Z * 1.01153;
-    // Rescale only if necessary, then clamp negatives
+    let b = X * 0.051713 - Y * 0.121364 + Z * 1.011530;
     const mx = Math.max(r, g, b);
-    if (mx > 1) {
-        r /= mx;
-        g /= mx;
-        b /= mx;
-    }
+    if (mx > 1) { r /= mx; g /= mx; b /= mx; }
     r = Math.max(0, r);
     g = Math.max(0, g);
     b = Math.max(0, b);
@@ -315,10 +257,6 @@ function xyToHue(x, y) {
 
 // ─── VALUE CONVERTERS ─────────────────────────────────────────────────────────
 
-/**
- * RGB dp (0-100 non-linear hue wheel) ↔ color_xy { x, y }.
- * S=1, V=1 assumed on the from-direction (firmware limitation, see header).
- */
 const colorXyConverter = {
     type: tuyaValueType,
     from: (dp) => {
@@ -360,18 +298,11 @@ const colorXyConverter = {
     },
 };
 
-/**
- * Brightness: firmware native 0-100 ↔ HASS 0-254.
- */
 const brightnessHassConverter = {
     from: (dp) => percentToHass(clamp(Math.round(Number(dp) || 0), 0, 100)),
     to: (v) => normalizePercent(v),
 };
 
-/**
- * Color temperature: firmware scale is INVERTED (dp 0 = warm, dp 100 = cold).
- * Exposed as mired [153–254]; Kelvin inputs are also accepted.
- */
 const colorTempInvertedConverter = {
     from: (dp) => {
         const deviceScale = clamp(Math.round(Number(dp) || 0), 0, 100);
@@ -382,7 +313,7 @@ const colorTempInvertedConverter = {
     to: (v) => {
         const mired = toMired(v);
         const span = COLOR_TEMP_MIRED_MAX - COLOR_TEMP_MIRED_MIN;
-        const ratio = (mired - COLOR_TEMP_MIRED_MIN) / span; // 0 = cold, 1 = warm
+        const ratio = (mired - COLOR_TEMP_MIRED_MIN) / span;
         return clamp(Math.round(100 * (1 - ratio)), 0, 100);
     },
 };
@@ -404,14 +335,25 @@ const colorEndpointToLightSuffix = Object.fromEntries(LIGHT_IDS.map((i) => [`lig
 const tzCustomKeys = [
     ...RELAY_IDS.map((i) => `state_l${i}`),
     ...CURTAIN_IDS.map((i) => `curtain_${i}`),
-    ...LIGHT_IDS.flatMap((i) => [`state_light_${i}`, `brightness_light_${i}`, `color_light_${i}`, `color_temp_light_${i}`]),
+    ...LIGHT_IDS.flatMap((i) => [
+        `state_light_${i}`,
+        `brightness_light_${i}`,
+        `color_light_${i}`,
+        `color_temp_light_${i}`,
+    ]),
 ];
 
 // ─── FROM-ZIGBEE CONVERTER ────────────────────────────────────────────────────
 
 const fzCustom = {
-    cluster: "manuSpecificTuya",
-    type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt", "commandSetDataResponse"],
+    cluster: 'manuSpecificTuya',
+    type: [
+        'commandDataResponse',
+        'commandDataReport',
+        'commandActiveStatusReport',
+        'commandActiveStatusReportAlt',
+        'commandSetDataResponse',
+    ],
     convert: (model, msg, publish, options, meta) => {
         debugLog(meta, `[rrazig0t][ANY-MSG] type=${msg?.type} cluster=${msg?.cluster}`);
         if (msg?.data?.dpValues) {
@@ -423,11 +365,10 @@ const fzCustom = {
         if (result) {
             debugLog(meta, `[rrazig0t][CONVERTED] ${JSON.stringify(result)}`);
         } else {
-            debugLog(meta, "[rrazig0t][CONVERTED] null/undefined");
+            debugLog(meta, '[rrazig0t][CONVERTED] null/undefined');
             return result;
         }
 
-        // Per-device cache (FIX v1.1.0: was module-level, caused state bleed)
         const deviceCache = getLightCache(meta);
 
         for (let i = 1; i <= 4; i++) {
@@ -450,13 +391,13 @@ const fzCustom = {
             if (hasBri) cache.brightness = result[briKey];
             if (hasTemp) {
                 cache.color_temp = result[tempKey];
-                cache.color_mode = "color_temp";
-                if (cache.state === undefined) cache.state = "ON";
+                cache.color_mode = 'color_temp';
+                if (cache.state === undefined) cache.state = 'ON';
             }
             if (hasColor) {
                 cache.color = result[colorKey];
-                cache.color_mode = "xy";
-                if (cache.state === undefined) cache.state = "ON";
+                cache.color_mode = 'xy';
+                if (cache.state === undefined) cache.state = 'ON';
             }
 
             if (cache.state !== undefined) result[stateKey] = cache.state;
@@ -465,15 +406,11 @@ const fzCustom = {
             if (cache.color !== undefined) result[colorKey] = cache.color;
             if (cache.color_mode !== undefined) {
                 result[modeKey] = cache.color_mode;
-                // Force color_mode sur la clé reconnue par l'entité light HASS
                 result.color_mode = cache.color_mode;
             }
 
             if (hasColor || hasTemp) {
-                debugLog(
-                    meta,
-                    `[rrazig0t][RX-MERGED] light_${i} mode=${result[modeKey]} state=${result[stateKey]} color=${JSON.stringify(result[colorKey])} temp=${result[tempKey]}`,
-                );
+                debugLog(meta, `[rrazig0t][RX-MERGED] light_${i} mode=${result[modeKey]} state=${result[stateKey]} color=${JSON.stringify(result[colorKey])} temp=${result[tempKey]}`);
             }
         }
 
@@ -484,22 +421,27 @@ const fzCustom = {
 // ─── TO-ZIGBEE: COLOR PICKER ──────────────────────────────────────────────────
 
 const tzColorPicker = {
-    key: ["color", "state", "brightness", "color_temp", ...LIGHT_IDS.map((i) => `color_light_${i}`)],
+    key: [
+        'color',
+        'state',
+        'brightness',
+        'color_temp',
+        ...LIGHT_IDS.map((i) => `color_light_${i}`),
+    ],
 
     convertSet: async (entity, key, value, meta) => {
         debugLog(meta, `[rrazig0t][SET] key=${key} endpoint=${meta?.endpoint_name} value=${JSON.stringify(value)}`);
 
         let endpointName = meta?.endpoint_name ?? undefined;
 
-        if (!endpointName && key?.startsWith("color_light_")) {
-            const suffix = key.split("_").pop();
+        if (!endpointName && key?.startsWith('color_light_')) {
+            const suffix = key.split('_').pop();
             endpointName = `light_${suffix}`;
         }
 
-        if (!endpointName && key === "color") {
-            // Some UIs publish color without endpoint; default to light_1.
-            endpointName = "light_1";
-            debugLog(meta, "[rrazig0t][SET] missing endpoint for color, defaulting to light_1");
+        if (!endpointName && key === 'color') {
+            endpointName = 'light_1';
+            debugLog(meta, '[rrazig0t][SET] missing endpoint for color, defaulting to light_1');
         }
 
         if (!endpointName || !colorEndpointToDp[endpointName]) {
@@ -511,61 +453,53 @@ const tzColorPicker = {
         const idx = Number(suffix);
         const cache = getLightCache(meta)[idx];
 
-        // ── Color (xy / hue) ──────────────────────────────────────────────────
-        if (key === "color" || key.startsWith("color_light_")) {
+        if (key === 'color' || key.startsWith('color_light_')) {
             const dp = colorEndpointToDp[endpointName];
             const dpValue = colorXyConverter.to(value);
 
             if (dpValue === null || dpValue === undefined || Number.isNaN(dpValue)) {
-                // FIX (v1.1.0): emit a warn instead of silently returning
                 if (meta?.logger) {
                     meta.logger.warn(`[rrazig0t] Invalid color payload for ${endpointName}: ${JSON.stringify(value)}`);
                 }
-                return {state: {}};
+                return { state: {} };
             }
 
             await tuya.sendDataPointValue(entity, dp, dpValue);
             cache.color = colorXyConverter.from(dpValue);
-            cache.color_mode = "xy";
-            if (cache.state === undefined) cache.state = "ON";
+            cache.color_mode = 'xy';
+            if (cache.state === undefined) cache.state = 'ON';
 
             debugLog(meta, `[rrazig0t][TX] ${endpointName} dp=${dp} value=${dpValue} payload=${JSON.stringify(value)}`);
             return {
                 state: {
                     color: colorXyConverter.from(dpValue),
-                    color_mode: "xy",
-                    state: "ON",
+                    color_mode: 'xy',
+                    state: 'ON',
                 },
             };
         }
 
-        // ── State (on/off) ────────────────────────────────────────────────────
-        if (key === "state") {
+        if (key === 'state') {
             cache.state = value;
             return tuya.tz.datapoints.convertSet(entity, `state_light_${suffix}`, value, meta);
         }
 
-        // ── Brightness ────────────────────────────────────────────────────────
-        if (key === "brightness") {
+        if (key === 'brightness') {
             const dpBrightness = normalizePercent(value);
             cache.brightness = percentToHass(dpBrightness);
             return tuya.tz.datapoints.convertSet(entity, `brightness_light_${suffix}`, value, meta);
         }
 
-        // ── Color temperature ─────────────────────────────────────────────────
-        if (key === "color_temp") {
+        if (key === 'color_temp') {
             cache.color_temp = toMired(value);
-            cache.color_mode = "color_temp";
+            cache.color_mode = 'color_temp';
             return tuya.tz.datapoints.convertSet(entity, `color_temp_light_${suffix}`, value, meta);
         }
 
-        return {state: {}};
+        return { state: {} };
     },
 
-    // TS0601 firmware does not support DP polling; state is report-driven only.
-    convertGet: async (_entity, _key, _meta) => {
-        /* no-op: poll not supported */
-    },
+    convertGet: async (_entity, _key, _meta) => { /* no-op: poll not supported */ },
 };
 
 // ─── TO-ZIGBEE: RELAY / CURTAIN / LIGHT FLAT KEYS ────────────────────────────
@@ -574,91 +508,77 @@ const tzCustom = {
     key: tzCustomKeys,
 
     convertSet: async (entity, key, value, meta) => {
-        if (key.startsWith("brightness_light_")) {
+        if (key.startsWith('brightness_light_')) {
             const dpBrightness = normalizePercent(value);
             return await tuya.tz.datapoints.convertSet(entity, key, dpBrightness, meta);
         }
         return await tuya.tz.datapoints.convertSet(entity, key, value, meta);
     },
 
-    // TS0601 firmware does not support DP polling; state is report-driven only.
-    convertGet: async (_entity, _key, _meta) => {},
+    convertGet: async (_entity, _key, _meta) => { /* no-op */ },
 };
 
 // ─── DEFINITION ───────────────────────────────────────────────────────────────
 
-const definition = {
-    fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rrazig0t"]),
-    model: "TS0601_rrazig0t",
-    vendor: "Tuya / Smart life",
-    description: "4-way relay — switch / 3 curtains / 8 scenes / radar / 4 RGBWCT lights",
+const definitions: Definition[] = [{
+    fingerprint: tuya.fingerprint('TS0601', ['_TZE284_rrazig0t']),
+    model: 'TS0601_rrazig0t',
+    vendor: 'Tuya / Smart life',
+    description: '4-way relay — switch / 3 curtains / 8 scenes / radar / 4 RGBWCT lights',
     fromZigbee: [fzCustom],
     toZigbee: [tzColorPicker, tzCustom],
     onEvent: tuya.onEventSetTime,
     configure: tuya.configureMagicPacket,
 
     exposes: [
-        // ── Relays on/off ─────────────────────────────────────────────────────
-        ...RELAY_IDS.map((i) => e.binary(`state_l${i}`, ea.STATE_SET, "ON", "OFF").withDescription(`Relay ${i}`)),
+        ...RELAY_IDS.map((i) =>
+            e.binary(`state_l${i}`, ea.STATE_SET, 'ON', 'OFF')
+                .withDescription(`Relay ${i}`)
+        ),
 
-        // ── Curtains ──────────────────────────────────────────────────────────
-        ...CURTAIN_IDS.map((i) => e.enum(`curtain_${i}`, ea.STATE_SET, ["OPEN", "STOP", "CLOSE"]).withDescription(`Curtain ${i}`)),
+        ...CURTAIN_IDS.map((i) =>
+            e.enum(`curtain_${i}`, ea.STATE_SET, ['OPEN', 'STOP', 'CLOSE'])
+                .withDescription(`Curtain ${i}`)
+        ),
 
-        // ── Scenes (read-only) ────────────────────────────────────────────────
-        ...SCENE_IDS.map((i) => e.numeric(`scene_${i}`, ea.STATE).withDescription(`Scene ${i} triggered`)),
+        ...SCENE_IDS.map((i) =>
+            e.numeric(`scene_${i}`, ea.STATE)
+                .withDescription(`Scene ${i} triggered`)
+        ),
 
-        // ── RGBWCT lights ─────────────────────────────────────────────────────
-        // Each channel exposes:
-        //   • a light entity (state + color_xy + color_temp) via e.light()
-        //   • a separate brightness numeric (0-254, HASS scale) because the
-        //     firmware reports brightness on a dedicated DP (133-136) that is
-        //     not bundled with the color/temp DPs in the same Zigbee frame.
         ...LIGHT_IDS.flatMap((i) => [
-            e.light().withColor(["xy"]).withColorTemp([COLOR_TEMP_MIRED_MIN, COLOR_TEMP_MIRED_MAX]).withEndpoint(`light_${i}`),
-            e
-                .numeric(`brightness_light_${i}`, ea.STATE_SET)
+            e.light()
+                .withColor(['xy'])
+                .withColorTemp([COLOR_TEMP_MIRED_MIN, COLOR_TEMP_MIRED_MAX])
+                .withEndpoint(`light_${i}`),
+            e.numeric(`brightness_light_${i}`, ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(254)
                 .withValueStep(1)
                 .withDescription(`Light ${i} brightness (0-254, HASS scale)`),
         ]),
 
-        // ── Presence radar ────────────────────────────────────────────────────
-        e.binary("occupancy", ea.STATE, true, false).withDescription("Presence detection (radar)"),
+        e.binary('occupancy', ea.STATE, true, false)
+            .withDescription('Presence detection (radar)'),
     ],
 
     meta: {
         multiEndpoint: true,
         tuyaDatapoints: [
-            // ── Scenes 1-8 (DPs 1-8) ─────────────────────────────────────────
             ...SCENE_IDS.map((i) => [i, `scene_${i}`, tuya.valueConverter.raw]),
-
-            // ── Relay on/off (DPs 24-27) ──────────────────────────────────────
             ...RELAY_IDS.map((i, idx) => [24 + idx, `state_l${i}`, tuya.valueConverter.onOff]),
-
-            // ── Curtains (DPs 120-122) ────────────────────────────────────────
             ...CURTAIN_IDS.map((i, idx) => [120 + idx, `curtain_${i}`, curtainStateConverter]),
-
-            // ── Light brightness (DPs 133-136) — native 0-100 ↔ HASS 0-254 ──
             ...LIGHT_IDS.map((i, idx) => [133 + idx, `brightness_light_${i}`, brightnessHassConverter]),
-
-            // ── Light white channel (DPs 137-140) — inverted firmware scale ──
             ...LIGHT_IDS.map((i, idx) => [137 + idx, `color_temp_light_${i}`, colorTempInvertedConverter]),
-
-            // ── Light RGB (DPs 141-144) — hue wheel 0-100 → color_xy ─────────
             ...LIGHT_IDS.map((i, idx) => [141 + idx, `color_light_${i}`, colorXyConverter]),
-
-            // ── Light on/off (DPs 145-148) ────────────────────────────────────
             ...LIGHT_IDS.map((i, idx) => [145 + idx, `state_light_${i}`, tuya.valueConverter.onOff]),
-
-            // ── Presence radar (DP 157) ───────────────────────────────────────
-            [RADAR_DP, "occupancy", tuya.valueConverter.trueFalse1],
+            [RADAR_DP, 'occupancy', tuya.valueConverter.trueFalse1],
         ],
     },
 
-    endpoint: (device) => ({
+    endpoint: (_device) => ({
         ...Object.fromEntries(LIGHT_IDS.map((i) => [`light_${i}`, 1])),
     }),
-};
+}];
 
-module.exports = definition;
+export default definitions;
