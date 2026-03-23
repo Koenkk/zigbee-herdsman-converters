@@ -4628,21 +4628,6 @@ export const SP600_power: Fz.Converter<"seMetering", undefined, ["attributeRepor
         return metering.convert(model, msg, publish, options, meta);
     },
 };
-export const stelpro_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
-        if (result && msg.data.StelproSystemMode === 5) {
-            // 'Eco' mode is translated into 'auto' here
-            result.system_mode = constants.thermostatSystemModes[1];
-        }
-        if (result && msg.data.pIHeatingDemand !== undefined) {
-            result.running_state = msg.data.pIHeatingDemand >= 10 ? "heat" : "idle";
-        }
-        return result;
-    },
-};
 export const viessmann_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
