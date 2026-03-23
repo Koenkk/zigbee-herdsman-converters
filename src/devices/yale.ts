@@ -530,6 +530,64 @@ const fzLocal = {
             return {action: lookup[msg.data[3]], action_source_user: msg.data[5]};
         },
     } satisfies Fz.Converter<"closuresDoorLock", undefined, ["raw"]>,
+    solis_action: {
+        cluster: "closuresDoorLock",
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            const actionLookup: {[key: number]: string} = {
+                0: "password_unlock",
+                1: "unlock",
+                2: "auto_lock",
+                3: "rfid_unlock",
+                4: "fingerprint_unlock",
+                5: "unlock_failure_invalid_pin_or_id",
+                6: "unlock_failure_invalid_schedule",
+                7: "one_touch_lock",
+                8: "key_lock",
+                9: "key_unlock",
+                10: "auto_lock",
+                11: "schedule_lock",
+                12: "schedule_unlock",
+                13: "manual_lock",
+                14: "manual_unlock",
+                15: "non_access_user_operational_event",
+            };
+            const sourceLookup: {[key: number]: string} = {
+                0: "keypad",
+                1: "rf",
+                2: "manual",
+                3: "rfid",
+                4: "manual",
+                5: "keypad",
+                6: "keypad",
+                7: "manual",
+                8: "manual",
+                9: "manual",
+                10: "manual",
+                11: "rf",
+                12: "rf",
+                13: "manual",
+                14: "manual",
+                15: "keypad",
+            };
+            const lockActions = [2, 7, 8, 10, 11, 13];
+            const unlockActions = [0, 1, 3, 4, 9, 12, 14];
+            const actionCode = msg.data[3];
+            const result: ZHTypes.KeyValue = {
+                action: actionLookup[actionCode] ?? "unknown",
+                action_source_name: sourceLookup[actionCode] ?? null,
+                action_user: msg.data[5],
+            };
+            if (lockActions.includes(actionCode)) {
+                result.state = "LOCK";
+                result.lock_state = "locked";
+            } else if (unlockActions.includes(actionCode)) {
+                result.state = "UNLOCK";
+                result.lock_state = "unlocked";
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"closuresDoorLock", undefined, ["raw"]>,
 };
 
 const tzLocal = {
@@ -717,6 +775,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Yale",
         description: "Digital Lock YMC 420 W",
         fromZigbee: [fzLocal.ymc_action],
+        extend: [lockExtend()],
+    },
+    {
+        zigbeeModel: ["SOLIS01"],
+        model: "SOLIS01",
+        vendor: "Yale",
+        description: "Yale Solis digital lock",
+        fromZigbee: [fzLocal.solis_action],
         extend: [lockExtend()],
     },
     {
