@@ -3309,7 +3309,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S520619",
         vendor: "Schneider Electric",
         description: "Wiser Odace Smart thermostat",
-        fromZigbee: [stelpro.fzLocal.stelpro_thermostat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature, fz.occupancy],
+        fromZigbee: [
+            stelpro.fzLocal.stelpro_thermostat,
+            fz.metering,
+            fzLocal.wiser_device_info,
+            fz.hvac_user_interface,
+            fz.temperature,
+            fz.occupancy,
+        ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint,
