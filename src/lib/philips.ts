@@ -1214,6 +1214,7 @@ const philipsFz = {
 };
 
 export {philipsFz as fz};
+
 const clamp = (x: number, low: number, high: number) => Math.min(Math.max(low, x), high);
 const scaleFloatToIntPow2 = (x: number, bits: number) => clamp(x, 0.0, 1.0) * (2 ** bits - 1);
 const scaleIntPow2ToFloat = (x: number, bits: number) => clamp(x, 0, 2 ** bits - 1) / (2 ** bits - 1);
