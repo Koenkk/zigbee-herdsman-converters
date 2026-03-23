@@ -505,7 +505,7 @@ export function ikeaVoc(args?: Partial<m.NumericArgs<"manuSpecificIkeaVocIndexMe
         cluster: "manuSpecificIkeaVocIndexMeasurement",
         attribute: "measuredValue",
         reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 1},
-        description: "Sensirion VOC index",
+        description: "Sensirion VOC index: 100 = average, <100 = less tVOC, >100 = more tVOC",
         access: "STATE",
         ...args,
     });
@@ -732,7 +732,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
             },
         } satisfies Fz.Converter<
             "tradfriButton",
-            undefined,
+            TradfriButton,
             ["commandAction1", "commandAction2", "commandAction3", "commandAction4", "commandAction6"]
         >,
     ];
@@ -740,6 +740,23 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
     const configure: Configure[] = [m.setupConfigureForBinding("tradfriButton", "output", args.endpointNames)];
 
     return {exposes, fromZigbee, configure, isModernExtend: true};
+}
+
+export function ikeaBilresaDouble(): ModernExtend {
+    const exposes: Expose[] = [presets.action(["off_double", "on_double"])];
+
+    const fromZigbee = [
+        {
+            cluster: "genScenes",
+            type: "commandTradfriArrowSingle",
+            convert: (model, msg, publish, options, meta) => {
+                if (hasAlreadyProcessedMessage(msg, model)) return;
+                return {action: `${msg.data.value === 257 ? "off" : "on"}_double`};
+            },
+        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowSingle">,
+    ];
+
+    return {exposes, fromZigbee, isModernExtend: true};
 }
 
 export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): ModernExtend {
@@ -849,18 +866,19 @@ export interface IkeaAirPurifier {
 
 export function addCustomClusterManuSpecificIkeaAirPurifier(): ModernExtend {
     return m.deviceAddCustomCluster("manuSpecificIkeaAirPurifier", {
+        name: "manuSpecificIkeaAirPurifier",
         ID: 0xfc7d,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {
-            filterRunTime: {ID: 0x0000, type: Zcl.DataType.UINT32},
-            replaceFilter: {ID: 0x0001, type: Zcl.DataType.UINT8},
-            filterLifeTime: {ID: 0x0002, type: Zcl.DataType.UINT32},
-            controlPanelLight: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
-            particulateMatter25Measurement: {ID: 0x0004, type: Zcl.DataType.UINT16},
-            childLock: {ID: 0x0005, type: Zcl.DataType.BOOLEAN},
-            fanMode: {ID: 0x0006, type: Zcl.DataType.UINT8},
-            fanSpeed: {ID: 0x0007, type: Zcl.DataType.UINT8},
-            deviceRunTime: {ID: 0x0008, type: Zcl.DataType.UINT32},
+            filterRunTime: {name: "filterRunTime", ID: 0x0000, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+            replaceFilter: {name: "replaceFilter", ID: 0x0001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            filterLifeTime: {name: "filterLifeTime", ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+            controlPanelLight: {name: "controlPanelLight", ID: 0x0003, type: Zcl.DataType.BOOLEAN, write: true},
+            particulateMatter25Measurement: {name: "particulateMatter25Measurement", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            childLock: {name: "childLock", ID: 0x0005, type: Zcl.DataType.BOOLEAN, write: true},
+            fanMode: {name: "fanMode", ID: 0x0006, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            fanSpeed: {name: "fanSpeed", ID: 0x0007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            deviceRunTime: {name: "deviceRunTime", ID: 0x0008, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
         },
         commands: {},
         commandsResponse: {},
@@ -879,12 +897,13 @@ export interface IkeaVocIndexMeasurement {
 
 export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExtend {
     return m.deviceAddCustomCluster("manuSpecificIkeaVocIndexMeasurement", {
+        name: "manuSpecificIkeaVocIndexMeasurement",
         ID: 0xfc7e,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {
-            measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC},
-            measuredMinValue: {ID: 0x0001, type: Zcl.DataType.SINGLE_PREC},
-            measuredMaxValue: {ID: 0x0002, type: Zcl.DataType.SINGLE_PREC},
+            measuredValue: {name: "measuredValue", ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
+            measuredMinValue: {name: "measuredMinValue", ID: 0x0001, type: Zcl.DataType.SINGLE_PREC, write: true},
+            measuredMaxValue: {name: "measuredMaxValue", ID: 0x0002, type: Zcl.DataType.SINGLE_PREC, write: true},
         },
         commands: {},
         commandsResponse: {},
@@ -893,11 +912,12 @@ export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExt
 
 export function addCustomClusterManuSpecificIkeaSmartPlug(): ModernExtend {
     return m.deviceAddCustomCluster("manuSpecificIkeaSmartPlug", {
+        name: "manuSpecificIkeaSmartPlug",
         ID: 0xfc85,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {
-            childLock: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
-            ledEnable: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
+            childLock: {name: "childLock", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+            ledEnable: {name: "ledEnable", ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
         },
 
         commands: {},
@@ -916,10 +936,60 @@ export interface IkeaUnknown {
 //  No attributes known.
 export function addCustomClusterManuSpecificIkeaUnknown(): ModernExtend {
     return m.deviceAddCustomCluster("manuSpecificIkeaUnknown", {
+        name: "manuSpecificIkeaUnknown",
         ID: 0xfc7c,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {},
         commands: {},
+        commandsResponse: {},
+    });
+}
+
+export interface TradfriButton {
+    attributes: never;
+    commands: {
+        /** ID=0x01 */
+        action1: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+        /** ID=0x02 */
+        action2: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+        /** ID=0x03 */
+        action3: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+        /** ID=0x04 */
+        action4: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+        /** ID=0x06 */
+        action6: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+    };
+    commandResponses: never;
+}
+
+export function addCustomClusterTradfriButton(): ModernExtend {
+    return m.deviceAddCustomCluster("tradfriButton", {
+        name: "tradfriButton",
+        ID: 0xfc80,
+        manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
+        attributes: {},
+        commands: {
+            action1: {name: "action1", ID: 0x01, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+            action2: {name: "action2", ID: 0x02, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+            action3: {name: "action3", ID: 0x03, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+            action4: {name: "action4", ID: 0x04, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+            action6: {name: "action6", ID: 0x06, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+        },
         commandsResponse: {},
     });
 }
@@ -933,7 +1003,12 @@ const unfreezeMechanisms: {
     // Color lights:
     //   Do not support this command.
     moveColorTemp: async (entity) => {
-        await entity.command("lightingColorCtrl", "moveColorTemp", {rate: 1, movemode: 0, minimum: 0, maximum: 600}, {});
+        await entity.command(
+            "lightingColorCtrl",
+            "moveColorTemp",
+            {rate: 1, movemode: 0, minimum: 0, maximum: 600, optionsMask: 0, optionsOverride: 0},
+            {},
+        );
     },
 
     // WS lights:
@@ -942,7 +1017,7 @@ const unfreezeMechanisms: {
     //   Finishes the color transition instantly: light will instantly
     //   "fast forward" to the final state, post-transition.
     genLevelCtrl: async (entity) => {
-        await entity.command("genLevelCtrl", "stop", {}, {});
+        await entity.command("genLevelCtrl", "stop", {optionsMask: 0, optionsOverride: 0}, {});
     },
 };
 
@@ -1034,21 +1109,6 @@ export const ikeaModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
         });
 
-        // NOTE: make exposes dynamic based on fw version
-        result.exposes = [
-            (device, options) => {
-                if (
-                    !isDummyDevice(device) &&
-                    device.softwareBuildID &&
-                    semverValid(device.softwareBuildID) &&
-                    semverGte(device.softwareBuildID, "2.4.25")
-                ) {
-                    return [binary(resultName, access.ALL, "LOCK", "UNLOCK").withDescription(resultDescription).withCategory("config")];
-                }
-                return [];
-            },
-        ];
-
         return result;
     },
 
@@ -1078,7 +1138,12 @@ export const ikeaModernExtend = {
                 ) {
                     return [binary(resultName, access.ALL, "TRUE", "FALSE").withDescription(resultDescription).withCategory("config")];
                 }
-                return [];
+                return [
+                    binary(resultName, access.ALL, "TRUE", "FALSE")
+                        .withDescription(resultDescription)
+                        .withCategory("config")
+                        .withLabel("Led disable"),
+                ];
             },
         ];
 

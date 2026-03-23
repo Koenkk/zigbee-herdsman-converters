@@ -681,16 +681,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery(),
             m.deviceAddCustomCluster("candeoRotaryRemoteControl", {
+                name: "candeoRotaryRemoteControl",
                 ID: manufacturerSpecificRotaryRemoteControlClusterCode,
                 attributes: {},
                 commands: {
                     rotaryRemoteControl: {
+                        name: "rotaryRemoteControl",
                         ID: 0x01,
                         parameters: [
-                            {name: "field1", type: Zcl.DataType.UINT8},
-                            {name: "field2", type: Zcl.DataType.UINT8},
-                            {name: "field3", type: Zcl.DataType.UINT8},
-                            {name: "field4", type: Zcl.DataType.UINT8},
+                            {name: "field1", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "field2", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "field3", type: Zcl.DataType.UINT8, max: 0xff},
+                            {name: "field4", type: Zcl.DataType.UINT8, max: 0xff},
                         ],
                     },
                 },
@@ -775,10 +777,12 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 5, max: 1800, change: 50},
             }),
             m.deviceAddCustomCluster("genOnOff", {
+                name: "genOnOff",
                 ID: 6,
                 attributes: {},
                 commands: {
                     release: {
+                        name: "release",
                         ID: 0x03,
                         parameters: [],
                     },
@@ -811,10 +815,12 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 5, max: 1800, change: 50},
             }),
             m.deviceAddCustomCluster("genOnOff", {
+                name: "genOnOff",
                 ID: 6,
                 attributes: {},
                 commands: {
                     release: {
+                        name: "release",
                         ID: 0x03,
                         parameters: [],
                     },

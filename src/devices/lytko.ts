@@ -786,16 +786,25 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         extend: [
             deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: Zcl.Clusters.hvacThermostat.ID,
                 attributes: {
                     occupiedSetback: {
+                        name: "occupiedSetback",
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
+                        name: "lytkoSensor",
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -878,16 +887,25 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         extend: [
             deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: Zcl.Clusters.hvacThermostat.ID,
                 attributes: {
                     occupiedSetback: {
+                        name: "occupiedSetback",
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
+                        name: "lytkoSensor",
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -990,38 +1008,59 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         extend: [
             deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: Zcl.Clusters.hvacThermostat.ID,
                 attributes: {
                     occupiedSetback: {
+                        name: "occupiedSetback",
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
+                        name: "lytkoSensor",
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoTargetFirst: {
+                        name: "lytkoTargetFirst",
                         ID: 0xff01,
                         type: Zcl.DataType.BOOLEAN,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
                     },
                 },
                 commands: {},
                 commandsResponse: {},
             }),
             deviceAddCustomCluster("hvacUserInterfaceCfg", {
+                name: "hvacUserInterfaceCfg",
                 ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
                 attributes: {
                     brignessActive: {
+                        name: "brignessActive",
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     brignessStandby: {
+                        name: "brignessStandby",
                         ID: 0xff01,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -1142,16 +1181,25 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         extend: [
             deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: Zcl.Clusters.hvacThermostat.ID,
                 attributes: {
                     occupiedSetback: {
+                        name: "occupiedSetback",
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
+                        name: "lytkoSensor",
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -1281,16 +1329,25 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         extend: [
             deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: Zcl.Clusters.hvacThermostat.ID,
                 attributes: {
                     occupiedSetback: {
+                        name: "occupiedSetback",
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
+                        name: "lytkoSensor",
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -1440,38 +1497,59 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         extend: [
             deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: Zcl.Clusters.hvacThermostat.ID,
                 attributes: {
                     occupiedSetback: {
+                        name: "occupiedSetback",
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
+                        name: "lytkoSensor",
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoTargetFirst: {
+                        name: "lytkoTargetFirst",
                         ID: 0xff01,
                         type: Zcl.DataType.BOOLEAN,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
                     },
                 },
                 commands: {},
                 commandsResponse: {},
             }),
             deviceAddCustomCluster("hvacUserInterfaceCfg", {
+                name: "hvacUserInterfaceCfg",
                 ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
                 attributes: {
                     brignessActive: {
+                        name: "brignessActive",
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     brignessStandby: {
+                        name: "brignessStandby",
                         ID: 0xff01,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},
@@ -1639,38 +1717,59 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         extend: [
             deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: Zcl.Clusters.hvacThermostat.ID,
                 attributes: {
                     occupiedSetback: {
+                        name: "occupiedSetback",
                         ID: 0x0034,
                         type: Zcl.DataType.UINT8,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoSensor: {
+                        name: "lytkoSensor",
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     lytkoTargetFirst: {
+                        name: "lytkoTargetFirst",
                         ID: 0xff01,
                         type: Zcl.DataType.BOOLEAN,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
                     },
                 },
                 commands: {},
                 commandsResponse: {},
             }),
             deviceAddCustomCluster("hvacUserInterfaceCfg", {
+                name: "hvacUserInterfaceCfg",
                 ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
                 attributes: {
                     brignessActive: {
+                        name: "brignessActive",
                         ID: 0xff00,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                     brignessStandby: {
+                        name: "brignessStandby",
                         ID: 0xff01,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: manufacturerOptions.manufacturerCode,
+
+                        write: true,
+                        max: 0xff,
                     },
                 },
                 commands: {},

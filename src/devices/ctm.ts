@@ -8,6 +8,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+import type {ElkoThermostatCluster} from "./elko";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -263,7 +264,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"hvacThermostat", ElkoThermostatCluster, ["attributeReport", "readResponse"]>,
     ctm_group_config: {
         cluster: "65191", // 0xFEA7 ctmGroupConfig
         type: ["attributeReport", "readResponse"],
@@ -428,7 +429,12 @@ const tzLocal = {
     ctm_mbd_brightness: {
         key: ["brightness"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command("genLevelCtrl", "moveToLevel", {level: value as number, transtime: 1}, utils.getOptions(meta.mapped, entity));
+            await entity.command(
+                "genLevelCtrl",
+                "moveToLevel",
+                {level: value as number, transtime: 1, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genLevelCtrl", ["currentLevel"]);
@@ -1025,25 +1031,67 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.energy()],
     },
     {
-        zigbeeModel: ["mKomfy Tak"],
-        model: "mKomfy_Tak",
-        vendor: "CTM Lyng",
-        description: "Temperature sensor",
-        extend: [m.battery(), m.temperature()],
-    },
-    {
         zigbeeModel: ["mKomfy 2.0"],
         model: "6254380",
         vendor: "CTM Lyng",
         description: "2.0 Stove guard",
         extend: [
             m.deviceTemperature(),
-            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
+            m.iasZoneAlarm({
+                zoneType: "generic",
+                manufacturerZoneAttributes: [
+                    {
+                        bit: 0,
+                        name: "high_temperature",
+                        valueOn: true,
+                        valueOff: false,
+                        description: "Stove guard detected high hemperature",
+                    },
+                    {
+                        bit: 1,
+                        name: "power_cut_off",
+                        valueOn: true,
+                        valueOff: false,
+                        description: "Power to stove disconnected",
+                    },
+                ],
+                zoneAttributes: ["tamper", "battery_low"],
+            }),
             m.electricityMeter({cluster: "metering"}),
         ],
     },
     {
-        zigbeeModel: ["mKomfy"],
+        zigbeeModel: ["mKomfy 2.5"],
+        model: "mkomfy25",
+        vendor: "CTM Lyng",
+        description: "2.5 Stove guard",
+        extend: [
+            m.onOff({powerOnBehavior: false}),
+            m.iasZoneAlarm({
+                zoneType: "generic",
+                manufacturerZoneAttributes: [
+                    {
+                        bit: 0,
+                        name: "high_temperature",
+                        valueOn: true,
+                        valueOff: false,
+                        description: "Stove guard detected high hemperature",
+                    },
+                    {
+                        bit: 1,
+                        name: "power_cut_off",
+                        valueOn: true,
+                        valueOff: false,
+                        description: "Power to stove disconnected",
+                    },
+                ],
+                zoneAttributes: ["tamper", "battery_low"],
+            }),
+            m.electricityMeter({cluster: "metering"}),
+        ],
+    },
+    {
+        zigbeeModel: ["mKomfy", "mKomfy Tak"],
         model: "mKomfy_Sensor",
         vendor: "CTM Lyng",
         description: "mKomfy, stove guard",

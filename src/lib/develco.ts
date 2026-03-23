@@ -1,9 +1,17 @@
 import {Zcl} from "zigbee-herdsman";
 import {presets as e, access as ea} from "./exposes";
 import {deviceAddCustomCluster, deviceTemperature, type NumericArgs, numeric, temperature} from "./modernExtend";
-import type {Configure, Fz, ModernExtend, Tz} from "./types";
+import type {Configure, Expose, Fz, ModernExtend, Tz} from "./types";
+import {exposeEndpoints} from "./utils";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
+
+const emizb132InterfaceModeLookup: Record<string, {payload: number; divisor: number}> = {
+    norwegian_han: {payload: 0x0200, divisor: 10},
+    norwegian_han_extra_load: {payload: 0x0201, divisor: 10},
+    aidon_meter: {payload: 0x0202, divisor: 10},
+    kaifa_and_kamstrup: {payload: 0x0203, divisor: 1000},
+};
 
 export interface DevelcoGenBasic {
     attributes: {
@@ -35,37 +43,115 @@ export interface DevelcoIasZone {
     commandResponses: never;
 }
 
+export interface DevelcoSeMetering {
+    attributes: {
+        develcoPulseConfiguration: number;
+        develcoCurrentSummation: number;
+        develcoInterfaceMode?: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 export const develcoModernExtend = {
     addCustomClusterManuSpecificDevelcoGenBasic: () =>
         deviceAddCustomCluster("genBasic", {
-            ID: 0x0000,
+            name: "genBasic",
+            ID: Zcl.Clusters.genBasic.ID,
             attributes: {
-                develcoPrimarySwVersion: {ID: 0x8000, type: Zcl.DataType.OCTET_STR, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
-                develcoPrimaryHwVersion: {ID: 0x8020, type: Zcl.DataType.OCTET_STR, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
-                develcoLedControl: {ID: 0x8100, type: Zcl.DataType.BITMAP8, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
-                develcoTxPower: {ID: 0x8101, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
+                develcoPrimarySwVersion: {
+                    name: "develcoPrimarySwVersion",
+                    ID: 0x8000,
+                    type: Zcl.DataType.OCTET_STR,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                },
+                develcoPrimaryHwVersion: {
+                    name: "develcoPrimaryHwVersion",
+                    ID: 0x8020,
+                    type: Zcl.DataType.OCTET_STR,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                },
+                develcoLedControl: {
+                    name: "develcoLedControl",
+                    ID: 0x8100,
+                    type: Zcl.DataType.BITMAP8,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                },
+                develcoTxPower: {
+                    name: "develcoTxPower",
+                    ID: 0x8101,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xff,
+                },
             },
             commands: {},
             commandsResponse: {},
         }),
     addCustomClusterManuSpecificDevelcoIasZone: () =>
         deviceAddCustomCluster("ssIasZone", {
+            name: "ssIasZone",
             ID: Zcl.Clusters.ssIasZone.ID,
             attributes: {
-                develcoZoneStatusInterval: {ID: 0x8000, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
+                develcoZoneStatusInterval: {
+                    name: "develcoZoneStatusInterval",
+                    ID: 0x8000,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xffff,
+                },
             },
             commands: {},
             commandsResponse: {},
         }),
     addCustomClusterManuSpecificDevelcoAirQuality: () =>
         deviceAddCustomCluster("manuSpecificDevelcoAirQuality", {
+            name: "manuSpecificDevelcoAirQuality",
             ID: 0xfc03,
             manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
             attributes: {
-                measuredValue: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                minMeasuredValue: {ID: 0x0001, type: Zcl.DataType.UINT16},
-                maxMeasuredValue: {ID: 0x0002, type: Zcl.DataType.UINT16},
-                resolution: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                measuredValue: {name: "measuredValue", ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                minMeasuredValue: {name: "minMeasuredValue", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                maxMeasuredValue: {name: "maxMeasuredValue", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                resolution: {name: "resolution", ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addCustomDevelcoSeMeteringCluster: () =>
+        deviceAddCustomCluster("seMetering", {
+            name: "seMetering",
+            ID: Zcl.Clusters.seMetering.ID,
+            attributes: {
+                develcoPulseConfiguration: {
+                    name: "develcoPulseConfiguration",
+                    ID: 0x0300,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xffff,
+                },
+                develcoCurrentSummation: {
+                    name: "develcoCurrentSummation",
+                    ID: 0x0301,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                develcoInterfaceMode: {
+                    name: "develcoInterfaceMode",
+                    ID: 0x0302,
+                    type: Zcl.DataType.ENUM16,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xffff,
+                },
             },
             commands: {},
             commandsResponse: {},
@@ -213,7 +299,7 @@ export const develcoModernExtend = {
             ...args,
         }),
     currentSummation: (args?: Partial<NumericArgs<"seMetering">>) =>
-        numeric({
+        numeric<"seMetering", DevelcoSeMetering>({
             name: "current_summation",
             cluster: "seMetering",
             attribute: "develcoCurrentSummation",
@@ -224,7 +310,7 @@ export const develcoModernExtend = {
             ...args,
         }),
     pulseConfiguration: (args?: Partial<NumericArgs<"seMetering">>) =>
-        numeric({
+        numeric<"seMetering", DevelcoSeMetering>({
             name: "pulse_configuration",
             cluster: "seMetering",
             attribute: "develcoPulseConfiguration",
@@ -439,5 +525,140 @@ export const develcoModernExtend = {
         ];
 
         return {exposes: [expose], fromZigbee, configure, isModernExtend: true};
+    },
+    customPulseTrigger: (options?: {endpointNames?: string[]}): ModernExtend => {
+        const endpointNames = options?.endpointNames || [];
+        const durationExpose = e
+            .numeric("duration", ea.STATE_SET)
+            .withLabel("Pulse duration")
+            .withUnit("s")
+            .withValueMin(0.0)
+            .withValueMax(3600)
+            .withDescription("Duration of the pulse.");
+
+        const triggerExpose = e
+            .enum("trigger", ea.SET, ["press"])
+            .withDescription(
+                "Trigger a timed pulse. The length of the pulse is defined by 'Pulse duration'. If the 'Pulse duration' is undefined a default value of 1s will be used.",
+            );
+
+        const exposes: Expose[] = [...exposeEndpoints(durationExpose, endpointNames), ...exposeEndpoints(triggerExpose, endpointNames)];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["trigger", "duration"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "duration") {
+                        const val = value === null ? 1.0 : Number(value);
+                        return {state: {[key]: val}};
+                    }
+                    if (key === "trigger" && value === "press") {
+                        const epSuffix = meta.endpoint_name ? `_${meta.endpoint_name}` : "";
+                        const stateLookupKey = `duration${epSuffix}`;
+                        const seconds = meta.state[stateLookupKey] !== undefined ? Number(meta.state[stateLookupKey]) : 1.0;
+                        const deciseconds = Math.round(seconds * 10);
+                        await entity.command(
+                            "genOnOff",
+                            "onWithTimedOff",
+                            {
+                                ctrlbits: 0,
+                                ontime: deciseconds,
+                                offwaittime: 0,
+                            },
+                            meta.options,
+                        );
+                        return {state: {[key]: null}};
+                    }
+                },
+            },
+        ];
+        return {
+            isModernExtend: true,
+            exposes,
+            toZigbee,
+        };
+    },
+    emizb132InterfaceMode: (): ModernExtend => {
+        const exposes = [
+            e
+                .enum("interface_mode", ea.ALL, Object.keys(emizb132InterfaceModeLookup))
+                .withDescription("Specifies the configuration of the external HAN port interface."),
+        ];
+
+        // Using the internal type from ModernExtend solves the generic requirement
+        const fromZigbee: ModernExtend["fromZigbee"] = [
+            {
+                cluster: "seMetering",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const value = msg.data.develcoInterfaceMode ?? msg.data[0x0000];
+                    if (value !== undefined) {
+                        const mode = Object.keys(emizb132InterfaceModeLookup).find((key) => emizb132InterfaceModeLookup[key].payload === value);
+                        return mode ? {interface_mode: mode} : undefined;
+                    }
+                },
+            },
+        ];
+
+        const toZigbee: ModernExtend["toZigbee"] = [
+            {
+                key: ["interface_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    const modeData = emizb132InterfaceModeLookup[value as string];
+                    if (!modeData) throw new Error(`Invalid interface_mode: ${value}`);
+
+                    const endpoint = meta.device.getEndpoint(2);
+
+                    // 1. Write the mode to the device using Enum8 (0x30)
+                    // We use 0x30 to avoid the 'INVALID_DATA_TYPE' error seen with 0x21
+                    await endpoint.write<"seMetering", DevelcoSeMetering>(
+                        "seMetering",
+                        // {develcoInterfaceMode: {value: modeData.payload, type: Zcl.DataType.ENUM16}},
+                        {develcoInterfaceMode: modeData.payload},
+                        {manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
+                    );
+                    // We prime the haElectricalMeasurement cache so that the very next current reading is divided by the correct number.
+                    const cache = {
+                        acCurrentDivisor: modeData.divisor,
+                        acCurrentMultiplier: 1,
+                    };
+                    endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", cache);
+
+                    // logger.info(`EMIZB-132: Mode set to ${value}. Divisor cache updated to ${modeData.divisor}.`, "zhc:develco");
+                    return {state: {interface_mode: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await meta.device.getEndpoint(2).read<"seMetering", DevelcoSeMetering>("seMetering", ["develcoInterfaceMode"]);
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true as const,
+        };
+    },
+    emizb132DivisorInjector: (): ModernExtend => {
+        return {
+            fromZigbee: [
+                {
+                    cluster: "haElectricalMeasurement",
+                    type: ["attributeReport", "readResponse"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const mode = (meta.state?.interface_mode as string) || "norwegian_han";
+                        const divisor = emizb132InterfaceModeLookup[mode]?.divisor || 10;
+
+                        msg.endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
+                            acCurrentDivisor: divisor,
+                            acCurrentMultiplier: 1,
+                        });
+                        return undefined;
+                    },
+                } as Fz.Converter<"haElectricalMeasurement", undefined, undefined>,
+            ],
+            isModernExtend: true as const,
+        };
     },
 };

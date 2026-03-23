@@ -107,6 +107,10 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch().setAccess("state", ea.STATE_SET)],
         fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
+        whiteLabel: [
+            {vendor: "Moes", model: "WS-EUB1-ZG"},
+            {vendor: "Moes", model: "ZTS-EUB1"},
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dhdstcqc"]),

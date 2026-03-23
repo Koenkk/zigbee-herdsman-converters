@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ROB_200-011-1",
         vendor: "ROBB",
         description: "Pro Zigbee Dimmer 400W",
-        extend: [m.light(), m.electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },
     {
         zigbeeModel: ["ROB_200-081-0"],
@@ -126,8 +126,15 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ROB_200-030-0"],
         model: "ROB_200-030-0",
         vendor: "ROBB",
-        description: "Zigbee AC in wall switch 400W (2-wire)",
+        description: "Zigbee AC in wall switch 400W (2-wire) (push switch)",
         extend: [m.onOff()],
+    },
+    {
+        zigbeeModel: ["ROB_200-030-1"],
+        model: "ROB_200-030-1",
+        vendor: "ROBB",
+        description: "Zigbee AC in wall switch 400W (2-wire) (normal switch)",
+        extend: [m.onOff({powerOnBehavior: false})],
     },
     {
         zigbeeModel: ["ROB_200-014-0"],
@@ -287,7 +294,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(["on_1", "off_1", "brightness_move_to_level_1", "color_temperature_move_1", "color_move_1"])],
         toZigbee: [],
         // DEPRECATED BREAKING CHANGE: remove multiEndpoint: true here and drop `_1` postfix from actions
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        meta: {multiEndpoint: true},
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG2835"}],
     },
     {
@@ -351,6 +358,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_move,
             fz.command_color_loop_set,
             fz.command_enhanced_move_to_hue_and_saturation,
+            fz.command_move_to_hue_and_saturation,
         ],
         toZigbee: [],
         exposes: [
@@ -370,6 +378,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "brightness_move_down",
                 "color_loop_set",
                 "enhanced_move_to_hue_and_saturation",
+                "move_to_hue_and_saturation",
                 "hue_stop",
             ]),
         ],

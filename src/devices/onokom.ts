@@ -10,7 +10,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["AUX-1-ZB-S"],
         model: "AUX-1-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR AUX-1-MB-B (Adapter for household and semi-industrial AUX systems)",
+        description: "AIR AUX-1-ZB-S (Adapter for household and semi-industrial AUX systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -269,7 +269,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["DK-1-ZB-S"],
         model: "DK-1-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR DK-1-MB-B (Adapter for household Daikin systems)",
+        description: "AIR DK-1-ZB-S (Adapter for household Daikin systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -508,7 +508,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["GR-1-ZB-S"],
         model: "GR-1-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR GR-1-MB-B (Adapter for household GREE systems)",
+        description: "AIR GR-1-ZB-S (Adapter for household GREE systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -735,7 +735,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["GR-3-ZB-S"],
         model: "GR-3-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR GR-3-MB-B (Adapter for control of semi-industrial and multi-split systems GREE)",
+        description: "AIR GR-3-ZB-S (Adapter for control of semi-industrial and multi-split systems GREE)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -965,7 +965,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HR-1-ZB-S"],
         model: "HR-1-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR HR-1-MB-B (Adapter for household and semi-industrial Haier systems)",
+        description: "AIR HR-1-ZB-S (Adapter for household and semi-industrial Haier systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -1192,7 +1192,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS-3-ZB-S"],
         model: "HS-3-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR HS-3-MB-B (Adapter for household Hisesnse systems)",
+        description: "AIR HS-3-ZB-S (Adapter for household Hisesnse systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -1491,7 +1491,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HT-1-ZB-S"],
         model: "HT-1-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR HT-1-MB-B (Adapter for household Hitachi systems)",
+        description: "AIR HT-1-ZB-S (Adapter for household Hitachi systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -1616,7 +1616,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MD-1-ZB-S"],
         model: "MD-1-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR MD-1-MB-B (Adapter for household MDV systems)",
+        description: "AIR MD-1-ZB-S (Adapter for household MDV systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -1844,7 +1844,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MD-3-ZB-S"],
         model: "MD-3-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR MD-3-MB-B (Adapter for semi-industrial MDV systems)",
+        description: "AIR MD-3-ZB-S (Adapter for semi-industrial MDV systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -2022,7 +2022,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ME-1-ZB-S"],
         model: "ME-1-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM-AIR-ME-1-MB-B (Adapter for household and semi-industrial Mitsubishi Electric systems)",
+        description: "ONOKOM-AIR-ME-1-ZB-S (Adapter for household and semi-industrial Mitsubishi Electric systems)",
         ota: true,
         extend: [
             m.enumLookup({
@@ -2186,7 +2186,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["TCL-1-ZB-S"],
         model: "TCL-1-ZB-S",
         vendor: "ONOKOM",
-        description: "ONOKOM-AIR-TCL-1-MB-B (Adapter for household TCL systems )",
+        description: "ONOKOM-AIR-TCL-1-ZB-S (Adapter for household TCL systems )",
         ota: true,
         extend: [
             m.enumLookup({
@@ -2470,7 +2470,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["TCL-3-ZB-S"],
         model: "TCL-3-ZB-S",
         vendor: "ONOKOM",
-        description: "AIR TCL-3-MB-B (Adapter for semi industrial TCL systems)",
+        description: "AIR TCL-3-ZB-S (Adapter for semi industrial TCL systems)",
         ota: true,
         extend: [
             m.enumLookup({
