@@ -734,6 +734,7 @@ const philipsModernExtend = {
         return result;
     },
 };
+
 export {philipsModernExtend as m};
 
 const philipsTz = {
@@ -977,6 +978,7 @@ const philipsTz = {
         },
     } satisfies Tz.Converter,
 };
+
 export {philipsTz as tz};
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V};

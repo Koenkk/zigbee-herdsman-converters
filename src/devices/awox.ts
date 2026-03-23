@@ -84,12 +84,24 @@ export const definitions: DefinitionWithExtend[] = [
                     {ID: 3, profileID: 49152, deviceID: 258},
                 ],
             },
+            {
+                type: "Router",
+                manufacturerName: "AwoX",
+                modelID: "TLSR82xx",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 257},
+                    {ID: 3, profileID: 4751, deviceID: 257},
+                ],
+            },
         ],
-        model: "33951/33948",
+        model: "AwoX-light",
         vendor: "AwoX",
-        description: "LED white",
+        description: "Generic light",
         extend: [m.light()],
-        whiteLabel: [{vendor: "EGLO", model: "12229"}],
+        whiteLabel: [
+            {vendor: "EGLO", model: "12229"},
+            {vendor: "EGLO", model: "12256"},
+        ],
     },
     {
         zigbeeModel: ["ERCU_Zm"],

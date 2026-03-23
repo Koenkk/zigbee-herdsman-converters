@@ -132,7 +132,7 @@ describe("ModernExtend", () => {
 
     test("light({color: true})", async () => {
         await assertDefinition({
-            device: mockDevice({modelID: "AD-E14RGBW3001", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
+            device: mockDevice({modelID: "ZHA-ColorLight", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
             meta: {},
             fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [

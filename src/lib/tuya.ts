@@ -35,6 +35,39 @@ interface KeyValueStringEnum {
     [s: string]: Enum;
 }
 
+export interface ManuSpecificTuya2 {
+    attributes: {
+        alarmTemperatureMax: number;
+        alarmTemperatureMin: number;
+        alarmHumidityMax: number;
+        alarmHumidityMin: number;
+        alarmHumidity: number;
+        alarmTemperature: number;
+        unknown: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export interface ManuSpecificTuya3 {
+    attributes: {
+        powerOnBehavior: number;
+        switchMode: number;
+        switchType: number;
+    };
+    commands: {
+        setOptions1: {
+            data: Buffer;
+        };
+        setOptions2: {
+            data: Buffer;
+        };
+        setOptions3: {
+            data: Buffer;
+        };
+    };
+    commandResponses: never;
+}
 interface Tuya4 {
     attributes: {
         // biome-ignore lint/style/useNamingConvention: TODO
@@ -540,6 +573,7 @@ const tuyaExposes = {
         return x;
     },
 };
+
 export {tuyaExposes as exposes};
 
 export const skip = {
@@ -599,6 +633,7 @@ class Base {
 
 export class Enum extends Base {}
 const enumConstructor = (value: number) => new Enum(value);
+
 export {enumConstructor as enum};
 
 export const BacklightColorEnum = {
@@ -1849,44 +1884,44 @@ const tuyaTz = {
         key: ["power_on_behavior"],
         convertSet: async (entity, key, value, meta) => {
             const powerOnBehavior = utils.getFromLookup(value, {off: 0, on: 1, previous: 2});
-            await entity.write("manuSpecificTuya3", {powerOnBehavior});
+            await entity.write<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", {powerOnBehavior});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya3", ["powerOnBehavior"]);
+            await entity.read<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", ["powerOnBehavior"]);
         },
     } satisfies Tz.Converter,
     switch_type: {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {toggle: 0, state: 1, momentary: 2});
-            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
+            await entity.write<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya3", ["switchType"]);
+            await entity.read<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     switch_type_curtain: {
         key: ["switch_type_curtain"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {"flip-switch": 0, "sync-switch": 1, "button-switch": 2, "button2-switch": 3});
-            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
+            await entity.write<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya3", ["switchType"]);
+            await entity.read<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     switch_type_button: {
         key: ["switch_type_button"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {release: 0, press: 1});
-            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
+            await entity.write<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya3", ["switchType"]);
+            await entity.read<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     backlight_indicator_mode_1: {
@@ -2101,6 +2136,7 @@ const tuyaTz = {
         },
     } satisfies Tz.Converter,
 };
+
 export {tuyaTz as tz};
 
 const tuyaFz = {
@@ -2136,7 +2172,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data[attribute]]};
             }
         },
-    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya3", ManuSpecificTuya3, ["attributeReport", "readResponse"]>,
     power_outage_memory: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2158,7 +2194,7 @@ const tuyaFz = {
                 return {switch_type: lookup[msg.data.switchType]};
             }
         },
-    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya3", ManuSpecificTuya3, ["attributeReport", "readResponse"]>,
     switch_type_curtain: {
         cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
@@ -2169,7 +2205,7 @@ const tuyaFz = {
                 return {switch_type_curtain: lookup[msg.data.switchType]};
             }
         },
-    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya3", ManuSpecificTuya3, ["attributeReport", "readResponse"]>,
     switch_type_button: {
         cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
@@ -2180,7 +2216,7 @@ const tuyaFz = {
                 return {switch_type_button: lookup[msg.data.switchType]};
             }
         },
-    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya3", ManuSpecificTuya3, ["attributeReport", "readResponse"]>,
     backlight_mode_low_medium_high: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2371,6 +2407,7 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
 };
+
 export {tuyaFz as fz};
 
 export function getHandlersForDP(
@@ -2732,6 +2769,11 @@ const tuyaModernExtend = {
                 },
             ];
         }
+
+        const customCluster2 = tuyaClusters.addManuSpecificTuya2Cluster();
+        const customCluster3 = tuyaClusters.addManuSpecificTuya3Cluster();
+        result.onEvent = [...(customCluster2.onEvent ?? []), ...(customCluster3.onEvent ?? []), ...(result.onEvent ?? [])];
+        result.configure = [...(customCluster2.configure ?? []), ...(customCluster3.configure ?? []), ...(result.configure ?? [])];
 
         if (dp) {
             result.fromZigbee.push(tuyaFz.datapoints);
@@ -3456,9 +3498,42 @@ const tuyaModernExtend = {
         return result;
     },
 };
+
 export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {
+    addManuSpecificTuya2Cluster: (): ModernExtend =>
+        modernExtend.deviceAddCustomCluster("manuSpecificTuya2", {
+            name: "manuSpecificTuya2",
+            ID: 0xe002,
+            attributes: {
+                alarmTemperatureMax: {name: "alarmTemperatureMax", ID: 0xd00a, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmTemperatureMin: {name: "alarmTemperatureMin", ID: 0xd00b, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidityMax: {name: "alarmHumidityMax", ID: 0xd00d, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidityMin: {name: "alarmHumidityMin", ID: 0xd00e, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidity: {name: "alarmHumidity", ID: 0xd00f, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                alarmTemperature: {name: "alarmTemperature", ID: 0xd006, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                unknown: {name: "unknown", ID: 0xd010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addManuSpecificTuya3Cluster: (): ModernExtend =>
+        modernExtend.deviceAddCustomCluster("manuSpecificTuya3", {
+            name: "manuSpecificTuya3",
+            ID: 0xe001,
+            attributes: {
+                powerOnBehavior: {name: "powerOnBehavior", ID: 0xd010, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                switchMode: {name: "switchMode", ID: 0xd020, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                switchType: {name: "switchType", ID: 0xd030, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            },
+            commands: {
+                setOptions1: {name: "setOptions1", ID: 0xe5, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                setOptions2: {name: "setOptions2", ID: 0xe6, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                setOptions3: {name: "setOptions3", ID: 0xe7, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+            },
+            commandsResponse: {},
+        }),
     addTuyaCommonPrivateCluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya4", {
             name: "manuSpecificTuya4",

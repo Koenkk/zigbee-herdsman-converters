@@ -916,4 +916,4 @@ const extend = {
     },
 };
 
-export {tz, extend};
+export {extend, tz};
