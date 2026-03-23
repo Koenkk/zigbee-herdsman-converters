@@ -4716,7 +4716,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "MINI-ZBD", manufacturerName: "SONOFF"}],
+        whiteLabel: [{model: "MINI-ZBD", vendor: "SONOFF", fingerprint: [{modelID: "MINI-ZBD", manufacturerName: "SONOFF"}]}],
         zigbeeModel: ["ZBMINIR2", "MINI-ZBD"],
         model: "ZBMINIR2",
         vendor: "SONOFF",
