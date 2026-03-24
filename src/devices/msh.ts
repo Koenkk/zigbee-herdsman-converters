@@ -28,7 +28,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["msh.AirQMon"],
         model: "msh.AirQMon",
         vendor: "MySmartHouse",
-        description: "[MSH Air quality sensor](https://www.facebook.com/my.smart.house.in.ua)",
+        description: "MSH Air quality sensor",
         fromZigbee: [fz.ptvo_switch_uart, fz.co2, fz.ptvo_switch_analog_input, fz.temperature],
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tzLocal.ptvo_senseair_calibration],
         exposes: [
@@ -41,37 +41,19 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {multiEndpoint: true},
         endpoint: (device) => ({l2: 2, action: 1, l3: 3, l4: 4}),
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            if (endpoint) {
-                await endpoint.read("genBasic", ["modelId", "swBuildId", "powerSource"]);
-            }
-        },
     },
     {
         zigbeeModel: ["msh.bme280psm"],
         model: "msh.bme280psm",
         vendor: "MySmartHouse",
-        description: "[MSH outdoor thermometer with BME280](https://www.facebook.com/my.smart.house.in.ua)",
+        description: "MSH outdoor thermometer with BME280",
         extend: [m.battery(), m.temperature(), m.humidity(), m.pressure()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            if (endpoint) {
-                await endpoint.read("genBasic", ["modelId", "swBuildId", "powerSource"]);
-            }
-        },
     },
     {
         zigbeeModel: ["msh.ds18b20psm"],
         model: "msh.ds18b20psm",
         vendor: "MySmartHouse",
-        description: "[MSH outdoor thermometer with DS18B20](https://www.facebook.com/my.smart.house.in.ua)",
+        description: "MSH outdoor thermometer with DS18B20",
         extend: [m.battery(), m.temperature()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            if (endpoint) {
-                await endpoint.read("genBasic", ["modelId", "swBuildId", "powerSource"]);
-            }
-        },
     },
 ];
