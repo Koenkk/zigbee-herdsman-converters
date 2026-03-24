@@ -45,7 +45,7 @@
     "dependencies": {
         "iconv-lite": "^0.7.2",
         "semver": "^7.7.4",
-        "zigbee-herdsman": "^10.0.3"
+        "zigbee-herdsman": "^10.0.4"
     },
     "exports": {
         ".": "./dist/index.js",

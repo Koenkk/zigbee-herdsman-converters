@@ -781,7 +781,7 @@ const tzLocal = {
                 case "temperature_threshold": {
                     const state = meta.state.temperature_breaker;
                     const buf = Buffer.from([5, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "temperature_threshold")]);
-                    await entity.command("manuSpecificTuya3", "setOptions2", {
+                    await entity.command<"manuSpecificTuya3", "setOptions2", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -790,7 +790,7 @@ const tzLocal = {
                     const threshold = meta.state.temperature_threshold;
                     const number = utils.toNumber(threshold, "temperature_threshold");
                     const buf = Buffer.from([5, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya3", "setOptions2", {
+                    await entity.command<"manuSpecificTuya3", "setOptions2", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -798,7 +798,7 @@ const tzLocal = {
                 case "power_threshold": {
                     const state = meta.state.power_breaker;
                     const buf = Buffer.from([7, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "power_breaker")]);
-                    await entity.command("manuSpecificTuya3", "setOptions2", {
+                    await entity.command<"manuSpecificTuya3", "setOptions2", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -807,7 +807,7 @@ const tzLocal = {
                     const threshold = meta.state.power_threshold;
                     const number = utils.toNumber(threshold, "power_breaker");
                     const buf = Buffer.from([7, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya3", "setOptions2", {
+                    await entity.command<"manuSpecificTuya3", "setOptions2", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -815,7 +815,7 @@ const tzLocal = {
                 case "over_current_threshold": {
                     const state = meta.state.over_current_breaker;
                     const buf = Buffer.from([1, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "over_current_threshold")]);
-                    await entity.command("manuSpecificTuya3", "setOptions3", {
+                    await entity.command<"manuSpecificTuya3", "setOptions3", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -824,7 +824,7 @@ const tzLocal = {
                     const threshold = meta.state.over_current_threshold;
                     const number = utils.toNumber(threshold, "over_current_threshold");
                     const buf = Buffer.from([1, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya3", "setOptions3", {
+                    await entity.command<"manuSpecificTuya3", "setOptions3", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -835,7 +835,7 @@ const tzLocal = {
                     buf.writeUInt8(3, 0);
                     buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 1);
                     buf.writeUInt16BE(utils.toNumber(value, "over_voltage_threshold"), 2);
-                    await entity.command("manuSpecificTuya3", "setOptions3", {
+                    await entity.command<"manuSpecificTuya3", "setOptions3", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -844,7 +844,7 @@ const tzLocal = {
                     const threshold = meta.state.over_voltage_threshold;
                     const number = utils.toNumber(threshold, "over_voltage_threshold");
                     const buf = Buffer.from([3, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya3", "setOptions3", {
+                    await entity.command<"manuSpecificTuya3", "setOptions3", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -852,7 +852,7 @@ const tzLocal = {
                 case "under_voltage_threshold": {
                     const state = meta.state.under_voltage_breaker;
                     const buf = Buffer.from([4, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "under_voltage_threshold")]);
-                    await entity.command("manuSpecificTuya3", "setOptions3", {
+                    await entity.command<"manuSpecificTuya3", "setOptions3", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -861,7 +861,7 @@ const tzLocal = {
                     const threshold = meta.state.under_voltage_threshold;
                     const number = utils.toNumber(threshold, "under_voltage_breaker");
                     const buf = Buffer.from([4, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya3", "setOptions3", {
+                    await entity.command<"manuSpecificTuya3", "setOptions3", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -1132,25 +1132,25 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.alarm_temperature_max !== undefined) {
-                result.alarm_temperature_max = msg.data.alarm_temperature_max;
+            if (msg.data.alarmTemperatureMax !== undefined) {
+                result.alarm_temperature_max = msg.data.alarmTemperatureMax;
             }
-            if (msg.data.alarm_temperature_min !== undefined) {
-                result.alarm_temperature_min = msg.data.alarm_temperature_min;
+            if (msg.data.alarmTemperatureMin !== undefined) {
+                result.alarm_temperature_min = msg.data.alarmTemperatureMin;
             }
-            if (msg.data.alarm_humidity_max !== undefined) {
-                result.alarm_humidity_max = msg.data.alarm_humidity_max;
+            if (msg.data.alarmHumidityMax !== undefined) {
+                result.alarm_humidity_max = msg.data.alarmHumidityMax;
             }
-            if (msg.data.alarm_humidity_min !== undefined) {
-                result.alarm_humidity_min = msg.data.alarm_humidity_min;
+            if (msg.data.alarmHumidityMin !== undefined) {
+                result.alarm_humidity_min = msg.data.alarmHumidityMin;
             }
-            if (msg.data.alarm_humidity !== undefined) {
+            if (msg.data.alarmHumidity !== undefined) {
                 const sensorAlarmLookup: KeyValueAny = {"0": "below_min_humdity", "1": "over_humidity", "2": "off"};
-                result.alarm_humidity = sensorAlarmLookup[msg.data.alarm_humidity];
+                result.alarm_humidity = sensorAlarmLookup[msg.data.alarmHumidity];
             }
-            if (msg.data.alarm_temperature !== undefined) {
+            if (msg.data.alarmTemperature !== undefined) {
                 const sensorAlarmLookup: KeyValueAny = {"0": "below_min_temperature", "1": "over_temperature", "2": "off"};
-                result.alarm_temperature = sensorAlarmLookup[msg.data.alarm_temperature];
+                result.alarm_temperature = sensorAlarmLookup[msg.data.alarmTemperature];
             }
             return result;
         },
