@@ -64,7 +64,6 @@ export interface UbisysClosuresWindowCovering {
         ubisysInstalledClosedLimitLiftCm: number;
         ubisysInstalledOpenLimitTiltDdegree: number;
         ubisysInstalledClosedLimitTiltDdegree: number;
-        ubisysWindowCoveringMode: number;
         ubisysTurnaroundGuardTime: number;
         ubisysLiftToTiltTransitionSteps: number;
         ubisysTotalSteps: number;

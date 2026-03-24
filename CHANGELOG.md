@@ -1,5 +1,28 @@
 # Changelog
 
+## [26.25.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.24.0...v26.25.0) (2026-03-24)
+
+
+### Features
+
+* **add:** AR331Pro ([#11777](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11777)) ([3c8616f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c8616f1ccee369c15f8f3edb212d5554c2caf6c))
+* **add:** Flower_Sensor_v4 ([#11784](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11784)) ([1e23bf2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1e23bf263e9fec55c67fcf4d7bcf8c793a4e184e))
+* **add:** MINI-ZBD ([#11763](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11763)) ([d2dad64](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d2dad6478127a8aaeb3c9b2adfdb638779dbc632))
+* **add:** msh.ds18b20psm, msh.bme280psm, msh.AirQMon ([#11772](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11772)) ([58283c4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/58283c4f1d53182d417a2cf616ac6b74e2887bdd))
+* **add:** ROB_200-084-0 ([#11779](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11779)) ([0fa6971](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0fa69718379ddbbe38bfcd17d460f3fd2cc37de2))
+* **add:** ZD24_Presence_Sensor ([#11785](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11785)) ([09f9486](https://github.com/Koenkk/zigbee-herdsman-converters/commit/09f948668a6dff6a07ea7c87e4fa566acc1aa855))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_cduqh1l0` as Tuya TS0601_switch_6_gang https://github.com/Koenkk/zigbee2mqtt/issues/31484 ([badd8ab](https://github.com/Koenkk/zigbee-herdsman-converters/commit/badd8ab3a50527f5ff80120b07d8fc751fc031d2))
+* **detect:** Detect `_TZE284_4vobcgd3` as Tuya TS0601_cover_1 https://github.com/Koenkk/zigbee2mqtt/issues/31493 ([327239e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/327239e40cb09e8be50e066e46960d32f744237a))
+* **ignore:** bump zigbee-herdsman from 10.0.3 to 10.0.4 in the minor-patch group ([#11782](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11782)) ([0c1f491](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0c1f4915a8227e8a678b3baca3e7bd60105ac0fb))
+* Move Sprut attributes from ZH to ZHC. ([#11778](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11778)) ([cb59838](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cb5983848e051696d615f7ebb7ba466da5f78b41))
+* Move tradfri custom commands (genScenes) from ZH to ZHC ([#11787](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11787)) ([bb4e6e1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bb4e6e1bcdb164a274ab4eb22cb2671614548eb6))
+* Tuya ZY-ZTH02: update description https://github.com/Koenkk/zigbee2mqtt.io/pull/4950 ([b835328](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b835328103481799d1bbd1389966ed44757fc5af))
+* Ubisys: fix windowCoveringMode write failing https://github.com/Koenkk/zigbee2mqtt/issues/31477 ([90fb63f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/90fb63f6e6eed9766887624bb271b0e81623c5ed))
+
 ## [26.24.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.23.0...v26.24.0) (2026-03-22)
 
 

@@ -7,6 +7,7 @@ import {
     addCustomClusterManuSpecificIkeaUnknown,
     addCustomClusterManuSpecificIkeaVocIndexMeasurement,
     addCustomClusterTradfriButton,
+    addIkeaGenScenesCluster,
     ikeaAirPurifier,
     ikeaArrowClick,
     ikeaBattery,
@@ -967,6 +968,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "TRADFRI remote control",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
+            addIkeaGenScenesCluster(),
             ikeaConfigureRemote(),
             m.identify({isSleepy: true}),
             tradfriCommandsOnOff(),
@@ -985,6 +987,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with buttons",
         extend: [
+            addIkeaGenScenesCluster(),
             m.battery({voltage: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
@@ -999,6 +1002,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with scroll wheel",
         extend: [
+            addIkeaGenScenesCluster(),
             m.battery({voltage: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
@@ -1013,6 +1017,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "STYRBAR remote control",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
+            addIkeaGenScenesCluster(),
             ikeaConfigureStyrbar(),
             m.identify({isSleepy: true}),
             styrbarCommandOn(),
