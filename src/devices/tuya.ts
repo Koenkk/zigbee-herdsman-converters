@@ -13605,6 +13605,66 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_bw4ayyeh"]),
+        model: "ZD24_Presence_Sensor",
+        vendor: "Tuya",
+        description: "PIR 24GHz human presence sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e.battery(),
+            e.enum("motion_state", ea.STATE, ["none", "static", "small", "large"]).withDescription("Human body motion state"),
+            e.numeric("distance", ea.STATE).withUnit("m").withDescription("Target distance"),
+            e.binary("init", ea.STATE_SET, "ON", "OFF").withDescription("Initialize"),
+            e
+                .numeric("fading_time", ea.STATE_SET)
+                .withValueMin(10)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Presence keep time"),
+            e
+                .numeric("motion_detection_sensitivity", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("Motion detection sensitivity"),
+            e
+                .numeric("static_detection_sensitivity", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("Static detection sensitivity"),
+            e.enum("motion_detection_mode", ea.STATE_SET, ["pir_and_radar", "only_radar", "pir_or_radar"]).withDescription("Motion detection mode"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse1],
+                [4, "distance", tuya.valueConverter.raw],
+                [
+                    11,
+                    "motion_state",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        static: tuya.enum(1),
+                        small: tuya.enum(2),
+                        large: tuya.enum(3),
+                    }),
+                ],
+                [12, "fading_time", tuya.valueConverter.raw],
+                [15, "motion_detection_sensitivity", tuya.valueConverter.raw],
+                [16, "static_detection_sensitivity", tuya.valueConverter.raw],
+                [20, "illuminance", tuya.valueConverter.raw],
+                [81, "battery", tuya.valueConverter.raw],
+                [101, "init", tuya.valueConverter.onOff],
+                [102, "motion_detection_mode", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_juzago6i"]),
         model: "TS0601-PIR-Sensor",
         vendor: "Tuya",
