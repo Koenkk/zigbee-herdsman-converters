@@ -28,6 +28,18 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["ROB_200-084-0"],
+        model: "ROB_200-084-0",
+        vendor: "ROBB",
+        description: "4-button wireless Zigbee switch (Black, dual button front)",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+    },
+    {
         zigbeeModel: ["ROB_200-004-1"],
         model: "ROB_200-004-1",
         vendor: "ROBB",
