@@ -1418,8 +1418,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "SceneSwitch-EM-3.0", manufacturerName: "HEIMAN"},
-                      {modelID: "SceneSwitch-EF-3.0", manufacturerName: "HEIMAN"}],
+        fingerprint: [
+            {modelID: "SceneSwitch-EM-3.0", manufacturerName: "HEIMAN"},
+            {modelID: "SceneSwitch-EF-3.0", manufacturerName: "HEIMAN"},
+        ],
         model: "HS2SS",
         vendor: "Heiman",
         description: "Smart scene switch",
