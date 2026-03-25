@@ -505,7 +505,7 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
-        ymc_action: {
+    ymc_action: {
         cluster: "closuresDoorLock",
         type: ["raw"],
         convert: (model, msg, publish, options, meta) => {
@@ -563,7 +563,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"closuresDoorLock", undefined, ["raw"]>,
-    
 };
 
 const tzLocal = {
@@ -753,7 +752,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.ymc_action],
         extend: [lockExtend()],
     },
-     {
+    {
         zigbeeModel: ["SOLIS01"],
         model: "SOLIS01",
         vendor: "Yale",
