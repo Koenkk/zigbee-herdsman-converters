@@ -795,7 +795,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["YNDX-00529"],
         model: "YNDX_00529",
         vendor: "Yandex",
-        description: "Themperature and humidity and pressure sensor",
+        description: "Temperature and humidity and pressure sensor",
         ota: true,
         extend: [
             m.temperature(),
