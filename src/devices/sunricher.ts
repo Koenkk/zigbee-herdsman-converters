@@ -2032,7 +2032,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "GreenPower_2", ieeeAddr: /^0x0000000034b.....$/},
             {modelID: "GreenPower_2", ieeeAddr: /^0x00000000f12.....$/},
             {modelID: "GreenPower_2", ieeeAddr: /^0x0000000039a.....$/},
-            {modelID: "GreenPower_2", ieeeAddr: /^0x00000000675.....$/}
+            {modelID: "GreenPower_2", ieeeAddr: /^0x00000000675.....$/},
         ],
         model: "SR-ZGP2801K4-DIM",
         vendor: "Sunricher",
