@@ -4874,7 +4874,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZBMINIR2"],
+        whiteLabel: [{model: "MINI-ZBD", vendor: "SONOFF", fingerprint: [{modelID: "MINI-ZBD", manufacturerName: "SONOFF"}]}],
+        zigbeeModel: ["ZBMINIR2", "MINI-ZBD"],
         model: "ZBMINIR2",
         vendor: "SONOFF",
         description: "Zigbee smart switch",

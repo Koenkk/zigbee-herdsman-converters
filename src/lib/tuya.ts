@@ -3314,7 +3314,7 @@ const tuyaModernExtend = {
         return {exposes: [exp], fromZigbee: newFromZigbee, isModernExtend: true};
     },
     tuyaSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificTuya3">>) =>
-        modernExtend.enumLookup({
+        modernExtend.enumLookup<"manuSpecificTuya3", ManuSpecificTuya3>({
             name: "switch_mode",
             lookup: {switch: 0, scene: 1},
             cluster: "manuSpecificTuya3",

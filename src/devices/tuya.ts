@@ -485,6 +485,34 @@ const trv603ScheduleConverter = (dayNumber: number) => {
     };
 };
 
+// AR331 Pro (DP 106): holiday start/end as 9-byte LE: [prefix, ts_start_LE4, ts_end_LE4]
+const ar331ProHolidayTimeConverter = {
+    from: (v: number[]) => {
+        if (!v || v.length < 9) return "";
+        const readLE32 = (arr: number[], offset: number) =>
+            (arr[offset] | (arr[offset + 1] << 8) | (arr[offset + 2] << 16) | (arr[offset + 3] * 16777216)) >>> 0;
+        const startTS = readLE32(v, 1);
+        const endTS = readLE32(v, 5);
+        const fmt = (ts: number) => {
+            const d = new Date(ts * 1000);
+            const pad = (n: number) => String(n).padStart(2, "0");
+            return `${d.getUTCFullYear()}/${pad(d.getUTCMonth() + 1)}/${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+        };
+        return `${fmt(startTS)} | ${fmt(endTS)}`;
+    },
+    to: (v: string) => {
+        const [startStr, endStr] = v.split("|").map((s) => s.trim());
+        const parseTS = (s: string) => {
+            const [datePart, timePart] = s.split(" ");
+            const [y, m, d] = datePart.split("/").map(Number);
+            const [h, min] = timePart.split(":").map(Number);
+            const ts = Math.floor(Date.UTC(y, m - 1, d, h, min) / 1000);
+            return [ts & 0xff, (ts >> 8) & 0xff, (ts >> 16) & 0xff, (ts >> 24) & 0xff];
+        };
+        return [0, ...parseTS(startStr), ...parseTS(endStr)];
+    },
+};
+
 const tzLocal = {
     acmelec_ae720k_state_double_on: {
         key: ["state"],
@@ -753,7 +781,7 @@ const tzLocal = {
                 case "temperature_threshold": {
                     const state = meta.state.temperature_breaker;
                     const buf = Buffer.from([5, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "temperature_threshold")]);
-                    await entity.command("manuSpecificTuya3", "setOptions2", {
+                    await entity.command<"manuSpecificTuya3", "setOptions2", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -762,7 +790,7 @@ const tzLocal = {
                     const threshold = meta.state.temperature_threshold;
                     const number = utils.toNumber(threshold, "temperature_threshold");
                     const buf = Buffer.from([5, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya3", "setOptions2", {
+                    await entity.command<"manuSpecificTuya3", "setOptions2", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -770,7 +798,7 @@ const tzLocal = {
                 case "power_threshold": {
                     const state = meta.state.power_breaker;
                     const buf = Buffer.from([7, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "power_breaker")]);
-                    await entity.command("manuSpecificTuya3", "setOptions2", {
+                    await entity.command<"manuSpecificTuya3", "setOptions2", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -779,7 +807,7 @@ const tzLocal = {
                     const threshold = meta.state.power_threshold;
                     const number = utils.toNumber(threshold, "power_breaker");
                     const buf = Buffer.from([7, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya3", "setOptions2", {
+                    await entity.command<"manuSpecificTuya3", "setOptions2", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions2", {
                         data: buf,
                     });
                     break;
@@ -787,7 +815,7 @@ const tzLocal = {
                 case "over_current_threshold": {
                     const state = meta.state.over_current_breaker;
                     const buf = Buffer.from([1, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "over_current_threshold")]);
-                    await entity.command("manuSpecificTuya3", "setOptions3", {
+                    await entity.command<"manuSpecificTuya3", "setOptions3", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -796,7 +824,7 @@ const tzLocal = {
                     const threshold = meta.state.over_current_threshold;
                     const number = utils.toNumber(threshold, "over_current_threshold");
                     const buf = Buffer.from([1, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya3", "setOptions3", {
+                    await entity.command<"manuSpecificTuya3", "setOptions3", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -807,7 +835,7 @@ const tzLocal = {
                     buf.writeUInt8(3, 0);
                     buf.writeUInt8(utils.getFromLookup(state, onOffLookup), 1);
                     buf.writeUInt16BE(utils.toNumber(value, "over_voltage_threshold"), 2);
-                    await entity.command("manuSpecificTuya3", "setOptions3", {
+                    await entity.command<"manuSpecificTuya3", "setOptions3", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -816,7 +844,7 @@ const tzLocal = {
                     const threshold = meta.state.over_voltage_threshold;
                     const number = utils.toNumber(threshold, "over_voltage_threshold");
                     const buf = Buffer.from([3, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya3", "setOptions3", {
+                    await entity.command<"manuSpecificTuya3", "setOptions3", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -824,7 +852,7 @@ const tzLocal = {
                 case "under_voltage_threshold": {
                     const state = meta.state.under_voltage_breaker;
                     const buf = Buffer.from([4, utils.getFromLookup(state, onOffLookup), 0, utils.toNumber(value, "under_voltage_threshold")]);
-                    await entity.command("manuSpecificTuya3", "setOptions3", {
+                    await entity.command<"manuSpecificTuya3", "setOptions3", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -833,7 +861,7 @@ const tzLocal = {
                     const threshold = meta.state.under_voltage_threshold;
                     const number = utils.toNumber(threshold, "under_voltage_breaker");
                     const buf = Buffer.from([4, utils.getFromLookup(value, onOffLookup), 0, number]);
-                    await entity.command("manuSpecificTuya3", "setOptions3", {
+                    await entity.command<"manuSpecificTuya3", "setOptions3", tuya.ManuSpecificTuya3>("manuSpecificTuya3", "setOptions3", {
                         data: buf,
                     });
                     break;
@@ -1104,25 +1132,25 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.alarm_temperature_max !== undefined) {
-                result.alarm_temperature_max = msg.data.alarm_temperature_max;
+            if (msg.data.alarmTemperatureMax !== undefined) {
+                result.alarm_temperature_max = msg.data.alarmTemperatureMax;
             }
-            if (msg.data.alarm_temperature_min !== undefined) {
-                result.alarm_temperature_min = msg.data.alarm_temperature_min;
+            if (msg.data.alarmTemperatureMin !== undefined) {
+                result.alarm_temperature_min = msg.data.alarmTemperatureMin;
             }
-            if (msg.data.alarm_humidity_max !== undefined) {
-                result.alarm_humidity_max = msg.data.alarm_humidity_max;
+            if (msg.data.alarmHumidityMax !== undefined) {
+                result.alarm_humidity_max = msg.data.alarmHumidityMax;
             }
-            if (msg.data.alarm_humidity_min !== undefined) {
-                result.alarm_humidity_min = msg.data.alarm_humidity_min;
+            if (msg.data.alarmHumidityMin !== undefined) {
+                result.alarm_humidity_min = msg.data.alarmHumidityMin;
             }
-            if (msg.data.alarm_humidity !== undefined) {
+            if (msg.data.alarmHumidity !== undefined) {
                 const sensorAlarmLookup: KeyValueAny = {"0": "below_min_humdity", "1": "over_humidity", "2": "off"};
-                result.alarm_humidity = sensorAlarmLookup[msg.data.alarm_humidity];
+                result.alarm_humidity = sensorAlarmLookup[msg.data.alarmHumidity];
             }
-            if (msg.data.alarm_temperature !== undefined) {
+            if (msg.data.alarmTemperature !== undefined) {
                 const sensorAlarmLookup: KeyValueAny = {"0": "below_min_temperature", "1": "over_temperature", "2": "off"};
-                result.alarm_temperature = sensorAlarmLookup[msg.data.alarm_temperature];
+                result.alarm_temperature = sensorAlarmLookup[msg.data.alarmTemperature];
             }
             return result;
         },
@@ -1548,6 +1576,42 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataRequest"]>,
+    // AR331 Pro (DP 114): corrects out-of-range override_temperature written by the device
+    // (signed int16 underflow when knob is turned below 5°C). Uses a 2-sec debounce because
+    // the device echoes DP114 twice per change. Writes back the clamped minimum.
+    ar331ProDp114Corrector: {
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
+        convert: (model, msg, _publish, _options, _meta) => {
+            const dpValues = msg.data.dpValues as Array<{dp: number; datatype: number; data: Buffer}>;
+            if (!dpValues) return;
+            for (const dpValue of dpValues) {
+                if (dpValue.dp !== 114) continue;
+                const buf = dpValue.data;
+                let raw: number;
+                if (dpValue.datatype === 2) {
+                    // value type: 4-byte unsigned BE integer
+                    raw = buf.readUInt32BE(0);
+                    if (raw > 32767) raw -= 65536;
+                } else if (dpValue.datatype === 0) {
+                    // raw type: 2-byte LE (device quirk)
+                    if (buf.length < 2) continue;
+                    raw = buf.readUInt16LE(0);
+                    if (raw > 32767) raw -= 65536;
+                } else {
+                    continue;
+                }
+                const temp = raw / 10;
+                if (temp >= 5 && temp <= 40) continue;
+                const now = Date.now();
+                const lastCorrection = globalStore.getValue(msg.device, "ar331ProDp114CorrectionTime", 0) as number;
+                if (now - lastCorrection < 2000) continue;
+                globalStore.putValue(msg.device, "ar331ProDp114CorrectionTime", now);
+                const corrected = Math.round(Math.max(5, Math.min(40, temp)) * 10);
+                tuya.sendDataPointValue(msg.endpoint as Zh.Endpoint, 114, corrected).catch(() => {});
+            }
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataReport", "commandDataResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -4113,6 +4177,191 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        // AR331 Pro: 6 presets (auto/manual/holiday/eco/comfort/standby), 8-slot daily schedules,
+        // boost heating, frost protection, summer mode, override temperature, open-window detection.
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_nbv4tdaz"]),
+        model: "AR331Pro",
+        vendor: "Tuya",
+        description: "Thermostatic radiator valve",
+        fromZigbee: [fzLocal.ar331ProDp114Corrector],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        exposes: [
+            e.battery().withUnit("%"),
+            e.binary("battery_status", ea.STATE, true, false).withDescription("Battery low warning"),
+            e.binary("preheat", ea.STATE, "ON", "OFF").withDescription("Preheat/boost active (read-only status; use boost_heating to control)"),
+            e.child_lock(),
+            e
+                .climate()
+                .withPreset(["auto", "manual", "holiday", "comfort", "eco", "standby"])
+                .withSetpoint("current_heating_setpoint", 5, 40, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-7, 7, 0.5, ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE),
+            e
+                .binary("summer_mode", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Summer mode: disables heating, valve stays closed. Frost protection temperature remains active as safety net."),
+            e
+                .enum("heating_cooling_mode", ea.STATE_SET, ["heat", "cool"])
+                .withDescription("Heating or cooling mode. In cooling mode valve is closed, works as temperature and window/door sensor."),
+            e.eco_temperature().withValueMin(5).withValueMax(20).withValueStep(0.5),
+            e.comfort_temperature().withValueMin(5).withValueMax(40).withValueStep(0.5),
+            e.text("holiday_time", ea.STATE_SET).withDescription("Holiday start and end in format YYYY/MM/DD HH:MM | YYYY/MM/DD HH:MM"),
+            e
+                .numeric("frost_protection_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Frost protection: valve opens below this temperature")
+                .withValueMin(0)
+                .withValueMax(15)
+                .withValueStep(0.5),
+            e.binary("boost_heating", ea.STATE_SET, "ON", "OFF").withDescription("Boost heating: the device will enter boost heating mode."),
+            e
+                .numeric("boost_time", ea.STATE_SET)
+                .withUnit("min")
+                .withDescription("Boost duration in minutes")
+                .withValueMin(0)
+                .withValueMax(1440)
+                .withValueStep(30),
+            e.binary("window_detection", ea.STATE_SET, "ON", "OFF").withDescription("Enable open-window detection"),
+            e.binary("window_open", ea.STATE, "open", "closed").withDescription("Window is currently detected as"),
+            e
+                .numeric("window_temp", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Window detection: temperature drop threshold")
+                .withValueMin(5)
+                .withValueMax(40)
+                .withValueStep(0.5),
+            e
+                .numeric("window_delay", ea.STATE_SET)
+                .withUnit("min")
+                .withDescription("Window detection: delay before triggering (minutes)")
+                .withValueMin(0)
+                .withValueMax(1440)
+                .withValueStep(1),
+            e
+                .numeric("window_close_delay", ea.STATE_SET)
+                .withUnit("min")
+                .withDescription("Window detection: minimum open time before valve closes (minutes)")
+                .withValueMin(0)
+                .withValueMax(1440)
+                .withValueStep(1),
+            e.binary("valve_state", ea.STATE, "open", "close").withDescription("Current valve state (read-only)"),
+            e.numeric("fault_code", ea.STATE).withDescription("Fault code bitmap (bit 0: program_fault, bit 1: low_battery, bit 2: sensor_fault)"),
+            e.enum("screen_orientation", ea.STATE_SET, ["up", "right", "down", "left"]).withDescription("Display orientation"),
+            e
+                .numeric("display_brightness", ea.STATE_SET)
+                .withDescription("Display brightness (1–7)")
+                .withValueMin(1)
+                .withValueMax(7)
+                .withValueStep(1),
+            e.binary("override_active", ea.STATE_SET, "ON", "OFF").withDescription("Temporary manual override active"),
+            e
+                .numeric("override_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Temporary manual override temperature")
+                .withValueMin(5)
+                .withValueMax(40)
+                .withValueStep(0.5),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "00:00/16.0 06:00/20.5 09:00/18.0 12:00/21.0 14:00/18.0 17:00/21.0 22:00/16.0 23:00/16.0"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "preheat", tuya.valueConverter.onOff],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        manual: tuya.enum(1),
+                        holiday: tuya.enum(2),
+                        eco: tuya.enum(3),
+                        comfort: tuya.enum(4),
+                        standby: tuya.enum(5),
+                    }),
+                ],
+                // work_state: index 0 = opened = heating, index 1 = closed = idle
+                [3, "running_state", tuya.valueConverterBasic.lookup({heat: tuya.enum(0), idle: tuya.enum(1)})],
+                [
+                    4,
+                    "current_heating_setpoint",
+                    {
+                        from: (v: number) => v / 10,
+                        to: (v: number, meta: Tz.Meta) => {
+                            const preset = meta.state?.preset as string | undefined;
+                            let val = v;
+                            if (val < 5) val = 5;
+                            if (val > 40) val = 40;
+                            if (preset === "holiday" && val > 15) val = 15;
+                            if (preset === "eco" && val > 18) val = 18;
+                            if (preset === "comfort" && val < 18.5) val = 18.5;
+                            return Math.round(val * 10);
+                        },
+                    },
+                ],
+                [5, "local_temperature", {from: (v: number) => (v > 32767 ? v - 65536 : v) / 10}],
+                [6, "battery", tuya.valueConverter.raw],
+                [7, "child_lock", tuya.valueConverterBasic.lookup({LOCK: false, UNLOCK: true})],
+                // DP 9/10: upper/lower_temp stored by device but not enforced — not mapped
+                [14, "window_detection", tuya.valueConverter.onOff],
+                [15, "window_open", tuya.valueConverterBasic.lookup({open: tuya.enum(0), closed: tuya.enum(1)})],
+                [16, "window_temp", tuya.valueConverter.divideBy10],
+                [18, "display_brightness", tuya.valueConverter.raw],
+                // DP 19 factory_reset: not triggerable via Zigbee DP — not mapped
+                [35, "fault_code", tuya.valueConverter.raw],
+                // DP 47: same sign/wrap logic as localTempCalibration3
+                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [49, "valve_state", tuya.valueConverterBasic.lookup({open: tuya.enum(0), close: tuya.enum(1)})],
+                [101, "boost_heating", tuya.valueConverter.onOff],
+                // DP 102 boost_timestamp is in seconds (step = 1800); exposed as minutes
+                [102, "boost_time", {from: (v: number) => Math.round(v / 60), to: (v: number) => Math.round(v) * 60}],
+                [103, "eco_temperature", tuya.valueConverter.divideBy10],
+                [104, "comfort_temperature", tuya.valueConverter.divideBy10],
+                // DP 105 window_timestamp: delay in seconds, exposed as minutes
+                [105, "window_delay", {from: (v: number) => Math.round(v / 60), to: (v: number) => Math.round(v) * 60}],
+                [106, "holiday_time", ar331ProHolidayTimeConverter],
+                [107, "frost_protection_temperature", tuya.valueConverter.divideBy10],
+                // DP 108 window_stoptime: min open duration in seconds, exposed as minutes
+                [108, "window_close_delay", {from: (v: number) => Math.round(v / 60), to: (v: number) => Math.round(v) * 60}],
+                [109, "heating_cooling_mode", tuya.valueConverterBasic.lookup({heat: false, cool: true})],
+                [110, "battery_status", tuya.valueConverter.raw],
+                // DP 111: screen orientation as plain uint32 (degrees), NOT a Tuya enum
+                [111, "screen_orientation", tuya.valueConverterBasic.lookup({up: 0, right: 90, down: 180, left: 270})],
+                // DP 112 pro_mode intentionally not mapped (schedule type; error-prone over Zigbee)
+                [113, "summer_mode", tuya.valueConverter.onOff],
+                // DP 114: device echoes twice (uint32 BE datatype=2, then 2-byte LE raw datatype=0).
+                // Signed int16 underflow when knob turned below 5°C. Clamped here; fzLocal corrector writes back.
+                [
+                    114,
+                    "override_temperature",
+                    {
+                        from: (v: number | Buffer) => {
+                            let raw: number;
+                            if (Buffer.isBuffer(v)) {
+                                if (v.length < 2) return null;
+                                raw = v.readUInt16LE(0);
+                            } else {
+                                raw = v;
+                            }
+                            if (raw > 32767) raw -= 65536;
+                            return Math.max(5, Math.min(40, raw / 10));
+                        },
+                        to: (v: number) => Math.round(v * 10),
+                    },
+                ],
+                // DP 115 override_active: device ignores external writes — to clear, cycle preset
+                [115, "override_active", tuya.valueConverter.onOff],
+                // Weekly schedule: 8 timeslots per day, 33-byte raw payload
+                // Uses thermostatScheduleDayMultiDPWithDayNumber — identical byte layout [dayNum, HH, MM, TH, TL] × 8
+                [28, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1, 8)],
+                [29, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2, 8)],
+                [30, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3, 8)],
+                [31, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4, 8)],
+                [32, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5, 8)],
+                [33, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6, 8)],
+                [34, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 8)],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_nt4pquef"]),
         model: "SGS02Z",
         vendor: "Tuya",
@@ -4973,6 +5222,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_mwvfvw8g",
             "_TZE200_wnp4d4va",
             "_TZE200_cduqh1l0",
+            "_TZE204_cduqh1l0",
             "_TZE200_emxxanvi",
             "_TZE204_g4au0afs",
             "_TZE204_w1wwxoja",
@@ -5436,7 +5686,11 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "BlitzWolf", model: "BW-IS4"},
             tuya.whitelabel("Tuya", "TS0201_1", "Zigbee 3.0 temperature humidity sensor with display", ["_TZ3210_alxkwn0h"]),
             tuya.whitelabel("Tuya", "ZTH01/ZTH02", "Temperature and humidity sensor", ["_TZ3000_0s1izerx"]),
-            tuya.whitelabel("Tuya", "ZY-ZTH02", "Temperature and humidity sensor", ["_TZ3000_v1w2k9dd", "_TZ3000_rdhukkmi", "Zbeacon"]),
+            tuya.whitelabel("Tuya", "ZY-ZTH02", "Temperature and humidity sensor - with or without display", [
+                "_TZ3000_v1w2k9dd",
+                "_TZ3000_rdhukkmi",
+                "Zbeacon",
+            ]),
             tuya.whitelabel("SEDEA", "eTH730", "Temperature and humidity sensor", ["_TZ3000_lqmvrwa2"]),
             tuya.whitelabel("Moes", "ZSS-S01-TH", "Temperature and humidity sensor", ["_TZ3000_f2bw0b6k"]),
             tuya.whitelabel("Danfoss", "014G2480", "Temperature and humidity sensor", ["_TZ3000_mxzo5rhf"]),
@@ -6745,6 +6999,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_nkoabg8w",
                 "_TZE200_xuzcvlku",
                 "_TZE200_4vobcgd3",
+                "_TZE284_4vobcgd3",
                 "_TZE200_nogaemzt",
                 "_TZE200_r0jdjrvi",
                 "_TZE200_pk0sfzvr",
@@ -13347,6 +13602,66 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [123, "motion_detection_sensitivity", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_bw4ayyeh"]),
+        model: "ZD24_Presence_Sensor",
+        vendor: "Tuya",
+        description: "PIR 24GHz human presence sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e.battery(),
+            e.enum("motion_state", ea.STATE, ["none", "static", "small", "large"]).withDescription("Human body motion state"),
+            e.numeric("distance", ea.STATE).withUnit("m").withDescription("Target distance"),
+            e.binary("init", ea.STATE_SET, "ON", "OFF").withDescription("Initialize"),
+            e
+                .numeric("fading_time", ea.STATE_SET)
+                .withValueMin(10)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Presence keep time"),
+            e
+                .numeric("motion_detection_sensitivity", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("Motion detection sensitivity"),
+            e
+                .numeric("static_detection_sensitivity", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("Static detection sensitivity"),
+            e.enum("motion_detection_mode", ea.STATE_SET, ["pir_and_radar", "only_radar", "pir_or_radar"]).withDescription("Motion detection mode"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse1],
+                [4, "distance", tuya.valueConverter.raw],
+                [
+                    11,
+                    "motion_state",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        static: tuya.enum(1),
+                        small: tuya.enum(2),
+                        large: tuya.enum(3),
+                    }),
+                ],
+                [12, "fading_time", tuya.valueConverter.raw],
+                [15, "motion_detection_sensitivity", tuya.valueConverter.raw],
+                [16, "static_detection_sensitivity", tuya.valueConverter.raw],
+                [20, "illuminance", tuya.valueConverter.raw],
+                [81, "battery", tuya.valueConverter.raw],
+                [101, "init", tuya.valueConverter.onOff],
+                [102, "motion_detection_mode", tuya.valueConverter.raw],
             ],
         },
     },

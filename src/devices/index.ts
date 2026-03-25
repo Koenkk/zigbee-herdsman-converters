@@ -206,6 +206,7 @@ import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
+import {definitions as msh} from "./msh";
 import {definitions as mullerLicht} from "./muller_licht";
 import {definitions as multir} from "./multir";
 import {definitions as multiterm} from "./multiterm";
@@ -576,6 +577,7 @@ const definitions: DefinitionWithExtend[] = [
     ...mindy,
     ...modular,
     ...moes,
+    ...msh,
     ...mullerLicht,
     ...multir,
     ...multiterm,
