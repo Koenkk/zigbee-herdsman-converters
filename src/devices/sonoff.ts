@@ -31,16 +31,6 @@ const defaultResponseOptions = {disableDefaultResponse: false};
 const e = exposes.presets;
 const ea = exposes.access;
 
-function deriveFahrenheitFromTemperatureOptions(celsius: number, options: KeyValue) {
-    try {
-        const adjustedCelsius = utils.calibrateAndPrecisionRoundOptions(celsius, options, "temperature");
-        return utils.precisionRound((adjustedCelsius * 9) / 5 + 32, 1);
-    } catch (error) {
-        logger.error(`Failed to derive 'temperature_f' from temperature options: ${(error as Error).message}`, NS);
-        return (celsius * 9) / 5 + 32;
-    }
-}
-
 interface SonoffSnzb02d {
     attributes: {
         comfortTemperatureMax: number;
@@ -3829,7 +3819,15 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: false,
                 fzConvert: (model, msg, publish, options, meta) => {
                     if (msg.data.measuredValue !== undefined) {
-                        return {temperature_f: deriveFahrenheitFromTemperatureOptions(msg.data.measuredValue / 100.0, options)};
+                        const celsius = msg.data.measuredValue / 100.0;
+
+                        try {
+                            const adjustedCelsius = utils.calibrateAndPrecisionRoundOptions(celsius, options, "temperature");
+                            return {temperature_f: utils.precisionRound((adjustedCelsius * 9) / 5 + 32, 1)};
+                        } catch (error) {
+                            logger.error(`Failed to derive 'temperature_f' from temperature options: ${(error as Error).message}`, NS);
+                            return {temperature_f: (celsius * 9) / 5 + 32};
+                        }
                     }
                 },
             }),
