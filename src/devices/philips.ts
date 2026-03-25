@@ -3960,10 +3960,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ['LCD012'],
-        model: '929004291601',
-        vendor: 'Philips',
-        description: 'Akari downlight (black)',
+        zigbeeModel: ["LCD012"],
+        model: "929004291601",
+        vendor: "Philips",
+        description: "Akari downlight (black)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
