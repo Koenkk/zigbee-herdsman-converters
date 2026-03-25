@@ -551,7 +551,7 @@ const fzLocal = {
             const result: ZHTypes.KeyValue = {
                 action: actionLookup[actionCode] ?? "unknown",
                 action_source_name: sourceLookup[actionCode] ?? null,
-                action_user: msg.data[5],
+                action_source_user: msg.data[5],
             };
             if (lockActions.includes(actionCode)) {
                 result.state = "LOCK";
@@ -756,7 +756,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SOLIS01"],
         model: "SOLIS01",
         vendor: "Yale",
-        description: "Yale Solis digital lock",
+        description: "Solis digital lock",
         fromZigbee: [fzLocal.ymc_action],
         extend: [lockExtend()],
     },
