@@ -2,16 +2,16 @@ import * as fz from "../converters/fromZigbee";
 import * as m from "../lib/modernExtend";
 import * as exposes from "../lib/exposes";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 
-const ffzb1BatteryFromZigbee = {
+const ffzb1BatteryFromZigbee: Fz.Converter = {
     cluster: "genPowerCfg",
-    type: ["attributeReport", "readResponse"] as const,
-    convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
-        if (Object.prototype.hasOwnProperty.call(msg.data, "batteryVoltage")) {
-            const rawValue = msg.data["batteryVoltage"];
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        if (Object.hasOwn(msg.data, "batteryVoltage")) {
+            const rawValue = msg.data["batteryVoltage"] as number;
             const volts = rawValue / 10;
             const minVolts = 2.2;
             const maxVolts = 3.0;
@@ -60,7 +60,7 @@ export const definitions: DefinitionWithExtend[] = [
                 await endpoint.command("genPollCtrl", "setShortPollInterval", {newShortPollInterval: 0x0002});
                 await endpoint.write("genPollCtrl", {fastPollTimeout: 0x0028});
                 await endpoint.write("genPollCtrl", {checkinInterval: 0x00001950});
-            } catch (error) {
+            } catch (_error) {
                 // Poll control configuration may fail on some devices
             }
 
@@ -72,7 +72,7 @@ export const definitions: DefinitionWithExtend[] = [
                     maximumReportInterval: 3600,
                     reportableChange: 1,
                 }]);
-            } catch (error) {
+            } catch (_error) {
                 // Battery voltage reporting configuration may fail on some devices
             }
         },
