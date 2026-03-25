@@ -1,19 +1,17 @@
 import * as fz from "../converters/fromZigbee";
+import * as m from "../lib/modernExtend";
 import * as exposes from "../lib/exposes";
 import * as reporting from "../lib/reporting";
-import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
-import * as e from 'zigbee-herdsman-converters/lib/exposes';
-
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 
 const ffzb1BatteryFromZigbee = {
-    cluster: 'genPowerCfg',
-    type: ['attributeReport', 'readResponse'],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data.hasOwnProperty('batteryVoltage')) {
-            const rawValue = msg.data['batteryVoltage'];
+    cluster: "genPowerCfg",
+    type: ["attributeReport", "readResponse"] as const,
+    convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
+        if (Object.prototype.hasOwnProperty.call(msg.data, "batteryVoltage")) {
+            const rawValue = msg.data["batteryVoltage"];
             const volts = rawValue / 10;
             const minVolts = 2.2;
             const maxVolts = 3.0;
@@ -40,34 +38,42 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ['FFZB1-SM-ECO'],
-        model: 'FFZB1-SM-ECO',
-        vendor: 'Ecolink',
-        description: 'Audio Detector: Listens for the siren tone from a UL listed smoke detector in your home and sends signal to your Zigbee HUB',
+        zigbeeModel: ["FFZB1-SM-ECO"],
+        model: "FFZB1-SM-ECO",
+        vendor: "Ecolink",
+        description: "Audio Detector: Listens for the siren tone from a UL listed smoke detector in your home and sends signal to your Zigbee HUB",
         fromZigbee: [ffzb1BatteryFromZigbee],
+        toZigbee: [],
         extend: [
-            m.battery({voltageToPercentage: {min: 2200, max: 3000}}),
             m.temperature(),
-            m.iasZoneAlarm({zoneType: 'generic', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}),
+            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
         ],
         exposes: [
-            e.presets.battery(),
-            e.presets.voltage(),
+            e.battery(),
+            e.voltage(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-    
+
             try {
-                await endpoint.command('genPollCtrl', 'setLongPollInterval', {newLongPollInterval: 0x000004B0});
-                await endpoint.command('genPollCtrl', 'setShortPollInterval', {newShortPollInterval: 0x0002});
-                await endpoint.write('genPollCtrl', {fastPollTimeout: 0x0028});
-                await endpoint.write('genPollCtrl', {checkinInterval: 0x00001950});
-    
-                await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
-                await reporting.batteryVoltage(endpoint);
-    
+                await endpoint.command("genPollCtrl", "setLongPollInterval", {newLongPollInterval: 0x000004b0});
+                await endpoint.command("genPollCtrl", "setShortPollInterval", {newShortPollInterval: 0x0002});
+                await endpoint.write("genPollCtrl", {fastPollTimeout: 0x0028});
+                await endpoint.write("genPollCtrl", {checkinInterval: 0x00001950});
             } catch (error) {
-                logger.warn(`FFZB1-SM-ECO configure failed: ${error.message}`);
+                // Poll control configuration may fail on some devices
+            }
+
+            try {
+                await endpoint.bind("genPowerCfg", coordinatorEndpoint);
+                await endpoint.configureReporting("genPowerCfg", [{
+                    attribute: "batteryVoltage",
+                    minimumReportInterval: 1800,
+                    maximumReportInterval: 3600,
+                    reportableChange: 1,
+                }]);
+            } catch (error) {
+                // Battery voltage reporting configuration may fail on some devices
             }
         },
     },
