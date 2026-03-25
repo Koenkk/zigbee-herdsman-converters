@@ -1220,9 +1220,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperatureCalibration(-3, 3, 0.1)
                 .withRunningState(["idle", "heat"]),
             // Namron proprietary stuff
-            e
-                .binary("child_lock", ea.ALL, "LOCK", "UNLOCK")
-                .withDescription("Enables/disables physical input on the device"),
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
             e
                 .numeric("hysterersis", ea.ALL)
                 .withUnit("°C")
@@ -1365,8 +1363,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512776/4512777",
         vendor: "Namron",
         description: "Zigbee thermostat for panel heater PRO (white 4512776 / black 4512777)",
-        extend: [m.electricityMeter({cluster: "metering", energy: {divisor: 10}})],
-        fromZigbee: [fz.thermostat, fzLocal.namron_panelheater, fz.namron_hvac_user_interface],
+        extend: [
+            m.electricityMeter({cluster: "both", energy: {divisor: 10}, power: false, voltage: false, current: false, configureReporting: false}),
+        ],
+        fromZigbee: [fz.thermostat, fzLocal.namron_panelheater, fz.namron_hvac_user_interface, fz.electrical_measurement],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
@@ -1417,11 +1417,23 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withDescription("Display brightness (read-only, set on the heater)"),
             e.binary("display_auto_off", ea.ALL, true, false).withDescription("Display auto off after 30s without interaction"),
+            e.power(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genIdentify", "hvacThermostat", "hvacUserInterfaceCfg"]);
+            // Save energy divisor manually since configureReporting is disabled
+            endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 10, multiplier: 1});
+            endpoint.save();
+
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                "genBasic",
+                "genIdentify",
+                "hvacThermostat",
+                "hvacUserInterfaceCfg",
+                "seMetering",
+                "haElectricalMeasurement",
+            ]);
 
             await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -1441,6 +1453,18 @@ export const definitions: DefinitionWithExtend[] = [
 
             try {
                 await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
+            } catch {
+                // Ignore
+            }
+
+            try {
+                await endpoint.read("haElectricalMeasurement", ["activePower"]);
+            } catch {
+                // Ignore
+            }
+
+            try {
+                await endpoint.read("seMetering", ["currentSummDelivered"]);
             } catch {
                 // Ignore
             }
@@ -1513,10 +1537,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["4512758"],
+        zigbeeModel: ["4512758", "4512759"],
         model: "4512758",
         vendor: "Namron",
         description: "Zigbee thermostat 16A",
+        whiteLabel: [{model: "4512759", fingerprint: [{modelID: "4512759"}]}],
         fromZigbee: [fzLocal.namron_thermostat2, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
         toZigbee: [
             {
@@ -1614,9 +1639,7 @@ export const definitions: DefinitionWithExtend[] = [
                 //.withRunningMode(['off', 'cool','heat'])
                 .withRunningState(["idle", "cool", "heat"]),
             //.withPiHeatingDemand()
-            e
-                .binary("child_lock", ea.ALL, "LOCK", "UNLOCK")
-                .withDescription("Enables/disables physical input on the device"),
+            e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK").withDescription("Enables/disables physical input on the device"),
         ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint = device.getEndpoint(1);
@@ -1959,10 +1982,14 @@ export const definitions: DefinitionWithExtend[] = [
                 defaultIntervalSeconds: 60 * 60 * 24,
                 poll: async (device) => {
                     const endpoint = device.getEndpoint(1);
+
+                    // Device expects LOCAL Unix time, not UTC
+                    const localTimeSeconds = Math.floor(Date.now() / 1000) - new Date().getTimezoneOffset() * 60;
+
                     // Device does not asks for the time with binding, therefore we write the time every 24 hours
                     await endpoint.write("hvacThermostat", {
                         [0x800b]: {
-                            value: Date.now() / 1000,
+                            value: localTimeSeconds,
                             type: Zcl.DataType.UINT32,
                         },
                     });

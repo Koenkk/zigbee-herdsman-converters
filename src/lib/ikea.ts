@@ -505,7 +505,7 @@ export function ikeaVoc(args?: Partial<m.NumericArgs<"manuSpecificIkeaVocIndexMe
         cluster: "manuSpecificIkeaVocIndexMeasurement",
         attribute: "measuredValue",
         reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 1},
-        description: "Sensirion VOC index",
+        description: "Sensirion VOC index: 100 = average, <100 = less tVOC, >100 = more tVOC",
         access: "STATE",
         ...args,
     });
@@ -732,7 +732,7 @@ export function ikeaDotsClick(args: {actionLookup?: KeyValue; dotsPrefix?: boole
             },
         } satisfies Fz.Converter<
             "tradfriButton",
-            undefined,
+            TradfriButton,
             ["commandAction1", "commandAction2", "commandAction3", "commandAction4", "commandAction6"]
         >,
     ];
@@ -753,7 +753,7 @@ export function ikeaBilresaDouble(): ModernExtend {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
                 return {action: `${msg.data.value === 257 ? "off" : "on"}_double`};
             },
-        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowSingle">,
+        } satisfies Fz.Converter<"genScenes", IkeaGenScenesCluster, "commandTradfriArrowSingle">,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};
@@ -775,7 +775,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
                 const direction = msg.data.value === 257 ? "left" : "right";
                 return {action: `arrow_${direction}_click`};
             },
-        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowSingle">,
+        } satisfies Fz.Converter<"genScenes", IkeaGenScenesCluster, "commandTradfriArrowSingle">,
         {
             cluster: "genScenes",
             type: "commandTradfriArrowHold",
@@ -785,7 +785,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
                 globalStore.putValue(msg.endpoint, "direction", direction);
                 return {action: `arrow_${direction}_hold`};
             },
-        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowHold">,
+        } satisfies Fz.Converter<"genScenes", IkeaGenScenesCluster, "commandTradfriArrowHold">,
         {
             cluster: "genScenes",
             type: "commandTradfriArrowRelease",
@@ -799,7 +799,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
                     return result;
                 }
             },
-        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowRelease">,
+        } satisfies Fz.Converter<"genScenes", IkeaGenScenesCluster, "commandTradfriArrowRelease">,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
@@ -866,18 +866,19 @@ export interface IkeaAirPurifier {
 
 export function addCustomClusterManuSpecificIkeaAirPurifier(): ModernExtend {
     return m.deviceAddCustomCluster("manuSpecificIkeaAirPurifier", {
+        name: "manuSpecificIkeaAirPurifier",
         ID: 0xfc7d,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {
-            filterRunTime: {ID: 0x0000, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-            replaceFilter: {ID: 0x0001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-            filterLifeTime: {ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-            controlPanelLight: {ID: 0x0003, type: Zcl.DataType.BOOLEAN, write: true},
-            particulateMatter25Measurement: {ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-            childLock: {ID: 0x0005, type: Zcl.DataType.BOOLEAN, write: true},
-            fanMode: {ID: 0x0006, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-            fanSpeed: {ID: 0x0007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-            deviceRunTime: {ID: 0x0008, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+            filterRunTime: {name: "filterRunTime", ID: 0x0000, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+            replaceFilter: {name: "replaceFilter", ID: 0x0001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            filterLifeTime: {name: "filterLifeTime", ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+            controlPanelLight: {name: "controlPanelLight", ID: 0x0003, type: Zcl.DataType.BOOLEAN, write: true},
+            particulateMatter25Measurement: {name: "particulateMatter25Measurement", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            childLock: {name: "childLock", ID: 0x0005, type: Zcl.DataType.BOOLEAN, write: true},
+            fanMode: {name: "fanMode", ID: 0x0006, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            fanSpeed: {name: "fanSpeed", ID: 0x0007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            deviceRunTime: {name: "deviceRunTime", ID: 0x0008, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
         },
         commands: {},
         commandsResponse: {},
@@ -896,12 +897,13 @@ export interface IkeaVocIndexMeasurement {
 
 export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExtend {
     return m.deviceAddCustomCluster("manuSpecificIkeaVocIndexMeasurement", {
+        name: "manuSpecificIkeaVocIndexMeasurement",
         ID: 0xfc7e,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {
-            measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
-            measuredMinValue: {ID: 0x0001, type: Zcl.DataType.SINGLE_PREC, write: true},
-            measuredMaxValue: {ID: 0x0002, type: Zcl.DataType.SINGLE_PREC, write: true},
+            measuredValue: {name: "measuredValue", ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
+            measuredMinValue: {name: "measuredMinValue", ID: 0x0001, type: Zcl.DataType.SINGLE_PREC, write: true},
+            measuredMaxValue: {name: "measuredMaxValue", ID: 0x0002, type: Zcl.DataType.SINGLE_PREC, write: true},
         },
         commands: {},
         commandsResponse: {},
@@ -910,11 +912,12 @@ export function addCustomClusterManuSpecificIkeaVocIndexMeasurement(): ModernExt
 
 export function addCustomClusterManuSpecificIkeaSmartPlug(): ModernExtend {
     return m.deviceAddCustomCluster("manuSpecificIkeaSmartPlug", {
+        name: "manuSpecificIkeaSmartPlug",
         ID: 0xfc85,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {
-            childLock: {ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
-            ledEnable: {ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
+            childLock: {name: "childLock", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+            ledEnable: {name: "ledEnable", ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
         },
 
         commands: {},
@@ -933,10 +936,98 @@ export interface IkeaUnknown {
 //  No attributes known.
 export function addCustomClusterManuSpecificIkeaUnknown(): ModernExtend {
     return m.deviceAddCustomCluster("manuSpecificIkeaUnknown", {
+        name: "manuSpecificIkeaUnknown",
         ID: 0xfc7c,
         manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
         attributes: {},
         commands: {},
+        commandsResponse: {},
+    });
+}
+
+export interface TradfriButton {
+    attributes: never;
+    commands: {
+        /** ID=0x01 */
+        action1: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+        /** ID=0x02 */
+        action2: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+        /** ID=0x03 */
+        action3: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+        /** ID=0x04 */
+        action4: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+        /** ID=0x06 */
+        action6: {
+            /** type=UINT8 | max=255 */
+            data: number;
+        };
+    };
+    commandResponses: never;
+}
+
+export function addCustomClusterTradfriButton(): ModernExtend {
+    return m.deviceAddCustomCluster("tradfriButton", {
+        name: "tradfriButton",
+        ID: 0xfc80,
+        manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
+        attributes: {},
+        commands: {
+            action1: {name: "action1", ID: 0x01, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+            action2: {name: "action2", ID: 0x02, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+            action3: {name: "action3", ID: 0x03, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+            action4: {name: "action4", ID: 0x04, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+            action6: {name: "action6", ID: 0x06, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+        },
+        commandsResponse: {},
+    });
+}
+
+export interface IkeaGenScenesCluster {
+    attributes: never;
+    commands: {
+        tradfriArrowSingle: {
+            value: number;
+            value2: number;
+        };
+        tradfriArrowHold: {
+            value: number;
+        };
+        tradfriArrowRelease: {
+            value: number;
+        };
+    };
+    commandResponses: never;
+}
+
+export function addIkeaGenScenesCluster(): ModernExtend {
+    return m.deviceAddCustomCluster("genScenes", {
+        name: "genScenes",
+        ID: Zcl.Clusters.genScenes.ID,
+        attributes: {},
+        commands: {
+            tradfriArrowSingle: {
+                name: "tradfriArrowSingle",
+                ID: 0x07,
+                parameters: [
+                    {name: "value", type: Zcl.DataType.UINT16, max: 0xffff},
+                    {name: "value2", type: Zcl.DataType.UINT16, max: 0xffff},
+                ],
+            },
+            tradfriArrowHold: {name: "tradfriArrowHold", ID: 0x08, parameters: [{name: "value", type: Zcl.DataType.UINT16, max: 0xffff}]},
+            tradfriArrowRelease: {name: "tradfriArrowRelease", ID: 0x09, parameters: [{name: "value", type: Zcl.DataType.UINT16, max: 0xffff}]},
+        },
         commandsResponse: {},
     });
 }

@@ -8,6 +8,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+import type {ElkoThermostatCluster} from "./elko";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -263,7 +264,7 @@ const fzLocal = {
 
             return result;
         },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"hvacThermostat", ElkoThermostatCluster, ["attributeReport", "readResponse"]>,
     ctm_group_config: {
         cluster: "65191", // 0xFEA7 ctmGroupConfig
         type: ["attributeReport", "readResponse"],

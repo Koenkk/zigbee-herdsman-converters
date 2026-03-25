@@ -10,7 +10,7 @@ import * as modernExtend from "./modernExtend";
 import * as globalStore from "./store";
 import type {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "./types";
 import * as utils from "./utils";
-import {determineEndpoint, exposeEndpoints, isObject} from "./utils";
+import {determineEndpoint, exposeEndpoints, hasAlreadyProcessedMessage, isObject, numberWithinRange} from "./utils";
 
 const NS = "zhc:philips";
 const ea = exposes.access;
@@ -68,20 +68,114 @@ interface PhilipsContact {
     commandResponses: never;
 }
 
+interface ManuSpecificPhilips {
+    attributes: {
+        /** ID=0x0031 | type=BITMAP16 | write=true */
+        config: number;
+    };
+    commands: never;
+    commandResponses: {
+        /** ID=0x00 */
+        hueNotification: {
+            /** type=UINT8 | max=255 */
+            button: number;
+            /** type=UINT24 | max=16777215 */
+            unknown1: number;
+            /** type=UINT8 | max=255 */
+            type: number;
+            /** type=UINT8 | max=255 */
+            unknown2: number;
+            /** type=UINT8 | max=255 */
+            time: number;
+            /** type=UINT8 | max=255 */
+            unknown3: number;
+        };
+    };
+}
+
+interface ManuSpecificPhilips2 {
+    attributes: {
+        /** ID=0x0002 | type=OCTET_STR | write=true */
+        state: Buffer;
+    };
+    commands: {
+        /** ID=0x00 */
+        multiColor: {
+            /** type=BUFFER */
+            data: Buffer;
+        };
+    };
+    commandResponses: never;
+}
+
 const philipsModernExtend = {
     addCustomClusterManuSpecificPhilipsContact: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificPhilipsContact", {
+            name: "manuSpecificPhilipsContact",
             ID: 0xfc06,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
-                contact: {ID: 0x0100, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                contactLastChange: {ID: 0x0101, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                tamper: {ID: 0x0102, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                tamperLastChange: {ID: 0x0103, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                contact: {name: "contact", ID: 0x0100, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                contactLastChange: {name: "contactLastChange", ID: 0x0101, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                tamper: {name: "tamper", ID: 0x0102, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                tamperLastChange: {name: "tamperLastChange", ID: 0x0103, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
             },
             commands: {},
             commandsResponse: {},
         }),
+    addManuSpecificPhilipsCluster: () =>
+        modernExtend.deviceAddCustomCluster("manuSpecificPhilips", {
+            name: "manuSpecificPhilips",
+            ID: 0xfc00,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {
+                config: {name: "config", ID: 0x0031, type: Zcl.DataType.BITMAP16, write: true},
+            },
+            commands: {},
+            commandsResponse: {
+                hueNotification: {
+                    name: "hueNotification",
+                    ID: 0x00,
+                    parameters: [
+                        {name: "button", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "unknown1", type: Zcl.DataType.UINT24, max: 0xffffff},
+                        {name: "type", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "unknown2", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "time", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "unknown3", type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },
+            },
+        }),
+    addManuSpecificPhilips2Cluster: () =>
+        modernExtend.deviceAddCustomCluster("manuSpecificPhilips2", {
+            name: "manuSpecificPhilips2",
+            ID: 0xfc03,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {
+                state: {name: "state", ID: 0x0002, type: Zcl.DataType.OCTET_STR, write: true},
+            },
+            commands: {
+                multiColor: {name: "multiColor", ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+            },
+            commandsResponse: {},
+        }),
+    addManuSpecificPhilips3Cluster: () =>
+        modernExtend.deviceAddCustomCluster("manuSpecificPhilips3", {
+            name: "manuSpecificPhilips3",
+            ID: 0xfc01,
+            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            attributes: {},
+            commands: {
+                command1: {name: "command1", ID: 1, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command2: {name: "command2", ID: 2, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command3: {name: "command3", ID: 3, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command4: {name: "command4", ID: 4, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                command7: {name: "command7", ID: 7, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+            },
+            commandsResponse: {},
+        }),
+
     light: (args?: modernExtend.LightArgs & {hueEffect?: boolean; gradient?: true | {extraEffects: string[]}}) => {
         args = {hueEffect: true, turnsOffAtBrightness1: true, ota: true, ...args};
         if (args.hueEffect || args.gradient) args.effect = false;
@@ -121,36 +215,10 @@ const philipsModernExtend = {
             result.exposes.push(...exposeEndpoints(e.enum("effect", ea.SET, effects), args.endpointNames));
         }
 
-        const customCluster = modernExtend.deviceAddCustomCluster("manuSpecificPhilips3", {
-            ID: 0xfc01,
-            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
-            attributes: {},
-            commands: {
-                command1: {
-                    ID: 1,
-                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
-                },
-                command2: {
-                    ID: 2,
-                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
-                },
-                command3: {
-                    ID: 3,
-                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
-                },
-                command4: {
-                    ID: 4,
-                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
-                },
-                command7: {
-                    ID: 7,
-                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
-                },
-            },
-            commandsResponse: {},
-        });
-        result.onEvent = [...(result.onEvent ?? []), ...customCluster.onEvent];
-        result.configure = [...(result.configure ?? []), ...customCluster.configure];
+        const customCluster2 = philipsModernExtend.addManuSpecificPhilips2Cluster();
+        const customCluster3 = philipsModernExtend.addManuSpecificPhilips3Cluster();
+        result.onEvent = [...customCluster2.onEvent, ...customCluster3.onEvent, ...(result.onEvent ?? [])];
+        result.configure = [...customCluster2.configure, ...customCluster3.configure, ...(result.configure ?? [])];
 
         return result;
     },
@@ -161,7 +229,7 @@ const philipsModernExtend = {
         return result;
     },
     twilightOnOff: () => {
-        const fromZigbee = [fz.ignore_command_on, fz.ignore_command_off, fz.hue_twilight];
+        const fromZigbee = [fz.ignore_command_on, fz.ignore_command_off, philipsFz.hue_twilight];
         const exposes = [
             e.action([
                 "dot_press",
@@ -284,6 +352,7 @@ const philipsModernExtend = {
         return result;
     },
 };
+
 export {philipsModernExtend as m};
 
 const philipsTz = {
@@ -293,7 +362,7 @@ const philipsTz = {
             const scene = utils.getFromLookup(value, gradientScenes);
             if (!scene) throw new Error(`Gradient scene '${value}' is unknown`);
             const payload = {data: Buffer.from(scene, "hex")};
-            await entity.command("manuSpecificPhilips2", "multiColor", payload);
+            await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
         },
     } satisfies Tz.Converter,
     gradient: (opts = {reverse: false}) => {
@@ -303,10 +372,10 @@ const philipsTz = {
                 // @ts-expect-error ignore
                 const scene = encodeGradientColors(value, opts);
                 const payload = {data: Buffer.from(scene, "hex")};
-                await entity.command("manuSpecificPhilips2", "multiColor", payload);
+                await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("manuSpecificPhilips2", ["state"]);
+                await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
             },
         } satisfies Tz.Converter;
     },
@@ -315,7 +384,9 @@ const philipsTz = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, "effect");
             if (Object.keys(hueEffects).includes(value.toLowerCase())) {
-                await entity.command("manuSpecificPhilips2", "multiColor", {data: Buffer.from(utils.getFromLookup(value, hueEffects), "hex")});
+                await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", {
+                    data: Buffer.from(utils.getFromLookup(value, hueEffects), "hex"),
+                });
             } else {
                 return await tz.effect.convertSet(entity, key, value, meta);
             }
@@ -438,6 +509,7 @@ const philipsTz = {
         },
     } satisfies Tz.Converter,
 };
+
 export {philipsTz as tz};
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V};
@@ -583,7 +655,7 @@ const philipsFz = {
             }
             return payload;
         },
-    } satisfies Fz.Converter<"manuSpecificPhilips", undefined, "commandHueNotification">,
+    } satisfies Fz.Converter<"manuSpecificPhilips", ManuSpecificPhilips, "commandHueNotification">,
     gradient: {
         cluster: "manuSpecificPhilips2",
         type: ["attributeReport", "readResponse"],
@@ -597,8 +669,80 @@ const philipsFz = {
             }
             return {};
         },
-    } satisfies Fz.Converter<"manuSpecificPhilips2", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificPhilips2", ManuSpecificPhilips2, ["attributeReport", "readResponse"]>,
+    hue_smart_button_event: {
+        cluster: "manuSpecificPhilips",
+        type: "commandHueNotification",
+        convert: (model, msg, publish, options, meta) => {
+            // Philips HUE Smart Button "ROM001": these events are always from "button 1"
+            const lookup: KeyValueAny = {0: "press", 1: "hold", 2: "release", 3: "release"};
+            return {action: lookup[msg.data.type]};
+        },
+    } satisfies Fz.Converter<"manuSpecificPhilips", ManuSpecificPhilips, "commandHueNotification">,
+    hue_wall_switch: {
+        cluster: "manuSpecificPhilips",
+        type: "commandHueNotification",
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            const buttonLookup: KeyValueAny = {1: "left", 2: "right"};
+            const button = buttonLookup[msg.data.button];
+            const typeLookup: KeyValueAny = {0: "press", 1: "hold", 2: "press_release", 3: "hold_release"};
+            const type = typeLookup[msg.data.type];
+            return {action: `${button}_${type}`};
+        },
+    } satisfies Fz.Converter<"manuSpecificPhilips", ManuSpecificPhilips, "commandHueNotification">,
+    hue_dimmer_switch: {
+        cluster: "manuSpecificPhilips",
+        type: "commandHueNotification",
+        options: [exposes.options.simulated_brightness()],
+        convert: (model, msg, publish, options, meta) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            const buttonLookup: KeyValueAny = {1: "on", 2: "up", 3: "down", 4: "off"};
+            const button = buttonLookup[msg.data.button];
+            const typeLookup: KeyValueAny = {0: "press", 1: "hold", 2: "press_release", 3: "hold_release"};
+            const type = typeLookup[msg.data.type];
+            const payload: KeyValueAny = {action: `${button}_${type}`};
+
+            // duration
+            if (type === "press") globalStore.putValue(msg.endpoint, "press_start", Date.now());
+            else if (type === "hold" || type === "release") {
+                payload.action_duration = (Date.now() - globalStore.getValue(msg.endpoint, "press_start")) / 1000;
+            }
+
+            // simulated brightness
+            if (options.simulated_brightness && (button === "down" || button === "up") && type !== "release") {
+                const opts: KeyValueAny = options.simulated_brightness;
+                const deltaOpts = typeof opts === "object" && opts.delta != null ? opts.delta : 35;
+                const delta = button === "up" ? deltaOpts : deltaOpts * -1;
+                const brightness = globalStore.getValue(msg.endpoint, "brightness", 255) + delta;
+                payload.brightness = numberWithinRange(brightness, 0, 255);
+                payload.action_brightness_delta = delta;
+                globalStore.putValue(msg.endpoint, "brightness", payload.brightness);
+            }
+            return payload;
+        },
+    } satisfies Fz.Converter<"manuSpecificPhilips", ManuSpecificPhilips, "commandHueNotification">,
+    hue_twilight: {
+        cluster: "manuSpecificPhilips",
+        type: "commandHueNotification",
+        convert: (model, msg, publish, options, meta) => {
+            const buttonLookup: KeyValueAny = {1: "dot", 2: "hue"};
+            const button = buttonLookup[msg.data.button];
+            const typeLookup: KeyValueAny = {0: "press", 1: "hold", 2: "press_release", 3: "hold_release"};
+            const type = typeLookup[msg.data.type];
+            const payload: KeyValueAny = {action: `${button}_${type}`};
+
+            // duration
+            if (type === "press") globalStore.putValue(msg.endpoint, "press_start", Date.now());
+            else if (type === "hold" || type === "release") {
+                payload.action_duration = (Date.now() - globalStore.getValue(msg.endpoint, "press_start")) / 1000;
+            }
+
+            return payload;
+        },
+    } satisfies Fz.Converter<"manuSpecificPhilips", ManuSpecificPhilips, "commandHueNotification">,
 };
+
 export {philipsFz as fz};
 
 // decoder for manuSpecificPhilips2.state

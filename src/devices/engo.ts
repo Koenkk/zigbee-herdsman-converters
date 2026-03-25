@@ -39,6 +39,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("zone_4_name", ea.STATE_SET).withDescription("Custom name for zigbee zone 4"),
             e.text("zone_5_name", ea.STATE_SET).withDescription("Custom name for zigbee zone 5"),
             e.text("zone_6_name", ea.STATE_SET).withDescription("Custom name for zigbee zone 6"),
+            e.voltage(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -76,6 +77,7 @@ export const definitions: DefinitionWithExtend[] = [
                         "15_min": tuya.enum(3),
                     }),
                 ],
+                [120, "voltage", tuya.valueConverter.divideBy10],
             ],
         },
     },
@@ -141,7 +143,10 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueMax(30)
                     .withValueStep(1)
                     .withDescription("Number of days for holiday"),
-                e.binary("valve_protection", ea.STATE_SET, "ON", "OFF").withDescription("Prevents valve blockage during long periods of inactivity."),
+                e
+                    .binary("valve_protection", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Valve Protection")
+                    .withDescription("Prevents valve blockage during long periods of inactivity."),
                 e
                     .enum("warm_floor", ea.STATE_SET, ["OFF", "7_min", "11_min", "15_min", "19_min", "23_min"])
                     .withDescription("Automatically warms the floor every 60 minutes."),
@@ -178,7 +183,7 @@ export const definitions: DefinitionWithExtend[] = [
                             if (options?.expose_device_state === true) {
                                 return isOn ? "ON" : "OFF";
                             }
-                            meta.state.state = undefined;
+                            return undefined;
                         },
                     },
                 ],
@@ -336,10 +341,13 @@ export const definitions: DefinitionWithExtend[] = [
                     "HIS_40",
                 ])
                 .withDescription("Sets the control algorithim of the thermostat"),
-            e.max_temperature().withValueMin(5).withValueMax(35),
-            e.min_temperature().withValueMin(5).withValueMax(35),
+            e.max_temperature().withValueMin(5).withValueMax(45),
+            e.min_temperature().withValueMin(5).withValueMax(45),
             e.child_lock(),
-            e.binary("valve_protection", ea.STATE_SET, "ON", "OFF").withDescription("Enable valve protection"),
+            e
+                .binary("valve_protection", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Valve Protection")
+                .withDescription("Prevents valve blockage during long periods of inactivity."),
             e.enum("relay_mode", ea.STATE_SET, ["NO", "NC", "OFF"]).withDescription("Sets the internal relay function"),
             e
                 .numeric("backlight", ea.STATE_SET)
@@ -411,63 +419,146 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_lnxdk2ch"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_lnxdk2ch", "_TZE204_glk6viwg"]),
         model: "E40",
         vendor: "ENGO",
         description: "Zigbee smart thermostat",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.binary("state", ea.STATE_SET, "ON", "OFF"),
+        options: [
             e
-                .climate()
-                .withSystemMode(["heat", "cool"], ea.STATE_SET)
-                .withSetpoint("current_heating_setpoint", 5, 45, 0.5, ea.STATE_SET)
-                .withLocalTemperature(ea.STATE)
-                .withLocalTemperatureCalibration(-3.5, 3.5, 0.5, ea.STATE_SET)
-                .withRunningState(["idle", "heat", "cool"], ea.STATE)
-                .withPreset(["manual", "schedule", "frost"]),
-            e
-                .numeric("backlight", ea.STATE_SET)
-                .withUnit("%")
-                .withDescription("Backlight brightness")
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1),
-            e.enum("sensor_error", ea.STATE, ["normal", "E1", "E2"]),
-            e.child_lock(),
-            e.enum("relay_mode", ea.STATE_SET, ["NO", "NC", "OFF"]),
-            e.enum("sensor_choose", ea.STATE_SET, ["internal", "all", "external"]),
-            e.numeric("holiday_temperature", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(45).withValueStep(0.5),
-            e.numeric("holiday_days", ea.STATE_SET).withUnit("days").withValueMin(1).withValueMax(30).withValueStep(1),
-            e.enum("control_algorithm", ea.STATE_SET, [
-                "TPI_UFH",
-                "TPI_RAD",
-                "TPI_ELE",
-                "HIS_04",
-                "HIS_08",
-                "HIS_12",
-                "HIS_16",
-                "HIS_20",
-                "HIS_30",
-                "HIS_40",
-            ]),
-            e.numeric("frost_set", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(17).withValueStep(0.5),
-            e.binary("valve_protection", ea.STATE_SET, "ON", "OFF"),
-            e.enum("comfort_warm_floor", ea.STATE_SET, ["OFF", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"]),
-            e.max_temperature().withValueMin(5).withValueMax(45),
-            e.min_temperature().withValueMin(6).withValueMax(45),
-            e.text("schedule_monday", ea.STATE_SET),
-            e.text("schedule_tuesday", ea.STATE_SET),
-            e.text("schedule_wednesday", ea.STATE_SET),
-            e.text("schedule_thursday", ea.STATE_SET),
-            e.text("schedule_friday", ea.STATE_SET),
-            e.text("schedule_saturday", ea.STATE_SET),
-            e.text("schedule_sunday", ea.STATE_SET),
+                .binary("expose_device_state", ea.SET, true, false)
+                .withDescription("Expose device power state as a separate property when enabled. Restart z2m after changing this setting."),
         ],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        exposes: (device, options) => {
+            const exposesList = [
+                e
+                    .climate()
+                    .withSystemMode(["off", "heat", "cool"], ea.STATE_SET)
+                    .withSetpoint("current_heating_setpoint", 5, 45, 0.5, ea.STATE_SET)
+                    .withLocalTemperature(ea.STATE)
+                    .withLocalTemperatureCalibration(-3.5, 3.5, 0.5, ea.STATE_SET)
+                    .withRunningState(["idle", "heat", "cool"], ea.STATE)
+                    .withPreset(["manual", "schedule", "frost"]),
+                e
+                    .numeric("backlight", ea.STATE_SET)
+                    .withUnit("%")
+                    .withDescription("Backlight brightness")
+                    .withValueMin(0)
+                    .withValueMax(100)
+                    .withValueStep(10),
+                e.enum("sensor_error", ea.STATE, ["Normal", "E1", "E2"]),
+                e.child_lock(),
+                e
+                    .binary("temperature_set_enabled_while_blocked", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Enable temperature control during child lock")
+                    .withDescription(
+                        "Option to control temperature buttons while child lock is enabled. (Available only in newer version of regulator software).",
+                    ),
+                e.enum("relay_mode", ea.STATE_SET, ["NO", "NC", "OFF"]),
+                e.enum("sensor_choose", ea.STATE_SET, ["internal", "all", "external"]),
+                e.enum("control_algorithm", ea.STATE_SET, [
+                    "TPI_UFH",
+                    "TPI_RAD",
+                    "TPI_ELE",
+                    "HIS_02",
+                    "HIS_04",
+                    "HIS_06",
+                    "HIS_08",
+                    "HIS_10",
+                    "HIS_20",
+                    "HIS_30",
+                    "HIS_40",
+                ]),
+                e.numeric("frost_set", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(17).withValueStep(0.5),
+                e
+                    .enum("valve_protection", ea.STATE_SET, ["off", "on", "anti_stop"])
+                    .withLabel("Valve Protection")
+                    .withDescription("Prevents valve blockage during long periods of inactivity.")
+                    .withDescription("Prevents valve blockage during long periods of inactivity."),
+                e
+                    .enum("comfort_warm_floor", ea.STATE_SET, ["OFF", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"])
+                    .withDescription("Automatically warms the floor every 60 minutes for 7, 11, 15, 19 or 23 minutes according to the level number."),
+                e.max_temperature().withValueMin(5).withValueMax(45),
+                e.min_temperature().withValueMin(5).withValueMax(45),
+                e.text("schedule_monday", ea.STATE_SET),
+                e.text("schedule_tuesday", ea.STATE_SET),
+                e.text("schedule_wednesday", ea.STATE_SET),
+                e.text("schedule_thursday", ea.STATE_SET),
+                e.text("schedule_friday", ea.STATE_SET),
+                e.text("schedule_saturday", ea.STATE_SET),
+                e.text("schedule_sunday", ea.STATE_SET),
+                e
+                    .numeric("delta_t_rcwc_alg", ea.STATE_SET)
+                    .withLabel("Delta RCWC Algorithm")
+                    .withDescription("Defines how fast the TRV will react on temperature change. Defaults to 2.0")
+                    .withUnit("°C")
+                    .withValueMin(0.5)
+                    .withValueStep(0.5)
+                    .withValueMax(5),
+                e
+                    .enum("device_pair_state", ea.STATE, ["none", "commutation_center", "trv"])
+                    .withLabel("Device Pair State")
+                    .withDescription("Defines paired devices type: None, Commutation Center or TRV"),
+            ];
+            if (options?.expose_device_state === true) {
+                exposesList.unshift(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON or OFF"));
+            }
+            return exposesList;
+        },
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff],
-                [2, "system_mode", tuya.valueConverterBasic.lookup({heat: tuya.enum(0), cool: tuya.enum(1)})],
+                [
+                    1,
+                    "state",
+                    {
+                        to: async (value, meta) => {
+                            if (meta.options?.expose_device_state === true) {
+                                await tuya.sendDataPointBool(
+                                    meta.device.endpoints[0],
+                                    1,
+                                    utils.getFromLookup(value, {on: true, off: false}),
+                                    "dataRequest",
+                                    1,
+                                );
+                            }
+                        },
+                        from: (value, meta, options) => {
+                            const isOn = value === true;
+                            meta.state.system_mode = isOn ? (meta.state.system_mode_device ?? "heat") : "off";
+
+                            if (options?.expose_device_state === true) {
+                                return isOn ? "ON" : "OFF";
+                            }
+                            return undefined;
+                        },
+                    },
+                ],
+
+                [
+                    2,
+                    "system_mode",
+                    {
+                        to: async (value, meta) => {
+                            const entity = meta.device.endpoints[0];
+                            await tuya.sendDataPointBool(entity, 1, value !== "off", "dataRequest", 1);
+                            switch (value) {
+                                case "heat":
+                                    await tuya.sendDataPointEnum(entity, 2, 0, "dataRequest", 1);
+                                    break;
+                                case "cool":
+                                    await tuya.sendDataPointEnum(entity, 2, 1, "dataRequest", 1);
+                                    break;
+                            }
+                        },
+                        from: (value, meta) => {
+                            const modes = ["heat", "cool"];
+                            const mode = modes[value];
+                            meta.state.system_mode_device = mode;
+                            const fallbackMode = "heat";
+                            return mode ?? fallbackMode;
+                        },
+                    },
+                ],
                 [
                     3,
                     "running_state",
@@ -498,8 +589,6 @@ export const definitions: DefinitionWithExtend[] = [
                         },
                     },
                 ],
-                [32, "holiday_temperature", tuya.valueConverter.divideBy10],
-                [33, "holiday_days", tuya.valueConverter.raw],
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
                 [43, "sensor_choose", tuya.valueConverterBasic.lookup({internal: tuya.enum(0), all: tuya.enum(1), external: tuya.enum(2)})],
                 [44, "backlight", tuya.valueConverter.raw],
@@ -523,19 +612,38 @@ export const definitions: DefinitionWithExtend[] = [
                         TPI_UFH: tuya.enum(0),
                         TPI_RAD: tuya.enum(1),
                         TPI_ELE: tuya.enum(2),
-                        HIS_04: tuya.enum(3),
-                        HIS_08: tuya.enum(4),
-                        HIS_12: tuya.enum(5),
-                        HIS_16: tuya.enum(6),
+                        HIS_02: tuya.enum(3),
+                        HIS_04: tuya.enum(4),
+                        HIS_06: tuya.enum(5),
+                        HIS_08: tuya.enum(6),
+                        HIS_10: tuya.enum(7),
                         HIS_20: tuya.enum(8),
                         HIS_30: tuya.enum(9),
                         HIS_40: tuya.enum(10),
                     }),
                 ],
+                [102, "delta_t_rcwc_alg", tuya.valueConverter.divideBy10],
+                [
+                    103,
+                    "device_pair_state",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        commutation_center: tuya.enum(1),
+                        trv: tuya.enum(2),
+                    }),
+                ],
+                [105, "temperature_set_enabled_while_blocked", tuya.valueConverter.onOff],
                 [106, "frost_set", tuya.valueConverter.divideBy10],
-                [107, "valve_protection", tuya.valueConverter.onOff],
+                [
+                    107,
+                    "valve_protection",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on: tuya.enum(1),
+                        anti_stop: tuya.enum(2),
+                    }),
+                ],
                 [108, "relay_mode", tuya.valueConverterBasic.lookup({NO: tuya.enum(0), NC: tuya.enum(1), OFF: tuya.enum(2)})],
-                [120, "sensor_error", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), E1: tuya.enum(1), E2: tuya.enum(2)})],
                 [109, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
                 [110, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
                 [111, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
@@ -543,6 +651,16 @@ export const definitions: DefinitionWithExtend[] = [
                 [113, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
                 [114, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
                 [115, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                // [119, "???", 0],
+                [120, "sensor_error", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), E1: tuya.enum(1), E2: tuya.enum(2)})],
+                // [121, "???", 0],
+                // [122, "???", 0],
+                // [123, "???", 0],
+
+                // [128, "???", 0],
+
+                // [136, "???", 0],
+                // [137, "???", 0],
             ],
         },
     },
@@ -561,7 +679,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-3.5, 3.5, 0.5, ea.STATE_SET)
                 .withRunningState(["idle", "heat", "cool"], ea.STATE)
-                .withPreset(["manual", "program", "holiday", "boost", "away", "frost"]),
+                .withPreset(["manual", "schedule", "holiday", "frost"]),
             e.numeric("local_temperature", ea.STATE).withUnit("°C").withDescription("Measured room temperature"),
             e.numeric("floor_temperature", ea.STATE).withUnit("°C").withDescription("Measured floor temperature"),
             e.numeric("humidity", ea.STATE).withUnit("%").withDescription("Measured humidity"),
@@ -569,7 +687,9 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("sensor_error", ea.STATE, ["normal", "E1", "E2"]).withDescription("Sensor error status"),
             e.child_lock(),
             e.enum("relay_mode", ea.STATE_SET, ["NO", "NC", "OFF"]).withDescription("Relay mode"),
-            e.enum("sensor_choose", ea.STATE_SET, ["internal", "all", "external"]).withDescription("Sensor selection"),
+            e
+                .enum("sensor_choose", ea.STATE_SET, ["internal", "floor_temp", "external", "external_on_off"])
+                .withDescription("Sensor selection S1/S2"),
             e
                 .numeric("holiday_temperature", ea.STATE_SET)
                 .withUnit("°C")
@@ -592,9 +712,52 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(17)
                 .withValueStep(0.5),
             e
-                .enum("control_algorithm", ea.STATE_SET, ["TPI_UFH", "TPI_RAD", "TPI_ELE", "HIS_02", "HIS_04", "HIS_06"])
+                .numeric("max_floor_temp_heating", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Maximum floor temperature while heating (requires sensor mode floor_temp)")
+                .withValueMin(5)
+                .withValueMax(45)
+                .withValueStep(0.5),
+            e
+                .numeric("min_floor_temp_heating", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Minimum floor temperature while heating (requires sensor mode floor_temp)")
+                .withValueMin(5)
+                .withValueMax(45)
+                .withValueStep(0.5),
+            e
+                .numeric("max_floor_temp_cooling", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Maximum floor temperature while cooling (requires sensor mode floor_temp)")
+                .withValueMin(5)
+                .withValueMax(45)
+                .withValueStep(0.5),
+            e
+                .numeric("min_floor_temp_coolnig", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Minimum floor temperature while cooling (requires sensor mode floor_temp)")
+                .withValueMin(5)
+                .withValueMax(45)
+                .withValueStep(0.5),
+            e
+                .enum("control_algorithm", ea.STATE_SET, [
+                    "TPI_UFH",
+                    "TPI_RAD",
+                    "TPI_ELE",
+                    "HIS_02",
+                    "HIS_04",
+                    "HIS_06",
+                    "HIS_08",
+                    "HIS_10",
+                    "HIS_20",
+                    "HIS_30",
+                    "HIS_40",
+                ])
                 .withDescription("Control algorithm"),
-            e.binary("valve_protection", ea.STATE_SET, "ON", "OFF").withDescription("Valve protection ON/OFF"),
+            e
+                .enum("valve_protection", ea.STATE_SET, ["off", "on", "anti_stop"])
+                .withLabel("Valve Protection")
+                .withDescription("Prevents valve blockage during long periods of inactivity"),
             e
                 .enum("comfort_warm_floor", ea.STATE_SET, ["OFF", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"])
                 .withDescription("Comfort warm floor setting"),
@@ -618,12 +781,32 @@ export const definitions: DefinitionWithExtend[] = [
                 [19, "max_temperature", tuya.valueConverter.divideBy10],
                 [24, "local_temperature", tuya.valueConverter.divideBy10],
                 [26, "min_temperature", tuya.valueConverter.divideBy10],
+                [27, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [32, "holiday_temperature", tuya.valueConverter.divideBy10],
                 [33, "holiday_days", tuya.valueConverter.raw],
                 [34, "humidity", tuya.valueConverter.raw],
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
-                [43, "sensor_choose", tuya.valueConverterBasic.lookup({internal: tuya.enum(0), all: tuya.enum(1), external: tuya.enum(2)})],
+                [
+                    43,
+                    "sensor_choose",
+                    tuya.valueConverterBasic.lookup({
+                        internal: tuya.enum(0),
+                        floor_temp: tuya.enum(1),
+                        external: tuya.enum(2),
+                        external_on_off: tuya.enum(3),
+                    }),
+                ],
                 [44, "backlight", tuya.valueConverter.raw],
+                [
+                    58,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        schedule: tuya.enum(1),
+                        holiday: tuya.enum(2),
+                        frost: tuya.enum(5),
+                    }),
+                ],
                 [
                     101,
                     "control_algorithm",
@@ -634,8 +817,17 @@ export const definitions: DefinitionWithExtend[] = [
                         HIS_02: tuya.enum(3),
                         HIS_04: tuya.enum(4),
                         HIS_06: tuya.enum(5),
+                        HIS_08: tuya.enum(6),
+                        HIS_10: tuya.enum(7),
+                        HIS_20: tuya.enum(8),
+                        HIS_30: tuya.enum(9),
+                        HIS_40: tuya.enum(10),
                     }),
                 ],
+                [102, "max_floor_temp_heating", tuya.valueConverter.divideBy10],
+                [103, "min_floor_temp_heating", tuya.valueConverter.divideBy10],
+                [104, "max_floor_temp_cooling", tuya.valueConverter.divideBy10],
+                [105, "min_floor_temp_cooling", tuya.valueConverter.divideBy10],
                 [106, "frost_set", tuya.valueConverter.divideBy10],
                 [108, "relay_mode", tuya.valueConverterBasic.lookup({NO: tuya.enum(0), NC: tuya.enum(1), OFF: tuya.enum(2)})],
                 [109, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
@@ -660,7 +852,15 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [120, "sensor_error", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), E1: tuya.enum(1), E2: tuya.enum(2)})],
-                [122, "valve_protection", tuya.valueConverter.onOff],
+                [
+                    122,
+                    "valve_protection",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on: tuya.enum(1),
+                        anti_stop: tuya.enum(2),
+                    }),
+                ],
             ],
         },
     },
@@ -680,14 +880,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSystemMode(["heat", "cool"], ea.STATE_SET)
                 .withRunningState(["idle", "heat", "cool"], ea.STATE)
                 .withPreset(["manual", "schedule", "frost protection"]),
-            e
-                .max_temperature()
-                .withValueMin(5)
-                .withValueMax(35), //45 possible
-            e
-                .min_temperature()
-                .withValueMin(5)
-                .withValueMax(35), //45 possible
+            e.max_temperature().withValueMin(5).withValueMax(45),
+            e.min_temperature().withValueMin(5).withValueMax(45),
             e.battery(),
             e.child_lock(),
             e
@@ -722,7 +916,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.5)
                 .withValueMax(5),
             e
-                .enum("device_pair_state", ea.STATE, ["none", "trv"])
+                .enum("device_pair_state", ea.STATE, ["none", "commutation_center", "trv"])
                 .withLabel("Device Pair State")
                 .withDescription("Defines paired devices type: None, Commutation Center or TRV"),
             e
@@ -734,7 +928,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.5)
                 .withValueMax(17),
             e
-                .enum("valve_protection", ea.STATE_SET, ["off", "on", "anti_stop"])
+                .binary("valve_protection", ea.STATE_SET, "ON", "OFF")
                 .withLabel("Valve Protection")
                 .withDescription("Prevents valve blockage during long periods of inactivity"),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
@@ -811,19 +1005,12 @@ export const definitions: DefinitionWithExtend[] = [
                     "device_pair_state",
                     tuya.valueConverterBasic.lookup({
                         none: tuya.enum(0),
+                        commutation_center: tuya.enum(1),
                         trv: tuya.enum(2),
                     }),
                 ],
                 [106, "frost_set", tuya.valueConverter.divideBy10],
-                [
-                    107,
-                    "valve_protection",
-                    tuya.valueConverterBasic.lookup({
-                        off: tuya.enum(0),
-                        on: tuya.enum(1),
-                        anti_stop: tuya.enum(2),
-                    }),
-                ],
+                [107, "valve_protection", tuya.valueConverter.onOff],
                 [109, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(6)],
                 [110, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(6)],
                 [111, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(6)],

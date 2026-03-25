@@ -86,16 +86,17 @@ const iasWarningMode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic
 const heimanExtend = {
     heimanClusterRadar: () =>
         m.deviceAddCustomCluster("heimanClusterRadar", {
+            name: "heimanClusterRadar",
             ID: 0xfc8b,
             manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
             attributes: {
-                enableIndicator: {ID: 0xf001, type: Zcl.DataType.UINT8, write: true}, // 0: off, 1: enable
-                sensitivity: {ID: 0xf002, type: Zcl.DataType.UINT8, write: true},
-                enableSubRegionIsolation: {ID: 0xf006, type: Zcl.DataType.UINT8, write: true},
-                installationMethod: {ID: 0xf007, type: Zcl.DataType.UINT8, write: true},
-                cellMountedTable: {ID: 0xf008, type: Zcl.DataType.OCTET_STR, write: true}, // string
-                wallMountedTable: {ID: 0xf009, type: Zcl.DataType.OCTET_STR, write: true}, // string
-                subRegionIsolationTable: {ID: 0xf00a, type: Zcl.DataType.OCTET_STR, write: true}, // string
+                enableIndicator: {name: "enableIndicator", ID: 0xf001, type: Zcl.DataType.UINT8, write: true}, // 0: off, 1: enable
+                sensitivity: {name: "sensitivity", ID: 0xf002, type: Zcl.DataType.UINT8, write: true},
+                enableSubRegionIsolation: {name: "enableSubRegionIsolation", ID: 0xf006, type: Zcl.DataType.UINT8, write: true},
+                installationMethod: {name: "installationMethod", ID: 0xf007, type: Zcl.DataType.UINT8, write: true},
+                cellMountedTable: {name: "cellMountedTable", ID: 0xf008, type: Zcl.DataType.OCTET_STR, write: true}, // string
+                wallMountedTable: {name: "wallMountedTable", ID: 0xf009, type: Zcl.DataType.OCTET_STR, write: true}, // string
+                subRegionIsolationTable: {name: "subRegionIsolationTable", ID: 0xf00a, type: Zcl.DataType.OCTET_STR, write: true}, // string
             },
             commands: {},
             commandsResponse: {},
@@ -103,47 +104,48 @@ const heimanExtend = {
 
     heimanClusterSpecial: () =>
         m.deviceAddCustomCluster("heimanClusterSpecial", {
+            name: "heimanClusterSpecial",
             ID: 0xfc90,
             manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
             attributes: {
                 // Sensor 0x0000~0x0FFF
-                sensorPreheatingState: {ID: 0x0000, type: Zcl.DataType.ENUM8, write: true},
-                sensorSelfCheckState: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true},
-                sensorFaultState: {ID: 0x0002, type: Zcl.DataType.BITMAP16, write: true},
-                sensorPollutionLevel: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true},
-                sensorSensitivityLevel: {ID: 0x0004, type: Zcl.DataType.ENUM8, write: true},
-                sensorPrealarmThreshold: {ID: 0x0005, type: Zcl.DataType.ENUM8, write: true},
-                sensorLifeState: {ID: 0x0006, type: Zcl.DataType.ENUM8, write: true},
-                sensorLifeTime: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true},
-                deviceMuteControl: {ID: 0x0008, type: Zcl.DataType.UINT8, write: true},
-                deviceMuteState: {ID: 0x0009, type: Zcl.DataType.BITMAP16, write: true},
-                deviceCascadeControlEnable: {ID: 0x000a, type: Zcl.DataType.BITMAP8, write: true},
-                deviceSoundToneType: {ID: 0x000b, type: Zcl.DataType.ENUM8, write: true},
-                deviceSoundControl: {ID: 0x000c, type: Zcl.DataType.ARRAY, write: true},
-                deviceBlinkControl: {ID: 0x000d, type: Zcl.DataType.ARRAY, write: true},
-                smokeAdValue: {ID: 0x000e, type: Zcl.DataType.UINT16, write: true},
-                smokeAlarmType: {ID: 0x000f, type: Zcl.DataType.ENUM8, write: true},
-                smokeWaterMistState: {ID: 0x0010, type: Zcl.DataType.ENUM8, write: true},
-                smokeSensorData: {ID: 0x0011, type: Zcl.DataType.ARRAY, write: true},
-                deviceCascadeState: {ID: 0x0012, type: Zcl.DataType.ENUM8, write: true},
-                sensorPrealarmState: {ID: 0x0013, type: Zcl.DataType.ENUM8, write: true},
-                smokeConcentrationLevel: {ID: 0x0016, type: Zcl.DataType.UINT8},
-                smokeChamberContaminationLevel: {ID: 0x0017, type: Zcl.DataType.UINT8},
-                smokeConcentationUnit: {ID: 0x0018, type: Zcl.DataType.UINT8},
+                sensorPreheatingState: {name: "sensorPreheatingState", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true},
+                sensorSelfCheckState: {name: "sensorSelfCheckState", ID: 0x0001, type: Zcl.DataType.ENUM8, write: true},
+                sensorFaultState: {name: "sensorFaultState", ID: 0x0002, type: Zcl.DataType.BITMAP16, write: true},
+                sensorPollutionLevel: {name: "sensorPollutionLevel", ID: 0x0003, type: Zcl.DataType.UINT8, write: true},
+                sensorSensitivityLevel: {name: "sensorSensitivityLevel", ID: 0x0004, type: Zcl.DataType.ENUM8, write: true},
+                sensorPrealarmThreshold: {name: "sensorPrealarmThreshold", ID: 0x0005, type: Zcl.DataType.ENUM8, write: true},
+                sensorLifeState: {name: "sensorLifeState", ID: 0x0006, type: Zcl.DataType.ENUM8, write: true},
+                sensorLifeTime: {name: "sensorLifeTime", ID: 0x0007, type: Zcl.DataType.UINT16, write: true},
+                deviceMuteControl: {name: "deviceMuteControl", ID: 0x0008, type: Zcl.DataType.UINT8, write: true},
+                deviceMuteState: {name: "deviceMuteState", ID: 0x0009, type: Zcl.DataType.BITMAP16, write: true},
+                deviceCascadeControlEnable: {name: "deviceCascadeControlEnable", ID: 0x000a, type: Zcl.DataType.BITMAP8, write: true},
+                deviceSoundToneType: {name: "deviceSoundToneType", ID: 0x000b, type: Zcl.DataType.ENUM8, write: true},
+                deviceSoundControl: {name: "deviceSoundControl", ID: 0x000c, type: Zcl.DataType.ARRAY, write: true},
+                deviceBlinkControl: {name: "deviceBlinkControl", ID: 0x000d, type: Zcl.DataType.ARRAY, write: true},
+                smokeAdValue: {name: "smokeAdValue", ID: 0x000e, type: Zcl.DataType.UINT16, write: true},
+                smokeAlarmType: {name: "smokeAlarmType", ID: 0x000f, type: Zcl.DataType.ENUM8, write: true},
+                smokeWaterMistState: {name: "smokeWaterMistState", ID: 0x0010, type: Zcl.DataType.ENUM8, write: true},
+                smokeSensorData: {name: "smokeSensorData", ID: 0x0011, type: Zcl.DataType.ARRAY, write: true},
+                deviceCascadeState: {name: "deviceCascadeState", ID: 0x0012, type: Zcl.DataType.ENUM8, write: true},
+                sensorPrealarmState: {name: "sensorPrealarmState", ID: 0x0013, type: Zcl.DataType.ENUM8, write: true},
+                smokeConcentrationLevel: {name: "smokeConcentrationLevel", ID: 0x0016, type: Zcl.DataType.UINT8},
+                smokeChamberContaminationLevel: {name: "smokeChamberContaminationLevel", ID: 0x0017, type: Zcl.DataType.UINT8},
+                smokeConcentationUnit: {name: "smokeConcentationUnit", ID: 0x0018, type: Zcl.DataType.UINT8},
 
                 // Light/Switch 0x1000~0x1FFF
-                indicatorLightControl: {ID: 0x1000, type: Zcl.DataType.BITMAP8, write: true},
-                indicatorLightNotDisturbStartTime: {ID: 0x1001, type: Zcl.DataType.UINT16, write: true},
-                indicatorLightNotDisturbEndTime: {ID: 0x1002, type: Zcl.DataType.UINT16, write: true},
-                indicatorLightNotDisturbEnable: {ID: 0x1003, type: Zcl.DataType.UINT8, write: true},
-                indicatorLightLevelControlOf1: {ID: 0x1004, type: Zcl.DataType.UINT8, write: true},
-                indicatorLightLevelControlOf2: {ID: 0x1005, type: Zcl.DataType.UINT8, write: true},
-                indicatorLightLevelControlOf3: {ID: 0x1006, type: Zcl.DataType.UINT8, write: true},
-                interconnectable: {ID: 0x1007, type: Zcl.DataType.UINT8, write: true},
-                smokeUnit: {ID: 0x1008, type: Zcl.DataType.UINT8},
-                rebootedCount: {ID: 0x1009, type: Zcl.DataType.UINT8},
-                rejoinedCount: {ID: 0x100a, type: Zcl.DataType.UINT8},
-                reportedPackages: {ID: 0x100b, type: Zcl.DataType.UINT8},
+                indicatorLightControl: {name: "indicatorLightControl", ID: 0x1000, type: Zcl.DataType.BITMAP8, write: true},
+                indicatorLightNotDisturbStartTime: {name: "indicatorLightNotDisturbStartTime", ID: 0x1001, type: Zcl.DataType.UINT16, write: true},
+                indicatorLightNotDisturbEndTime: {name: "indicatorLightNotDisturbEndTime", ID: 0x1002, type: Zcl.DataType.UINT16, write: true},
+                indicatorLightNotDisturbEnable: {name: "indicatorLightNotDisturbEnable", ID: 0x1003, type: Zcl.DataType.UINT8, write: true},
+                indicatorLightLevelControlOf1: {name: "indicatorLightLevelControlOf1", ID: 0x1004, type: Zcl.DataType.UINT8, write: true},
+                indicatorLightLevelControlOf2: {name: "indicatorLightLevelControlOf2", ID: 0x1005, type: Zcl.DataType.UINT8, write: true},
+                indicatorLightLevelControlOf3: {name: "indicatorLightLevelControlOf3", ID: 0x1006, type: Zcl.DataType.UINT8, write: true},
+                interconnectable: {name: "interconnectable", ID: 0x1007, type: Zcl.DataType.UINT8, write: true},
+                smokeUnit: {name: "smokeUnit", ID: 0x1008, type: Zcl.DataType.UINT8},
+                rebootedCount: {name: "rebootedCount", ID: 0x1009, type: Zcl.DataType.UINT8},
+                rejoinedCount: {name: "rejoinedCount", ID: 0x100a, type: Zcl.DataType.UINT8},
+                reportedPackages: {name: "reportedPackages", ID: 0x100b, type: Zcl.DataType.UINT8},
             },
             commands: {},
             commandsResponse: {},
@@ -151,10 +153,12 @@ const heimanExtend = {
 
     heimanClusterIasZone: () =>
         m.deviceAddCustomCluster("ssIasZone", {
+            name: "ssIasZone",
             ID: Zcl.Clusters.ssIasZone.ID,
             attributes: {},
             commands: {
                 initiateTestMode: {
+                    name: "initiateTestMode",
                     ID: 0x02,
                     parameters: [
                         {name: "testModeDuration", type: Zcl.DataType.UINT8},
@@ -1536,7 +1540,10 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        fingerprint: [{modelID: "HS2AQ-EM", manufacturerName: "HEIMAN"}],
+        fingerprint: [
+            {modelID: "HS2AQ-EM", manufacturerName: "HEIMAN"},
+            {modelID: "HS2AQ-EM-3.0", manufacturerName: "HEIMAN"},
+        ],
         model: "HS2AQ-EM",
         vendor: "Heiman",
         description: "Air quality monitor",
@@ -1830,6 +1837,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.co2(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 0.00005}); // 50 ppm change
         },
         exposes: [e.co2(), e.battery(), e.humidity(), e.temperature()],
+        extend: [m.writeTimeDaily({endpointId: 1})],
     },
     {
         zigbeeModel: ["RouteLight-EF-3.0"],

@@ -6,6 +6,8 @@ import {
     addCustomClusterManuSpecificIkeaSmartPlug,
     addCustomClusterManuSpecificIkeaUnknown,
     addCustomClusterManuSpecificIkeaVocIndexMeasurement,
+    addCustomClusterTradfriButton,
+    addIkeaGenScenesCluster,
     ikeaAirPurifier,
     ikeaArrowClick,
     ikeaBattery,
@@ -665,7 +667,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3698674562
-        zigbeeModel: ["KAJPLATS E27 WS G95 clear 806lm"],
+        zigbeeModel: ["KAJPLATS E27 WS G95 clear 806lm", "KAJPLATS E27 806lm 95mm smart WS"],
         model: "LED2401G5",
         vendor: "IKEA",
         description: "KAJPLATS E27 bulb, white spectrum, globe, clear, 806 lm",
@@ -856,6 +858,13 @@ export const definitions: DefinitionWithExtend[] = [
             ]);
         },
     },
+    {
+        zigbeeModel: ["GRILLPLATS Plug\u0000", "GRILLPLATS Plug"],
+        model: "E2491",
+        vendor: "IKEA",
+        description: "GRILLPLATS smart plug",
+        extend: [m.onOff(), m.identify()],
+    },
     // #endregion on/off controls
     // #region blinds
     {
@@ -959,6 +968,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "TRADFRI remote control",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
+            addIkeaGenScenesCluster(),
             ikeaConfigureRemote(),
             m.identify({isSleepy: true}),
             tradfriCommandsOnOff(),
@@ -977,7 +987,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with buttons",
         extend: [
-            m.battery({voltage: true, voltageReporting: true}),
+            addIkeaGenScenesCluster(),
+            m.battery({voltage: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
@@ -991,7 +1002,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with scroll wheel",
         extend: [
-            m.battery({voltage: true, voltageReporting: true}),
+            addIkeaGenScenesCluster(),
+            m.battery({voltage: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_to_level"]}),
@@ -1005,6 +1017,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "STYRBAR remote control",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
+            addIkeaGenScenesCluster(),
             ikeaConfigureStyrbar(),
             m.identify({isSleepy: true}),
             styrbarCommandOn(),
@@ -1090,6 +1103,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "SYMFONISK sound remote, gen 2",
         extend: [
+            addCustomClusterTradfriButton(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.deviceEndpoints({endpoints: {"1": 2, "2": 3}}),
             m.identify({isSleepy: true}),
@@ -1122,6 +1136,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "SOMRIG shortcut button",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
+            addCustomClusterTradfriButton(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
             m.identify({isSleepy: true}),
@@ -1155,9 +1170,10 @@ export const definitions: DefinitionWithExtend[] = [
             addCustomClusterManuSpecificIkeaUnknown(),
             addCustomClusterManuSpecificIkeaVocIndexMeasurement(),
             m.deviceAddCustomCluster("pm25Measurement", {
+                name: "pm25Measurement",
                 ID: 0x042a,
                 attributes: {
-                    measuredValue: {ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
+                    measuredValue: {name: "measuredValue", ID: 0x0000, type: Zcl.DataType.SINGLE_PREC, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1166,7 +1182,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.humidity(),
             m.pm25({reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 2}}),
             ikeaVoc(),
-            m.identify(),
         ],
         ota: true,
     },
@@ -1223,6 +1238,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery({voltage: true, voltageReporting: true}),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["VARMBLIXT table/wall lamp"],
+        model: "E2499",
+        vendor: "IKEA",
+        description: "VARMBLIXT table/wall lamp, color/white spectrum, 180 lm",
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"]}}), m.identify()],
     },
     // #endregion sensors
 ];

@@ -1,18 +1,108 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
-import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
-
-const NS = "zhc:smartthings";
+import * as globalStore from "../lib/store";
+import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
+import {centraliteExtend, fzLocal as fzCentralite, type ManuSpecificCentraliteHumidity} from "./centralite";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface SamsungAccelerometer {
+    attributes: {
+        motionThresholdMultiplier: number;
+        motionThreshold: number;
+        acceleration: number;
+        xAxis: number;
+        yAxis: number;
+        zAxis: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SmartThingsArrivalSensor {
+    attributes: never;
+    commands: never;
+    commandResponses: {
+        arrivalSensorNotify: Record<string, never>;
+    };
+}
+
+export const smartthingsExtend = {
+    addManuSpecificSamsungAccelerometerCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificSamsungAccelerometer", {
+            name: "manuSpecificSamsungAccelerometer",
+            ID: 0xfc02,
+            manufacturerCode: Zcl.ManufacturerCode.SMARTTHINGS_INC,
+            attributes: {
+                motionThresholdMultiplier: {name: "motionThresholdMultiplier", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                motionThreshold: {name: "motionThreshold", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                acceleration: {name: "acceleration", ID: 0x0010, type: Zcl.DataType.BITMAP8, write: true, max: 0xff},
+                xAxis: {name: "xAxis", ID: 0x0012, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                yAxis: {name: "yAxis", ID: 0x0013, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                zAxis: {name: "zAxis", ID: 0x0014, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addManuSpecificSmartThingsArrivalSensorCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificSmartThingsArrivalSensor", {
+            name: "manuSpecificSmartThingsArrivalSensor",
+            ID: 0xfc05,
+            manufacturerCode: Zcl.ManufacturerCode.SMARTTHINGS_INC,
+            attributes: {},
+            commands: {},
+            commandsResponse: {
+                arrivalSensorNotify: {name: "arrivalSensorNotify", ID: 0x01, parameters: []},
+            },
+        }),
+};
+
+export const fzLocal = {
+    acceleration: {
+        cluster: "manuSpecificSamsungAccelerometer",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValue = {};
+            if (msg.data.acceleration !== undefined) payload.moving = msg.data.acceleration === 1;
+
+            // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy#L222
+            /*
+                    The axes reported by the sensor are mapped differently in the SmartThings DTH.
+                    Preserving that functionality here.
+                    xyzResults.x = z
+                    xyzResults.y = y
+                    xyzResults.z = -x
+                */
+            if (msg.data.zAxis !== undefined) payload.x_axis = msg.data.zAxis;
+            if (msg.data.yAxis !== undefined) payload.y_axis = msg.data.yAxis;
+            if (msg.data.xAxis !== undefined) payload.z_axis = -msg.data.xAxis;
+
+            return payload;
+        },
+    } satisfies Fz.Converter<"manuSpecificSamsungAccelerometer", SamsungAccelerometer, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    PGC410EU_presence: {
+        cluster: "manuSpecificSmartThingsArrivalSensor",
+        type: "commandArrivalSensorNotify",
+        options: [exposes.options.presence_timeout()],
+        convert: (model, msg, publish, options, meta) => {
+            const useOptionsTimeout = options?.presence_timeout != null;
+            const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
+            // Stop existing timer because motion is detected and set a new one.
+            clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
+
+            const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+            globalStore.putValue(msg.endpoint, "timer", timer);
+            return {presence: true};
+        },
+    } satisfies Fz.Converter<"manuSpecificSmartThingsArrivalSensor", SmartThingsArrivalSensor, "commandArrivalSensorNotify">,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -59,7 +149,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "STSS-PRES-001",
         vendor: "SmartThings",
         description: "Presence sensor",
-        fromZigbee: [fz.PGC410EU_presence, fz.battery],
+        extend: [smartthingsExtend.addManuSpecificSmartThingsArrivalSensorCluster()],
+        fromZigbee: [fzLocal.PGC410EU_presence, fz.battery],
         exposes: [e.battery(), e.presence()],
         toZigbee: [],
     },
@@ -84,7 +175,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3321-S",
         vendor: "SmartThings",
         description: "Multi Sensor (2015 model)",
-        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1_report, fz.ias_contact_alarm_1, fz.battery, fz.smartthings_acceleration],
+        extend: [smartthingsExtend.addManuSpecificSamsungAccelerometerCluster()],
+        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1_report, fz.ias_contact_alarm_1, fz.battery, fzLocal.acceleration],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: "3V_2100"}},
         configure: async (device, coordinatorEndpoint) => {
@@ -93,13 +185,33 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg", "manuSpecificSamsungAccelerometer"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.MINUTE, 1);
+            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "acceleration",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
-            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer">("x_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "xAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadX, options);
-            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer">("y_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "yAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadY, options);
-            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer">("z_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "zAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadZ, options);
             // Has Unknown power source, force it.
             device.powerSource = "Battery";
@@ -270,7 +382,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "F-MLT-US-2",
         vendor: "SmartThings",
         description: "Multipurpose sensor (2016 model)",
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1, fz.smartthings_acceleration],
+        extend: [smartthingsExtend.addManuSpecificSamsungAccelerometerCluster()],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1, fzLocal.acceleration],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: "3V_1500_2800"}},
         configure: async (device, coordinatorEndpoint) => {
@@ -281,13 +394,33 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.write("manuSpecificSamsungAccelerometer", {2: {value: 0x0276, type: 0x21}}, options);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.MINUTE, 1);
+            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "acceleration",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
-            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer">("x_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "xAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadX, options);
-            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer">("y_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "yAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadY, options);
-            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer">("z_axis", 10, constants.repInterval.MINUTE, 1);
+            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "zAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadZ, options);
             // Has Unknown power source, force it.
             device.powerSource = "Battery";
@@ -300,7 +433,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IM6001-MPP01",
         vendor: "SmartThings",
         description: "Multipurpose sensor (2018 model)",
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1, fz.smartthings_acceleration],
+        extend: [smartthingsExtend.addManuSpecificSamsungAccelerometerCluster()],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1, fzLocal.acceleration],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -308,24 +442,20 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg", "manuSpecificSamsungAccelerometer"]);
             await endpoint.write("manuSpecificSamsungAccelerometer", {0: {value: 0x14, type: 0x20}}, options);
             await endpoint.write("genPollCtrl", {checkinInterval: 14400});
-            try {
-                await endpoint.write("genPollCtrl", {longPollInterval: 3600});
-            } catch (error) {
-                if ((error as Error).message.includes("READ_ONLY")) {
-                    logger.debug("Writing `longPollInterval` failed, ignoring...", NS);
-                } else {
-                    throw e;
-                }
-            }
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer">("acceleration", 10, constants.repInterval.HOUR, 5);
+            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "acceleration",
+                10,
+                constants.repInterval.HOUR,
+                5,
+            );
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
-            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer">("x_axis", 10, constants.repInterval.HOUR, 5);
+            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>("xAxis", 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadX, options);
-            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer">("y_axis", 10, constants.repInterval.HOUR, 5);
+            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>("yAxis", 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadY, options);
-            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer">("z_axis", 10, constants.repInterval.HOUR, 5);
+            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>("zAxis", 10, constants.repInterval.HOUR, 5);
             await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadZ, options);
         },
         exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],
@@ -335,7 +465,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3310-S",
         vendor: "SmartThings",
         description: "Temperature and humidity sensor",
-        fromZigbee: [fz.temperature, fz._3310_humidity, fz.battery],
+        extend: [centraliteExtend.addManuSpecificCentraliteHumidityCluster()],
+        fromZigbee: [fz.temperature, fzCentralite.d3310_humidity, fz.battery],
         exposes: [e.temperature(), e.humidity(), e.battery()],
         toZigbee: [],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
@@ -353,9 +484,13 @@ export const definitions: DefinitionWithExtend[] = [
                     reportableChange: 10,
                 },
             ];
-            await endpoint.configureReporting("manuSpecificCentraliteHumidity", payload, {
-                manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
-            });
+            await endpoint.configureReporting<"manuSpecificCentraliteHumidity", ManuSpecificCentraliteHumidity>(
+                "manuSpecificCentraliteHumidity",
+                payload,
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
+                },
+            );
 
             await reporting.batteryVoltage(endpoint);
         },
