@@ -1,6 +1,6 @@
 import * as fz from "../converters/fromZigbee";
-import * as m from "../lib/modernExtend";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz} from "../lib/types";
 
@@ -44,14 +44,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Audio Detector: Listens for the siren tone from a UL listed smoke detector in your home and sends signal to your Zigbee HUB",
         fromZigbee: [ffzb1BatteryFromZigbee],
         toZigbee: [],
-        extend: [
-            m.temperature(),
-            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
-        ],
-        exposes: [
-            e.battery(),
-            e.voltage(),
-        ],
+        extend: [m.temperature(), m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
+        exposes: [e.battery(), e.voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
@@ -66,12 +60,14 @@ export const definitions: DefinitionWithExtend[] = [
 
             try {
                 await endpoint.bind("genPowerCfg", coordinatorEndpoint);
-                await endpoint.configureReporting("genPowerCfg", [{
-                    attribute: "batteryVoltage",
-                    minimumReportInterval: 1800,
-                    maximumReportInterval: 3600,
-                    reportableChange: 1,
-                }]);
+                await endpoint.configureReporting("genPowerCfg", [
+                    {
+                        attribute: "batteryVoltage",
+                        minimumReportInterval: 1800,
+                        maximumReportInterval: 3600,
+                        reportableChange: 1,
+                    },
+                ]);
             } catch (_error) {
                 // Battery voltage reporting configuration may fail on some devices
             }
