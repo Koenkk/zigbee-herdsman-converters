@@ -412,28 +412,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "QA",
         description: "CCT light controller",
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, effect: false, doNotDisturb: false})],
-        toZigbee: [
-            {
-                key: ["state", "brightness"],
-                options: [],
-                convertSet: async (entity, key, value, meta) => {
-                    const {message} = meta;
-                    const brightness = message.brightness !== undefined ? Number(message.brightness) : undefined;
-                    const state = message.state !== undefined ? String(message.state).toLowerCase() : undefined;
-
-                    if (state === "off" || brightness === 0) {
-                        await entity.command("genOnOff", "off", {}, utils.getOptions(meta.mapped, entity));
-                        return {state: {state: "OFF", brightness: 0}};
-                    }
-
-                    // Delegate ON/brightness to default converter
-                    return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
-                },
-                convertGet: async (entity, key, meta) => {
-                    return await tz.light_onoff_brightness.convertGet(entity, key, meta);
-                },
-            },
-        ],
     },
     {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3218_kwht8j5m"]),
