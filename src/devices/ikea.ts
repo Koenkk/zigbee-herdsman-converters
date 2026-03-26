@@ -7,6 +7,7 @@ import {
     addCustomClusterManuSpecificIkeaUnknown,
     addCustomClusterManuSpecificIkeaVocIndexMeasurement,
     addCustomClusterTradfriButton,
+    addIkeaGenScenesCluster,
     ikeaAirPurifier,
     ikeaArrowClick,
     ikeaBattery,
@@ -666,7 +667,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3698674562
-        zigbeeModel: ["KAJPLATS E27 WS G95 clear 806lm"],
+        zigbeeModel: ["KAJPLATS E27 WS G95 clear 806lm", "KAJPLATS E27 806lm 95mm smart WS"],
         model: "LED2401G5",
         vendor: "IKEA",
         description: "KAJPLATS E27 bulb, white spectrum, globe, clear, 806 lm",
@@ -857,6 +858,13 @@ export const definitions: DefinitionWithExtend[] = [
             ]);
         },
     },
+    {
+        zigbeeModel: ["GRILLPLATS Plug\u0000", "GRILLPLATS Plug"],
+        model: "E2491",
+        vendor: "IKEA",
+        description: "GRILLPLATS smart plug",
+        extend: [m.onOff(), m.identify()],
+    },
     // #endregion on/off controls
     // #region blinds
     {
@@ -960,6 +968,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "TRADFRI remote control",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
+            addIkeaGenScenesCluster(),
             ikeaConfigureRemote(),
             m.identify({isSleepy: true}),
             tradfriCommandsOnOff(),
@@ -978,6 +987,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with buttons",
         extend: [
+            addIkeaGenScenesCluster(),
             m.battery({voltage: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
@@ -992,6 +1002,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "BILRESA remote control with scroll wheel",
         extend: [
+            addIkeaGenScenesCluster(),
             m.battery({voltage: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
@@ -1006,6 +1017,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "STYRBAR remote control",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
+            addIkeaGenScenesCluster(),
             ikeaConfigureStyrbar(),
             m.identify({isSleepy: true}),
             styrbarCommandOn(),
@@ -1226,6 +1238,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery({voltage: true, voltageReporting: true}),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["VARMBLIXT table/wall lamp"],
+        model: "E2499",
+        vendor: "IKEA",
+        description: "VARMBLIXT table/wall lamp, color/white spectrum, 180 lm",
+        extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"]}}), m.identify()],
     },
     // #endregion sensors
 ];

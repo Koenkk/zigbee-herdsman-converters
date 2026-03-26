@@ -2,7 +2,7 @@ import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
-import {type DevelcoGenBasic, develcoModernExtend} from "../lib/develco";
+import {type DevelcoGenBasic, type DevelcoSeMetering, develcoModernExtend} from "../lib/develco";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
@@ -33,17 +33,6 @@ const develcoLedControlMap = {
 // develco specific converters
 const develco = {
     fz: {
-        force_divisor_1000: {
-            cluster: "seMetering",
-            type: ["attributeReport"],
-            convert: (model, msg, publish, options, meta) => {
-                if (msg.data.divisor != null) {
-                    // Device sends wrong divisor (512) while it should be fixed to 1000
-                    // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
-                    msg.endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000, multiplier: 1});
-                }
-            },
-        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport"]>,
         // Some Develco devices report strange values sometimes
         // https://github.com/Koenkk/zigbee2mqtt/issues/13329
         electrical_measurement: {
@@ -52,20 +41,6 @@ const develco = {
                 if (!Number.isNaN(msg.data.rmsVoltage) && !Number.isNaN(msg.data.rmsCurrent) && !Number.isNaN(msg.data.activePower)) {
                     return fz.electrical_measurement.convert(model, msg, publish, options, meta);
                 }
-            },
-        } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
-        total_power: {
-            cluster: "haElectricalMeasurement",
-            type: ["attributeReport", "readResponse"],
-            convert: (model, msg, publish, options, meta) => {
-                const result: KeyValue = {};
-                if (msg.data.totalActivePower !== undefined && !Number.isNaN(msg.data.totalActivePower)) {
-                    result[utils.postfixWithEndpointName("power", msg, model, meta)] = msg.data.totalActivePower;
-                }
-                if (msg.data.totalReactivePower !== undefined && !Number.isNaN(msg.data.totalReactivePower)) {
-                    result[utils.postfixWithEndpointName("power_reactive", msg, model, meta)] = msg.data.totalReactivePower;
-                }
-                return result;
             },
         } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
         metering: {
@@ -87,7 +62,7 @@ const develco = {
 
                 return result;
             },
-        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+        } satisfies Fz.Converter<"seMetering", DevelcoSeMetering, ["attributeReport", "readResponse"]>,
         interface_mode: {
             cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
@@ -106,7 +81,7 @@ const develco = {
 
                 return result;
             },
-        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+        } satisfies Fz.Converter<"seMetering", DevelcoSeMetering, ["attributeReport", "readResponse"]>,
         fault_status: {
             cluster: "genBinaryInput",
             type: ["attributeReport", "readResponse"],
@@ -148,33 +123,78 @@ const develco = {
                 return state;
             },
         } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
+        fixInvalidMeteringValuesEmizb132: {
+            cluster: "seMetering",
+            type: ["attributeReport", "readResponse"],
+            // Data filtering for currentSummDelivered (energy)
+            convert: (model, msg, publish, options, meta) => {
+                const value = msg.data["currentSummDelivered"];
+                if (value === 0 || value === 0xffffffffffff || Number.isNaN(value)) {
+                    return;
+                }
+                return fz.metering.convert(model, msg, publish, options, meta);
+            },
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+        correctCurrentDivisorEmizb132: {
+            cluster: "haElectricalMeasurement",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const interfaceModeLookup: Record<string, {value: number; acCurrentDivisor: number}> = {
+                    norwegian_han: {value: 0x0200, acCurrentDivisor: 10},
+                    norwegian_han_extra_load: {value: 0x0201, acCurrentDivisor: 10},
+                    aidon_meter: {value: 0x0202, acCurrentDivisor: 10},
+                    kaifa_and_kamstrup: {value: 0x0203, acCurrentDivisor: 1000},
+                };
+                const result = fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValue;
+                logger.info(`EMIZB-132 RAW DATA: ${JSON.stringify(msg.data)}`, "zhc:develco");
+                if (result && typeof result === "object") {
+                    const currentMode = (meta.state?.interface_mode as string) || "norwegian_han";
+                    const divisor = interfaceModeLookup[currentMode]?.acCurrentDivisor || 100;
+                    const clusterDivisor = msg.data["acCurrentDivisor"];
+                    logger.info(
+                        `EMIZB-132 DEBUG: Base current: ${result.current}, Mode: ${currentMode}, Target Divisor: ${divisor}, CluserDivisor: ${clusterDivisor}`,
+                        "zhc:develco",
+                    );
+                    if (result.current !== undefined) {
+                        result.current = msg.data["rmsCurrent"] / divisor;
+                    }
+                    if (result.current_phase_b !== undefined) {
+                        result.current_phase_b = msg.data["rmsCurrentPhB"] / divisor;
+                    }
+                    if (result.current_phase_c !== undefined) {
+                        result.current_phase_c = msg.data["rmsCurrentPhC"] / divisor;
+                    }
+                }
+                return result;
+            },
+        } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
     },
     tz: {
         pulse_configuration: {
             key: ["pulse_configuration"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("seMetering", {develcoPulseConfiguration: value as number}, manufacturerOptions);
+                await entity.write<"seMetering", DevelcoSeMetering>("seMetering", {develcoPulseConfiguration: value as number}, manufacturerOptions);
                 return {state: {pulse_configuration: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("seMetering", ["develcoPulseConfiguration"], manufacturerOptions);
+                await entity.read<"seMetering", DevelcoSeMetering>("seMetering", ["develcoPulseConfiguration"], manufacturerOptions);
             },
         } satisfies Tz.Converter,
         interface_mode: {
             key: ["interface_mode"],
             convertSet: async (entity, key, value, meta) => {
                 const payload = {develcoInterfaceMode: utils.getKey(constants.develcoInterfaceMode, value, undefined, Number)};
-                await entity.write("seMetering", payload, manufacturerOptions);
+                await entity.write<"seMetering", DevelcoSeMetering>("seMetering", payload, manufacturerOptions);
                 return {state: {interface_mode: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("seMetering", ["develcoInterfaceMode"], manufacturerOptions);
+                await entity.read<"seMetering", DevelcoSeMetering>("seMetering", ["develcoInterfaceMode"], manufacturerOptions);
             },
         } satisfies Tz.Converter,
         current_summation: {
             key: ["current_summation"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("seMetering", {develcoCurrentSummation: value as number}, manufacturerOptions);
+                await entity.write<"seMetering", DevelcoSeMetering>("seMetering", {develcoCurrentSummation: value as number}, manufacturerOptions);
                 return {state: {current_summation: value}};
             },
         } satisfies Tz.Converter,
@@ -313,49 +333,37 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EMIZB-132",
         vendor: "Develco",
         description: "Wattle AMS HAN power-meter sensor",
-        fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, develco.fz.total_power, develco.fz.force_divisor_1000],
-        toZigbee: [tz.EMIZB_132_mode],
         ota: true,
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
-
-            try {
-                // Some don't support these attributes
-                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-621465038
-                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-                await reporting.rmsVoltage(endpoint);
-                await reporting.rmsCurrent(endpoint);
-                await endpoint.configureReporting(
-                    "haElectricalMeasurement",
-                    [{attribute: "totalActivePower", minimumReportInterval: 5, maximumReportInterval: 3600, reportableChange: 1}],
-                    manufacturerOptions,
-                );
-                await endpoint.configureReporting(
-                    "haElectricalMeasurement",
-                    [{attribute: "totalReactivePower", minimumReportInterval: 5, maximumReportInterval: 3600, reportableChange: 1}],
-                    manufacturerOptions,
-                );
-            } catch {
-                /* empty */
-            }
-
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000, multiplier: 1});
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.currentSummReceived(endpoint);
-        },
-        exposes: [
-            e.numeric("power", ea.STATE).withUnit("W").withDescription("Total active power"),
-            e.numeric("power_reactive", ea.STATE).withUnit("VAr").withDescription("Total reactive power"),
-            e.energy(),
-            e.current(),
-            e.voltage(),
-            e.current_phase_b(),
-            e.voltage_phase_b(),
-            e.current_phase_c(),
-            e.voltage_phase_c(),
+        extend: [
+            develcoModernExtend.emizb132DivisorInjector(),
+            develcoModernExtend.emizb132InterfaceMode(),
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            m.numeric<"haElectricalMeasurement", undefined>({
+                name: "power",
+                cluster: "haElectricalMeasurement",
+                attribute: "totalActivePower",
+                description: "Total active power.",
+                unit: "W",
+                access: "STATE_GET",
+            }),
+            m.numeric<"haElectricalMeasurement", undefined>({
+                name: "power_reactive",
+                cluster: "haElectricalMeasurement",
+                attribute: "totalReactivePower",
+                description: "Total reactive power.",
+                unit: "VAr",
+                access: "STATE_GET",
+            }),
+            m.electricityMeter({
+                power: false,
+                voltage: {divisor: 10},
+                current: {divisor: 10},
+                threePhase: true,
+                energy: {divisor: 1000, multiplier: 1},
+                fzMetering: develco.fz.fixInvalidMeteringValuesEmizb132, // avoid invalid values for currentSummDelivered (energy)
+                // fzElectricalMeasurement: develco.fz.correctCurrentDivisorEmizb132,
+            }),
         ],
     },
     {

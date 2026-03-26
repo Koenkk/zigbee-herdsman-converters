@@ -42,7 +42,7 @@ project.getSourceFiles().forEach((sourceFile) => {
                     }
                 }
 
-                if (modelID && manufacturerName && manufacturerName.includes("_T")) {
+                if (modelID && manufacturerName?.includes("_T")) {
                     if (!(modelID in lookup)) lookup[modelID] = new Set();
                     lookup[modelID].add(manufacturerName);
                 } else {
