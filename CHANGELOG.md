@@ -1,5 +1,22 @@
 # Changelog
 
+## [26.26.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.25.0...v26.26.0) (2026-03-25)
+
+
+### Features
+
+* **add:** 929004291601 ([#11792](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11792)) ([d1da269](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d1da269c5263ff08e7a9cae87a8f3a678ef98ffe))
+* **add:** EONE-BATB ([#11795](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11795)) ([b5d3ff1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b5d3ff18ab7d76e65dc88c6591abcd4a273340d8))
+* **add:** HS1SA-E-PLUS ([#11789](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11789)) ([107bff7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/107bff75dc1e124657240a82a540da2dd577a7db))
+* **add:** SOLIS01 ([#11783](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11783)) ([b3e1370](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b3e13705275c413196d596a6f0375ceb385c6eb4))
+* **add:** YNDX-00526, YNDX-00527, YNDX-00528, YNDX-00529 ([#11797](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11797)) ([c816c62](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c816c6239c8e62c87eebb465bcb21ce26322b727))
+
+
+### Bug Fixes
+
+* Fix disabled devices being polled https://github.com/Koenkk/zigbee2mqtt/issues/31470 ([8181b3f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8181b3fc6ff6f2a44ce9606cb06b722e0c2f86e7))
+* Sunricher SR-ZGP2801K4-DIM: add new fingerprints ([#11793](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11793)) ([90e50d4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/90e50d4972293ced1dcd2ee3226c96ac7bf20e7d))
+
 ## [26.25.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.24.0...v26.25.0) (2026-03-24)
 
 

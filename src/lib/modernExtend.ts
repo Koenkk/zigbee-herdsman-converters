@@ -675,8 +675,11 @@ export function poll(args: {
 
                 clearTimeout(globalStore.getValue(event.data.device.ieeeAddr, args.key));
 
-                if (seconds <= 0) {
-                    logger.debug(`Not polling '${args.key}' for '${event.data.device.ieeeAddr}' since poll interval is <= 0 (got ${seconds})`, NS);
+                if (seconds <= 0 || event.data.options.disabled) {
+                    logger.debug(
+                        `Not polling '${args.key}' for '${event.data.device.ieeeAddr}' since poll interval is <= 0 (got ${seconds}) or disabled`,
+                        NS,
+                    );
                 } else {
                     logger.debug(`Polling '${args.key}' for '${event.data.device.ieeeAddr}' at an interval of ${seconds}`, NS);
                     const setTimer = () => {
