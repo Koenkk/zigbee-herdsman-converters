@@ -27,6 +27,7 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: tuya.fingerprint("TS0207", ["_TZ3000_hgm6k8ku"]),
         zigbeeModel: ["CK-BL702-ROUTER-01(7018)"],
         model: "CK-BL702-ROUTER-01(7018)",
         vendor: "eWeLink",
@@ -34,7 +35,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         exposes: [],
-        whiteLabel: [tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr"])],
+        whiteLabel: [tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku"])],
     },
     {
         zigbeeModel: ["CK-BL702-MSW-01(7010)", "CK-BL702-MSW-01(7011)-1"],
@@ -172,10 +173,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Dooya Curtain",
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
                 ID: 0xef00,
                 attributes: {},
                 commands: {
                     protocolData: {
+                        name: "protocolData",
                         ID: 0,
                         parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                     },
@@ -218,10 +221,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Reax Curtain",
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
                 ID: 0xef00,
                 attributes: {},
                 commands: {
                     protocolData: {
+                        name: "protocolData",
                         ID: 0,
                         parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                     },
@@ -261,10 +266,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "AK Curtain",
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
                 ID: 0xef00,
                 attributes: {},
                 commands: {
                     protocolData: {
+                        name: "protocolData",
                         ID: 0,
                         parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                     },

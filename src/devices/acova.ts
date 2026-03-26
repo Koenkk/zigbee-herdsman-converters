@@ -1,6 +1,7 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
 
@@ -43,12 +44,13 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: [
-            "TAFFETAS2 D1.00P1.02Z1.00\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
-            "TAFFETAS2 D1.00P1.01Z1.00\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
             "PERCALE2 D1.00P1.01Z1.00",
             "PERCALE2 D1.00P1.02Z1.00",
             "PERCALE2 D1.00P1.03Z1.00",
+            "TAFFETAS2 D1.00P1.01Z1.00\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+            "TAFFETAS2 D1.00P1.02Z1.00\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
             "TAFFETAS2 D1.00P1.03Z1.00",
+            "TAFFETAS2 D1.00P1.63Z1.19",
         ],
         model: "TAFFETAS2/PERCALE2",
         vendor: "Acova",
@@ -85,5 +87,18 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatTemperatureCalibration(endpoint);
             await reporting.occupancy(endpoint2);
         },
+    },
+    {
+        zigbeeModel: ["IHC-Enki"],
+        model: "IHC-Enki",
+        vendor: "Acova",
+        description: "Acova Madras IHC towel radiator (Zigbee thermostat)",
+        extend: [
+            m.thermostat({
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 30, step: 0.5}}},
+                localTemperatureCalibration: {values: {min: -5, max: 5, step: 0.1}},
+                systemMode: {values: ["off", "heat", "auto"]},
+            }),
+        ],
     },
 ];

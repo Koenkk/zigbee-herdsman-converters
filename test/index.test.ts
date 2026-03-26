@@ -2,14 +2,7 @@ import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
 import {describe, expect, it, vi} from "vitest";
-import {
-    addExternalDefinition,
-    type Definition,
-    findByDevice,
-    getConfigureKey,
-    postProcessConvertedFromZigbeeMessage,
-    removeExternalDefinitions,
-} from "../src/index";
+import {addExternalDefinition, findByDevice, postProcessConvertedFromZigbeeMessage, removeExternalDefinitions} from "../src/index";
 import {access, Composite, Enum, List, Numeric, presets} from "../src/lib/exposes";
 import {mockDevice} from "./utils";
 
@@ -111,33 +104,27 @@ describe("ZHC", () => {
                 modelID: "TS011F",
                 manufacturerName: "_TZ3000_vzopcetz",
                 endpoints: [],
-            },
-            "Router",
-            {
                 applicationVersion: 69,
             },
+            "Router",
         );
         const device2 = mockDevice(
             {
                 modelID: "TS011F",
                 manufacturerName: "_TZ3000_vzopcetz_random",
                 endpoints: [],
-            },
-            "Router",
-            {
                 applicationVersion: 69,
             },
+            "Router",
         );
         const device3 = mockDevice(
             {
                 modelID: "TS011F",
                 manufacturerName: "_TZ3000_vzopcetz_random",
                 endpoints: [],
-            },
-            "Router",
-            {
                 applicationVersion: 1,
             },
+            "Router",
         );
         const definition1 = await findByDevice(device1);
         const definition2 = await findByDevice(device2);
@@ -158,11 +145,9 @@ describe("ZHC", () => {
                     {ID: 1, profileID: 49246, deviceID: 544, inputClusterIDs: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusterIDs: [25]},
                     {ID: 242, profileID: 41440, deviceID: 102, inputClusterIDs: [33], outputClusterIDs: [33]},
                 ],
-            },
-            "Router",
-            {
                 powerSource: "Mains (single phase)",
             },
+            "Router",
         );
         const device2 = mockDevice(
             {
@@ -170,11 +155,9 @@ describe("ZHC", () => {
                 manufacturerID: 9999,
                 manufacturerName: "SunRicher",
                 endpoints: [],
-            },
-            "Router",
-            {
                 powerSource: "Mains (single phase)",
             },
+            "Router",
         );
         const definition1 = await findByDevice(device1);
         const definition2 = await findByDevice(device2);
@@ -191,11 +174,9 @@ describe("ZHC", () => {
                 manufacturerID: 0,
                 manufacturerName: "eWeLink",
                 endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusterIDs: [0, 3, 1280, 1], outputClusterIDs: [3]}],
-            },
-            "EndDevice",
-            {
                 powerSource: "Battery",
             },
+            "EndDevice",
         );
         const definition1 = await findByDevice(device1);
         const device2 = mockDevice(
@@ -204,11 +185,9 @@ describe("ZHC", () => {
                 manufacturerID: 0,
                 manufacturerName: "eWeLink",
                 endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusterIDs: [0, 3, 1026, 1029, 1], outputClusterIDs: [3]}],
-            },
-            "EndDevice",
-            {
                 powerSource: "Battery",
             },
+            "EndDevice",
         );
         const definition2 = await findByDevice(device2);
 
@@ -237,11 +216,9 @@ describe("ZHC", () => {
                 modelID: "TS011F",
                 endpoints: [],
                 manufacturerName: "_TZ3000_cehuw1lw",
-            },
-            "Router",
-            {
                 softwareBuildID: "1.0.5\u0000",
             },
+            "Router",
         );
         const definition = await findByDevice(device);
 
@@ -269,11 +246,9 @@ describe("ZHC", () => {
             {
                 modelID: "GreenPower_7",
                 endpoints: [{ID: 242, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
-            },
-            "GreenPower",
-            {
                 ieeeAddr: "0x0000000001511223",
             },
+            "GreenPower",
         );
         const definition = await findByDevice(device);
 
@@ -311,11 +286,9 @@ describe("ZHC", () => {
             {
                 modelID: "GreenPower_2",
                 endpoints: [{ID: 242, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
-            },
-            "GreenPower",
-            {
                 ieeeAddr: "0x0000000052373160",
             },
+            "GreenPower",
         );
 
         const definition = await findByDevice(device, true);
@@ -489,48 +462,6 @@ describe("ZHC", () => {
         expect(expected).toStrictEqual(JSON.parse(JSON.stringify(actual)));
     });
 
-    describe("configure key", () => {
-        const mockDefinition = (configure: Definition["configure"]): Definition => ({
-            zigbeeModel: ["abcd"],
-            model: "abcd",
-            vendor: "efg",
-            description: "abcd efg",
-            fromZigbee: [],
-            toZigbee: [],
-            exposes: [],
-            configure,
-        });
-
-        it("calculates", () => {
-            expect(
-                getConfigureKey(
-                    mockDefinition(() => {
-                        console.log("hello world");
-                        console.log("bye world");
-                    }),
-                ),
-            ).toStrictEqual(1320643662);
-        });
-
-        it("calculates diff", () => {
-            expect(
-                getConfigureKey(
-                    mockDefinition(() => {
-                        console.log("hello world");
-                        console.log("bye world");
-                    }),
-                ),
-            ).not.toStrictEqual(
-                getConfigureKey(
-                    mockDefinition(() => {
-                        console.log("hello world");
-                        console.log("bye mars");
-                    }),
-                ),
-            );
-        });
-    });
-
     it("verifies options filter", async () => {
         const ZNCLDJ12LM = await findByDevice(mockDevice({modelID: "lumi.curtain.hagl04", endpoints: []}));
         expect(ZNCLDJ12LM.options.length).toBe(1);
@@ -572,6 +503,7 @@ describe("ZHC", () => {
             "voltage_precision",
             "energy_calibration",
             "energy_precision",
+            "identify_timeout",
             "state_action",
         ]);
         const payload3 = {current: 0.0585};

@@ -32,6 +32,12 @@ export const thermostatProgrammingOperationModes: KeyValueNumberString = {
     4: "eco",
 };
 
+export const thermostatSetpointChangeSource: KeyValueNumberString = {
+    0: "manual",
+    1: "schedule",
+    2: "externally",
+};
+
 export const thermostatSystemModes: KeyValueNumberString = {
     0: "off",
     1: "auto",
@@ -126,6 +132,7 @@ export const danfossAdaptionRunStatus: KeyValueNumberString = {
     1: "in_progress",
     2: "found",
     4: "lost",
+    5: "lost_in_progress",
 };
 
 export const danfossAdaptionRunControl: KeyValueNumberString = {
