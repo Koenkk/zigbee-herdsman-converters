@@ -4643,43 +4643,6 @@ export const stelpro_thermostat: Fz.Converter<"hvacThermostat", undefined, ["att
         return result;
     },
 };
-export const viessmann_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
-
-        if (result) {
-            // ViessMann TRVs report piHeatingDemand from 0-5
-            // NOTE: remove the result for now, but leave it configure for reporting
-            //       it will show up in the debug log still to help try and figure out
-            //       what this value potentially means.
-            delete result.pi_heating_demand;
-
-            // viessmannWindowOpenInternal
-            // 0-2, 5: unknown
-            // 3: window open (OO on display, no heating)
-            // 4: window open (OO on display, heating)
-            if (msg.data.viessmannWindowOpenInternal !== undefined) {
-                result.window_open = msg.data.viessmannWindowOpenInternal === 3 || msg.data.viessmannWindowOpenInternal === 4;
-            }
-
-            // viessmannWindowOpenForce (rw, bool)
-            if (msg.data.viessmannWindowOpenForce !== undefined) {
-                result.window_open_force = msg.data.viessmannWindowOpenForce === 1;
-            }
-
-            // viessmannAssemblyMode (ro, bool)
-            // 0: TRV installed
-            // 1: TRV ready to install (-- on display)
-            if (msg.data.viessmannAssemblyMode !== undefined) {
-                result.assembly_mode = msg.data.viessmannAssemblyMode === 1;
-            }
-        }
-
-        return result;
-    },
-};
 export const eurotronic_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacThermostat",
     type: ["attributeReport", "readResponse"],
