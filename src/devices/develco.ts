@@ -2,7 +2,7 @@ import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
-import {type DevelcoGenBasic, type DevelcoSeMetering, develcoModernExtend} from "../lib/develco";
+import {type DevelcoGenBasic, type DevelcoIasZone, type DevelcoSeMetering, develcoModernExtend} from "../lib/develco";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
@@ -122,7 +122,7 @@ const develco = {
 
                 return state;
             },
-        } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
+        } satisfies Fz.Converter<"ssIasZone", DevelcoIasZone, ["attributeReport", "readResponse"]>,
         fixInvalidMeteringValuesEmizb132: {
             cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
@@ -656,6 +656,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoIasZone(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             // Prevent excessive reports
             // https://github.com/Koenkk/zigbee-herdsman-converters/pull/10081
@@ -717,6 +718,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoIasZone(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
             m.illuminance({reporting: {min: 60, max: 3600, change: 500}}),
