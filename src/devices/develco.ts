@@ -217,11 +217,11 @@ const develco = {
                     logger.warning(`Minimum occupancy_timeout is 5, using 5 instead of ${timeoutValue}!`, NS);
                     timeoutValue = 5;
                 }
-                await entity.write("ssIasZone", {develcoAlarmOffDelay: timeoutValue}, manufacturerOptions);
+                await entity.write<"ssIasZone", DevelcoIasZone>("ssIasZone", {develcoAlarmOffDelay: timeoutValue}, manufacturerOptions);
                 return {state: {occupancy_timeout: timeoutValue}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
+                await entity.read<"ssIasZone", DevelcoIasZone>("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
             },
         } satisfies Tz.Converter,
     },
