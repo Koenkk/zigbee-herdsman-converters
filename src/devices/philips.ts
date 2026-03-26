@@ -752,9 +752,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290035842",
         vendor: "Philips",
         description: "Garnea White Ambience Downlight",
-        whiteLabel: [
-            {model: "929003123801", vendor: "Philips", description: "Garnea White Ambience Downlight", fingerprint: [{modelID: "LTD020"}]},
-        ],
+        whiteLabel: [{model: "929003123801", vendor: "Philips", description: "Garnea White Ambience Downlight", fingerprint: [{modelID: "LTD020"}]}],
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
