@@ -25407,6 +25407,7 @@ export const definitions: DefinitionWithExtend[] = [
                             // to remain in the mode it was (and it is, even while off)
                             meta.state.system_mode = v === true ? (meta.state.system_mode_device ?? "fan_only") : "off";
                             delete meta.state.state;
+                            return null;
                         },
                     },
                 ],
