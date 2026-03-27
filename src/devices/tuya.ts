@@ -23385,9 +23385,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("x")
                 .withDescription("Motion detection sensitivity"),
             e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator mode"),
-            e
-                .binary("anti_interference", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Anti interference function"),   
+            e.binary("anti_interference", ea.STATE_SET, "ON", "OFF").withDescription("Anti interference function"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -25754,229 +25752,200 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-    zigbeeModel: ["ZG-226Z"],
-    model: "ZG-226Z",
-    vendor: "HOBEIAN",
-    description: "Water Leak Alarm",
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-    configure: tuya.configureMagicPacket,
-    exposes: [
-      e.water_leak(),
-      e
-        .binary("alarm", ea.STATE_SET, "ON", "OFF")
-        .withDescription("Audible and visual alarm"),
-      e
-        .binary("muffling", ea.STATE_SET, "ON", "OFF")
-        .withDescription("Stop alarm"),
-      e
-        .numeric("alarm_time", ea.STATE_SET)
-        .withValueMin(0)
-        .withValueMax(1800)
-        .withValueStep(1)
-        .withUnit("s")
-        .withDescription("Alarm sounding time"),  
-      e
-        .enum("alarm_volume",ea.STATE_SET, ["low", "middle", "high", "mute"])
-        .withDescription("Alarm Volume"),
-      e
-        .enum("alarm_ring",ea.STATE_SET, ["mute", "beep", "music"])
-        .withDescription("Alarm Volume"),
-          
-      e.battery(),
-    ],
-    meta: {
-      tuyaDatapoints: [
-        [1, "water_leak", tuya.valueConverter.trueFalse0],
-        [101, "alarm", tuya.valueConverter.onOff],
-        [7, "muffling", tuya.valueConverter.onOff],
-        [4, "battery", tuya.valueConverter.raw],
-        [102, "alarm_time", tuya.valueConverter.raw],
-        [
-          104,
-          "alarm_volume",
-          tuya.valueConverterBasic.lookup({
-            low: tuya.enum(0),
-            middle: tuya.enum(1),
-            high: tuya.enum(2),
-            mute: tuya.enum(3),
-          }),
+        zigbeeModel: ["ZG-226Z"],
+        model: "ZG-226Z",
+        vendor: "HOBEIAN",
+        description: "Water Leak Alarm",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.water_leak(),
+            e.binary("alarm", ea.STATE_SET, "ON", "OFF").withDescription("Audible and visual alarm"),
+            e.binary("muffling", ea.STATE_SET, "ON", "OFF").withDescription("Stop alarm"),
+            e
+                .numeric("alarm_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(1800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Alarm sounding time"),
+            e.enum("alarm_volume", ea.STATE_SET, ["low", "middle", "high", "mute"]).withDescription("Alarm Volume"),
+            e.enum("alarm_ring", ea.STATE_SET, ["mute", "beep", "music"]).withDescription("Alarm Volume"),
+
+            e.battery(),
         ],
-        [
-          103,
-          "alarm_ring",
-          tuya.valueConverterBasic.lookup({
-            mute: tuya.enum(0),
-            beep: tuya.enum(1),
-            music: tuya.enum(2),
-          }),
-        ],
-       
-      ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "water_leak", tuya.valueConverter.trueFalse0],
+                [101, "alarm", tuya.valueConverter.onOff],
+                [7, "muffling", tuya.valueConverter.onOff],
+                [4, "battery", tuya.valueConverter.raw],
+                [102, "alarm_time", tuya.valueConverter.raw],
+                [
+                    104,
+                    "alarm_volume",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        middle: tuya.enum(1),
+                        high: tuya.enum(2),
+                        mute: tuya.enum(3),
+                    }),
+                ],
+                [
+                    103,
+                    "alarm_ring",
+                    tuya.valueConverterBasic.lookup({
+                        mute: tuya.enum(0),
+                        beep: tuya.enum(1),
+                        music: tuya.enum(2),
+                    }),
+                ],
+            ],
+        },
     },
-  },
-{
-    zigbeeModel: ["ZG-228Z"],
-    model: "ZG-228Z",
-    vendor: "HOBEIAN",
-    description: "Vibration alarm",
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-    configure: tuya.configureMagicPacket,
-    exposes: [
-      e.vibration(),
-      e
-        .enum("vibration_siren",ea.STATE_SET, ["OFF", "ON"])
-        .withDescription("Vibration"),
-      e
-        .enum("alarm",ea.STATE_SET, ["beep", "ring","stop"])
-        .withDescription("Initiatively trigger an alarm"),
-      e
-        .binary("muffling", ea.STATE_SET, "ON", "OFF")
-        .withDescription("Stop alarm"),
-      e
-        .numeric("alarm_time", ea.STATE_SET)
-        .withValueMin(0)
-        .withValueMax(1800)
-        .withValueStep(1)
-        .withUnit("s")
-        .withDescription("Alarm sounding time"),  
-      e
-        .enum("alarm_volume",ea.STATE_SET, ["low", "middle", "high", "mute"])
-        .withDescription("Alarm volume"),
-      e
-        .enum("alarm_ring",ea.STATE_SET, ["mute", "beep", "music"])
-        .withDescription("Alarm ring"),
-      e
-        .numeric("sensitivity", ea.STATE_SET)
-        .withValueMin(1)
-        .withValueMax(50)
-        .withValueStep(1)
-        .withUnit("x")
-        .withDescription("The larger the value, the more sensitive it is (refresh and update only while active)"),     
-      e.battery(),
-    ],
-    meta: {
-      tuyaDatapoints: [
-        [1, "vibration", tuya.valueConverter.trueFalse1],
-        [
-          101,
-          "vibration_siren",
-          tuya.valueConverterBasic.lookup({
-            OFF: tuya.enum(0),
-            ON: tuya.enum(1),
-          }),
+    {
+        zigbeeModel: ["ZG-228Z"],
+        model: "ZG-228Z",
+        vendor: "HOBEIAN",
+        description: "Vibration alarm",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.vibration(),
+            e.enum("vibration_siren", ea.STATE_SET, ["OFF", "ON"]).withDescription("Vibration"),
+            e.enum("alarm", ea.STATE_SET, ["beep", "ring", "stop"]).withDescription("Initiatively trigger an alarm"),
+            e.binary("muffling", ea.STATE_SET, "ON", "OFF").withDescription("Stop alarm"),
+            e
+                .numeric("alarm_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(1800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Alarm sounding time"),
+            e.enum("alarm_volume", ea.STATE_SET, ["low", "middle", "high", "mute"]).withDescription("Alarm volume"),
+            e.enum("alarm_ring", ea.STATE_SET, ["mute", "beep", "music"]).withDescription("Alarm ring"),
+            e
+                .numeric("sensitivity", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(50)
+                .withValueStep(1)
+                .withUnit("x")
+                .withDescription("The larger the value, the more sensitive it is (refresh and update only while active)"),
+            e.battery(),
         ],
-        [
-          105,
-          "alarm",
-          tuya.valueConverterBasic.lookup({
-            beep: tuya.enum(0),
-            ring: tuya.enum(1),
-            stop: tuya.enum(2),
-          }),
-        ],
-        [102, "muffling", tuya.valueConverter.onOff],
-        [4, "battery", tuya.valueConverter.raw],
-        [106, "alarm_time", tuya.valueConverter.raw],
-        [6, "sensitivity", tuya.valueConverter.raw],
-        [
-          103,
-          "alarm_volume",
-          tuya.valueConverterBasic.lookup({
-            low: tuya.enum(0),
-            middle: tuya.enum(1),
-            high: tuya.enum(2),
-            mute: tuya.enum(3),
-          }),
-        ],
-        [
-          104,
-          "alarm_ring",
-          tuya.valueConverterBasic.lookup({
-            mute: tuya.enum(0),
-            beep: tuya.enum(1),
-            music: tuya.enum(2),
-          }),
-        ],
-       
-      ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "vibration", tuya.valueConverter.trueFalse1],
+                [
+                    101,
+                    "vibration_siren",
+                    tuya.valueConverterBasic.lookup({
+                        OFF: tuya.enum(0),
+                        ON: tuya.enum(1),
+                    }),
+                ],
+                [
+                    105,
+                    "alarm",
+                    tuya.valueConverterBasic.lookup({
+                        beep: tuya.enum(0),
+                        ring: tuya.enum(1),
+                        stop: tuya.enum(2),
+                    }),
+                ],
+                [102, "muffling", tuya.valueConverter.onOff],
+                [4, "battery", tuya.valueConverter.raw],
+                [106, "alarm_time", tuya.valueConverter.raw],
+                [6, "sensitivity", tuya.valueConverter.raw],
+                [
+                    103,
+                    "alarm_volume",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        middle: tuya.enum(1),
+                        high: tuya.enum(2),
+                        mute: tuya.enum(3),
+                    }),
+                ],
+                [
+                    104,
+                    "alarm_ring",
+                    tuya.valueConverterBasic.lookup({
+                        mute: tuya.enum(0),
+                        beep: tuya.enum(1),
+                        music: tuya.enum(2),
+                    }),
+                ],
+            ],
+        },
     },
-  },
-  {
-    zigbeeModel: ["ZG-229Z"],
-    model: "ZG-229Z",
-    vendor: "HOBEIAN",
-    description: "Smart light & sound siren",
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-    configure: tuya.configureMagicPacket,
-    exposes: [
-      e
-        .enum("alarm",ea.STATE_SET, ["alarm_sound", "alarm_light", "alarm_sound_light", "normal"])
-        .withDescription("Initiatively trigger an alarm"),
-      e
-        .binary("doorbell", ea.STATE_SET, "ON", "OFF")
-        .withDescription("Doorbell"),  
-      e
-        .binary("muffling", ea.STATE_SET, "ON", "OFF")
-        .withDescription("Stop alarm"),
-      e
-        .numeric("alarm_time", ea.STATE_SET)
-        .withValueMin(0)
-        .withValueMax(1800)
-        .withValueStep(1)
-        .withUnit("s")
-        .withDescription("Alarm sounding time"),  
-      e
-        .enum("alarm_volume",ea.STATE_SET, ["low", "middle", "high", "mute"])
-        .withDescription("Alarm volume"),
-      e
-        .enum("doorbell_volume",ea.STATE_SET, ["low", "middle", "high", "mute"])
-        .withDescription("Doorbell volume"),
-      e.battery(),
-    ],
-    meta: {
-      tuyaDatapoints: [
-        [
-          1,
-          "alarm",
-          tuya.valueConverterBasic.lookup({
-            alarm_sound: tuya.enum(0),
-            alarm_light: tuya.enum(1),
-            alarm_sound_light: tuya.enum(2),
-            normal: tuya.enum(3),
-          }),
+    {
+        zigbeeModel: ["ZG-229Z"],
+        model: "ZG-229Z",
+        vendor: "HOBEIAN",
+        description: "Smart light & sound siren",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e
+                .enum("alarm", ea.STATE_SET, ["alarm_sound", "alarm_light", "alarm_sound_light", "normal"])
+                .withDescription("Initiatively trigger an alarm"),
+            e.binary("doorbell", ea.STATE_SET, "ON", "OFF").withDescription("Doorbell"),
+            e.binary("muffling", ea.STATE_SET, "ON", "OFF").withDescription("Stop alarm"),
+            e
+                .numeric("alarm_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(1800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Alarm sounding time"),
+            e.enum("alarm_volume", ea.STATE_SET, ["low", "middle", "high", "mute"]).withDescription("Alarm volume"),
+            e.enum("doorbell_volume", ea.STATE_SET, ["low", "middle", "high", "mute"]).withDescription("Doorbell volume"),
+            e.battery(),
         ],
-        [102, "doorbell", tuya.valueConverter.onOff],
-        [16, "muffling", tuya.valueConverter.onOff],
-        [15, "battery", tuya.valueConverter.raw],
-        [7, "alarm_time", tuya.valueConverter.raw],
-        [
-          5,
-          "alarm_volume",
-          tuya.valueConverterBasic.lookup({
-            low: tuya.enum(0),
-            middle: tuya.enum(1),
-            high: tuya.enum(2),
-            mute: tuya.enum(3),
-          }),
-        ],
-        [
-          101,
-          "doorbell_volume",
-          tuya.valueConverterBasic.lookup({
-            low: tuya.enum(0),
-            middle: tuya.enum(1),
-            high: tuya.enum(2),
-            mute: tuya.enum(3),
-          }),
-        ],
-       
-      ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "alarm",
+                    tuya.valueConverterBasic.lookup({
+                        alarm_sound: tuya.enum(0),
+                        alarm_light: tuya.enum(1),
+                        alarm_sound_light: tuya.enum(2),
+                        normal: tuya.enum(3),
+                    }),
+                ],
+                [102, "doorbell", tuya.valueConverter.onOff],
+                [16, "muffling", tuya.valueConverter.onOff],
+                [15, "battery", tuya.valueConverter.raw],
+                [7, "alarm_time", tuya.valueConverter.raw],
+                [
+                    5,
+                    "alarm_volume",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        middle: tuya.enum(1),
+                        high: tuya.enum(2),
+                        mute: tuya.enum(3),
+                    }),
+                ],
+                [
+                    101,
+                    "doorbell_volume",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        middle: tuya.enum(1),
+                        high: tuya.enum(2),
+                        mute: tuya.enum(3),
+                    }),
+                ],
+            ],
+        },
     },
-  },
-  {
+    {
         zigbeeModel: ["ZG-204ZX"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_w0ap83qu"]),
         model: "ZG-204ZX",
@@ -26021,7 +25990,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(10)
                 .withValueStep(1)
                 .withUnit("x")
-                .withDescription("Motion detection sensitivity"),    
+                .withDescription("Motion detection sensitivity"),
             e
                 .numeric("static_detection_sensitivity", ea.STATE_SET)
                 .withValueMin(0)
@@ -26029,11 +25998,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("x")
                 .withDescription("Static detection sensitivity"),
-           e
-                .binary("anti_interference", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Anti interference function"),   
-            
-
+            e.binary("anti_interference", ea.STATE_SET, "ON", "OFF").withDescription("Anti interference function"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -26052,7 +26017,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [105, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
                 [104, "humidity_calibration", tuya.valueConverter.localTempCalibration2],
                 [107, "illuminance_interval", tuya.valueConverter.raw],
-                
             ],
         },
     },
