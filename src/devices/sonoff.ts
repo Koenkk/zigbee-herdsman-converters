@@ -87,6 +87,26 @@ interface SonoffSnzb02dr2 {
     commandResponses: never;
 }
 
+interface SonoffSnzb02b {
+    attributes: {
+        hotThreshold: number;
+        coldThreshold: number;
+        dryThreshold: number;
+        dampThreshold: number;
+        temperatureCalibration: number;
+        humidityCalibration: number;
+        temperatureMaxInHour: number;
+        temperatureMinInHour: number;
+        temperatureAverInHour: number;
+        humidityMaxInHour: number;
+        humidityMinInHour: number;
+        humidityAverInHour: number;
+        tempAndHumiHalfHourReport: number[];
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface SonoffTrvzb {
     attributes: {
         childLock: number;
@@ -3341,6 +3361,384 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
+    comfortTemperatureSettings: (): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+        const exposes = e
+            .composite("comfort_temperature_settings", "comfort_temperature_settings", ea.STATE_SET)
+            .withDescription("Hot and cold temperature thresholds")
+            .withFeature(
+                e
+                    .numeric("cold_threshold", ea.SET)
+                    .withDescription(
+                        "Minimum temperature that is considered comfortable. Note: wake up the device by pressing the button on the back before changing this value.",
+                    )
+                    .withValueMin(-10)
+                    .withValueMax(60)
+                    .withValueStep(0.1)
+                    .withUnit("°C")
+                    .withLabel("Min comfort temperature"),
+            )
+            .withFeature(
+                e
+                    .numeric("hot_threshold", ea.SET)
+                    .withDescription(
+                        "Maximum temperature that is considered comfortable. Note: wake up the device by pressing the button on the back before changing this value.",
+                    )
+                    .withValueMin(-10)
+                    .withValueMax(60)
+                    .withValueStep(0.1)
+                    .withUnit("°C")
+                    .withLabel("Max comfort temperature"),
+            )
+            .withCategory("config");
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSnzb02b, ["readResponse", "attributeReport"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["readResponse", "attributeReport"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!Object.hasOwn(msg.data, "hotThreshold") && !Object.hasOwn(msg.data, "coldThreshold")) {
+                        return;
+                    }
+
+                    const comfort_temperature_settings: KeyValue = {};
+                    if (Object.hasOwn(msg.data, "hotThreshold")) {
+                        comfort_temperature_settings.hot_threshold = msg.data.hotThreshold / 100;
+                    }
+                    if (Object.hasOwn(msg.data, "coldThreshold")) {
+                        comfort_temperature_settings.cold_threshold = msg.data.coldThreshold / 100;
+                    }
+                    return {
+                        comfort_temperature_settings,
+                    };
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["comfort_temperature_settings"],
+                convertSet: async (entity, key, value, meta): Promise<object> => {
+                    logger.info(`value ${key},====msg${JSON.stringify(value)}`, NS);
+                    utils.assertObject<Record<string, number>>(value, key);
+                    for (const [attrName, attrValue] of Object.entries(value)) {
+                        utils.assertNumber(attrValue, attrName);
+                        const attributeKey =
+                            attrName === "cold_threshold" ? "coldThreshold" : attrName === "hot_threshold" ? "hotThreshold" : undefined;
+                        if (!attributeKey) {
+                            throw new Error(`Unsupported comfort temperature attribute '${attrName}'`);
+                        }
+                        const attributes = {[attributeKey]: attrValue * 100} as Partial<SonoffSnzb02b["attributes"]>;
+                        await entity.write<"customClusterEwelink", SonoffSnzb02b>(clusterName, attributes, utils.getOptions(meta.mapped, entity));
+                    }
+                    return {
+                        state: {[key]: value},
+                    };
+                },
+            },
+        ];
+        return {
+            exposes: [exposes],
+            toZigbee,
+            fromZigbee,
+            isModernExtend: true,
+        };
+    },
+    comfortHumiditySettings: (): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+        const exposes = e
+            .composite("comfort_humidity_settings", "comfort_humidity_settings", ea.STATE_SET)
+            .withDescription("Dry and damp humidity thresholds")
+            .withFeature(
+                e
+                    .numeric("dry_threshold", ea.SET)
+                    .withDescription(
+                        "Minimum relative humidity that is considered comfortable. Note: wake up the device by pressing the button on the back before changing this value.",
+                    )
+                    .withValueMin(5)
+                    .withValueMax(95)
+                    .withValueStep(0.1)
+                    .withUnit("%")
+                    .withLabel("Min comfort humidity"),
+            )
+            .withFeature(
+                e
+                    .numeric("damp_threshold", ea.SET)
+                    .withDescription(
+                        "Maximum relative humidity that is considered comfortable. Note: wake up the device by pressing the button on the back before changing this value.",
+                    )
+                    .withValueMin(5)
+                    .withValueMax(95)
+                    .withValueStep(0.1)
+                    .withUnit("%")
+                    .withLabel("Max comfort humidity"),
+            )
+            .withCategory("config");
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSnzb02b, ["readResponse", "attributeReport"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["readResponse", "attributeReport"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!Object.hasOwn(msg.data, "dryThreshold") && !Object.hasOwn(msg.data, "dampThreshold")) {
+                        return;
+                    }
+
+                    const comfort_humidity_settings: KeyValue = {};
+                    if (Object.hasOwn(msg.data, "dryThreshold")) {
+                        comfort_humidity_settings.dry_threshold = msg.data.dryThreshold / 100;
+                    }
+                    if (Object.hasOwn(msg.data, "dampThreshold")) {
+                        comfort_humidity_settings.damp_threshold = msg.data.dampThreshold / 100;
+                    }
+                    return {
+                        comfort_humidity_settings,
+                    };
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["comfort_humidity_settings"],
+                convertSet: async (entity, key, value, meta): Promise<object> => {
+                    logger.info(`value ${key},====msg${JSON.stringify(value)}`, NS);
+                    utils.assertObject<Record<string, number>>(value, key);
+                    for (const [attrName, attrValue] of Object.entries(value)) {
+                        utils.assertNumber(attrValue, attrName);
+                        const attributeKey =
+                            attrName === "damp_threshold" ? "dampThreshold" : attrName === "dry_threshold" ? "dryThreshold" : undefined;
+                        if (!attributeKey) {
+                            throw new Error(`Unsupported comfort humidity attribute '${attrName}'`);
+                        }
+                        logger.info(`attribute name ${attrName},value ${attrValue * 100}`, NS);
+                        const attributes = {[attributeKey]: attrValue * 100} as Partial<SonoffSnzb02b["attributes"]>;
+                        await entity.write<"customClusterEwelink", SonoffSnzb02b>(clusterName, attributes, utils.getOptions(meta.mapped, entity));
+                    }
+                    return {
+                        state: {[key]: value},
+                    };
+                },
+            },
+        ];
+        return {
+            exposes: [exposes],
+            toZigbee,
+            fromZigbee,
+            isModernExtend: true,
+        };
+    },
+    reportSettings: (clusterName: string | number, attribute: string | number, label: string, rawScale = 1, changeUnit?: string): ModernExtend => {
+        const property = `${label}_report_settings`;
+        const expose = e
+            .composite(property, property, ea.ALL)
+            .withDescription(
+                `Configure the reporting interval and change threshold for ${label}. Press the button on the device before changing these settings.`,
+            )
+            .withFeature(e.numeric("min", ea.ALL).withDescription("Minimum reporting interval").withUnit("s"))
+            .withFeature(e.numeric("max", ea.ALL).withDescription("Maximum reporting interval").withUnit("s"))
+            .withFeature(
+                e
+                    .numeric("change", ea.ALL)
+                    .withDescription(`Report when ${label} changes by at least this amount since the last report.`)
+                    .withUnit(changeUnit ?? ""),
+            )
+            .withCategory("config");
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [property],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject<Record<string, number>>(value, key);
+                    utils.assertEndpoint(entity);
+                    const reportingConfiguration = [
+                        {
+                            attribute,
+                            minimumReportInterval: value.min,
+                            maximumReportInterval: value.max,
+                            reportableChange: Math.round(value.change * rawScale),
+                        },
+                    ] as Parameters<Zh.Endpoint["configureReporting"]>[1];
+                    await entity.configureReporting(clusterName, reportingConfiguration);
+                    return {state: {[key]: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    utils.assertEndpoint(entity);
+
+                    try {
+                        const reportingAttribute =
+                            typeof attribute === "number"
+                                ? {ID: attribute}
+                                : Zcl.Utils.getClusterAttribute(Zcl.Utils.getCluster(clusterName), attribute, undefined);
+
+                        if (!reportingAttribute) {
+                            logger.info(`Failed to resolve reporting attribute ${attribute} for ${property}`, NS);
+                            return;
+                        }
+
+                        const response = await entity.readReportingConfig(clusterName, [{attribute: reportingAttribute}]);
+                        const config = response.find((entry) => entry.direction === Zcl.Direction.CLIENT_TO_SERVER);
+
+                        if (!config) {
+                            logger.info(`No client-to-server reporting config returned for ${property}`, NS);
+                            return;
+                        }
+
+                        if (config.status !== Zcl.Status.SUCCESS) {
+                            logger.info(`Failed to read reporting config for ${property}, status=${config.status}`, NS);
+                            return;
+                        }
+
+                        meta.publish({
+                            [key]: {
+                                min: config.minRepIntval,
+                                max: config.maxRepIntval,
+                                change: Number(config.repChange ?? 0) / rawScale,
+                            },
+                        });
+                    } catch (error) {
+                        logger.info(`Failed to read reporting config for ${property}: ${error}`, NS);
+                    }
+                },
+            },
+        ];
+        return {
+            exposes: [expose],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    tempAndHumiHalfHourReport: (): ModernExtend => {
+        const record = e
+            .composite("record", "record", ea.STATE)
+            .withFeature(e.numeric("value", ea.STATE))
+            .withFeature(e.text("time", ea.STATE).withDescription("Time in local ISO format with timezone"));
+
+        const tempExpose = e
+            .list("temperature_half_hour_records", ea.STATE, record)
+            .withDescription("Temperature readings reported during the last 30 minutes.");
+
+        const humiExpose = e
+            .list("humidity_half_hour_records", ea.STATE, record)
+            .withDescription("Humidity readings reported during the last 30 minutes.");
+
+        const toZigbee: Tz.Converter[] = [];
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSnzb02b, ["attributeReport"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport"],
+                convert: (model, msg, publish, options, meta) => {
+                    const key = "tempAndHumiHalfHourReport";
+                    const rawFrame = Buffer.isBuffer(msg.meta?.rawData) ? msg.meta.rawData.toString("hex") : "n/a";
+                    let decodedData: string;
+
+                    try {
+                        decodedData = JSON.stringify(msg.data);
+                    } catch {
+                        decodedData = String(msg.data);
+                    }
+
+                    if (!Object.hasOwn(msg.data, key)) {
+                        return;
+                    }
+
+                    const rawBytes = Array.from(msg.data[key]);
+                    const data = Buffer.from(rawBytes);
+                    const payloadHex = data.toString("hex");
+
+                    if (data.length === 0) {
+                        logger.info(`half-hour report empty payload, data=${decodedData}, raw=${rawFrame}, payloadHex=${payloadHex}`, NS);
+                        return;
+                    }
+
+                    const leadingByte = data.readUint8(0);
+                    const hasArrayLengthHeader = data.length > 6 && leadingByte === data.length - 1;
+                    let index = hasArrayLengthHeader ? 1 : 0;
+
+                    if (data.length < index + 6) {
+                        logger.info(
+                            `half-hour report payload too short. totalLength=${data.length}, required>=${index + 6}, data=${decodedData}, raw=${rawFrame}, payloadHex=${payloadHex}`,
+                            NS,
+                        );
+                        return;
+                    }
+
+                    const rawTimestamp = data.readUint32LE(index);
+                    const offset = -new Date(rawTimestamp * 1000).getTimezoneOffset();
+                    const time = rawTimestamp - offset * 60;
+                    index += 4;
+
+                    const len = data.readUint8(index);
+                    index++;
+
+                    if (len < 1) {
+                        logger.info(
+                            `half-hour report invalid value length=${len}, data=${decodedData}, raw=${rawFrame}, payloadHex=${payloadHex}`,
+                            NS,
+                        );
+                        return;
+                    }
+
+                    const type = data.readUint8(index);
+                    index++;
+
+                    if (type !== 0 && type !== 1) {
+                        logger.info(
+                            `half-hour report invalid type=${type}. Expected 0 (temperature) or 1 (humidity), data=${decodedData}, raw=${rawFrame}, payloadHex=${payloadHex}`,
+                            NS,
+                        );
+                        return;
+                    }
+
+                    const dataBytes = len - 1;
+                    const availableValueBytes = data.length - index;
+                    const safeValueBytes = Math.min(dataBytes, availableValueBytes);
+                    const sampleCount = Math.floor(safeValueBytes / 2);
+
+                    if (dataBytes % 2 !== 0) {
+                        logger.info(`half-hour report expectedValueBytes=${dataBytes} is not even, raw=${rawFrame}, payloadHex=${payloadHex}`, NS);
+                    }
+
+                    if (safeValueBytes < dataBytes) {
+                        logger.info(
+                            `half-hour report payload truncated. expectedValueBytes=${dataBytes}, availableValueBytes=${availableValueBytes}, raw=${rawFrame}, payloadHex=${payloadHex}`,
+                            NS,
+                        );
+                    }
+
+                    const valueEnd = index + safeValueBytes;
+                    let timeIndex = sampleCount - 1;
+                    const values = [];
+
+                    for (let i = index; i + 1 < valueEnd; i += 2) {
+                        const raw = type === 0 ? data.readInt16LE(i) : data.readUint16LE(i);
+                        const sampleTime = time - timeIndex * 60;
+                        const sampleTimeIso = formatUtcSecondsToIsoWithOffset(sampleTime);
+                        const sampleValue = raw / 100;
+
+                        values.push({
+                            value: sampleValue,
+                            time: sampleTimeIso,
+                        });
+                        timeIndex--;
+                    }
+
+                    const exposeKey = type === 0 ? "temperature_half_hour_records" : "humidity_half_hour_records";
+                    const payload = {[exposeKey]: values};
+
+                    logger.info(`parsed ${type === 0 ? "temperature" : "humidity"} half-hour report with ${values.length} samples`, NS);
+
+                    return payload;
+                },
+            },
+        ];
+        return {
+            exposes: [tempExpose, humiExpose],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -5729,6 +6127,144 @@ export const definitions: DefinitionWithExtend[] = [
                 await endpoint.read("customClusterEwelink", [0x500c]).catch((error) => {
                     logger.warning(`SWV-ZN read customClusterEwelink(0x500c) failed: ${error}`, NS);
                 });
+            }
+        },
+    },
+    {
+        zigbeeModel: ["SNZB-02B"],
+        model: "SNZB-02B",
+        vendor: "SONOFF",
+        description: "Temperature and humidity sensor",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    hotThreshold: {name: "hotThreshold", ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    coldThreshold: {name: "coldThreshold", ID: 0x0004, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    dryThreshold: {name: "dryThreshold", ID: 0x0005, type: Zcl.DataType.UINT16, write: true},
+                    dampThreshold: {name: "dampThreshold", ID: 0x0006, type: Zcl.DataType.UINT16, write: true},
+                    temperatureCalibration: {name: "temperatureCalibration", ID: 0x2003, type: Zcl.DataType.INT16, write: true},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x2004, type: Zcl.DataType.INT16, write: true},
+                    temperatureMaxInHour: {name: "temperatureMaxInHour", ID: 0x2008, type: Zcl.DataType.INT16, write: true},
+                    temperatureMinInHour: {name: "temperatureMinInHour", ID: 0x2009, type: Zcl.DataType.INT16, write: true},
+                    temperatureAverInHour: {name: "temperatureAverInHour", ID: 0x200a, type: Zcl.DataType.INT16, write: true},
+                    humidityMaxInHour: {name: "humidityMaxInHour", ID: 0x200b, type: Zcl.DataType.UINT16, write: true},
+                    humidityMinInHour: {name: "humidityMinInHour", ID: 0x200c, type: Zcl.DataType.UINT16, write: true},
+                    humidityAverInHour: {name: "humidityAverInHour", ID: 0x200d, type: Zcl.DataType.UINT16, write: true},
+                    tempAndHumiHalfHourReport: {name: "tempAndHumiHalfHourReport", ID: 0x2010, type: Zcl.DataType.ARRAY, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            // official cluster
+            m.battery({voltage: true, voltageReporting: true}),
+            m.temperature({reporting: {min: 5, max: 3600, change: 20}}),
+            m.humidity({valueMin: 0, valueMax: 100, reporting: {min: 5, max: 3600, change: 100}}),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+            sonoffExtend.reportSettings("msRelativeHumidity", "measuredValue", "humidity", 100, "%"),
+            sonoffExtend.reportSettings("msTemperatureMeasurement", "measuredValue", "temperature", 100, "°C"),
+
+            // attributes
+            sonoffExtend.comfortTemperatureSettings(),
+            sonoffExtend.comfortHumiditySettings(),
+            m.numeric<"customClusterEwelink", SonoffSnzb02b>({
+                name: "temperature_calibration",
+                cluster: "customClusterEwelink",
+                attribute: "temperatureCalibration",
+                entityCategory: "config",
+                description:
+                    "Offset to add/subtract to the reported temperature. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: -50,
+                valueMax: 50,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "°C",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02b>({
+                name: "humidity_calibration",
+                cluster: "customClusterEwelink",
+                attribute: "humidityCalibration",
+                entityCategory: "config",
+                description:
+                    "Offset to add/subtract to the reported relative humidity. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: -50,
+                valueMax: 50,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "%",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02b>({
+                name: "temperature_max_in_hour",
+                cluster: "customClusterEwelink",
+                attribute: "temperatureMaxInHour",
+                description: "Maximum temperature recorded in the last hour",
+                access: "STATE_GET",
+                scale: 100,
+                unit: "°C",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02b>({
+                name: "temperature_min_in_hour",
+                cluster: "customClusterEwelink",
+                attribute: "temperatureMinInHour",
+                description: "Minimum temperature recorded in the last hour",
+                access: "STATE_GET",
+                scale: 100,
+                unit: "°C",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02b>({
+                name: "temperature_aver_in_hour",
+                cluster: "customClusterEwelink",
+                attribute: "temperatureAverInHour",
+                description: "Average temperature recorded in the last hour",
+                access: "STATE_GET",
+                scale: 100,
+                unit: "°C",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02b>({
+                name: "humidity_max_in_hour",
+                cluster: "customClusterEwelink",
+                attribute: "humidityMaxInHour",
+                description: "Maximum humidity recorded in the last hour",
+                access: "STATE_GET",
+                scale: 100,
+                unit: "%",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02b>({
+                name: "humidity_min_in_hour",
+                cluster: "customClusterEwelink",
+                attribute: "humidityMinInHour",
+                description: "Minimum humidity recorded in the last hour",
+                access: "STATE_GET",
+                scale: 100,
+                unit: "%",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02b>({
+                name: "humidity_aver_in_hour",
+                cluster: "customClusterEwelink",
+                attribute: "humidityAverInHour",
+                description: "Average humidity recorded in the last hour",
+                access: "STATE_GET",
+                scale: 100,
+                unit: "%",
+            }),
+            sonoffExtend.tempAndHumiHalfHourReport(),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                logger.info("SNZB-02B configure: reading custom attributes", NS);
+                await endpoint.read<"customClusterEwelink", SonoffSnzb02b>("customClusterEwelink", [
+                    "hotThreshold",
+                    "coldThreshold",
+                    "dryThreshold",
+                    "dampThreshold",
+                    "temperatureCalibration",
+                    "humidityCalibration",
+                ]);
+            } else {
+                logger.info("SNZB-02B configure: endpoint 1 not found", NS);
             }
         },
     },
