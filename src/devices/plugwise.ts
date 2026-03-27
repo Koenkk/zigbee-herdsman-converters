@@ -10,15 +10,15 @@ import * as utils from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V};
+const _manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V};
 
-const plugwisePushForce = {
+const plugwisePushForceLookup = {
     0: "standard",
     393216: "high",
     458752: "very_high",
 };
 
-const plugwiseRadioStrength = {
+const plugwiseRadioStrengthLookup = {
     0: "normal",
     1: "high",
 };
@@ -29,6 +29,8 @@ interface PlugwiseHvacThermostat {
         // plugviseErrorStatus: number;
         plugwiseCurrentHeatingSetpoint: number;
         plugwiseTDiff: number;
+        plugwisePushForce: number;
+        plugwiseRadioStrength: number;
     };
     commands: {
         plugwiseCalibrateValve: Record<string, never>;
@@ -42,12 +44,12 @@ const plugwiseExtend = {
             name: "hvacThermostat",
             ID: Zcl.Clusters.hvacThermostat.ID,
             attributes: {
-                plugwiseValvePosition: {name: "plugwiseValvePosition", ID: 0x4001, type: Zcl.DataType.UINT8}, // 16385
-                // plugviseErrorStatus: {name: "plugviseErrorStatus", ID: 0x4002, type: Zcl.DataType.}, // 16386
-                plugwiseCurrentHeatingSetpoint: {name: "plugwiseCurrentHeatingSetpoint", ID: 0x4003, type: Zcl.DataType.INT16},
-                plugwiseTDiff: {name: "plugwiseTDiff", ID: 0x4008, type: Zcl.DataType.INT16},
-                // x1: {name: 'x1', ID: 0x4012, type:Zcl.DataType.UINT32},   // 16402
-                // x2: {name: 'x2', ID: 0x4014, type: Zcl.DataType.BOOLEAN},   // 16404 Bool
+                plugwiseValvePosition: {name: "plugwiseValvePosition", ID: 0x4001, type: Zcl.DataType.UINT8}, 
+                // plugviseErrorStatus: {name: "plugviseErrorStatus", ID: 0x4002, type: Zcl.DataType.??}, 
+                plugwiseCurrentHeatingSetpoint: {name: "plugwiseCurrentHeatingSetpoint", ID: 0x4003, type: Zcl.DataType.INT16}, 
+                plugwiseTDiff: {name: "plugwiseTDiff", ID: 0x4008, type: Zcl.DataType.INT16}, 
+                plugwisePushForce: {name: "plugwisePushForce", ID: 0x4012, type: Zcl.DataType.UINT32}, 
+                plugwiseRadioStrength: {name: "plugwiseRadioStrength", ID: 0x4014, type: Zcl.DataType.BOOLEAN}, 
             },
             commands: {
                 plugwiseCalibrateValve: {name: "plugwiseCalibrateValve", ID: 0xa0, parameters: []},
@@ -67,7 +69,6 @@ const fzLocal = {
             if (typeof msg.data.pIHeatingDemand === "number") {
                 result.pi_heating_demand = utils.precisionRound(msg.data.pIHeatingDemand, 0);
             }
-
             if (typeof msg.data.plugwiseCurrentHeatingSetpoint === "number") {
                 result.current_heating_setpoint = utils.precisionRound(msg.data.plugwiseCurrentHeatingSetpoint, 2) / 100;
             }
@@ -101,35 +102,53 @@ const tzLocal = {
     plugwise_valve_position: {
         key: ["plugwise_valve_position", "valve_position"],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {16385: {value, type: 0x20}};
-            await entity.write<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", payload, manufacturerOptions);
+            // const payload = {plugwiseValvePosition: {value, type: 0x20}};
+            await entity.write<"hvacThermostat", PlugwiseHvacThermostat>(
+                "hvacThermostat",
+                {plugwiseValvePosition: value as number},
+                {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            );
             // Tom does not automatically send back updated value so ask for it
-            await entity.read<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", ["plugwiseValvePosition"], manufacturerOptions);
+            await entity.read<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", ["plugwiseValvePosition"], {
+                manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+            });
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", ["plugwiseValvePosition"], manufacturerOptions);
+            await entity.read<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", ["plugwiseValvePosition"], {
+                manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+            });
         },
     } satisfies Tz.Converter,
     plugwise_push_force: {
         key: ["plugwise_push_force", "force"],
         convertSet: async (entity, key, value, meta) => {
-            const val = utils.getKey(plugwisePushForce, value, value, Number);
-            const payload = {16402: {value: val, type: 0x23}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions);
+            const val = utils.getKey(plugwisePushForceLookup, value, value, Number);
+            await entity.write<"hvacThermostat", PlugwiseHvacThermostat>(
+                "hvacThermostat",
+                {plugwisePushForce: val as number},
+                {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            );
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", [0x4012], manufacturerOptions);
+            await entity.read<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", ["plugwisePushForce"], {
+                manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+            });
         },
     } satisfies Tz.Converter,
     plugwise_radio_strength: {
         key: ["plugwise_radio_strength", "radio_strength"],
         convertSet: async (entity, key, value, meta) => {
-            const val = utils.getKey(plugwiseRadioStrength, value, value, Number);
-            const payload = {16404: {value: val, type: 0x10}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions);
+            const val = utils.getKey(plugwiseRadioStrengthLookup, value, value, Number);
+            await entity.write<"hvacThermostat", PlugwiseHvacThermostat>(
+                "hvacThermostat",
+                {plugwiseRadioStrength: val as number},
+                {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            );
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", [0x4014], manufacturerOptions);
+            await entity.read<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", ["plugwiseRadioStrength"], {
+                manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+            });
         },
     } satisfies Tz.Converter,
 };
