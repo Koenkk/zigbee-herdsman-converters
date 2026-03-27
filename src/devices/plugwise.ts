@@ -23,6 +23,39 @@ const plugwiseRadioStrength = {
     1: "high",
 };
 
+interface PlugwiseHvacThermostat {
+    attributes: {
+        plugwiseValvePosition: number;
+        // plugviseErrorStatus: number;
+        plugwiseCurrentHeatingSetpoint: number;
+        plugwiseTDiff: number;
+    };
+    commands: {
+        plugwiseCalibrateValve: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
+const plugwiseExtend = {
+    plugwiseHvacThermostatCluster: () =>
+        m.deviceAddCustomCluster("hvacThermostat", {
+            name: "hvacThermostat",
+            ID: Zcl.Clusters.hvacThermostat.ID,
+            attributes: {
+                plugwiseValvePosition: {name: "plugwiseValvePosition", ID: 0x4001, type: Zcl.DataType.UINT8}, // 16385
+                // plugviseErrorStatus: {name: "plugviseErrorStatus", ID: 0x4002, type: Zcl.DataType.}, // 16386
+                plugwiseCurrentHeatingSetpoint: {name: "plugwiseCurrentHeatingSetpoint", ID: 0x4003, type: Zcl.DataType.INT16},
+                plugwiseTDiff: {name: "plugwiseTDiff", ID: 0x4008, type: Zcl.DataType.INT16},
+                // x1: {name: 'x1', ID: 0x4012, type:Zcl.DataType.UINT32},   // 16402
+                // x2: {name: 'x2', ID: 0x4014, type: Zcl.DataType.BOOLEAN},   // 16404 Bool
+            },
+            commands: {
+                plugwiseCalibrateValve: {name: "plugwiseCalibrateValve", ID: 0xa0, parameters: []},
+            },
+            commandsResponse: {},
+        }),
+};
+
 const fzLocal = {
     plugwise_radiator_valve: {
         cluster: "hvacThermostat",
@@ -35,28 +68,33 @@ const fzLocal = {
                 result.pi_heating_demand = utils.precisionRound(msg.data.pIHeatingDemand, 0);
             }
 
-            if (typeof msg.data[0x4003] === "number") {
-                result.current_heating_setpoint = utils.precisionRound(msg.data[0x4003], 2) / 100;
+            if (typeof msg.data.plugwiseCurrentHeatingSetpoint === "number") {
+                result.current_heating_setpoint = utils.precisionRound(msg.data.plugwiseCurrentHeatingSetpoint, 2) / 100;
             }
-            if (typeof msg.data[0x4008] === "number") {
-                result.plugwise_t_diff = msg.data[0x4008];
+            if (typeof msg.data.plugwiseTDiff === "number") {
+                result.plugwise_t_diff = msg.data.plugwiseTDiff;
             }
             if (typeof msg.data[0x4002] === "number") {
                 result.error_status = msg.data[0x4002];
             }
-            if (typeof msg.data[0x4001] === "number") {
-                result.valve_position = msg.data[0x4001];
+            if (typeof msg.data.plugwiseValvePosition === "number") {
+                result.valve_position = msg.data.plugwiseValvePosition;
             }
             return result;
         },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"hvacThermostat", PlugwiseHvacThermostat, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
     plugwise_calibrate_valve: {
         key: ["calibrate_valve"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command("hvacThermostat", "plugwiseCalibrateValve", {}, {srcEndpoint: 11, disableDefaultResponse: true});
+            await entity.command<"hvacThermostat", "plugwiseCalibrateValve", PlugwiseHvacThermostat>(
+                "hvacThermostat",
+                "plugwiseCalibrateValve",
+                {},
+                {srcEndpoint: 11, disableDefaultResponse: true},
+            );
             return {state: {calibrate_valve: value}};
         },
     } satisfies Tz.Converter,
@@ -64,12 +102,12 @@ const tzLocal = {
         key: ["plugwise_valve_position", "valve_position"],
         convertSet: async (entity, key, value, meta) => {
             const payload = {16385: {value, type: 0x20}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions);
+            await entity.write<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", payload, manufacturerOptions);
             // Tom does not automatically send back updated value so ask for it
-            await entity.read("hvacThermostat", [0x4001], manufacturerOptions);
+            await entity.read<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", ["plugwiseValvePosition"], manufacturerOptions);
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", [0x4001], manufacturerOptions);
+            await entity.read<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", ["plugwiseValvePosition"], manufacturerOptions);
         },
     } satisfies Tz.Converter,
     plugwise_push_force: {
@@ -118,8 +156,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "106-03",
         vendor: "Plugwise",
         description: "Tom thermostatic radiator valve",
+        extend: [plugwiseExtend.plugwiseHvacThermostatCluster()],
         fromZigbee: [fz.temperature, fz.battery, fzLocal.plugwise_radiator_valve],
-        // sytem_mode and occupied_heating_setpoint is not supported: https://github.com/Koenkk/zigbee2mqtt.io/pull/1666
+        // system_mode and occupied_heating_setpoint is not supported: https://github.com/Koenkk/zigbee2mqtt.io/pull/1666
         toZigbee: [
             tz.thermostat_pi_heating_demand,
             tzLocal.plugwise_valve_position,
