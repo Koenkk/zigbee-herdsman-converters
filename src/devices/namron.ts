@@ -2184,6 +2184,17 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.onOff({powerOnBehavior: true}),
             m.electricityMeter(),
+            // Override genDeviceTempCfg to relax currentTemperature max constraint
+            // (device reports in 0.1°C units, e.g. 311 = 31.1°C, exceeding ZCL max of 200)
+            m.deviceAddCustomCluster("genDeviceTempCfg", {
+                ID: 0x0002,
+                name: "genDeviceTempCfg",
+                attributes: {
+                    currentTemperature: {ID: 0x0000, name: "currentTemperature", type: Zcl.DataType.INT16, min: -2000, max: 2000},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
             // Device internal temperature (genDeviceTempCfg, raw ÷ 10)
             m.numeric({
                 name: "device_temperature",
@@ -2198,7 +2209,7 @@ export const definitions: DefinitionWithExtend[] = [
                     if (msg.data.currentTemperature !== undefined) {
                         const raw = msg.data.currentTemperature;
                         if (raw !== -32768 && raw !== 0x8000) {
-                            return {device_temperature: Math.round((raw / 10) * 10) / 10};
+                            return {device_temperature: utils.precisionRound(raw, 2) / 10};
                         }
                     }
                 },
@@ -2216,7 +2227,7 @@ export const definitions: DefinitionWithExtend[] = [
                     if (msg.data.measuredValue !== undefined) {
                         const raw = msg.data.measuredValue;
                         if (raw !== -32768 && raw !== 0x8000) {
-                            return {ntc1_temperature: Math.round((raw / 100) * 10) / 10};
+                            return {ntc1_temperature: utils.precisionRound(raw, 2) / 100};
                         }
                     }
                 },
@@ -2234,7 +2245,7 @@ export const definitions: DefinitionWithExtend[] = [
                     if (msg.data.ntc2Temperature !== undefined) {
                         const raw = msg.data.ntc2Temperature;
                         if (raw !== -32768 && raw !== 0x8000) {
-                            return {ntc2_temperature: Math.round((raw / 100) * 10) / 10};
+                            return {ntc2_temperature: utils.precisionRound(raw, 2) / 100};
                         }
                     }
                 },
