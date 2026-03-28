@@ -2409,6 +2409,7 @@ export const definitions: DefinitionWithExtend[] = [
             // Polling (5 min interval)
             m.poll({
                 key: "namron_4512785_poll",
+                optionKey: "temperature_poll_interval",
                 option: e
                     .numeric("temperature_poll_interval", ea.SET)
                     .withValueMin(-1)
