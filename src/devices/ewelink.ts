@@ -71,12 +71,7 @@ const tzCountdownOnOff: Tz.Converter = {
         }
         const onTimeRaw = Math.min(seconds * 10, 0xfffe);
         const actualSeconds = Math.floor(onTimeRaw / 10);
-        await entity.command(
-            "genOnOff",
-            "onWithTimedOff",
-            {ctrlbits: 0, ontime: onTimeRaw, offwaittime: 0},
-            {disableDefaultResponse: true},
-        );
+        await entity.command("genOnOff", "onWithTimedOff", {ctrlbits: 0, ontime: onTimeRaw, offwaittime: 0}, {disableDefaultResponse: true});
         return {state: {state: "ON", countdown: actualSeconds}};
     },
 };
@@ -140,9 +135,7 @@ export const definitions: DefinitionWithExtend[] = [
                         type: "Router",
                         manufacturerName: "eWeLink",
                         modelID: "CK-BL702-MSW-01(7010)",
-                        endpoints: [
-                            {ID: 1, inputClusters: [0, 3, 4, 5, 6, 4096, 61184, 64529, 64599]},
-                        ],
+                        endpoints: [{ID: 1, inputClusters: [0, 3, 4, 5, 6, 4096, 61184, 64529, 64599]}],
                     },
                 ],
             },
@@ -150,7 +143,8 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff({powerOnBehavior: true, skipDuplicateTransaction: true}), m.skipDefaultResponse()],
         toZigbee: [tzCountdownOnOff],
         exposes: [
-            e.numeric("countdown", ea.STATE_SET)
+            e
+                .numeric("countdown", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Countdown to turn device off after a certain time")
                 .withValueMin(0)
