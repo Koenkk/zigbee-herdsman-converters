@@ -25306,98 +25306,72 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE284_4vbj3fxh",
-            },
-        ],
-        model: "TS0601_Tuya-L2-T-F-MF",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_4vbj3fxh"]),
+        model: "L2-T-F-MF",
         vendor: "Tuya",
-        description: "Tuya smart Zigbee fan coil thermostat",
-        extend: [
-            tuya.modernExtend.tuyaBase({
-                dp: true,
-                timeStart: "1970",
-            }),
+        description: "Smart Zigbee fan coil thermostat",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(["off", "cool", "heat", "fan_only"], ea.STATE_SET)
+                .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 5, 45, 0.5, ea.STATE_SET),
+            e
+                .numeric("local_temperature_calibration", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(-9)
+                .withValueMax(9)
+                .withValueStep(1)
+                .withDescription("Temperature compensation setting"),
+
+            e.numeric("screen_brightness", ea.STATE_SET).withValueMin(1).withValueMax(9).withValueStep(1).withDescription("Display brightness level"),
+
+            e
+                .numeric("deadzone_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueMax(5)
+                .withValueStep(0.5)
+                .withDescription("Temperature deadzone"),
+
+            e
+                .numeric("min_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(1)
+                .withDescription("Minimum temperature limit"),
+
+            e
+                .numeric("max_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(16)
+                .withValueMax(45)
+                .withValueStep(1)
+                .withDescription("Maximun temperature limit"),
+
+            e.enum("child_lock", ea.STATE_SET, ["locked", "unlocked"]).withDescription("Child lock"),
+
+            e
+                .numeric("eco_temperature_heating", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(20)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withDescription("Eco heating temperature"),
+
+            e
+                .numeric("eco_temperature_cooling", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(20)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withDescription("Eco cooling temperature"),
         ],
-
-        exposes: (device, options) => {
-            return [
-                // Basic Operation
-
-                //e.switch().withDescription("Thermostat power"), # Mapped into a System mode
-
-                e
-                    .climate()
-                    .withLocalTemperature(ea.STATE)
-                    .withSystemMode(["off", "cool", "heat", "fan_only"], ea.STATE_SET)
-                    .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
-                    .withSetpoint("current_heating_setpoint", 5, 45, 0.5, ea.STATE_SET),
-
-                // Configuration Parameters
-
-                e
-                    .numeric("local_temperature_calibration", ea.STATE_SET)
-                    .withUnit("°C")
-                    .withValueMin(-9)
-                    .withValueMax(9)
-                    .withValueStep(1)
-                    .withDescription("Temperature compensation setting"),
-
-                e
-                    .numeric("screen_brightness", ea.STATE_SET)
-                    .withValueMin(1)
-                    .withValueMax(9)
-                    .withValueStep(1)
-                    .withDescription("Display brightness level"),
-
-                e
-                    .numeric("deadzone_temperature", ea.STATE_SET)
-                    .withUnit("°C")
-                    .withValueMin(0.5)
-                    .withValueMax(5)
-                    .withValueStep(0.5)
-                    .withDescription("Temperature deadzone"),
-
-                e
-                    .numeric("min_temperature_limit", ea.STATE_SET)
-                    .withUnit("°C")
-                    .withValueMin(5)
-                    .withValueMax(15)
-                    .withValueStep(1)
-                    .withDescription("Minimum temperature limit"),
-
-                e
-                    .numeric("max_temperature_limit", ea.STATE_SET)
-                    .withUnit("°C")
-                    .withValueMin(16)
-                    .withValueMax(45)
-                    .withValueStep(1)
-                    .withDescription("Maximun temperature limit"),
-
-                e.enum("child_lock", ea.STATE_SET, ["locked", "unlocked"]).withDescription("Child lock"),
-
-                e
-                    .numeric("eco_temperature_heating", ea.STATE_SET)
-                    .withUnit("°C")
-                    .withValueMin(20)
-                    .withValueMax(30)
-                    .withValueStep(1)
-                    .withDescription("Eco heating temperature"),
-
-                e
-                    .numeric("eco_temperature_cooling", ea.STATE_SET)
-                    .withUnit("°C")
-                    .withValueMin(20)
-                    .withValueMax(30)
-                    .withValueStep(1)
-                    .withDescription("Eco cooling temperature"),
-            ];
-        },
         meta: {
             tuyaDatapoints: [
-                // Will handle state (on/off) as a system mode
                 [
                     1,
                     "state",
