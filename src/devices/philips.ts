@@ -748,10 +748,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["LTD021", "LTD022"],
+        zigbeeModel: ["LTD020", "LTD021", "LTD022"],
         model: "9290035842",
         vendor: "Philips",
-        description: "Garnea downlight",
+        description: "Garnea White Ambience Downlight",
+        whiteLabel: [{model: "929003123801", vendor: "Philips", description: "Garnea White Ambience Downlight", fingerprint: [{modelID: "LTD020"}]}],
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
@@ -1732,7 +1733,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["LTD008"],
-        model: "929003123801",
+        model: "929003134801",
         vendor: "Philips",
         description: 'Hue white ambiance 6" downlight',
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
