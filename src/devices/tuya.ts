@@ -934,7 +934,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             // The device uses custom group command known from miboxer switches to bind to a group.
 
-            await entity.command("genGroups", "miboxerSetZones", {
+            await entity.command<"genGroups", "miboxerSetZones", tuya.TuyaGenGroups>("genGroups", "miboxerSetZones", {
                 zones: [{zoneNum: 1, groupId: Number(value)}],
             });
         },
@@ -953,7 +953,7 @@ const tzLocal = {
 
             zone_map[meta.endpoint_name.replace("l", "")] = value;
 
-            await entity.command("genGroups", "miboxerSetZones", {
+            await entity.command<"genGroups", "miboxerSetZones", tuya.TuyaGenGroups>("genGroups", "miboxerSetZones", {
                 zones: Object.entries(zone_map).map(([k, v]) => {
                     return {zoneNum: Number(k), groupId: Number(v)};
                 }),
@@ -14285,6 +14285,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         ota: true,
         extend: [
+            tuya.clusters.addTuyaGenBasicCluster(),
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 electricalMeasurements: true,
@@ -14350,7 +14351,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
-            await endpoint.command("genBasic", "tuyaSetup", {});
+            await endpoint.command<"genBasic", "tuyaSetup", tuya.TuyaGenBasic>("genBasic", "tuyaSetup", {});
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement"]);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
             await reporting.rmsVoltage(endpoint, {change: 5});
@@ -22411,7 +22412,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_knob_dimmer_switch",
         vendor: "Tuya",
         description: "Dimmer knob with two lights",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.clusters.addTuyaGenGroupsCluster(), tuya.clusters.addTuyaGenBasicCluster(), tuya.modernExtend.tuyaBase({dp: true})],
         toZigbee: [tzLocal.TS0601_knob_dimmer_switch_group_id],
         exposes: [
             e.switch(),
@@ -22448,7 +22449,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.command("genBasic", "tuyaSetup", {}, {disableDefaultResponse: true});
+            await endpoint.command<"genBasic", "tuyaSetup", tuya.TuyaGenBasic>("genBasic", "tuyaSetup", {}, {disableDefaultResponse: true});
         },
         endpoint: (device) => ({
             default: 1,
@@ -24191,6 +24192,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
 
         extend: [
+            tuya.clusters.addTuyaGenGroupsCluster(),
             // NOTE: M9 Pro only updates the weather condition and temperature on power cycle and once per hour.
             tuya.modernExtend.tuyaWeatherForecast({includeCurrentWeather: true, numberOfForecastDays: 3, correctForNegativeValues: false}),
             tuya.modernExtend.tuyaBase({

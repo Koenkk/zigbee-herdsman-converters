@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {MiboxerZone} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "./constants";
@@ -33,6 +33,24 @@ const ea = exposes.access;
 
 interface KeyValueStringEnum {
     [s: string]: Enum;
+}
+
+export interface TuyaGenBasic {
+    attributes: never;
+    commands: {
+        tuyaSetup: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
+export interface TuyaGenGroups {
+    attributes: never;
+    commands: {
+        miboxerSetZones: {
+            zones: MiboxerZone[];
+        };
+    };
+    commandResponses: never;
 }
 
 export interface ManuSpecificTuya2 {
@@ -3502,6 +3520,26 @@ const tuyaModernExtend = {
 export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {
+    addTuyaGenBasicCluster: () =>
+        modernExtend.deviceAddCustomCluster("genBasic", {
+            name: "genBasic",
+            ID: Zcl.Clusters.genBasic.ID,
+            attributes: {},
+            commands: {
+                tuyaSetup: {name: "tuyaSetup", ID: 0xf0, parameters: []},
+            },
+            commandsResponse: {},
+        }),
+    addTuyaGenGroupsCluster: () =>
+        modernExtend.deviceAddCustomCluster("genGroups", {
+            name: "genGroups",
+            ID: Zcl.Clusters.genGroups.ID,
+            attributes: {},
+            commands: {
+                miboxerSetZones: {name: "miboxerSetZones", ID: 0xf0, parameters: [{name: "zones", type: Zcl.BuffaloZclDataType.LIST_MIBOXER_ZONES}]},
+            },
+            commandsResponse: {},
+        }),
     addManuSpecificTuya2Cluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya2", {
             name: "manuSpecificTuya2",
