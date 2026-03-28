@@ -72,6 +72,7 @@ export interface UbisysClosuresWindowCovering {
         ubisysAdditionalSteps: number;
         ubisysInactivePowerThreshold: number;
         ubisysStartupSteps: number;
+        operationalStatus: number;
     };
     commands: never;
     commandResponses: never;
@@ -528,6 +529,7 @@ export const ubisysModernExtend = {
                     write: true,
                     max: 0xffff,
                 },
+                operationalStatus: {name: "operationalStatus", ID: 0x000a, type: Zcl.DataType.BITMAP8},
             },
             commands: {},
             commandsResponse: {},
