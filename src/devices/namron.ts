@@ -17,6 +17,30 @@ const e = exposes.presets;
 
 const sunricherManufacturer = {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD};
 
+interface NamronPrivate04E0 {
+    attributes: {
+        ntc2Temperature: number;
+        ntcSensorType1: number;
+        ntcSensorType2: number;
+        waterSensorValue: number;
+        ntcCalibration1: number;
+        ntcCalibration2: number;
+        waterAlarmRelayAction: number;
+        ntc1OperationSelect: number;
+        ntc2OperationSelect: number;
+        ntc1RelayAutoTemp: number;
+        ntc2RelayAutoTemp: number;
+        overrideOption: number;
+        ntc1TempHysteresis: number;
+        ntc2TempHysteresis: number;
+        waterConditionAlarm: number;
+        ntcConditionAlarm: number;
+        isExecuteCondition: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     namron_panelheater: {
         cluster: "hvacThermostat",
@@ -2135,24 +2159,25 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceAddCustomCluster("namronPrivate04E0", {
                 ID: 0x04e0,
+                name: "namronPrivate04E0",
                 attributes: {
-                    ntc2Temperature: {ID: 0x0000, type: Zcl.DataType.INT16},
-                    ntcSensorType1: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true},
-                    ntcSensorType2: {ID: 0x0002, type: Zcl.DataType.ENUM8, write: true},
-                    waterSensorValue: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
-                    ntcCalibration1: {ID: 0x0004, type: Zcl.DataType.INT8, write: true},
-                    ntcCalibration2: {ID: 0x0005, type: Zcl.DataType.INT8, write: true},
-                    waterAlarmRelayAction: {ID: 0x0006, type: Zcl.DataType.ENUM8, write: true},
-                    ntc1OperationSelect: {ID: 0x0007, type: Zcl.DataType.ENUM8, write: true},
-                    ntc2OperationSelect: {ID: 0x0008, type: Zcl.DataType.ENUM8, write: true},
-                    ntc1RelayAutoTemp: {ID: 0x0009, type: Zcl.DataType.INT16, write: true},
-                    ntc2RelayAutoTemp: {ID: 0x000a, type: Zcl.DataType.INT16, write: true},
-                    overrideOption: {ID: 0x000b, type: Zcl.DataType.ENUM8, write: true},
-                    ntc1TempHysteresis: {ID: 0x000c, type: Zcl.DataType.INT8, write: true},
-                    ntc2TempHysteresis: {ID: 0x000d, type: Zcl.DataType.INT8, write: true},
-                    waterConditionAlarm: {ID: 0x000e, type: Zcl.DataType.BOOLEAN},
-                    ntcConditionAlarm: {ID: 0x000f, type: Zcl.DataType.BOOLEAN},
-                    isExecuteCondition: {ID: 0x0010, type: Zcl.DataType.BOOLEAN},
+                    ntc2Temperature: {ID: 0x0000, name: "ntc2Temperature", type: Zcl.DataType.INT16},
+                    ntcSensorType1: {ID: 0x0001, name: "ntcSensorType1", type: Zcl.DataType.ENUM8, write: true},
+                    ntcSensorType2: {ID: 0x0002, name: "ntcSensorType2", type: Zcl.DataType.ENUM8, write: true},
+                    waterSensorValue: {ID: 0x0003, name: "waterSensorValue", type: Zcl.DataType.BOOLEAN},
+                    ntcCalibration1: {ID: 0x0004, name: "ntcCalibration1", type: Zcl.DataType.INT8, write: true},
+                    ntcCalibration2: {ID: 0x0005, name: "ntcCalibration2", type: Zcl.DataType.INT8, write: true},
+                    waterAlarmRelayAction: {ID: 0x0006, name: "waterAlarmRelayAction", type: Zcl.DataType.ENUM8, write: true},
+                    ntc1OperationSelect: {ID: 0x0007, name: "ntc1OperationSelect", type: Zcl.DataType.ENUM8, write: true},
+                    ntc2OperationSelect: {ID: 0x0008, name: "ntc2OperationSelect", type: Zcl.DataType.ENUM8, write: true},
+                    ntc1RelayAutoTemp: {ID: 0x0009, name: "ntc1RelayAutoTemp", type: Zcl.DataType.INT16, write: true},
+                    ntc2RelayAutoTemp: {ID: 0x000a, name: "ntc2RelayAutoTemp", type: Zcl.DataType.INT16, write: true},
+                    overrideOption: {ID: 0x000b, name: "overrideOption", type: Zcl.DataType.ENUM8, write: true},
+                    ntc1TempHysteresis: {ID: 0x000c, name: "ntc1TempHysteresis", type: Zcl.DataType.INT8, write: true},
+                    ntc2TempHysteresis: {ID: 0x000d, name: "ntc2TempHysteresis", type: Zcl.DataType.INT8, write: true},
+                    waterConditionAlarm: {ID: 0x000e, name: "waterConditionAlarm", type: Zcl.DataType.BOOLEAN},
+                    ntcConditionAlarm: {ID: 0x000f, name: "ntcConditionAlarm", type: Zcl.DataType.BOOLEAN},
+                    isExecuteCondition: {ID: 0x0010, name: "isExecuteCondition", type: Zcl.DataType.BOOLEAN},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -2197,7 +2222,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             }),
             // NTC2 temperature (custom cluster attr 0x0000, raw ÷ 100)
-            m.numeric({
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "ntc2_temperature",
                 cluster: "namronPrivate04E0",
                 attribute: "ntc2Temperature",
@@ -2215,7 +2240,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             }),
             // Water sensor (NO contacts: shorted = water detected)
-            m.binary({
+            m.binary<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "water_sensor",
                 cluster: "namronPrivate04E0",
                 attribute: "waterSensorValue",
@@ -2225,7 +2250,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             // NTC sensor type configuration
-            m.enumLookup({
+            m.enumLookup<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "ntc1_sensor_type",
                 lookup: {none: 0, "NTC-10K": 1, "NTC-12K": 2, "NTC-15K": 3, "NTC-22K": 4, "NTC-33K": 5, "NTC-47K": 6},
                 cluster: "namronPrivate04E0",
@@ -2233,7 +2258,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "NTC probe type for sensor #1 (must be set for temperature reporting)",
                 entityCategory: "config",
             }),
-            m.enumLookup({
+            m.enumLookup<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "ntc2_sensor_type",
                 lookup: {none: 0, "NTC-10K": 1, "NTC-12K": 2, "NTC-15K": 3, "NTC-22K": 4, "NTC-33K": 5, "NTC-47K": 6},
                 cluster: "namronPrivate04E0",
@@ -2242,7 +2267,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             // Water alarm relay action
-            m.enumLookup({
+            m.enumLookup<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "water_alarm_relay_action",
                 lookup: {
                     no_action: 0,
@@ -2259,7 +2284,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             // NTC operation modes
-            m.enumLookup({
+            m.enumLookup<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "ntc1_operation_mode",
                 lookup: {no_action: 0, off_when_hot_on_when_cold: 1, on_when_hot_off_when_cold: 2, off_when_hot_stay: 3, on_when_hot_stay: 4},
                 cluster: "namronPrivate04E0",
@@ -2267,7 +2292,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Relay behavior based on NTC1 temperature threshold",
                 entityCategory: "config",
             }),
-            m.enumLookup({
+            m.enumLookup<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "ntc2_operation_mode",
                 lookup: {no_action: 0, off_when_hot_on_when_cold: 1, on_when_hot_off_when_cold: 2, off_when_hot_stay: 3, on_when_hot_stay: 4},
                 cluster: "namronPrivate04E0",
@@ -2276,7 +2301,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             // Temperature thresholds for relay auto control
-            m.numeric({
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "ntc1_relay_auto_temp",
                 cluster: "namronPrivate04E0",
                 attribute: "ntc1RelayAutoTemp",
@@ -2289,7 +2314,7 @@ export const definitions: DefinitionWithExtend[] = [
                 precision: 1,
                 entityCategory: "config",
             }),
-            m.numeric({
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "ntc2_relay_auto_temp",
                 cluster: "namronPrivate04E0",
                 attribute: "ntc2RelayAutoTemp",
@@ -2303,7 +2328,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             // Override priority
-            m.enumLookup({
+            m.enumLookup<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "override_option",
                 lookup: {no_priority: 0, water_alarm_priority: 1, ntc_priority: 2},
                 cluster: "namronPrivate04E0",
@@ -2312,7 +2337,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             // Calibration offsets
-            m.numeric({
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "ntc1_calibration",
                 cluster: "namronPrivate04E0",
                 attribute: "ntcCalibration1",
@@ -2322,7 +2347,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 10,
                 entityCategory: "config",
             }),
-            m.numeric({
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "ntc2_calibration",
                 cluster: "namronPrivate04E0",
                 attribute: "ntcCalibration2",
@@ -2333,7 +2358,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             // Hysteresis
-            m.numeric({
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "ntc1_temp_hysteresis",
                 cluster: "namronPrivate04E0",
                 attribute: "ntc1TempHysteresis",
@@ -2343,7 +2368,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 10,
                 entityCategory: "config",
             }),
-            m.numeric({
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "ntc2_temp_hysteresis",
                 cluster: "namronPrivate04E0",
                 attribute: "ntc2TempHysteresis",
@@ -2354,7 +2379,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             // Condition alarms (read-only status)
-            m.binary({
+            m.binary<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "water_condition_alarm",
                 cluster: "namronPrivate04E0",
                 attribute: "waterConditionAlarm",
@@ -2363,7 +2388,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: [false, 0],
                 access: "STATE",
             }),
-            m.binary({
+            m.binary<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "ntc_condition_alarm",
                 cluster: "namronPrivate04E0",
                 attribute: "ntcConditionAlarm",
@@ -2372,7 +2397,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: [false, 0],
                 access: "STATE",
             }),
-            m.binary({
+            m.binary<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "is_execute_condition",
                 cluster: "namronPrivate04E0",
                 attribute: "isExecuteCondition",
