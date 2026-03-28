@@ -3539,6 +3539,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         // https://github.com/Koenkk/zigbee2mqtt/issues/30584
         meta: {
+            applyRedFix: true, // https://github.com/Koenkk/zigbee-herdsman-converters/issues/11467
             moveToLevelWithOnOffDisable: (e) =>
                 e.getDevice().manufacturerName === "_TZB210_uoiqhjqe" ||
                 e.getDevice().manufacturerName === "_TZB210_417ikxay" ||
@@ -3562,6 +3563,9 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
         fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness],
+        meta: {
+            applyRedFix: true, // https://github.com/Koenkk/zigbee-herdsman-converters/issues/11467
+        },
         exposes: [e.light_brightness_colortemp_colorhs([143, 500]).removeFeature("color_temp_startup"), tuya.exposes.doNotDisturb()],
         configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
