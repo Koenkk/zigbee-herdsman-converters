@@ -53,6 +53,17 @@ export interface TuyaGenGroups {
     commandResponses: never;
 }
 
+export interface TuyaGenOnOff {
+    attributes: {
+        tuyaBacklightSwitch: number;
+        tuyaBacklightMode: number;
+        moesStartUpOnOff: number;
+        tuyaOperationMode: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 export interface ManuSpecificTuya2 {
     attributes: {
         alarmTemperatureMax: number;
@@ -2788,10 +2799,27 @@ const tuyaModernExtend = {
             ];
         }
 
+        const tuyaGenBasic = tuyaClusters.addTuyaGenBasicCluster();
+        const tuyaGenGroups = tuyaClusters.addTuyaGenGroupsCluster();
+        const tuyaGenOnOff = tuyaClusters.addTuyaGenOnOffCluster();
         const customCluster2 = tuyaClusters.addManuSpecificTuya2Cluster();
         const customCluster3 = tuyaClusters.addManuSpecificTuya3Cluster();
-        result.onEvent = [...(customCluster2.onEvent ?? []), ...(customCluster3.onEvent ?? []), ...(result.onEvent ?? [])];
-        result.configure = [...(customCluster2.configure ?? []), ...(customCluster3.configure ?? []), ...(result.configure ?? [])];
+        result.onEvent = [
+            ...(tuyaGenBasic.onEvent ?? []),
+            ...(tuyaGenGroups.onEvent ?? []),
+            ...(tuyaGenOnOff.onEvent ?? []),
+            ...(customCluster2.onEvent ?? []),
+            ...(customCluster3.onEvent ?? []),
+            ...(result.onEvent ?? []),
+        ];
+        result.configure = [
+            ...(tuyaGenBasic.configure ?? []),
+            ...(tuyaGenGroups.configure ?? []),
+            ...(tuyaGenOnOff.configure ?? []),
+            ...(customCluster2.configure ?? []),
+            ...(customCluster3.configure ?? []),
+            ...(result.configure ?? []),
+        ];
 
         if (dp) {
             result.fromZigbee.push(tuyaFz.datapoints);
@@ -3538,6 +3566,19 @@ const tuyaClusters = {
             commands: {
                 miboxerSetZones: {name: "miboxerSetZones", ID: 0xf0, parameters: [{name: "zones", type: Zcl.BuffaloZclDataType.LIST_MIBOXER_ZONES}]},
             },
+            commandsResponse: {},
+        }),
+    addTuyaGenOnOffCluster: () =>
+        modernExtend.deviceAddCustomCluster("genOnOff", {
+            name: "genOnOff",
+            ID: Zcl.Clusters.genOnOff.ID,
+            attributes: {
+                tuyaBacklightSwitch: {name: "tuyaBacklightSwitch", ID: 0x5000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                tuyaBacklightMode: {name: "tuyaBacklightMode", ID: 0x8001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                moesStartUpOnOff: {name: "moesStartUpOnOff", ID: 0x8002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                tuyaOperationMode: {name: "tuyaOperationMode", ID: 0x8004, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            },
+            commands: {},
             commandsResponse: {},
         }),
     addManuSpecificTuya2Cluster: (): ModernExtend =>

@@ -14285,7 +14285,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         ota: true,
         extend: [
-            tuya.clusters.addTuyaGenBasicCluster(),
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 electricalMeasurements: true,
@@ -22412,7 +22411,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_knob_dimmer_switch",
         vendor: "Tuya",
         description: "Dimmer knob with two lights",
-        extend: [tuya.clusters.addTuyaGenGroupsCluster(), tuya.clusters.addTuyaGenBasicCluster(), tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         toZigbee: [tzLocal.TS0601_knob_dimmer_switch_group_id],
         exposes: [
             e.switch(),
@@ -24192,7 +24191,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
 
         extend: [
-            tuya.clusters.addTuyaGenGroupsCluster(),
             // NOTE: M9 Pro only updates the weather condition and temperature on power cycle and once per hour.
             tuya.modernExtend.tuyaWeatherForecast({includeCurrentWeather: true, numberOfForecastDays: 3, correctForNegativeValues: false}),
             tuya.modernExtend.tuyaBase({
