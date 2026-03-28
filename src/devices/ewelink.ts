@@ -22,7 +22,7 @@ interface EwelinkSiren {
         alarmSoundTime: number;
     };
     commands: never;
-    commandsResponse: never;
+    commandResponses: never;
 }
 
 const fzLocal = {
