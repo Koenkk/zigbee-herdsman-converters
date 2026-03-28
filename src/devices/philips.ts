@@ -1745,10 +1745,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ['LTT002'],
-        model: '4505848C5',
-        vendor: 'Philips',
-        description: 'Hue white ambiance Within LED table light ',
+        zigbeeModel: ["LTT002"],
+        model: "4505848C5",
+        vendor: "Philips",
+        description: "Hue white ambiance Within LED table light ",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
