@@ -11,6 +11,7 @@ import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 import {postfixWithEndpointName} from "../lib/utils";
+import * as stelpro from "./stelpro";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -2949,7 +2950,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE011680",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
+        fromZigbee: [stelpro.fzLocal.stelpro_thermostat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_system_mode,
@@ -3308,7 +3309,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S520619",
         vendor: "Schneider Electric",
         description: "Wiser Odace Smart thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature, fz.occupancy],
+        fromZigbee: [
+            stelpro.fzLocal.stelpro_thermostat,
+            fz.metering,
+            fzLocal.wiser_device_info,
+            fz.hvac_user_interface,
+            fz.temperature,
+            fz.occupancy,
+        ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint,

@@ -38,6 +38,7 @@ export interface DevelcoAirQuality {
 export interface DevelcoIasZone {
     attributes: {
         develcoZoneStatusInterval: number;
+        develcoAlarmOffDelay: number;
     };
     commands: never;
     commandResponses: never;
@@ -100,6 +101,14 @@ export const develcoModernExtend = {
                 develcoZoneStatusInterval: {
                     name: "develcoZoneStatusInterval",
                     ID: 0x8000,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xffff,
+                },
+                develcoAlarmOffDelay: {
+                    name: "develcoAlarmOffDelay",
+                    ID: 0x8001,
                     type: Zcl.DataType.UINT16,
                     manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
                     write: true,

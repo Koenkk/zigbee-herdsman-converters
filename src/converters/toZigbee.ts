@@ -3127,16 +3127,6 @@ export const stelpro_peak_demand_event_icon: Tz.Converter = {
         return {state: {[key]: hours}};
     },
 };
-export const stelpro_thermostat_outdoor_temperature: Tz.Converter = {
-    key: ["outdoor_temperature_display"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertNumber(value, key);
-        if (value < -32 || value > 119) {
-            throw new Error("Outdoor temperature must be between -32 and 119 degrees Celsius");
-        }
-        await entity.write("hvacThermostat", {StelproOutdoorTemp: value * 100});
-    },
-};
 export const DTB190502A1_LED: Tz.Converter = {
     key: ["LED"],
     convertSet: async (entity, key, value, meta) => {
