@@ -22,7 +22,7 @@ interface EwelinkSiren {
         alarmSoundTime: number;
     };
     commands: never;
-    commandResponses: never;
+    commandsResponse: never;
 }
 
 const fzLocal = {
@@ -59,6 +59,26 @@ const tzLocal = {
             await entity.read("genOnOff", ["onOff"]);
         },
     } satisfies Tz.Converter,
+};
+
+const tzCountdownOnOff: Tz.Converter = {
+    key: ["countdown"],
+    convertSet: async (entity, key, value, meta) => {
+        const seconds = Math.round(Number(value));
+        if (seconds <= 0) {
+            await entity.command("genOnOff", "off", {}, {disableDefaultResponse: true});
+            return {state: {state: "OFF", countdown: 0}};
+        }
+        const onTimeRaw = Math.min(seconds * 10, 0xfffe);
+        const actualSeconds = Math.floor(onTimeRaw / 10);
+        await entity.command(
+            "genOnOff",
+            "onWithTimedOff",
+            {ctrlbits: 0, ontime: onTimeRaw, offwaittime: 0},
+            {disableDefaultResponse: true},
+        );
+        return {state: {state: "ON", countdown: actualSeconds}};
+    },
 };
 
 const ewelinkExtend = {
@@ -110,7 +130,33 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CK-BL702-MSW-01(7010)",
         vendor: "eWeLink",
         description: "CMARS Zigbee smart plug",
-        extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse()],
+        whiteLabel: [
+            {
+                vendor: "Mumubiz",
+                model: "CZV20",
+                description: "Zigbee smart water valve",
+                fingerprint: [
+                    {
+                        type: "Router",
+                        manufacturerName: "eWeLink",
+                        modelID: "CK-BL702-MSW-01(7010)",
+                        endpoints: [
+                            {ID: 1, inputClusters: [0, 3, 4, 5, 6, 4096, 61184, 64529, 64599]},
+                        ],
+                    },
+                ],
+            },
+        ],
+        extend: [m.onOff({powerOnBehavior: true, skipDuplicateTransaction: true}), m.skipDefaultResponse()],
+        toZigbee: [tzCountdownOnOff],
+        exposes: [
+            e.numeric("countdown", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Countdown to turn device off after a certain time")
+                .withValueMin(0)
+                .withValueMax(6500)
+                .withValueStep(1),
+        ],
     },
     {
         zigbeeModel: ["SA-003-Zigbee"],
