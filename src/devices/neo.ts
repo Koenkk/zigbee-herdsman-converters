@@ -195,24 +195,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    {
-                        from: (v: boolean, meta) => {
-                            if (v) return "ON";
-
-                            meta.state.countdown_left = 0;
-                            return "OFF";
-                        },
-                        to: (v: string, meta) => {
-                            if (v === "ON") return true;
-
-                            meta.state.countdown_left = 0;
-                            return false;
-                        },
-                    },
-                ],
+                [1, "state", tuya.valueConverter.onOffCountdown],
                 [
                     3,
                     "status",
@@ -249,18 +232,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [104, "child_lock", tuya.valueConverter.lockUnlock],
                 [105, "surplus_flow", tuya.valueConverter.raw],
                 [106, "single_watering_duration", tuya.valueConverter.raw], // (single_watering_time)
-                [
-                    107,
-                    "refresh",
-                    {
-                        from: () => {
-                            return "idle";
-                        },
-                        to: (v: string) => {
-                            return v === "refresh";
-                        },
-                    },
-                ], // (ui_refresh)
+                [107, "refresh", tuya.valueConverter.refresh], // (ui_refresh)
                 [108, "single_watering_amount", tuya.valueConverter.raw],
                 [109, "on_with_countdown", tuya.valueConverter.raw], // (valve_opening_time)
                 [110, "quantitative_water_linkage", tuya.valueConverter.onOff],
@@ -292,24 +264,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    {
-                        from: (v: boolean, meta) => {
-                            if (v) return "ON";
-
-                            meta.state.countdown_left = 0;
-                            return "OFF";
-                        },
-                        to: (v: string, meta) => {
-                            if (v === "ON") return true;
-
-                            meta.state.countdown_left = 0;
-                            return false;
-                        },
-                    },
-                ],
+                [1, "state", tuya.valueConverter.onOffCountdown],
                 [
                     3,
                     "status",
@@ -341,18 +296,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [101, "on_with_countdown", tuya.valueConverter.raw], // (valve_opening_time)
                 [104, "child_lock", tuya.valueConverter.lockUnlock],
                 [106, "single_watering_duration", tuya.valueConverter.raw], // (single_watering_time)
-                [
-                    107,
-                    "refresh",
-                    {
-                        from: () => {
-                            return "idle";
-                        },
-                        to: (v: string) => {
-                            return v === "refresh";
-                        },
-                    },
-                ], // (ui_refresh)
+                [107, "refresh", tuya.valueConverter.refresh], // (ui_refresh)
             ],
         },
     },
