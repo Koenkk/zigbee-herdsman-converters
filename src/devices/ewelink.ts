@@ -6,12 +6,25 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 import type {SonoffEwelink} from "./sonoff";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 const NS = "zhc:ewelink";
+
+interface EwelinkSiren {
+    attributes: {
+        alarmSoundMode: number;
+        alarmSoundLevel: number;
+        alarmSoundTime: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     WS01_rain: {
@@ -23,6 +36,61 @@ const fzLocal = {
             return {rain: (zoneStatus & 1) > 0};
         },
     } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+    ewelink_siren_alarm: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.onOff !== undefined) {
+                return {alarm: msg.data.onOff === 1};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+};
+
+const tzLocal = {
+    ewelink_siren_alarm: {
+        key: ["alarm"],
+        convertSet: async (entity, key, value, meta) => {
+            const alarm = value === true || value === "ON";
+            await entity.command("genOnOff", alarm ? "on" : "off", {}, utils.getOptions(meta.mapped, entity));
+            return {state: {alarm}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOff", ["onOff"]);
+        },
+    } satisfies Tz.Converter,
+};
+
+const ewelinkExtend = {
+    addCustomClusterSiren: (): ModernExtend => {
+        return m.deviceAddCustomCluster("customEwelinkSiren", {
+            name: "customEwelinkSiren",
+            ID: 0xfc11,
+            attributes: {
+                alarmSoundMode: {name: "alarmSoundMode", ID: 0x2021, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                alarmSoundLevel: {name: "alarmSoundLevel", ID: 0x2022, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                alarmSoundTime: {name: "alarmSoundTime", ID: 0x2023, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        });
+    },
+    sirenAlarm: (): ModernExtend => {
+        const exposes = [e.binary("alarm", ea.ALL, true, false).withDescription("Turn the siren alarm on or off")];
+        const fromZigbee = [fzLocal.ewelink_siren_alarm];
+        const toZigbee = [tzLocal.ewelink_siren_alarm];
+        const configure: Exclude<ModernExtend["configure"], undefined> = [
+            async (device, coordinatorEndpoint) => {
+                try {
+                    await m.setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "onOff", min: "MIN", max: "MAX", change: 1}]);
+                } catch (error) {
+                    logger.warning(`eWeLink siren genOnOff bind/reporting failed, continuing without reporting: ${error}`, NS);
+                }
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -160,6 +228,86 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             },
         ],
+    },
+    {
+        zigbeeModel: ["NAS-AB03B3"],
+        model: "NAS-AB03B3",
+        vendor: "eWeLink",
+        description: "Indoor sound and light alarm",
+        extend: [
+            ewelinkExtend.addCustomClusterSiren(),
+            ewelinkExtend.sirenAlarm(),
+            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["battery_low"]}),
+            m.battery({percentage: true, percentageReporting: true, percentageReportingConfig: {min: 3600, max: 7200, change: 2}}),
+            m.numeric<"customEwelinkSiren", EwelinkSiren>({
+                name: "alarm_duration",
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundTime",
+                entityCategory: "config",
+                description: "Duration in seconds of the alarm",
+                valueMin: 1,
+                valueMax: 1800,
+                unit: "s",
+            }),
+            m.numeric<"customEwelinkSiren", EwelinkSiren>({
+                name: "volume",
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundLevel",
+                entityCategory: "config",
+                description: "Indoor siren volume level",
+                valueMin: 0x00,
+                valueMax: 0x0f,
+                access: "ALL",
+            }),
+            m.enumLookup<"customEwelinkSiren", EwelinkSiren>({
+                name: "melody",
+                lookup: {1: 0x00, 2: 0x01, 3: 0x02, 4: 0x03, 5: 0x04, 6: 0x05, 7: 0x06, 8: 0x07, 9: 0x08, 10: 0x09, 11: 0x0a},
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundMode",
+                entityCategory: "config",
+                description: "Alarm melody",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["NAS-AB06B3"],
+        model: "NAS-AB06B3",
+        vendor: "eWeLink",
+        description: "Outdoor sound and light alarm",
+        extend: [
+            ewelinkExtend.addCustomClusterSiren(),
+            ewelinkExtend.sirenAlarm(),
+            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["battery_low"]}),
+            m.battery({percentage: true, percentageReporting: true, percentageReportingConfig: {min: 3600, max: 7200, change: 2}}),
+            m.numeric<"customEwelinkSiren", EwelinkSiren>({
+                name: "alarm_duration",
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundTime",
+                entityCategory: "config",
+                description: "Duration in seconds of the alarm",
+                valueMin: 1,
+                valueMax: 1800,
+                unit: "s",
+            }),
+            m.enumLookup<"customEwelinkSiren", EwelinkSiren>({
+                name: "volume",
+                lookup: {high: 0x03, medium: 0x02, low: 0x01},
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundLevel",
+                entityCategory: "config",
+                description: "Outdoor siren volume",
+            }),
+            m.enumLookup<"customEwelinkSiren", EwelinkSiren>({
+                name: "melody",
+                lookup: {1: 0x00, 2: 0x01, 3: 0x02},
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundMode",
+                entityCategory: "config",
+                description: "Alarm melody",
+            }),
+        ],
+        ota: true,
     },
     {
         zigbeeModel: ["CK-MG22-JLDJ-01(7015)", "CK-MG22-Z310EE07DOOYA-01(7015)", "MYDY25Z-1", "Grandekor Smart Curtain Grandekor"],
