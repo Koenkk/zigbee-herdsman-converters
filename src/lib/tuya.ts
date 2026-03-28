@@ -791,20 +791,6 @@ export const valueConverter = {
         from: (value: number) => (value > 200 ? value - 256 : value),
         to: (value: number) => (value < 0 ? 256 + value : value),
     },
-    onOffCountdown: {
-        to: (v: string, meta: Tz.Meta) => {
-            if (v === "ON") return true;
-
-            meta.state.countdown_left = 0;
-            return false;
-        },
-        from: (v: boolean, meta: Fz.Meta) => {
-            if (v) return "ON";
-
-            meta.state.countdown_left = 0;
-            return "OFF";
-        },
-    },
     refresh: {
         to: (v: string) => {
             return v === "refresh";

@@ -195,7 +195,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOffCountdown],
+                [1, "state", tuya.valueConverter.onOff],
                 [
                     3,
                     "status",
@@ -264,7 +264,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOffCountdown],
+                [1, "state", tuya.valueConverter.onOff],
                 [
                     3,
                     "status",
