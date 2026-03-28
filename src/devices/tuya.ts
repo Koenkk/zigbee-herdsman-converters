@@ -25755,10 +25755,8 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ZG-226Z"],
         model: "ZG-226Z",
         vendor: "HOBEIAN",
-        description: "Water Leak Alarm",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        description: "Water leak alarm",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.water_leak(),
             e.binary("alarm", ea.STATE_SET, "ON", "OFF").withDescription("Audible and visual alarm"),
@@ -25809,9 +25807,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-228Z",
         vendor: "HOBEIAN",
         description: "Vibration alarm",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.vibration(),
             e.enum("vibration_siren", ea.STATE_SET, ["OFF", "ON"]).withDescription("Vibration"),
@@ -25886,9 +25882,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-229Z",
         vendor: "HOBEIAN",
         description: "Smart light & sound siren",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e
                 .enum("alarm", ea.STATE_SET, ["alarm_sound", "alarm_light", "alarm_sound_light", "normal"])
@@ -25951,8 +25945,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-204ZX",
         vendor: "HOBEIAN",
         description: "24Ghz millimeter wave and T&H sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
