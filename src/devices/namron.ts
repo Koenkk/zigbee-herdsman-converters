@@ -2195,7 +2195,8 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            // Device internal temperature (genDeviceTempCfg, raw ÷ 10)
+            // Device reports currentTemperature in 0.1°C units (non-standard; ZCL spec is °C).
+            // e.g. raw 311 = 31.1°C. change: 10 raw units = 1°C reporting threshold; fzConvert divides by 10.
             m.numeric({
                 name: "device_temperature",
                 cluster: "genDeviceTempCfg",
@@ -2214,7 +2215,8 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                 },
             }),
-            // NTC1 temperature (msTemperatureMeasurement, raw ÷ 100)
+            // Device reports measuredValue in 0.01°C units (standard for msTemperatureMeasurement).
+            // e.g. raw 2250 = 22.50°C. change: 10 raw units = 0.1°C reporting threshold; fzConvert divides by 100.
             m.numeric({
                 name: "ntc1_temperature",
                 cluster: "msTemperatureMeasurement",
@@ -2232,7 +2234,8 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                 },
             }),
-            // NTC2 temperature (custom cluster attr 0x0000, raw ÷ 100)
+            // Device reports ntc2Temperature in 0.01°C units (same as NTC1).
+            // e.g. raw 2350 = 23.50°C. change: 10 raw units = 0.1°C reporting threshold; fzConvert divides by 100.
             m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
                 name: "ntc2_temperature",
                 cluster: "namronPrivate04E0",
