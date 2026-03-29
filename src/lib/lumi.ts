@@ -2827,7 +2827,7 @@ export const lumiModernExtend = {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if ((msg.data as KeyValueAny).movement === 1) {
+                    if (msg.data.movement !== undefined && msg.data.movement === 1) {
                         return {action: "movement"};
                     }
                 },
