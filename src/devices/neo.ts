@@ -489,8 +489,8 @@ export const definitions: DefinitionWithExtend[] = [
                     "presence_time",
                     {
                         // Device sends 0xFFFFFF08 as sentinel when presence_time has never been
-                        // configured. Filter it out to prevent HA range errors, and restore
-                        // the last known value on device reboot via the onEvent handler above.
+                        // configured. Filter it out to prevent HA range errors.
+                        // Device will re-report its stored value after reboot via queryOnDeviceAnnounce.
                         from: (v: number) => (v >= NAS_PS10B2_PRESENCE_TIME_MIN && v <= NAS_PS10B2_PRESENCE_TIME_MAX ? v : undefined),
                         to: (v: number) => v,
                     },
