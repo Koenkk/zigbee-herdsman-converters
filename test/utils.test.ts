@@ -186,5 +186,19 @@ describe("utils", () => {
                 expect(() => getFromLookup({}, {off: 0, on: 1})).toThrowError("Expected string or number, got: object");
             });
         });
+
+        describe("key not found", () => {
+            it("should throw when key not found and no default provided", () => {
+                expect(() => getFromLookup("unknown", {off: 0, on: 1})).toThrowError("Key 'unknown' not found in: [off, on]");
+                expect(() => getFromLookup(99, {0: "OFF", 1: "on"})).toThrowError("Key '99' not found in: [0, 1]");
+                expect(() => getFromLookup(false, {true: "yes"}, undefined, true)).toThrowError("Key 'false' not found in: [true]");
+            });
+
+            it("should return default value when key not found and default provided", () => {
+                expect(getFromLookup("unknown", {off: 0, on: 1}, 99)).toStrictEqual(99);
+                expect(getFromLookup(99, {0: "OFF", 1: "on"}, "default")).toStrictEqual("default");
+                expect(getFromLookup(false, {true: "yes"}, "no", true)).toStrictEqual("no");
+            });
+        });
     });
 });
