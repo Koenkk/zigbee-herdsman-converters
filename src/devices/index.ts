@@ -45,6 +45,7 @@ import {definitions as casaia} from "./casaia";
 import {definitions as cel} from "./cel";
 import {definitions as centralite} from "./centralite";
 import {definitions as chacon} from "./chacon";
+import {definitions as cigol} from "./cigol";
 import {definitions as cleode} from "./cleode";
 import {definitions as cleverio} from "./cleverio";
 import {definitions as climax} from "./climax";
@@ -205,6 +206,7 @@ import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
+import {definitions as msh} from "./msh";
 import {definitions as mullerLicht} from "./muller_licht";
 import {definitions as multir} from "./multir";
 import {definitions as multiterm} from "./multiterm";
@@ -416,6 +418,7 @@ const definitions: DefinitionWithExtend[] = [
     ...cel,
     ...centralite,
     ...chacon,
+    ...cigol,
     ...cleode,
     ...cleverio,
     ...climax,
@@ -574,6 +577,7 @@ const definitions: DefinitionWithExtend[] = [
     ...mindy,
     ...modular,
     ...moes,
+    ...msh,
     ...mullerLicht,
     ...multir,
     ...multiterm,

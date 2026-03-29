@@ -509,7 +509,7 @@ const fzLocal = {
         cluster: "closuresDoorLock",
         type: ["raw"],
         convert: (model, msg, publish, options, meta) => {
-            const lookup: {[key: number]: string} = {
+            const actionLookup: {[key: number]: string} = {
                 0: "password_unlock",
                 1: "unlock",
                 2: "auto_lock",
@@ -527,7 +527,40 @@ const fzLocal = {
                 14: "manual_unlock",
                 15: "non_access_user_operational_event",
             };
-            return {action: lookup[msg.data[3]], action_source_user: msg.data[5]};
+            const sourceLookup: {[key: number]: string} = {
+                0: "keypad",
+                1: "rf",
+                2: "manual",
+                3: "rfid",
+                4: "manual",
+                5: "keypad",
+                6: "keypad",
+                7: "manual",
+                8: "manual",
+                9: "manual",
+                10: "manual",
+                11: "rf",
+                12: "rf",
+                13: "manual",
+                14: "manual",
+                15: "keypad",
+            };
+            const lockActions = [2, 7, 8, 10, 11, 13];
+            const unlockActions = [0, 1, 3, 4, 9, 12, 14];
+            const actionCode = msg.data[3];
+            const result: ZHTypes.KeyValue = {
+                action: actionLookup[actionCode] ?? "unknown",
+                action_source_name: sourceLookup[actionCode] ?? null,
+                action_source_user: msg.data[5],
+            };
+            if (lockActions.includes(actionCode)) {
+                result.state = "LOCK";
+                result.lock_state = "locked";
+            } else if (unlockActions.includes(actionCode)) {
+                result.state = "UNLOCK";
+                result.lock_state = "unlocked";
+            }
+            return result;
         },
     } satisfies Fz.Converter<"closuresDoorLock", undefined, ["raw"]>,
 };
@@ -716,6 +749,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YMC420-W",
         vendor: "Yale",
         description: "Digital Lock YMC 420 W",
+        fromZigbee: [fzLocal.ymc_action],
+        extend: [lockExtend()],
+    },
+    {
+        zigbeeModel: ["SOLIS01"],
+        model: "SOLIS01",
+        vendor: "Yale",
+        description: "Solis digital lock",
         fromZigbee: [fzLocal.ymc_action],
         extend: [lockExtend()],
     },
