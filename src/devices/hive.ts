@@ -14,11 +14,16 @@ const ea = exposes.access;
 // occupied_heating_setpoint to be written in a single ZCL transaction.
 // Sending them as individual attribute writes (as the generic thermostat
 // converters do) causes the device to ignore the commands.
+//
+// Valid combinations per device documentation:
+//   heat:                system_mode=heat, hold=1, setpoint required
+//   off:                 system_mode=off,  hold=0, setpoint auto-resets
+//   auto (schedule):     system_mode=auto, hold=0
+//   emergency_heating:   system_mode=emergency_heating, hold=1, setpoint + duration required
 const hiveSLRThermostat: Tz.Converter = {
     key: ["system_mode", "occupied_heating_setpoint", "temperature_setpoint_hold"],
     convertSet: async (entity, key, value, meta) => {
         const currentSetpoint = meta.state.occupied_heating_setpoint as number | undefined;
-        const currentMode = meta.state.system_mode as string | undefined;
 
         let modeStr: string;
         let tempSetpointHold: number;
@@ -29,23 +34,32 @@ const hiveSLRThermostat: Tz.Converter = {
             if (modeStr === "off" || modeStr === "auto") {
                 tempSetpointHold = 0;
             } else {
-                // heat or emergency_heating
+                // heat or emergency_heating: hold=1, include setpoint
                 tempSetpointHold = 1;
                 if (currentSetpoint !== undefined) {
                     occupiedHeatingSetpoint = Math.round(Number(currentSetpoint) * 100);
                 }
             }
         } else if (key === "occupied_heating_setpoint") {
+            // Setting a specific temperature always means manual heat mode.
+            // off+hold=1 is invalid, and auto+hold=1 is undocumented,
+            // so we always switch to heat.
             utils.assertNumber(value, key);
             occupiedHeatingSetpoint = Math.round(Number(value) * 100);
-            modeStr = currentMode ?? "heat";
+            modeStr = "heat";
             tempSetpointHold = 1;
         } else {
             // temperature_setpoint_hold
             tempSetpointHold = value ? 1 : 0;
-            modeStr = tempSetpointHold ? (currentMode ?? "heat") : (currentMode ?? "off");
-            if (tempSetpointHold && currentSetpoint !== undefined) {
-                occupiedHeatingSetpoint = Math.round(Number(currentSetpoint) * 100);
+            if (tempSetpointHold) {
+                // Enabling hold: off+hold=1 is invalid, so default to heat
+                modeStr = "heat";
+                if (currentSetpoint !== undefined) {
+                    occupiedHeatingSetpoint = Math.round(Number(currentSetpoint) * 100);
+                }
+            } else {
+                // Disabling hold: auto is the natural hold=0 heating mode
+                modeStr = "auto";
             }
         }
 

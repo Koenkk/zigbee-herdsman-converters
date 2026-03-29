@@ -125,16 +125,34 @@ describe("Hive SLR thermostat converter", () => {
             });
         });
 
-        test("setting setpoint preserves current system_mode if already heat", async () => {
-            mockMeta.state = {system_mode: "heat"};
+        test("setting setpoint switches to heat mode when currently off", async () => {
+            mockMeta.state = {system_mode: "off"};
             const converter = findConverter("occupied_heating_setpoint");
-            await converter.convertSet?.(device.endpoints[0], "occupied_heating_setpoint", 22.5, mockMeta);
+            const result = await converter.convertSet?.(device.endpoints[0], "occupied_heating_setpoint", 22.5, mockMeta);
 
             expect(device.endpoints[0].write).toHaveBeenCalledWith(
                 "hvacThermostat",
                 {systemMode: 4, tempSetpointHold: 1, occupiedHeatingSetpoint: 2250},
                 {disableDefaultResponse: true},
             );
+            expect(result).toStrictEqual({
+                state: {system_mode: "heat", temperature_setpoint_hold: true, occupied_heating_setpoint: 22.5},
+            });
+        });
+
+        test("setting setpoint switches to heat mode when currently auto", async () => {
+            mockMeta.state = {system_mode: "auto"};
+            const converter = findConverter("occupied_heating_setpoint");
+            const result = await converter.convertSet?.(device.endpoints[0], "occupied_heating_setpoint", 18, mockMeta);
+
+            expect(device.endpoints[0].write).toHaveBeenCalledWith(
+                "hvacThermostat",
+                {systemMode: 4, tempSetpointHold: 1, occupiedHeatingSetpoint: 1800},
+                {disableDefaultResponse: true},
+            );
+            expect(result).toStrictEqual({
+                state: {system_mode: "heat", temperature_setpoint_hold: true, occupied_heating_setpoint: 18},
+            });
         });
 
         test("setting setpoint rounds to nearest integer centidegree", async () => {
@@ -165,8 +183,8 @@ describe("Hive SLR thermostat converter", () => {
             });
         });
 
-        test("disabling hold writes with current mode", async () => {
-            mockMeta.state = {system_mode: "auto"};
+        test("disabling hold switches to auto mode", async () => {
+            mockMeta.state = {system_mode: "heat"};
             const converter = findConverter("temperature_setpoint_hold");
             const result = await converter.convertSet?.(device.endpoints[0], "temperature_setpoint_hold", false, mockMeta);
 
@@ -177,6 +195,21 @@ describe("Hive SLR thermostat converter", () => {
             );
             expect(result).toStrictEqual({
                 state: {system_mode: "auto", temperature_setpoint_hold: false},
+            });
+        });
+
+        test("enabling hold uses heat mode when currently off", async () => {
+            mockMeta.state = {system_mode: "off", occupied_heating_setpoint: 20};
+            const converter = findConverter("temperature_setpoint_hold");
+            const result = await converter.convertSet?.(device.endpoints[0], "temperature_setpoint_hold", true, mockMeta);
+
+            expect(device.endpoints[0].write).toHaveBeenCalledWith(
+                "hvacThermostat",
+                {systemMode: 4, tempSetpointHold: 1, occupiedHeatingSetpoint: 2000},
+                {disableDefaultResponse: true},
+            );
+            expect(result).toStrictEqual({
+                state: {system_mode: "heat", temperature_setpoint_hold: true, occupied_heating_setpoint: 20},
             });
         });
 
