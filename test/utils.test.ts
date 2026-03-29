@@ -178,5 +178,13 @@ describe("utils", () => {
                 expect(() => getFromLookup(1, {true: "enabled", false: "disabled"}, undefined, true)).toThrowError("Expected boolean, got: number");
             });
         });
+
+        describe("invalid key types", () => {
+            it("should throw when key is not string or number", () => {
+                expect(() => getFromLookup(null, {off: 0, on: 1})).toThrowError("Expected string or number, got: object");
+                expect(() => getFromLookup(undefined, {off: 0, on: 1})).toThrowError("Expected string or number, got: undefined");
+                expect(() => getFromLookup({}, {off: 0, on: 1})).toThrowError("Expected string or number, got: object");
+            });
+        });
     });
 });
