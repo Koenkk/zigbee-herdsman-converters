@@ -4805,9 +4805,29 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SWV",
         vendor: "SONOFF",
         description: "Zigbee smart water valve",
-        fromZigbee: [fz.flow],
+        fromZigbee: [
+            fz.flow,
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    if (msg.data.irrigationStartTime) {
+                        result.irrigation_start_time = formatUtcSecondsToIsoWithOffset(msg.data.irrigationStartTime);
+                    }
+                    if (msg.data.irrigationEndTime) {
+                        result.irrigation_end_time = formatUtcSecondsToIsoWithOffset(msg.data.irrigationEndTime);
+                    }
+                    return result;
+                },
+            },
+        ],
         toZigbee: [tzLocal.on_off_fixed_on_time],
-        exposes: [e.numeric("flow", ea.STATE).withDescription("Current water flow").withUnit("m³/h")],
+        exposes: [
+            e.numeric("flow", ea.STATE).withDescription("Current water flow").withUnit("m³/h"),
+            e.text("irrigation_start_time", ea.STATE).withDescription("Start time of the last/current irrigation session"),
+            e.text("irrigation_end_time", ea.STATE).withDescription("End time of the last irrigation session"),
+        ],
         extend: [
             m.battery(),
             m.onOff({
@@ -4835,6 +4855,39 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.cyclicTimedIrrigation(),
             sonoffExtend.cyclicQuantitativeIrrigation(),
+            m.numeric({
+                name: "real_time_irrigation_duration",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x5006, type: Zcl.DataType.UINT32},
+                description: "Duration of the last/current irrigation session",
+                access: "STATE",
+                unit: "s",
+            }),
+            m.numeric({
+                name: "real_time_irrigation_volume",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x5007, type: Zcl.DataType.UINT32},
+                description: "Volume of the last/current irrigation session",
+                access: "STATE",
+                unit: "L",
+            }),
+            m.numeric({
+                name: "daily_irrigation_volume",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x500f, type: Zcl.DataType.UINT32},
+                description: "Total irrigation volume today",
+                access: "STATE",
+                unit: "L",
+            }),
+            m.binary({
+                name: "valve_work_state",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x5010, type: Zcl.DataType.BOOLEAN},
+                description: "Current valve work state",
+                access: "STATE",
+                valueOn: ["working", 1],
+                valueOff: ["idle", 0],
+            }),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -4843,6 +4896,11 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["msFlowMeasurement"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
             await endpoint.read("customClusterEwelink", [0x500c, 0x5011]);
+            try {
+                await endpoint.read("customClusterEwelink", [0x5006, 0x5007, 0x500d, 0x500e, 0x500f, 0x5010]);
+            } catch {
+                // Non-fatal — device may be sleeping (battery-powered)
+            }
         },
     },
     {
