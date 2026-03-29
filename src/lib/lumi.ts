@@ -65,6 +65,8 @@ export interface ManuSpecificLumi {
         illuminance: number;
         /** ID=0x0114 | type=UINT8 | write=true | max=255 */
         displayUnit: number;
+        /** ID=0x0118 | type=UINT8 */
+        movement: number;
         /** ID=0x0129 | type=UINT8 | write=true | max=255 */
         airQuality: number;
         /** ID=0x0400 | type=BOOLEAN | write=true */
