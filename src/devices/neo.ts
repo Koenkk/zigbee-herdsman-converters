@@ -8,7 +8,7 @@ import type {DefinitionWithExtend} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const NAS_PS10B2_PRESENCE_TIME_MIN = 3;   // seconds, per device spec
+const NAS_PS10B2_PRESENCE_TIME_MIN = 3; // seconds, per device spec
 const NAS_PS10B2_PRESENCE_TIME_MAX = 600; // seconds, per device spec
 
 export const definitions: DefinitionWithExtend[] = [
@@ -492,13 +492,17 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "presence", tuya.valueConverter.trueFalse1],
                 [11, "human_motion_state", tuya.valueConverterBasic.lookup({none: 0, small: 1, large: 2})],
                 [19, "dis_current", tuya.valueConverter.raw],
-                [12, "presence_time", {
-                // Device sends 0xFFFFFF08 as sentinel when presence_time has never been
-                // configured. Filter it out to prevent HA range errors, and restore
-                // the last known value on device reboot via the onEvent handler above.
-                    from: (v: number) => (v >= NAS_PS10B2_PRESENCE_TIME_MIN && v <= NAS_PS10B2_PRESENCE_TIME_MAX) ? v : undefined,
-                    to: (v: number) => v,
-                }],
+                [
+                    12,
+                    "presence_time",
+                    {
+                        // Device sends 0xFFFFFF08 as sentinel when presence_time has never been
+                        // configured. Filter it out to prevent HA range errors, and restore
+                        // the last known value on device reboot via the onEvent handler above.
+                        from: (v: number) => (v >= NAS_PS10B2_PRESENCE_TIME_MIN && v <= NAS_PS10B2_PRESENCE_TIME_MAX ? v : undefined),
+                        to: (v: number) => v,
+                    },
+                ],
                 [13, "motion_far_detection", tuya.valueConverter.raw],
                 [15, "motion_sensitivity", tuya.valueConverter.raw],
                 [16, "motionless_sensitivity", tuya.valueConverter.raw],
