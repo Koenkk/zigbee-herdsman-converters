@@ -157,5 +157,26 @@ describe("utils", () => {
                 expect(getFromLookup(1, {0: "OFF", 1: "on"})).toStrictEqual("on");
             });
         });
+
+        describe("boolean keys", () => {
+            it("should match true with exact match", () => {
+                expect(getFromLookup(true, {true: "enabled", false: "disabled"}, undefined, true)).toStrictEqual("enabled");
+            });
+
+            it("should match false with exact match", () => {
+                expect(getFromLookup(false, {true: "enabled", false: "disabled"}, undefined, true)).toStrictEqual("disabled");
+            });
+
+            it("should match true with case insensitive lookup", () => {
+                expect(getFromLookup(true, {TRUE: "yes", FALSE: "no"}, undefined, true)).toStrictEqual("yes");
+            });
+
+            it("should throw when keyIsBool is true but key is not boolean", () => {
+                expect(() => getFromLookup("true", {true: "enabled", false: "disabled"}, undefined, true)).toThrowError(
+                    "Expected boolean, got: string",
+                );
+                expect(() => getFromLookup(1, {true: "enabled", false: "disabled"}, undefined, true)).toThrowError("Expected boolean, got: number");
+            });
+        });
     });
 });
