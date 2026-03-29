@@ -435,15 +435,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NAS-PS10B2",
         vendor: "NEO",
         description: "Human presence sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        onEvent: async (type, data, device, settings, state) => {
-            if (type === "deviceAnnounce") {
-                const endpoint = device.getEndpoint(1);
-                if (state?.["presence_time"] !== undefined) {
-                    await tuya.sendDataPointValue(endpoint, 12, state["presence_time"] as number);
-                }
-            }
-        },
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true})],
         exposes: [
             e.presence(),
             e.enum("human_motion_state", ea.STATE, ["none", "small", "large"]).withDescription("Human Motion State"),
