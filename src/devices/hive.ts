@@ -1,12 +1,85 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+// Hive SLR/OTR receivers require system_mode, temperature_setpoint_hold, and
+// occupied_heating_setpoint to be written in a single ZCL transaction.
+// Sending them as individual attribute writes (as the generic thermostat
+// converters do) causes the device to ignore the commands.
+const hiveSLRThermostat: Tz.Converter = {
+    key: ["system_mode", "occupied_heating_setpoint", "temperature_setpoint_hold"],
+    convertSet: async (entity, key, value, meta) => {
+        const currentSetpoint = meta.state.occupied_heating_setpoint as number | undefined;
+        const currentMode = meta.state.system_mode as string | undefined;
+
+        let modeStr: string;
+        let tempSetpointHold: number;
+        let occupiedHeatingSetpoint: number | undefined;
+
+        if (key === "system_mode") {
+            modeStr = value as string;
+            if (modeStr === "off" || modeStr === "auto") {
+                tempSetpointHold = 0;
+            } else {
+                // heat or emergency_heating
+                tempSetpointHold = 1;
+                if (currentSetpoint !== undefined) {
+                    occupiedHeatingSetpoint = Math.round(Number(currentSetpoint) * 100);
+                }
+            }
+        } else if (key === "occupied_heating_setpoint") {
+            utils.assertNumber(value, key);
+            occupiedHeatingSetpoint = Math.round(Number(value) * 100);
+            modeStr = currentMode ?? "heat";
+            tempSetpointHold = 1;
+        } else {
+            // temperature_setpoint_hold
+            tempSetpointHold = value ? 1 : 0;
+            modeStr = tempSetpointHold ? (currentMode ?? "heat") : (currentMode ?? "off");
+            if (tempSetpointHold && currentSetpoint !== undefined) {
+                occupiedHeatingSetpoint = Math.round(Number(currentSetpoint) * 100);
+            }
+        }
+
+        const systemMode = utils.getKey(constants.thermostatSystemModes, modeStr, undefined, Number);
+        if (occupiedHeatingSetpoint !== undefined) {
+            await entity.write("hvacThermostat", {systemMode, tempSetpointHold, occupiedHeatingSetpoint}, {disableDefaultResponse: true});
+        } else {
+            await entity.write("hvacThermostat", {systemMode, tempSetpointHold}, {disableDefaultResponse: true});
+        }
+
+        const state: Record<string, unknown> = {
+            system_mode: modeStr,
+            temperature_setpoint_hold: tempSetpointHold === 1,
+        };
+        if (occupiedHeatingSetpoint !== undefined) {
+            state.occupied_heating_setpoint = occupiedHeatingSetpoint / 100;
+        }
+
+        return {state};
+    },
+    convertGet: async (entity, key, meta) => {
+        switch (key) {
+            case "system_mode":
+                await entity.read("hvacThermostat", ["systemMode"]);
+                break;
+            case "occupied_heating_setpoint":
+                await entity.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
+                break;
+            case "temperature_setpoint_hold":
+                await entity.read("hvacThermostat", ["tempSetpointHold"]);
+                break;
+        }
+    },
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -174,13 +247,11 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
+            hiveSLRThermostat,
             tz.thermostat_running_state,
-            tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule,
-            tz.thermostat_temperature_setpoint_hold,
             tz.thermostat_temperature_setpoint_hold_duration,
         ],
         exposes: [
@@ -226,13 +297,11 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
+            hiveSLRThermostat,
             tz.thermostat_running_state,
-            tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule,
-            tz.thermostat_temperature_setpoint_hold,
             tz.thermostat_temperature_setpoint_hold_duration,
         ],
         exposes: [
@@ -278,13 +347,11 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
+            hiveSLRThermostat,
             tz.thermostat_running_state,
-            tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule,
-            tz.thermostat_temperature_setpoint_hold,
             tz.thermostat_temperature_setpoint_hold_duration,
         ],
         exposes: [
@@ -330,13 +397,11 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
+            hiveSLRThermostat,
             tz.thermostat_running_state,
-            tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule,
-            tz.thermostat_temperature_setpoint_hold,
             tz.thermostat_temperature_setpoint_hold_duration,
         ],
         exposes: [
@@ -370,13 +435,11 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
+            hiveSLRThermostat,
             tz.thermostat_running_state,
-            tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule,
-            tz.thermostat_temperature_setpoint_hold,
             tz.thermostat_temperature_setpoint_hold_duration,
         ],
         exposes: [
@@ -422,13 +485,11 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
+            hiveSLRThermostat,
             tz.thermostat_running_state,
-            tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule,
-            tz.thermostat_temperature_setpoint_hold,
             tz.thermostat_temperature_setpoint_hold_duration,
         ],
         endpoint: (device) => {
@@ -511,13 +572,11 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
+            hiveSLRThermostat,
             tz.thermostat_running_state,
-            tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule,
-            tz.thermostat_temperature_setpoint_hold,
             tz.thermostat_temperature_setpoint_hold_duration,
         ],
         endpoint: (device) => {
@@ -601,13 +660,11 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tz.thermostat_system_mode,
+            hiveSLRThermostat,
             tz.thermostat_running_state,
-            tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule,
-            tz.thermostat_temperature_setpoint_hold,
             tz.thermostat_temperature_setpoint_hold_duration,
         ],
         endpoint: (device) => {
