@@ -137,10 +137,25 @@ describe("utils", () => {
         expect(() => toNumber("")).toThrowError("Value is not a number, got string ()");
     });
 
-    it("getFromLookup", () => {
-        expect(getFromLookup("OFF", {off: 0, on: 1, previous: 2})).toStrictEqual(0);
-        expect(getFromLookup("On", {off: 0, on: 1, previous: 2})).toStrictEqual(1);
-        expect(getFromLookup("previous", {OFF: 0, ON: 1, PREVIOUS: 2})).toStrictEqual(2);
-        expect(getFromLookup(1, {0: "OFF", 1: "on"})).toStrictEqual("on");
+    describe("getFromLookup", () => {
+        describe("string keys", () => {
+            it("should match with case insensitive lookup (lowercase key)", () => {
+                expect(getFromLookup("OFF", {off: 0, on: 1, previous: 2})).toStrictEqual(0);
+            });
+
+            it("should match with case insensitive lookup (mixed case key)", () => {
+                expect(getFromLookup("On", {off: 0, on: 1, previous: 2})).toStrictEqual(1);
+            });
+
+            it("should match with case insensitive lookup (uppercase key)", () => {
+                expect(getFromLookup("previous", {OFF: 0, ON: 1, PREVIOUS: 2})).toStrictEqual(2);
+            });
+        });
+
+        describe("number keys", () => {
+            it("should match numeric key", () => {
+                expect(getFromLookup(1, {0: "OFF", 1: "on"})).toStrictEqual("on");
+            });
+        });
     });
 });
