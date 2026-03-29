@@ -8,6 +8,9 @@ import type {DefinitionWithExtend} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
+const NAS_PS10B2_PRESENCE_TIME_MIN = 3;   // seconds, per device spec
+const NAS_PS10B2_PRESENCE_TIME_MAX = 600; // seconds, per device spec
+
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_d0yu2xgi"]),
@@ -433,6 +436,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "NEO",
         description: "Human presence sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        onEvent: async (type, data, device, settings, state) => {
+            if (type === "deviceAnnounce") {
+                const endpoint = device.getEndpoint(1);
+                if (state?.["presence_time"] !== undefined) {
+                    await tuya.sendDataPointValue(endpoint, 12, state["presence_time"] as number);
+                }
+            }
+        },
         exposes: [
             e.presence(),
             e.enum("human_motion_state", ea.STATE, ["none", "small", "large"]).withDescription("Human Motion State"),
@@ -447,8 +458,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("presence_time", ea.STATE_SET)
                 .withUnit("s")
-                .withValueMin(3)
-                .withValueMax(600)
+                .withValueMin(NAS_PS10B2_PRESENCE_TIME_MIN)
+                .withValueMax(NAS_PS10B2_PRESENCE_TIME_MAX)
                 .withValueStep(1)
                 .withDescription("Presence Time"),
             e
@@ -481,7 +492,13 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "presence", tuya.valueConverter.trueFalse1],
                 [11, "human_motion_state", tuya.valueConverterBasic.lookup({none: 0, small: 1, large: 2})],
                 [19, "dis_current", tuya.valueConverter.raw],
-                [12, "presence_time", tuya.valueConverter.raw],
+                [12, "presence_time", {
+                // Device sends 0xFFFFFF08 as sentinel when presence_time has never been
+                // configured. Filter it out to prevent HA range errors, and restore
+                // the last known value on device reboot via the onEvent handler above.
+                    from: (v: number) => (v >= NAS_PS10B2_PRESENCE_TIME_MIN && v <= NAS_PS10B2_PRESENCE_TIME_MAX) ? v : undefined,
+                    to: (v: number) => v,
+                }],
                 [13, "motion_far_detection", tuya.valueConverter.raw],
                 [15, "motion_sensitivity", tuya.valueConverter.raw],
                 [16, "motionless_sensitivity", tuya.valueConverter.raw],
