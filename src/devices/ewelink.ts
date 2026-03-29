@@ -448,9 +448,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["CK-BL702-MSW-01(7010)"],
         model: "CZV20",
         vendor: "Mumubiz",
-        whiteLabel: [
-            {vendor: "eWeLink", model: "CK-BL702-MSW-01(7010)"},
-        ],
+        whiteLabel: [{vendor: "eWeLink", model: "CK-BL702-MSW-01(7010)"}],
         description: "Zigbee smart water valve",
         extend: [m.onOff({skipDuplicateTransaction: true}), m.powerOnBehavior(), m.skipDefaultResponse()],
         configure: async (device, coordinatorEndpoint) => {
