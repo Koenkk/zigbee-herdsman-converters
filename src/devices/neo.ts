@@ -3,7 +3,7 @@ import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, KeyValue, OnEventData, OnEventType, Zh} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
