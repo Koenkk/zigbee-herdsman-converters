@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it} from "vitest";
 import type {Device} from "zigbee-herdsman/dist/controller/model";
 import type {Tz} from "../src/lib/types";
-import {batteryVoltageToPercentage, getFromLookup, getTransition, mapNumberRange, toNumber} from "../src/lib/utils";
+import {batteryVoltageToPercentage, getFromLookup, getFromLookupByValue, getTransition, mapNumberRange, toNumber} from "../src/lib/utils";
 import {mockDevice} from "./utils";
 
 describe("utils", () => {
@@ -198,6 +198,36 @@ describe("utils", () => {
                 expect(getFromLookup("unknown", {off: 0, on: 1}, 99)).toStrictEqual(99);
                 expect(getFromLookup(99, {0: "OFF", 1: "on"}, "default")).toStrictEqual("default");
                 expect(getFromLookup(false, {true: "yes"}, "no", true)).toStrictEqual("no");
+            });
+        });
+    });
+
+    describe("getFromLookupByValue", () => {
+        describe("value found", () => {
+            it("should return key when value matches", () => {
+                expect(getFromLookupByValue(0, {off: 0, on: 1})).toStrictEqual("off");
+                expect(getFromLookupByValue(1, {off: 0, on: 1})).toStrictEqual("on");
+                expect(getFromLookupByValue("enabled", {mode_a: "enabled", mode_b: "disabled"})).toStrictEqual("mode_a");
+            });
+        });
+
+        describe("value not found", () => {
+            it("should throw when value not found and no default provided", () => {
+                expect(() => getFromLookupByValue(99, {off: 0, on: 1})).toThrowError("Expected one of: 0, 1, got: '99'");
+                expect(() => getFromLookupByValue("unknown", {mode_a: "enabled", mode_b: "disabled"})).toThrowError(
+                    "Expected one of: enabled, disabled, got: 'unknown'",
+                );
+            });
+
+            it("should return default value when value not found and default provided", () => {
+                expect(getFromLookupByValue(99, {off: 0, on: 1}, "default_key")).toStrictEqual("default_key");
+                expect(getFromLookupByValue("unknown", {mode_a: "enabled", mode_b: "disabled"}, "fallback")).toStrictEqual("fallback");
+            });
+        });
+
+        describe("multiple keys with same value", () => {
+            it("should return first matching key", () => {
+                expect(getFromLookupByValue("same", {first: "same", second: "same", third: "different"})).toStrictEqual("first");
             });
         });
     });
