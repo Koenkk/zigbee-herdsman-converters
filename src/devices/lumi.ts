@@ -2434,16 +2434,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Vibration sensor T1",
         extend: [
-            m.deviceAddCustomCluster("manuSpecificLumi", {
-                ID: 0xfcc0,
-                name: "manuSpecificLumi",
-                manufacturerCode,
-                attributes: {
-                    movement: {ID: 0x0118, type: Zcl.DataType.UINT8, name: "movement"},
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
+            lumi.modernExtend.addManuSpecificLumiCluster(),
             lumiVibration(),
             // lumiMiscellaneous(),
             lumiReportInterval(),

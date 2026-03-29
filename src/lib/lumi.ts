@@ -1754,6 +1754,7 @@ export const lumiModernExtend = {
                 curtainReverse: {name: "curtainReverse", ID: 0x0400, type: Zcl.DataType.BOOLEAN, write: true},
                 curtainHandOpen: {name: "curtainHandOpen", ID: 0x0401, type: Zcl.DataType.BOOLEAN, write: true},
                 curtainCalibrated: {name: "curtainCalibrated", ID: 0x0402, type: Zcl.DataType.BOOLEAN, write: true},
+                movement: {name: "movement", ID: 0x0118, type: Zcl.DataType.UINT8},
             },
             commands: {},
             commandsResponse: {},
