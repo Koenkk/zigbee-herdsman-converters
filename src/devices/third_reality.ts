@@ -104,15 +104,6 @@ interface ThirdPlugGen3 {
     commandResponses: never;
 }
 
-interface ThirdAirPressureSensor {
-    attributes: {
-        sendCommandUpThreshold: number;
-        sendCommandDownThreshold: number;
-    };
-    commands: never;
-    commandResponses: never;
-}
-
 interface Third24gRadar {
     attributes: {
         sensorSensitive: number;
