@@ -968,7 +968,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const lookup = {red_when_on: 0, pink_when_on: 1, red_on_blue_off: 2, pink_on_blue_off: 3};
             const modeValue = utils.getFromLookup(value, lookup);
-            await entity.write("genOnOff", {tuyaBacklightMode: modeValue});
+            await entity.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaBacklightMode: modeValue});
             return {state: {backlight_mode: value}};
         },
     } satisfies Tz.Converter,
@@ -1071,7 +1071,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {action: `scene_${msg.endpoint.ID}`};
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["commandTuyaAction"]>,
+    } satisfies Fz.Converter<"genOnOff", tuya.TuyaGenOnOff, ["commandTuyaAction"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0222_humidity: {
         ...fz.humidity,
@@ -1291,7 +1291,7 @@ const fzLocal = {
                 return {backlight_mode: backlightLookup[msg.data.tuyaBacklightMode]};
             }
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"genOnOff", tuya.TuyaGenOnOff, ["attributeReport", "readResponse"]>,
     // TS0601_smart_scene_knob //
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0601_smart_scene_knob_light_onoff: {
@@ -3394,7 +3394,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("genOnOff", ["onOff", "moesStartUpOnOff"]);
+            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["onOff", "moesStartUpOnOff"]);
         },
     },
     {
@@ -5806,6 +5806,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0041",
         vendor: "Tuya",
         description: "Wireless switch with 1 button",
+        extend: [tuyaBase()],
         whiteLabel: [
             {vendor: "Smart9", model: "S9TSZGB"},
             {vendor: "Lonsonho", model: "TS0041"},
@@ -5835,6 +5836,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Cleverio", "SB100", "Wireless switch with 1 button", ["_TYZB01_4qw4rl1u"]),
             tuya.whitelabel("Marmitek", "Push_ME", "Wireless switch with 1 button", ["_TYZB01_1xktopx6"]),
         ],
+        extend: [tuyaBase()],
         exposes: [e.battery(), e.battery_voltage(), e.action(["single", "double", "hold"])],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
@@ -5857,6 +5859,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "ClickSmart+", model: "CSPGM2075PW"},
             tuya.whitelabel("Marmitek", "Push_LO", "Smart switch", ["_TZ3000_dfgbtub0"]),
         ],
+        extend: [tuyaBase()],
         exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold", "2_single", "2_double", "2_hold"])],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
@@ -5878,6 +5881,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Lonsonho", model: "TS0043"},
             {vendor: "LoraTap", model: "SS600ZB"},
         ],
+        extend: [tuyaBase()],
         exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold", "2_single", "2_double", "2_hold", "3_single", "3_double", "3_hold"])],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
@@ -5909,6 +5913,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("LoraTap", "SS6400ZB", "4 button portable remote control", ["_TZ3000_ee8nrt2l"]),
             tuya.whitelabel("Zemismart", "ZMR4_1", "4 button portable remote control (without dimmer)", ["_TZ3000_xwuveizv"]),
         ],
+        extend: [tuyaBase()],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         exposes: [
             e.battery(),
@@ -5949,6 +5954,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS004F",
         vendor: "Tuya",
         description: "Wireless switch with 4 buttons",
+        extend: [tuya.modernExtend.tuyaBase()],
         exposes: [
             e.battery(),
             e
@@ -5981,7 +5987,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.battery,
             tuya.fz.on_off_action,
-            fz.tuya_operation_mode,
+            tuya.fz.operation_mode,
             fz.command_on,
             fz.command_off,
             fz.command_step,
@@ -5990,12 +5996,12 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_step_color_temperature,
         ],
         whiteLabel: [tuya.whitelabel("Zemismart", "ZMR4", "Wireless switch with 4 buttons", ["_TZ3000_11pg3ima", "_TZ3000_et7afzxz"])],
-        toZigbee: [tz.tuya_operation_mode],
+        toZigbee: [tuya.tz.operation_mode],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("genBasic", [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
-            await endpoint.write("genOnOff", {tuyaOperationMode: 1});
-            await endpoint.read("genOnOff", ["tuyaOperationMode"]);
+            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
             try {
                 await endpoint.read(0xe001, [0xd011]);
             } catch {
@@ -6018,6 +6024,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS004F_6_button",
         vendor: "Tuya",
         description: "Wireless switch with 6 buttons",
+        extend: [tuya.modernExtend.tuyaBase()],
         exposes: [
             e.battery(),
             e
@@ -6050,13 +6057,13 @@ export const definitions: DefinitionWithExtend[] = [
                 "6_hold",
             ]),
         ],
-        fromZigbee: [fz.battery, tuya.fz.on_off_action, fz.tuya_operation_mode, fz.command_on, fz.command_off, fz.command_step, fz.command_move],
-        toZigbee: [tz.tuya_operation_mode],
+        fromZigbee: [fz.battery, tuya.fz.on_off_action, tuya.fz.operation_mode, fz.command_on, fz.command_off, fz.command_step, fz.command_move],
+        toZigbee: [tuya.tz.operation_mode],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("genBasic", [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
-            await endpoint.write("genOnOff", {tuyaOperationMode: 1});
-            await endpoint.read("genOnOff", ["tuyaOperationMode"]);
+            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
             try {
                 await endpoint.read(0xe001, [0xd011]);
             } catch {
@@ -9286,7 +9293,7 @@ export const definitions: DefinitionWithExtend[] = [
                 /* fails for some https://github.com/Koenkk/zigbee2mqtt/issues/11179
                                 and https://github.com/Koenkk/zigbee2mqtt/issues/16864 */
             }
-            await endpoint.read("genOnOff", ["onOff", "moesStartUpOnOff", "tuyaBacklightMode"]);
+            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["onOff", "moesStartUpOnOff", "tuyaBacklightMode"]);
         },
         // This device doesn't support reporting correctly.
         // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
@@ -9299,7 +9306,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
             e.enum("indicator_mode", ea.ALL, ["off", "off/on", "on/off"]).withDescription("LED indicator mode"),
         ],
-        extend: [tuya.modernExtend.electricityMeasurementPoll()],
+        extend: [tuya.modernExtend.electricityMeasurementPoll(), tuya.modernExtend.tuyaBase()],
     },
     {
         fingerprint: tuya.fingerprint("TS0111", ["_TYZB01_ymcdbl3u"]),
@@ -10422,7 +10429,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(7), coordinatorEndpoint, ["genOnOff"]);
-            await device.getEndpoint(1).read("genOnOff", ["onOff", "moesStartUpOnOff"]);
+            await device.getEndpoint(1).read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["onOff", "moesStartUpOnOff"]);
             await device.getEndpoint(2).read("genOnOff", ["onOff"]);
             await device.getEndpoint(3).read("genOnOff", ["onOff"]);
             await device.getEndpoint(4).read("genOnOff", ["onOff"]);
@@ -10724,6 +10731,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0004_fan_light_switch",
         vendor: "Tuya",
         description: "Fan and light controller with 3 speeds",
+        extend: [tuyaBase()],
         fromZigbee: [fz.on_off, fzLocal.TS0004_backlight_mode],
         toZigbee: [tz.on_off, tzLocal.TS0004_backlight_mode],
         exposes: [
@@ -11770,6 +11778,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS011F_din_smart_relay",
         description: "Din smart relay (with power monitoring)",
         vendor: "Tuya",
+        extend: [tuyaBase()],
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, tuya.fz.power_outage_memory, fz.tuya_relay_din_led_indicator],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
         whiteLabel: [{vendor: "MatSee Plus", model: "ATMS1602Z"}],
@@ -11840,13 +11849,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
             e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off", "off_on"]).withDescription("Relay LED indicator mode"),
         ],
-        extend: [tuya.modernExtend.electricityMeasurementPoll()],
+        extend: [tuyaBase(), tuya.modernExtend.electricityMeasurementPoll()],
     },
     {
         fingerprint: [...tuya.fingerprint("TS011F", ["_TZ3000_7issjl2q"]), ...tuya.fingerprint("TS0011", ["_TZ3000_gzvniqjb"])],
         model: "ATMS1601Z",
         description: "Din smart relay (without power monitoring)",
         vendor: "Tuya",
+        extend: [tuyaBase()],
         fromZigbee: [fz.on_off, tuya.fz.power_outage_memory, fz.tuya_relay_din_led_indicator],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
         whiteLabel: [tuya.whitelabel("Tongou", "TO-Q-SY1-ZT", "Din smart relay (without power monitoring)", ["_TZ3000_gzvniqjb"])],
@@ -12129,6 +12139,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Wireless switch with 6 buttons",
         whiteLabel: [{vendor: "LoraTap", model: "SS9600ZB"}],
+        extend: [tuyaBase()],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         exposes: [
             e.battery(),
@@ -12199,14 +12210,14 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_stop,
             fz.command_step_color_temperature,
             tuya.fz.on_off_action,
-            fz.tuya_operation_mode,
+            tuya.fz.operation_mode,
         ],
-        toZigbee: [tz.tuya_operation_mode],
+        toZigbee: [tuya.tz.operation_mode],
         extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.write("genOnOff", {tuyaOperationMode: 1});
-            await endpoint.read("genOnOff", ["tuyaOperationMode"]);
+            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
             try {
                 await endpoint.read(0xe001, [0xd011]);
             } catch {
@@ -12266,14 +12277,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ERS-10TZBVK-AA",
         vendor: "Tuya",
         description: "Smart knob",
+        extend: [tuya.modernExtend.tuyaBase()],
         fromZigbee: [
             fz.command_step,
             fz.command_toggle,
             fz.command_move_hue,
             fz.command_step_color_temperature,
             fz.command_stop_move_raw,
-            fz.tuya_multi_action,
-            fz.tuya_operation_mode,
+            tuya.fz.multi_action,
+            tuya.fz.operation_mode,
             fz.battery,
         ],
         whiteLabel: [
@@ -12281,7 +12293,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Moes", "ZG-101ZD", "Smart knob", ["_TZ3000_gwkzibhs"]),
             tuya.whitelabel("Immax", "07768L", "NEO Smart rotary knob", ["_TZ3000_ugi8ky6u"]),
         ],
-        toZigbee: [tz.tuya_operation_mode],
+        toZigbee: [tuya.tz.operation_mode],
         exposes: [
             e.action([
                 "toggle",
@@ -12309,8 +12321,8 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("genBasic", [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
-            await endpoint.write("genOnOff", {tuyaOperationMode: 1});
-            await endpoint.read("genOnOff", ["tuyaOperationMode"]);
+            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
             try {
                 await endpoint.read(0xe001, [0xd011]);
             } catch {
@@ -12336,14 +12348,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-101Z/D",
         vendor: "Tuya",
         description: "Smart knob",
-        fromZigbee: [fz.tuya_multi_action, fz.battery, fz.tuya_operation_mode],
+        fromZigbee: [tuya.fz.multi_action, fz.battery, tuya.fz.operation_mode],
         exposes: [
             e.action(["rotate_left", "rotate_right"]),
             e
                 .enum("operation_mode", ea.ALL, ["command", "event"])
                 .withDescription('Operation mode: "command" - for group control, "event" - for clicks'),
         ],
-        extend: [m.battery(), tuya.modernExtend.tuyaMagicPacket()],
+        extend: [tuyaBase(), m.battery(), tuya.modernExtend.tuyaMagicPacket()],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_kzm5w4iz"]),
@@ -13695,7 +13707,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS110E_1gang_1",
         vendor: "Tuya",
         description: "1 channel dimmer",
-        extend: [m.light({powerOnBehavior: false, configureReporting: true, effect: false}), tuya.modernExtend.tuyaMagicPacket()],
+        extend: [tuyaBase(), m.light({powerOnBehavior: false, configureReporting: true, effect: false}), tuya.modernExtend.tuyaMagicPacket()],
         fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
         toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType(), e.min_brightness(), e.max_brightness()],
@@ -13725,6 +13737,7 @@ export const definitions: DefinitionWithExtend[] = [
             ];
         },
         extend: [
+            tuyaBase(),
             m.deviceAddCustomCluster("genOnOff", {
                 name: "genOnOff",
                 ID: Zcl.Clusters.genOnOff.ID,
@@ -13751,6 +13764,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EKAC-T3095Z",
         vendor: "Ekaza",
         description: "1 channel dimmer",
+        extend: [tuyaBase()],
         fromZigbee: [fz.TS110E, tuya.fz.power_on_behavior_1, fz.on_off],
         toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
         exposes: [e.light_brightness().withMinBrightness().withMaxBrightness(), e.power_on_behavior().withAccess(ea.ALL)],
@@ -13783,6 +13797,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "2 channel dimmer",
         extend: [
+            tuyaBase(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.light({
                 powerOnBehavior: false,
@@ -13809,6 +13824,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "2 channel dimmer",
         whiteLabel: [tuya.whitelabel("Nedis", "ZBWD20RD", "SmartLife Triac Dimmer", ["_TZ3210_mt5xjoy6"])],
+        extend: [tuyaBase()],
         fromZigbee: [fz.TS110E, fz.TS110E_switch_type, tuya.fz.power_on_behavior_1, fz.on_off],
         toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
         meta: {multiEndpoint: true},
@@ -14264,6 +14280,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IH-K663",
         vendor: "Tuya",
         description: "Smart button",
+        extend: [tuyaBase()],
         exposes: [e.battery(), e.battery_voltage(), e.action(["single", "double"])],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
@@ -17944,7 +17961,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaMagicPacket(),
             m.battery({voltage: true}),
             tuya.modernExtend.combineActions([
-                m.actionEnumLookup<"genOnOff", undefined, ["commandTuyaAction"]>({
+                m.actionEnumLookup<"genOnOff", tuya.TuyaGenOnOff, ["commandTuyaAction"]>({
                     actionLookup: {scene_1: 1, scene_2: 2, scene_3: 3, scene_4: 4},
                     cluster: "genOnOff",
                     commands: ["commandTuyaAction"],
@@ -25420,8 +25437,8 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_off,
             fz.command_move_to_color_temp,
             fz.command_move_to_level,
-            fz.tuya_multi_action,
-            fz.tuya_operation_mode,
+            tuya.fz.multi_action,
+            tuya.fz.operation_mode,
         ],
         exposes: [
             e.battery(),
@@ -25446,8 +25463,8 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await endpoint.write("genOnOff", {tuyaOperationMode: 1});
-            await endpoint.read("genOnOff", ["tuyaOperationMode"]);
+            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
             await endpoint.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);

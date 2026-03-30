@@ -2246,17 +2246,6 @@ export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "attributeRepor
         return {action: `${clickMapping[msg.data["1"]]}`};
     },
 };
-export const tuya_switch_scene: Fz.Converter<"genOnOff", undefined, "commandTuyaAction"> = {
-    cluster: "genOnOff",
-    type: "commandTuyaAction",
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-        // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
-        // Send the defaultResponse here, otherwise the second button click delays.
-        // https://github.com/Koenkk/zigbee2mqtt/issues/8149
-        return {action: "switch_scene", action_scene: msg.data.value};
-    },
-};
 export const livolo_switch_state: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
@@ -4213,17 +4202,6 @@ export const sihas_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "co
         return {action: `${button}${lookup[msg.type]}`};
     },
 };
-export const tuya_operation_mode: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data.tuyaOperationMode !== undefined) {
-            const value = msg.data.tuyaOperationMode;
-            const lookup: KeyValueAny = {0: "command", 1: "event"};
-            return {operation_mode: lookup[value]};
-        }
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const sunricher_switch2801K2: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
@@ -4276,25 +4254,6 @@ export const command_stop_move_raw: Fz.Converter<"lightingColorCtrl", undefined,
         const payload = {action};
         addActionGroup(payload, msg, model);
         return payload;
-    },
-};
-export const tuya_multi_action: Fz.Converter<"genOnOff", undefined, ["commandTuyaAction", "commandTuyaAction2"]> = {
-    cluster: "genOnOff",
-    type: ["commandTuyaAction", "commandTuyaAction2"],
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-
-        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-        let action;
-        if (msg.type === "commandTuyaAction") {
-            const lookup: KeyValueAny = {0: "single", 1: "double", 2: "hold"};
-            action = lookup[msg.data.value];
-        } else if (msg.type === "commandTuyaAction2") {
-            const lookup: KeyValueAny = {0: "rotate_right", 1: "rotate_left"};
-            action = lookup[msg.data.value];
-        }
-
-        return {action};
     },
 };
 export const led_on_motion: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {

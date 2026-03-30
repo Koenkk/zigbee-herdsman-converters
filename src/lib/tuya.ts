@@ -60,7 +60,15 @@ export interface TuyaGenOnOff {
         moesStartUpOnOff: number;
         tuyaOperationMode: number;
     };
-    commands: never;
+    commands: {
+        tuyaAction2: {
+            value: number;
+        };
+        tuyaAction: {
+            value: number;
+            data: Buffer;
+        };
+    };
     commandResponses: never;
 }
 
@@ -1902,11 +1910,11 @@ const tuyaTz = {
                 value,
                 key === "power_on_behavior" ? {off: 0, on: 1, previous: 2} : {off: 0, on: 1, restore: 2},
             );
-            await entity.write("genOnOff", {moesStartUpOnOff});
+            await entity.write<"genOnOff", TuyaGenOnOff>("genOnOff", {moesStartUpOnOff});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("genOnOff", ["moesStartUpOnOff"]);
+            await entity.read<"genOnOff", TuyaGenOnOff>("genOnOff", ["moesStartUpOnOff"]);
         },
     } satisfies Tz.Converter,
     power_on_behavior_2: {
@@ -2164,6 +2172,22 @@ const tuyaTz = {
             return {state: {inching_control_set: value}};
         },
     } satisfies Tz.Converter,
+    operation_mode: {
+        key: ["operation_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            // modes:
+            // 0 - 'command' mode. keys send commands. useful for group control
+            // 1 - 'event' mode. keys send events. useful for handling
+            utils.assertString(value, key);
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.write<"genOnOff", TuyaGenOnOff>("genOnOff", {tuyaOperationMode: utils.getFromLookup(value, {command: 0, event: 1})});
+            return {state: {operation_mode: value.toLowerCase()}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.getEndpoint(1);
+            await endpoint.read<"genOnOff", TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
+        },
+    } satisfies Tz.Converter,
 };
 
 export {tuyaTz as tz};
@@ -2256,7 +2280,7 @@ const tuyaFz = {
                 return {backlight_mode: backlightLookup[value]};
             }
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"genOnOff", TuyaGenOnOff, ["attributeReport", "readResponse"]>,
     backlight_mode_off_normal_inverted: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2265,7 +2289,7 @@ const tuyaFz = {
                 return {backlight_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "off", 1: "normal", 2: "inverted"})};
             }
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"genOnOff", TuyaGenOnOff, ["attributeReport", "readResponse"]>,
     backlight_mode_off_on: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2283,7 +2307,7 @@ const tuyaFz = {
                 return {indicator_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "off", 1: "off/on", 2: "on/off", 3: "on"})};
             }
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"genOnOff", TuyaGenOnOff, ["attributeReport", "readResponse"]>,
     indicator_mode_none_relay_pos: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2292,7 +2316,7 @@ const tuyaFz = {
                 return {indicator_mode: utils.getFromLookup(msg.data.tuyaBacklightMode, {0: "none", 1: "relay", 2: "pos"})};
             }
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"genOnOff", TuyaGenOnOff, ["attributeReport", "readResponse"]>,
     child_lock: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2355,7 +2379,7 @@ const tuyaFz = {
                 msg.device.endpoints.length === 1 || ["TS0041A", "TS0041"].includes(msg.device.modelID) ? "" : `${buttonMapping[msg.endpoint.ID]}_`;
             return {action: `${button}${clickMapping[msg.data.value]}`};
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, "commandTuyaAction">,
+    } satisfies Fz.Converter<"genOnOff", TuyaGenOnOff, "commandTuyaAction">,
     on_off_countdown: {
         // While a countdown is in progress, the device will report onTime at all multiples of 60.
         // More reportings can be configured for 'onTime` but they will happen independently of
@@ -2435,8 +2459,48 @@ const tuyaFz = {
             return result;
         },
     } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
-};
+    operation_mode: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.tuyaOperationMode !== undefined) {
+                const value = msg.data.tuyaOperationMode;
+                const lookup: KeyValueAny = {0: "command", 1: "event"};
+                return {operation_mode: lookup[value]};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", TuyaGenOnOff, ["attributeReport", "readResponse"]>,
+    switch_scene: {
+        cluster: "genOnOff",
+        type: "commandTuyaAction",
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
+            // Send the defaultResponse here, otherwise the second button click delays.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/8149
+            return {action: "switch_scene", action_scene: msg.data.value};
+        },
+    } satisfies Fz.Converter<"genOnOff", TuyaGenOnOff, "commandTuyaAction">,
+    multi_action: {
+        cluster: "genOnOff",
+        type: ["commandTuyaAction", "commandTuyaAction2"],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
 
+            // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+            let action;
+            if (msg.type === "commandTuyaAction") {
+                const lookup: KeyValueAny = {0: "single", 1: "double", 2: "hold"};
+                action = lookup[msg.data.value];
+            } else if (msg.type === "commandTuyaAction2") {
+                const lookup: KeyValueAny = {0: "rotate_right", 1: "rotate_left"};
+                action = lookup[msg.data.value];
+            }
+
+            return {action};
+        },
+    } satisfies Fz.Converter<"genOnOff", TuyaGenOnOff, ["commandTuyaAction", "commandTuyaAction2"]>,
+};
 export {tuyaFz as fz};
 
 export function getHandlersForDP(
@@ -3578,7 +3642,17 @@ const tuyaClusters = {
                 moesStartUpOnOff: {name: "moesStartUpOnOff", ID: 0x8002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 tuyaOperationMode: {name: "tuyaOperationMode", ID: 0x8004, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
             },
-            commands: {},
+            commands: {
+                tuyaAction2: {name: "tuyaAction2", ID: 0xfc, parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}]},
+                tuyaAction: {
+                    name: "tuyaAction",
+                    ID: 0xfd,
+                    parameters: [
+                        {name: "value", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "data", type: Zcl.BuffaloZclDataType.BUFFER},
+                    ],
+                },
+            },
             commandsResponse: {},
         }),
     addManuSpecificTuya2Cluster: (): ModernExtend =>

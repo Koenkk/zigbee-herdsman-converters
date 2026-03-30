@@ -4256,22 +4256,6 @@ export const sihas_set_people: Tz.Converter = {
         await endpoint.read("genAnalogInput", ["presentValue"]);
     },
 };
-export const tuya_operation_mode: Tz.Converter = {
-    key: ["operation_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        // modes:
-        // 0 - 'command' mode. keys send commands. useful for group control
-        // 1 - 'event' mode. keys send events. useful for handling
-        utils.assertString(value, key);
-        const endpoint = meta.device.getEndpoint(1);
-        await endpoint.write("genOnOff", {tuyaOperationMode: utils.getFromLookup(value, {command: 0, event: 1})});
-        return {state: {operation_mode: value.toLowerCase()}};
-    },
-    convertGet: async (entity, key, meta) => {
-        const endpoint = meta.device.getEndpoint(1);
-        await endpoint.read("genOnOff", ["tuyaOperationMode"]);
-    },
-};
 export const led_on_motion: Tz.Converter = {
     key: ["led_on_motion"],
     convertSet: async (entity, key, value, meta) => {
