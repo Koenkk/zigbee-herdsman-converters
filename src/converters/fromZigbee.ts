@@ -2058,34 +2058,6 @@ export const ias_smoke_alarm_1_develco: Fz.Converter<"ssIasZone", undefined, "co
         };
     },
 };
-export const ts0201_temperature_humidity_alarm: Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "manuSpecificTuya2",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.alarm_temperature_max !== undefined) {
-            result.alarm_temperature_max = msg.data.alarm_temperature_max;
-        }
-        if (msg.data.alarm_temperature_min !== undefined) {
-            result.alarm_temperature_min = msg.data.alarm_temperature_min;
-        }
-        if (msg.data.alarm_humidity_max !== undefined) {
-            result.alarm_humidity_max = msg.data.alarm_humidity_max;
-        }
-        if (msg.data.alarm_humidity_min !== undefined) {
-            result.alarm_humidity_min = msg.data.alarm_humidity_min;
-        }
-        if (msg.data.alarm_humidity !== undefined) {
-            const sensorAlarmLookup: KeyValueAny = {"0": "below_min_humdity", "1": "over_humidity", "2": "off"};
-            result.alarm_humidity = sensorAlarmLookup[msg.data.alarm_humidity];
-        }
-        if (msg.data.alarm_temperature !== undefined) {
-            const sensorAlarmLookup: KeyValueAny = {"0": "below_min_temperature", "1": "over_temperature", "2": "off"};
-            result.alarm_temperature = sensorAlarmLookup[msg.data.alarm_temperature];
-        }
-        return result;
-    },
-};
 export const tuya_led_controller: Fz.Converter<"lightingColorCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "lightingColorCtrl",
     type: ["attributeReport", "readResponse"],
@@ -4654,21 +4626,6 @@ export const SP600_power: Fz.Converter<"seMetering", undefined, ["attributeRepor
             return result;
         }
         return metering.convert(model, msg, publish, options, meta);
-    },
-};
-export const stelpro_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
-        if (result && msg.data.StelproSystemMode === 5) {
-            // 'Eco' mode is translated into 'auto' here
-            result.system_mode = constants.thermostatSystemModes[1];
-        }
-        if (result && msg.data.pIHeatingDemand !== undefined) {
-            result.running_state = msg.data.pIHeatingDemand >= 10 ? "heat" : "idle";
-        }
-        return result;
     },
 };
 export const viessmann_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {

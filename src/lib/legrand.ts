@@ -80,6 +80,17 @@ interface LegrandDevicesCluster2 {
     commandResponses: never;
 }
 
+interface LegrandClosuresWindowCovering {
+    attributes: {
+        stepPositionLift?: number;
+        calibrationMode?: number;
+        targetPositionTiltPercentage?: number;
+        stepPositionTilt?: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 export const legrandExtend = {
     addLegrandDevicesCluster: () =>
         m.deviceAddCustomCluster("manuSpecificLegrandDevices", {
@@ -116,6 +127,47 @@ export const legrandExtend = {
             commands: {
                 command0: {name: "command0", ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
+            commandsResponse: {},
+        }),
+    addLegrandClosuresWindowCovering: () =>
+        m.deviceAddCustomCluster("closuresWindowCovering", {
+            name: "closuresWindowCovering",
+            ID: Zcl.Clusters.closuresWindowCovering.ID,
+            attributes: {
+                stepPositionLift: {
+                    name: "stepPositionLift",
+                    ID: 0xf001,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
+                    write: true,
+                    max: 0xff,
+                },
+                calibrationMode: {
+                    name: "calibrationMode",
+                    ID: 0xf002,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
+                    write: true,
+                    max: 0xff,
+                },
+                targetPositionTiltPercentage: {
+                    name: "targetPositionTiltPercentage",
+                    ID: 0xf003,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
+                    write: true,
+                    max: 0xff,
+                },
+                stepPositionTilt: {
+                    name: "stepPositionTilt",
+                    ID: 0xf004,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
+                    write: true,
+                    max: 0xff,
+                },
+            },
+            commands: {},
             commandsResponse: {},
         }),
 };
@@ -198,10 +250,18 @@ export const tzLegrand = {
                 const applicableModes = getApplicableCalibrationModes(isNLLVSwitch);
                 utils.validateValue(value, Object.values(applicableModes));
                 const idx = Number(utils.getKey(applicableModes, value));
-                await entity.write("closuresWindowCovering", {calibrationMode: idx}, legrandOptions);
+                await entity.write<"closuresWindowCovering", LegrandClosuresWindowCovering>(
+                    "closuresWindowCovering",
+                    {calibrationMode: idx},
+                    legrandOptions,
+                );
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("closuresWindowCovering", ["calibrationMode"], legrandOptions);
+                await entity.read<"closuresWindowCovering", LegrandClosuresWindowCovering>(
+                    "closuresWindowCovering",
+                    ["calibrationMode"],
+                    legrandOptions,
+                );
             },
         } satisfies Tz.Converter;
     },
@@ -302,7 +362,7 @@ export const fzLegrand = {
                     return {calibration_mode: calMode};
                 }
             },
-        } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>;
+        } satisfies Fz.Converter<"closuresWindowCovering", LegrandClosuresWindowCovering, ["attributeReport", "readResponse"]>;
     },
     cluster_fc01: {
         cluster: "manuSpecificLegrandDevices",

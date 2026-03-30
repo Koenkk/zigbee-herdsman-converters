@@ -3127,16 +3127,6 @@ export const stelpro_peak_demand_event_icon: Tz.Converter = {
         return {state: {[key]: hours}};
     },
 };
-export const stelpro_thermostat_outdoor_temperature: Tz.Converter = {
-    key: ["outdoor_temperature_display"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertNumber(value, key);
-        if (value < -32 || value > 119) {
-            throw new Error("Outdoor temperature must be between -32 and 119 degrees Celsius");
-        }
-        await entity.write("hvacThermostat", {StelproOutdoorTemp: value * 100});
-    },
-};
 export const DTB190502A1_LED: Tz.Converter = {
     key: ["LED"],
     convertSet: async (entity, key, value, meta) => {
@@ -3518,32 +3508,6 @@ export const power_source: Tz.Converter = {
     key: ["power_source", "charging"],
     convertGet: async (entity, key, meta) => {
         await entity.read("genBasic", ["powerSource"]);
-    },
-};
-export const ts0201_temperature_humidity_alarm: Tz.Converter = {
-    key: ["alarm_humidity_max", "alarm_humidity_min", "alarm_temperature_max", "alarm_temperature_min"],
-    convertSet: async (entity, key, value, meta) => {
-        switch (key) {
-            case "alarm_temperature_max":
-            case "alarm_temperature_min":
-            case "alarm_humidity_max":
-            case "alarm_humidity_min": {
-                // await entity.write('manuSpecificTuya2', {[key]: value});
-                // instead write as custom attribute to override incorrect herdsman dataType from uint16 to int16
-                // https://github.com/Koenkk/zigbee-herdsman/blob/v0.13.191/src/zcl/definition/cluster.ts#L4235
-                const keyToAttributeLookup = {
-                    alarm_temperature_max: 0xd00a,
-                    alarm_temperature_min: 0xd00b,
-                    alarm_humidity_max: 0xd00d,
-                    alarm_humidity_min: 0xd00e,
-                };
-                const payload = {[keyToAttributeLookup[key]]: {value: value, type: Zcl.DataType.INT16}};
-                await entity.write("manuSpecificTuya2", payload);
-                break;
-            }
-            default: // Unknown key
-                logger.warning(`Unhandled key ${key}`, NS);
-        }
     },
 };
 export const heiman_ir_remote: Tz.Converter = {

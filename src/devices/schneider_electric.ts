@@ -11,6 +11,7 @@ import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 import {postfixWithEndpointName} from "../lib/utils";
+import * as stelpro from "./stelpro";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -2908,53 +2909,20 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.thermostatApplication(),
             schneiderElectricExtend.heatingEmitter(),
             schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
-            m.enumLookup<"heatingCoolingOutputClusterServer", SchneiderHeatingCoolingOutputCluster>({
-                name: "heating_output_mode",
-                cluster: "heatingCoolingOutputClusterServer",
-                attribute: "heatingOutputMode",
+            schneiderElectricExtend.heatingOutputMode({
                 description:
                     "On devices with alternate heating output types, this selects which should be used to control the heating unit. This attribute is (mistakenly) also called pilot_mode on some devices.",
-                entityCategory: "config",
-                access: "ALL",
                 lookup: {Disabled: 0, Relay: 1},
             }),
             schneiderElectricExtend.customTemperatureMeasurementCluster(),
             m.deviceEndpoints({
                 endpoints: {floor: 3},
             }),
-            m.numeric<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
-                name: "temperature_sensor_correction",
-                cluster: "msTemperatureMeasurement",
-                attribute: "sensorCorrection",
-                description: "This is a user correction, possibly negative, to be added to the temperature measured by the sensor.",
-                unit: "°C",
-                scale: 100,
-                valueMin: -9,
-                valueMax: 9,
-                valueStep: 0.01,
+            schneiderElectricExtend.sensorCorrection({
                 endpointNames: ["floor"],
-                access: "ALL",
-                entityCategory: "config",
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
             }),
-            m.enumLookup<"msTemperatureMeasurement", SchneiderTemperatureMeasurementCluster>({
-                name: "temperature_sensor_type",
-                cluster: "msTemperatureMeasurement",
-                attribute: "temperatureSensorType",
-                description: "This is used to specify the type of temperature sensor connected to this input",
-                entityCategory: "config",
-                access: "ALL",
+            schneiderElectricExtend.temperatureSensorType({
                 endpointName: "floor",
-                lookup: {
-                    "2kΩ sensor from HRT/Alre": 1,
-                    "10kΩ sensor from B+J": 2,
-                    "12kΩ sensor from OJ": 3,
-                    "15kΩ sensor from DEVI": 4,
-                    "33kΩ sensor from EBERLE": 5,
-                    "47kΩ sensor from CTM": 6,
-                    "No sensor": 0xff,
-                },
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
             }),
             m.enumLookup({
                 name: "temperature_display_mode",
@@ -2982,7 +2950,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE011680",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
+        fromZigbee: [stelpro.fzLocal.stelpro_thermostat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_system_mode,
@@ -3341,7 +3309,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S520619",
         vendor: "Schneider Electric",
         description: "Wiser Odace Smart thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature, fz.occupancy],
+        fromZigbee: [
+            stelpro.fzLocal.stelpro_thermostat,
+            fz.metering,
+            fzLocal.wiser_device_info,
+            fz.hvac_user_interface,
+            fz.temperature,
+            fz.occupancy,
+        ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint,
