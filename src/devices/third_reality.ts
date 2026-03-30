@@ -1187,8 +1187,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Third Reality",
         description: "Smart Color Bulb ZL1",
         whiteLabel: [
-            {vendor: 'Third Reality', model: '3RCB02070Z', description: 'Smart Color Bulb ZL4', fingerprint: [{modelID: '3RCB02070Z'}]},
-            {vendor: 'Third Reality', model: '3RCB1095Z', description: 'Smart Color Bulb ZL2', fingerprint: [{modelID: '3RCB1095Z'}]},
+            {vendor: "Third Reality", model: "3RCB02070Z", description: "Smart Color Bulb ZL4", fingerprint: [{modelID: "3RCB02070Z"}]},
+            {vendor: "Third Reality", model: "3RCB1095Z", description: "Smart Color Bulb ZL2", fingerprint: [{modelID: "3RCB1095Z"}]},
         ],
         ota: true,
         extend: [
