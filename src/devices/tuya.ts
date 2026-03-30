@@ -17420,7 +17420,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .withSetpoint("current_heating_setpoint", 5, 35, 1, ea.STATE_SET)
                     .withSystemMode(["off", "cool", "heat", "fan_only"], ea.STATE_SET)
                     .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
-                    .withLocalTemperatureCalibration(-5, 5, 0.5, ea.STATE_SET),
+                    .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET),
                 e.child_lock(),
                 e.min_temperature().withValueMin(5).withValueMax(15),
                 e.max_temperature().withValueMin(15).withValueMax(45),
