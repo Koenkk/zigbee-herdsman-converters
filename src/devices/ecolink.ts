@@ -46,7 +46,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         extend: [
             m.temperature(),
-            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
         ],
         exposes: [
             e.battery(),
