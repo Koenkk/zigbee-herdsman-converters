@@ -2501,6 +2501,7 @@ const tuyaFz = {
         },
     } satisfies Fz.Converter<"genOnOff", TuyaGenOnOff, ["commandTuyaAction", "commandTuyaAction2"]>,
 };
+
 export {tuyaFz as fz};
 
 export function getHandlersForDP(
