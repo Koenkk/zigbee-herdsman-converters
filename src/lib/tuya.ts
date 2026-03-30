@@ -73,6 +73,17 @@ export interface TuyaGenOnOff {
     commandResponses: never;
 }
 
+export interface TuyaGenLevelCtrl {
+    attributes: never;
+    commands: {
+        moveToLevelTuya: {
+            level: number;
+            transtime: number;
+        };
+    };
+    commandResponses: never;
+}
+
 export interface ManuSpecificTuya2 {
     attributes: {
         alarmTemperatureMax: number;
@@ -2189,6 +2200,36 @@ const tuyaTz = {
             await endpoint.read<"genOnOff", TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS110E_onoff_brightness: {
+        key: ["state", "brightness"],
+        convertSet: async (entity, key, value, meta) => {
+            const {message, state} = meta;
+            if (message.state === "OFF" || (message.state != null && message.brightness == null)) {
+                return await tz.on_off.convertSet(entity, key, value, meta);
+            }
+            if (message.brightness != null) {
+                // set brightness
+                if (state.state === "OFF") {
+                    await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
+                }
+
+                const brightness = utils.toNumber(message.brightness, "brightness");
+                const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
+                await entity.command<"genLevelCtrl", "moveToLevelTuya", TuyaGenLevelCtrl>(
+                    "genLevelCtrl",
+                    "moveToLevelTuya",
+                    {level, transtime: 100},
+                    utils.getOptions(meta.mapped, entity),
+                );
+                return {state: {state: "ON", brightness}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            if (key === "state") await tz.on_off.convertGet(entity, key, meta);
+            if (key === "brightness") await entity.read("genLevelCtrl", [61440]);
+        },
+    } satisfies Tz.Converter,
 };
 
 export {tuyaTz as tz};
@@ -2868,12 +2909,14 @@ const tuyaModernExtend = {
         const tuyaGenBasic = tuyaClusters.addTuyaGenBasicCluster();
         const tuyaGenGroups = tuyaClusters.addTuyaGenGroupsCluster();
         const tuyaGenOnOff = tuyaClusters.addTuyaGenOnOffCluster();
+        const tuyaGenLevelCtrl = tuyaClusters.addTuyaGenLevelCtrlCluster();
         const customCluster2 = tuyaClusters.addManuSpecificTuya2Cluster();
         const customCluster3 = tuyaClusters.addManuSpecificTuya3Cluster();
         result.onEvent = [
             ...(tuyaGenBasic.onEvent ?? []),
             ...(tuyaGenGroups.onEvent ?? []),
             ...(tuyaGenOnOff.onEvent ?? []),
+            ...(tuyaGenLevelCtrl.onEvent ?? []),
             ...(customCluster2.onEvent ?? []),
             ...(customCluster3.onEvent ?? []),
             ...(result.onEvent ?? []),
@@ -2882,6 +2925,7 @@ const tuyaModernExtend = {
             ...(tuyaGenBasic.configure ?? []),
             ...(tuyaGenGroups.configure ?? []),
             ...(tuyaGenOnOff.configure ?? []),
+            ...(tuyaGenLevelCtrl.configure ?? []),
             ...(customCluster2.configure ?? []),
             ...(customCluster3.configure ?? []),
             ...(result.configure ?? []),
@@ -3657,6 +3701,23 @@ const tuyaClusters = {
                     parameters: [
                         {name: "value", type: Zcl.DataType.UINT8, max: 0xff},
                         {name: "data", type: Zcl.BuffaloZclDataType.BUFFER},
+                    ],
+                },
+            },
+            commandsResponse: {},
+        }),
+    addTuyaGenLevelCtrlCluster: () =>
+        modernExtend.deviceAddCustomCluster("genLevelCtrl", {
+            name: "genLevelCtrl",
+            ID: Zcl.Clusters.genLevelCtrl.ID,
+            attributes: {},
+            commands: {
+                moveToLevelTuya: {
+                    name: "moveToLevelTuya",
+                    ID: 0xf0,
+                    parameters: [
+                        {name: "level", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "transtime", type: Zcl.DataType.UINT16, max: 0xffff},
                     ],
                 },
             },

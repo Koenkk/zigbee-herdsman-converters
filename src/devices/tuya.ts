@@ -13718,7 +13718,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
         fromZigbee: [fz.TS110E, fz.TS110E_light_type, tuya.fz.power_on_behavior_1, fz.on_off],
-        toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move, tzLocal.ts110eCountdown],
+        toZigbee: [
+            tuya.tz.TS110E_onoff_brightness,
+            tz.TS110E_options,
+            tuya.tz.power_on_behavior_1,
+            tz.light_brightness_move,
+            tzLocal.ts110eCountdown,
+        ],
         exposes: (device, options) => {
             // https://github.com/Koenkk/zigbee2mqtt/issues/26791#issuecomment-2765734859
             const countdownValueStep = device.manufacturerName === "_TZ3210_ngqk6jia" ? 30 : 1;
@@ -13745,7 +13751,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "1 channel dimmer",
         extend: [tuyaBase()],
         fromZigbee: [fz.TS110E, tuya.fz.power_on_behavior_1, fz.on_off],
-        toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
+        toZigbee: [tuya.tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
         exposes: [e.light_brightness().withMinBrightness().withMaxBrightness(), e.power_on_behavior().withAccess(ea.ALL)],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -13805,7 +13811,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Nedis", "ZBWD20RD", "SmartLife Triac Dimmer", ["_TZ3210_mt5xjoy6"])],
         extend: [tuyaBase()],
         fromZigbee: [fz.TS110E, fz.TS110E_switch_type, tuya.fz.power_on_behavior_1, fz.on_off],
-        toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
+        toZigbee: [tuya.tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
         meta: {multiEndpoint: true},
         exposes: [
             e.power_on_behavior(),
@@ -18510,7 +18516,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "LEDRON",
         description: "0-10v dimmer",
         fromZigbee: [fz.TS110E, fz.on_off],
-        toZigbee: [tz.TS110E_onoff_brightness, tz.TS110E_options, tz.light_brightness_move],
+        toZigbee: [tuya.tz.TS110E_onoff_brightness, tz.TS110E_options, tz.light_brightness_move],
         whiteLabel: [tuya.whitelabel("Ledron", "QS-Zigbee-D06-DC", "Dimmer 12-36v", ["_TZ3210_hquixjeg"])],
         exposes: [e.light_brightness().withMinBrightness().withMaxBrightness()],
         configure: async (device, coordinatorEndpoint) => {

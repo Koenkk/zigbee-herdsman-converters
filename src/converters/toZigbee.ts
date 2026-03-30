@@ -4366,31 +4366,6 @@ export const TS110E_options: Tz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS110E_onoff_brightness: Tz.Converter = {
-    key: ["state", "brightness"],
-    convertSet: async (entity, key, value, meta) => {
-        const {message, state} = meta;
-        if (message.state === "OFF" || (message.state != null && message.brightness == null)) {
-            return await on_off.convertSet(entity, key, value, meta);
-        }
-        if (message.brightness != null) {
-            // set brightness
-            if (state.state === "OFF") {
-                await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
-            }
-
-            const brightness = utils.toNumber(message.brightness, "brightness");
-            const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
-            await entity.command("genLevelCtrl", "moveToLevelTuya", {level, transtime: 100}, utils.getOptions(meta.mapped, entity));
-            return {state: {state: "ON", brightness}};
-        }
-    },
-    convertGet: async (entity, key, meta) => {
-        if (key === "state") await on_off.convertGet(entity, key, meta);
-        if (key === "brightness") await entity.read("genLevelCtrl", [61440]);
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const TS110E_light_onoff_brightness: Tz.Converter = {
     ...light_onoff_brightness,
     convertSet: async (entity, key, value, meta) => {
