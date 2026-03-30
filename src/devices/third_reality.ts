@@ -512,7 +512,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attributes: {
                     infraredEnable: {name: "infraredEnable", ID: 0x0000, type: 0x20, write: true, min: 0, max: 1},
                     compensationSpeed: {name: "compensationSpeed", ID: 0x0001, type: 0x28, write: true, min: -100, max: 100},
-                    limitPosition: {name: "limitPosition", ID: 0x0002, type: 0x21, write: true, min: 50, max: 4000},
+                    limitPosition: {name: "limitPosition", ID: 0x0002, type: 0x21, write: true, min: 50, max: 4100},
                     totalCycleTimes: {name: "totalCycleTimes", ID: 0x0003, type: 0x21, write: true, min: 200, max: 334},
                     lastRemainingBatteryPercentage: {name: "lastRemainingBatteryPercentage", ID: 0x0004, type: 0x20, write: true, min: 0, max: 100},
                 },
@@ -539,7 +539,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
                 name: "preset_bottom_position",
                 valueMin: 50,
-                valueMax: 4000,
+                valueMax: 4100,
                 cluster: "3rSmartBlindGen2SpecialCluster",
                 attribute: "limitPosition",
                 description: "Preset the bottom limit position of the blind",
