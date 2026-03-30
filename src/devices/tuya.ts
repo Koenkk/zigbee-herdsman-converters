@@ -27,12 +27,6 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 
-interface TuyaGenOnOff {
-    attributes: never;
-    commands: {tuyaCountdown: {data: Buffer}};
-    commandResponses: never;
-}
-
 interface Ts0049Countdown {
     attributes: never;
     commands: {setCountdown: {data: Buffer}};
@@ -550,7 +544,7 @@ const tzLocal = {
             utils.assertNumber(value);
             const data = Buffer.alloc(4);
             data.writeUInt32LE(value);
-            await entity.command<"genOnOff", "tuyaCountdown", TuyaGenOnOff>("genOnOff", "tuyaCountdown", {data});
+            await entity.command<"genOnOff", "tuyaCountdown", tuya.TuyaGenOnOff>("genOnOff", "tuyaCountdown", {data});
         },
     } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`

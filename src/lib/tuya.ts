@@ -61,6 +61,7 @@ export interface TuyaGenOnOff {
         tuyaOperationMode: number;
     };
     commands: {
+        tuyaCountdown: {data: Buffer};
         tuyaAction2: {
             value: number;
         };
@@ -3644,6 +3645,11 @@ const tuyaClusters = {
                 tuyaOperationMode: {name: "tuyaOperationMode", ID: 0x8004, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
             },
             commands: {
+                tuyaCountdown: {
+                    name: "tuyaCountdown",
+                    ID: 0xf0,
+                    parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
+                },
                 tuyaAction2: {name: "tuyaAction2", ID: 0xfc, parameters: [{name: "value", type: Zcl.DataType.UINT8, max: 0xff}]},
                 tuyaAction: {
                     name: "tuyaAction",
