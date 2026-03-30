@@ -306,6 +306,14 @@ function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options
     }
 }
 
+interface MiCasaGasMetering {
+    attributes: {
+        setSummationDelivered: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 export const definitions: DefinitionWithExtend[] = [
     {
         /** @see https://github.com/Nerivec/silabs-firmware-builder/releases */
@@ -1285,6 +1293,38 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Custom devices (DiY)",
         description: "Zigbee Gas counter",
         ota: true,
-        extend: [m.gasMeter({cluster: "metering", power: false}), m.battery({voltage: true, lowStatus: true})],
+        extend: [
+            m.gasMeter({cluster: "metering", power: false}),
+            m.battery({voltage: true, lowStatus: true}),
+
+            m.deviceAddCustomCluster("seMetering", {
+                ID: 0x0702,
+                attributes: {
+                    setSummationDelivered: {
+                        ID: 0xf000,
+                        name: "setCurrentSummationDelivered",
+                        type: Zcl.DataType.UINT48,
+                        manufacturerCode: 0x8888,
+                        write: true,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+                name: "seMetering",
+            }),
+
+            m.numeric<"seMetering", MiCasaGasMetering>({
+                name: "gas_counter_set",
+                cluster: "seMetering",
+                attribute: "setSummationDelivered",
+                description: "Write absolute gas meter value",
+                access: "SET",
+                valueMin: 0,
+                valueMax: 281474976710655,
+            }),
+        ],
+        meta: {
+            publishDuplicateTransaction: true,
+        },
     },
 ];

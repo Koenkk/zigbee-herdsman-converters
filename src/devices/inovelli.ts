@@ -1,5 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 import type {ClusterOrRawPayload} from "zigbee-herdsman/dist/controller/tstype";
+import {BuffaloZclDataType} from "zigbee-herdsman/dist/zspec/zcl/definition/enums";
 import type {Parameter} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -39,6 +40,8 @@ interface Inovelli {
         quickStartLevel: number;
         higherOutputInNonNeutral: number;
         dimmingMode: number;
+        dimmingAlgorithm: number;
+        auxDetectionLevel: number;
         nonNeutralAuxMediumGear: number;
         nonNeutralAuxLowGear: number;
         internalTemperature: number;
@@ -184,6 +187,10 @@ interface InovelliMmWave {
             area3: number;
             /** uint8: 0 or 1 */
             area4: number;
+        };
+        reportTargetInfo: {
+            targetNum: number;
+            targets: Buffer;
         };
         reportInterferenceArea: {
             count: number;
@@ -376,6 +383,8 @@ const inovelliExtend = {
                 quickStartLevel: {name: "quickStartLevel", ID: 0x0018, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 higherOutputInNonNeutral: {name: "higherOutputInNonNeutral", ID: 0x0019, type: Zcl.DataType.BOOLEAN, write: true},
                 dimmingMode: {name: "dimmingMode", ID: 0x001a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                dimmingAlgorithm: {name: "dimmingAlgorithm", ID: 0x001b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                auxDetectionLevel: {name: "auxDetectionLevel", ID: 0x007c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 nonNeutralAuxMediumGear: {name: "nonNeutralAuxMediumGear", ID: 0x001e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 nonNeutralAuxLowGear: {name: "nonNeutralAuxLowGear", ID: 0x001f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 internalTemperature: {name: "internalTemperature", ID: 0x0020, type: Zcl.DataType.INT8, write: true, max: 0xff},
@@ -572,6 +581,14 @@ const inovelliExtend = {
                         {name: "area4", type: Zcl.DataType.UINT8},
                     ],
                 },
+                reportTargetInfo: {
+                    name: "reportTargetInfo",
+                    ID: 1,
+                    parameters: [
+                        {name: "targetNum", type: Zcl.DataType.UINT8},
+                        {name: "targets", type: BuffaloZclDataType.BUFFER},
+                    ],
+                },
                 reportInterferenceArea: {
                     name: "reportInterferenceArea",
                     ID: 2,
@@ -742,14 +759,21 @@ const inovelliExtend = {
         ];
 
         return {
-            fromZigbee: [fzLocal.anyone_in_reporting_area, fzLocal.report_areas],
+            fromZigbee: [fzLocal.anyone_in_reporting_area, fzLocal.report_areas, fzLocal.report_target_info],
             toZigbee: [
                 tzLocal.inovelli_mmwave_control_commands,
                 tzLocal.mmwave_detection_areas,
                 tzLocal.mmwave_interference_areas,
                 tzLocal.mmwave_stay_areas,
             ],
-            exposes: [exposeMMWaveControl(), ...exposeMMWaveAreas(), exposeInterferenceAreas(), exposeDetectionAreas(), exposeStayAreas()],
+            exposes: [
+                exposeMMWaveControl(),
+                ...exposeMMWaveAreas(),
+                exposeInterferenceAreas(),
+                exposeDetectionAreas(),
+                exposeStayAreas(),
+                exposeMMWaveTargets(),
+            ],
             configure: configure,
             isModernExtend: true,
         } as ModernExtend;
@@ -1698,6 +1722,27 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
         values: {"Disabled (Click Sound On)": 0, "Enabled (Click Sound Off)": 1},
         displayType: "enum",
     },
+    dimmingAlgorithm: {
+        ID: 27,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {"Old dimming algorithm (v2.18)": 0, "New dimming algorithm (v3.04)": 1},
+        min: 0,
+        max: 1,
+        description:
+            "Switches the dimming algorithm from old to new. When switching the algorithm, the switch will restart. " +
+            "Some non-neutral setups may not support the new algorithm, in which case you can use the old algorithm." +
+            "0 = old dimming algorithm (v2.18), 1 = new dimming algorithm (v3.04+) (default).",
+    },
+    auxDetectionLevel: {
+        ID: 124,
+        dataType: Zcl.DataType.UINT8,
+        min: 0,
+        max: 4,
+        description:
+            "Aux detection level (P124). Range: 0-4, default: 1. " +
+            "If you are having issues with the aux function, start setting from 0 and continue until the aux function operates normally.",
+    },
 };
 
 const VZM32_ATTRIBUTES: {[s: string]: Attribute} = {
@@ -2603,6 +2648,22 @@ const fzLocal = {
             return {notificationComplete: "Unknown"};
         },
     } satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["commandLedEffectComplete"]>,
+    report_target_info: {
+        cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
+        type: ["commandReportTargetInfo"],
+        convert: (model, msg, publish, options, meta) => {
+            const targets: Array<{id: number; x: number; y: number; z: number; dop: number}> = [];
+            for (let i = 0; i < msg.data.targetNum; i++) {
+                const x = msg.data.targets.readInt16LE(i * 9);
+                const y = msg.data.targets.readInt16LE(i * 9 + 2);
+                const z = msg.data.targets.readInt16LE(i * 9 + 4);
+                const dop = msg.data.targets.readInt16LE(i * 9 + 6);
+                const id = msg.data.targets.readUInt8(i * 9 + 8);
+                targets.push({id, x, y, z, dop});
+            }
+            return {mmwave_targets: targets};
+        },
+    } satisfies Fz.Converter<typeof INOVELLI_MMWAVE_CLUSTER_NAME, InovelliMmWave, ["commandReportTargetInfo"]>,
     report_areas: {
         cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
         type: ["commandReportInterferenceArea", "commandReportDetectionArea", "commandReportStayArea"],
@@ -2834,6 +2895,23 @@ const exposeStayAreas = () => {
         .withFeature(createAreaComposite("area_3", "area3"))
         .withFeature(createAreaComposite("area_4", "area4"))
         .withCategory("config");
+};
+
+const exposeMMWaveTargets = () => {
+    const targetComposite = e
+        .composite("target", "target", ea.STATE)
+        .withFeature(e.numeric("id", ea.STATE).withValueMin(0).withValueMax(255).withDescription("Target ID"))
+        .withFeature(e.numeric("x", ea.STATE).withUnit("cm").withDescription("X-axis coordinate of the target in centimeters"))
+        .withFeature(e.numeric("y", ea.STATE).withUnit("cm").withDescription("Y-axis coordinate of the target in centimeters"))
+        .withFeature(e.numeric("z", ea.STATE).withUnit("cm").withDescription("Z-axis coordinate of the target in centimeters"))
+        .withFeature(e.numeric("dop", ea.STATE).withDescription("Doppler shift speed of the target"));
+
+    return e
+        .list("mmwave_targets", ea.STATE, targetComposite)
+        .withLengthMin(0)
+        .withLengthMax(4)
+        .withDescription("All of the detected mmWave targets")
+        .withCategory("diagnostic");
 };
 
 const BUTTON_TAP_SEQUENCES = [

@@ -753,7 +753,7 @@ export function ikeaBilresaDouble(): ModernExtend {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
                 return {action: `${msg.data.value === 257 ? "off" : "on"}_double`};
             },
-        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowSingle">,
+        } satisfies Fz.Converter<"genScenes", IkeaGenScenesCluster, "commandTradfriArrowSingle">,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};
@@ -775,7 +775,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
                 const direction = msg.data.value === 257 ? "left" : "right";
                 return {action: `arrow_${direction}_click`};
             },
-        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowSingle">,
+        } satisfies Fz.Converter<"genScenes", IkeaGenScenesCluster, "commandTradfriArrowSingle">,
         {
             cluster: "genScenes",
             type: "commandTradfriArrowHold",
@@ -785,7 +785,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
                 globalStore.putValue(msg.endpoint, "direction", direction);
                 return {action: `arrow_${direction}_hold`};
             },
-        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowHold">,
+        } satisfies Fz.Converter<"genScenes", IkeaGenScenesCluster, "commandTradfriArrowHold">,
         {
             cluster: "genScenes",
             type: "commandTradfriArrowRelease",
@@ -799,7 +799,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
                     return result;
                 }
             },
-        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowRelease">,
+        } satisfies Fz.Converter<"genScenes", IkeaGenScenesCluster, "commandTradfriArrowRelease">,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
@@ -989,6 +989,44 @@ export function addCustomClusterTradfriButton(): ModernExtend {
             action3: {name: "action3", ID: 0x03, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
             action4: {name: "action4", ID: 0x04, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
             action6: {name: "action6", ID: 0x06, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+        },
+        commandsResponse: {},
+    });
+}
+
+export interface IkeaGenScenesCluster {
+    attributes: never;
+    commands: {
+        tradfriArrowSingle: {
+            value: number;
+            value2: number;
+        };
+        tradfriArrowHold: {
+            value: number;
+        };
+        tradfriArrowRelease: {
+            value: number;
+        };
+    };
+    commandResponses: never;
+}
+
+export function addIkeaGenScenesCluster(): ModernExtend {
+    return m.deviceAddCustomCluster("genScenes", {
+        name: "genScenes",
+        ID: Zcl.Clusters.genScenes.ID,
+        attributes: {},
+        commands: {
+            tradfriArrowSingle: {
+                name: "tradfriArrowSingle",
+                ID: 0x07,
+                parameters: [
+                    {name: "value", type: Zcl.DataType.UINT16, max: 0xffff},
+                    {name: "value2", type: Zcl.DataType.UINT16, max: 0xffff},
+                ],
+            },
+            tradfriArrowHold: {name: "tradfriArrowHold", ID: 0x08, parameters: [{name: "value", type: Zcl.DataType.UINT16, max: 0xffff}]},
+            tradfriArrowRelease: {name: "tradfriArrowRelease", ID: 0x09, parameters: [{name: "value", type: Zcl.DataType.UINT16, max: 0xffff}]},
         },
         commandsResponse: {},
     });

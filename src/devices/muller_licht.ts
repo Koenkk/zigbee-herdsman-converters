@@ -330,4 +330,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "tint Smart Socket Tower Outdoor",
         extend: [m.onOff({powerOnBehavior: false})],
     },
+    {
+        zigbeeModel: ["tint Retro Bulb white+ambiance"],
+        model: "404114",
+        vendor: "MLI",
+        description: "Tint LED Bulb, E27, 806 lumen, CCT, clear",
+        extend: [m.light({colorTemp: {range: [153, 555]}})],
+    },
 ];

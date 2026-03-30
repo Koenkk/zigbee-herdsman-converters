@@ -40,9 +40,21 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
-interface ThirdRadarSpecialCluster {
+interface Third60gRadarSensor {
     attributes: {
-        volatileCrganiccCompounds: number;
+        totalVolatileOrganicCompounds: number;
+        presenceSensorSensitivity: number;
+        airThreshold: number;
+        tvocSensorCalibration: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdWateringKit {
+    attributes: {
+        wateringTimes: number;
+        intervalDay: number;
     };
     commands: never;
     commandResponses: never;
@@ -312,24 +324,54 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0x042e,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    volatileCrganiccCompounds: {
+                    totalVolatileOrganicCompounds: {
                         name: "volatileCrganiccCompounds",
                         ID: 0x0000,
                         type: Zcl.DataType.UINT32,
                         write: true,
                         max: 0xffffffff,
                     },
+                    presenceSensorSensitivity: {name: "presenceSensorSensitivity", ID: 0xf002, type: Zcl.DataType.UINT8, write: true, min: 1, max: 6},
+                    tvocSensorCalibration: {name: "tvocSensorCalibration", ID: 0xf001, type: Zcl.DataType.UINT8, write: true, min: 1, max: 1},
+                    airThreshold: {name: "airThreshold", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, min: 3000, max: 50000},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
-            m.numeric<"3r60gRadarSpecialCluster", ThirdRadarSpecialCluster>({
-                name: "volatile_organic_compounds",
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "total_volatile_organic_compounds",
                 cluster: "3r60gRadarSpecialCluster",
-                attribute: "volatileCrganiccCompounds",
+                attribute: "totalVolatileOrganicCompounds",
                 unit: "ppb",
-                description: "Measured VOC value",
+                description: "Measured TVOC value",
                 access: "STATE_GET",
+            }),
+            m.enumLookup<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "tvoc_sensor_calibration",
+                lookup: {Reset: 1},
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "tvocSensorCalibration",
+                description: "TVOC sensor calibration",
+                access: "ALL",
+            }),
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "presence_sensor_sensitivity",
+                valueMin: 1,
+                valueMax: 6,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "presenceSensorSensitivity",
+                description: "Presence sensor sensitivity",
+                access: "ALL",
+            }),
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "air_threshold",
+                valueMin: 3000,
+                valueMax: 50000,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "airThreshold",
+                unit: "ppb",
+                description: "Air threshold",
+                access: "ALL",
             }),
             m.light({
                 color: {modes: ["xy"], enhancedHue: true},
@@ -468,17 +510,11 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    infraredEnable: {name: "infraredEnable", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    compensationSpeed: {name: "compensationSpeed", ID: 0x0001, type: Zcl.DataType.INT8, write: true, min: -128},
-                    limitPosition: {name: "limitPosition", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    totalCycleTimes: {name: "totalCycleTimes", ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    lastRemainingBatteryPercentage: {
-                        name: "lastRemainingBatteryPercentage",
-                        ID: 0x0004,
-                        type: Zcl.DataType.UINT8,
-                        write: true,
-                        max: 0xff,
-                    },
+                    infraredEnable: {name: "infraredEnable", ID: 0x0000, type: 0x20, write: true, min: 0, max: 1},
+                    compensationSpeed: {name: "compensationSpeed", ID: 0x0001, type: 0x28, write: true, min: -100, max: 100},
+                    limitPosition: {name: "limitPosition", ID: 0x0002, type: 0x21, write: true, min: 50, max: 4000},
+                    totalCycleTimes: {name: "totalCycleTimes", ID: 0x0003, type: 0x21, write: true, min: 200, max: 334},
+                    lastRemainingBatteryPercentage: {name: "lastRemainingBatteryPercentage", ID: 0x0004, type: 0x20, write: true, min: 0, max: 100},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -503,7 +539,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
                 name: "preset_bottom_position",
                 valueMin: 50,
-                valueMax: 3800,
+                valueMax: 4000,
                 cluster: "3rSmartBlindGen2SpecialCluster",
                 attribute: "limitPosition",
                 description: "Preset the bottom limit position of the blind",
@@ -607,7 +643,63 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RTHS0324Z",
         vendor: "Third Reality",
         description: "Temperature and Humidity Sensor Lite Gen2",
-        extend: [m.battery(), m.temperature(), m.humidity(), m.commandsOnOff()],
+        extend: [
+            m.deviceAddCustomCluster("3rSpecialCluster", {
+                name: "3rSpecialCluster",
+                ID: 0xff01,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    celsiusDegreeCalibration: {name: "celsiusDegreeCalibration", ID: 0x0031, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x0032, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    fahrenheitDegreeCalibration: {
+                        name: "fahrenheitDegreeCalibration",
+                        ID: 0x0033,
+                        type: Zcl.DataType.INT16,
+                        write: true,
+                        min: -32768,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.battery(),
+            m.temperature(),
+            m.humidity(),
+            m.commandsOnOff(),
+            m.numeric<"3rSpecialCluster", ThirdSoilSensor>({
+                name: "celsius_degree_calibration",
+                unit: "°C",
+                valueMin: -200,
+                valueMax: 200,
+                scale: 100,
+                cluster: "3rSpecialCluster",
+                attribute: "celsiusDegreeCalibration",
+                description: "Celsius degree calibration",
+                access: "ALL",
+            }),
+            m.numeric<"3rSpecialCluster", ThirdSoilSensor>({
+                name: "humidity_calibration",
+                unit: "%",
+                valueMin: -100,
+                valueMax: 100,
+                scale: 100,
+                cluster: "3rSpecialCluster",
+                attribute: "humidityCalibration",
+                description: "Humidity calibration",
+                access: "ALL",
+            }),
+            m.numeric<"3rSpecialCluster", ThirdSoilSensor>({
+                name: "fahrenheit_degree_calibration",
+                unit: "°F",
+                valueMin: -200,
+                valueMax: 200,
+                scale: 100,
+                cluster: "3rSpecialCluster",
+                attribute: "fahrenheitDegreeCalibration",
+                description: "Fahrenheit degree calibration",
+                access: "ALL",
+            }),
+        ],
         ota: true,
     },
     {
@@ -741,16 +833,41 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery({percentage: true, voltage: true, lowStatus: true, percentageReporting: true}),
             m.onOff({powerOnBehavior: false}),
+            m.iasZoneAlarm({
+                zoneType: "generic",
+                zoneAttributes: ["alarm_1"],
+                description: "Water shortage warning",
+            }),
             m.deviceAddCustomCluster("3rWateringSpecialCluster", {
                 name: "3rWateringSpecialCluster",
                 ID: 0xfff2,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    wateringTimes: {name: "wateringTimes", ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    intervalDay: {name: "intervalDay", ID: 0x0001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    wateringTimes: {name: "wateringTimes", ID: 0x0000, type: Zcl.DataType.UINT16, write: true, min: 1, max: 1800},
+                    intervalDay: {name: "intervalDay", ID: 0x0001, type: Zcl.DataType.UINT8, write: true, min: 0, max: 30},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"3rWateringSpecialCluster", ThirdWateringKit>({
+                name: "watering_times",
+                cluster: "3rWateringSpecialCluster",
+                attribute: "wateringTimes",
+                valueMin: 1,
+                valueMax: 1800,
+                unit: "s",
+                description: "watering times",
+                access: "ALL",
+            }),
+            m.numeric<"3rWateringSpecialCluster", ThirdWateringKit>({
+                name: "interval_day",
+                cluster: "3rWateringSpecialCluster",
+                attribute: "intervalDay",
+                valueMin: 0,
+                valueMax: 30,
+                unit: "Day",
+                description: "interval day",
+                access: "ALL",
             }),
         ],
         ota: true,

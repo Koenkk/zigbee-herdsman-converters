@@ -748,10 +748,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["LTD021", "LTD022"],
+        zigbeeModel: ["LTD020", "LTD021", "LTD022"],
         model: "9290035842",
         vendor: "Philips",
-        description: "Garnea downlight",
+        description: "Garnea White Ambience Downlight",
+        whiteLabel: [{model: "929003123801", vendor: "Philips", description: "Garnea White Ambience Downlight", fingerprint: [{modelID: "LTD020"}]}],
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
@@ -844,6 +845,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Ensis (black)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+
+    {
+        zigbeeModel: ["929003736701_01", "929003736701_02"],
+        model: "929003736701",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance Datura Ceiling Light Square",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["929003055901", "929003055901_01", "929003055901_02", "929003055901_03"],
@@ -1724,7 +1733,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["LTD008"],
-        model: "929003123801",
+        model: "929003134801",
         vendor: "Philips",
         description: 'Hue white ambiance 6" downlight',
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
@@ -1734,6 +1743,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290019534",
         vendor: "Philips",
         description: "Hue white ambiance GU10 with Bluetooth",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["LTT002"],
+        model: "4505848C5",
+        vendor: "Philips",
+        description: "Hue white ambiance Within LED table light ",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
@@ -2793,7 +2809,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RWL020", "RWL021"],
         model: "324131092621",
         vendor: "Philips",
-        description: "Hue dimmer switch",
+        description: "Hue dimmer switch gen 1",
         fromZigbee: [
             fz.ignore_command_on,
             fz.ignore_command_off_with_effect,
@@ -2845,7 +2861,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RWL022"],
         model: "929002398602",
         vendor: "Philips",
-        description: "Hue dimmer switch",
+        description: "Hue dimmer switch gen 2",
         extend: [philips.m.addManuSpecificPhilipsCluster()],
         fromZigbee: [
             fz.ignore_command_on,
@@ -3952,6 +3968,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ["LCD012"],
+        model: "929004291601",
+        vendor: "Philips",
+        description: "Akari downlight (black)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ["LCD005"],
         model: "9290031345",
         vendor: "Philips",
@@ -4846,7 +4869,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}})],
     },
     {
-        zigbeeModel: ["929004610402", "929004610502", "929004610602", "929004610702", "929004610802"],
+        zigbeeModel: ["929004610401", "929004610402", "929004610502", "929004610602", "929004610702", "929004610802"],
         model: "929004610402",
         vendor: "Philips",
         description: "Hue White and Color Lightstrip Flux (3m)",
@@ -4874,6 +4897,12 @@ export const definitions: DefinitionWithExtend[] = [
                 vendor: "Philips",
                 description: "Hue White and Color Lightstrip Flux (10m)",
                 fingerprint: [{modelID: "929004610802"}],
+            },
+            {
+                model: "929004610401",
+                vendor: "Philips",
+                description: "Hue White and Color Lightstrip Flux (10ft)",
+                fingerprint: [{modelID: "929004610401"}],
             },
         ],
         extend: [
@@ -4937,5 +4966,12 @@ export const definitions: DefinitionWithExtend[] = [
                 gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
             }),
         ],
+    },
+    {
+        zigbeeModel: ["929004294903"],
+        model: "929004294903",
+        vendor: "Philips",
+        description: "Hue Essential lightstrip (16ft)",
+        extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
 ];

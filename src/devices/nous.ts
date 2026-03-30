@@ -221,20 +221,32 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_qvxrkeif"]),
         model: "E9",
         vendor: "Nous",
-        description: "Zigbee gas sensor",
+        description: "Household combustible gas detector",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.gas(),
-            e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
-            tuya.exposes.faultAlarm(),
-            e.binary("lifecycle", ea.STATE, true, false).withDescription("Sensor lifetime limit"),
+            e
+                .gas()
+                .withDescription(
+                    "Indicates whether the device detected combustible gas (Methane) and the buzzer is ringing. Also triggers when the test button is pressed",
+                ),
+            e.binary("warming_up", ea.STATE, true, false).withDescription("Sensor preheating status: Takes 3 mins to complete after power-on"),
+            e.binary("fault", ea.STATE, true, false).withDescription("Sensor fault indicator"),
+            e
+                .binary("end_of_life", ea.STATE, true, false)
+                .withDescription("Indicates whether the sensor is past its certified service life (5 years) and should be replaced"),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "gas", tuya.valueConverter.trueFalse0],
-                [10, "preheat", tuya.valueConverter.raw],
-                [11, "fault_alarm", tuya.valueConverter.trueFalse1],
-                [12, "lifecycle", tuya.valueConverter.trueFalse0],
+                [1, "gas", tuya.valueConverter.trueFalseEnum0], // gas_sensor_status, gas_detection_state
+                [10, "warming_up", tuya.valueConverter.raw], // preheat
+                [
+                    11,
+                    "fault",
+                    {
+                        from: (v: tuya.Bitmap) => !!v,
+                    },
+                ], // fault_alarm
+                [12, "end_of_life", tuya.valueConverter.trueFalseInvert], // lifecycle
             ],
         },
     },
