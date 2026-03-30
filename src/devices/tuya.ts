@@ -10576,14 +10576,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0013", ["_TZ3000_ypgri8yz", "_TZ3000_sznawwyw", "_TZ3000_avotanj3"]),
+        fingerprint: tuya.fingerprint("TS0013", ["_TZ3000_ypgri8yz", "_TZ3000_sznawwyw", "_TZ3000_avotanj3", "_TZ3000_t7ugva7q"]),
         model: "TS0013_switch_module",
         vendor: "Tuya",
         description: "3 gang switch module - (without neutral)",
         whiteLabel: [
             {vendor: "AVATTO", model: "3gang N-ZLWSM01"},
             tuya.whitelabel("AVATTO", "LZWSM16-3", "3 gang switch module - (without neutral)", ["_TZ3000_sznawwyw", "_TZ3000_avotanj3"]),
-            tuya.whitelabel("Girier", "ZB08", "3 Channel Switch Module-L - (No Neutral Wire)", ["_TZ3000_ypgri8yz"]),
+            tuya.whitelabel("Girier", "ZB08", "3 Channel Switch Module-L - (No Neutral Wire)", ["_TZ3000_ypgri8yz", "_TZ3000_t7ugva7q"]),
         ],
         extend: [
             tuya.modernExtend.tuyaBase(),
