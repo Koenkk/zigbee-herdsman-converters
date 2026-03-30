@@ -13736,22 +13736,7 @@ export const definitions: DefinitionWithExtend[] = [
                 tuya.exposes.countdown().withValueStep(countdownValueStep),
             ];
         },
-        extend: [
-            tuyaBase(),
-            m.deviceAddCustomCluster("genOnOff", {
-                name: "genOnOff",
-                ID: Zcl.Clusters.genOnOff.ID,
-                attributes: {},
-                commands: {
-                    tuyaCountdown: {
-                        name: "tuyaCountdown",
-                        ID: 0xf0,
-                        parameters: [{name: "data", type: 1008 /* BUFFER */}],
-                    },
-                },
-                commandsResponse: {},
-            }),
-        ],
+        extend: [tuyaBase()],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
