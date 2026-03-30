@@ -38,7 +38,7 @@ export function readColorAttributes(
 
         if (utils.getMetaValue(entity, meta.mapped, "supportsHueAndSaturation", "allEqual", true)) {
             if (!meta.message.color || (utils.isObject(meta.message.color) && meta.message.color.hue != null)) {
-                if (utils.getMetaValue(entity, meta.mapped, "supportsEnhancedHue", "allEqual", true)) {
+                if (utils.getMetaValue(entity, meta.mapped, "supportsEnhancedHue", "allEqual", false)) {
                     attributes.push("enhancedCurrentHue");
                 } else {
                     attributes.push("currentHue");

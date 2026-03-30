@@ -196,7 +196,7 @@ export interface DefinitionMeta {
     /**
      * see `toZigbee.light_color`
      *
-     * @defaultValue true
+     * @defaultValue false
      */
     supportsEnhancedHue?: boolean | ((entity: Zh.Endpoint) => boolean);
     /**
