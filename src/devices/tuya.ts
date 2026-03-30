@@ -18516,6 +18516,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "LEDRON",
         description: "0-10v dimmer",
         fromZigbee: [fz.TS110E, fz.on_off],
+        extend: [tuyaBase()],
         toZigbee: [tuya.tz.TS110E_onoff_brightness, tz.TS110E_options, tz.light_brightness_move],
         whiteLabel: [tuya.whitelabel("Ledron", "QS-Zigbee-D06-DC", "Dimmer 12-36v", ["_TZ3210_hquixjeg"])],
         exposes: [e.light_brightness().withMinBrightness().withMaxBrightness()],
