@@ -693,33 +693,39 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["KAJPLATS E14 WS B38 CL 470lm"],
-        model: "LED2402C3",
+        zigbeeModel: [
+            "KAJPLATS E14 WS B38 CL 470lm",
+            "KAJPLATS E27 WS G95 clear 806lm",
+            "KAJPLATS E27 806lm 95mm smart WS",
+            "KAJPLATS E27 WS G60 clear 470lm",
+            "KAJPLATS E27 470lm smart WS",
+            "KAJPLATS E12 WS B38 CL 450lm",
+        ],
+        whiteLabel: [
+            {
+                model: "LED2402C3",
+                description: "KAJPLATS E14 bulb, white spectrum, candle, clear, 470 lm",
+                fingerprint: [{modelID: "KAJPLATS E14 WS B38 CL 470lm"}],
+            },
+            {
+                model: "LED2401G5",
+                description: "KAJPLATS E27 bulb, white spectrum, globe, clear, 806 lm",
+                fingerprint: [{modelID: "KAJPLATS E27 WS G95 clear 806lm"}, {modelID: "KAJPLATS E27 806lm 95mm smart WS"}],
+            },
+            {
+                model: "LED2411G3",
+                description: "KAJPLATS E27 bulb, white spectrum, globe, clear, 470 lm",
+                fingerprint: [{modelID: "KAJPLATS E27 WS G60 clear 470lm"}, {modelID: "KAJPLATS E27 470lm smart WS"}],
+            },
+            {
+                model: "LED2402C3NA",
+                description: "KAJPLATS E12 bulb, white spectrum, candle, clear, 450 lm",
+                fingerprint: [{modelID: "KAJPLATS E12 WS B38 CL 450lm"}],
+            },
+        ],
+        model: "KAJPLATS_WS_clear",
         vendor: "IKEA",
-        description: "KAJPLATS E14 bulb, white spectrum, candle, clear, 470 lm",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3698674562
-        zigbeeModel: ["KAJPLATS E27 WS G95 clear 806lm", "KAJPLATS E27 806lm 95mm smart WS"],
-        model: "LED2401G5",
-        vendor: "IKEA",
-        description: "KAJPLATS E27 bulb, white spectrum, globe, clear, 806 lm",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3697858054
-        zigbeeModel: ["KAJPLATS E27 WS G60 clear 470lm", "KAJPLATS E27 470lm smart WS"],
-        model: "LED2411G3",
-        vendor: "IKEA",
-        description: "KAJPLATS E27 bulb, white spectrum, globe, clear, 470 lm",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        zigbeeModel: ["KAJPLATS E12 WS B38 CL 450lm"],
-        model: "LED2402C3NA",
-        vendor: "IKEA",
-        description: "KAJPLATS E12 bulb, white spectrum, candle, clear, 450 lm",
+        description: "KAJPLATS light, white spectrum, clear",
         extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
