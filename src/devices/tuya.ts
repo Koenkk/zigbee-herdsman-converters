@@ -26038,4 +26038,141 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_4vbj3fxh"]),
+        model: "L2-T-F-MF",
+        vendor: "Tuya",
+        description: "Smart Zigbee fan coil thermostat",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(["off", "cool", "heat", "fan_only"], ea.STATE_SET)
+                .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 5, 45, 0.5, ea.STATE_SET),
+            e
+                .numeric("local_temperature_calibration", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(-9)
+                .withValueMax(9)
+                .withValueStep(1)
+                .withDescription("Temperature compensation setting"),
+
+            e.numeric("screen_brightness", ea.STATE_SET).withValueMin(1).withValueMax(9).withValueStep(1).withDescription("Display brightness level"),
+
+            e
+                .numeric("deadzone_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueMax(5)
+                .withValueStep(0.5)
+                .withDescription("Temperature deadzone"),
+
+            e
+                .numeric("min_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(1)
+                .withDescription("Minimum temperature limit"),
+
+            e
+                .numeric("max_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(16)
+                .withValueMax(45)
+                .withValueStep(1)
+                .withDescription("Maximun temperature limit"),
+
+            e.enum("child_lock", ea.STATE_SET, ["locked", "unlocked"]).withDescription("Child lock"),
+
+            e
+                .numeric("eco_temperature_heating", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(20)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withDescription("Eco heating temperature"),
+
+            e
+                .numeric("eco_temperature_cooling", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(20)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withDescription("Eco cooling temperature"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    {
+                        from: (v: boolean, meta: Fz.Meta) => {
+                            // when the thermstat is returned to ON, we setup to fan_only, but would be better
+                            // to remain in the mode it was (and it is, even while off)
+                            meta.state.system_mode = v === true ? (meta.state.system_mode_device ?? "fan_only") : "off";
+                            delete meta.state.state;
+                            return null;
+                        },
+                    },
+                ],
+                [
+                    2,
+                    "system_mode",
+                    {
+                        to: async (v: string, meta: Tz.Meta) => {
+                            const ep = meta.device.endpoints[0];
+
+                            if (v === "off") {
+                                // mode off we redirect to datapoint 1, and that is
+                                await tuya.sendDataPointBool(ep, 1, false, "dataRequest", 1);
+                                return;
+                            }
+
+                            // any other mode, we force ON state
+                            await tuya.sendDataPointBool(ep, 1, true, "dataRequest", 1);
+
+                            if (v === "cool") await tuya.sendDataPointEnum(ep, 2, 0, "dataRequest", 1);
+                            if (v === "heat") await tuya.sendDataPointEnum(ep, 2, 1, "dataRequest", 1);
+                            if (v === "fan_only") await tuya.sendDataPointEnum(ep, 2, 2, "dataRequest", 1);
+                        },
+                        from: (v: number, meta: Fz.Meta) => {
+                            const modes = ["cool", "heat", "fan_only"];
+                            meta.state.system_mode_device = modes[v];
+                            return modes[v];
+                        },
+                    },
+                ],
+                [16, "local_temperature", tuya.valueConverter.divideBy10],
+                [18, "min_temperature_limit", tuya.valueConverter.divideBy10],
+                [34, "max_temperature_limit", tuya.valueConverter.divideBy10],
+                [
+                    39,
+                    "child_lock",
+                    tuya.valueConverterBasic.lookup({
+                        unlocked: false,
+                        locked: true,
+                    }),
+                ],
+                [
+                    49,
+                    "fan_mode",
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        high: tuya.enum(1),
+                        medium: tuya.enum(2),
+                        low: tuya.enum(3),
+                    }),
+                ],
+                [50, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [101, "screen_brightness", tuya.valueConverter.raw],
+                [102, "local_temperature_calibration", tuya.valueConverter.raw],
+                [104, "deadzone_temperature", tuya.valueConverter.divideBy10],
+                [107, "eco_temperature_heating", tuya.valueConverter.raw],
+                [109, "eco_temperature_cooling", tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
