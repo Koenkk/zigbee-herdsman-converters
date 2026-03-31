@@ -6060,21 +6060,5 @@ export const definitions: DefinitionWithExtend[] = [
             sonoffExtend.tempAndHumiHalfHourReport(),
         ],
         ota: true,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            if (endpoint) {
-                logger.info("SNZB-02B configure: reading custom attributes", NS);
-                await endpoint.read<"customClusterEwelink", SonoffSnzb02b>("customClusterEwelink", [
-                    "hotThreshold",
-                    "coldThreshold",
-                    "dryThreshold",
-                    "dampThreshold",
-                    "temperatureCalibration",
-                    "humidityCalibration",
-                ]);
-            } else {
-                logger.info("SNZB-02B configure: endpoint 1 not found", NS);
-            }
-        },
     },
 ];
