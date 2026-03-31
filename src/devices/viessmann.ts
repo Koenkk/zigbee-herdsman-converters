@@ -205,14 +205,14 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatPIHeatingDemand(endpoint);
 
             // manufacturer attributes
-            await endpoint.configureReporting(
+            await endpoint.configureReporting<"hvacThermostat", ViessmannHvacThermostat>(
                 "hvacThermostat",
                 [{attribute: "viessmannWindowOpenInternal", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 1}],
                 options,
             );
 
             // read window_open_force, we don't need reporting as it cannot be set physically on the device
-            await endpoint.read("hvacThermostat", ["viessmannWindowOpenForce"], options);
+            await endpoint.read<"hvacThermostat", ViessmannHvacThermostat>("hvacThermostat", ["viessmannWindowOpenForce"], options);
 
             // read keypadLockout, we don't need reporting as it cannot be set physically on the device
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
