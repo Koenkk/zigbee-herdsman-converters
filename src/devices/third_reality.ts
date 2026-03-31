@@ -1307,13 +1307,12 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.binary<"3r24gRadarcluster", Third24gRadar>({
-                name: "sensor_calibation",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup<"3r24gRadarcluster", Third24gRadar>({
+                name: "sensor_calibration",
+                lookup: {Press: 1},
                 cluster: "3r24gRadarcluster",
                 attribute: "sensorCalibration",
-                description: "sensor calibationit",
+                description: "sensor calibration",
                 access: "ALL",
             }),
             m.numeric<"3r24gRadarcluster", Third24gRadar>({
