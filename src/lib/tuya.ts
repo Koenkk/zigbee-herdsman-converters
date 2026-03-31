@@ -2291,7 +2291,7 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const result: KeyValue = {};
-            if (!model.meta || !model.meta.tuyaDatapoints) throw new Error("No datapoints map defined");
+            if (!model.meta?.tuyaDatapoints) throw new Error("No datapoints map defined");
             const datapoints = model.meta.tuyaDatapoints;
             for (const dpValue of msg.data.dpValues) {
                 const dpId = dpValue.dp;

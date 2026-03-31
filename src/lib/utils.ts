@@ -181,7 +181,7 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message<any, any,
         meta = {device: null};
     }
 
-    if (definition.meta?.multiEndpoint && (!definition.meta.multiEndpointSkip || !definition.meta.multiEndpointSkip.includes(value))) {
+    if (definition.meta?.multiEndpoint && !definition.meta.multiEndpointSkip?.includes(value)) {
         const endpointName = definition.endpoint !== undefined ? getKey(definition.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
 
         // NOTE: endpointName can be undefined if we have a definition.endpoint and the endpoint is
