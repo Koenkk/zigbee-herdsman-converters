@@ -4939,7 +4939,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.cover_position_tilt,
             tuya.fz.indicator_mode,
-            fz.tuya_cover_options,
+            tuya.fz.cover_options,
             tuya.fz.backlight_mode_off_on,
             tuya.fz.switch_type_curtain,
         ],
@@ -5030,7 +5030,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee + RF curtain switch module",
         ota: true,
         meta: {coverInverted: true},
-        fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
+        fromZigbee: [tuya.fz.cover_options, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
         exposes: [
             e.cover_position(),

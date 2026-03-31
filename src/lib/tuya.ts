@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "./constants";
@@ -33,6 +32,17 @@ const ea = exposes.access;
 
 interface KeyValueStringEnum {
     [s: string]: Enum;
+}
+
+export interface TuyaClosuresWindowCovering {
+    attributes: {
+        tuyaMovingState: number;
+        tuyaCalibration: number;
+        tuyaMotorReversal: number;
+        moesCalibrationTime: number;
+    };
+    commands: never;
+    commandResponses: never;
 }
 
 export interface ManuSpecificTuya2 {
@@ -2406,6 +2416,39 @@ const tuyaFz = {
             return result;
         },
     } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
+    cover_options: {
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.tuyaMovingState !== undefined) {
+                const value = msg.data.tuyaMovingState;
+                const movingLookup: KeyValueAny = {0: "UP", 1: "STOP", 2: "DOWN"};
+                result[utils.postfixWithEndpointName("moving", msg, model, meta)] = movingLookup[value];
+            }
+            if (msg.data.tuyaCalibration !== undefined) {
+                const value = msg.data.tuyaCalibration;
+                const calibrationLookup: KeyValueAny = {0: "ON", 1: "OFF"};
+                result[utils.postfixWithEndpointName("calibration", msg, model, meta)] = calibrationLookup[value];
+            }
+            if (msg.data.tuyaMotorReversal !== undefined) {
+                const value = msg.data.tuyaMotorReversal;
+                const reversalLookup: KeyValueAny = {0: "OFF", 1: "ON"};
+                result[utils.postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
+            }
+            if (msg.data.moesCalibrationTime !== undefined) {
+                const value = msg.data.moesCalibrationTime / 10.0;
+                if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(meta.device.manufacturerName)) {
+                    const endpoint = msg.endpoint.ID;
+                    const calibrationLookup: KeyValueAny = {1: "to_open", 2: "to_close"};
+                    result[utils.postfixWithEndpointName(`calibration_time_${calibrationLookup[endpoint]}`, msg, model, meta)] = value;
+                } else {
+                    result[utils.postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export {tuyaFz as fz};
@@ -3502,6 +3545,19 @@ const tuyaModernExtend = {
 export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {
+    addTuyaClosuresWindowCoveringCluster: () =>
+        modernExtend.deviceAddCustomCluster("closuresWindowCovering", {
+            name: "closuresWindowCovering",
+            ID: Zcl.Clusters.closuresWindowCovering.ID,
+            attributes: {
+                tuyaMovingState: {name: "tuyaMovingState", ID: 0xf000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                tuyaCalibration: {name: "tuyaCalibration", ID: 0xf001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                tuyaMotorReversal: {name: "tuyaMotorReversal", ID: 0xf002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                moesCalibrationTime: {name: "moesCalibrationTime", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
     addManuSpecificTuya2Cluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya2", {
             name: "manuSpecificTuya2",
