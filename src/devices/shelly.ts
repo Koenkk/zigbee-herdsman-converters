@@ -312,6 +312,64 @@ function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: 
 // =============================================================================
 
 const shellyModernExtend = {
+    // Custom configure for Shelly Gen 4 devices with electricity metering.
+    // Uses a 5-minute maximum reporting interval instead of the default MAX (65000 s / ~18 h).
+    // At stable, low loads the change thresholds are rarely crossed, causing haElectricalMeasurement
+    // values to go unreported for many hours. seMetering.configureReporting is intentionally
+    // omitted because Shelly Gen 4 firmware rejects it with Status FAILURE; energy values are
+    // still included in every haElectricalMeasurement report.
+    shellyGen4ElectricityMeterConfigure: async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+        const endpoint = device.getEndpoint(1);
+        await endpoint.read("haElectricalMeasurement", [
+            "acPowerDivisor",
+            "acPowerMultiplier",
+            "acCurrentDivisor",
+            "acCurrentMultiplier",
+            "acVoltageDivisor",
+            "acVoltageMultiplier",
+            "acFrequencyDivisor",
+            "acFrequencyMultiplier",
+        ]);
+        await endpoint.read("seMetering", ["divisor", "multiplier"]);
+        await endpoint.configureReporting("haElectricalMeasurement", [
+            {attribute: "activePower", minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 5},
+            {attribute: "rmsCurrent", minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 50},
+            {attribute: "rmsVoltage", minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 500},
+            {attribute: "acFrequency", minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 100},
+        ]);
+    },
+    // Filters out spurious energy=0 reports from Shelly Gen 4 firmware.
+    // The firmware occasionally emits currentSummDelivered=0 which would corrupt
+    // Home Assistant energy statistics (treated as a meter reset). When a valid
+    // previous energy value is known, the zero is replaced by the last good value.
+    shellyGen4EnergyZeroFilter(): ModernExtend {
+        const fzFilter: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
+            cluster: "seMetering",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.currentSummDelivered !== undefined) {
+                    const multiplier = (msg.endpoint.getClusterAttributeValue("seMetering", "multiplier") as number) || 1;
+                    const divisor = (msg.endpoint.getClusterAttributeValue("seMetering", "divisor") as number) || 1;
+                    const energy = (msg.data.currentSummDelivered * multiplier) / divisor;
+                    if (energy === 0 && (meta.state?.energy as number) > 0) {
+                        return {energy: meta.state.energy as number, produced_energy: (meta.state.produced_energy as number) ?? 0};
+                    }
+                }
+            },
+        };
+        return {fromZigbee: [fzFilter], isModernExtend: true};
+    },
+    // Polls seMetering.currentSummDelivered/currentSummReceived periodically because the Shelly
+    // Gen 4 firmware rejects configureReporting for seMetering (Status FAILURE).
+    shellyGen4EnergyPoll(): ModernExtend {
+        return m.poll({
+            key: "energy",
+            defaultIntervalSeconds: 300,
+            poll: async (device) => {
+                await device.getEndpoint(1).read("seMetering", ["currentSummDelivered", "currentSummReceived"]);
+            },
+        });
+    },
     shellyPowerFactorInt16Fix(): ModernExtend {
         // Shelly Gen4 devices report haElectricalMeasurement.powerFactor (0x0510) as INT16 (0x29)
         // while zigbee-herdsman defines it as INT8 (0x28). This breaks configureReporting (INVALID_DATA_TYPE).
@@ -1026,11 +1084,14 @@ export const definitions: DefinitionWithExtend[] = [
         description: "1PM Mini Gen 4",
         extend: [
             m.onOff({powerOnBehavior: false}),
-            m.electricityMeter({producedEnergy: true, acFrequency: true}),
+            m.electricityMeter({producedEnergy: true, acFrequency: true, configureReporting: false}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            shellyModernExtend.shellyGen4EnergyPoll(),
+            shellyModernExtend.shellyGen4EnergyZeroFilter(),
         ],
+        configure: shellyModernExtend.shellyGen4ElectricityMeterConfigure,
     },
     {
         zigbeeModel: ["1PM"],
@@ -1039,11 +1100,14 @@ export const definitions: DefinitionWithExtend[] = [
         description: "1PM Gen 4",
         extend: [
             m.onOff({powerOnBehavior: false}),
-            m.electricityMeter({producedEnergy: true, acFrequency: true}),
+            m.electricityMeter({producedEnergy: true, acFrequency: true, configureReporting: false}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            shellyModernExtend.shellyGen4EnergyPoll(),
+            shellyModernExtend.shellyGen4EnergyZeroFilter(),
         ],
+        configure: shellyModernExtend.shellyGen4ElectricityMeterConfigure,
     },
     {
         zigbeeModel: ["EM Mini"],
