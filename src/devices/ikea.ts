@@ -611,6 +611,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "KAJPLATS color/white spectrum light",
         extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
+        // KAJPLATS models and firmware updates: https://webui.dcl.csa-iot.org/models
     },
     {
         fingerprint: [
@@ -628,47 +629,67 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             },
         ],
+        zigbeeModel: [
+            "KAJPLATS E27 WS globe 470lm",
+            "KAJPLATS E27 WS globe 1055lm",
+            "KAJPLATS GU10 WS 575lm",
+            "KAJPLATS E27 WS globe 1521lm",
+            "KAJPLATS E14 WS globe 806lm",
+            "KAJPLATS E26 WS globe 450lm",
+            "KAJPLATS E26 WS globe 1100lm",
+            "KAJPLATS E26 WS globe 1600lm",
+            "KAJPLATS E12 WS globe 800lm",
+        ],
+        whiteLabel: [
+            {
+                model: "LED2406G4",
+                description: "KAJPLATS E27 bulb, white spectrum, globe, opal, 470 lm",
+                fingerprint: [{modelID: "KAJPLATS E27 WS globe 470lm"}],
+            },
+            {
+                model: "LED2407G8",
+                description: "KAJPLATS E27 bulb, white spectrum, globe, opal, 1055 lm",
+                fingerprint: [{modelID: "KAJPLATS E27 WS globe 1055lm"}],
+            },
+            {
+                model: "LED2403R5/LED2403R5NA",
+                description: "KAJPLATS GU10 bulb, white spectrum, 575 lm",
+                fingerprint: [{modelID: "KAJPLATS GU10 WS 575lm"}],
+            },
+            {
+                model: "LED2408G10",
+                description: "KAJPLATS E27 bulb, white spectrum, globe, opal, 1521 lm",
+                fingerprint: [{modelID: "KAJPLATS E27 WS globe 1521lm"}],
+            },
+            {
+                model: "LED2404G6",
+                description: "KAJPLATS E14 bulb, white spectrum, globe, opal, 806 lm",
+                fingerprint: [{modelID: "KAJPLATS E14 WS globe 806lm"}],
+            },
+            {
+                model: "LED2406G4NA",
+                description: "KAJPLATS E26 bulb, white spectrum, globe, opal, 450 lm",
+                fingerprint: [{modelID: "KAJPLATS E26 WS globe 450lm"}],
+            },
+            {
+                model: "LED2407G8NA",
+                description: "KAJPLATS E26 bulb, white spectrum, globe, opal, 1100 lm",
+                fingerprint: [{modelID: "KAJPLATS E26 WS globe 1100lm"}],
+            },
+            {
+                model: "LED2408G10NA",
+                description: "KAJPLATS E26 bulb, white spectrum, globe, opal, 1600 lm",
+                fingerprint: [{modelID: "KAJPLATS E26 WS globe 1600lm"}],
+            },
+            {
+                model: "LED2404G6NA",
+                description: "KAJPLATS E12 bulb, white spectrum, globe, opal, 800 lm",
+                fingerprint: [{modelID: "KAJPLATS E12 WS globe 800lm"}],
+            },
+        ],
         model: "KAJPLATS_CT",
         vendor: "IKEA",
         description: "KAJPLATS white spectrum light",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
-    },
-    // KAJPLATS models and firmware updates:
-    // https://webui.dcl.csa-iot.org/models
-    {
-        // https://github.com/Koenkk/zigbee2mqtt/issues/30211#issuecomment-3697342174
-        zigbeeModel: ["KAJPLATS E27 WS globe 470lm"],
-        model: "LED2406G4",
-        vendor: "IKEA",
-        description: "KAJPLATS E27 bulb, white spectrum, globe, opal, 470 lm",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        zigbeeModel: ["KAJPLATS E27 WS globe 1055lm"],
-        model: "LED2407G8",
-        vendor: "IKEA",
-        description: "KAJPLATS E27 bulb, white spectrum, globe, opal, 1055 lm",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        zigbeeModel: ["KAJPLATS GU10 WS 575lm"],
-        model: "LED2403R5/LED2403R5NA",
-        vendor: "IKEA",
-        description: "KAJPLATS GU10 bulb, white spectrum, 575 lm",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        zigbeeModel: ["KAJPLATS E27 WS globe 1521lm"],
-        model: "LED2408G10",
-        vendor: "IKEA",
-        description: "KAJPLATS E27 bulb, white spectrum, globe, opal, 1521 lm",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        zigbeeModel: ["KAJPLATS E14 WS globe 806lm"],
-        model: "LED2404G6",
-        vendor: "IKEA",
-        description: "KAJPLATS E14 bulb, white spectrum, globe, opal, 806 lm",
         extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
@@ -692,34 +713,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LED2411G3",
         vendor: "IKEA",
         description: "KAJPLATS E27 bulb, white spectrum, globe, clear, 470 lm",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        zigbeeModel: ["KAJPLATS E26 WS globe 450lm"],
-        model: "LED2406G4NA",
-        vendor: "IKEA",
-        description: "KAJPLATS E26 bulb, white spectrum, globe, opal, 450 lm",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        zigbeeModel: ["KAJPLATS E26 WS globe 1100lm"],
-        model: "LED2407G8NA",
-        vendor: "IKEA",
-        description: "KAJPLATS E26 bulb, white spectrum, globe, opal, 1100 lm",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        zigbeeModel: ["KAJPLATS E26 WS globe 1600lm"],
-        model: "LED2408G10NA",
-        vendor: "IKEA",
-        description: "KAJPLATS E26 bulb, white spectrum, globe, opal, 1600 lm",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        zigbeeModel: ["KAJPLATS E12 WS globe 800lm"],
-        model: "LED2404G6NA",
-        vendor: "IKEA",
-        description: "KAJPLATS E12 bulb, white spectrum, globe, opal, 800 lm",
         extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
     {
