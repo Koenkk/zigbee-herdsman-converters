@@ -118,7 +118,9 @@ const ubisys = {
                     let operationalStatus = 0;
                     do {
                         await sleepSeconds(2);
-                        const response = await entity.read("closuresWindowCovering", ["operationalStatus"]);
+                        const response = await entity.read<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", [
+                            "operationalStatus",
+                        ]);
                         operationalStatus = response.operationalStatus;
                     } while (operationalStatus !== 0);
                     await sleepSeconds(2);
@@ -139,7 +141,11 @@ const ubisys = {
                             attrValue = converterFunc(attrValue);
                         }
                         const attributes = {[attr]: attrValue};
-                        await entity.write("closuresWindowCovering", attributes, manufacturerOptions.ubisys);
+                        await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>(
+                            "closuresWindowCovering",
+                            attributes,
+                            manufacturerOptions.ubisys,
+                        );
                         if (delaySecondsAfter) {
                             await sleepSeconds(delaySecondsAfter);
                         }
@@ -148,7 +154,9 @@ const ubisys = {
                 const stepsPerSecond = value.steps_per_second || 50;
                 const hasCalibrate = value.calibrate != null;
                 // cancel any running calibration
-                let mode = (await entity.read("closuresWindowCovering", ["windowCoveringMode"])).windowCoveringMode;
+                let mode = (
+                    await entity.read<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", ["windowCoveringMode"])
+                ).windowCoveringMode;
                 const modeCalibrationBitMask = 0x02;
                 if (mode & modeCalibrationBitMask) {
                     await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
