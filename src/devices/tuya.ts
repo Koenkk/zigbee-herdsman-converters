@@ -22991,7 +22991,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("THALEOS", "TH-P1Z", "Smart thermostat for electric heater", ["_TZE204_0hcjew5p"]),
             tuya.whitelabel("RKHK", "TH-P0Z", "Smart thermostat for electric heater", ["_TZE204_6vwfjkcj"]),
-            tuya.whitelabel("MAZDA", "TH-P0Z", "Smart thermostat for electric radiator with pilot wire", ["_TZE204_ouy7vpm1"]),
+            tuya.whitelabel("MAZDA", "MZTE1Z", "Smart thermostat for electric radiator with pilot wire", ["_TZE204_ouy7vpm1"]),
         ],
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the heater on or off").withCategory("config"),
