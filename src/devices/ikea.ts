@@ -896,8 +896,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["GRILLPLATS Plug\u0000", "GRILLPLATS Plug"],
         whiteLabel: [
-            {model: "E2435", vendor: "IKEA", description: "TOFSMYGGA smart plug"},
-            {model: "E2491", vendor: "IKEA", description: "GRILLPLATS smart plug"},
+            {model: "E2435", description: "TOFSMYGGA smart plug"},
+            {model: "E2491", description: "GRILLPLATS smart plug"},
         ],
         model: "E2435/E2491",
         vendor: "IKEA",
