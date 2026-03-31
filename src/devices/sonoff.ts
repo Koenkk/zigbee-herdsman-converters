@@ -10,9 +10,10 @@ import * as reporting from "../lib/reporting";
 import {
     deviceLocal2000ToUTCSeconds,
     formatUtcSecondsToIsoWithOffset,
-    parseIsoOffsetSeconds,
+    getRuntimeLocalOffsetSeconds,
     parseIsoWithOffsetToUtcSeconds,
-    parseRawZclCommand,
+    parseSWVZFRawZclCommand,
+    shiftUtcSecondsByOffsetMonths,
     utcToDeviceLocal2000Seconds,
     YEAR_2000_IN_UTC,
 } from "../lib/sonoff";
@@ -121,16 +122,14 @@ interface SonoffSnzb01m {
     commandResponses: never;
 }
 
+// **************************** SWV-ZN/ZF related ↓ ****************************
 interface SonoffSwvzn {
     attributes: {
         childLock: number;
         realTimeIrrigationDuration: number;
         realTimeIrrigationVolume: number;
         valveAbnormalState: number;
-        irrigationStartTime: number;
-        irrigationEndTime: number;
         dailyIrrigationVolume: number;
-        valveWorkState: number;
         rainDelayEndDatetime: number;
         weatherDelayEndDatetime: number[];
         longitude: number;
@@ -155,14 +154,14 @@ interface SonoffSwvzn {
     };
 }
 
-// SWV-ZN/ZF response type
+// SWV-ZN/ZF history response type
 type SonoffSwvHistoryRecord = {
     duration: number | null;
     volume: number | null;
     start: string | Date;
     end: string | Date;
 };
-// SWV-ZN/ZF request cache
+// SWV-ZN/ZF history request cache
 const swvzfReqCache: Record<
     string,
     Record<
@@ -172,6 +171,7 @@ const swvzfReqCache: Record<
             endDevice: number;
             startUTC: number;
             endUTC: number;
+            offsetSeconds: number;
             updatedAt: number;
         }
     >
@@ -186,6 +186,22 @@ const swvzfRespCache: Record<
 > = {};
 // SWV-ZN/ZF multi-package merge cache expiration time
 const swvzfCacheExpireTime = 5 * 1000; // 5s
+
+// Build a fromZigbee converter for attributes reported as big-endian 32-bit integers.
+const bigEndianNumericFzConvert = (name: string, attributeKey: string): Fz.Converter<string>["convert"] => {
+    return (model, msg, publish, options, meta) => {
+        if (!(attributeKey in msg.data)) {
+            return;
+        }
+
+        const rawValue = (msg.data as unknown as KeyValue)[attributeKey];
+        utils.assertNumber(rawValue);
+        return {
+            [name]: (((rawValue & 0xff) << 24) | ((rawValue & 0xff00) << 8) | ((rawValue >>> 8) & 0xff00) | ((rawValue >>> 24) & 0xff)) >>> 0,
+        };
+    };
+};
+// **************************** SWV-ZN/ZF related ↑ ****************************
 
 const fzLocal = {
     key_action_event: {
@@ -1517,15 +1533,16 @@ const sonoffExtend = {
                             return false;
                         }
 
-                        const time = Math.floor(Date.now() / 1000) - YEAR_2000_IN_UTC;
-                        const timezone = -new Date().getTimezoneOffset() * 60;
+                        const nowUtcSeconds = Math.floor(Date.now() / 1000);
+                        const time = nowUtcSeconds - YEAR_2000_IN_UTC;
+                        const offsetSeconds = getRuntimeLocalOffsetSeconds(nowUtcSeconds);
                         const payload = {
                             time,
-                            timeZone: timezone,
-                            localTime: time + timezone,
-                            dstStart: 0,
+                            timeZone: offsetSeconds,
+                            localTime: time + offsetSeconds,
+                            dstStart: 0, // The device's Zigbee behavior is a bit non-standard.
                             dstEnd: 0,
-                            dstShift: timezone,
+                            dstShift: offsetSeconds,
                         };
 
                         endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, payload).catch((e) => {
@@ -1542,66 +1559,8 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
-    irrigationStartTime: (): ModernExtend => {
-        const expose = e.text("irrigation_start_time", ea.STATE).withDescription("Time when irrigation starts");
-
-        const toZigbee: Tz.Converter[] = [];
-        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
-            {
-                cluster: "customClusterEwelink",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if (!msg.data.irrigationStartTime) return;
-
-                    const value = msg.data.irrigationStartTime;
-                    utils.assertNumber(value);
-
-                    const time = formatUtcSecondsToIsoWithOffset(deviceLocal2000ToUTCSeconds(value));
-                    return {
-                        irrigation_start_time: time,
-                    };
-                },
-            },
-        ];
-
-        return {
-            exposes: [expose],
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
-    irrigationEndTime: (): ModernExtend => {
-        const exposes = [e.text("irrigation_end_time", ea.STATE).withDescription("Time when irrigation ends")];
-
-        const toZigbee: Tz.Converter[] = [];
-        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
-            {
-                cluster: "customClusterEwelink",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if (!msg.data.irrigationEndTime) return;
-
-                    const value = msg.data.irrigationEndTime;
-                    utils.assertNumber(value);
-
-                    const time = formatUtcSecondsToIsoWithOffset(deviceLocal2000ToUTCSeconds(value));
-                    return {
-                        irrigation_end_time: time,
-                    };
-                },
-            },
-        ];
-
-        return {
-            exposes,
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
     rainDelayEndDatetime: (): ModernExtend => {
-        const exposes = [e.text("rain_delay_end_datetime", ea.STATE).withDescription("User triggered delay end time")];
+        const exposes = [e.text("rain_delay_end_datetime", ea.STATE).withDescription("User triggered delay end time.")];
 
         const toZigbee: Tz.Converter[] = [];
 
@@ -1620,10 +1579,10 @@ const sonoffExtend = {
                         return {rain_delay_end_datetime: ""};
                     }
 
-                    // Device seconds since 2000-01-01 UTC -> Unix UTC seconds.
-                    const seconds = deviceLocal2000ToUTCSeconds(value);
+                    const offsetSeconds = getRuntimeLocalOffsetSeconds(value + YEAR_2000_IN_UTC);
+                    const utcSeconds = deviceLocal2000ToUTCSeconds(value, offsetSeconds);
                     return {
-                        rain_delay_end_datetime: formatUtcSecondsToIsoWithOffset(seconds),
+                        rain_delay_end_datetime: formatUtcSecondsToIsoWithOffset(utcSeconds, offsetSeconds),
                     };
                 },
             },
@@ -1640,7 +1599,7 @@ const sonoffExtend = {
         const exposes = [
             e
                 .composite("weather_delay_end_datetime", "weather_delay_end_datetime", ea.STATE_GET)
-                .withDescription("Weather delay end time and trigger types.")
+                .withDescription("Weather delay end time and trigger types. Currently only available in the eWeLink app.")
                 .withFeature(e.binary("delay_due_to_rain", ea.STATE, true, false).withDescription("Delay due to rain"))
                 .withFeature(e.binary("delay_due_to_humidity", ea.STATE, true, false).withDescription("Delay due to humidity"))
                 .withFeature(e.binary("delay_due_to_frost", ea.STATE, true, false).withDescription("Delay due to frost"))
@@ -1659,14 +1618,16 @@ const sonoffExtend = {
 
                     const delayType = array[0];
                     const endTimeSeconds = (array[1] << 24) | (array[2] << 16) | (array[3] << 8) | array[4];
-                    const seconds = deviceLocal2000ToUTCSeconds(endTimeSeconds);
+                    const offsetSeconds = getRuntimeLocalOffsetSeconds(endTimeSeconds + YEAR_2000_IN_UTC);
+                    const utcSeconds = deviceLocal2000ToUTCSeconds(endTimeSeconds, offsetSeconds);
+                    const endDatetimeIso = formatUtcSecondsToIsoWithOffset(utcSeconds, offsetSeconds);
 
                     return {
                         weather_delay_end_datetime: {
                             delay_due_to_rain: !!(delayType & 0b001),
                             delay_due_to_humidity: !!(delayType & 0b010),
                             delay_due_to_frost: !!(delayType & 0b100),
-                            delay_end_time: formatUtcSecondsToIsoWithOffset(seconds),
+                            delay_end_time: endDatetimeIso,
                         },
                     };
                 },
@@ -1743,7 +1704,7 @@ const sonoffExtend = {
     weatherBasedAdjustment: (): ModernExtend => {
         const exposes = e
             .composite("weather_based_adjustment", "weather_based_adjustment", ea.ALL)
-            .withDescription("Weather-based irrigation delay settings")
+            .withDescription("Weather-based irrigation delay settings. Currently only available in the eWeLink app.")
             .withFeature(e.binary("enable_rain_delay", ea.ALL, true, false).withDescription("Enable rain-based 24h delay"))
             .withFeature(e.binary("enable_humidity_delay", ea.ALL, true, false).withDescription("Enable humidity-based 24h delay"))
             .withFeature(e.binary("enable_frost_delay", ea.ALL, true, false).withDescription("Enable frost-based 24h delay"))
@@ -1806,18 +1767,18 @@ const sonoffExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertObject(value, key);
 
-                    const parseRequiredIntInRange = (fieldName: string, min: number, max: number): number | undefined => {
+                    const parseRequiredInt = (fieldName: string): number | undefined => {
                         const parsed = Number(value[fieldName]);
-                        if (!Number.isInteger(parsed) || parsed < min || parsed > max) {
-                            logger.error(`weather_based_adjustment invalid ${fieldName}, expected integer in range [${min}, ${max}].`, NS);
+                        if (!Number.isInteger(parsed)) {
+                            logger.error(`weather_based_adjustment invalid ${fieldName}, expected integer.`, NS);
                             return;
                         }
                         return parsed;
                     };
 
-                    const rainThreshold = parseRequiredIntInRange("rain_probability_threshold", 10, 90);
-                    const humidityThreshold = parseRequiredIntInRange("humidity_delay_threshold", 40, 90);
-                    const temperatureThreshold = parseRequiredIntInRange("frost_temperature_threshold", 0, 10);
+                    const rainThreshold = parseRequiredInt("rain_probability_threshold");
+                    const humidityThreshold = parseRequiredInt("humidity_delay_threshold");
+                    const temperatureThreshold = parseRequiredInt("frost_temperature_threshold");
                     if (rainThreshold === undefined || humidityThreshold === undefined || temperatureThreshold === undefined) {
                         return;
                     }
@@ -1885,10 +1846,10 @@ const sonoffExtend = {
                     .withDescription("Total irrigation duration"),
             )
             .withFeature(
-                e.numeric("irrigation_duration", ea.ALL).withValueMin(1).withValueMax(60).withUnit("min").withDescription("Irrigation duration"),
+                e.numeric("irrigation_duration", ea.ALL).withValueMin(1).withValueMax(719).withUnit("min").withDescription("Irrigation duration"),
             )
             .withFeature(
-                e.numeric("interval_duration", ea.ALL).withValueMin(1).withValueMax(60).withUnit("min").withDescription("Irrigation interval"),
+                e.numeric("interval_duration", ea.ALL).withValueMin(1).withValueMax(719).withUnit("min").withDescription("Irrigation interval"),
             )
             .withFeature(e.enum("irrigation_amount_unit", ea.ALL, ["gallon", "liter"]).withDescription("Capacity unit"))
             .withFeature(e.numeric("irrigation_amount", ea.ALL).withValueMin(0).withValueMax(10000).withDescription("Irrigation volume"))
@@ -1960,20 +1921,20 @@ const sonoffExtend = {
                         return;
                     }
 
-                    const parseRequiredIntInRange = (fieldName: string, min: number, max: number): number | undefined => {
+                    const parseRequiredInt = (fieldName: string): number | undefined => {
                         const parsed = Number(value[fieldName]);
-                        if (!Number.isInteger(parsed) || parsed < min || parsed > max) {
-                            logger.error(`manual_default_settings invalid ${fieldName}, expected integer in range [${min}, ${max}].`, NS);
+                        if (!Number.isInteger(parsed)) {
+                            logger.error(`manual_default_settings invalid ${fieldName}, expected integer.`, NS);
                             return;
                         }
                         return parsed;
                     };
 
-                    const totalDuration = parseRequiredIntInRange("irrigation_total_duration", 0, 719);
-                    const irrigationDuration = parseRequiredIntInRange("irrigation_duration", 1, 60);
-                    const irrigationInterval = parseRequiredIntInRange("interval_duration", 1, 60);
-                    const irrigationVolume = parseRequiredIntInRange("irrigation_amount", 0, 10000);
-                    const safetyTimeoutLimit = parseRequiredIntInRange("fail_safe", 0, 719);
+                    const totalDuration = parseRequiredInt("irrigation_total_duration");
+                    const irrigationDuration = parseRequiredInt("irrigation_duration");
+                    const irrigationInterval = parseRequiredInt("interval_duration");
+                    const irrigationVolume = parseRequiredInt("irrigation_amount");
+                    const safetyTimeoutLimit = parseRequiredInt("fail_safe");
                     if (
                         totalDuration === undefined ||
                         irrigationDuration === undefined ||
@@ -2127,9 +2088,9 @@ const sonoffExtend = {
             .withFeature(e.numeric("schedule_index", ea.STATE).withDescription("Schedule index"))
             .withFeature(e.enum("schedule_type", ea.STATE, ["automatic", "manual"]).withDescription("Schedule type"))
             .withFeature(e.enum("irrigation_mode", ea.STATE, ["duration", "capacity", "duration_with_interval"]).withDescription("Irrigation mode"))
-            .withFeature(e.text("start_time", ea.STATE).withDescription("Schedule start time in ISO format with timezone"))
-            .withFeature(e.text("expected_end_time", ea.STATE).withDescription("Expected end time in ISO format with timezone"))
-            .withFeature(e.text("actual_end_time", ea.STATE).withDescription("Actual end time in ISO format with timezone"))
+            .withFeature(e.text("start_time", ea.STATE).withDescription("Schedule start time"))
+            .withFeature(e.text("expected_end_time", ea.STATE).withDescription("Expected end time"))
+            .withFeature(e.text("actual_end_time", ea.STATE).withDescription("Actual end time"))
             .withFeature(e.enum("irrigation_amount_unit", ea.STATE, ["gallon", "liter"]).withDescription("Irrigation amount unit"))
             .withFeature(e.numeric("expected_irrigation_amount", ea.STATE).withDescription("Expected irrigation amount"))
             .withFeature(e.numeric("actual_irrigation_amount", ea.STATE).withDescription("Actual irrigation amount"));
@@ -2149,14 +2110,14 @@ const sonoffExtend = {
         };
 
         const modeMap: {[key: number]: string} = {
-            0: "duration",
-            1: "capacity",
-            2: "duration_with_interval",
+            [0x00]: "duration",
+            [0x01]: "capacity",
+            [0x02]: "duration_with_interval",
         };
 
         const scheduleTypeMap: {[key: number]: string} = {
-            0: "automatic",
-            1: "manual",
+            [0x00]: "automatic",
+            [0x01]: "manual",
         };
 
         const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
@@ -2170,30 +2131,26 @@ const sonoffExtend = {
                     const scheduleStatus = array[0];
                     const scheduleIndex = array[1];
                     const isStartOrStandby = scheduleStatus === scheduleStatusMap.start || scheduleStatus === scheduleStatusMap.standby;
-                    const hasScheduleType =
-                        (isStartOrStandby ? array.length >= 15 : array.length >= 21) &&
-                        (array[2] === 0x00 || array[2] === 0x01) &&
-                        modeMap[array[3]] !== undefined;
-                    const dataOffset = hasScheduleType ? 1 : 0;
-                    const scheduleType = hasScheduleType ? scheduleTypeMap[array[2]] : undefined;
-                    const scheduleMode = array[2 + dataOffset];
+                    const scheduleType = scheduleTypeMap[array[2]];
+                    const scheduleMode = array[3];
+                    const offsetSeconds = getRuntimeLocalOffsetSeconds(Math.floor(Date.now() / 1000));
+                    const toIsoString = (deviceSeconds: number): string => {
+                        const utcSeconds = deviceLocal2000ToUTCSeconds(deviceSeconds, offsetSeconds);
+                        return formatUtcSecondsToIsoWithOffset(utcSeconds, offsetSeconds);
+                    };
 
-                    // Start or Standby: 14 bytes
+                    // Start or Standby: 15 bytes
                     if (isStartOrStandby) {
-                        const minLength = hasScheduleType ? 15 : 14;
+                        const minLength = 15;
                         if (array.length < minLength) {
                             logger.error(`irrigationScheduleStatus invalid length=${array.length}, expected>=${minLength} for start/standby`, NS);
                             return;
                         }
 
-                        const expectedStartTime =
-                            (array[3 + dataOffset] << 24) | (array[4 + dataOffset] << 16) | (array[5 + dataOffset] << 8) | array[6 + dataOffset];
-                        const expectedEndTime =
-                            (array[7 + dataOffset] << 24) | (array[8 + dataOffset] << 16) | (array[9 + dataOffset] << 8) | array[10 + dataOffset];
-                        const expectedStartTimeISO = formatUtcSecondsToIsoWithOffset(deviceLocal2000ToUTCSeconds(expectedStartTime));
-                        const expectedEndTimeISO = formatUtcSecondsToIsoWithOffset(deviceLocal2000ToUTCSeconds(expectedEndTime));
-                        const volumeUnit = array[11 + dataOffset];
-                        const expectedVolume = (array[12 + dataOffset] << 8) | array[13 + dataOffset];
+                        const expectedStartTime = (array[4] << 24) | (array[5] << 16) | (array[6] << 8) | array[7];
+                        const expectedEndTime = (array[8] << 24) | (array[9] << 16) | (array[10] << 8) | array[11];
+                        const volumeUnit = array[12];
+                        const expectedVolume = (array[13] << 8) | array[14];
 
                         return {
                             irrigation_schedule_status: {
@@ -2201,8 +2158,8 @@ const sonoffExtend = {
                                 schedule_index: scheduleIndex,
                                 ...(scheduleType ? {schedule_type: scheduleType} : {}),
                                 irrigation_mode: modeMap[scheduleMode] ?? "duration",
-                                start_time: expectedStartTimeISO,
-                                expected_end_time: expectedEndTimeISO,
+                                start_time: toIsoString(expectedStartTime),
+                                expected_end_time: toIsoString(expectedEndTime),
                                 actual_end_time: null,
                                 irrigation_amount_unit: volumeUnit === 0 ? "gallon" : "liter",
                                 expected_irrigation_amount: expectedVolume,
@@ -2211,26 +2168,20 @@ const sonoffExtend = {
                         };
                     }
 
-                    // End or Running: 20 bytes
+                    // End or Running: 21 bytes
                     if (scheduleStatus === scheduleStatusMap.end || scheduleStatus === scheduleStatusMap.running) {
-                        const minLength = hasScheduleType ? 21 : 20;
+                        const minLength = 21;
                         if (array.length < minLength) {
                             logger.error(`irrigationScheduleStatus invalid length=${array.length}, expected>=${minLength} for end/running`, NS);
                             return;
                         }
 
-                        const expectedStartTime =
-                            (array[3 + dataOffset] << 24) | (array[4 + dataOffset] << 16) | (array[5 + dataOffset] << 8) | array[6 + dataOffset];
-                        const expectedEndTime =
-                            (array[7 + dataOffset] << 24) | (array[8 + dataOffset] << 16) | (array[9 + dataOffset] << 8) | array[10 + dataOffset];
-                        const actualEndTime =
-                            (array[11 + dataOffset] << 24) | (array[12 + dataOffset] << 16) | (array[13 + dataOffset] << 8) | array[14 + dataOffset];
-                        const expectedStartTimeISO = formatUtcSecondsToIsoWithOffset(deviceLocal2000ToUTCSeconds(expectedStartTime));
-                        const expectedEndTimeISO = formatUtcSecondsToIsoWithOffset(deviceLocal2000ToUTCSeconds(expectedEndTime));
-                        const actualEndTimeISO = formatUtcSecondsToIsoWithOffset(deviceLocal2000ToUTCSeconds(actualEndTime));
-                        const volumeUnit = array[15 + dataOffset];
-                        const expectedVolume = (array[16 + dataOffset] << 8) | array[17 + dataOffset];
-                        const actualVolume = (array[18 + dataOffset] << 8) | array[19 + dataOffset];
+                        const expectedStartTime = (array[4] << 24) | (array[5] << 16) | (array[6] << 8) | array[7];
+                        const expectedEndTime = (array[8] << 24) | (array[9] << 16) | (array[10] << 8) | array[11];
+                        const actualEndTime = (array[12] << 24) | (array[13] << 16) | (array[14] << 8) | array[15];
+                        const volumeUnit = array[16];
+                        const expectedVolume = (array[17] << 8) | array[18];
+                        const actualVolume = (array[19] << 8) | array[20];
 
                         return {
                             irrigation_schedule_status: {
@@ -2238,9 +2189,9 @@ const sonoffExtend = {
                                 schedule_index: scheduleIndex,
                                 ...(scheduleType ? {schedule_type: scheduleType} : {}),
                                 irrigation_mode: modeMap[scheduleMode] ?? "duration",
-                                start_time: expectedStartTimeISO,
-                                expected_end_time: expectedEndTimeISO,
-                                actual_end_time: actualEndTimeISO,
+                                start_time: toIsoString(expectedStartTime),
+                                expected_end_time: toIsoString(expectedEndTime),
+                                actual_end_time: toIsoString(actualEndTime),
                                 irrigation_amount_unit: volumeUnit === 0 ? "gallon" : "liter",
                                 expected_irrigation_amount: expectedVolume,
                                 actual_irrigation_amount: actualVolume,
@@ -2394,8 +2345,9 @@ const sonoffExtend = {
                 .composite("read_swvzf_records", "read_swvzf_records", ea.STATE_SET)
                 .withDescription("Read irrigation water volume and duration in the past 24 hours, 30 days, and 6 months.")
                 .withFeature(e.enum("type", ea.SET, ["24_hours", "30_days", "6_months"]).withDescription("Reading type"))
-                .withFeature(e.text("time_start", ea.SET).withDescription("Start time"))
-                .withFeature(e.text("time_end", ea.SET).withDescription("End time")),
+                .withFeature(e.text("time_start", ea.SET).withDescription("Start time in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"))
+                .withFeature(e.text("time_end", ea.SET).withDescription("End time in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"))
+                .withLabel("Read irrigation history"),
         ];
 
         const normalizeUtcEpochSeconds = (input: unknown, label: string): number | undefined => {
@@ -2414,7 +2366,7 @@ const sonoffExtend = {
         const parseHistoryRecords = (
             mode: "24_hours" | "30_days" | "6_months",
             recordData: number[],
-            args: {startSec: number; dayOffset?: number},
+            args: {startSec: number; dayOffset?: number; offsetSeconds: number},
         ): SonoffSwvHistoryRecord[] => {
             const records: SonoffSwvHistoryRecord[] = [];
             const count = Math.floor(recordData.length / (mode === "24_hours" ? 3 : 5));
@@ -2425,11 +2377,11 @@ const sonoffExtend = {
                 let startMs = startSec * 1000;
                 for (let i = 0; i < count; i++) {
                     const index = i * 3;
-                    const volume = (recordData[index] << 8) + recordData[index + 1];
-                    const duration = recordData[index + 2];
+                    const duration = recordData[index];
+                    const volume = (recordData[index + 1] << 8) + recordData[index + 2];
                     const endMs = startMs + 3600 * 1000;
-                    const start = formatUtcSecondsToIsoWithOffset(Math.floor(startMs / 1000));
-                    const end = formatUtcSecondsToIsoWithOffset(Math.floor(endMs / 1000));
+                    const start = formatUtcSecondsToIsoWithOffset(Math.floor(startMs / 1000), args.offsetSeconds);
+                    const end = formatUtcSecondsToIsoWithOffset(Math.floor(endMs / 1000), args.offsetSeconds);
                     records.push({duration, volume, start, end});
                     startMs = endMs;
                 }
@@ -2440,11 +2392,11 @@ const sonoffExtend = {
                 let startMs = (startSec + dayOffset * 86400) * 1000;
                 for (let i = 0; i < count; i++) {
                     const index = i * 5;
-                    const volume = (recordData[index] << 16) + (recordData[index + 1] << 8) + recordData[index + 2];
-                    const duration = (recordData[index + 3] << 8) + recordData[index + 4];
+                    const duration = (recordData[index] << 8) + recordData[index + 1];
+                    const volume = (recordData[index + 2] << 16) + (recordData[index + 3] << 8) + recordData[index + 4];
                     const endMs = startMs + 86400 * 1000;
-                    const start = formatUtcSecondsToIsoWithOffset(Math.floor(startMs / 1000));
-                    const end = formatUtcSecondsToIsoWithOffset(Math.floor(endMs / 1000));
+                    const start = formatUtcSecondsToIsoWithOffset(Math.floor(startMs / 1000), args.offsetSeconds);
+                    const end = formatUtcSecondsToIsoWithOffset(Math.floor(endMs / 1000), args.offsetSeconds);
                     records.push({duration, volume, start, end});
                     startMs = endMs;
                 }
@@ -2452,17 +2404,16 @@ const sonoffExtend = {
             }
 
             if (mode === "6_months") {
-                let startDate = new Date(startSec * 1000);
+                let intervalStartSec = startSec;
                 for (let i = 0; i < count; i++) {
                     const index = i * 5;
-                    const volume = (recordData[index] << 16) + (recordData[index + 1] << 8) + recordData[index + 2];
-                    const duration = (recordData[index + 3] << 8) + recordData[index + 4];
-                    const endDate = new Date(startDate);
-                    endDate.setMonth(endDate.getMonth() + 1);
-                    const start = formatUtcSecondsToIsoWithOffset(Math.floor(startDate.getTime() / 1000));
-                    const end = formatUtcSecondsToIsoWithOffset(Math.floor(endDate.getTime() / 1000));
+                    const duration = (recordData[index] << 8) + recordData[index + 1];
+                    const volume = (recordData[index + 2] << 16) + (recordData[index + 3] << 8) + recordData[index + 4];
+                    const intervalEndSec = shiftUtcSecondsByOffsetMonths(intervalStartSec, 1, args.offsetSeconds);
+                    const start = formatUtcSecondsToIsoWithOffset(intervalStartSec, args.offsetSeconds);
+                    const end = formatUtcSecondsToIsoWithOffset(intervalEndSec, args.offsetSeconds);
                     records.push({duration, volume, start, end});
-                    startDate = endDate;
+                    intervalStartSec = intervalEndSec;
                 }
                 return records;
             }
@@ -2488,15 +2439,9 @@ const sonoffExtend = {
                     if (startUtcSec === undefined || endUtcSec === undefined) {
                         return;
                     }
-                    const startOffsetSec = utils.isString(value.time_start) ? parseIsoOffsetSeconds(value.time_start) : undefined;
-                    const endOffsetSec = utils.isString(value.time_end) ? parseIsoOffsetSeconds(value.time_end) : undefined;
-                    if (startOffsetSec === undefined || endOffsetSec === undefined) {
-                        logger.error("read_swvzf_records invalid timezone offset in time_start/time_end", NS);
-                        return;
-                    }
-
-                    const startDeviceSec = utcToDeviceLocal2000Seconds(startUtcSec, startOffsetSec);
-                    const endDeviceSec = utcToDeviceLocal2000Seconds(endUtcSec, endOffsetSec);
+                    const offsetSeconds = getRuntimeLocalOffsetSeconds(Math.floor(Date.now() / 1000));
+                    const startDeviceSec = utcToDeviceLocal2000Seconds(startUtcSec, offsetSeconds);
+                    const endDeviceSec = utcToDeviceLocal2000Seconds(endUtcSec, offsetSeconds);
                     if (startDeviceSec < 0 || startDeviceSec > 0xffffffff || endDeviceSec < 0 || endDeviceSec > 0xffffffff) {
                         logger.error("read_swvzf_records time range out of supported 2000-local uint32 range", NS);
                         return;
@@ -2525,6 +2470,7 @@ const sonoffExtend = {
                             endDevice: endDeviceSec,
                             startUTC: startUtcSec,
                             endUTC: endUtcSec,
+                            offsetSeconds,
                             updatedAt: Date.now(),
                         };
 
@@ -2549,7 +2495,7 @@ const sonoffExtend = {
                 type: ["raw"],
                 convert: (model, msg, publish, options, meta) => {
                     if (!(msg.data instanceof Buffer)) return;
-                    const parsedRawCommand = parseRawZclCommand(msg.data);
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
                     if (!parsedRawCommand) return;
                     if (parsedRawCommand.commandId !== 0x00) return;
 
@@ -2585,43 +2531,52 @@ const sonoffExtend = {
                     }
                     const request = ieeeAddr ? swvzfReqCache[ieeeAddr]?.[subCmd] : undefined;
                     if (!request || typeof request.startUTC !== "number" || typeof request.endUTC !== "number") {
-                        logger.error(`readSWVZFRecord missing request context subCmd=${subCmd}`, NS);
+                        logger.error(`readSWVZFRecord missing request context for subCmd=${subCmd}; it may have timed out, please try again`, NS);
                         return;
                     }
                     const startSec = request.startUTC;
 
+                    // 24 hours
                     if (subCmd === 0) {
                         if (recordIndex !== 0) return;
 
-                        const rawRecordData = [...payload];
+                        const rawRecordData = Array.from(payload);
                         const slicedRecordData = rawRecordData.slice(0, 24 * 3);
                         const alignedLength = slicedRecordData.length - (slicedRecordData.length % 3);
                         const recordData = slicedRecordData.slice(0, alignedLength);
                         if (recordData.length < 3) return;
 
-                        const value = parseHistoryRecords("24_hours", recordData, {startSec});
+                        const value = parseHistoryRecords("24_hours", recordData, {
+                            startSec,
+                            offsetSeconds: request.offsetSeconds,
+                        });
                         if (ieeeAddr && swvzfReqCache[ieeeAddr]) {
                             delete swvzfReqCache[ieeeAddr][subCmd];
                         }
                         return {"24_hours_records": value};
                     }
 
+                    // 6 months
                     if (subCmd === 2) {
                         if (recordIndex !== 0) return;
 
-                        const rawRecordData = [...payload];
+                        const rawRecordData = Array.from(payload);
                         const slicedRecordData = rawRecordData.slice(0, 6 * 5);
                         const alignedLength = slicedRecordData.length - (slicedRecordData.length % 5);
                         const recordData = slicedRecordData.slice(0, alignedLength);
                         if (recordData.length < 5) return;
 
-                        const value = parseHistoryRecords("6_months", recordData, {startSec});
+                        const value = parseHistoryRecords("6_months", recordData, {
+                            startSec,
+                            offsetSeconds: request.offsetSeconds,
+                        });
                         if (ieeeAddr && swvzfReqCache[ieeeAddr]) {
                             delete swvzfReqCache[ieeeAddr][subCmd];
                         }
                         return {"180_days_records": value};
                     }
 
+                    // 30 days
                     if (subCmd === 1) {
                         if (recordIndex > 2) return;
                         if (payload.length === 0) return;
@@ -2642,7 +2597,7 @@ const sonoffExtend = {
                                 return;
                             }
 
-                            recordData = [...payload];
+                            recordData = Array.from(payload);
                         } else {
                             if ((payload.length - 1) % 5 !== 0) {
                                 logger.info(`readSWVZFRecord invalid 30_days payloadLen=${payload.length} recordIndex=2`, NS);
@@ -2664,13 +2619,19 @@ const sonoffExtend = {
                                 return;
                             }
 
-                            recordData = [...payload.subarray(1)];
+                            recordData = Array.from(payload.subarray(1));
                         }
 
                         const dayOffset = recordIndex * 10;
-                        const records = parseHistoryRecords("30_days", recordData, {startSec, dayOffset});
+                        const records = parseHistoryRecords("30_days", recordData, {
+                            startSec,
+                            dayOffset,
+                            offsetSeconds: request.offsetSeconds,
+                        });
 
-                        if (!ieeeAddr) return {"30_days_records": records};
+                        if (!ieeeAddr) {
+                            return {"30_days_records": records};
+                        }
 
                         const oldCache = swvzfRespCache[ieeeAddr];
                         const isCacheExpire = !oldCache || now - oldCache.updatedAt > swvzfCacheExpireTime;
@@ -2788,20 +2749,8 @@ const sonoffExtend = {
                         .withFeature(e.binary("friday", ea.SET, true, false))
                         .withFeature(e.binary("saturday", ea.SET, true, false)),
                 )
-                .withFeature(
-                    e
-                        .text("enable_date", ea.SET)
-                        .withDescription(
-                            "Enable date in local YYYY-MM-DD format (fixed at 00:00:00 local day start). Omit to use current local date",
-                        ),
-                )
-                .withFeature(
-                    e
-                        .text("start_time", ea.SET)
-                        .withDescription(
-                            "Start time in local HH:mm format (24-hour, zero-padded), converted to seconds from start of local day. Omit to use current local time rounded to minute",
-                        ),
-                )
+                .withFeature(e.text("enable_date", ea.SET).withDescription("Enable date in local YYYY-MM-DD format."))
+                .withFeature(e.text("start_time", ea.SET).withDescription("Start time in local HH:mm format (24-hour, zero-padded)."))
                 .withFeature(e.enum("irrigation_mode", ea.SET, ["duration", "capacity", "duration_with_interval"]))
                 .withFeature(e.numeric("irrigation_total_duration", ea.SET).withValueMin(0).withValueMax(719).withUnit("min"))
                 .withFeature(e.numeric("irrigation_duration", ea.SET).withValueMin(1).withValueMax(60).withUnit("min"))
@@ -2847,37 +2796,16 @@ const sonoffExtend = {
                 ),
         ];
 
-        const fromZigbee: Fz.Converter<
-            "customClusterEwelink",
-            SonoffSwvzn,
-            ["raw", "commandIrrigationPlanSettings", "commandIrrigationPlanReport"]
-        >[] = [
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["raw"]>[] = [
             {
                 cluster: clusterName,
-                type: ["raw", "commandIrrigationPlanSettings", "commandIrrigationPlanReport"],
+                type: ["raw"],
                 convert: (model, msg, publish, options, meta) => {
-                    let cmdId: number | undefined;
-                    let payload: Buffer | undefined;
-
-                    if (msg.type === "raw") {
-                        if (!(msg.data instanceof Buffer)) return;
-                        const parsedRawCommand = parseRawZclCommand(msg.data);
-                        if (!parsedRawCommand) return;
-                        cmdId = parsedRawCommand.commandId;
-                        payload = parsedRawCommand.payload;
-                    } else if (msg.type === "commandIrrigationPlanSettings") {
-                        cmdId = commandId.irrigationPlanSettings;
-                        const dataField = (msg.data as {data?: number[] | Buffer})?.data ?? msg.data;
-                        if (Buffer.isBuffer(dataField)) payload = dataField;
-                        else if (Array.isArray(dataField)) payload = Buffer.from(dataField);
-                        if (!payload) return;
-                    } else if (msg.type === "commandIrrigationPlanReport") {
-                        cmdId = commandId.irrigationPlanReport;
-                        const dataField = (msg.data as {data?: number[] | Buffer})?.data ?? msg.data;
-                        if (Buffer.isBuffer(dataField)) payload = dataField;
-                        else if (Array.isArray(dataField)) payload = Buffer.from(dataField);
-                        if (!payload) return;
-                    }
+                    if (!(msg.data instanceof Buffer)) return;
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (!parsedRawCommand) return;
+                    const cmdId = parsedRawCommand.commandId;
+                    const payload = parsedRawCommand.payload;
 
                     if (cmdId === commandId.irrigationPlanSettings) {
                         if (payload.length < 1) {
@@ -2891,57 +2819,72 @@ const sonoffExtend = {
                         }
                         return;
                     }
+
                     if (cmdId === commandId.irrigationPlanReport) {
                         if (payload.length < 28) return;
 
                         // Payload byte offset
                         let offset = 0;
+
                         // Plan index
                         const planIndex = payload.readUInt8(offset);
                         offset += 1;
+
                         // Whether schedule is enabled
                         const enableState = payload.readUInt8(offset);
                         offset += 1;
+
                         // Loop type
                         const loopType = payload.readUInt16BE(offset);
                         const loopTypeMode = (loopType >> 8) & 0xff; // Loop mode
                         const loopTypeValue = loopType & 0xff; // Loop configuration
                         offset += 2;
+
                         // Enable date(day start): device 2000-local seconds -> Unix UTC seconds
                         const enableDatetimeDevice = payload.readUInt32BE(offset);
-                        const enableDatetimeUTC = deviceLocal2000ToUTCSeconds(enableDatetimeDevice);
+                        const offsetSeconds = getRuntimeLocalOffsetSeconds(enableDatetimeDevice + YEAR_2000_IN_UTC);
+                        const enableDatetimeUTC = deviceLocal2000ToUTCSeconds(enableDatetimeDevice, offsetSeconds);
                         offset += 4;
+
                         // Irrigation mode
                         const irrigationMode = payload.readUInt8(offset);
                         offset += 1;
+
                         // Effective start time (seconds from 00:00)
                         const startSeconds = payload.readUInt32BE(offset);
-                        const enableDateISO = formatUtcSecondsToIsoWithOffset(enableDatetimeUTC);
+                        const enableDateISO = formatUtcSecondsToIsoWithOffset(enableDatetimeUTC, offsetSeconds);
                         const enableDate = enableDateISO.slice(0, 10);
                         const startHours = Math.floor(startSeconds / 3600);
                         const startMinutes = Math.floor((startSeconds % 3600) / 60);
                         const startTime = `${String(startHours).padStart(2, "0")}:${String(startMinutes).padStart(2, "0")}`;
                         offset += 4;
+
                         // Irrigation duration
                         const irrigationTotalDuration = payload.readUInt16BE(offset);
                         offset += 2;
+
                         const irrigationDuration = payload.readUInt16BE(offset);
                         offset += 2;
+
                         // Interval duration
                         const intervalDuration = payload.readUInt16BE(offset);
                         offset += 2;
+
                         // Irrigation amount unit
                         const irrigationAmountUnit = payload.readUInt8(offset);
                         offset += 1;
+
                         // Irrigation amount
                         const irrigationAmount = payload.readUInt16BE(offset);
                         offset += 2;
-                        // Fail-safe timeout (1-60 minutes)
+
+                        // Fail-safe timeout
                         const failSafe = payload.readUInt16BE(offset);
                         offset += 2;
-                        // Creation time -> UTC
+
+                        // Create datetime: Unix UTC seconds
                         const createDatetimeDevice = payload.readUInt32BE(offset);
-                        const createDatetimeISO = formatUtcSecondsToIsoWithOffset(createDatetimeDevice);
+                        const createDatetimeISO = formatUtcSecondsToIsoWithOffset(createDatetimeDevice, offsetSeconds);
 
                         return {
                             irrigation_plan_report: {
@@ -2987,6 +2930,7 @@ const sonoffExtend = {
 
                     const payloadValue: Uint8Array = new Uint8Array(28);
                     let i = 0;
+
                     // Plan index
                     const planIndex = parseIntWithDefault("plan_index", 0, 0, 5);
                     if (planIndex === undefined) {
@@ -2995,10 +2939,13 @@ const sonoffExtend = {
                     payloadValue[i++] = planIndex & 0xff;
                     // Whether schedule is enabled
                     payloadValue[i++] = value.enable_state ? 0x01 : 0x00;
+
                     // Loop type
                     const loopTypeModeKey =
-                        typeof value.loop_type_mode === "string" ? (value.loop_type_mode as keyof typeof loopTypeModeMappingReverse) : "odd_days";
-                    const loopTypeMode = loopTypeModeMappingReverse[loopTypeModeKey] ?? loopTypeModeMappingReverse.odd_days;
+                        typeof value.loop_type_mode === "string" && value.loop_type_mode in loopTypeModeMappingReverse
+                            ? (value.loop_type_mode as keyof typeof loopTypeModeMappingReverse)
+                            : "odd_days";
+                    const loopTypeMode = loopTypeModeMappingReverse[loopTypeModeKey];
                     let loopTypeValueCode = 0;
                     if (loopTypeMode === loopTypeModeMappingReverse.day_interval) {
                         const loopTypeIntervalDays = parseIntWithDefault("loop_type_interval_days", 1, 1, 30);
@@ -3019,27 +2966,9 @@ const sonoffExtend = {
                     const loopTypeWord = (loopTypeMode << 8) | loopTypeValueCode;
                     payloadValue[i++] = (loopTypeWord >> 8) & 0xff;
                     payloadValue[i++] = loopTypeWord & 0xff;
-                    // Enable date: start of local day -> device local-2000 seconds
-                    let nowUtcSeconds = Math.floor(Date.now() / 1000);
-                    let offsetSeconds = -new Date(nowUtcSeconds * 1000).getTimezoneOffset() * 60;
-                    const getLocalTime = meta?.options?.getLocalTime;
-                    if (typeof getLocalTime === "function") {
-                        const localTimeInfo = getLocalTime() ?? {};
-                        if (typeof localTimeInfo.timeStamp === "number" && Number.isFinite(localTimeInfo.timeStamp)) {
-                            nowUtcSeconds = Math.floor(localTimeInfo.timeStamp / 1000);
-                        }
-                        if (typeof localTimeInfo.offset === "number" && Number.isFinite(localTimeInfo.offset)) {
-                            offsetSeconds = localTimeInfo.offset * 60;
-                        }
-                    }
-                    const nowLocalDate = new Date((nowUtcSeconds + offsetSeconds) * 1000);
-                    const defaultEnableDate = `${nowLocalDate.getUTCFullYear()}-${String(nowLocalDate.getUTCMonth() + 1).padStart(2, "0")}-${String(nowLocalDate.getUTCDate()).padStart(2, "0")}`;
-                    const defaultStartSeconds = Math.floor(((((nowUtcSeconds + offsetSeconds) % 86400) + 86400) % 86400) / 60) * 60;
-                    const defaultStartHours = Math.floor(defaultStartSeconds / 3600);
-                    const defaultStartMinutes = Math.floor((defaultStartSeconds % 3600) / 60);
-                    const defaultStartTime = `${String(defaultStartHours).padStart(2, "0")}:${String(defaultStartMinutes).padStart(2, "0")}`;
 
-                    const enableDateValue = value.enable_date ?? defaultEnableDate;
+                    // Enable date: start of local day -> device local-2000 seconds
+                    const enableDateValue = value.enable_date;
                     if (!utils.isString(enableDateValue)) {
                         logger.error("irrigation_plan_settings invalid enable_date, expected local date in YYYY-MM-DD format.", NS);
                         return;
@@ -3071,13 +3000,15 @@ const sonoffExtend = {
                     payloadValue[i++] = (enableDatetime >> 16) & 0xff;
                     payloadValue[i++] = (enableDatetime >> 8) & 0xff;
                     payloadValue[i++] = enableDatetime & 0xff;
+
                     // Irrigation mode
                     const irrigationModeKey =
                         typeof value.irrigation_mode === "string" ? (value.irrigation_mode as keyof typeof irrigationModeMappingReverse) : "duration";
-                    const irrigationModeCode = irrigationModeMappingReverse[irrigationModeKey] ?? irrigationModeMappingReverse.duration;
+                    const irrigationModeCode = irrigationModeMappingReverse[irrigationModeKey];
                     payloadValue[i++] = irrigationModeCode & 0xff;
+
                     // Start time offset from start of local day.
-                    const startTimeValue = value.start_time ?? defaultStartTime;
+                    const startTimeValue = value.start_time;
                     if (!utils.isString(startTimeValue)) {
                         logger.error("irrigation_plan_settings invalid start_time, expected HH:mm.", NS);
                         return;
@@ -3092,6 +3023,7 @@ const sonoffExtend = {
                     payloadValue[i++] = (startSeconds >> 16) & 0xff;
                     payloadValue[i++] = (startSeconds >> 8) & 0xff;
                     payloadValue[i++] = startSeconds & 0xff;
+
                     // Total irrigation duration
                     const irrigationTotalDuration = parseIntWithDefault("irrigation_total_duration", 10, 0, 719);
                     if (irrigationTotalDuration === undefined) {
@@ -3099,6 +3031,7 @@ const sonoffExtend = {
                     }
                     payloadValue[i++] = (irrigationTotalDuration >> 8) & 0xff;
                     payloadValue[i++] = irrigationTotalDuration & 0xff;
+
                     // Irrigation duration
                     const irrigationDuration = parseIntWithDefault("irrigation_duration", 2, 1, 60);
                     if (irrigationDuration === undefined) {
@@ -3106,6 +3039,7 @@ const sonoffExtend = {
                     }
                     payloadValue[i++] = (irrigationDuration >> 8) & 0xff;
                     payloadValue[i++] = irrigationDuration & 0xff;
+
                     // Interval duration
                     const intervalDuration = parseIntWithDefault("interval_duration", 3, 1, 60);
                     if (intervalDuration === undefined) {
@@ -3113,14 +3047,15 @@ const sonoffExtend = {
                     }
                     payloadValue[i++] = (intervalDuration >> 8) & 0xff;
                     payloadValue[i++] = intervalDuration & 0xff;
+
                     // Irrigation amount unit
                     const irrigationAmountUnitKey =
                         typeof value.irrigation_amount_unit === "string"
                             ? (value.irrigation_amount_unit as keyof typeof irrigationAmountUnitMappingReverse)
                             : "gallon";
-                    const irrigationAmountUnitCode =
-                        irrigationAmountUnitMappingReverse[irrigationAmountUnitKey] ?? irrigationAmountUnitMappingReverse.gallon;
+                    const irrigationAmountUnitCode = irrigationAmountUnitMappingReverse[irrigationAmountUnitKey];
                     payloadValue[i++] = irrigationAmountUnitCode & 0xff;
+
                     // Irrigation amount
                     const irrigationAmountValue = parseIntWithDefault("irrigation_amount", 30, 1, 10000);
                     if (irrigationAmountValue === undefined) {
@@ -3129,6 +3064,7 @@ const sonoffExtend = {
                     const irrigationAmount = irrigationAmountValue;
                     payloadValue[i++] = (irrigationAmount >> 8) & 0xff;
                     payloadValue[i++] = irrigationAmount & 0xff;
+
                     // Fail-safe timeout
                     const failSafe = parseIntWithDefault("fail_safe", 10, 0, 719);
                     if (failSafe === undefined) {
@@ -3136,6 +3072,7 @@ const sonoffExtend = {
                     }
                     payloadValue[i++] = (failSafe >> 8) & 0xff;
                     payloadValue[i++] = failSafe & 0xff;
+
                     // Create datetime: Unix UTC seconds.
                     if (!utils.isString(value.create_datetime)) {
                         logger.error(
@@ -3182,42 +3119,9 @@ const sonoffExtend = {
     },
     irrigationPlanRemove: (): ModernExtend => {
         const clusterName = "customClusterEwelink";
-        const commandId = 0x07;
 
         const exposes = [
             e.numeric("irrigation_plan_remove", ea.SET).withValueMin(0).withValueMax(5).withDescription("The index of the irrigation plan to remove"),
-        ];
-
-        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["raw", "commandIrrigationPlanRemove"]>[] = [
-            {
-                cluster: clusterName,
-                type: ["raw", "commandIrrigationPlanRemove"],
-                convert: (model, msg, publish, options, meta) => {
-                    let cmdId: number | undefined;
-                    let payload: Buffer | undefined;
-
-                    if (msg.type === "raw") {
-                        if (!(msg.data instanceof Buffer)) return;
-                        const parsedRawCommand = parseRawZclCommand(msg.data);
-                        if (!parsedRawCommand) return;
-                        cmdId = parsedRawCommand.commandId;
-                        payload = parsedRawCommand.payload;
-                    } else if (msg.type === "commandIrrigationPlanRemove") {
-                        cmdId = commandId;
-                        const dataField = (msg.data as {data?: number[] | Buffer})?.data ?? msg.data;
-                        if (Buffer.isBuffer(dataField)) payload = dataField;
-                        else if (Array.isArray(dataField)) payload = Buffer.from(dataField);
-                        if (!payload) return;
-                    }
-
-                    if (cmdId !== commandId || !payload || payload.length < 1) return;
-
-                    const status = payload.readUInt8(0);
-                    if (status !== 0) {
-                        logger.error(`irrigationPlanRemoveReply failed, status=${status}`, NS);
-                    }
-                },
-            },
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -3227,6 +3131,7 @@ const sonoffExtend = {
                     const planIndex = Number(value);
                     const data = Buffer.alloc(1);
                     data.writeUInt8(planIndex & 0xff, 0);
+
                     await entity.command<"customClusterEwelink", "irrigationPlanRemove", SonoffSwvzn>(
                         clusterName,
                         "irrigationPlanRemove",
@@ -3246,48 +3151,18 @@ const sonoffExtend = {
 
         return {
             exposes,
-            fromZigbee,
+            fromZigbee: [],
             toZigbee,
             isModernExtend: true,
         };
     },
     rainDelay: (): ModernExtend => {
         const clusterName = "customClusterEwelink";
-        const commandId = 0x08;
 
         const exposes = [
-            e.text("rain_delay", ea.SET).withDescription("Schedule delay end time in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
-        ];
-        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["raw", "commandRainDelay"]>[] = [
-            {
-                cluster: clusterName,
-                type: ["raw", "commandRainDelay"],
-                convert: (model, msg, publish, options, meta) => {
-                    let cmdId: number | undefined;
-                    let payload: Buffer | undefined;
-
-                    if (msg.type === "raw") {
-                        if (!(msg.data instanceof Buffer)) return;
-                        const parsedRawCommand = parseRawZclCommand(msg.data);
-                        if (!parsedRawCommand) return;
-                        cmdId = parsedRawCommand.commandId;
-                        payload = parsedRawCommand.payload;
-                    } else if (msg.type === "commandRainDelay") {
-                        cmdId = commandId;
-                        const dataField = (msg.data as {data?: number[] | Buffer})?.data ?? msg.data;
-                        if (Buffer.isBuffer(dataField)) payload = dataField;
-                        else if (Array.isArray(dataField)) payload = Buffer.from(dataField);
-                        if (!payload) return;
-                    }
-
-                    if (cmdId !== commandId || !payload || payload.length < 1) return;
-
-                    const status = payload.readUInt8(0);
-                    if (status !== 0) {
-                        logger.error(`rainDelayReply failed, status=${status}`, NS);
-                    }
-                },
-            },
+            e
+                .text("rain_delay", ea.SET)
+                .withDescription('Schedule delay end time in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00), or "0" to disable'),
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -3299,19 +3174,22 @@ const sonoffExtend = {
                         return;
                     }
 
-                    const delayEndTimeUTC = parseIsoWithOffsetToUtcSeconds(value);
-                    if (delayEndTimeUTC === undefined) {
-                        logger.error("Invalid rain_delay, expected ISO 8601 datetime with timezone offset (Z or ±HH:mm).", NS);
-                        return;
-                    }
+                    let delayEndTimeDevice: number;
+                    let delayEndTimeUTC: number | undefined;
+                    let stateValue = value;
+                    if (value === "0") {
+                        delayEndTimeDevice = 0;
+                    } else {
+                        delayEndTimeUTC = parseIsoWithOffsetToUtcSeconds(value);
+                        if (delayEndTimeUTC === undefined) {
+                            logger.error("Invalid rain_delay, expected ISO 8601 datetime with timezone offset (Z or ±HH:mm).", NS);
+                            return;
+                        }
 
-                    const delayEndOffset = parseIsoOffsetSeconds(value);
-                    if (delayEndOffset === undefined) {
-                        logger.error("Invalid rain_delay, expected ISO 8601 datetime with timezone offset (Z or ±HH:mm).", NS);
-                        return;
+                        const offsetSeconds = getRuntimeLocalOffsetSeconds(Math.floor(Date.now() / 1000));
+                        delayEndTimeDevice = utcToDeviceLocal2000Seconds(delayEndTimeUTC, offsetSeconds);
+                        stateValue = formatUtcSecondsToIsoWithOffset(delayEndTimeUTC, offsetSeconds);
                     }
-
-                    const delayEndTimeDevice = utcToDeviceLocal2000Seconds(delayEndTimeUTC, delayEndOffset);
                     if (delayEndTimeDevice < 0 || delayEndTimeDevice > 0xffffffff) {
                         logger.error("Invalid rain_delay, converted device 2000-local value out of uint32 range.", NS);
                         return;
@@ -3329,14 +3207,14 @@ const sonoffExtend = {
                         {disableDefaultResponse: true},
                     );
 
-                    return {state: {[key]: formatUtcSecondsToIsoWithOffset(delayEndTimeUTC)}};
+                    return {state: {[key]: stateValue}};
                 },
             },
         ];
 
         return {
             exposes,
-            fromZigbee,
+            fromZigbee: [],
             toZigbee,
             isModernExtend: true,
         };
@@ -5570,10 +5448,7 @@ export const definitions: DefinitionWithExtend[] = [
                     realTimeIrrigationDuration: {name: "realTimeIrrigationDuration", ID: 0x5006, type: Zcl.DataType.UINT32},
                     realTimeIrrigationVolume: {name: "realTimeIrrigationVolume", ID: 0x5007, type: Zcl.DataType.UINT32},
                     valveAbnormalState: {name: "valveAbnormalState", ID: 0x500c, type: Zcl.DataType.UINT8},
-                    irrigationStartTime: {name: "irrigationStartTime", ID: 0x500d, type: Zcl.DataType.UINT32},
-                    irrigationEndTime: {name: "irrigationEndTime", ID: 0x500e, type: Zcl.DataType.UINT32},
                     dailyIrrigationVolume: {name: "dailyIrrigationVolume", ID: 0x500f, type: Zcl.DataType.UINT32},
-                    valveWorkState: {name: "valveWorkState", ID: 0x5010, type: Zcl.DataType.BOOLEAN},
                     rainDelayEndDatetime: {name: "rainDelayEndDatetime", ID: 0x5014, type: Zcl.DataType.UINT32},
                     weatherDelayEndDatetime: {name: "weatherDelayEndDatetime", ID: 0x5015, type: Zcl.DataType.ARRAY},
                     longitude: {name: "longitude", ID: 0x5016, type: Zcl.DataType.INT32, write: true},
@@ -5602,11 +5477,6 @@ export const definitions: DefinitionWithExtend[] = [
                     rainDelay: {name: "rainDelay", ID: 0x08, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
                 },
                 commandsResponse: {
-                    getWeatherInfoReply: {
-                        name: "getWeatherInfoReply",
-                        ID: 0x05,
-                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
-                    },
                     irrigationPlanReport: {
                         name: "irrigationPlanReport",
                         ID: 0x09,
@@ -5624,7 +5494,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
 
-            // attributes
+            // private attributes & commands
             m.binary<"customClusterEwelink", SonoffSwvzn>({
                 name: "child_lock",
                 cluster: "customClusterEwelink",
@@ -5635,55 +5505,31 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             sonoffExtend.valveAbnormalState(),
-            sonoffExtend.irrigationStartTime(),
-            sonoffExtend.irrigationEndTime(),
+            sonoffExtend.manualDefaultSettings(),
+            sonoffExtend.irrigationPlanSettingsAndReport(),
+            sonoffExtend.irrigationPlanRemove(),
+            sonoffExtend.irrigationScheduleStatus(),
+            sonoffExtend.rainDelay(),
+            sonoffExtend.rainDelayEndDatetime(),
+            sonoffExtend.seasonalWateringAdjustment(),
+            sonoffExtend.valveAlarmSettings(),
             m.numeric<"customClusterEwelink", SonoffSwvzn>({
-                name: "daily_irrigation_volume",
+                name: "real_time_irrigation_duration",
                 cluster: "customClusterEwelink",
-                attribute: "dailyIrrigationVolume",
-                description: "The amount of water irrigated today",
+                attribute: "realTimeIrrigationDuration",
+                description: "Real-time irrigation duration",
+                access: "STATE_GET",
+                unit: "s",
+                fzConvert: bigEndianNumericFzConvert("real_time_irrigation_duration", "realTimeIrrigationDuration"),
+            }),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "real_time_irrigation_volume",
+                cluster: "customClusterEwelink",
+                attribute: "realTimeIrrigationVolume",
+                description: "The amount of water irrigated in real time",
                 access: "STATE_GET",
                 unit: "L",
-            }),
-            m.binary<"customClusterEwelink", SonoffSwvzn>({
-                name: "valve_work_state",
-                cluster: "customClusterEwelink",
-                attribute: "valveWorkState",
-                description: "The water valve work state",
-                access: "STATE_GET",
-                valueOn: ["working", 1],
-                valueOff: ["idle", 0],
-            }),
-            sonoffExtend.rainDelayEndDatetime(),
-            sonoffExtend.weatherDelayEndDatetime(),
-            m.numeric<"customClusterEwelink", SonoffSwvzn>({
-                name: "longitude",
-                cluster: "customClusterEwelink",
-                attribute: "longitude",
-                description: "Longitude coordinate",
-                access: "ALL",
-                valueMin: -180,
-                valueMax: 180,
-                unit: "°",
-            }),
-            m.numeric<"customClusterEwelink", SonoffSwvzn>({
-                name: "latitude",
-                cluster: "customClusterEwelink",
-                attribute: "latitude",
-                description: "Latitude coordinate",
-                access: "ALL",
-                valueMin: -90,
-                valueMax: 90,
-                unit: "°",
-            }),
-            sonoffExtend.weatherBasedAdjustment(),
-            m.numeric<"customClusterEwelink", SonoffSwvzn>({
-                name: "daily_irrigation_duration",
-                cluster: "customClusterEwelink",
-                attribute: "dailyIrrigationDuration",
-                description: "Daily irrigation duration",
-                access: "STATE_GET",
-                unit: "min",
+                fzConvert: bigEndianNumericFzConvert("real_time_irrigation_volume", "realTimeIrrigationVolume"),
             }),
             m.numeric<"customClusterEwelink", SonoffSwvzn>({
                 name: "hour_irrigation_volume",
@@ -5701,16 +5547,45 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 unit: "min",
             }),
-            sonoffExtend.manualDefaultSettings(),
-            sonoffExtend.seasonalWateringAdjustment(),
-            sonoffExtend.irrigationScheduleStatus(),
-            sonoffExtend.valveAlarmSettings(),
-
-            // commands
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "daily_irrigation_volume",
+                cluster: "customClusterEwelink",
+                attribute: "dailyIrrigationVolume",
+                description: "The amount of water irrigated today",
+                access: "STATE_GET",
+                unit: "L",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "daily_irrigation_duration",
+                cluster: "customClusterEwelink",
+                attribute: "dailyIrrigationDuration",
+                description: "Daily irrigation duration",
+                access: "STATE_GET",
+                unit: "min",
+            }),
             sonoffExtend.readSWVZFRecord(),
-            sonoffExtend.irrigationPlanSettingsAndReport(),
-            sonoffExtend.irrigationPlanRemove(),
-            sonoffExtend.rainDelay(),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "longitude",
+                cluster: "customClusterEwelink",
+                attribute: "longitude",
+                description: "Longitude coordinate used to retrieve weather information. Currently only available in the eWeLink app.",
+                access: "ALL",
+                valueMin: -180,
+                valueMax: 180,
+                unit: "°",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "latitude",
+                cluster: "customClusterEwelink",
+                attribute: "latitude",
+                description: "Latitude coordinate used to retrieve weather information. Currently only available in the eWeLink app.",
+                access: "ALL",
+                valueMin: -90,
+                valueMax: 90,
+                unit: "°",
+            }),
+            sonoffExtend.weatherBasedAdjustment(),
+            sonoffExtend.weatherDelayEndDatetime(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -5718,7 +5593,6 @@ export const definitions: DefinitionWithExtend[] = [
             if (endpoint) {
                 try {
                     await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-                    await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
                 } catch (error) {
                     logger.warning(`SWV-ZN genOnOff bind/reporting failed, continuing without reporting: ${error}`, NS);
                 }
@@ -5726,8 +5600,9 @@ export const definitions: DefinitionWithExtend[] = [
                 await endpoint.read("genOnOff", ["onOff"]).catch((error) => {
                     logger.warning(`SWV-ZN read genOnOff.onOff failed: ${error}`, NS);
                 });
+
                 await endpoint.read("customClusterEwelink", [0x500c]).catch((error) => {
-                    logger.warning(`SWV-ZN read customClusterEwelink(0x500c) failed: ${error}`, NS);
+                    logger.warning(`SWV-ZN read customClusterEwelink(valveAbnormalState) failed: ${error}`, NS);
                 });
             }
         },
