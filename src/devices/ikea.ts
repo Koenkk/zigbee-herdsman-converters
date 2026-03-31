@@ -607,10 +607,18 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "KAJPLATS E12 CWS globe 800lm"}],
             },
         ],
-        model: "KAJPLATS_RGB",
+        model: "KAJPLATS_CWS",
         vendor: "IKEA",
         description: "KAJPLATS color/white spectrum light",
-        extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
+        extend: [
+            m.light({
+                colorTemp: {range: [153, 555]},
+                color: {modes: ["xy", "hs"], applyRedFix: false, enhancedHue: false},
+                turnsOffAtBrightness1: true,
+                levelConfig: {features: ["on_off_transition_time", "execute_if_off", "current_level_startup"]},
+            }),
+            m.identify(),
+        ],
         // KAJPLATS models and firmware updates: https://webui.dcl.csa-iot.org/models
     },
     {
@@ -687,10 +695,17 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "KAJPLATS E12 WS globe 800lm"}],
             },
         ],
-        model: "KAJPLATS_CT",
+        model: "KAJPLATS_WS",
         vendor: "IKEA",
         description: "KAJPLATS white spectrum light",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [
+            m.light({
+                colorTemp: {range: [153, 454]},
+                turnsOffAtBrightness1: true,
+                levelConfig: {features: ["on_off_transition_time", "execute_if_off", "current_level_startup"]},
+            }),
+            m.identify(),
+        ],
     },
     {
         zigbeeModel: [
@@ -726,7 +741,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "KAJPLATS_WS_clear",
         vendor: "IKEA",
         description: "KAJPLATS light, white spectrum, clear",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [
+            m.light({
+                colorTemp: {range: [153, 454]},
+                turnsOffAtBrightness1: true,
+                levelConfig: {features: ["on_off_transition_time", "execute_if_off", "current_level_startup"]},
+            }),
+            m.identify(),
+        ],
     },
     {
         zigbeeModel: ["Floor lamp WW"],
