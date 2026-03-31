@@ -140,9 +140,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Legrand",
         description: "Netatmo wired shutter switch",
         ota: true,
+        extend: [legrandExtend.addLegrandDevicesCluster(), legrandExtend.addLegrandClosuresWindowCovering()],
         fromZigbee: [fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(false), fzLegrand.command_cover],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(false)],
-        extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: (device, options) => {
             return [
                 eLegrand.getCover(device),
@@ -206,9 +206,9 @@ export const definitions: DefinitionWithExtend[] = [
             },
         ],
         ota: true,
+        extend: [legrandExtend.addLegrandDevicesCluster(), legrandExtend.addLegrandClosuresWindowCovering()],
         fromZigbee: [fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true), fzLegrand.command_cover],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(true)],
-        extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: (device, options) => {
             return [
                 eLegrand.getCover(device),

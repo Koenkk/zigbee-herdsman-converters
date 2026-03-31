@@ -1363,8 +1363,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512776/4512777",
         vendor: "Namron",
         description: "Zigbee thermostat for panel heater PRO (white 4512776 / black 4512777)",
-        extend: [m.electricityMeter({cluster: "metering", energy: {divisor: 10}})],
-        fromZigbee: [fz.thermostat, fzLocal.namron_panelheater, fz.namron_hvac_user_interface],
+        extend: [
+            m.electricityMeter({cluster: "both", energy: {divisor: 10}, power: false, voltage: false, current: false, configureReporting: false}),
+        ],
+        fromZigbee: [fz.thermostat, fzLocal.namron_panelheater, fz.namron_hvac_user_interface, fz.electrical_measurement],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
@@ -1415,11 +1417,23 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withDescription("Display brightness (read-only, set on the heater)"),
             e.binary("display_auto_off", ea.ALL, true, false).withDescription("Display auto off after 30s without interaction"),
+            e.power(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genIdentify", "hvacThermostat", "hvacUserInterfaceCfg"]);
+            // Save energy divisor manually since configureReporting is disabled
+            endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 10, multiplier: 1});
+            endpoint.save();
+
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                "genBasic",
+                "genIdentify",
+                "hvacThermostat",
+                "hvacUserInterfaceCfg",
+                "seMetering",
+                "haElectricalMeasurement",
+            ]);
 
             await reporting.thermostatTemperature(endpoint, {min: 0, change: 50});
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -1439,6 +1453,18 @@ export const definitions: DefinitionWithExtend[] = [
 
             try {
                 await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
+            } catch {
+                // Ignore
+            }
+
+            try {
+                await endpoint.read("haElectricalMeasurement", ["activePower"]);
+            } catch {
+                // Ignore
+            }
+
+            try {
+                await endpoint.read("seMetering", ["currentSummDelivered"]);
             } catch {
                 // Ignore
             }

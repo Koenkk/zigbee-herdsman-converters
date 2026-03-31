@@ -1441,9 +1441,9 @@ export {
     eCover as cover,
     eEnum as enum,
     eLight as light,
+    eList as list,
+    eLock as lock,
     eNumeric as numeric,
     eSwitch as switch,
     eText as text,
-    eList as list,
-    eLock as lock,
 };

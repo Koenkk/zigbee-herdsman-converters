@@ -48,33 +48,33 @@ type ModelIndex = [module: string, index: number];
 const MODELS_INDEX = modelsIndexJson as Record<string, ModelIndex[]>;
 
 export {ACTIONS, MqttRawPayload} from "./converters/actions";
-export {
-    DefinitionWithExtend,
-    ExternalDefinitionWithExtend,
-    access,
-    Definition,
-    Feature,
-    Expose,
-    Option,
-    Numeric,
-    Binary,
-    Enum,
-    Text,
-    Composite,
-    List,
-    Light,
-    Climate,
-    Switch,
-    Lock,
-    Cover,
-    Fan,
-    toZigbee,
-    fromZigbee,
-    Tz,
-    type OnEvent,
-};
 export {setLogger} from "./lib/logger";
 export {clear as clearGlobalStore} from "./lib/store";
+export {
+    access,
+    Binary,
+    Climate,
+    Composite,
+    Cover,
+    Definition,
+    DefinitionWithExtend,
+    Enum,
+    Expose,
+    ExternalDefinitionWithExtend,
+    Fan,
+    Feature,
+    fromZigbee,
+    Light,
+    List,
+    Lock,
+    Numeric,
+    type OnEvent,
+    Option,
+    Switch,
+    Text,
+    Tz,
+    toZigbee,
+};
 
 // key: zigbeeModel, value: array of definitions (most of the times 1)
 const externalDefinitionsLookup = new Map<string, DefinitionWithExtend[]>();
