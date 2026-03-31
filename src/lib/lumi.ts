@@ -65,6 +65,8 @@ export interface ManuSpecificLumi {
         illuminance: number;
         /** ID=0x0114 | type=UINT8 | write=true | max=255 */
         displayUnit: number;
+        /** ID=0x0118 | type=UINT8 */
+        movement: number;
         /** ID=0x0129 | type=UINT8 | write=true | max=255 */
         airQuality: number;
         /** ID=0x0400 | type=BOOLEAN | write=true */
@@ -1750,6 +1752,7 @@ export const lumiModernExtend = {
                 mode: {name: "mode", ID: 0x0009, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 illuminance: {name: "illuminance", ID: 0x0112, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 displayUnit: {name: "displayUnit", ID: 0x0114, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                movement: {name: "movement", ID: 0x0118, type: Zcl.DataType.UINT8},
                 airQuality: {name: "airQuality", ID: 0x0129, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 curtainReverse: {name: "curtainReverse", ID: 0x0400, type: Zcl.DataType.BOOLEAN, write: true},
                 curtainHandOpen: {name: "curtainHandOpen", ID: 0x0401, type: Zcl.DataType.BOOLEAN, write: true},
@@ -2824,7 +2827,7 @@ export const lumiModernExtend = {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data[0x0118] !== undefined && msg.data[0x0118] === 1) {
+                    if (msg.data.movement !== undefined && msg.data.movement === 1) {
                         return {action: "movement"};
                     }
                 },
