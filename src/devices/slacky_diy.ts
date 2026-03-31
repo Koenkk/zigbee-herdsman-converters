@@ -558,7 +558,7 @@ const tzLocal = {
     thermostat_manuf_name: {
         key: ["manuf_name"],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {R00: 0, R01: 1, R02: 2, R03: 3, R04: 4, R05: 5, R06: 6, R07: 7, R08: 8, R09: 9, R0A: 10, R0B: 11};
+            const lookup = {R00: 0, R01: 1, R02: 2, R03: 3, R04: 4, R05: 5, R06: 6, R07: 7, R08: 8, R09: 9, R0A: 10, R0B: 11, R0C: 12, R0D: 13};
             await entity.write("hvacThermostat", {[attrThermManufName]: {value: utils.getFromLookup(value, lookup), type: 0x30}});
             return {state: {manuf_name: value}};
         },
