@@ -1,6 +1,6 @@
 import {TextDecoder, TextEncoder} from "node:util";
 import {Zcl} from "zigbee-herdsman";
-import {DataType} from "zigbee-herdsman/dist/zspec/zcl/definition/enums";
+import {DataType} from "zigbee-herdsman/dist/zspec/zcl";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as libColor from "../lib/color";
