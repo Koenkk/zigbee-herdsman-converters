@@ -4919,11 +4919,6 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["msFlowMeasurement"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
             await endpoint.read("customClusterEwelink", [0x500c, 0x5011]);
-            try {
-                await endpoint.read("customClusterEwelink", [0x5006, 0x5007, 0x500d, 0x500e, 0x500f, 0x5010]);
-            } catch {
-                // Non-fatal — device may be sleeping (battery-powered)
-            }
         },
     },
     {
