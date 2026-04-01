@@ -4,6 +4,7 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from "../lib/types";
@@ -283,6 +284,14 @@ const fzLocal = {
             }
             if (msg.data.localTemp !== undefined) {
                 result.local_temperature = precisionRound(msg.data.localTemp, 2) / 100;
+
+                if (model.model === "TH1300ZB") {
+                    // floorTemperature and roomTemperature do not support configureReporting;
+                    // piggyback on local_temperature reports to keep values in sync.
+                    msg.endpoint
+                        .read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorTemperature", "roomTemperature"], manuSinope)
+                        .catch((e: unknown) => logger.debug(`TH1300ZB: failed to read floor/room temperature: ${e}`, "sinope"));
+                }
             }
             if (msg.data.localTemperatureCalibration !== undefined) {
                 result.local_temperature_calibration = precisionRound(msg.data.localTemperatureCalibration, 2) / 10;
@@ -670,20 +679,6 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorMaxHeatSetpointLimit"]);
-        },
-    } satisfies Tz.Converter,
-    floor_temperature: {
-        // TH1300ZB specific
-        key: ["floor_temperature"],
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorTemperature"], manuSinope);
-        },
-    } satisfies Tz.Converter,
-    room_temperature: {
-        // TH1300ZB specific
-        key: ["room_temperature"],
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["roomTemperature"], manuSinope);
         },
     } satisfies Tz.Converter,
     temperature_sensor: {
@@ -1510,8 +1505,6 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.floor_min_heat_setpoint,
             tzLocal.floor_max_heat_setpoint,
             tzLocal.temperature_sensor,
-            tzLocal.floor_temperature,
-            tzLocal.room_temperature,
         ],
         exposes: [
             e
@@ -1588,8 +1581,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // disable reporting
 
             // floorTemperature (0x0107) and roomTemperature (0x010D) do not support configureReporting
-            // (device returns UNREPORTABLE_ATTRIBUTE). Perform an initial read so values are available
-            // immediately after pairing. Periodic polling must be handled externally (e.g. a Z2M extension).
+            // (device returns UNREPORTABLE_ATTRIBUTE). Perform an initial read on pairing; ongoing sync
+            // is handled by piggybacking on local_temperature reports in fzLocal.thermostat.
             await endpoint.read<"manuSpecificSinope", ManuSpecificSinope>(
                 "manuSpecificSinope",
                 ["floorTemperature", "roomTemperature"],
