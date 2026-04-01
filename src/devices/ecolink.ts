@@ -6,22 +6,6 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 
-const ffzb1BatteryFromZigbee = {
-    cluster: "genPowerCfg",
-    type: ["attributeReport", "readResponse"] as const,
-    convert: (model: any, msg: any, publish: any, options: any, meta: any) => {
-        if (Object.prototype.hasOwnProperty.call(msg.data, "batteryVoltage")) {
-            const rawValue = msg.data["batteryVoltage"];
-            const volts = rawValue / 10;
-            const minVolts = 2.2;
-            const maxVolts = 3.0;
-            let pct = Math.round(((volts - minVolts) / (maxVolts - minVolts)) * 100);
-            pct = Math.min(100, Math.max(1, pct));
-            return {battery: pct, voltage: rawValue * 100};
-        }
-    },
-};
-
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["4655BC0-R"],
@@ -38,43 +22,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["FFZB1-SM-ECO"],
-        model: "FFZB1-SM-ECO",
-        vendor: "Ecolink",
-        description: "Audio Detector: Listens for the siren tone from a UL listed smoke detector in your home and sends signal to your Zigbee HUB",
-        fromZigbee: [ffzb1BatteryFromZigbee],
-        toZigbee: [],
-        extend: [
-            m.temperature(),
-            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
-        ],
-        exposes: [
-            e.battery(),
-            e.voltage(),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-
-            try {
-                await endpoint.command("genPollCtrl", "setLongPollInterval", {newLongPollInterval: 0x000004b0});
-                await endpoint.command("genPollCtrl", "setShortPollInterval", {newShortPollInterval: 0x0002});
-                await endpoint.write("genPollCtrl", {fastPollTimeout: 0x0028});
-                await endpoint.write("genPollCtrl", {checkinInterval: 0x00001950});
-            } catch (error) {
-                // Poll control configuration may fail on some devices
-            }
-
-            try {
-                await endpoint.bind("genPowerCfg", coordinatorEndpoint);
-                await endpoint.configureReporting("genPowerCfg", [{
-                    attribute: "batteryVoltage",
-                    minimumReportInterval: 1800,
-                    maximumReportInterval: 3600,
-                    reportableChange: 1,
-                }]);
-            } catch (error) {
-                // Battery voltage reporting configuration may fail on some devices
-            }
-        },
+        zigbeeModel: ['FFZB1-SM-ECO'],
+        model: 'FFZB1-SM-ECO',
+        vendor: 'Ecolink',
+        description: 'Audio Detector: Listens for the siren tone from a UL listed smoke detector in your home and sends signal to your Zigbee HUB',
+        extend: [m.temperature(), m.iasZoneAlarm({zoneType: 'alarm', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']}), m.battery({voltageToPercentage: {min: 2200, max: 3000}, voltage: true, percentageReporting: false})],
     },
 ];
