@@ -1586,6 +1586,15 @@ export const definitions: DefinitionWithExtend[] = [
                 {attribute: "floorLimitStatus", minimumReportInterval: 1, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1},
             ]);
             await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // disable reporting
+
+            // floorTemperature (0x0107) and roomTemperature (0x010D) do not support configureReporting
+            // (device returns UNREPORTABLE_ATTRIBUTE). Perform an initial read so values are available
+            // immediately after pairing. Periodic polling must be handled externally (e.g. a Z2M extension).
+            await endpoint.read<"manuSpecificSinope", ManuSpecificSinope>(
+                "manuSpecificSinope",
+                ["floorTemperature", "roomTemperature"],
+                {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
+            );
         },
     },
     {
