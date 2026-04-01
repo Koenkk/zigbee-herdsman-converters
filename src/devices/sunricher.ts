@@ -205,6 +205,166 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["HK-DIM-PIR"],
+        model: "SR-ZG9032A-PIR",
+        vendor: "Sunricher",
+        description: "Zigbee motion sensor + light sensor + 0-10V dimming",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.light({endpointNames: ["1"]}),
+            m.occupancy({endpointNames: ["2"]}),
+            m.illuminance({endpointNames: ["3"]}),
+            m.commandsOnOff({endpointNames: ["1"]}),
+            m.commandsLevelCtrl({endpointNames: ["1"]}),
+            m.enumLookup({
+                name: "dimming_brightness_curve",
+                cluster: "genBasic",
+                attribute: {ID: 0x8806, type: 0x20},
+                lookup: {
+                    linear: 0x00,
+                    gamma_1_5: 0x0f,
+                    gamma_1_8: 0x12,
+                },
+                description: "Dimming brightness curve. Options: linear, gamma 1.5, gamma 1.8. Default: linear.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "motion_sensor_lux_threshold",
+                cluster: "genBasic",
+                attribute: {ID: 0x8903, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                description:
+                    "Daylight sensor lux threshold. When the measured lux is below this value, the light is allowed to turn on. Set to minimum value to disable this function. Default: disabled.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "motion_sensor_sensitivity",
+                cluster: "genBasic",
+                attribute: {ID: 0x8905, type: 0x20},
+                valueMin: 0,
+                valueMax: 15,
+                description: "Motion sensor sensitivity. 0 is highest sensitivity, 15 is lowest. Default: 1.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.enumLookup({
+                name: "brightness_module_enable",
+                cluster: "genBasic",
+                attribute: {ID: 0x890c, type: 0x20},
+                lookup: {
+                    disabled: 0,
+                    enabled: 1,
+                },
+                description: "Enable or disable the brightness module. Options: enabled, disabled. Default: enabled.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "light_on_time",
+                cluster: "genBasic",
+                attribute: {ID: 0x8902, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                unit: "s",
+                description:
+                    "Light on time (first delay). When motion is detected and then the area is vacated, this is the time the light stays on. Unit: seconds. Default: 60 seconds.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "pwm_brightness_value",
+                cluster: "genBasic",
+                attribute: {ID: 0x8908, type: 0x21},
+                valueMin: 0,
+                valueMax: 1000,
+                unit: "lux",
+                description: "Brightness value for PWM output when motion is detected. 0 disables this function. Default: disabled.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "pwm_output_percentage",
+                cluster: "genBasic",
+                attribute: {ID: 0x8909, type: 0x20},
+                valueMin: 0,
+                valueMax: 254,
+                unit: "%",
+                description: "PWM output percentage when motion is detected. Range: 0-100%. Default: 100%.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "light_status_after_first_delay",
+                cluster: "genBasic",
+                attribute: {ID: 0x890a, type: 0x20},
+                valueMin: 0,
+                valueMax: 254,
+                unit: "%",
+                description: "Light status after the first delay expires, during the second delay. Range: 0-100%. Default: 0% (off).",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "second_delay_time",
+                cluster: "genBasic",
+                attribute: {ID: 0x8901, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                unit: "s",
+                description: "Duration of the second delay after the first delay expires. Unit: seconds. Default: 60 seconds.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "light_status_after_second_delay",
+                cluster: "genBasic",
+                attribute: {ID: 0x890b, type: 0x20},
+                valueMin: 0,
+                valueMax: 254,
+                unit: "%",
+                description: "Light status after the second delay expires. Range: 0-100%. Default: 0% (off).",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "linearity_error_ratio_lux",
+                cluster: "genBasic",
+                attribute: {ID: 0x890d, type: 0x21},
+                valueMin: 100,
+                valueMax: 10000,
+                description:
+                    "Linearity error ratio coefficient for LUX measurement. 1000 means 1000‰ (default). Increasing this value magnifies the LUX measurement linearly, decreasing minifies it.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "fixed_deviation_lux",
+                cluster: "genBasic",
+                attribute: {ID: 0x890e, type: 0x29},
+                valueMin: -100,
+                valueMax: 100,
+                description: "Fixed deviation of LUX measurement. Positive value increases, negative value decreases the measured LUX.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["ZGRC-KEY-047"],
         model: "SR-ZG2868K12-DIM",
         vendor: "Sunricher",
@@ -246,6 +406,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({endpointNames: ["3"]}),
         ],
         meta: {multiEndpoint: true},
+    },
+    {
+        zigbeeModel: ["ZGRC-KEY-043"],
+        model: "SR-ZG2868EK7-CCT",
+        vendor: "Sunricher",
+        description: "Zigbee lighting remote control",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl(), m.commandsScenes()],
     },
     {
         zigbeeModel: ["ZG9098A-WinOnly"],
@@ -653,10 +820,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery(),
             m.deviceAddCustomCluster("sunricherRemote", {
+                name: "sunricherRemote",
                 ID: 0xff03,
                 attributes: {},
                 commands: {
                     press: {
+                        name: "press",
                         ID: 0x01,
                         parameters: [
                             {name: "messageType", type: Zcl.DataType.UINT8, max: 0xff},
@@ -678,9 +847,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee thermostatic radiator valve",
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
                 ID: Zcl.Clusters.hvacThermostat.ID,
                 attributes: {
                     screenTimeout: {
+                        name: "screenTimeout",
                         ID: 0x100d,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -689,6 +860,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     antiFreezingTemp: {
+                        name: "antiFreezingTemp",
                         ID: 0x1005,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -697,6 +869,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     temperatureDisplayMode: {
+                        name: "temperatureDisplayMode",
                         ID: 0x1008,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -705,6 +878,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     windowOpenCheck: {
+                        name: "windowOpenCheck",
                         ID: 0x1009,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -713,6 +887,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     hysteresis: {
+                        name: "hysteresis",
                         ID: 0x100a,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -721,6 +896,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     windowOpenFlag: {
+                        name: "windowOpenFlag",
                         ID: 0x100b,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -729,6 +905,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     forcedHeatingTime: {
+                        name: "forcedHeatingTime",
                         ID: 0x100e,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -737,6 +914,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     errorCode: {
+                        name: "errorCode",
                         ID: 0x2003,
                         type: Zcl.DataType.BITMAP8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -744,6 +922,7 @@ export const definitions: DefinitionWithExtend[] = [
                         write: true,
                     },
                     awayOrBoostMode: {
+                        name: "awayOrBoostMode",
                         ID: 0x2002,
                         type: Zcl.DataType.ENUM8,
                         manufacturerCode: sunricherManufacturerCode,
@@ -952,13 +1131,13 @@ export const definitions: DefinitionWithExtend[] = [
                     await syncTimeWithTimeZone(endpoint);
 
                     break;
-                } catch (e) {
+                } catch (error) {
                     retryCount++;
-                    logger.warning(`Configure attempt ${retryCount} failed: ${e}`, NS);
+                    logger.warning(`Configure attempt ${retryCount} failed: ${error}`, NS);
 
                     if (retryCount === maxRetries) {
                         logger.error(`Failed to configure device after ${maxRetries} attempts`, NS);
-                        throw e;
+                        throw error;
                     }
 
                     await new Promise((resolve) => setTimeout(resolve, 2000 * retryCount));
@@ -990,12 +1169,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.occupancy(),
             m.commandsOnOff(),
             m.deviceAddCustomCluster("sunricherSensor", {
+                name: "sunricherSensor",
                 ID: 0xfc8b,
                 manufacturerCode: 0x120b,
                 attributes: {
-                    indicatorLight: {ID: 0xf001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    detectionArea: {ID: 0xf002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    illuminanceThreshold: {ID: 0xf004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    indicatorLight: {name: "indicatorLight", ID: 0xf001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    detectionArea: {name: "detectionArea", ID: 0xf002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    illuminanceThreshold: {name: "illuminanceThreshold", ID: 0xf004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1474,7 +1654,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HK-SENSOR-4IN1-A",
         vendor: "Sunricher",
         description: "4IN1 Sensor",
-        extend: [m.battery(), m.identify(), m.occupancy(), m.temperature(), m.humidity(), m.illuminance()],
+        extend: [m.battery({dontDividePercentage: true}), m.identify(), m.occupancy(), m.temperature(), m.humidity(), m.illuminance()],
     },
     {
         zigbeeModel: ["SR-ZG9023A-EU"],
@@ -1851,6 +2031,8 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "GreenPower_2", ieeeAddr: /^0x000000001fa.....$/},
             {modelID: "GreenPower_2", ieeeAddr: /^0x0000000034b.....$/},
             {modelID: "GreenPower_2", ieeeAddr: /^0x00000000f12.....$/},
+            {modelID: "GreenPower_2", ieeeAddr: /^0x0000000039a.....$/},
+            {modelID: "GreenPower_2", ieeeAddr: /^0x00000000675.....$/},
         ],
         model: "SR-ZGP2801K4-DIM",
         vendor: "Sunricher",

@@ -14,6 +14,7 @@ import type {
     KeyValue,
     KeyValueAny,
     KeyValueNumberString,
+    KeyValueString,
     ModernExtend,
     Publish,
     Range,
@@ -34,6 +35,39 @@ interface KeyValueStringEnum {
     [s: string]: Enum;
 }
 
+export interface ManuSpecificTuya2 {
+    attributes: {
+        alarmTemperatureMax: number;
+        alarmTemperatureMin: number;
+        alarmHumidityMax: number;
+        alarmHumidityMin: number;
+        alarmHumidity: number;
+        alarmTemperature: number;
+        unknown: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export interface ManuSpecificTuya3 {
+    attributes: {
+        powerOnBehavior: number;
+        switchMode: number;
+        switchType: number;
+    };
+    commands: {
+        setOptions1: {
+            data: Buffer;
+        };
+        setOptions2: {
+            data: Buffer;
+        };
+        setOptions3: {
+            data: Buffer;
+        };
+    };
+    commandResponses: never;
+}
 interface Tuya4 {
     attributes: {
         // biome-ignore lint/style/useNamingConvention: TODO
@@ -59,7 +93,88 @@ export const dataTypes = {
     bitmap: 5, // [ 1,2,4 bytes ] as bits
 };
 
-export const M8ProTuyaWeatherCondition = {
+export interface TuyaWeatherCondition {
+    sunny?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    heavy_rain?: number;
+    cloudy?: number;
+    sandstorm?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    light_snow?: number;
+    snow?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    freezing_fog?: number;
+    rainstorm?: number;
+    shower?: number;
+    dust?: number;
+    spit?: number;
+    sleet?: number;
+    yin?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    freezing_rain?: number;
+    rain?: number;
+    fog?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    heavy_shower?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    heavy_snow?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    heavy_downpour?: number;
+    blizzard?: number;
+    hailstone?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    snow_shower?: number;
+    haze?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    thunder_shower?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    floating_dust?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    thunder_and_lighting?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    dust_storm?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    light_shower?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    rain_and_snow?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    dust_bowl?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ice_pellets?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    strong_dust_storms?: number;
+    sandy?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    light_to_moderate_rain?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    mostly_sunny?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    very_heavy_rain?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ice_pod?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    light_to_moderate_snow?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    few_clouds?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    light_snow_showers?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    moderate_snow?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    icy_needles?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    thunderstorm_with_ice_pods?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    light_rain?: number;
+    thunder?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    moderate_rain?: number;
+    thunderstorm?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    moderate_to_heavy_rain?: number;
+}
+
+export const M8ProTuyaWeatherCondition: TuyaWeatherCondition = {
     sunny: 100,
     heavy_rain: 101,
     cloudy: 102,
@@ -84,6 +199,47 @@ export const M8ProTuyaWeatherCondition = {
     snow_shower: 130,
     haze: 140,
     thunder_shower: 143,
+};
+
+export const F3ProTuyaWeatherCondition: TuyaWeatherCondition = {
+    heavy_rain: 101,
+    thunderstorm: 102,
+    dust_storm: 103,
+    light_snow: 104,
+    snow: 105,
+    freezing_fog: 106,
+    shower: 108,
+    floating_dust: 109,
+    thunder_and_lighting: 110,
+    light_shower: 111,
+    rain: 112,
+    rain_and_snow: 113,
+    dust_bowl: 114,
+    ice_pellets: 115,
+    strong_dust_storms: 116,
+    sandy: 117,
+    light_to_moderate_rain: 118,
+    mostly_sunny: 119,
+    sunny: 120,
+    haze: 121,
+    heavy_shower: 123,
+    heavy_snow: 124,
+    very_heavy_rain: 125,
+    blizzard: 126,
+    ice_pod: 127,
+    light_to_moderate_snow: 128,
+    few_clouds: 129,
+    light_snow_showers: 130,
+    moderate_snow: 131,
+    cloudy: 132,
+    icy_needles: 133,
+    thunderstorm_with_ice_pods: 136,
+    freezing_rain: 137,
+    snow_shower: 138,
+    light_rain: 139,
+    thunder: 140,
+    moderate_rain: 141,
+    moderate_to_heavy_rain: 144,
 };
 
 export enum TuyaWeatherID {
@@ -252,10 +408,58 @@ const tuyaExposes = {
             .withValueStep(1)
             .withUnit("s")
             .withDescription("Countdown to turn device off after a certain time"),
+    countdown_min: () =>
+        e
+            .numeric("countdown", ea.STATE_SET)
+            .withValueMin(1)
+            .withValueMax(240)
+            .withValueStep(1)
+            .withUnit("min")
+            .withDescription("Turn off the sprinkler after set duration (one time)"),
+    on_with_countdown: () =>
+        e
+            .numeric("on_with_countdown", ea.STATE_SET)
+            .withValueMin(1)
+            .withValueMax(240)
+            .withValueStep(1)
+            .withUnit("min")
+            .withDescription("Turn on the sprinkler and start countdown"),
+    countdown_left: () =>
+        e
+            .numeric("countdown_left", ea.STATE)
+            .withValueMin(0)
+            .withValueMax(240)
+            .withValueStep(1)
+            .withUnit("min")
+            .withDescription("Time left in the countdown"),
+    single_watering_duration: () => e.numeric("single_watering_duration", ea.STATE).withDescription("Duration of last watering").withUnit("s"),
+    flow_switch: () =>
+        e
+            .binary("flow_switch", ea.STATE_SET, "ON", "OFF")
+            .withDescription("Enables water flow measurement, and automatically turn off the sprinkler when flow is 0 for ~30s"),
+    quantitative_watering: () =>
+        e
+            .numeric("quantitative_watering", ea.STATE_SET)
+            .withValueMin(1)
+            .withValueMax(10000)
+            .withValueStep(1)
+            .withUnit("L")
+            .withDescription("Turn on the sprinkler with a set amount of water"),
+    single_watering_amount: () => e.numeric("single_watering_amount", ea.STATE).withUnit("L").withDescription("Quantity of last watering"),
+    surplus_flow: () => e.numeric("surplus_flow", ea.STATE).withUnit("L").withDescription("Remaining amount"),
+    water_total: () => e.numeric("water_total", ea.STATE).withUnit("L").withValueMin(0).withValueStep(0.001).withDescription("Total watering amount"),
+    water_current: () =>
+        e.numeric("water_current", ea.STATE).withUnit("L/min").withValueMin(0).withValueStep(0.001).withDescription("Current water flow"),
+    water_total_reset: () =>
+        e.enum("water_total_reset", ea.STATE_SET, ["reset"]).withDescription("Reset the stored watering amount to 0").withCategory("config"),
+    refresh: () => e.enum("refresh", ea.STATE_SET, ["refresh"]).withDescription("Refresh the device status").withCategory("config"),
+    status_sprinkler: () =>
+        e.enum("status", ea.STATE, ["off", "on_auto", "button_locked", "on_manual_app", "on_manual_button"]).withDescription("Status"),
     switch: () => e.switch().setAccess("state", ea.STATE_SET),
     selfTest: () => e.binary("self_test", ea.STATE_SET, true, false).withDescription("Indicates whether the device is being self-tested"),
     selfTestResult: () =>
         e.enum("self_test_result", ea.STATE, ["checking", "success", "failure", "others"]).withDescription("Result of the self-test"),
+    fault: () => e.binary("fault", ea.STATE, true, false).withDescription("Indicates whether a fault was detected").withCategory("diagnostic"),
     faultAlarm: () => e.binary("fault_alarm", ea.STATE, true, false).withDescription("Indicates whether a fault was detected"),
     silence: () => e.binary("silence", ea.STATE_SET, true, false).withDescription("Silence the alarm"),
     frostProtection: (extraNote = "") =>
@@ -339,33 +543,48 @@ const tuyaExposes = {
             .numeric(`power_factor_${phase}`, ea.STATE)
             .withUnit("%")
             .withDescription(`Instantaneous measured power factor (phase ${phase.toUpperCase()})`),
-    switchType: () => e.enum("switch_type", ea.ALL, ["toggle", "state", "momentary"]).withDescription("Type of the switch"),
+    switchType: () => e.enum("switch_type", ea.ALL, ["toggle", "state", "momentary"]).withDescription("Type of the switch").withCategory("config"),
     switchTypeCurtain: () =>
         e
             .enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch", "button2-switch"])
-            .withDescription("External switch type"),
-    backlightModeLowMediumHigh: () => e.enum("backlight_mode", ea.ALL, ["low", "medium", "high"]).withDescription("Intensity of the backlight"),
-    backlightModeOffNormalInverted: () => e.enum("backlight_mode", ea.ALL, ["off", "normal", "inverted"]).withDescription("Mode of the backlight"),
+            .withDescription("External switch type")
+            .withCategory("config"),
+    switchTypeButton: () =>
+        e.enum("switch_type_button", ea.ALL, ["release", "press"]).withDescription("Determines when the button actuates").withCategory("config"),
+    backlightModeLowMediumHigh: () =>
+        e.enum("backlight_mode", ea.ALL, ["low", "medium", "high"]).withDescription("Intensity of the backlight").withCategory("config"),
+    backlightModeOffNormalInverted: () =>
+        e.enum("backlight_mode", ea.ALL, ["off", "normal", "inverted"]).withDescription("Mode of the backlight").withCategory("config"),
     backlightModeOffOn: () => e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Mode of the backlight").withCategory("config"),
     indicatorMode: () =>
         e.enum("indicator_mode", ea.ALL, ["off", "off/on", "on/off", "on"]).withDescription("LED indicator mode").withCategory("config"),
     indicatorModeNoneRelayPos: () =>
         e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Mode of the indicator light").withCategory("config"),
-    powerOutageMemory: () => e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
+    powerOutageMemory: () =>
+        e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage").withCategory("config"),
     batteryState: () => e.enum("battery_state", ea.STATE, ["low", "medium", "high"]).withDescription("State of the battery"),
     doNotDisturb: () =>
         e
             .binary("do_not_disturb", ea.STATE_SET, true, false)
-            .withDescription("Do not disturb mode, when enabled this function will keep the light OFF after a power outage"),
+            .withDescription("Do not disturb mode, when enabled this function will keep the light OFF after a power outage")
+            .withCategory("config"),
     colorPowerOnBehavior: () =>
-        e.enum("color_power_on_behavior", ea.STATE_SET, ["initial", "previous", "customized"]).withDescription("Power on behavior state"),
-    powerOnBehavior: () => e.enum("power_on_behavior", ea.ALL, ["off", "on", "previous"]).withDescription("Power on behavior state"),
+        e
+            .enum("color_power_on_behavior", ea.STATE_SET, ["initial", "previous", "customized"])
+            .withDescription("Power on behavior state")
+            .withCategory("config"),
+    powerOnBehavior: () =>
+        e.enum("power_on_behavior", ea.ALL, ["off", "on", "previous"]).withDescription("Power on behavior state").withCategory("config"),
     switchMode: () =>
-        e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withDescription("Sets the mode of the switch to act as a switch or as a scene"),
+        e
+            .enum("switch_mode", ea.STATE_SET, ["switch", "scene"])
+            .withDescription("Sets the mode of the switch to act as a switch or as a scene")
+            .withCategory("config"),
     switchMode2: () =>
         e
             .enum("switch_mode", ea.STATE_SET, ["switch", "curtain"])
-            .withDescription("Sets the mode of the switch to act as a switch or as a curtain controller"),
+            .withDescription("Sets the mode of the switch to act as a switch or as a curtain controller")
+            .withCategory("config"),
     lightMode: () =>
         e.enum("light_mode", ea.STATE_SET, ["normal", "on", "off", "flash"]).withDescription(`'Sets the indicator mode of l1.
         Normal: Orange while off and white while on.
@@ -402,6 +621,7 @@ const tuyaExposes = {
         return x;
     },
 };
+
 export {tuyaExposes as exposes};
 
 export const skip = {
@@ -461,6 +681,7 @@ class Base {
 
 export class Enum extends Base {}
 const enumConstructor = (value: number) => new Enum(value);
+
 export {enumConstructor as enum};
 
 export const BacklightColorEnum = {
@@ -537,6 +758,10 @@ export const valueConverter = {
         "button-switch": new Enum(2),
         "button2-switch": new Enum(3),
     }),
+    switchTypeButton: valueConverterBasic.lookup({
+        release: new Enum(0),
+        press: new Enum(1),
+    }),
     switchType2: valueConverterBasic.lookup({toggle: new Enum(0), state: new Enum(1), momentary: new Enum(2)}),
     backlightModeOffNormalInverted: valueConverterBasic.lookup({off: new Enum(0), normal: new Enum(1), inverted: new Enum(2)}),
     backlightModeOffLowMediumHigh: valueConverterBasic.lookup({off: new Enum(0), low: new Enum(1), medium: new Enum(2), high: new Enum(3)}),
@@ -556,6 +781,7 @@ export const valueConverter = {
     switchMode2: valueConverterBasic.lookup({switch: new Enum(0), curtain: new Enum(1)}),
     lightMode: valueConverterBasic.lookup({normal: new Enum(0), on: new Enum(1), off: new Enum(2), flash: new Enum(3)}),
     raw: valueConverterBasic.raw(),
+    fault: {from: (v: Bitmap) => !!v},
     localTemperatureCalibration: {
         from: (value: number) => (value > 4000 ? value - 4096 : value),
         to: (value: number) => (value < 0 ? 4096 + value : value),
@@ -564,6 +790,24 @@ export const valueConverter = {
     localTemperatureCalibration_256: {
         from: (value: number) => (value > 200 ? value - 256 : value),
         to: (value: number) => (value < 0 ? 256 + value : value),
+    },
+    refresh: {
+        to: (v: string) => {
+            return v === "refresh";
+        },
+        from: () => {
+            return "idle";
+        },
+    },
+    waterConsumption: {
+        from: (v: string) => {
+            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v || []);
+            if (buf.length >= 8) {
+                const value = (buf.readUInt8(4) << 24) + (buf.readUInt8(5) << 16) + (buf.readUInt8(6) << 8) + buf.readUInt8(7);
+                return value / 1000;
+            }
+            return 0;
+        },
     },
     setLimit: {
         to: (v: number) => {
@@ -1697,33 +1941,44 @@ const tuyaTz = {
         key: ["power_on_behavior"],
         convertSet: async (entity, key, value, meta) => {
             const powerOnBehavior = utils.getFromLookup(value, {off: 0, on: 1, previous: 2});
-            await entity.write("manuSpecificTuya3", {powerOnBehavior});
+            await entity.write<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", {powerOnBehavior});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya3", ["powerOnBehavior"]);
+            await entity.read<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", ["powerOnBehavior"]);
         },
     } satisfies Tz.Converter,
     switch_type: {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {toggle: 0, state: 1, momentary: 2});
-            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
+            await entity.write<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya3", ["switchType"]);
+            await entity.read<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     switch_type_curtain: {
         key: ["switch_type_curtain"],
         convertSet: async (entity, key, value, meta) => {
             const switchType = utils.getFromLookup(value, {"flip-switch": 0, "sync-switch": 1, "button-switch": 2, "button2-switch": 3});
-            await entity.write("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
+            await entity.write<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("manuSpecificTuya3", ["switchType"]);
+            await entity.read<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", ["switchType"]);
+        },
+    } satisfies Tz.Converter,
+    switch_type_button: {
+        key: ["switch_type_button"],
+        convertSet: async (entity, key, value, meta) => {
+            const switchType = utils.getFromLookup(value, {release: 0, press: 1});
+            await entity.write<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", {switchType}, {disableDefaultResponse: true});
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"manuSpecificTuya3", ManuSpecificTuya3>("manuSpecificTuya3", ["switchType"]);
         },
     } satisfies Tz.Converter,
     backlight_indicator_mode_1: {
@@ -1938,6 +2193,7 @@ const tuyaTz = {
         },
     } satisfies Tz.Converter,
 };
+
 export {tuyaTz as tz};
 
 const tuyaFz = {
@@ -1973,7 +2229,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data[attribute]]};
             }
         },
-    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya3", ManuSpecificTuya3, ["attributeReport", "readResponse"]>,
     power_outage_memory: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -1995,7 +2251,7 @@ const tuyaFz = {
                 return {switch_type: lookup[msg.data.switchType]};
             }
         },
-    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya3", ManuSpecificTuya3, ["attributeReport", "readResponse"]>,
     switch_type_curtain: {
         cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
@@ -2006,7 +2262,18 @@ const tuyaFz = {
                 return {switch_type_curtain: lookup[msg.data.switchType]};
             }
         },
-    } satisfies Fz.Converter<"manuSpecificTuya3", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya3", ManuSpecificTuya3, ["attributeReport", "readResponse"]>,
+    switch_type_button: {
+        cluster: "manuSpecificTuya3",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.switchType !== undefined) {
+                const lookup: KeyValue = {0: "release", 1: "press"};
+                utils.assertNumber(msg.data.switchType);
+                return {switch_type_button: lookup[msg.data.switchType]};
+            }
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya3", ManuSpecificTuya3, ["attributeReport", "readResponse"]>,
     backlight_mode_low_medium_high: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2081,7 +2348,7 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const result: KeyValue = {};
-            if (!model.meta || !model.meta.tuyaDatapoints) throw new Error("No datapoints map defined");
+            if (!model.meta?.tuyaDatapoints) throw new Error("No datapoints map defined");
             const datapoints = model.meta.tuyaDatapoints;
             for (const dpValue of msg.data.dpValues) {
                 const dpId = dpValue.dp;
@@ -2145,7 +2412,59 @@ const tuyaFz = {
             }
         },
     } satisfies Fz.Converter<"manuSpecificTuya4", Tuya4, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS011F_electrical_measurement: {
+        ...fz.electrical_measurement,
+        convert: (model, msg, publish, options, meta) => {
+            const result = (fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValueAny) ?? {};
+            const lookup: KeyValueString = {
+                power: "activePower",
+                current: "rmsCurrent",
+                voltage: "rmsVoltage",
+            };
+
+            // Wait 5 seconds before reporting a 0 value as this could be an invalid measurement.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/16709#issuecomment-1509599046
+            if (result) {
+                for (const key of ["power", "current", "voltage"]) {
+                    if (key in result) {
+                        const value = result[key];
+                        clearTimeout(globalStore.getValue(msg.endpoint, key));
+                        if (value === 0) {
+                            const configuredReporting = msg.endpoint.configuredReportings.find(
+                                (c) => c.cluster.name === "haElectricalMeasurement" && c.attribute.name === lookup[key],
+                            );
+                            const time = (configuredReporting ? configuredReporting.minimumReportInterval : 5) * 2 + 1;
+                            globalStore.putValue(
+                                msg.endpoint,
+                                key,
+                                setTimeout(() => {
+                                    const payload = {[key]: value};
+                                    // Device takes a lot of time to report power 0 in some cases. When current == 0 we can assume power == 0
+                                    // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
+                                    if (key === "current") {
+                                        payload.power = 0;
+                                    }
+                                    publish(payload);
+                                }, time * 1000),
+                            );
+                            delete result[key];
+                        }
+                    }
+                }
+            }
+
+            // Device takes a lot of time to report power 0 in some cases. When the state is OFF we can assume power == 0
+            // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
+            if (meta.state.state === "OFF") {
+                result.power = 0;
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
 };
+
 export {tuyaFz as fz};
 
 export function getHandlersForDP(
@@ -2508,6 +2827,11 @@ const tuyaModernExtend = {
             ];
         }
 
+        const customCluster2 = tuyaClusters.addManuSpecificTuya2Cluster();
+        const customCluster3 = tuyaClusters.addManuSpecificTuya3Cluster();
+        result.onEvent = [...(customCluster2.onEvent ?? []), ...(customCluster3.onEvent ?? []), ...(result.onEvent ?? [])];
+        result.configure = [...(customCluster2.configure ?? []), ...(customCluster3.configure ?? []), ...(result.configure ?? [])];
+
         if (dp) {
             result.fromZigbee.push(tuyaFz.datapoints);
             result.toZigbee.push(tuyaTz.datapoints);
@@ -2814,8 +3138,10 @@ const tuyaModernExtend = {
             endpoints?: string[];
             powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior2?: boolean | ((manufacturerName: string) => boolean);
+            powerOnBehavior3?: boolean;
             switchType?: boolean | ((manufacturerName: string) => boolean);
             switchTypeCurtain?: boolean;
+            switchTypeButton?: boolean;
             backlightModeLowMediumHigh?: boolean;
             indicatorMode?: boolean | ((manufacturerName: string) => boolean);
             indicatorModeNoneRelayPos?: boolean;
@@ -2838,6 +3164,7 @@ const tuyaModernExtend = {
             inchingSwitch = false,
             backlightModeOffOn = false,
             powerOnBehavior2 = false,
+            powerOnBehavior3 = false,
             switchType = false,
         } = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
@@ -2877,6 +3204,36 @@ const tuyaModernExtend = {
             } else {
                 exposes.push(...expose);
             }
+        } else if (powerOnBehavior3) {
+            const endpointList = args.endpoints || [];
+            if (endpointList.length > 0) {
+                for (const endpoint of endpointList) {
+                    const result = modernExtend.enumLookup({
+                        name: "power_on_behavior",
+                        lookup: {off: 0, on: 1, previous: 2},
+                        cluster: "manuSpecificTuya",
+                        attribute: {ID: 0x4002, type: 0x30},
+                        description: "Controls the behavior when the device is powered on after power loss",
+                        entityCategory: "config",
+                        endpointName: endpoint,
+                    });
+                    fromZigbee.push(...result.fromZigbee);
+                    toZigbee.push(...result.toZigbee);
+                    exposes.push(...result.exposes);
+                }
+            } else {
+                const result = modernExtend.enumLookup({
+                    name: "power_on_behavior",
+                    lookup: {off: 0, on: 1, previous: 2},
+                    cluster: "manuSpecificTuya",
+                    attribute: {ID: 0x4002, type: 0x30},
+                    description: "Controls the behavior when the device is powered on after power loss",
+                    entityCategory: "config",
+                });
+                fromZigbee.push(...result.fromZigbee);
+                toZigbee.push(...result.toZigbee);
+                exposes.push(...result.exposes);
+            }
         } else {
             fromZigbee.push(tuyaFz.power_on_behavior_1);
             toZigbee.push(tuyaTz.power_on_behavior_1);
@@ -2896,6 +3253,11 @@ const tuyaModernExtend = {
             fromZigbee.push(tuyaFz.switch_type_curtain);
             toZigbee.push(tuyaTz.switch_type_curtain);
             exposes.push(tuyaExposes.switchTypeCurtain());
+        }
+        if (args.switchTypeButton) {
+            fromZigbee.push(tuyaFz.switch_type_button);
+            toZigbee.push(tuyaTz.switch_type_button);
+            exposes.push(tuyaExposes.switchTypeButton());
         }
         if (backlightModeOffOn) {
             fromZigbee.push(tuyaFz.backlight_mode_off_on);
@@ -3009,7 +3371,7 @@ const tuyaModernExtend = {
         return {exposes: [exp], fromZigbee: newFromZigbee, isModernExtend: true};
     },
     tuyaSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificTuya3">>) =>
-        modernExtend.enumLookup({
+        modernExtend.enumLookup<"manuSpecificTuya3", ManuSpecificTuya3>({
             name: "switch_mode",
             lookup: {switch: 0, scene: 1},
             cluster: "manuSpecificTuya3",
@@ -3054,9 +3416,19 @@ const tuyaModernExtend = {
         });
     },
     tuyaWeatherForecast(
-        args: {includeCurrentWeather?: boolean; numberOfForecastDays?: number; correctForNegativeValues?: boolean} = {},
+        args: {
+            includeCurrentWeather?: boolean;
+            numberOfForecastDays?: number;
+            correctForNegativeValues?: boolean;
+            weatherConditionMap?: TuyaWeatherCondition;
+        } = {},
     ): ModernExtend {
-        const {includeCurrentWeather = true, numberOfForecastDays = 3, correctForNegativeValues = false} = args;
+        const {
+            includeCurrentWeather = true,
+            numberOfForecastDays = 3,
+            correctForNegativeValues = false,
+            weatherConditionMap = M8ProTuyaWeatherCondition,
+        } = args;
 
         const tz_fileds = includeCurrentWeather ? ["temperature_0", "humidity_0", "condition_0"] : [];
 
@@ -3092,7 +3464,7 @@ const tuyaModernExtend = {
                 );
                 weather_values[TuyaWeatherID.Humidity].push("humidity_0" in meta.state ? (meta.state["humidity_0"] as number) : 0);
                 weather_values[TuyaWeatherID.Condition].push(
-                    "condition_0" in meta.state ? M8ProTuyaWeatherCondition[meta.state["condition_0"] as keyof typeof M8ProTuyaWeatherCondition] : 0,
+                    "condition_0" in meta.state ? weatherConditionMap[meta.state["condition_0"] as keyof typeof weatherConditionMap] : 0,
                 );
             } else {
                 buffer.writeUInt8(0x0, bOffset++);
@@ -3104,9 +3476,7 @@ const tuyaModernExtend = {
                 );
                 weather_values[TuyaWeatherID.Humidity].push(`humidity_${i}` in meta.state ? (meta.state[`humidity${i}`] as number) : 0);
                 weather_values[TuyaWeatherID.Condition].push(
-                    `condition_${i}` in meta.state
-                        ? M8ProTuyaWeatherCondition[meta.state[`condition_${i}`] as keyof typeof M8ProTuyaWeatherCondition]
-                        : 0,
+                    `condition_${i}` in meta.state ? weatherConditionMap[meta.state[`condition_${i}`] as keyof typeof weatherConditionMap] : 0,
                 );
             }
 
@@ -3185,27 +3555,64 @@ const tuyaModernExtend = {
         return result;
     },
 };
+
 export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {
+    addManuSpecificTuya2Cluster: (): ModernExtend =>
+        modernExtend.deviceAddCustomCluster("manuSpecificTuya2", {
+            name: "manuSpecificTuya2",
+            ID: 0xe002,
+            attributes: {
+                alarmTemperatureMax: {name: "alarmTemperatureMax", ID: 0xd00a, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmTemperatureMin: {name: "alarmTemperatureMin", ID: 0xd00b, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidityMax: {name: "alarmHumidityMax", ID: 0xd00d, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidityMin: {name: "alarmHumidityMin", ID: 0xd00e, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                alarmHumidity: {name: "alarmHumidity", ID: 0xd00f, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                alarmTemperature: {name: "alarmTemperature", ID: 0xd006, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                unknown: {name: "unknown", ID: 0xd010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addManuSpecificTuya3Cluster: (): ModernExtend =>
+        modernExtend.deviceAddCustomCluster("manuSpecificTuya3", {
+            name: "manuSpecificTuya3",
+            ID: 0xe001,
+            attributes: {
+                powerOnBehavior: {name: "powerOnBehavior", ID: 0xd010, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                switchMode: {name: "switchMode", ID: 0xd020, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                switchType: {name: "switchType", ID: 0xd030, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            },
+            commands: {
+                setOptions1: {name: "setOptions1", ID: 0xe5, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                setOptions2: {name: "setOptions2", ID: 0xe6, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                setOptions3: {name: "setOptions3", ID: 0xe7, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+            },
+            commandsResponse: {},
+        }),
     addTuyaCommonPrivateCluster: (): ModernExtend =>
         modernExtend.deviceAddCustomCluster("manuSpecificTuya4", {
+            name: "manuSpecificTuya4",
             ID: 0xe000,
             attributes: {
-                random_timing: {ID: 0xd001, type: Zcl.DataType.CHAR_STR, write: true},
-                cycle_timing: {ID: 0xd002, type: Zcl.DataType.CHAR_STR, write: true},
-                inching: {ID: 0xd003, type: Zcl.DataType.CHAR_STR, write: true},
+                random_timing: {name: "random_timing", ID: 0xd001, type: Zcl.DataType.CHAR_STR, write: true},
+                cycle_timing: {name: "cycle_timing", ID: 0xd002, type: Zcl.DataType.CHAR_STR, write: true},
+                inching: {name: "inching", ID: 0xd003, type: Zcl.DataType.CHAR_STR, write: true},
             },
             commands: {
                 setRandomTiming: {
+                    name: "setRandomTiming",
                     ID: 0xf7,
                     parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}],
                 },
                 setCycleTiming: {
+                    name: "setCycleTiming",
                     ID: 0xf8,
                     parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}],
                 },
                 setInchingSwitch: {
+                    name: "setInchingSwitch",
                     ID: 0xfb,
                     parameters: [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}],
                 },

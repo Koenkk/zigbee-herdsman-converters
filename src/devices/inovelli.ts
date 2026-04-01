@@ -1,5 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 import type {ClusterOrRawPayload} from "zigbee-herdsman/dist/controller/tstype";
+import {BuffaloZclDataType} from "zigbee-herdsman/dist/zspec/zcl/definition/enums";
 import type {Parameter} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -39,6 +40,8 @@ interface Inovelli {
         quickStartLevel: number;
         higherOutputInNonNeutral: number;
         dimmingMode: number;
+        dimmingAlgorithm: number;
+        auxDetectionLevel: number;
         nonNeutralAuxMediumGear: number;
         nonNeutralAuxLowGear: number;
         internalTemperature: number;
@@ -184,6 +187,10 @@ interface InovelliMmWave {
             area3: number;
             /** uint8: 0 or 1 */
             area4: number;
+        };
+        reportTargetInfo: {
+            targetNum: number;
+            targets: Buffer;
         };
         reportInterferenceArea: {
             count: number;
@@ -341,102 +348,118 @@ type MmWaveAreaPayload = InovelliMmWave["commands"]["setInterferenceArea"];
 const inovelliExtend = {
     addCustomClusterInovelli: () =>
         m.deviceAddCustomCluster(INOVELLI_CLUSTER_NAME, {
+            name: "manuSpecificInovelli",
             ID: 64561,
             manufacturerCode: 0x122f,
             attributes: {
-                dimmingSpeedUpRemote: {ID: 0x0001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                dimmingSpeedUpLocal: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                rampRateOffToOnRemote: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                rampRateOffToOnLocal: {ID: 0x0004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                dimmingSpeedDownRemote: {ID: 0x0005, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                dimmingSpeedDownLocal: {ID: 0x0006, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                rampRateOnToOffRemote: {ID: 0x0007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                rampRateOnToOffLocal: {ID: 0x0008, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                minimumLevel: {ID: 0x0009, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                maximumLevel: {ID: 0x000a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                invertSwitch: {ID: 0x000b, type: Zcl.DataType.BOOLEAN, write: true},
-                autoTimerOff: {ID: 0x000c, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                defaultLevelLocal: {ID: 0x000d, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLevelRemote: {ID: 0x000e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                stateAfterPowerRestored: {ID: 0x000f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                loadLevelIndicatorTimeout: {ID: 0x0011, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                activePowerReports: {ID: 0x0012, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                periodicPowerAndEnergyReports: {ID: 0x0013, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                activeEnergyReports: {ID: 0x0014, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                powerType: {ID: 0x0015, type: Zcl.DataType.BOOLEAN, write: true},
-                switchType: {ID: 0x0016, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                quickStartTime: {ID: 0x0017, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                quickStartLevel: {ID: 0x0018, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                higherOutputInNonNeutral: {ID: 0x0019, type: Zcl.DataType.BOOLEAN, write: true},
-                dimmingMode: {ID: 0x001a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                nonNeutralAuxMediumGear: {ID: 0x001e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                nonNeutralAuxLowGear: {ID: 0x001f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                internalTemperature: {ID: 0x0020, type: Zcl.DataType.INT8, write: true, max: 0xff},
-                overheat: {ID: 0x0021, type: Zcl.DataType.BOOLEAN, write: true},
-                otaImageType: {ID: 0x0022, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                buttonDelay: {ID: 0x0032, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                deviceBindNumber: {ID: 0x0033, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                smartBulbMode: {ID: 0x0034, type: Zcl.DataType.BOOLEAN, write: true},
-                doubleTapUpToParam55: {ID: 0x0035, type: Zcl.DataType.BOOLEAN, write: true},
-                doubleTapDownToParam56: {ID: 0x0036, type: Zcl.DataType.BOOLEAN, write: true},
-                brightnessLevelForDoubleTapUp: {ID: 0x0037, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                brightnessLevelForDoubleTapDown: {ID: 0x0038, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed1ColorWhenOn: {ID: 0x003c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed1ColorWhenOff: {ID: 0x003d, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed1IntensityWhenOn: {ID: 0x003e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed1IntensityWhenOff: {ID: 0x003f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed2ColorWhenOn: {ID: 0x0041, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed2ColorWhenOff: {ID: 0x0042, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed2IntensityWhenOn: {ID: 0x0043, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed2IntensityWhenOff: {ID: 0x0044, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed3ColorWhenOn: {ID: 0x0046, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed3ColorWhenOff: {ID: 0x0047, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed3IntensityWhenOn: {ID: 0x0048, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed3IntensityWhenOff: {ID: 0x0049, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed4ColorWhenOn: {ID: 0x004b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed4ColorWhenOff: {ID: 0x004c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed4IntensityWhenOn: {ID: 0x004d, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed4IntensityWhenOff: {ID: 0x004e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed5ColorWhenOn: {ID: 0x0050, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed5ColorWhenOff: {ID: 0x0051, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed5IntensityWhenOn: {ID: 0x0052, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed5IntensityWhenOff: {ID: 0x0053, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed6ColorWhenOn: {ID: 0x0055, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed6ColorWhenOff: {ID: 0x0056, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed6IntensityWhenOn: {ID: 0x0057, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed6IntensityWhenOff: {ID: 0x0058, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed7ColorWhenOn: {ID: 0x005a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed7ColorWhenOff: {ID: 0x005b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed7IntensityWhenOn: {ID: 0x005c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                defaultLed7IntensityWhenOff: {ID: 0x005d, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                ledColorWhenOn: {ID: 0x005f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                ledColorWhenOff: {ID: 0x060, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                ledIntensityWhenOn: {ID: 0x0061, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                ledIntensityWhenOff: {ID: 0x0062, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                ledBarScaling: {ID: 0x0064, type: Zcl.DataType.BOOLEAN, write: true},
-                mmwaveControlWiredDevice: {ID: 0x006e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                mmWaveRoomSizePreset: {ID: 0x0075, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                singleTapBehavior: {ID: 0x0078, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                fanTimerMode: {ID: 0x0079, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                auxSwitchUniqueScenes: {ID: 0x007b, type: Zcl.DataType.BOOLEAN, write: true},
-                bindingOffToOnSyncLevel: {ID: 0x007d, type: Zcl.DataType.BOOLEAN, write: true},
-                breezeMode: {ID: 0x0081, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                fanControlMode: {ID: 0x0082, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                lowLevelForFanControlMode: {ID: 0x0083, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                mediumLevelForFanControlMode: {ID: 0x0084, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                highLevelForFanControlMode: {ID: 0x0085, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                ledColorForFanControlMode: {ID: 0x0086, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                localProtection: {ID: 0x0100, type: Zcl.DataType.BOOLEAN, write: true},
-                remoteProtection: {ID: 0x0101, type: Zcl.DataType.BOOLEAN, write: true},
-                outputMode: {ID: 0x0102, type: Zcl.DataType.BOOLEAN, write: true},
-                onOffLedMode: {ID: 0x0103, type: Zcl.DataType.BOOLEAN, write: true},
-                firmwareUpdateInProgressIndicator: {ID: 0x0104, type: Zcl.DataType.BOOLEAN, write: true},
-                relayClick: {ID: 0x105, type: Zcl.DataType.BOOLEAN, write: true},
-                doubleTapClearNotifications: {ID: 0x106, type: Zcl.DataType.BOOLEAN, write: true},
-                fanLedLevelType: {ID: 0x0107, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                dimmingSpeedUpRemote: {name: "dimmingSpeedUpRemote", ID: 0x0001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                dimmingSpeedUpLocal: {name: "dimmingSpeedUpLocal", ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                rampRateOffToOnRemote: {name: "rampRateOffToOnRemote", ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                rampRateOffToOnLocal: {name: "rampRateOffToOnLocal", ID: 0x0004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                dimmingSpeedDownRemote: {name: "dimmingSpeedDownRemote", ID: 0x0005, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                dimmingSpeedDownLocal: {name: "dimmingSpeedDownLocal", ID: 0x0006, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                rampRateOnToOffRemote: {name: "rampRateOnToOffRemote", ID: 0x0007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                rampRateOnToOffLocal: {name: "rampRateOnToOffLocal", ID: 0x0008, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                minimumLevel: {name: "minimumLevel", ID: 0x0009, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                maximumLevel: {name: "maximumLevel", ID: 0x000a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                invertSwitch: {name: "invertSwitch", ID: 0x000b, type: Zcl.DataType.BOOLEAN, write: true},
+                autoTimerOff: {name: "autoTimerOff", ID: 0x000c, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                defaultLevelLocal: {name: "defaultLevelLocal", ID: 0x000d, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLevelRemote: {name: "defaultLevelRemote", ID: 0x000e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                stateAfterPowerRestored: {name: "stateAfterPowerRestored", ID: 0x000f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                loadLevelIndicatorTimeout: {name: "loadLevelIndicatorTimeout", ID: 0x0011, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                activePowerReports: {name: "activePowerReports", ID: 0x0012, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                periodicPowerAndEnergyReports: {
+                    name: "periodicPowerAndEnergyReports",
+                    ID: 0x0013,
+                    type: Zcl.DataType.UINT16,
+                    write: true,
+                    max: 0xffff,
+                },
+                activeEnergyReports: {name: "activeEnergyReports", ID: 0x0014, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                powerType: {name: "powerType", ID: 0x0015, type: Zcl.DataType.BOOLEAN, write: true},
+                switchType: {name: "switchType", ID: 0x0016, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                quickStartTime: {name: "quickStartTime", ID: 0x0017, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                quickStartLevel: {name: "quickStartLevel", ID: 0x0018, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                higherOutputInNonNeutral: {name: "higherOutputInNonNeutral", ID: 0x0019, type: Zcl.DataType.BOOLEAN, write: true},
+                dimmingMode: {name: "dimmingMode", ID: 0x001a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                dimmingAlgorithm: {name: "dimmingAlgorithm", ID: 0x001b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                auxDetectionLevel: {name: "auxDetectionLevel", ID: 0x007c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                nonNeutralAuxMediumGear: {name: "nonNeutralAuxMediumGear", ID: 0x001e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                nonNeutralAuxLowGear: {name: "nonNeutralAuxLowGear", ID: 0x001f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                internalTemperature: {name: "internalTemperature", ID: 0x0020, type: Zcl.DataType.INT8, write: true, max: 0xff},
+                overheat: {name: "overheat", ID: 0x0021, type: Zcl.DataType.BOOLEAN, write: true},
+                otaImageType: {name: "otaImageType", ID: 0x0022, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                buttonDelay: {name: "buttonDelay", ID: 0x0032, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                deviceBindNumber: {name: "deviceBindNumber", ID: 0x0033, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                smartBulbMode: {name: "smartBulbMode", ID: 0x0034, type: Zcl.DataType.BOOLEAN, write: true},
+                doubleTapUpToParam55: {name: "doubleTapUpToParam55", ID: 0x0035, type: Zcl.DataType.BOOLEAN, write: true},
+                doubleTapDownToParam56: {name: "doubleTapDownToParam56", ID: 0x0036, type: Zcl.DataType.BOOLEAN, write: true},
+                brightnessLevelForDoubleTapUp: {name: "brightnessLevelForDoubleTapUp", ID: 0x0037, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                brightnessLevelForDoubleTapDown: {
+                    name: "brightnessLevelForDoubleTapDown",
+                    ID: 0x0038,
+                    type: Zcl.DataType.UINT8,
+                    write: true,
+                    max: 0xff,
+                },
+                defaultLed1ColorWhenOn: {name: "defaultLed1ColorWhenOn", ID: 0x003c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed1ColorWhenOff: {name: "defaultLed1ColorWhenOff", ID: 0x003d, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed1IntensityWhenOn: {name: "defaultLed1IntensityWhenOn", ID: 0x003e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed1IntensityWhenOff: {name: "defaultLed1IntensityWhenOff", ID: 0x003f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed2ColorWhenOn: {name: "defaultLed2ColorWhenOn", ID: 0x0041, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed2ColorWhenOff: {name: "defaultLed2ColorWhenOff", ID: 0x0042, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed2IntensityWhenOn: {name: "defaultLed2IntensityWhenOn", ID: 0x0043, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed2IntensityWhenOff: {name: "defaultLed2IntensityWhenOff", ID: 0x0044, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed3ColorWhenOn: {name: "defaultLed3ColorWhenOn", ID: 0x0046, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed3ColorWhenOff: {name: "defaultLed3ColorWhenOff", ID: 0x0047, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed3IntensityWhenOn: {name: "defaultLed3IntensityWhenOn", ID: 0x0048, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed3IntensityWhenOff: {name: "defaultLed3IntensityWhenOff", ID: 0x0049, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed4ColorWhenOn: {name: "defaultLed4ColorWhenOn", ID: 0x004b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed4ColorWhenOff: {name: "defaultLed4ColorWhenOff", ID: 0x004c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed4IntensityWhenOn: {name: "defaultLed4IntensityWhenOn", ID: 0x004d, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed4IntensityWhenOff: {name: "defaultLed4IntensityWhenOff", ID: 0x004e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed5ColorWhenOn: {name: "defaultLed5ColorWhenOn", ID: 0x0050, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed5ColorWhenOff: {name: "defaultLed5ColorWhenOff", ID: 0x0051, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed5IntensityWhenOn: {name: "defaultLed5IntensityWhenOn", ID: 0x0052, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed5IntensityWhenOff: {name: "defaultLed5IntensityWhenOff", ID: 0x0053, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed6ColorWhenOn: {name: "defaultLed6ColorWhenOn", ID: 0x0055, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed6ColorWhenOff: {name: "defaultLed6ColorWhenOff", ID: 0x0056, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed6IntensityWhenOn: {name: "defaultLed6IntensityWhenOn", ID: 0x0057, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed6IntensityWhenOff: {name: "defaultLed6IntensityWhenOff", ID: 0x0058, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed7ColorWhenOn: {name: "defaultLed7ColorWhenOn", ID: 0x005a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed7ColorWhenOff: {name: "defaultLed7ColorWhenOff", ID: 0x005b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed7IntensityWhenOn: {name: "defaultLed7IntensityWhenOn", ID: 0x005c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                defaultLed7IntensityWhenOff: {name: "defaultLed7IntensityWhenOff", ID: 0x005d, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledColorWhenOn: {name: "ledColorWhenOn", ID: 0x005f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledColorWhenOff: {name: "ledColorWhenOff", ID: 0x060, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledIntensityWhenOn: {name: "ledIntensityWhenOn", ID: 0x0061, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledIntensityWhenOff: {name: "ledIntensityWhenOff", ID: 0x0062, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledBarScaling: {name: "ledBarScaling", ID: 0x0064, type: Zcl.DataType.BOOLEAN, write: true},
+                mmwaveControlWiredDevice: {name: "mmwaveControlWiredDevice", ID: 0x006e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                mmWaveRoomSizePreset: {name: "mmWaveRoomSizePreset", ID: 0x0075, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                singleTapBehavior: {name: "singleTapBehavior", ID: 0x0078, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                fanTimerMode: {name: "fanTimerMode", ID: 0x0079, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                auxSwitchUniqueScenes: {name: "auxSwitchUniqueScenes", ID: 0x007b, type: Zcl.DataType.BOOLEAN, write: true},
+                bindingOffToOnSyncLevel: {name: "bindingOffToOnSyncLevel", ID: 0x007d, type: Zcl.DataType.BOOLEAN, write: true},
+                breezeMode: {name: "breezeMode", ID: 0x0081, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                fanControlMode: {name: "fanControlMode", ID: 0x0082, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                lowLevelForFanControlMode: {name: "lowLevelForFanControlMode", ID: 0x0083, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                mediumLevelForFanControlMode: {name: "mediumLevelForFanControlMode", ID: 0x0084, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                highLevelForFanControlMode: {name: "highLevelForFanControlMode", ID: 0x0085, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                ledColorForFanControlMode: {name: "ledColorForFanControlMode", ID: 0x0086, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                localProtection: {name: "localProtection", ID: 0x0100, type: Zcl.DataType.BOOLEAN, write: true},
+                remoteProtection: {name: "remoteProtection", ID: 0x0101, type: Zcl.DataType.BOOLEAN, write: true},
+                outputMode: {name: "outputMode", ID: 0x0102, type: Zcl.DataType.BOOLEAN, write: true},
+                onOffLedMode: {name: "onOffLedMode", ID: 0x0103, type: Zcl.DataType.BOOLEAN, write: true},
+                firmwareUpdateInProgressIndicator: {name: "firmwareUpdateInProgressIndicator", ID: 0x0104, type: Zcl.DataType.BOOLEAN, write: true},
+                relayClick: {name: "relayClick", ID: 0x105, type: Zcl.DataType.BOOLEAN, write: true},
+                doubleTapClearNotifications: {name: "doubleTapClearNotifications", ID: 0x106, type: Zcl.DataType.BOOLEAN, write: true},
+                fanLedLevelType: {name: "fanLedLevelType", ID: 0x0107, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             },
             commands: {
                 ledEffect: {
+                    name: "ledEffect",
                     ID: 1,
                     parameters: [
                         {name: "effect", type: Zcl.DataType.UINT8, max: 0xff},
@@ -446,10 +469,12 @@ const inovelliExtend = {
                     ],
                 },
                 energyReset: {
+                    name: "energyReset",
                     ID: 2,
                     parameters: [],
                 },
                 individualLedEffect: {
+                    name: "individualLedEffect",
                     ID: 3,
                     parameters: [
                         {name: "led", type: Zcl.DataType.UINT8, max: 0xff},
@@ -460,6 +485,7 @@ const inovelliExtend = {
                     ],
                 },
                 ledEffectComplete: {
+                    name: "ledEffectComplete",
                     ID: 0x24,
                     parameters: [{name: "notificationType", type: Zcl.DataType.INT8, min: -128}],
                 },
@@ -505,42 +531,48 @@ const inovelliExtend = {
         ];
 
         return m.deviceAddCustomCluster(INOVELLI_MMWAVE_CLUSTER_NAME, {
+            name: "manuSpecificInovelliMMWave",
             ID: 64562, // 0xfc32
             manufacturerCode: 0x122f,
             attributes: {
-                mmWaveHoldTime: {ID: 0x0072, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                mmWaveDetectSensitivity: {ID: 0x0070, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                mmWaveDetectTrigger: {ID: 0x0071, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                mmWaveTargetInfoReport: {ID: 0x006b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                mmWaveStayLife: {ID: 0x006c, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                mmWaveVersion: {ID: 0x0073, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                mmWaveHeightMin: {ID: 0x0065, type: Zcl.DataType.INT16, write: true, min: -32768},
-                mmWaveHeightMax: {ID: 0x0066, type: Zcl.DataType.INT16, write: true, min: -32768},
-                mmWaveWidthMin: {ID: 0x0067, type: Zcl.DataType.INT16, write: true, min: -32768},
-                mmWaveWidthMax: {ID: 0x0068, type: Zcl.DataType.INT16, write: true, min: -32768},
-                mmWaveDepthMin: {ID: 0x0069, type: Zcl.DataType.INT16, write: true, min: -32768},
-                mmWaveDepthMax: {ID: 0x006a, type: Zcl.DataType.INT16, write: true, min: -32768},
+                mmWaveHoldTime: {name: "mmWaveHoldTime", ID: 0x0072, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                mmWaveDetectSensitivity: {name: "mmWaveDetectSensitivity", ID: 0x0070, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                mmWaveDetectTrigger: {name: "mmWaveDetectTrigger", ID: 0x0071, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                mmWaveTargetInfoReport: {name: "mmWaveTargetInfoReport", ID: 0x006b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                mmWaveStayLife: {name: "mmWaveStayLife", ID: 0x006c, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                mmWaveVersion: {name: "mmWaveVersion", ID: 0x0073, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                mmWaveHeightMin: {name: "mmWaveHeightMin", ID: 0x0065, type: Zcl.DataType.INT16, write: true, min: -32768},
+                mmWaveHeightMax: {name: "mmWaveHeightMax", ID: 0x0066, type: Zcl.DataType.INT16, write: true, min: -32768},
+                mmWaveWidthMin: {name: "mmWaveWidthMin", ID: 0x0067, type: Zcl.DataType.INT16, write: true, min: -32768},
+                mmWaveWidthMax: {name: "mmWaveWidthMax", ID: 0x0068, type: Zcl.DataType.INT16, write: true, min: -32768},
+                mmWaveDepthMin: {name: "mmWaveDepthMin", ID: 0x0069, type: Zcl.DataType.INT16, write: true, min: -32768},
+                mmWaveDepthMax: {name: "mmWaveDepthMax", ID: 0x006a, type: Zcl.DataType.INT16, write: true, min: -32768},
             },
             commands: {
                 mmWaveControl: {
+                    name: "mmWaveControl",
                     ID: 0,
                     parameters: [{name: "controlID", type: Zcl.DataType.UINT8, max: 0xff}],
                 },
                 setInterferenceArea: {
+                    name: "setInterferenceArea",
                     ID: 1,
                     parameters: mmWaveCommandAreaParameters,
                 },
                 setDetectionArea: {
+                    name: "setDetectionArea",
                     ID: 2,
                     parameters: mmWaveCommandAreaParameters,
                 },
                 setStayArea: {
+                    name: "setStayArea",
                     ID: 3,
                     parameters: mmWaveCommandAreaParameters,
                 },
             },
             commandsResponse: {
                 anyoneInReportingArea: {
+                    name: "anyoneInReportingArea",
                     ID: 0,
                     parameters: [
                         {name: "area1", type: Zcl.DataType.UINT8},
@@ -549,15 +581,26 @@ const inovelliExtend = {
                         {name: "area4", type: Zcl.DataType.UINT8},
                     ],
                 },
+                reportTargetInfo: {
+                    name: "reportTargetInfo",
+                    ID: 1,
+                    parameters: [
+                        {name: "targetNum", type: Zcl.DataType.UINT8},
+                        {name: "targets", type: BuffaloZclDataType.BUFFER},
+                    ],
+                },
                 reportInterferenceArea: {
+                    name: "reportInterferenceArea",
                     ID: 2,
                     parameters: mmWaveCommandResponseAreaParameters,
                 },
                 reportDetectionArea: {
+                    name: "reportDetectionArea",
                     ID: 3,
                     parameters: mmWaveCommandResponseAreaParameters,
                 },
                 reportStayArea: {
+                    name: "reportStayArea",
                     ID: 4,
                     parameters: mmWaveCommandResponseAreaParameters,
                 },
@@ -716,14 +759,21 @@ const inovelliExtend = {
         ];
 
         return {
-            fromZigbee: [fzLocal.anyone_in_reporting_area, fzLocal.report_areas],
+            fromZigbee: [fzLocal.anyone_in_reporting_area, fzLocal.report_areas, fzLocal.report_target_info],
             toZigbee: [
                 tzLocal.inovelli_mmwave_control_commands,
                 tzLocal.mmwave_detection_areas,
                 tzLocal.mmwave_interference_areas,
                 tzLocal.mmwave_stay_areas,
             ],
-            exposes: [exposeMMWaveControl(), ...exposeMMWaveAreas(), exposeInterferenceAreas(), exposeDetectionAreas(), exposeStayAreas()],
+            exposes: [
+                exposeMMWaveControl(),
+                ...exposeMMWaveAreas(),
+                exposeInterferenceAreas(),
+                exposeDetectionAreas(),
+                exposeStayAreas(),
+                exposeMMWaveTargets(),
+            ],
             configure: configure,
             isModernExtend: true,
         } as ModernExtend;
@@ -1672,6 +1722,27 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
         values: {"Disabled (Click Sound On)": 0, "Enabled (Click Sound Off)": 1},
         displayType: "enum",
     },
+    dimmingAlgorithm: {
+        ID: 27,
+        dataType: Zcl.DataType.UINT8,
+        displayType: "enum",
+        values: {"Old dimming algorithm (v2.18)": 0, "New dimming algorithm (v3.04)": 1},
+        min: 0,
+        max: 1,
+        description:
+            "Switches the dimming algorithm from old to new. When switching the algorithm, the switch will restart. " +
+            "Some non-neutral setups may not support the new algorithm, in which case you can use the old algorithm." +
+            "0 = old dimming algorithm (v2.18), 1 = new dimming algorithm (v3.04+) (default).",
+    },
+    auxDetectionLevel: {
+        ID: 124,
+        dataType: Zcl.DataType.UINT8,
+        min: 0,
+        max: 4,
+        description:
+            "Aux detection level (P124). Range: 0-4, default: 1. " +
+            "If you are having issues with the aux function, start setting from 0 and continue until the aux function operates normally.",
+    },
 };
 
 const VZM32_ATTRIBUTES: {[s: string]: Attribute} = {
@@ -2577,6 +2648,22 @@ const fzLocal = {
             return {notificationComplete: "Unknown"};
         },
     } satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["commandLedEffectComplete"]>,
+    report_target_info: {
+        cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
+        type: ["commandReportTargetInfo"],
+        convert: (model, msg, publish, options, meta) => {
+            const targets: Array<{id: number; x: number; y: number; z: number; dop: number}> = [];
+            for (let i = 0; i < msg.data.targetNum; i++) {
+                const x = msg.data.targets.readInt16LE(i * 9);
+                const y = msg.data.targets.readInt16LE(i * 9 + 2);
+                const z = msg.data.targets.readInt16LE(i * 9 + 4);
+                const dop = msg.data.targets.readInt16LE(i * 9 + 6);
+                const id = msg.data.targets.readUInt8(i * 9 + 8);
+                targets.push({id, x, y, z, dop});
+            }
+            return {mmwave_targets: targets};
+        },
+    } satisfies Fz.Converter<typeof INOVELLI_MMWAVE_CLUSTER_NAME, InovelliMmWave, ["commandReportTargetInfo"]>,
     report_areas: {
         cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
         type: ["commandReportInterferenceArea", "commandReportDetectionArea", "commandReportStayArea"],
@@ -2808,6 +2895,23 @@ const exposeStayAreas = () => {
         .withFeature(createAreaComposite("area_3", "area3"))
         .withFeature(createAreaComposite("area_4", "area4"))
         .withCategory("config");
+};
+
+const exposeMMWaveTargets = () => {
+    const targetComposite = e
+        .composite("target", "target", ea.STATE)
+        .withFeature(e.numeric("id", ea.STATE).withValueMin(0).withValueMax(255).withDescription("Target ID"))
+        .withFeature(e.numeric("x", ea.STATE).withUnit("cm").withDescription("X-axis coordinate of the target in centimeters"))
+        .withFeature(e.numeric("y", ea.STATE).withUnit("cm").withDescription("Y-axis coordinate of the target in centimeters"))
+        .withFeature(e.numeric("z", ea.STATE).withUnit("cm").withDescription("Z-axis coordinate of the target in centimeters"))
+        .withFeature(e.numeric("dop", ea.STATE).withDescription("Doppler shift speed of the target"));
+
+    return e
+        .list("mmwave_targets", ea.STATE, targetComposite)
+        .withLengthMin(0)
+        .withLengthMax(4)
+        .withDescription("All of the detected mmWave targets")
+        .withCategory("diagnostic");
 };
 
 const BUTTON_TAP_SEQUENCES = [

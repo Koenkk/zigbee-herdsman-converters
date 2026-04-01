@@ -181,7 +181,7 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message<any, any,
         meta = {device: null};
     }
 
-    if (definition.meta?.multiEndpoint && (!definition.meta.multiEndpointSkip || !definition.meta.multiEndpointSkip.includes(value))) {
+    if (definition.meta?.multiEndpoint && !definition.meta.multiEndpointSkip?.includes(value)) {
         const endpointName = definition.endpoint !== undefined ? getKey(definition.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
 
         // NOTE: endpointName can be undefined if we have a definition.endpoint and the endpoint is
@@ -624,11 +624,11 @@ export function toNumber(value: unknown, property?: string): number {
 export const ignoreUnsupportedAttribute = async (func: () => Promise<void>, failMessage: string) => {
     try {
         await func();
-    } catch (e) {
-        if ((e as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+    } catch (error) {
+        if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
             logger.debug(`Ignoring unsupported attribute error: ${failMessage}`, NS);
         } else {
-            throw e;
+            throw error;
         }
     }
 };

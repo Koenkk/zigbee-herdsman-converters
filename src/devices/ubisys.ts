@@ -152,7 +152,7 @@ const ubisys = {
                 const modeCalibrationBitMask = 0x02;
                 if (mode & modeCalibrationBitMask) {
                     await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
-                        ubisysWindowCoveringMode: mode & ~modeCalibrationBitMask,
+                        windowCoveringMode: mode & ~modeCalibrationBitMask,
                     });
                     await sleepSeconds(2);
                 }
@@ -160,7 +160,7 @@ const ubisys = {
                 await writeAttrFromJson("ubisysWindowCoveringType", undefined, undefined, 2);
                 await writeAttrFromJson("ubisysConfigStatus", undefined, undefined, 2);
                 // @ts-expect-error ignore
-                if (await writeAttrFromJson("ubisysWindowCoveringMode", undefined, undefined, 2)) {
+                if (await writeAttrFromJson("windowCoveringMode", undefined, undefined, 2)) {
                     mode = value.windowCoveringMode;
                 }
                 if (hasCalibrate) {
@@ -188,7 +188,7 @@ const ubisys = {
                     // enable calibration mode
                     await sleepSeconds(2);
                     await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
-                        ubisysWindowCoveringMode: mode | modeCalibrationBitMask,
+                        windowCoveringMode: mode | modeCalibrationBitMask,
                     });
                     await sleepSeconds(2);
                     // move down a bit and back up to detect upper limit
@@ -238,7 +238,7 @@ const ubisys = {
                     // disable calibration mode again
                     await sleepSeconds(2);
                     await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
-                        ubisysWindowCoveringMode: mode & ~modeCalibrationBitMask,
+                        windowCoveringMode: mode & ~modeCalibrationBitMask,
                     });
                     await sleepSeconds(2);
                     // re-read and dump all relevant attributes
@@ -357,9 +357,10 @@ const ubisys = {
             key: ["configure_device_setup"],
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const devMgmtEp = meta.device.getEndpoint(232);
-                const cluster = Zcl.Utils.getCluster("manuSpecificUbisysDeviceSetup", null, meta.device.customClusters);
-                const attributeInputConfigurations = cluster.getAttribute("inputConfigurations");
-                const attributeInputActions = cluster.getAttribute("inputActions");
+                const customCluster = meta.device.customClusters["manuSpecificUbisysDeviceSetup"];
+                assert(customCluster);
+                const attributeInputConfigurations = customCluster.attributes.inputConfigurations;
+                const attributeInputActions = customCluster.attributes.inputActions;
                 assert(attributeInputConfigurations && attributeInputActions);
 
                 // ubisys switched to writeStructure a while ago, change log only goes back to 1.9.x

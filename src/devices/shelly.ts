@@ -28,6 +28,33 @@ interface ShellyRPC {
     commandResponses: never;
 }
 
+interface ShellyWS90Wind {
+    attributes: {
+        windSpeed: number;
+        windDirection: number;
+        gustSpeed: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ShellyWS90UV {
+    attributes: {
+        uvIndex: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ShellyWS90Rain {
+    attributes: {
+        rainStatus: number;
+        precipitation: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface ShellyTRVManualMode {
     attributes: {
         manualMode: number;
@@ -141,10 +168,10 @@ function calculateRainRate(meta: WS90Meta, precipitation: number | undefined): n
     const timeDeltaMs = now - history.time;
     const precipDelta = precipitation - history.value;
 
-    meta.precipHistory = {value: precipitation, time: now};
-
-    if (timeDeltaMs < 30000) return null;
+    if (timeDeltaMs < 60000) return null;
     if (precipDelta < 0) return 0;
+
+    meta.precipHistory = {value: precipitation, time: now};
 
     const timeDeltaHours = timeDeltaMs / (1000 * 60 * 60);
     const rate = precipDelta / timeDeltaHours;
@@ -169,9 +196,9 @@ function calculatePressureTrend(meta: WS90Meta, pressure: number | undefined): n
     const timeDeltaMs = now - history.time;
     const pressureDelta = pressure - history.value;
 
-    meta.pressureHistory = {value: pressure, time: now};
+    if (timeDeltaMs < 1800000) return null;
 
-    if (timeDeltaMs < 300000) return null;
+    meta.pressureHistory = {value: pressure, time: now};
 
     const timeDeltaHours = timeDeltaMs / (1000 * 60 * 60);
     const rate = pressureDelta / timeDeltaHours;
@@ -266,6 +293,8 @@ function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: 
         if (trend !== null) {
             result.pressure_trend = trend;
             state.pressure_trend = trend;
+        } else if (typeof state.pressure_trend === "number") {
+            result.pressure_trend = state.pressure_trend;
         }
     }
 
@@ -287,9 +316,10 @@ const shellyModernExtend = {
         // Shelly Gen4 devices report haElectricalMeasurement.powerFactor (0x0510) as INT16 (0x29)
         // while zigbee-herdsman defines it as INT8 (0x28). This breaks configureReporting (INVALID_DATA_TYPE).
         return m.deviceAddCustomCluster("haElectricalMeasurement", {
+            name: "haElectricalMeasurement",
             ID: HA_ELECTRICAL_MEASUREMENT_CLUSTER_ID,
             attributes: {
-                powerFactor: {ID: HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID, type: Zcl.DataType.INT16},
+                powerFactor: {name: "powerFactor", ID: HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID, type: Zcl.DataType.INT16},
             },
             commands: {},
             commandsResponse: {},
@@ -298,31 +328,33 @@ const shellyModernExtend = {
     shellyCustomClusters(): ModernExtend[] {
         return [
             m.deviceAddCustomCluster("shellyRPCCluster", {
+                name: "shellyRPCCluster",
                 ID: 0xfc01,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    data: {ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
-                    txCtl: {ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                    rxCtl: {ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    data: {name: "data", ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
+                    txCtl: {name: "txCtl", ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    rxCtl: {name: "rxCtl", ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
             m.deviceAddCustomCluster("shellyWiFiSetupCluster", {
+                name: "shellyWiFiSetupCluster",
                 ID: 0xfc02,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    status: {ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
-                    ip: {ID: 0x0001, type: Zcl.DataType.CHAR_STR, write: true},
-                    actionCode: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    dhcp: {ID: 0x0003, type: Zcl.DataType.BOOLEAN, write: true},
-                    enabled: {ID: 0x0004, type: Zcl.DataType.BOOLEAN, write: true},
-                    ssid: {ID: 0x0005, type: Zcl.DataType.CHAR_STR, write: true},
-                    password: {ID: 0x0006, type: Zcl.DataType.CHAR_STR, write: true},
-                    staticIp: {ID: 0x0007, type: Zcl.DataType.CHAR_STR, write: true},
-                    netMask: {ID: 0x0008, type: Zcl.DataType.CHAR_STR, write: true},
-                    gateway: {ID: 0x0009, type: Zcl.DataType.CHAR_STR, write: true},
-                    nameServer: {ID: 0x000a, type: Zcl.DataType.CHAR_STR, write: true},
+                    status: {name: "status", ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
+                    ip: {name: "ip", ID: 0x0001, type: Zcl.DataType.CHAR_STR, write: true},
+                    actionCode: {name: "actionCode", ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    dhcp: {name: "dhcp", ID: 0x0003, type: Zcl.DataType.BOOLEAN, write: true},
+                    enabled: {name: "enabled", ID: 0x0004, type: Zcl.DataType.BOOLEAN, write: true},
+                    ssid: {name: "ssid", ID: 0x0005, type: Zcl.DataType.CHAR_STR, write: true},
+                    password: {name: "password", ID: 0x0006, type: Zcl.DataType.CHAR_STR, write: true},
+                    staticIp: {name: "staticIp", ID: 0x0007, type: Zcl.DataType.CHAR_STR, write: true},
+                    netMask: {name: "netMask", ID: 0x0008, type: Zcl.DataType.CHAR_STR, write: true},
+                    gateway: {name: "gateway", ID: 0x0009, type: Zcl.DataType.CHAR_STR, write: true},
+                    nameServer: {name: "nameServer", ID: 0x000a, type: Zcl.DataType.CHAR_STR, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -763,10 +795,7 @@ const shellyModernExtend = {
     ws90CalculatedValues(): ModernExtend {
         const exposes: Expose[] = [
             // Calculated values only
-            e
-                .numeric("dew_point", ea.STATE)
-                .withUnit("°C")
-                .withDescription("Calculated dew point temperature"),
+            e.numeric("dew_point", ea.STATE).withUnit("°C").withDescription("Calculated dew point temperature"),
             e.numeric("wind_chill", ea.STATE).withUnit("°C").withDescription("Calculated wind chill temperature"),
             e.numeric("humidex", ea.STATE).withUnit("°C").withDescription("Calculated humidex (feels-like for warm conditions)"),
             e.numeric("apparent_temperature", ea.STATE).withUnit("°C").withDescription("Calculated apparent temperature"),
@@ -828,10 +857,10 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    if (data.uv_index !== undefined) {
-                        const uv_index = (data.uv_index as number) / 10;
+                    if (data.uvIndex !== undefined) {
+                        const uv_index = (data.uvIndex as number) / 10;
                         const calculated = updateWS90CalculatedValues(msg.device, {uv_index});
-                        return calculated; // Only return calculated values, m.numeric() handles uv_index
+                        return calculated;
                     }
                 },
             },
@@ -841,11 +870,11 @@ const shellyModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
                     const payload: {[key: string]: number} = {};
-                    if (data.wind_speed !== undefined) payload.wind_speed = (data.wind_speed as number) / 10;
-                    if (data.wind_direction !== undefined) payload.wind_direction = (data.wind_direction as number) / 10;
-                    if (data.gust_speed !== undefined) payload.gust_speed = (data.gust_speed as number) / 10;
+                    if (data.windSpeed !== undefined) payload.wind_speed = (data.windSpeed as number) / 10;
+                    if (data.windDirection !== undefined) payload.wind_direction = (data.windDirection as number) / 10;
+                    if (data.gustSpeed !== undefined) payload.gust_speed = (data.gustSpeed as number) / 10;
                     const calculated = updateWS90CalculatedValues(msg.device, payload);
-                    return calculated; // Only calculated values; m.numeric() handles base wind values
+                    return calculated;
                 },
             },
             {
@@ -854,7 +883,7 @@ const shellyModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
                     const payload: {[key: string]: number | boolean} = {};
-                    if (data.rain_status !== undefined) payload.rain_status = Boolean(data.rain_status);
+                    if (data.rainStatus !== undefined) payload.rain_status = Boolean(data.rainStatus);
                     if (data.precipitation !== undefined) {
                         payload.precipitation = (data.precipitation as number) / 10;
                     }
@@ -895,19 +924,32 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["commandToggle"]>,
 
+    one_button_scene_events: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}`, {"1": "single_long", "2": "double_long", "3": "triple_long"});
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
+
     four_buttons_single_events: {
         cluster: "genOnOff",
-        type: ["commandOn", "commandOff"],
+        type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.type}`, {
                 "1_commandOn": "1_single",
                 "1_commandOff": "2_single",
                 "2_commandOn": "3_single",
                 "2_commandOff": "4_single",
+                "1_commandToggle": "1_single",
+                "2_commandToggle": "2_single",
+                "3_commandToggle": "3_single",
+                "4_commandToggle": "4_single",
             });
             return {action: event};
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 
     four_buttons_hold_events: {
         cluster: "genLevelCtrl",
@@ -922,6 +964,40 @@ const fzLocal = {
             return {action: event};
         },
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandStep"]>,
+
+    four_buttons_scene_events: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
+                "1_1": "1_double",
+                "2_1": "2_double",
+                "3_1": "3_double",
+                "4_1": "4_double",
+
+                "1_2": "1_triple",
+                "2_2": "2_triple",
+                "3_2": "3_triple",
+                "4_2": "4_triple",
+
+                "1_11": "1_single_long",
+                "2_11": "2_single_long",
+                "3_11": "3_single_long",
+                "4_11": "4_single_long",
+
+                "1_12": "1_double_long",
+                "2_12": "2_double_long",
+                "3_12": "3_double_long",
+                "4_12": "4_double_long",
+
+                "1_13": "1_triple_long",
+                "2_13": "2_triple_long",
+                "3_13": "3_triple_long",
+                "4_13": "4_triple_long",
+            });
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
 };
 
 // =============================================================================
@@ -1077,20 +1153,21 @@ export const definitions: DefinitionWithExtend[] = [
             m.pressure(),
             m.humidity(),
             m.deviceAddCustomCluster("shellyWS90Wind", {
+                name: "shellyWS90Wind",
                 ID: 0xfc01,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    wind_speed: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                    wind_direction: {ID: 0x0004, type: Zcl.DataType.UINT16},
-                    gust_speed: {ID: 0x0007, type: Zcl.DataType.UINT16},
+                    windSpeed: {name: "windSpeed", ID: 0x0000, type: Zcl.DataType.UINT16},
+                    windDirection: {name: "windDirection", ID: 0x0004, type: Zcl.DataType.UINT16},
+                    gustSpeed: {name: "gustSpeed", ID: 0x0007, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
-            m.numeric({
+            m.numeric<"shellyWS90Wind", ShellyWS90Wind>({
                 name: "wind_speed",
                 cluster: "shellyWS90Wind",
-                attribute: {ID: 0x0000, type: Zcl.DataType.UINT16},
+                attribute: "windSpeed",
                 valueMin: 0,
                 valueMax: 140,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -1099,10 +1176,10 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "m/s",
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"shellyWS90Wind", ShellyWS90Wind>({
                 name: "wind_direction",
                 cluster: "shellyWS90Wind",
-                attribute: {ID: 0x0004, type: Zcl.DataType.UINT16},
+                attribute: "windDirection",
                 valueMin: 0,
                 valueMax: 360,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -1111,10 +1188,10 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "°",
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"shellyWS90Wind", ShellyWS90Wind>({
                 name: "gust_speed",
                 cluster: "shellyWS90Wind",
-                attribute: {ID: 0x0007, type: Zcl.DataType.UINT16},
+                attribute: "gustSpeed",
                 valueMin: 0,
                 valueMax: 140,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -1124,18 +1201,19 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             m.deviceAddCustomCluster("shellyWS90UV", {
+                name: "shellyWS90UV",
                 ID: 0xfc02,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    uv_index: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                    uvIndex: {name: "uvIndex", ID: 0x0000, type: Zcl.DataType.UINT8},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
-            m.numeric({
+            m.numeric<"shellyWS90UV", ShellyWS90UV>({
                 name: "uv_index",
                 cluster: "shellyWS90UV",
-                attribute: {ID: 0x0000, type: Zcl.DataType.UINT8},
+                attribute: "uvIndex",
                 valueMin: 0,
                 valueMax: 11,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -1144,29 +1222,30 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             m.deviceAddCustomCluster("shellyWS90Rain", {
+                name: "shellyWS90Rain",
                 ID: 0xfc03,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    rain_status: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
-                    precipitation: {ID: 0x0001, type: Zcl.DataType.UINT24},
+                    rainStatus: {name: "rainStatus", ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+                    precipitation: {name: "precipitation", ID: 0x0001, type: Zcl.DataType.UINT24},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
-            m.binary({
+            m.binary<"shellyWS90Rain", ShellyWS90Rain>({
                 name: "rain_status",
                 cluster: "shellyWS90Rain",
-                attribute: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+                attribute: "rainStatus",
                 valueOn: [true, 1],
                 valueOff: [false, 0],
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "Rain status",
                 access: "STATE_GET",
             }),
-            m.numeric({
+            m.numeric<"shellyWS90Rain", ShellyWS90Rain>({
                 name: "precipitation",
                 cluster: "shellyWS90Rain",
-                attribute: {ID: 0x0001, type: Zcl.DataType.UINT24},
+                attribute: "precipitation",
                 valueMin: 0,
                 valueMax: 100000,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -1229,28 +1308,68 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBBT-102C",
         vendor: "Shelly",
         description: "BLU Button Tough 1 ZB",
-        fromZigbee: [fzLocal.one_button_events],
-        exposes: [e.action(["single", "double", "triple"])],
+        fromZigbee: [fzLocal.one_button_events, fzLocal.one_button_scene_events],
+        exposes: [e.action(["single", "double", "triple", "single_long", "double_long", "triple_long"])],
         extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}), m.identify()],
+        version: "0.0.2",
+        configure: async (device, coordinatorEndpoint, definition) => {
+            for (const endpoint of device.endpoints) {
+                await endpoint.bind("genOnOff", coordinatorEndpoint);
+                await endpoint.bind("genScenes", coordinatorEndpoint);
+            }
+        },
     },
     {
         fingerprint: [{modelID: "BLU RC Button 4 ZB", manufacturerName: "Shelly"}],
         model: "SBBT-104CUS",
         vendor: "Shelly",
         description: "BLU RC Button 4 ZB",
-        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events],
-        exposes: [e.action(["1_single", "2_single", "3_single", "4_single", "1_hold", "2_hold", "3_hold", "4_hold"])],
+        whiteLabel: [
+            {vendor: "Shelly", model: "SBBT-004CEU", fingerprint: [{modelID: "SBBT-004CEU"}], description: "BLU Wall Switch 4 ZB"},
+            {vendor: "Shelly", model: "SBBT-104CEU", fingerprint: [{modelID: "SBBT-104CEU"}], description: "BLU Wall Switch 4 ZB DK"},
+        ],
+        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events, fzLocal.four_buttons_scene_events],
+        exposes: [
+            e.action([
+                "1_single",
+                "2_single",
+                "3_single",
+                "4_single",
+                "1_double",
+                "2_double",
+                "3_double",
+                "4_double",
+                "1_triple",
+                "2_triple",
+                "3_triple",
+                "4_triple",
+                "1_single_long",
+                "2_single_long",
+                "3_single_long",
+                "4_single_long",
+                "1_double_long",
+                "2_double_long",
+                "3_double_long",
+                "4_double_long",
+                "1_triple_long",
+                "2_triple_long",
+                "3_triple_long",
+                "4_triple_long",
+                "1_hold",
+                "2_hold",
+                "3_hold",
+                "4_hold",
+            ]),
+        ],
         extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
-    },
-    {
-        zigbeeModel: ["BLU Wall Switch 4 ZB"],
-        model: "SBBT-004CEU",
-        vendor: "Shelly",
-        description: "BLU Wall Switch 4 ZB",
-        whiteLabel: [{vendor: "Shelly", model: "SBBT-104CEU", description: "BLU Wall Switch 4 ZB DK"}],
-        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events],
-        exposes: [e.action(["1_single", "2_single", "3_single", "4_single", "1_hold", "2_hold", "3_hold", "4_hold"])],
-        extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
+        version: "0.0.2",
+        configure: async (device, coordinatorEndpoint, definition) => {
+            for (const endpoint of device.endpoints) {
+                await endpoint.bind("genOnOff", coordinatorEndpoint);
+                await endpoint.bind("genLevelCtrl", coordinatorEndpoint);
+                await endpoint.bind("genScenes", coordinatorEndpoint);
+            }
+        },
     },
     {
         zigbeeModel: ["BLU TRV"],
@@ -1307,14 +1426,15 @@ export const definitions: DefinitionWithExtend[] = [
                 piHeatingDemand: {values: true},
             }),
             m.deviceAddCustomCluster("shellyTRVManualMode", {
+                name: "shellyTRVManualMode",
                 ID: 0xfc24,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    manualMode: {ID: 0x0000, type: Zcl.DataType.UINT8},
-                    position: {ID: 0x0001, type: Zcl.DataType.UINT8},
+                    manualMode: {name: "manualMode", ID: 0x0000, type: Zcl.DataType.UINT8},
+                    position: {name: "position", ID: 0x0001, type: Zcl.DataType.UINT8},
                 },
                 commands: {
-                    calibrate: {ID: 0x0000, parameters: []},
+                    calibrate: {name: "calibrate", ID: 0x0000, parameters: []},
                 },
                 commandsResponse: {},
             }),
