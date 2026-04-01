@@ -7,6 +7,10 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
+
+const NAS_PS10B2_PRESENCE_TIME_MIN = 3; // seconds, per device spec
+const NAS_PS10B2_PRESENCE_TIME_MAX = 600; // seconds, per device spec
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -139,71 +143,102 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_rzrrjkz2", "_TZE204_uab532m0", "_TZE204_z7a2jmyy"]),
-        zigbeeModel: ["NAS-WV03B"],
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE204_rzrrjkz2",
+            "_TZE284_rzrrjkz2",
+            "_TZE204_uab532m0",
+            "_TZE284_uab532m0",
+            "_TZE204_nnhwcvbk",
+            "_TZE284_nnhwcvbk",
+            "_TZE204_z7a2jmyy",
+            "_TZE284_z7a2jmyy",
+        ]),
         model: "NAS-WV03B",
         vendor: "NEO",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
-        description: "Smart sprinkler timer",
-        exposes: [
-            e.switch(),
-            e.enum("status", ea.STATE, ["off", "auto", "disabled"]).withDescription("Status"),
-            e.numeric("countdown", ea.STATE_SET).withUnit("min").withValueMin(1).withValueMax(240).withDescription("Countdown"),
-            e.numeric("countdown_left", ea.STATE).withUnit("min").withValueMin(1).withValueMax(240).withDescription("Countdown left"),
-            e
-                .numeric("water_current", ea.STATE)
-                .withUnit("L/min")
-                .withValueMin(0)
-                .withValueMax(3785.41)
-                .withValueStep(0.001)
-                .withDescription("Current water flow (L/min)"),
-            e.numeric("battery_percentage", ea.STATE).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Battery percentage"),
-            e
-                .numeric("water_total", ea.STATE)
-                .withUnit("L")
-                .withValueMin(0)
-                .withValueMax(378541.0)
-                .withValueStep(0.001)
-                .withDescription("Total water flow (L)"),
-            e.binary("fault", ea.STATE, "DETECTED", "NOT_DETECTED").withDescription("Fault status"),
-            e.enum("weather_delay", ea.STATE_SET, ["24h", "48h", "72h", "cancel"]).withDescription("Weather delay"),
-            e.text("normal_timer", ea.STATE_SET).withDescription("Normal timer"),
-            e.binary("switch_enabled", ea.STATE_SET, "ON", "OFF").withDescription("Switch enabled"),
-            e.numeric("smart_irrigation", ea.STATE).withDescription("Smart irrigation"),
-            e.binary("total_flow_reset_switch", ea.STATE_SET, "ON", "OFF").withDescription("Total flow reset switch"),
-            e
-                .numeric("quantitative_watering", ea.STATE_SET)
-                .withUnit("L")
-                .withValueMin(0)
-                .withValueMax(10000)
-                .withDescription("Quantitative watering"),
-            e.binary("flow_switch", ea.STATE_SET, "ON", "OFF").withDescription("Flow switch"),
-            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
-            e.numeric("surplus_flow", ea.STATE).withDescription("Surplus flow"),
-            e.numeric("single_watering_duration", ea.STATE).withDescription("Single watering duration"),
-            e.numeric("single_watering_amount", ea.STATE).withDescription("Single watering amount"),
+        description: "Smart sprinkler timer with measurements",
+        whiteLabel: [
+            tuya.whitelabel("Nous", "L14", "Smart water valve", ["_TZE204_nnhwcvbk", "_TZE284_nnhwcvbk"]),
+            tuya.whitelabel("NEO", "NAS-WV05B2", "Smart sprinkler timer", ["_TZE284_rzrrjkz2", "_TZE284_uab532m0"]),
+            tuya.whitelabel("NEO", "NAS-WV05B2-L", "Smart sprinkler timer", ["_TZE284_z7a2jmyy"]),
+        ],
+        exposes: (device, options) => [
+            te.switch(),
+            te.status_sprinkler(),
+            te.refresh(),
+            te.countdown_min(),
+            te.on_with_countdown(),
+            te.countdown_left(),
+            te.single_watering_duration(),
+            te.flow_switch(),
+            ...(!device || ["_TZE204_z7a2jmyy", "_TZE284_z7a2jmyy"].includes(device.manufacturerName)
+                ? [
+                      te.quantitative_watering(), // liters
+                      te.single_watering_amount(),
+                      te.surplus_flow(),
+                      te.water_current(),
+                      te.water_total(),
+                  ]
+                : [
+                      te.quantitative_watering().withUnit("gal"),
+                      te.single_watering_amount().withUnit("gal"),
+                      te.surplus_flow().withUnit("gal"),
+                      te.water_current().withUnit("gal/min"),
+                      te.water_total().withUnit("gal"),
+                  ]),
+            te.water_total_reset(),
+            // e.text("normal_timer", ea.STATE_SET).withDescription("Schedule the sprinkler: time and weekdays"),
+            // e.enum("weather_delay", ea.STATE_SET, ["24h", "48h", "72h", "cancel"]).withDescription("Unknown"),
+            // e.binary("weather_switch", ea.STATE_SET, "ON", "OFF").withDescription("Unknown"),
+            // e.binary("smart_irrigation", ea.STATE_SET, "ON", "OFF").withDescription("Unknown"),
+            // e.binary("quantitative_water_linkage", ea.STATE_SET, "ON", "OFF").withDescription("Unknown"),
+            te.fault(),
+            e.child_lock(),
+            e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],
-                [3, "status", tuya.valueConverter.onOff],
-                [5, "countdown", tuya.valueConverter.raw],
+                [
+                    3,
+                    "status",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on_auto: tuya.enum(1),
+                        button_locked: tuya.enum(2),
+                        on_manual_app: tuya.enum(3),
+                        on_manual_button: tuya.enum(4),
+                    }),
+                ],
+                [5, "countdown", tuya.valueConverter.raw], // (time)
                 [6, "countdown_left", tuya.valueConverter.raw],
-                [9, "water_current", tuya.valueConverter.raw],
-                [11, "battery_percentage", tuya.valueConverter.batteryState],
-                [15, "water_total", tuya.valueConverter.raw],
-                [19, "fault", tuya.valueConverter.raw],
-                [37, "weather_delay", tuya.valueConverter.raw],
-                [38, "normal_timer", tuya.valueConverter.raw],
-                [42, "switch_enabled", tuya.valueConverter.onOff],
-                [47, "smart_irrigation", tuya.valueConverter.raw],
-                [101, "total_flow_reset_switch", tuya.valueConverter.onOff],
+                [9, "water_current", tuya.valueConverter.divideBy1000],
+                [11, "battery", tuya.valueConverter.raw], // (battery_percentage)
+                [15, "water_total", tuya.valueConverter.divideBy1000],
+                [19, "fault", tuya.valueConverter.fault],
+                [
+                    37,
+                    "weather_delay",
+                    tuya.valueConverterBasic.lookup({
+                        "24h": tuya.enum(0),
+                        "48h": tuya.enum(1),
+                        "72h": tuya.enum(2),
+                        cancel: tuya.enum(3),
+                    }),
+                ],
+                [38, "normal_timer", tuya.valueConverter.raw], // string needs reverse-engineering
+                [42, "weather_switch", tuya.valueConverter.onOff], // (switch)
+                [47, "smart_irrigation", tuya.valueConverter.onOff], // (switch_enabled)
+                [101, "water_total_reset", tuya.valueConverterBasic.lookup({reset: true, idle: false})], // (total_flow_reset_switch)
                 [102, "quantitative_watering", tuya.valueConverter.raw],
-                [103, "flow_switch", tuya.valueConverter.onOff],
-                [104, "child_lock", tuya.valueConverter.onOff],
+                [103, "flow_switch", tuya.valueConverter.onOff], // (current_switch)
+                [104, "child_lock", tuya.valueConverter.lockUnlock],
                 [105, "surplus_flow", tuya.valueConverter.raw],
-                [106, "single_watering_duration", tuya.valueConverter.raw],
+                [106, "single_watering_duration", tuya.valueConverter.raw], // (single_watering_time)
+                [107, "refresh", tuya.valueConverter.refresh], // (ui_refresh)
                 [108, "single_watering_amount", tuya.valueConverter.raw],
+                [109, "on_with_countdown", tuya.valueConverter.raw], // (valve_opening_time)
+                [110, "quantitative_water_linkage", tuya.valueConverter.onOff],
             ],
         },
     },
@@ -214,11 +249,20 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart sprinkler timer",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
-            e.switch(),
-            e.enum("status", ea.STATE, ["off", "auto", "disabled", "app_manual", "key_control"]).withDescription("Status"),
-            e.numeric("countdown", ea.STATE_SET).withUnit("min").withValueMin(1).withValueMax(60).withDescription("Count down"),
-            e.numeric("countdown_left", ea.STATE).withUnit("min").withValueMin(1).withValueMax(60).withDescription("Countdown left time"),
-            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
+            te.switch(),
+            te.status_sprinkler(),
+            te.refresh(),
+            te.countdown_min(),
+            te.on_with_countdown(),
+            te.countdown_left(),
+            te.single_watering_duration(),
+            // e.text("normal_timer", ea.STATE_SET).withDescription("Schedule the sprinkler: time and weekdays"),
+            // e.enum("weather_delay", ea.STATE_SET, ["24h", "48h", "72h", "cancel"]).withDescription("Unknown"),
+            // e.binary("weather_switch", ea.STATE_SET, "ON", "OFF").withDescription("Unknown"),
+            // e.binary("smart_irrigation", ea.STATE_SET, "ON", "OFF").withDescription("Unknown"),
+            // e.binary("quantitative_water_linkage", ea.STATE_SET, "ON", "OFF").withDescription("Unknown"),
+            te.fault(),
+            e.child_lock(),
             e.battery(),
         ],
         meta: {
@@ -229,108 +273,33 @@ export const definitions: DefinitionWithExtend[] = [
                     "status",
                     tuya.valueConverterBasic.lookup({
                         off: tuya.enum(0),
-                        auto: tuya.enum(1),
-                        disabled: tuya.enum(2),
-                        app_manual: tuya.enum(3),
-                        key_control: tuya.enum(4),
+                        on_auto: tuya.enum(1),
+                        button_locked: tuya.enum(2),
+                        on_manual_app: tuya.enum(3),
+                        on_manual_button: tuya.enum(4),
                     }),
                 ],
-                [101, "countdown", tuya.valueConverter.raw],
+                [5, "countdown", tuya.valueConverter.raw], // (time)
                 [6, "countdown_left", tuya.valueConverter.raw],
-                [104, "child_lock", tuya.valueConverter.onOff],
-                [11, "battery", tuya.valueConverter.raw],
-            ],
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_z7a2jmyy"]),
-        model: "NAS-WV05B2-L",
-        vendor: "NEO",
-        description: "Smart sprinkler timer",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
-        exposes: [
-            e.switch(),
-            e.enum("status", ea.STATE, ["off", "auto", "disabled", "app_manual", "key_control"]).withDescription("Status"),
-            e.numeric("countdown", ea.STATE_SET).withUnit("min").withValueMin(1).withValueMax(60).withDescription("Count down"),
-            e.numeric("countdown_left", ea.STATE).withUnit("min").withValueMin(1).withValueMax(60).withDescription("Countdown left time"),
-            e.numeric("water_total", ea.STATE).withUnit("L").withValueMin(0).withValueStep(0.001).withDescription("Water total (L)"),
-            e.numeric("water_current", ea.STATE).withUnit("L/min").withValueMin(0).withValueStep(0.001).withDescription("Current water flow (L/min)"),
-            e.binary("current_switch", ea.STATE_SET, "ON", "OFF").withDescription("Flow switch"),
-            e.binary("reset_switch", ea.STATE_SET, "ON", "OFF").withDescription("Total flow reset switch"),
-            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
-            e.battery(),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff],
+                [11, "battery", tuya.valueConverter.raw], // (battery_percentage)
+                [19, "fault", tuya.valueConverter.fault],
                 [
-                    3,
-                    "status",
+                    37,
+                    "weather_delay",
                     tuya.valueConverterBasic.lookup({
-                        off: tuya.enum(0),
-                        auto: tuya.enum(1),
-                        disabled: tuya.enum(2),
-                        app_manual: tuya.enum(3),
-                        key_control: tuya.enum(4),
+                        "24h": tuya.enum(0),
+                        "48h": tuya.enum(1),
+                        "72h": tuya.enum(2),
+                        cancel: tuya.enum(3),
                     }),
                 ],
-                [109, "countdown", tuya.valueConverter.raw],
-                [6, "countdown_left", tuya.valueConverter.raw],
-                [9, "water_current", tuya.valueConverter.divideBy1000],
-                [15, "water_total", tuya.valueConverter.divideBy1000],
-                [103, "current_switch", tuya.valueConverter.onOff],
-                [101, "reset_switch", tuya.valueConverter.onOff],
-                [104, "child_lock", tuya.valueConverter.onOff],
-                [11, "battery", tuya.valueConverter.raw],
-            ],
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rzrrjkz2", "_TZE284_uab532m0", "_TZE284_nnhwcvbk"]),
-        model: "NAS-WV05B2",
-        vendor: "NEO",
-        description: "Smart sprinkler timer",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
-        exposes: [
-            e.switch(),
-            e.enum("status", ea.STATE, ["off", "auto", "disabled", "app_manual", "key_control"]).withDescription("Status"),
-            e.numeric("countdown", ea.STATE_SET).withUnit("min").withValueMin(1).withValueMax(60).withDescription("Count down"),
-            e.numeric("countdown_left", ea.STATE).withUnit("min").withValueMin(1).withValueMax(60).withDescription("Countdown left time"),
-            e.numeric("water_total", ea.STATE).withUnit("gal").withValueMin(0).withValueStep(0.001).withDescription("Water total (gal)"),
-            e
-                .numeric("water_current", ea.STATE)
-                .withUnit("gal/min")
-                .withValueMin(0)
-                .withValueStep(0.001)
-                .withDescription("Current water flow (gal/min)"),
-            e.binary("current_switch", ea.STATE_SET, "ON", "OFF").withDescription("Flow switch"),
-            e.binary("reset_switch", ea.STATE_SET, "ON", "OFF").withDescription("Total flow reset switch"),
-            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child lock"),
-            e.battery(),
-        ],
-        whiteLabel: [tuya.whitelabel("Nous", "L14", "Smart water valve", ["_TZE284_nnhwcvbk"])],
-        meta: {
-            tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff],
-                [
-                    3,
-                    "status",
-                    tuya.valueConverterBasic.lookup({
-                        off: tuya.enum(0),
-                        auto: tuya.enum(1),
-                        disabled: tuya.enum(2),
-                        app_manual: tuya.enum(3),
-                        key_control: tuya.enum(4),
-                    }),
-                ],
-                [109, "countdown", tuya.valueConverter.raw],
-                [6, "countdown_left", tuya.valueConverter.raw],
-                [9, "water_current", tuya.valueConverter.divideBy1000],
-                [15, "water_total", tuya.valueConverter.divideBy1000],
-                [103, "current_switch", tuya.valueConverter.onOff],
-                [101, "reset_switch", tuya.valueConverter.onOff],
-                [104, "child_lock", tuya.valueConverter.onOff],
-                [11, "battery", tuya.valueConverter.raw],
+                [38, "normal_timer", tuya.valueConverter.raw], // string needs reverse-engineering
+                [42, "weather_switch", tuya.valueConverter.onOff], // (switch)
+                [47, "smart_irrigation", tuya.valueConverter.onOff], // (switch_enabled)
+                [101, "on_with_countdown", tuya.valueConverter.raw], // (valve_opening_time)
+                [104, "child_lock", tuya.valueConverter.lockUnlock],
+                [106, "single_watering_duration", tuya.valueConverter.raw], // (single_watering_time)
+                [107, "refresh", tuya.valueConverter.refresh], // (ui_refresh)
             ],
         },
     },
@@ -432,7 +401,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NAS-PS10B2",
         vendor: "NEO",
         description: "Human presence sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true})],
         exposes: [
             e.presence(),
             e.enum("human_motion_state", ea.STATE, ["none", "small", "large"]).withDescription("Human Motion State"),
@@ -447,8 +416,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("presence_time", ea.STATE_SET)
                 .withUnit("s")
-                .withValueMin(3)
-                .withValueMax(600)
+                .withValueMin(NAS_PS10B2_PRESENCE_TIME_MIN)
+                .withValueMax(NAS_PS10B2_PRESENCE_TIME_MAX)
                 .withValueStep(1)
                 .withDescription("Presence Time"),
             e
@@ -481,7 +450,17 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "presence", tuya.valueConverter.trueFalse1],
                 [11, "human_motion_state", tuya.valueConverterBasic.lookup({none: 0, small: 1, large: 2})],
                 [19, "dis_current", tuya.valueConverter.raw],
-                [12, "presence_time", tuya.valueConverter.raw],
+                [
+                    12,
+                    "presence_time",
+                    {
+                        // Device sends 0xFFFFFF08 as sentinel when presence_time has never been
+                        // configured. Filter it out to prevent HA range errors.
+                        // Device will re-report its stored value after reboot via queryOnDeviceAnnounce.
+                        from: (v: number) => (v >= NAS_PS10B2_PRESENCE_TIME_MIN && v <= NAS_PS10B2_PRESENCE_TIME_MAX ? v : undefined),
+                        to: (v: number) => v,
+                    },
+                ],
                 [13, "motion_far_detection", tuya.valueConverter.raw],
                 [15, "motion_sensitivity", tuya.valueConverter.raw],
                 [16, "motionless_sensitivity", tuya.valueConverter.raw],

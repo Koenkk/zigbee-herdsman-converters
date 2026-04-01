@@ -13,6 +13,8 @@ interface FreezBeeThermostat {
         remoteTemperature: number;
         /** ID: 0x4001 | Type: BOOLEAN */
         useRemoteTemperature: boolean;
+        /** ID: 0x4002 | Type: INT16 */
+        targetWaterTemperature: number;
     };
     commands: never;
     commandResponses: never;
@@ -27,6 +29,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             // standard attributes
+            m.temperature(),
+            m.humidity(),
             m.thermostat({
                 localTemperature: {
                     values: {
@@ -69,6 +73,14 @@ export const definitions: DefinitionWithExtend[] = [
                         type: Zcl.DataType.BOOLEAN,
                         write: true,
                     },
+                    targetWaterTemperature: {
+                        name: "targetWaterTemperature",
+                        ID: 0x4002,
+                        manufacturerCode: manufacturerOptions.manufacturerCode,
+                        type: Zcl.DataType.INT16,
+                        min: -32768,
+                        max: 32767,
+                    },
                 },
                 commands: {},
                 commandsResponse: {},
@@ -101,6 +113,21 @@ export const definitions: DefinitionWithExtend[] = [
                     "or a remote temperature sensor for the perceived room temperature.",
                 valueOff: ["OFF", 0x00],
                 valueOn: ["ON", 0x01],
+            }),
+            m.numeric<"hvacThermostat", FreezBeeThermostat>({
+                cluster: "hvacThermostat",
+                attribute: "targetWaterTemperature",
+                name: "target_water_temperature",
+                label: "Target water temperature",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+                description: "Target water temperature in the heating circuit.",
+                valueMin: 0.0,
+                valueMax: 99.9,
+                valueStep: 0.1,
+                unit: "°C",
+                scale: 100,
+                precision: 1,
             }),
         ],
     },
