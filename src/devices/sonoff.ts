@@ -4805,29 +4805,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SWV",
         vendor: "SONOFF",
         description: "Zigbee smart water valve",
-        fromZigbee: [
-            fz.flow,
-            {
-                cluster: "customClusterEwelink",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValue = {};
-                    if (msg.data.irrigationStartTime) {
-                        result.irrigation_start_time = formatUtcSecondsToIsoWithOffset(msg.data.irrigationStartTime);
-                    }
-                    if (msg.data.irrigationEndTime) {
-                        result.irrigation_end_time = formatUtcSecondsToIsoWithOffset(msg.data.irrigationEndTime);
-                    }
-                    return result;
-                },
-            },
-        ],
+        fromZigbee: [fz.flow],
         toZigbee: [tzLocal.on_off_fixed_on_time],
-        exposes: [
-            e.numeric("flow", ea.STATE).withDescription("Current water flow").withUnit("m³/h"),
-            e.text("irrigation_start_time", ea.STATE).withDescription("Start time of the last/current irrigation session"),
-            e.text("irrigation_end_time", ea.STATE).withDescription("End time of the last irrigation session"),
-        ],
+        exposes: [e.numeric("flow", ea.STATE).withDescription("Current water flow").withUnit("m³/h")],
         extend: [
             m.battery(),
             m.onOff({
@@ -4870,6 +4850,20 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Volume of the last/current irrigation session",
                 access: "STATE",
                 unit: "L",
+            }),
+            m.numeric({
+                name: "irrigation_start_time",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x500d, type: Zcl.DataType.UINT32},
+                description: "Start time of the last/current irrigation session (Unix timestamp)",
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "irrigation_end_time",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x500e, type: Zcl.DataType.UINT32},
+                description: "End time of the last irrigation session (Unix timestamp)",
+                access: "STATE",
             }),
             m.numeric({
                 name: "daily_irrigation_volume",
