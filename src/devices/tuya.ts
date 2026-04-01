@@ -1726,8 +1726,16 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
-            {manufacturerName: "Zbeacon", modelID: "TS0203", endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1, 32, 1026, 1029], outputClusters: [25]}]},
-            {manufacturerName: "Zbeacon", modelID: "TS0202", endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1, 32, 1026, 1029], outputClusters: [25]}]},
+            {
+                manufacturerName: "Zbeacon",
+                modelID: "TS0203",
+                endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1, 32, 1026, 1029], outputClusters: [25]}],
+            },
+            {
+                manufacturerName: "Zbeacon",
+                modelID: "TS0202",
+                endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusters: [0, 3, 1, 32, 1026, 1029], outputClusters: [25]}],
+            },
         ],
         model: "ZC-W1",
         vendor: "iHseno",
@@ -1737,9 +1745,24 @@ export const definitions: DefinitionWithExtend[] = [
     {
         // Zbeacon TS0203 IAS contact (devId 1026); ZC-W1 temp/humidity uses devId 770.
         fingerprint: [
-            {priority: 200, manufacturerName: "Zbeacon", modelID: "TS0203", endpoints: [{ID: 1, profileID: 260, deviceID: 1026, outputClusters: [25]}]},
-            {priority: 150, manufacturerName: "Zbeacon", modelID: "TS0203", endpoints: [{ID: 1, profileID: 260, inputClusters: [0, 3, 1, 1280, 32], outputClusters: [25]}]},
-            {priority: 100, manufacturerName: "Zbeacon", modelID: "TS0203", endpoints: [{ID: 1, profileID: 260, inputClusters: [0, 3, 1, 1280, 33], outputClusters: [25]}]},
+            {
+                priority: 200,
+                manufacturerName: "Zbeacon",
+                modelID: "TS0203",
+                endpoints: [{ID: 1, profileID: 260, deviceID: 1026, outputClusters: [25]}],
+            },
+            {
+                priority: 150,
+                manufacturerName: "Zbeacon",
+                modelID: "TS0203",
+                endpoints: [{ID: 1, profileID: 260, inputClusters: [0, 3, 1, 1280, 32], outputClusters: [25]}],
+            },
+            {
+                priority: 100,
+                manufacturerName: "Zbeacon",
+                modelID: "TS0203",
+                endpoints: [{ID: 1, profileID: 260, inputClusters: [0, 3, 1, 1280, 33], outputClusters: [25]}],
+            },
         ],
         zigbeeModel: ["TS0203", "ZG-102Z"],
         model: "TS0203",
