@@ -414,6 +414,12 @@ const fzLocal = {
                 const lookup = {0: "10k", 1: "12k"};
                 result.floor_temperature_sensor = utils.getFromLookup(msg.data.temperatureSensor, lookup);
             }
+            if (msg.data.floorTemperature !== undefined) {
+                result.floor_temperature = precisionRound(msg.data.floorTemperature, 2) / 100;
+            }
+            if (msg.data.roomTemperature !== undefined) {
+                result.room_temperature = precisionRound(msg.data.roomTemperature, 2) / 100;
+            }
             if (msg.data.timeFormatToDisplay !== undefined) {
                 const lookup = {0: "24h", 1: "12h"};
                 result.time_format = utils.getFromLookup(msg.data.timeFormatToDisplay, lookup);
@@ -664,6 +670,20 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorMaxHeatSetpointLimit"]);
+        },
+    } satisfies Tz.Converter,
+    floor_temperature: {
+        // TH1300ZB specific
+        key: ["floor_temperature"],
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorTemperature"]);
+        },
+    } satisfies Tz.Converter,
+    room_temperature: {
+        // TH1300ZB specific
+        key: ["room_temperature"],
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["roomTemperature"]);
         },
     } satisfies Tz.Converter,
     temperature_sensor: {
@@ -1490,6 +1510,8 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.floor_min_heat_setpoint,
             tzLocal.floor_max_heat_setpoint,
             tzLocal.temperature_sensor,
+            tzLocal.floor_temperature,
+            tzLocal.room_temperature,
         ],
         exposes: [
             e
@@ -1532,6 +1554,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("time_format", ea.ALL, ["24h", "12h"]).withDescription("The time format featured on the thermostat display"),
             e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
+            e.numeric("floor_temperature", ea.STATE_GET).withUnit("°C").withDescription("Floor temperature (read-only, poll on demand)"),
+            e.numeric("room_temperature", ea.STATE_GET).withUnit("°C").withDescription("Room temperature (read-only, poll on demand)"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
