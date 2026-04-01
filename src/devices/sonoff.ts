@@ -1,4 +1,4 @@
-﻿import {Zcl} from "zigbee-herdsman";
+﻿import {getTimeClusterAttributes, Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -1553,21 +1553,22 @@ const sonoffExtend = {
                             return false;
                         }
 
-                        const nowUtcSeconds = Math.floor(Date.now() / 1000);
-                        const time = nowUtcSeconds - YEAR_2000_IN_UTC;
-                        const offsetSeconds = getRuntimeLocalOffsetSeconds(nowUtcSeconds);
-                        const payload = {
-                            time,
-                            timeZone: offsetSeconds,
-                            localTime: time + offsetSeconds,
-                            dstStart: 0, // The device's Zigbee behavior is a bit non-standard.
-                            dstEnd: 0,
-                            dstShift: offsetSeconds,
-                        };
+                        const {time, timeZone, localTime, dstShift} = getTimeClusterAttributes();
 
-                        endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, payload).catch((e) => {
-                            logger.warning(`SWV custom time response failed: ${e}`, NS);
-                        });
+                        // XXX: we're replying to specific attributes, which could be incorrect (not based on the request attrIds)
+                        endpoint
+                            .readResponse("genTime", frame.header.transactionSequenceNumber, {
+                                time,
+                                timeZone,
+                                localTime,
+                                dstStart: 0, // The device's Zigbee behavior is a bit non-standard.
+                                dstEnd: 0,
+                                dstShift,
+                            })
+                            .catch((e) => {
+                                logger.warning(`SWV custom time response failed: ${e}`, NS);
+                            });
+
                         return true;
                     };
                 }
