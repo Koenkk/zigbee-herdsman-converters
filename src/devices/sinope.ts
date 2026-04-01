@@ -676,14 +676,14 @@ const tzLocal = {
         // TH1300ZB specific
         key: ["floor_temperature"],
         convertGet: async (entity, key, meta) => {
-            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorTemperature"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorTemperature"], manuSinope);
         },
     } satisfies Tz.Converter,
     room_temperature: {
         // TH1300ZB specific
         key: ["room_temperature"],
         convertGet: async (entity, key, meta) => {
-            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["roomTemperature"]);
+            await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["roomTemperature"], manuSinope);
         },
     } satisfies Tz.Converter,
     temperature_sensor: {
@@ -1554,8 +1554,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("time_format", ea.ALL, ["24h", "12h"]).withDescription("The time format featured on the thermostat display"),
             e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
-            e.numeric("floor_temperature", ea.STATE_GET).withUnit("°C").withDescription("Floor temperature (read-only, poll on demand)"),
-            e.numeric("room_temperature", ea.STATE_GET).withUnit("°C").withDescription("Room temperature (read-only, poll on demand)"),
+            e.numeric("floor_temperature", ea.STATE).withUnit("°C").withDescription("Floor temperature (read-only, poll on demand)"),
+            e.numeric("room_temperature", ea.STATE).withUnit("°C").withDescription("Room temperature (read-only, poll on demand)"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
