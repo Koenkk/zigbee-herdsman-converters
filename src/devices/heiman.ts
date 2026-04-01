@@ -618,7 +618,57 @@ const heimanExtend = {
             {
                 key: ["ambient_light"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, RadarSensorHeimanZcl>(clusterName, ["measuredValue"], defaultResponseOptions);
+                    await entity.read(clusterName, ["measuredValue"], defaultResponseOptions);
+                },
+            },
+        ];
+        return {
+            exposes: exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    heimanClusterSensorFaultState: (): ModernExtend => {
+        const clusterName = "heimanClusterSpecial" as const;
+        const faultStateBitMap = {
+            0: "fault", // bit0
+            1: "open_circuit_fault", // bit1
+            2: "short_circuit_fault", // bit2
+            3: "pollution_fault", // bit3
+        };
+        const exposes = utils.exposeEndpoints(e.text("fault_state", ea.STATE_GET).withDescription("Device fault status (normal or fault types)."));
+        const fromZigbee = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    let attrData = null;
+                    let attrValue = 0;
+                    if (msg.data.sensorFaultState === undefined) {
+                        return;
+                    }
+
+                    attrData = msg.data["sensorFaultState"];
+                    attrValue = Number(attrData);
+                    const activeFaults: string[] = [];
+                    for (const [bit, faultDesc] of Object.entries(faultStateBitMap)) {
+                        const bitNum = Number(bit);
+                        const isFault = (attrValue & (1 << bitNum)) !== 0;
+                        if (isFault) {
+                            activeFaults.push(faultDesc);
+                        }
+                    }
+                    const faultResult = activeFaults.length > 0 ? activeFaults.join(" | ") : "normal";
+                    return {fault_state: faultResult};
+                },
+            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["fault_state"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<typeof clusterName, HeimanPrivateCluster>(clusterName, ["sensorFaultState"], defaultResponseOptions);
                 },
             },
         ];
@@ -752,56 +802,6 @@ const heimanExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     const state = value ? 1 : 0;
                     await entity.write<typeof clusterName, HeimanPrivateCluster>(clusterName, {indicatorLightOnOff: state}, defaultResponseOptions);
-                },
-            },
-        ];
-        return {
-            exposes: exposes,
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
-    heimanClusterSensorFaultState: (): ModernExtend => {
-        const clusterName = "heimanClusterSpecial" as const;
-        const faultStateBitMap = {
-            0: "fault", // bit0
-            1: "open_circuit_fault", // bit1
-            2: "short_circuit_fault", // bit2
-            3: "pollution_fault", // bit3
-        };
-        const exposes = utils.exposeEndpoints(e.text("fault_state", ea.STATE_GET).withDescription("Device fault status (normal or fault types)."));
-        const fromZigbee = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    let attrData = null;
-                    let attrValue = 0;
-                    if (msg.data.sensorFaultState === undefined) {
-                        return;
-                    }
-
-                    attrData = msg.data["sensorFaultState"];
-                    attrValue = Number(attrData);
-                    const activeFaults: string[] = [];
-                    for (const [bit, faultDesc] of Object.entries(faultStateBitMap)) {
-                        const bitNum = Number(bit);
-                        const isFault = (attrValue & (1 << bitNum)) !== 0;
-                        if (isFault) {
-                            activeFaults.push(faultDesc);
-                        }
-                    }
-                    const faultResult = activeFaults.length > 0 ? activeFaults.join(" | ") : "normal";
-                    return {fault_state: faultResult};
-                },
-            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
-        ];
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["fault_state"],
-                convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, HeimanPrivateCluster>(clusterName, ["sensorFaultState"], defaultResponseOptions);
                 },
             },
         ];
@@ -1556,7 +1556,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint1);
             await reporting.occupancy(endpoint1);
         },
-        extend: [m.illuminance()],
+        extend: [heimanExtend.heimanClusterLegacyIlluminanceExtend()],
     },
     {
         fingerprint: tuya.fingerprint("TS0212", ["_TYZB01_wpmo3ja3"]),
@@ -1974,7 +1974,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "SceneSwitch-EM-3.0", manufacturerName: "HEIMAN"}],
+        fingerprint: [
+            {modelID: "SceneSwitch-EM-3.0", manufacturerName: "HEIMAN"},
+            {modelID: "SceneSwitch-EF-3.0", manufacturerName: "HEIMAN"},
+        ],
         model: "HS2SS",
         vendor: "Heiman",
         description: "Smart scene switch",
@@ -2096,7 +2099,10 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        fingerprint: [{modelID: "HS2AQ-EM", manufacturerName: "HEIMAN"}],
+        fingerprint: [
+            {modelID: "HS2AQ-EM", manufacturerName: "HEIMAN"},
+            {modelID: "HS2AQ-EM-3.0", manufacturerName: "HEIMAN"},
+        ],
         model: "HS2AQ-EM",
         vendor: "Heiman",
         description: "Air quality monitor",
@@ -2708,8 +2714,8 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.pm25(), e.hcho(), e.aqi(), e.pm10()],
     },
     {
-        zigbeeModel: ["HS1SA-EF-3.0"],
-        model: "HS1SA-EF",
+        zigbeeModel: ["HS1SA-EF-3.0", "HS1SA-E-PLUS"],
+        model: "HS1SA-E-PLUS",
         vendor: "Heiman",
         description: "Smoke detector",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fzLocal.heimanClusterSpecialfz],
