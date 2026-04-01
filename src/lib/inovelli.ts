@@ -2547,7 +2547,6 @@ const fzLocal = {
                         };
                     }
                 }
-                return msg.data;
             },
         }) satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
     fan_state: (endpointId?: number) =>
@@ -2556,10 +2555,10 @@ const fzLocal = {
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.data.onOff === undefined) {
-                    return msg.data;
+                    return;
                 }
                 if (endpointId != null && msg.endpoint.ID !== endpointId) {
-                    return msg.data;
+                    return;
                 }
                 return {fan_state: msg.data.onOff === 1 ? "ON" : "OFF"};
             },
@@ -2570,7 +2569,7 @@ const fzLocal = {
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 if (msg.endpoint.ID !== endpointId || msg.data.onOff === undefined) {
-                    return msg.data;
+                    return;
                 }
                 return {[stateKey]: msg.data.onOff === 1 ? "ON" : "OFF"};
             },
