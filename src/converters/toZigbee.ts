@@ -24,7 +24,6 @@ const manufacturerOptions = {
     stelpro: {manufacturerCode: Zcl.ManufacturerCode.STELPRO},
     tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
     legrand: {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
-    viessmann: {manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH},
 };
 
 export const on_off: Tz.Converter = {
@@ -3127,16 +3126,6 @@ export const stelpro_peak_demand_event_icon: Tz.Converter = {
         return {state: {[key]: hours}};
     },
 };
-export const stelpro_thermostat_outdoor_temperature: Tz.Converter = {
-    key: ["outdoor_temperature_display"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertNumber(value, key);
-        if (value < -32 || value > 119) {
-            throw new Error("Outdoor temperature must be between -32 and 119 degrees Celsius");
-        }
-        await entity.write("hvacThermostat", {StelproOutdoorTemp: value * 100});
-    },
-};
 export const DTB190502A1_LED: Tz.Converter = {
     key: ["LED"],
     convertSet: async (entity, key, value, meta) => {
@@ -4043,31 +4032,6 @@ export const TS0210_sensitivity: Tz.Converter = {
         value = utils.toNumber(value, "sensitivity");
         await entity.write("ssIasZone", {currentZoneSensitivityLevel: value as number});
         return {state: {sensitivity: value}};
-    },
-};
-export const viessmann_window_open: Tz.Converter = {
-    key: ["window_open"],
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["viessmannWindowOpenInternal"], manufacturerOptions.viessmann);
-    },
-};
-export const viessmann_window_open_force: Tz.Converter = {
-    key: ["window_open_force"],
-    convertSet: async (entity, key, value, meta) => {
-        if (typeof value === "boolean") {
-            await entity.write("hvacThermostat", {viessmannWindowOpenForce: value ? 1 : 0}, manufacturerOptions.viessmann);
-            return {state: {window_open_force: value}};
-        }
-        logger.error("window_open_force must be a boolean!", NS);
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["viessmannWindowOpenForce"], manufacturerOptions.viessmann);
-    },
-};
-export const viessmann_assembly_mode: Tz.Converter = {
-    key: ["assembly_mode"],
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["viessmannAssemblyMode"], manufacturerOptions.viessmann);
     },
 };
 export const dawondns_only_off: Tz.Converter = {
