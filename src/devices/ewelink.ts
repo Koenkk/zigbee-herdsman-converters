@@ -106,11 +106,19 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku"])],
     },
     {
-        zigbeeModel: ["CK-BL702-MSW-01(7011)-1"],
-        model: "CK-BL702-MSW-01(7011)-1",
+        zigbeeModel: ["CK-BL702-MSW-01(7010)", "CK-BL702-MSW-01(7011)-1"],
+        model: "CK-BL702-MSW-01(7010)",
         vendor: "eWeLink",
         description: "CMARS Zigbee smart plug",
         extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse()],
+        whiteLabel: [
+        {
+            vendor: "Mumubiz",
+            model: "CZV20",
+            description: "Zigbee smart water valve",
+            fingerprint: [{modelID: "CK-BL702-MSW-01(7010)"}],
+        },
+    ],
     },
     {
         zigbeeModel: ["SA-003-Zigbee"],
@@ -443,18 +451,5 @@ export const definitions: DefinitionWithExtend[] = [
             await m.setupAttributes(device, coordinatorEndpoint, "closuresWindowCovering", windowCoveringAttributes);
         },
         ota: true,
-    },
-    {
-        zigbeeModel: ["CK-BL702-MSW-01(7010)"],
-        model: "CZV20",
-        vendor: "Mumubiz",
-        whiteLabel: [{vendor: "eWeLink", model: "CK-BL702-MSW-01(7010)"}],
-        description: "Zigbee smart water valve",
-        extend: [m.onOff({skipDuplicateTransaction: true}), m.powerOnBehavior(), m.skipDefaultResponse()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint);
-        },
     },
 ];
