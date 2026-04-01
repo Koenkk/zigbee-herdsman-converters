@@ -4946,7 +4946,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [
             tz.cover_state,
             tz.cover_position_tilt,
-            tz.tuya_cover_calibration,
+            tuya.tz.cover_calibration,
             tz.tuya_cover_reversal,
             tuya.tz.backlight_indicator_mode_2,
             tuya.tz.backlight_indicator_mode_1,

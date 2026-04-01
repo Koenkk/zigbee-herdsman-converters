@@ -18,7 +18,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Curtain/blind motor controller",
         extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
         fromZigbee: [fz.cover_position_tilt, tuya.fz.cover_options],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.moes_cover_calibration, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.moes_cover_calibration, tuya.tz.cover_calibration, tz.tuya_cover_reversal],
         meta: {coverInverted: true},
         exposes: [
             e.cover_position(),
@@ -35,7 +35,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Curtain switch",
         extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
         fromZigbee: [fz.cover_position_tilt, tuya.fz.backlight_mode_low_medium_high, tuya.fz.cover_options],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal, tuya.tz.backlight_indicator_mode_1],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tuya.tz.cover_calibration, tz.tuya_cover_reversal, tuya.tz.backlight_indicator_mode_1],
         meta: {coverInverted: true},
         exposes: [
             e.cover_position(),
@@ -60,7 +60,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Dual curtain/blind module",
         extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
         fromZigbee: [fz.cover_position_tilt, tuya.fz.cover_options],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tuya.tz.cover_calibration, tz.tuya_cover_reversal],
         whiteLabel: [tuya.whitelabel("Girier", "TS130F_GIRIER_DUAL", "Dual smart curtain switch", ["_TZ3000_j1xl73iw"])],
         meta: {multiEndpoint: true, coverInverted: true},
         endpoint: (device) => {
@@ -230,7 +230,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Curtain/blind motor controller",
         extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
         fromZigbee: [fz.cover_position_tilt, tuya.fz.cover_options],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tuya.tz.cover_calibration, tz.tuya_cover_reversal],
         meta: {coverInverted: true},
         exposes: [
             e.cover_position(),
