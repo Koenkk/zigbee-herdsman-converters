@@ -2183,7 +2183,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.onOff({powerOnBehavior: true}),
-            m.electricityMeter(),
+            m.electricityMeter({voltage: {divisor: 10}, current: {divisor: 1000}, power: {divisor: 1}, energy: {divisor: 100}}),
             // Override genDeviceTempCfg to relax currentTemperature max constraint
             // (device reports in 0.1°C units, e.g. 311 = 31.1°C, exceeding ZCL max of 200)
             m.deviceAddCustomCluster("genDeviceTempCfg", {
@@ -2262,6 +2262,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: [true, 1],
                 valueOff: [false, 0],
                 access: "STATE_GET",
+                reporting: {min: 1, max: 300, change: 1},
             }),
             // NTC sensor type configuration
             m.enumLookup<"namronPrivate04E0", NamronPrivate04E0>({
@@ -2438,36 +2439,5 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             }),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            if (!endpoint) return;
-
-            endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
-                acVoltageDivisor: 10,
-                acVoltageMultiplier: 1,
-                acCurrentDivisor: 1000,
-                acCurrentMultiplier: 1,
-                acPowerDivisor: 1,
-                acPowerMultiplier: 1,
-            });
-            endpoint.saveClusterAttributeKeyValue("seMetering", {
-                divisor: 100,
-                multiplier: 1,
-            });
-
-            try {
-                await endpoint.configureReporting(0x04e0, [
-                    {attribute: 0x0003, minimumReportInterval: 1, maximumReportInterval: 300, reportableChange: 1},
-                ]);
-            } catch {
-                // Device may not support this reporting
-            }
-
-            try {
-                await endpoint.read(0x04e0, [0x0001, 0x0002, 0x0006, 0x0007, 0x0008, 0x0009, 0x000a, 0x000b, 0x0004, 0x0005, 0x000c, 0x000d]);
-            } catch {
-                // Ignore read failures
-            }
-        },
     },
 ];
