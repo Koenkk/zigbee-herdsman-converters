@@ -676,7 +676,7 @@ export const definitions: DefinitionWithExtend[] = [
             // modernExtend's readGenBasicPrimaryVersions is called before this one, should be fine
             const endpoint35 = device.getEndpoint(35);
             if (Number(device?.softwareBuildID?.split(".")[0]) >= 3) {
-                await endpoint35.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
+                await endpoint35.read<"ssIasZone", DevelcoIasZone>("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
             }
             if (Number(device?.softwareBuildID?.split(".")[0]) >= 4) {
                 await endpoint35.read<"genBasic", DevelcoGenBasic>("genBasic", ["develcoLedControl"], manufacturerOptions);
@@ -735,7 +735,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             if (device?.softwareBuildID && Number(device.softwareBuildID.split(".")[0]) >= 2) {
                 const endpoint35 = device.getEndpoint(35);
-                await endpoint35.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
+                await endpoint35.read<"ssIasZone", DevelcoIasZone>("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
                 await endpoint35.read<"genBasic", DevelcoGenBasic>("genBasic", ["develcoLedControl"], manufacturerOptions);
             }
         },
