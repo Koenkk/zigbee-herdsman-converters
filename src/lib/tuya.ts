@@ -408,10 +408,58 @@ const tuyaExposes = {
             .withValueStep(1)
             .withUnit("s")
             .withDescription("Countdown to turn device off after a certain time"),
+    countdown_min: () =>
+        e
+            .numeric("countdown", ea.STATE_SET)
+            .withValueMin(1)
+            .withValueMax(240)
+            .withValueStep(1)
+            .withUnit("min")
+            .withDescription("Turn off the sprinkler after set duration (one time)"),
+    on_with_countdown: () =>
+        e
+            .numeric("on_with_countdown", ea.STATE_SET)
+            .withValueMin(1)
+            .withValueMax(240)
+            .withValueStep(1)
+            .withUnit("min")
+            .withDescription("Turn on the sprinkler and start countdown"),
+    countdown_left: () =>
+        e
+            .numeric("countdown_left", ea.STATE)
+            .withValueMin(0)
+            .withValueMax(240)
+            .withValueStep(1)
+            .withUnit("min")
+            .withDescription("Time left in the countdown"),
+    single_watering_duration: () => e.numeric("single_watering_duration", ea.STATE).withDescription("Duration of last watering").withUnit("s"),
+    flow_switch: () =>
+        e
+            .binary("flow_switch", ea.STATE_SET, "ON", "OFF")
+            .withDescription("Enables water flow measurement, and automatically turn off the sprinkler when flow is 0 for ~30s"),
+    quantitative_watering: () =>
+        e
+            .numeric("quantitative_watering", ea.STATE_SET)
+            .withValueMin(1)
+            .withValueMax(10000)
+            .withValueStep(1)
+            .withUnit("L")
+            .withDescription("Turn on the sprinkler with a set amount of water"),
+    single_watering_amount: () => e.numeric("single_watering_amount", ea.STATE).withUnit("L").withDescription("Quantity of last watering"),
+    surplus_flow: () => e.numeric("surplus_flow", ea.STATE).withUnit("L").withDescription("Remaining amount"),
+    water_total: () => e.numeric("water_total", ea.STATE).withUnit("L").withValueMin(0).withValueStep(0.001).withDescription("Total watering amount"),
+    water_current: () =>
+        e.numeric("water_current", ea.STATE).withUnit("L/min").withValueMin(0).withValueStep(0.001).withDescription("Current water flow"),
+    water_total_reset: () =>
+        e.enum("water_total_reset", ea.STATE_SET, ["reset"]).withDescription("Reset the stored watering amount to 0").withCategory("config"),
+    refresh: () => e.enum("refresh", ea.STATE_SET, ["refresh"]).withDescription("Refresh the device status").withCategory("config"),
+    status_sprinkler: () =>
+        e.enum("status", ea.STATE, ["off", "on_auto", "button_locked", "on_manual_app", "on_manual_button"]).withDescription("Status"),
     switch: () => e.switch().setAccess("state", ea.STATE_SET),
     selfTest: () => e.binary("self_test", ea.STATE_SET, true, false).withDescription("Indicates whether the device is being self-tested"),
     selfTestResult: () =>
         e.enum("self_test_result", ea.STATE, ["checking", "success", "failure", "others"]).withDescription("Result of the self-test"),
+    fault: () => e.binary("fault", ea.STATE, true, false).withDescription("Indicates whether a fault was detected").withCategory("diagnostic"),
     faultAlarm: () => e.binary("fault_alarm", ea.STATE, true, false).withDescription("Indicates whether a fault was detected"),
     silence: () => e.binary("silence", ea.STATE_SET, true, false).withDescription("Silence the alarm"),
     frostProtection: (extraNote = "") =>
@@ -733,6 +781,7 @@ export const valueConverter = {
     switchMode2: valueConverterBasic.lookup({switch: new Enum(0), curtain: new Enum(1)}),
     lightMode: valueConverterBasic.lookup({normal: new Enum(0), on: new Enum(1), off: new Enum(2), flash: new Enum(3)}),
     raw: valueConverterBasic.raw(),
+    fault: {from: (v: Bitmap) => !!v},
     localTemperatureCalibration: {
         from: (value: number) => (value > 4000 ? value - 4096 : value),
         to: (value: number) => (value < 0 ? 4096 + value : value),
@@ -741,6 +790,14 @@ export const valueConverter = {
     localTemperatureCalibration_256: {
         from: (value: number) => (value > 200 ? value - 256 : value),
         to: (value: number) => (value < 0 ? 256 + value : value),
+    },
+    refresh: {
+        to: (v: string) => {
+            return v === "refresh";
+        },
+        from: () => {
+            return "idle";
+        },
     },
     waterConsumption: {
         from: (v: string) => {
@@ -2291,7 +2348,7 @@ const tuyaFz = {
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const result: KeyValue = {};
-            if (!model.meta || !model.meta.tuyaDatapoints) throw new Error("No datapoints map defined");
+            if (!model.meta?.tuyaDatapoints) throw new Error("No datapoints map defined");
             const datapoints = model.meta.tuyaDatapoints;
             for (const dpValue of msg.data.dpValues) {
                 const dpId = dpValue.dp;

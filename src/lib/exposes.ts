@@ -404,9 +404,7 @@ export class Light extends Base {
             levelConfig = levelConfig.withFeature(
                 new Numeric("on_off_transition_time", access.ALL)
                     .withLabel("ON/OFF transition time")
-                    .withDescription(
-                        "Represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster",
-                    ),
+                    .withDescription("Seconds taken to move to or from the target level when On or Off commands are received by an On/Off cluster"),
             );
         }
         if (features.includes("on_transition_time")) {
@@ -415,7 +413,7 @@ export class Light extends Base {
                     .withLabel("ON transition time")
                     .withPreset("disabled", "disabled", "Use on_off_transition_time value")
                     .withDescription(
-                        "Represents the time taken to move the current level from the minimum level to the maximum level when an On command is received",
+                        "Seconds taken to move the current level from the minimum level to the maximum level when an On command is received",
                     ),
             );
         }
@@ -425,7 +423,7 @@ export class Light extends Base {
                     .withLabel("OFF transition time")
                     .withPreset("disabled", "disabled", "Use on_off_transition_time value")
                     .withDescription(
-                        "Represents the time taken to move the current level from the maximum level to the minimum level when an Off command is received",
+                        "Seconds taken to move the current level from the maximum level to the minimum level when an Off command is received",
                     ),
             );
         }

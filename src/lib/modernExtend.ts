@@ -783,11 +783,14 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
                             const secondsUTC = Math.round((Date.now() - oneJanuary2000) / 1000);
                             payload.time = secondsUTC - new Date().getTimezoneOffset() * 60;
                         }
+
+                        // XXX: we're replying to specific attributes, which could be incorrect (not based on the request attrIds)
                         endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, payload).catch((e) => {
                             logger.warning(`Custom time response failed for '${event.data.device.ieeeAddr}': ${e}`, "zhc:customtimeresponse");
                         });
                         return true;
                     }
+
                     return false;
                 };
             }
@@ -805,7 +808,7 @@ export function illuminance(args: Partial<NumericArgs<"msIlluminanceMeasurement"
     const luxScale: ScaleFunction = (value: number, type: "from" | "to") => {
         let result = value;
         if (type === "from") {
-            result = 10 ** ((result - 1) / 10000);
+            result = 10 ** (result / 10000) - 1;
         }
         return result;
     };

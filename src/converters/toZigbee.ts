@@ -24,7 +24,6 @@ const manufacturerOptions = {
     stelpro: {manufacturerCode: Zcl.ManufacturerCode.STELPRO},
     tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
     legrand: {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
-    viessmann: {manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH},
 };
 
 export const on_off: Tz.Converter = {
@@ -754,18 +753,19 @@ export const level_config: Tz.Converter = {
         utils.assertObject(value, key);
         // onOffTransitionTime - range 0x0000 to 0xffff - optional
         if (value.on_off_transition_time != null) {
-            let onOffTransitionTimeValue = Number(value.on_off_transition_time);
+            let onOffTransitionTimeValue = Number(value.on_off_transition_time) * 10;
             if (onOffTransitionTimeValue > 65535) onOffTransitionTimeValue = 65535;
             if (onOffTransitionTimeValue < 0) onOffTransitionTimeValue = 0;
 
             await entity.write("genLevelCtrl", {onOffTransitionTime: onOffTransitionTimeValue}, utils.getOptions(meta.mapped, entity));
-            Object.assign(state, {on_off_transition_time: onOffTransitionTimeValue});
+            Object.assign(state, {on_off_transition_time: onOffTransitionTimeValue / 10});
         }
 
         // onTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (value.on_transition_time != null) {
             let onTransitionTimeValue = value.on_transition_time;
+            if (typeof onTransitionTimeValue === "number") onTransitionTimeValue *= 10;
             if (typeof onTransitionTimeValue === "string" && onTransitionTimeValue.toLowerCase() === "disabled") {
                 onTransitionTimeValue = 65535;
             } else {
@@ -780,13 +780,16 @@ export const level_config: Tz.Converter = {
             if (onTransitionTimeValue === 65535) {
                 onTransitionTimeValue = "disabled";
             }
-            Object.assign(state, {on_transition_time: onTransitionTimeValue});
+            Object.assign(state, {
+                on_transition_time: typeof onTransitionTimeValue === "number" ? onTransitionTimeValue / 10 : onTransitionTimeValue,
+            });
         }
 
         // offTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (value.off_transition_time != null) {
             let offTransitionTimeValue = value.off_transition_time;
+            if (typeof offTransitionTimeValue === "number") offTransitionTimeValue *= 10;
             if (typeof offTransitionTimeValue === "string" && offTransitionTimeValue.toLowerCase() === "disabled") {
                 offTransitionTimeValue = 65535;
             } else {
@@ -801,7 +804,9 @@ export const level_config: Tz.Converter = {
             if (offTransitionTimeValue === 65535) {
                 offTransitionTimeValue = "disabled";
             }
-            Object.assign(state, {off_transition_time: offTransitionTimeValue});
+            Object.assign(state, {
+                off_transition_time: typeof offTransitionTimeValue === "number" ? offTransitionTimeValue / 10 : offTransitionTimeValue,
+            });
         }
 
         // startUpCurrentLevel - range 0x00 to 0xff - optional
@@ -4033,31 +4038,6 @@ export const TS0210_sensitivity: Tz.Converter = {
         value = utils.toNumber(value, "sensitivity");
         await entity.write("ssIasZone", {currentZoneSensitivityLevel: value as number});
         return {state: {sensitivity: value}};
-    },
-};
-export const viessmann_window_open: Tz.Converter = {
-    key: ["window_open"],
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["viessmannWindowOpenInternal"], manufacturerOptions.viessmann);
-    },
-};
-export const viessmann_window_open_force: Tz.Converter = {
-    key: ["window_open_force"],
-    convertSet: async (entity, key, value, meta) => {
-        if (typeof value === "boolean") {
-            await entity.write("hvacThermostat", {viessmannWindowOpenForce: value ? 1 : 0}, manufacturerOptions.viessmann);
-            return {state: {window_open_force: value}};
-        }
-        logger.error("window_open_force must be a boolean!", NS);
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["viessmannWindowOpenForce"], manufacturerOptions.viessmann);
-    },
-};
-export const viessmann_assembly_mode: Tz.Converter = {
-    key: ["assembly_mode"],
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["viessmannAssemblyMode"], manufacturerOptions.viessmann);
     },
 };
 export const dawondns_only_off: Tz.Converter = {

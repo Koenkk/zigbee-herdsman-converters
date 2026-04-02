@@ -323,7 +323,7 @@ const tzLocal = {
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("msCO2", [getFromLookup(key, co2Lookup)], manufacturerOptions);
+            await entity.read<"msCO2", SprutMsCO2>("msCO2", [getFromLookup(key, co2Lookup)], manufacturerOptions);
         },
     } satisfies Tz.Converter,
     th_heater: {
@@ -561,8 +561,8 @@ const sprutModernExtend = {
             entityCategory: "config",
             ...args,
         }),
-    sprutOccupancySensitivity: (args?: Partial<m.NumericArgs<"msOccupancySensing">>) =>
-        m.numeric({
+    sprutOccupancySensitivity: (args?: Partial<m.NumericArgs<"msOccupancySensing", SprutMsOccupancySensing>>) =>
+        m.numeric<"msOccupancySensing", SprutMsOccupancySensing>({
             name: "occupancy_sensitivity",
             cluster: "msOccupancySensing",
             attribute: "sprutOccupancySensitivity",

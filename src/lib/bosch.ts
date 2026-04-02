@@ -1,6 +1,5 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
 import type {SendPolicy} from "zigbee-herdsman/dist/controller/tstype";
-import type {TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -112,27 +111,20 @@ export const boschGeneralExtend = {
     handleZclVersionReadRequest: (): ModernExtend => {
         const onEvent: OnEvent.Handler[] = [
             (event) => {
-                if (event.type !== "start") {
-                    return;
-                }
+                if (event.type === "start") {
+                    event.data.device.customReadResponse = (frame, endpoint) => {
+                        if (frame.isCluster("genBasic") && frame.payload.some((i: {attrId: number}) => i.attrId === 0x0000)) {
+                            // XXX: we're replying to specific attribute, which could be incorrect (not based on the request attrIds)
+                            endpoint.readResponse("genBasic", frame.header.transactionSequenceNumber, {zclVersion: 1}).catch((e) => {
+                                logger.warning(`Custom zclVersion response failed for '${event.data.device.ieeeAddr}': ${e}`, NS);
+                            });
 
-                event.data.device.customReadResponse = (frame, endpoint) => {
-                    const isZclVersionRequest = frame.isCluster("genBasic") && frame.payload.find((i: {attrId: number}) => i.attrId === 0);
+                            return true;
+                        }
 
-                    if (!isZclVersionRequest) {
                         return false;
-                    }
-
-                    const payload: TPartialClusterAttributes<"genBasic"> = {
-                        zclVersion: 1,
                     };
-
-                    endpoint.readResponse(frame.cluster.name, frame.header.transactionSequenceNumber, payload).catch((e) => {
-                        logger.warning(`Custom zclVersion response failed for '${event.data.device.ieeeAddr}': ${e}`, NS);
-                    });
-
-                    return true;
-                };
+                }
             },
         ];
 
