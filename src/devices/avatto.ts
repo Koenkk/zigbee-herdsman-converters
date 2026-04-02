@@ -176,7 +176,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xdtnpp1a"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xdtnpp1a", "_TZE284_xdtnpp1a"]),
         model: "TRV26",
         vendor: "AVATTO",
         description: "Thermostatic radiator valve",
