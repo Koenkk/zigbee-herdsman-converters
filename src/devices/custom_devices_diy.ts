@@ -822,6 +822,15 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [],
     },
     {
+        zigbeeModel: ["ZB-GW04"],
+        model: "ZB-GW04",
+        vendor: "easyiot",
+        description: "EFR32MG21 router",
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
+    },
+    {
         zigbeeModel: ["b-parasite"],
         model: "b-parasite",
         vendor: "Custom devices (DiY)",
