@@ -445,6 +445,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "07767L",
         vendor: "Immax",
         description: "NEO Smart outdoor button",
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         exposes: [e.battery(), e.action(["single", "double", "hold"])],
         fromZigbee: [fz.battery, tuya.fz.on_off_action],
         toZigbee: [],

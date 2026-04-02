@@ -4236,22 +4236,6 @@ export const sihas_set_people: Tz.Converter = {
         await endpoint.read("genAnalogInput", ["presentValue"]);
     },
 };
-export const tuya_operation_mode: Tz.Converter = {
-    key: ["operation_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        // modes:
-        // 0 - 'command' mode. keys send commands. useful for group control
-        // 1 - 'event' mode. keys send events. useful for handling
-        utils.assertString(value, key);
-        const endpoint = meta.device.getEndpoint(1);
-        await endpoint.write("genOnOff", {tuyaOperationMode: utils.getFromLookup(value, {command: 0, event: 1})});
-        return {state: {operation_mode: value.toLowerCase()}};
-    },
-    convertGet: async (entity, key, meta) => {
-        const endpoint = meta.device.getEndpoint(1);
-        await endpoint.read("genOnOff", ["tuyaOperationMode"]);
-    },
-};
 export const led_on_motion: Tz.Converter = {
     key: ["led_on_motion"],
     convertSet: async (entity, key, value, meta) => {
@@ -4359,31 +4343,6 @@ export const TS110E_options: Tz.Converter = {
         if (key === "max_brightness") id = 64516;
         if (key === "light_type" || key === "switch_type") id = 64514;
         await entity.read("genLevelCtrl", [id]);
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS110E_onoff_brightness: Tz.Converter = {
-    key: ["state", "brightness"],
-    convertSet: async (entity, key, value, meta) => {
-        const {message, state} = meta;
-        if (message.state === "OFF" || (message.state != null && message.brightness == null)) {
-            return await on_off.convertSet(entity, key, value, meta);
-        }
-        if (message.brightness != null) {
-            // set brightness
-            if (state.state === "OFF") {
-                await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
-            }
-
-            const brightness = utils.toNumber(message.brightness, "brightness");
-            const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
-            await entity.command("genLevelCtrl", "moveToLevelTuya", {level, transtime: 100}, utils.getOptions(meta.mapped, entity));
-            return {state: {state: "ON", brightness}};
-        }
-    },
-    convertGet: async (entity, key, meta) => {
-        if (key === "state") await on_off.convertGet(entity, key, meta);
-        if (key === "brightness") await entity.read("genLevelCtrl", [61440]);
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
