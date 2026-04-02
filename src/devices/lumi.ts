@@ -2434,6 +2434,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Vibration sensor T1",
         extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
             lumiVibration(),
             // lumiMiscellaneous(),
             lumiReportInterval(),

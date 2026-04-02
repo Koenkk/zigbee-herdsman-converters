@@ -622,25 +622,23 @@ export const level_config: Fz.Converter<"genLevelCtrl", undefined, ["attributeRe
 
         // onOffTransitionTime - range 0x0000 to 0xffff - optional
         if (msg.data.onOffTransitionTime !== undefined && msg.data.onOffTransitionTime !== undefined) {
-            result[level_config].on_off_transition_time = Number(msg.data.onOffTransitionTime);
+            result[level_config].on_off_transition_time = Number(msg.data.onOffTransitionTime) / 10;
         }
 
         // onTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (msg.data.onTransitionTime !== undefined && msg.data.onTransitionTime !== undefined) {
-            result[level_config].on_transition_time = Number(msg.data.onTransitionTime);
-            if (result[level_config].on_transition_time === 65535) {
+            if (Number(msg.data.onTransitionTime) === 65535) {
                 result[level_config].on_transition_time = "disabled";
-            }
+            } else result[level_config].on_transition_time = Number(msg.data.onTransitionTime) / 10;
         }
 
         // offTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (msg.data.offTransitionTime !== undefined && msg.data.offTransitionTime !== undefined) {
-            result[level_config].off_transition_time = Number(msg.data.offTransitionTime);
-            if (result[level_config].off_transition_time === 65535) {
+            if (Number(msg.data.offTransitionTime) === 65535) {
                 result[level_config].off_transition_time = "disabled";
-            }
+            } else result[level_config].off_transition_time = Number(msg.data.offTransitionTime) / 10;
         }
 
         // startUpCurrentLevel - range 0x00 to 0xff - optional
@@ -4626,43 +4624,6 @@ export const SP600_power: Fz.Converter<"seMetering", undefined, ["attributeRepor
             return result;
         }
         return metering.convert(model, msg, publish, options, meta);
-    },
-};
-export const viessmann_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
-
-        if (result) {
-            // ViessMann TRVs report piHeatingDemand from 0-5
-            // NOTE: remove the result for now, but leave it configure for reporting
-            //       it will show up in the debug log still to help try and figure out
-            //       what this value potentially means.
-            delete result.pi_heating_demand;
-
-            // viessmannWindowOpenInternal
-            // 0-2, 5: unknown
-            // 3: window open (OO on display, no heating)
-            // 4: window open (OO on display, heating)
-            if (msg.data.viessmannWindowOpenInternal !== undefined) {
-                result.window_open = msg.data.viessmannWindowOpenInternal === 3 || msg.data.viessmannWindowOpenInternal === 4;
-            }
-
-            // viessmannWindowOpenForce (rw, bool)
-            if (msg.data.viessmannWindowOpenForce !== undefined) {
-                result.window_open_force = msg.data.viessmannWindowOpenForce === 1;
-            }
-
-            // viessmannAssemblyMode (ro, bool)
-            // 0: TRV installed
-            // 1: TRV ready to install (-- on display)
-            if (msg.data.viessmannAssemblyMode !== undefined) {
-                result.assembly_mode = msg.data.viessmannAssemblyMode === 1;
-            }
-        }
-
-        return result;
     },
 };
 export const eurotronic_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {

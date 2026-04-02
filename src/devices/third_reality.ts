@@ -104,15 +104,6 @@ interface ThirdPlugGen3 {
     commandResponses: never;
 }
 
-interface ThirdAirPressureSensor {
-    attributes: {
-        sendCommandUpThreshold: number;
-        sendCommandDownThreshold: number;
-    };
-    commands: never;
-    commandResponses: never;
-}
-
 interface Third24gRadar {
     attributes: {
         sensorSensitive: number;
@@ -1186,7 +1177,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RCB01057Z",
         vendor: "Third Reality",
         description: "Smart Color Bulb ZL1",
-        whiteLabel: [{vendor: "Third Reality", model: "3RCB02070Z", description: "Smart Color Bulb ZL4", fingerprint: [{modelID: "3RCB02070Z"}]}],
+        whiteLabel: [
+            {vendor: "Third Reality", model: "3RCB02070Z", description: "Smart Color Bulb ZL4", fingerprint: [{modelID: "3RCB02070Z"}]},
+            {vendor: "Third Reality", model: "3RCB1095Z", description: "Smart Color Bulb ZL2", fingerprint: [{modelID: "3RCB1095Z"}]},
+        ],
         ota: true,
         extend: [
             m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
@@ -1282,39 +1276,15 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart air pressure sensor",
         extend: [
             m.battery(),
-            m.pressure({attribute: {ID: 0xff01, type: Zcl.DataType.UINT32}, name: "pressure", unit: "Pa", scale: 1}),
-            m.commandsOnOff(),
-            m.deviceAddCustomCluster("3rAirsensorSpecialCluster", {
-                name: "3rAirsensorSpecialCluster",
-                ID: 0xff01,
-                manufacturerCode: 0x1407,
-                attributes: {
-                    sendCommandUpThreshold: {name: "sendCommandUpThreshold", ID: 0x0040, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    sendCommandDownThreshold: {name: "sendCommandDownThreshold", ID: 0x0041, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                },
-                commands: {},
-                commandsResponse: {},
+            m.numeric({
+                name: "dirty_level",
+                unit: "%",
+                cluster: "genAnalogInput",
+                attribute: "presentValue",
+                description: "Measure dirty level",
+                access: "STATE_GET",
             }),
-            m.numeric<"3rAirsensorSpecialCluster", ThirdAirPressureSensor>({
-                name: "pressure_raised_threshold",
-                unit: "Pa",
-                valueMin: 0,
-                valueMax: 65535,
-                cluster: "3rAirsensorSpecialCluster",
-                attribute: "sendCommandUpThreshold",
-                description: "Reports sudden air-pressure changes. Pressure rise and fall alerts can be enabled separately. Threshold adjustable.",
-                access: "ALL",
-            }),
-            m.numeric<"3rAirsensorSpecialCluster", ThirdAirPressureSensor>({
-                name: "pressure_falls_threshold",
-                unit: "Pa",
-                valueMin: 0,
-                valueMax: 65535,
-                cluster: "3rAirsensorSpecialCluster",
-                attribute: "sendCommandDownThreshold",
-                description: "Reports sudden air-pressure changes. Pressure rise and fall alerts can be enabled separately. Threshold adjustable.",
-                access: "ALL",
-            }),
+            m.pressure(),
         ],
         ota: true,
     },
@@ -1337,13 +1307,12 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.binary<"3r24gRadarcluster", Third24gRadar>({
-                name: "sensor_calibation",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup<"3r24gRadarcluster", Third24gRadar>({
+                name: "sensor_calibration",
+                lookup: {Press: 1},
                 cluster: "3r24gRadarcluster",
                 attribute: "sensorCalibration",
-                description: "sensor calibationit",
+                description: "sensor calibration",
                 access: "ALL",
             }),
             m.numeric<"3r24gRadarcluster", Third24gRadar>({
