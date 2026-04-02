@@ -1301,7 +1301,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.writeTimeDaily({endpointId: 1}),
         ],
         fromZigbee: [fz.thermostat_weekly_schedule],
-        toZigbee: [tz.thermostat_clear_weekly_schedule, tz.thermostat_clear_weekly_schedule],
+        toZigbee: [tz.thermostat_clear_weekly_schedule],
     },
     {
         fingerprint: [

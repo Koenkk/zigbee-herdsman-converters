@@ -761,6 +761,7 @@ export class Climate extends Base {
         return this;
     }
 
+    /** @deprecated 3.0 - uses wrong casing for some exposes - requires refactoring all weekly schedule logic */
     withWeeklySchedule(modes: string[], access = a.ALL) {
         const allowed = ["heat", "cool"];
         modes.forEach((m) => {
