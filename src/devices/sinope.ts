@@ -1583,11 +1583,9 @@ export const definitions: DefinitionWithExtend[] = [
             // floorTemperature (0x0107) and roomTemperature (0x010D) do not support configureReporting
             // (device returns UNREPORTABLE_ATTRIBUTE). Perform an initial read on pairing; ongoing sync
             // is handled by piggybacking on local_temperature reports in fzLocal.thermostat.
-            await endpoint.read<"manuSpecificSinope", ManuSpecificSinope>(
-                "manuSpecificSinope",
-                ["floorTemperature", "roomTemperature"],
-                {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
-            );
+            await endpoint.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorTemperature", "roomTemperature"], {
+                manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES,
+            });
         },
     },
     {
