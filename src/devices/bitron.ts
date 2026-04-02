@@ -1,7 +1,7 @@
-import type {ThermostatRunningState, ThermostatSystemMode} from "src/lib/constants";
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import type {ThermostatRunningState, ThermostatSystemMode} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
