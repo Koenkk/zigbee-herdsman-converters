@@ -20,6 +20,7 @@ export interface Logger {
 }
 
 export type Range = [number, number];
+export type ValuesOf<T> = T[keyof T];
 export interface KeyValue {
     [s: string]: unknown;
 }

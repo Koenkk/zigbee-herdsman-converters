@@ -93,8 +93,10 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             result[postfixWithEndpointName("setpoint_change_amount", msg, model, meta)] = msg.data.setpointChangeAmount / 100;
         }
         if (msg.data.setpointChangeSource !== undefined) {
-            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] =
-                constants.thermostatSetpointChangeSource[msg.data.setpointChangeSource];
+            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] = utils.getFromLookup(
+                msg.data.setpointChangeSource,
+                constants.thermostatSetpointChangeSource,
+            );
         }
         if (msg.data.setpointChangeSourceTimeStamp !== undefined) {
             const date = new Date(2000, 0, 1);
@@ -111,21 +113,34 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             };
         }
         if (msg.data.ctrlSeqeOfOper !== undefined) {
-            result[postfixWithEndpointName("control_sequence_of_operation", msg, model, meta)] =
-                constants.thermostatControlSequenceOfOperations[msg.data.ctrlSeqeOfOper];
+            result[postfixWithEndpointName("control_sequence_of_operation", msg, model, meta)] = utils.getFromLookup(
+                msg.data.ctrlSeqeOfOper,
+                constants.thermostatControlSequenceOfOperations,
+            );
         }
         if (msg.data.programingOperMode !== undefined) {
-            result[postfixWithEndpointName("programming_operation_mode", msg, model, meta)] =
-                constants.thermostatProgrammingOperationModes[msg.data.programingOperMode];
+            result[postfixWithEndpointName("programming_operation_mode", msg, model, meta)] = utils.getFromLookup(
+                msg.data.programingOperMode,
+                constants.thermostatProgrammingOperationModes,
+            );
         }
         if (msg.data.systemMode !== undefined) {
-            result[postfixWithEndpointName("system_mode", msg, model, meta)] = constants.thermostatSystemModes[msg.data.systemMode];
+            result[postfixWithEndpointName("system_mode", msg, model, meta)] = utils.getFromLookup(
+                msg.data.systemMode,
+                constants.thermostatSystemModes,
+            );
         }
         if (msg.data.runningMode !== undefined) {
-            result[postfixWithEndpointName("running_mode", msg, model, meta)] = constants.thermostatRunningMode[msg.data.runningMode];
+            result[postfixWithEndpointName("running_mode", msg, model, meta)] = utils.getFromLookup(
+                msg.data.runningMode,
+                constants.thermostatRunningMode,
+            );
         }
         if (msg.data.runningState !== undefined) {
-            result[postfixWithEndpointName("running_state", msg, model, meta)] = constants.thermostatRunningStates[msg.data.runningState];
+            result[postfixWithEndpointName("running_state", msg, model, meta)] = utils.getFromLookup(
+                msg.data.runningState,
+                constants.thermostatRunningStates,
+            );
         }
         if (msg.data.pIHeatingDemand !== undefined) {
             result[postfixWithEndpointName("pi_heating_demand", msg, model, meta)] = mapNumberRange(
@@ -195,8 +210,10 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             }
         }
         if (msg.data.acLouverPosition !== undefined) {
-            result[postfixWithEndpointName("ac_louver_position", msg, model, meta)] =
-                constants.thermostatAcLouverPositions[msg.data.acLouverPosition];
+            result[postfixWithEndpointName("ac_louver_position", msg, model, meta)] = utils.getFromLookup(
+                msg.data.acLouverPosition,
+                constants.thermostatAcLouverPositions,
+            );
         }
         return result;
     },
@@ -208,7 +225,7 @@ export const thermostat_weekly_schedule: Fz.Converter<"hvacThermostat", undefine
         const days = [];
         for (let i = 0; i < 8; i++) {
             if ((msg.data.dayofweek & (1 << i)) > 0) {
-                days.push(constants.thermostatDayOfWeek[i]);
+                days.push(utils.getFromLookup(i, constants.thermostatDayOfWeek));
             }
         }
 
@@ -2871,6 +2888,7 @@ export const meazon_meter: Fz.Converter<"seMetering", undefined, ["attributeRepo
         return result;
     },
 };
+
 export const orvibo_raw_1: Fz.Converter<23, undefined, "raw"> = {
     cluster: 23,
     type: "raw",

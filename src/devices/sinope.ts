@@ -312,10 +312,10 @@ const fzLocal = {
                 result.unoccupied_cooling_setpoint = precisionRound(msg.data.unoccupiedCoolingSetpoint, 2) / 100;
             }
             if (msg.data.ctrlSeqeOfOper !== undefined) {
-                result.control_sequence_of_operation = constants.thermostatControlSequenceOfOperations[msg.data.ctrlSeqeOfOper];
+                result.control_sequence_of_operation = utils.getFromLookup(msg.data.ctrlSeqeOfOper, constants.thermostatControlSequenceOfOperations);
             }
             if (msg.data.systemMode !== undefined) {
-                result.system_mode = constants.thermostatSystemModes[msg.data.systemMode];
+                result.system_mode = utils.getFromLookup(msg.data.systemMode, constants.thermostatSystemModes);
             }
             if (msg.data.pIHeatingDemand !== undefined) {
                 result.pi_heating_demand = precisionRound(msg.data.pIHeatingDemand, 0);

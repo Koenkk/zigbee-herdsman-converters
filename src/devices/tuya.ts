@@ -4,7 +4,7 @@ import {DataType} from "zigbee-herdsman/dist/zspec/zcl";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as libColor from "../lib/color";
-import {ColorMode, colorModeLookup} from "../lib/constants";
+import {ColorMode, colorModeLookup, type ThermostatSystemMode} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import {logger} from "../lib/logger";
@@ -6103,7 +6103,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Send a wake-up command before turning the device on or/off, required for some firmware revisions."),
         ],
         exposes: (device, options) => {
-            const system_modes = ["off", "cool", "heat", "fan_only"];
+            const system_modes: ThermostatSystemMode[] = ["off", "cool", "heat", "fan_only"];
 
             // Device can operate either in cooling or heating/cooling configuration
             // For cooling only configurations remove 'heat' mode
@@ -17415,7 +17415,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("expose_device_state", ea.SET, true, false).withDescription("Expose device power state as a separate property when enabled."),
         ],
         exposes: (device, options) => {
-            const system_modes = ["off", "cool", "heat", "fan_only"];
+            const system_modes: ThermostatSystemMode[] = ["off", "cool", "heat", "fan_only"];
             // Device can operate either in 2-pipe or 4-pipe configuration
             // For 2-pipe configurations remove 'heat' mode
             switch (options?.control_sequence_of_operation) {
