@@ -2024,7 +2024,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Outlet water temperature")
                 .withValueMin(0)
                 .withValueStep(0.01),
-            e.battery_voltage(),
+            e.numeric("battery_voltage", ea.STATE).withUnit("V").withDescription("Power supply voltage").withValueMin(0).withValueStep(0.01),
         ],
         meta: {
             tuyaDatapoints: [
