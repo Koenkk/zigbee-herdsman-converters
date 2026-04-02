@@ -1,5 +1,27 @@
 # Changelog
 
+## [26.29.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.28.0...v26.29.0) (2026-04-02)
+
+
+### Features
+
+* Sinope TH1300ZB: expose `floor_temperature` and `room_temperature` ([#11861](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11861)) ([d2ef9e6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d2ef9e6594f153a21740cba868bcc5bddc19e069))
+
+
+### Bug Fixes
+
+* Danfoss duplicate tz ([5f2f223](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5f2f22377ca0cd966244bfa601444f39ed501bca))
+* **detect:** Detect `_TZ32101000000_5oy7cysk` as ONENUO TS0210_5oy7cysk ([#11860](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11860)) ([967f7fb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/967f7fb702cdb1d760fb3e807dd9494f4203fcbc))
+* **detect:** Detect `_TZE284_1fuxihti` as Tuya TS0601_cover_1 https://github.com/Koenkk/zigbee2mqtt/issues/31584 ([30c3fde](https://github.com/Koenkk/zigbee-herdsman-converters/commit/30c3fde5928681ff18d6ef1b8f718a868db279e6))
+* **detect:** Detect `_TZE284_xdtnpp1a` as AVATTO TRV26 https://github.com/Koenkk/zigbee2mqtt/issues/31369 ([eb05426](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eb05426c4da90a00041a07d7eb5fd8eebba15f20))
+* Disable enhanced hue by default & convert HS to XY, on XY-only bulbs ([#11840](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11840)) ([ead735c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ead735c5bc621df2d966f43e7cfed94a3f50811f))
+* Fix illuminance lux value calculated incorrectly https://github.com/Koenkk/zigbee-herdsman-converters/issues/11866 ([cda588e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cda588ee02c774461c46cff7c731a37982eb4ead))
+* **ignore:** Fix import path 07d26fdda93a686912ae38ab35bcb32ac8071006 ([edbf227](https://github.com/Koenkk/zigbee-herdsman-converters/commit/edbf227b62da4b5c2f23fd5d9eb8d38009df7e28))
+* Improve readability and tests for lookup utility functions ([#11836](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11836)) ([44c2f07](https://github.com/Koenkk/zigbee-herdsman-converters/commit/44c2f073d0d370cda16b13ffce0213146dffd7e8))
+* Move custom commands from ZH to ZHC  ([#11824](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11824)) ([a734e63](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a734e63384c124af4e573ff327736020e5d891ac))
+* Single source of truth for thermostat enum values ([#11837](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11837)) ([07d26fd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/07d26fdda93a686912ae38ab35bcb32ac8071006))
+* Third Reality 3RPL01084Z: fix `totalVolatileOrganicCompounds` ([#11864](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11864)) ([a48dc61](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a48dc61b2cba2303acfa5e99167a734a9fe33bfb))
+
 ## [26.28.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.27.0...v26.28.0) (2026-04-01)
 
 
