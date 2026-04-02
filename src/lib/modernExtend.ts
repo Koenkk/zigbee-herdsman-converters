@@ -1194,7 +1194,7 @@ export function light(args: LightArgs = {}): ModernExtend {
         ? {
               modes: ["xy"] satisfies ("xy" | "hs")[],
               applyRedFix: false,
-              enhancedHue: true,
+              enhancedHue: false,
               ...(isObject(color) ? color : {}),
           }
         : false;
@@ -1245,8 +1245,8 @@ export function light(args: LightArgs = {}): ModernExtend {
         if (argsColor.applyRedFix) {
             meta.applyRedFix = true;
         }
-        if (!argsColor.enhancedHue) {
-            meta.supportsEnhancedHue = false;
+        if (argsColor.enhancedHue) {
+            meta.supportsEnhancedHue = true;
         }
     }
 
