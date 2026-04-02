@@ -1261,6 +1261,11 @@ export const definitions: DefinitionWithExtend[] = [
                 piHeatingDemand: {values: true},
                 systemMode: {values: ["heat"]},
                 programmingOperationMode: {values: ["setpoint", "schedule", "schedule_with_preheat", "eco"]},
+                // weeklySchedule: {values: ["heat"]},   // gives an error in test:
+                // test/checks.test.ts > Check definitions > respect snake case naming conventions for exposes and options
+                // Error: Definitions not using snake case for expose/option:
+                // Danfoss|014G2461|expose.name=transitionTime
+                // Danfoss|014G2461|expose.name=heatSetpoint
                 setpointsLimit: {
                     maxHeatSetpointLimit: {min: 5, max: 35, step: 0.5},
                 },
@@ -1295,6 +1300,8 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossRegulationSetpointOffset(),
             m.writeTimeDaily({endpointId: 1}),
         ],
+        fromZigbee: [fz.thermostat_weekly_schedule],
+        toZigbee: [tz.thermostat_clear_weekly_schedule],
     },
     {
         fingerprint: [

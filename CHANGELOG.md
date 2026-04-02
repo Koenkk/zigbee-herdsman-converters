@@ -1,5 +1,25 @@
 # Changelog
 
+## [26.28.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.27.0...v26.28.0) (2026-04-01)
+
+
+### Features
+
+* **add:** FFZB1-SM-ECO ([#11796](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11796)) ([7ec1eb3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7ec1eb320bc1e085710d8589dd14473dcc81ffaa))
+* Danfoss 014G2461: expose scheduling functionality ([#11858](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11858)) ([8669dff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8669dffdbc21e1ad773fe726bf5369e9a8238fbf))
+* Shelly SBHT-103C: support light level ([#11856](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11856)) ([e352193](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e3521937389beb88f3dcf2b9c2283b894d2b8ac9))
+* SONOFF SWV: expose more features ([#11832](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11832)) ([05ab469](https://github.com/Koenkk/zigbee-herdsman-converters/commit/05ab4691896f1b6458f3f3ac6782377a8452a84a))
+
+
+### Bug Fixes
+
+* Change `onOffTransitionTime` unit to seconds ([#11854](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11854)) ([4b46930](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4b469303b9378c5fe052ea1971927ada3a14e364))
+* Custom read responses cleanup ([#11786](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11786)) ([af64077](https://github.com/Koenkk/zigbee-herdsman-converters/commit/af64077621ef0fcaf6d4f601ef1d63547f6893c8))
+* **detect:** Detect `_TZ3210_imaccztn`as TYWB 4ch-RF ([#11851](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11851)) ([b87c1e3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b87c1e3e507b6f9c30d140856a470c396a667522))
+* **detect:** Detect `CK-BL702-MSW-01(7010)` as Mumubiz CZV20 ([#11859](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11859)) ([6cedc29](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6cedc29bf2f7e57a4c0b9b745d833dc65d407eae))
+* **detect:** Detect IKEA TOFSMYGGA as E2435/E2491 ([#11853](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11853)) ([00585b3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/00585b32402165ce9d061b227c440a5afdd78e5a))
+* Tuya _TZ3000_wol32olt: fix humidity value off by factor 10 https://github.com/Koenkk/zigbee2mqtt/issues/30861 ([a06e647](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a06e647f16de8511ec3552bbfd66fc4d0f86d5ad))
+
 ## [26.27.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.26.0...v26.27.0) (2026-03-31)
 
 

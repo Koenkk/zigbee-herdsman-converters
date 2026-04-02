@@ -111,6 +111,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "eWeLink",
         description: "CMARS Zigbee smart plug",
         extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse()],
+        whiteLabel: [
+            {
+                vendor: "Mumubiz",
+                model: "CZV20",
+                description: "Zigbee smart water valve",
+                fingerprint: [{modelID: "CK-BL702-MSW-01(7010)"}],
+            },
+        ],
     },
     {
         zigbeeModel: ["SA-003-Zigbee"],
