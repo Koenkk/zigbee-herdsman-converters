@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it} from "vitest";
 import type {Device} from "zigbee-herdsman/dist/controller/model";
 import type {Tz} from "../src/lib/types";
-import {batteryVoltageToPercentage, getFromLookup, getTransition, mapNumberRange, toNumber} from "../src/lib/utils";
+import {batteryVoltageToPercentage, getFromLookup, getFromLookupByValue, getTransition, mapNumberRange, toNumber} from "../src/lib/utils";
 import {mockDevice} from "./utils";
 
 describe("utils", () => {
@@ -137,10 +137,98 @@ describe("utils", () => {
         expect(() => toNumber("")).toThrowError("Value is not a number, got string ()");
     });
 
-    it("getFromLookup", () => {
-        expect(getFromLookup("OFF", {off: 0, on: 1, previous: 2})).toStrictEqual(0);
-        expect(getFromLookup("On", {off: 0, on: 1, previous: 2})).toStrictEqual(1);
-        expect(getFromLookup("previous", {OFF: 0, ON: 1, PREVIOUS: 2})).toStrictEqual(2);
-        expect(getFromLookup(1, {0: "OFF", 1: "on"})).toStrictEqual("on");
+    describe("getFromLookup", () => {
+        describe("string keys", () => {
+            it("should match with case insensitive lookup (lowercase key)", () => {
+                expect(getFromLookup("OFF", {off: 0, on: 1, previous: 2})).toStrictEqual(0);
+            });
+
+            it("should match with case insensitive lookup (mixed case key)", () => {
+                expect(getFromLookup("On", {off: 0, on: 1, previous: 2})).toStrictEqual(1);
+            });
+
+            it("should match with case insensitive lookup (uppercase key)", () => {
+                expect(getFromLookup("previous", {OFF: 0, ON: 1, PREVIOUS: 2})).toStrictEqual(2);
+            });
+        });
+
+        describe("number keys", () => {
+            it("should match numeric key", () => {
+                expect(getFromLookup(1, {0: "OFF", 1: "on"})).toStrictEqual("on");
+            });
+        });
+
+        describe("boolean keys", () => {
+            it("should match true with exact match", () => {
+                expect(getFromLookup(true, {true: "enabled", false: "disabled"}, undefined, true)).toStrictEqual("enabled");
+            });
+
+            it("should match false with exact match", () => {
+                expect(getFromLookup(false, {true: "enabled", false: "disabled"}, undefined, true)).toStrictEqual("disabled");
+            });
+
+            it("should match true with case insensitive lookup", () => {
+                expect(getFromLookup(true, {TRUE: "yes", FALSE: "no"}, undefined, true)).toStrictEqual("yes");
+            });
+
+            it("should throw when keyIsBool is true but key is not boolean", () => {
+                expect(() => getFromLookup("true", {true: "enabled", false: "disabled"}, undefined, true)).toThrowError(
+                    "Expected boolean, got: string",
+                );
+                expect(() => getFromLookup(1, {true: "enabled", false: "disabled"}, undefined, true)).toThrowError("Expected boolean, got: number");
+            });
+        });
+
+        describe("invalid key types", () => {
+            it("should throw when key is not string or number", () => {
+                expect(() => getFromLookup(null, {off: 0, on: 1})).toThrowError("Expected string or number, got: object");
+                expect(() => getFromLookup(undefined, {off: 0, on: 1})).toThrowError("Expected string or number, got: undefined");
+                expect(() => getFromLookup({}, {off: 0, on: 1})).toThrowError("Expected string or number, got: object");
+            });
+        });
+
+        describe("key not found", () => {
+            it("should throw when key not found and no default provided", () => {
+                expect(() => getFromLookup("unknown", {off: 0, on: 1})).toThrowError("Key 'unknown' not found in: [off, on]");
+                expect(() => getFromLookup(99, {0: "OFF", 1: "on"})).toThrowError("Key '99' not found in: [0, 1]");
+                expect(() => getFromLookup(false, {true: "yes"}, undefined, true)).toThrowError("Key 'false' not found in: [true]");
+            });
+
+            it("should return default value when key not found and default provided", () => {
+                expect(getFromLookup("unknown", {off: 0, on: 1}, 99)).toStrictEqual(99);
+                expect(getFromLookup(99, {0: "OFF", 1: "on"}, "default")).toStrictEqual("default");
+                expect(getFromLookup(false, {true: "yes"}, "no", true)).toStrictEqual("no");
+            });
+        });
+    });
+
+    describe("getFromLookupByValue", () => {
+        describe("value found", () => {
+            it("should return key when value matches", () => {
+                expect(getFromLookupByValue(0, {off: 0, on: 1})).toStrictEqual("off");
+                expect(getFromLookupByValue(1, {off: 0, on: 1})).toStrictEqual("on");
+                expect(getFromLookupByValue("enabled", {mode_a: "enabled", mode_b: "disabled"})).toStrictEqual("mode_a");
+            });
+        });
+
+        describe("value not found", () => {
+            it("should throw when value not found and no default provided", () => {
+                expect(() => getFromLookupByValue(99, {off: 0, on: 1})).toThrowError("Expected one of: 0, 1, got: '99'");
+                expect(() => getFromLookupByValue("unknown", {mode_a: "enabled", mode_b: "disabled"})).toThrowError(
+                    "Expected one of: enabled, disabled, got: 'unknown'",
+                );
+            });
+
+            it("should return default value when value not found and default provided", () => {
+                expect(getFromLookupByValue(99, {off: 0, on: 1}, "default_key")).toStrictEqual("default_key");
+                expect(getFromLookupByValue("unknown", {mode_a: "enabled", mode_b: "disabled"}, "fallback")).toStrictEqual("fallback");
+            });
+        });
+
+        describe("multiple keys with same value", () => {
+            it("should return first matching key", () => {
+                expect(getFromLookupByValue("same", {first: "same", second: "same", third: "different"})).toStrictEqual("first");
+            });
+        });
     });
 });
