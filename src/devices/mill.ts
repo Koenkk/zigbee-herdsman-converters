@@ -15,4 +15,17 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.identify],
         exposes: [e.climate().withSetpoint("occupied_heating_setpoint", 5, 35, 0.5).withLocalTemperature().withSystemMode(["off", "heat"])],
     },
+    {
+        fingerprint: [
+            {manufacturerName: "Mill International\u0000Threa"},
+            {manufacturerName: "Mill InternationalThrea"},
+        ],
+        zigbeeModel: ["Mill International\u0000Threa", "Mill InternationalThrea"],
+        model: "mill_smart_floor_thermostat",
+        vendor: "Mill",
+        description: "Mill Smart Floor Thermostat WiFi & Zigbee",
+        fromZigbee: [fz.thermostat],
+        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode],
+        exposes: [e.climate().withSetpoint("occupied_heating_setpoint", 5, 35, 0.5).withLocalTemperature().withSystemMode(["off", "heat"])],
+    },
 ];
