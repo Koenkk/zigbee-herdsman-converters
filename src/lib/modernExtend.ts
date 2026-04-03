@@ -808,6 +808,10 @@ export function illuminance(args: Partial<NumericArgs<"msIlluminanceMeasurement"
     const luxScale: ScaleFunction = (value: number, type: "from" | "to") => {
         let result = value;
         if (type === "from") {
+            if (result === 0) return 0;
+
+            if (result === 65535) return undefined;
+
             result = 10 ** ((result - 1) / 10000);
         }
         return result;
@@ -2679,7 +2683,7 @@ export function enumLookup<Cl extends string | number, Custom extends TCustomClu
 }
 
 // type provides a way to distinguish between fromZigbee and toZigbee value conversions if they are asymmetrical
-export type ScaleFunction = (value: number, type: "from" | "to") => number;
+export type ScaleFunction = (value: number, type: "from" | "to") => number | undefined;
 
 export interface NumericArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
     extends ClusterWithAttribute<Cl, Custom> {
