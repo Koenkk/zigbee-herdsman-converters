@@ -13,6 +13,7 @@ import type {
     Fz,
     KeyValue,
     KeyValueAny,
+    PowerSource,
     Publish,
     Tz,
     Zh,
@@ -679,7 +680,7 @@ export function getFromLookupByValue(value: unknown, lookup: Record<string, unkn
     return defaultValue;
 }
 
-export function configureSetPowerSourceWhenUnknown(powerSource: "Battery" | "Mains (single phase)"): Configure {
+export function configureSetPowerSourceWhenUnknown(powerSource: PowerSource): Configure {
     return (device: Zh.Device): void => {
         if (!device.powerSource || device.powerSource === "Unknown") {
             logger.debug(`Device has no power source, forcing to '${powerSource}'`, NS);
