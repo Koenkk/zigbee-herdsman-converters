@@ -808,7 +808,7 @@ export function illuminance(args: Partial<NumericArgs<"msIlluminanceMeasurement"
     const luxScale: ScaleFunction = (value: number, type: "from" | "to") => {
         let result = value;
         if (type === "from") {
-            result = 10 ** (result / 10000) - 1;
+            result = 10 ** ((result - 1) / 10000);
         }
         return result;
     };
