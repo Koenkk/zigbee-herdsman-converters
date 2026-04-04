@@ -18339,7 +18339,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [13, "test1", tuya.valueConverter.raw], // ?
                 [15, "leakage_current", tuya.valueConverter.raw],
                 [16, "state", tuya.valueConverter.onOff],
-                [32, "ac_frequency", tuya.valueConverter.divideBy100],
+                [32, "ac_frequency", tuya.valueConverter.raw],
                 [50, "power_factor", tuya.valueConverter.raw],
                 [
                     102,
