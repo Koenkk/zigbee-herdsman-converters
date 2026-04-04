@@ -804,19 +804,19 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
 
 // #region Measurement and Sensing
 
+const luxScale: ScaleFunction = (value: number, type: "from" | "to") => {
+    let result = value;
+    if (type === "from") {
+        if (result === 0x0000) return 0;
+
+        if (result === 0xffff) return undefined;
+
+        result = 10 ** ((result - 1) / 10000);
+    }
+    return result;
+};
+
 export function illuminance(args: Partial<NumericArgs<"msIlluminanceMeasurement">> = {}): ModernExtend {
-    const luxScale: ScaleFunction = (value: number, type: "from" | "to") => {
-        let result = value;
-        if (type === "from") {
-            if (result === 0) return 0;
-
-            if (result === 65535) return undefined;
-
-            result = 10 ** ((result - 1) / 10000);
-        }
-        return result;
-    };
-
     const result = numeric({
         name: "illuminance",
         cluster: "msIlluminanceMeasurement",
