@@ -809,7 +809,7 @@ const luxScale: ScaleFunction = (value: number, type: "from" | "to") => {
     if (type === "from") {
         if (result === 0x0000) return 0;
 
-        if (result === 0xffff) return undefined;
+        if (Number.isNaN(result)) return undefined;
 
         result = 10 ** ((result - 1) / 10000);
     }
