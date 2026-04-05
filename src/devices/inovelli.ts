@@ -15,6 +15,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             inovelli.m.light(),
             inovelli.m.device({
+                model: inovelli.Model.VZM30,
                 attrs: [{attributes: inovelli.VZM30_ATTRIBUTES, clusterName: inovelli.CLUSTER_NAME}],
                 supportsLedEffects: true,
                 supportsButtonTaps: true,
@@ -40,6 +41,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             inovelli.m.light(),
             inovelli.m.device({
+                model: inovelli.Model.VZM31,
                 attrs: [{attributes: inovelli.VZM31_ATTRIBUTES, clusterName: inovelli.CLUSTER_NAME}],
                 supportsLedEffects: true,
                 supportsButtonTaps: true,
@@ -68,6 +70,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             inovelli.m.light(),
             inovelli.m.device({
+                model: inovelli.Model.VZM32,
                 attrs: [
                     {attributes: inovelli.VZM32_ATTRIBUTES, clusterName: inovelli.CLUSTER_NAME},
                     {attributes: inovelli.VZM32_MMWAVE_ATTRIBUTES, clusterName: inovelli.MMWAVE_CLUSTER_NAME},
@@ -96,6 +99,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             inovelli.m.fan({endpointId: 1}),
             inovelli.m.device({
+                model: inovelli.Model.VZM35,
                 attrs: [{attributes: inovelli.VZM35_ATTRIBUTES, clusterName: inovelli.CLUSTER_NAME}],
                 supportsLedEffects: true,
                 supportsButtonTaps: true,
@@ -116,6 +120,7 @@ export const definitions: DefinitionWithExtend[] = [
             inovelli.m.light({splitValuesByEndpoint: true}),
             inovelli.m.fan({endpointId: 2, splitValuesByEndpoint: true}),
             inovelli.m.device({
+                model: inovelli.Model.VZM36,
                 attrs: [{attributes: inovelli.VZM36_ATTRIBUTES, clusterName: inovelli.CLUSTER_NAME}],
                 supportsLedEffects: false,
                 splitValuesByEndpoint: true,
