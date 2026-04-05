@@ -1,4 +1,4 @@
-﻿import {Zcl} from "zigbee-herdsman";
+﻿import {getTimeClusterAttributes, Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -1553,21 +1553,22 @@ const sonoffExtend = {
                             return false;
                         }
 
-                        const nowUtcSeconds = Math.floor(Date.now() / 1000);
-                        const time = nowUtcSeconds - YEAR_2000_IN_UTC;
-                        const offsetSeconds = getRuntimeLocalOffsetSeconds(nowUtcSeconds);
-                        const payload = {
-                            time,
-                            timeZone: offsetSeconds,
-                            localTime: time + offsetSeconds,
-                            dstStart: 0, // The device's Zigbee behavior is a bit non-standard.
-                            dstEnd: 0,
-                            dstShift: offsetSeconds,
-                        };
+                        const {time, timeZone, localTime, dstShift} = getTimeClusterAttributes();
 
-                        endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, payload).catch((e) => {
-                            logger.warning(`SWV custom time response failed: ${e}`, NS);
-                        });
+                        // XXX: we're replying to specific attributes, which could be incorrect (not based on the request attrIds)
+                        endpoint
+                            .readResponse("genTime", frame.header.transactionSequenceNumber, {
+                                time,
+                                timeZone,
+                                localTime,
+                                dstStart: 0, // The device's Zigbee behavior is a bit non-standard.
+                                dstEnd: 0,
+                                dstShift,
+                            })
+                            .catch((e) => {
+                                logger.warning(`SWV custom time response failed: ${e}`, NS);
+                            });
+
                         return true;
                     };
                 }
@@ -4864,6 +4865,53 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.cyclicTimedIrrigation(),
             sonoffExtend.cyclicQuantitativeIrrigation(),
+            m.numeric({
+                name: "real_time_irrigation_duration",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x5006, type: Zcl.DataType.UINT32},
+                description: "Duration of the last/current irrigation session",
+                access: "STATE",
+                unit: "s",
+            }),
+            m.numeric({
+                name: "real_time_irrigation_volume",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x5007, type: Zcl.DataType.UINT32},
+                description: "Volume of the last/current irrigation session",
+                access: "STATE",
+                unit: "L",
+            }),
+            m.numeric({
+                name: "irrigation_start_time",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x500d, type: Zcl.DataType.UINT32},
+                description: "Start time of the last/current irrigation session (Unix timestamp)",
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "irrigation_end_time",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x500e, type: Zcl.DataType.UINT32},
+                description: "End time of the last irrigation session (Unix timestamp)",
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "daily_irrigation_volume",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x500f, type: Zcl.DataType.UINT32},
+                description: "Total irrigation volume today",
+                access: "STATE",
+                unit: "L",
+            }),
+            m.binary({
+                name: "valve_work_state",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x5010, type: Zcl.DataType.BOOLEAN},
+                description: "Current valve work state",
+                access: "STATE",
+                valueOn: ["working", 1],
+                valueOff: ["idle", 0],
+            }),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {

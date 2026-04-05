@@ -1,7 +1,7 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import type {ThermostatRunningState, ThermostatSystemMode} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
@@ -295,7 +295,7 @@ export const definitions: DefinitionWithExtend[] = [
             let ctrlSeqeOfOper = !utils.isDummyDevice(device)
                 ? device.getEndpoint(1).getClusterAttributeValue("hvacThermostat", "ctrlSeqeOfOper")
                 : null;
-            const modes = [];
+            const modes: Array<ThermostatSystemMode & ThermostatRunningState> = [];
 
             if (typeof ctrlSeqeOfOper === "string") ctrlSeqeOfOper = Number.parseInt(ctrlSeqeOfOper, 10) ?? null;
 
@@ -322,8 +322,8 @@ export const definitions: DefinitionWithExtend[] = [
                     .climate()
                     .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                     .withLocalTemperature()
-                    .withSystemMode(["off"].concat(modes))
-                    .withRunningState(["idle"].concat(modes))
+                    .withSystemMode([...modes, "off"])
+                    .withRunningState([...modes, "idle"])
                     .withLocalTemperatureCalibration()
                     .withControlSequenceOfOperation(["heating_only", "cooling_only"], ea.ALL),
             );
