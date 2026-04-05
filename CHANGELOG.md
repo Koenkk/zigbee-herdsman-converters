@@ -1,5 +1,24 @@
 # Changelog
 
+## [26.30.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.29.0...v26.30.0) (2026-04-05)
+
+
+### Features
+
+* **add:** 0190015 ([#11878](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11878)) ([9804405](https://github.com/Koenkk/zigbee-herdsman-converters/commit/98044052e5c7e91ddbdeada1aa1501e3f2983bd3))
+* **add:** 4512785 ([#11820](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11820)) ([28e0c0b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/28e0c0b7b6ae238deafed77d01c7735aa4e86773))
+
+
+### Bug Fixes
+
+* Danfoss 014G2461: revert breaking changes https://github.com/Koenkk/zigbee2mqtt/issues/31587 ([6407180](https://github.com/Koenkk/zigbee-herdsman-converters/commit/640718014b7c4f2f617b4d5054e80310f0a87f28))
+* **detect:** Detect `_TZ3210_2putqrmw` as Nous A1Z ([#11877](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11877)) ([6c00727](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6c00727dd3d1870470102971010f703852ff5ef9))
+* **detect:** Detect `_TZE284_uo8qcagc` as Tuya TS0601_gas_sensor_4 https://github.com/Koenkk/zigbee2mqtt/issues/31588 ([a76aea3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a76aea3d8cd8a453f4618a2a4b2571168414491e))
+* **detect:** Detect `NimlyCodePRO` as Onesti Products AS Nimly  ([#11874](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11874)) ([9c7e1d2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c7e1d240a4bc5bda2872228cdcc8645947f77f5))
+* **ignore:** fix wrong merge in https://github.com/Koenkk/zigbee-herdsman-converters/commit/07d26fdda93a686912ae38ab35bcb32ac8071006 ([de37bc4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/de37bc4f421f3fd0b8da6a3efaf10140c9baeefd))
+* Philips 929004581901: expose more gradient effects https://github.com/Koenkk/zigbee-herdsman-converters/issues/11871 ([991190f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/991190fc095aa825c9b32cae3c417fa1a7e0e708))
+* Tongou TO-Q-SYS-JZT: fix `ac_frequency` ([#11875](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11875)) ([4800fb9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4800fb9b9b1210b0d02291e3a5979849e629e5e8))
+
 ## [26.29.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.28.0...v26.29.0) (2026-04-02)
 
 
