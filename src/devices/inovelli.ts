@@ -42,6 +42,7 @@ interface Inovelli {
         dimmingMode: number;
         dimmingAlgorithm: number;
         auxDetectionLevel: number;
+        dumbDetectionLevel: number;
         nonNeutralAuxMediumGear: number;
         nonNeutralAuxLowGear: number;
         internalTemperature: number;
@@ -385,6 +386,7 @@ const inovelliExtend = {
                 dimmingMode: {name: "dimmingMode", ID: 0x001a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 dimmingAlgorithm: {name: "dimmingAlgorithm", ID: 0x001b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 auxDetectionLevel: {name: "auxDetectionLevel", ID: 0x007c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                dumbDetectionLevel: {name: "dumbDetectionLevel", ID: 0x00a5, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 nonNeutralAuxMediumGear: {name: "nonNeutralAuxMediumGear", ID: 0x001e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 nonNeutralAuxLowGear: {name: "nonNeutralAuxLowGear", ID: 0x001f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 internalTemperature: {name: "internalTemperature", ID: 0x0020, type: Zcl.DataType.INT8, write: true, max: 0xff},
@@ -1742,6 +1744,15 @@ const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
         description:
             "Aux detection level (P124). Range: 0-4, default: 1. " +
             "If you are having issues with the aux function, start setting from 0 and continue until the aux function operates normally.",
+    },
+    dumbDetectionLevel: {
+        ID: 165,
+        dataType: Zcl.DataType.UINT8,
+        min: 0,
+        max: 4,
+        description:
+            "Dumb detection level (P165). Range: 0-4, default: 0. " +
+            "If the dumb switch function is not working correctly, start at 0 and increase until it operates normally.",
     },
 };
 
