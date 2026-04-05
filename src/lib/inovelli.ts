@@ -626,10 +626,15 @@ const inovelliExtend = {
         // biome-ignore lint/suspicious/noExplicitAny: generic
         const fromZigbee: Fz.Converter<any, any, any>[] = [];
         const toZigbee: Tz.Converter[] = [];
+        const staticExposes: Expose[] = [];
 
         if (supportsLedEffects) {
             fromZigbee.push(fzLocal.led_effect_complete);
             toZigbee.push(tzLocal.inovelli_led_effect, tzLocal.inovelli_individual_led_effect);
+            staticExposes.push(exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete());
+        }
+        if (supportsButtonTaps) {
+            staticExposes.push(e.action(BUTTON_TAP_SEQUENCES));
         }
 
         for (const attr of attrs) {
@@ -638,14 +643,6 @@ const inovelliExtend = {
                 tzLocal.inovelli_parameters(attr.attributes, attr.clusterName, model),
                 tzLocal.inovelli_parameters_readOnly(attr.attributes, attr.clusterName),
             );
-        }
-
-        const staticExposes: Expose[] = [];
-        if (supportsLedEffects) {
-            staticExposes.push(exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete());
-        }
-        if (supportsButtonTaps) {
-            staticExposes.push(e.action(BUTTON_TAP_SEQUENCES));
         }
 
         const dynamicExposes = (device: Zh.Device | DummyDevice, _options: KeyValue): Expose[] => {
