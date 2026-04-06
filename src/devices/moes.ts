@@ -84,22 +84,29 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_upt8lzi0"]),
-        model: "ZSFE_CURTAIN_SWITCH",
-        vendor: "Moes",
-        description: "Star Feather Zigbee smart curtain switch",
-        fromZigbee: [fz.cover_position_tilt, tuya.fz.datapoints],
-        toZigbee: [tz.cover_position_tilt, tz.cover_state, tuya.tz.datapoints],
-        exposes: [e.cover_position(), e.position()],
-        meta: {
-            tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({open: 0, stop: 1, close: 2})],
-                [2, "position", tuya.valueConverter.coverPosition],
-            ],
-        },
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+    fingerprint: tuya.fingerprint("TS0601", ["_TZE284_upt8lzi0"]),
+    model: "MOES_TS0601_curtain_switch",
+    vendor: "Moes/Tuya",
+    description: "Star Feather Zigbee curtain switch",
+    fromZigbee: [tuya.fz.datapoints],
+    toZigbee: [tuya.tz.datapoints],
+    onEvent: tuya.onEventSetTime,
+    configure: tuya.configureMagicPacket,
+    options: [exposes.options.invert_cover()],
+    exposes: [
+        e.cover_position().setAccess("position", ea.STATE_SET),
+    ],
+    meta: {
+        tuyaDatapoints: [
+            [1, "state", tuya.valueConverterBasic.lookup({
+                OPEN: tuya.enum(0),
+                STOP: tuya.enum(1),
+                CLOSE: tuya.enum(2),
+            })],
+            [2, "position", tuya.valueConverter.coverPosition],
+        ],
     },
+},
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zxkwaztm"]),
         model: "ZHT-S03",
