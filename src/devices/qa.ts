@@ -363,7 +363,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QAT42Z2B",
         vendor: "QA",
         description: "2 channel scene switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 2}})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -371,6 +371,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("backlight_brightness", ea.ALL).withValueMin(0).withValueMax(99).withDescription("Backlight brightness (0-99)").withUnit("%"),
         ],
         meta: {
+            multiEndpoint: true,
             tuyaDatapoints: [
                 [24, "state_l1", tuya.valueConverter.onOff],
                 [25, "state_l2", tuya.valueConverter.onOff],
@@ -379,13 +380,16 @@ export const definitions: DefinitionWithExtend[] = [
                 [101, "backlight_brightness", tuya.valueConverter.raw],
             ],
         },
+        endpoint: (device) => {
+            return {l1: 1, l2: 1};
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_pgxndxp4"]),
         model: "QAT42Z3B",
         vendor: "QA",
         description: "3 channel scene switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -394,6 +398,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("backlight_brightness", ea.ALL).withValueMin(0).withValueMax(99).withDescription("Backlight brightness (0-99)").withUnit("%"),
         ],
         meta: {
+            multiEndpoint: true,
             tuyaDatapoints: [
                 [24, "state_l1", tuya.valueConverter.onOff],
                 [25, "state_l2", tuya.valueConverter.onOff],
@@ -403,6 +408,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [7, "action", tuya.valueConverter.static("scene_3")],
                 [101, "backlight_brightness", tuya.valueConverter.raw],
             ],
+        },
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1};
         },
     },
     {
