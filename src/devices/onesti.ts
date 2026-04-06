@@ -162,7 +162,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["NimlyPRO", "NimlyCode", "NimlyTouch", "NimlyIn", "NimlyPRO24", "NimlyShared"],
+        zigbeeModel: ["NimlyPRO", "NimlyCode", "NimlyTouch", "NimlyIn", "NimlyPRO24", "NimlyShared", "NimlyCodePRO"],
         model: "Nimly",
         vendor: "Onesti Products AS",
         description: "Zigbee module for Nimly Doorlock series",

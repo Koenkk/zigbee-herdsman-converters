@@ -179,7 +179,7 @@ const philipsModernExtend = {
     light: (args?: modernExtend.LightArgs & {hueEffect?: boolean; gradient?: true | {extraEffects: string[]}}) => {
         args = {hueEffect: true, turnsOffAtBrightness1: true, ota: true, ...args};
         if (args.hueEffect || args.gradient) args.effect = false;
-        if (args.color) args.color = {modes: ["xy", "hs"], ...(isObject(args.color) ? args.color : {})};
+        if (args.color) args.color = {modes: ["xy", "hs"], enhancedHue: true, ...(isObject(args.color) ? args.color : {})};
         const result = modernExtend.light(args);
         result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
         if (args.hueEffect || args.gradient) {

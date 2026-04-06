@@ -20,6 +20,7 @@ export interface Logger {
 }
 
 export type Range = [number, number];
+export type ValuesOf<T> = T[keyof T];
 export interface KeyValue {
     [s: string]: unknown;
 }
@@ -68,7 +69,7 @@ export interface Fingerprint {
 }
 export type WhiteLabel =
     | {vendor?: string; model: string; description?: string; fingerprint: Fingerprint[]}
-    | {vendor: string; model: string; description?: string};
+    | {vendor?: string; model: string; description?: string};
 
 export interface MockProperty {
     property: string;
@@ -196,7 +197,7 @@ export interface DefinitionMeta {
     /**
      * see `toZigbee.light_color`
      *
-     * @defaultValue true
+     * @defaultValue false
      */
     supportsEnhancedHue?: boolean | ((entity: Zh.Endpoint) => boolean);
     /**

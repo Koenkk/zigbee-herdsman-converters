@@ -1394,6 +1394,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sber",
         description: "Smart button",
         extend: [
+            tuya.clusters.addTuyaGenOnOffCluster(),
             tuyaMagicPacket(),
             tuyaOnOffActionLegacy({actions: ["single", "double", "hold"]}),
             m.battery({percentageReporting: false}),
