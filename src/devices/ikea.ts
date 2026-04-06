@@ -884,12 +884,17 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter(),
         ],
         ota: true,
+        version: "0.0.1",
         configure: async (device) => {
             const endpoint = device.getEndpoint(1);
             // Enable reporting of powerDivisor, needs to change dynamically with the amount of power
             // For details, see: https://github.com/Koenkk/zigbee2mqtt/issues/23961#issuecomment-2366733453
+            // Maybe same is needed for energy
             await endpoint.configureReporting("haElectricalMeasurement", [
                 {attribute: "acPowerDivisor", minimumReportInterval: 10, maximumReportInterval: repInterval.MAX, reportableChange: 1},
+            ]);
+            await endpoint.configureReporting("seMetering", [
+                {attribute: "divisor", minimumReportInterval: 10, maximumReportInterval: repInterval.MAX, reportableChange: 1},
             ]);
         },
     },
