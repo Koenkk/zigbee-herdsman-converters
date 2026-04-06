@@ -45,7 +45,7 @@ export interface TuyaClosuresWindowCovering {
     commands: never;
     commandResponses: never;
 }
-    
+
 export interface TuyaGenBasic {
     attributes: never;
     commands: {
@@ -2295,7 +2295,7 @@ const tuyaTz = {
                 await meta.device.getEndpoint(2).read("closuresWindowCovering", ["moesCalibrationTime"]);
             }
         },
-    } satisfies Tz.Converter,          
+    } satisfies Tz.Converter,
     operation_mode: {
         key: ["operation_mode"],
         convertSet: async (entity, key, value, meta) => {
