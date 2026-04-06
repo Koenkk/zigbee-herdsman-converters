@@ -669,13 +669,16 @@ const inovelliExtend = {
                 const endpoint2 = device.getEndpoint(2);
                 await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
 
+                const fw = device.softwareBuildID ? parseFirmwareVersion(device.softwareBuildID) : undefined;
+
                 for (const attr of attrs) {
+                    const filtered = adjustAttributesForDevice(attr.attributes, model, fw);
                     if (!splitValuesByEndpoint) {
-                        await chunkedRead(endpoint, Object.keys(attr.attributes), attr.clusterName);
+                        await chunkedRead(endpoint, Object.keys(filtered), attr.clusterName);
                     } else {
                         await chunkedRead(
                             endpoint,
-                            Object.keys(attr.attributes).flatMap((key) => {
+                            Object.keys(filtered).flatMap((key) => {
                                 const keysplit = key.split("_");
                                 if (keysplit.length === 2) {
                                     if (Number(keysplit[1]) === 1) {
@@ -689,7 +692,7 @@ const inovelliExtend = {
                         );
                         await chunkedRead(
                             endpoint2,
-                            Object.keys(attr.attributes).flatMap((key) => {
+                            Object.keys(filtered).flatMap((key) => {
                                 const keysplit = key.split("_");
                                 if (keysplit.length === 2) {
                                     if (Number(keysplit[1]) === 2) {

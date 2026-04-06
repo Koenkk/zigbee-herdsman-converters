@@ -1,4 +1,4 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it, vi} from "vitest";
 import {findByDevice} from "../src/index";
 import type {Definition, Expose, Fz, KeyValue} from "../src/lib/types";
 import {mockDevice} from "./utils";
@@ -908,6 +908,149 @@ describe("Inovelli firmware-gated exposes", () => {
             const exposes = resolveExposes(definition, device);
             expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
             expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
+        });
+    });
+});
+
+describe("Inovelli configure attribute filtering", () => {
+    function patchDeviceForConfigure(device: ReturnType<typeof mockDevice>) {
+        vi.spyOn(device, "save").mockImplementation(() => {});
+        const defaults: Record<string, number> = {
+            acPowerDivisor: 10,
+            acPowerMultiplier: 1,
+            divisor: 100,
+            multiplier: 1,
+        };
+        for (const ep of device.endpoints) {
+            vi.spyOn(ep, "save").mockImplementation(() => {});
+            vi.spyOn(ep, "read").mockImplementation((cluster, attrs) => {
+                const result: Record<string, number> = {};
+                for (const attr of attrs as string[]) {
+                    result[attr] = defaults[attr] ?? 0;
+                }
+                try {
+                    ep.saveClusterAttributeKeyValue(cluster as string, result);
+                } catch {
+                    // Custom clusters (e.g. manuSpecificInovelli) may not be registered in Zcl
+                }
+                return Promise.resolve(result);
+            });
+        }
+    }
+
+    function collectReadAttributes(device: ReturnType<typeof mockDevice>): string[] {
+        const allReadKeys: string[] = [];
+        for (const ep of device.endpoints) {
+            for (const call of (ep.read as ReturnType<typeof vi.fn>).mock.calls) {
+                allReadKeys.push(...(call[1] as string[]));
+            }
+        }
+        return allReadKeys;
+    }
+
+    async function runConfigure(device: ReturnType<typeof mockDevice>) {
+        patchDeviceForConfigure(device);
+        const definition = await findByDevice(device);
+        const coordinatorEndpoint = device.getEndpoint(1);
+        await definition.configure(device, coordinatorEndpoint, definition);
+        return collectReadAttributes(device);
+    }
+
+    describe("VZM31-SN configure", () => {
+        function createVZM31(softwareBuildID?: string) {
+            return mockDevice({
+                modelID: "VZM31-SN",
+                endpoints: [
+                    {ID: 1, inputClusters: ["genOnOff", "genLevelCtrl", "haElectricalMeasurement", "seMetering"]},
+                    {ID: 2, inputClusters: []},
+                    {ID: 3, inputClusters: []},
+                ],
+                softwareBuildID,
+            });
+        }
+
+        it("should not read dimmingAlgorithm or auxDetectionLevel on firmware below 3.05", async () => {
+            const readKeys = await runConfigure(createVZM31("3.0"));
+            expect(readKeys).not.toContain("dimmingAlgorithm");
+            expect(readKeys).not.toContain("auxDetectionLevel");
+        });
+
+        it("should read dimmingAlgorithm and auxDetectionLevel on firmware 3.05+", async () => {
+            const readKeys = await runConfigure(createVZM31("3.05"));
+            expect(readKeys).toContain("dimmingAlgorithm");
+            expect(readKeys).toContain("auxDetectionLevel");
+        });
+
+        it("should read all attributes when firmware is unknown", async () => {
+            const readKeys = await runConfigure(createVZM31());
+            expect(readKeys).toContain("dimmingAlgorithm");
+            expect(readKeys).toContain("auxDetectionLevel");
+            expect(readKeys).toContain("switchType");
+            expect(readKeys).toContain("fanControlMode");
+        });
+    });
+
+    describe("VZM32-SN configure", () => {
+        function createVZM32(softwareBuildID?: string) {
+            return mockDevice({
+                modelID: "VZM32-SN",
+                endpoints: [
+                    {
+                        ID: 1,
+                        inputClusters: [
+                            "genOnOff",
+                            "genLevelCtrl",
+                            "haElectricalMeasurement",
+                            "seMetering",
+                            "msIlluminanceMeasurement",
+                            "msOccupancySensing",
+                        ],
+                    },
+                    {ID: 2, inputClusters: []},
+                    {ID: 3, inputClusters: []},
+                ],
+                softwareBuildID,
+            });
+        }
+
+        it("should never read dimmingAlgorithm or auxDetectionLevel regardless of firmware", async () => {
+            const readKeys = await runConfigure(createVZM32("3.05"));
+            expect(readKeys).not.toContain("dimmingAlgorithm");
+            expect(readKeys).not.toContain("auxDetectionLevel");
+        });
+
+        it("should still read other common attributes", async () => {
+            const readKeys = await runConfigure(createVZM32("3.05"));
+            expect(readKeys).toContain("switchType");
+            expect(readKeys).toContain("fanControlMode");
+        });
+    });
+
+    describe("VZM30-SN configure", () => {
+        it("should not read dimmingAlgorithm or auxDetectionLevel", async () => {
+            const device = mockDevice({
+                modelID: "VZM30-SN",
+                endpoints: [
+                    {
+                        ID: 1,
+                        inputClusters: [
+                            "genOnOff",
+                            "genLevelCtrl",
+                            "haElectricalMeasurement",
+                            "seMetering",
+                            "msTemperatureMeasurement",
+                            "msRelativeHumidity",
+                        ],
+                    },
+                    {ID: 2, inputClusters: []},
+                    {ID: 3, inputClusters: []},
+                    {ID: 4, inputClusters: []},
+                ],
+                softwareBuildID: "3.05",
+            });
+            const readKeys = await runConfigure(device);
+            expect(readKeys).not.toContain("dimmingAlgorithm");
+            expect(readKeys).not.toContain("auxDetectionLevel");
         });
     });
 });
