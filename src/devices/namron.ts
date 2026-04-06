@@ -11,6 +11,7 @@ import * as store from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+import * as zosung from "../lib/zosung";
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -2105,7 +2106,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512793",
         vendor: "Namron",
         description: "Simplify 6-button remote with battery",
-        extend: [m.battery()],
+        extend: [m.battery(), zosung.zosungExtend.addZosungIRControlCluster()],
         fromZigbee: [fzNamronSimplifyRemote],
         toZigbee: [],
         exposes: [
