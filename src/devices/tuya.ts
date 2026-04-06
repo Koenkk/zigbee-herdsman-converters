@@ -23371,10 +23371,10 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse1],
                 [102, "fading_time", tuya.valueConverter.raw],
-                [4, "static_detection_distance", tuya.valueConverter.divideBy100],
+                [4, "detection_distance", tuya.valueConverter.divideBy100],
                 [2, "static_detection_sensitivity", tuya.valueConverter.raw],
                 [107, "indicator", tuya.valueConverter.onOff],
-                [123, "detection_sensitivity", tuya.valueConverter.raw],
+                [123, "motion_detection_sensitivity", tuya.valueConverter.raw],
                 [121, "battery", tuya.valueConverter.raw],
                 [122, "anti_interference", tuya.valueConverter.onOff],
             ],
