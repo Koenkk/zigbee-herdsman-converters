@@ -2202,23 +2202,6 @@ export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport"
         return result;
     },
 };
-export const tuya_cover_options_2: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresWindowCovering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.moesCalibrationTime !== undefined) {
-            const value = msg.data.moesCalibrationTime / 100;
-            result[postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
-        }
-        if (msg.data.tuyaMotorReversal !== undefined) {
-            const value = msg.data.tuyaMotorReversal;
-            const reversalLookup: KeyValueAny = {0: "OFF", 1: "ON"};
-            result[postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
-        }
-        return result;
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "attributeReport"> = {
     cluster: 65029,

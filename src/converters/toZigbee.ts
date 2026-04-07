@@ -3947,20 +3947,6 @@ export const ts0216_alarm: Tz.Converter = {
         );
     },
 };
-export const tuya_cover_reversal: Tz.Converter = {
-    key: ["motor_reversal"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        const lookup = {ON: 1, OFF: 0};
-        value = value.toUpperCase();
-        const reversal = utils.getFromLookup(value, lookup);
-        await entity.write("closuresWindowCovering", {tuyaMotorReversal: reversal});
-        return {state: {motor_reversal: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("closuresWindowCovering", ["tuyaMotorReversal"]);
-    },
-};
 export const moes_cover_calibration: Tz.Converter = {
     key: ["calibration_time"],
     convertSet: async (entity, key, value, meta) => {

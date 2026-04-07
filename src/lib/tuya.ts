@@ -2266,9 +2266,9 @@ const tuyaTz = {
                 utils.assertNumber(value, key);
                 const calibration_time = value * 10;
                 if (key === "calibration_time" || key === "calibration_time_to_open") {
-                    await entity.write("closuresWindowCovering", {moesCalibrationTime: calibration_time});
+                    await entity.write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {moesCalibrationTime: calibration_time});
                 } else if (key === "calibration_time_to_close") {
-                    await meta.device.getEndpoint(2).write("closuresWindowCovering", {moesCalibrationTime: calibration_time});
+                    await meta.device.getEndpoint(2).write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {moesCalibrationTime: calibration_time});
                 }
                 return {state: {[key]: value}};
             }
@@ -2278,21 +2278,21 @@ const tuyaTz = {
             value = value.toUpperCase();
             const calibration = utils.getFromLookup(value, lookup);
             if (key === "calibration" || key === "calibration_to_open") {
-                await entity.write("closuresWindowCovering", {tuyaCalibration: calibration});
+                await entity.write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaCalibration: calibration});
             } else if (key === "calibration_to_close") {
-                await meta.device.getEndpoint(2).write("closuresWindowCovering", {tuyaCalibration: calibration});
+                await meta.device.getEndpoint(2).write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaCalibration: calibration});
             }
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
             if (key === "calibration" || key === "calibration_to_open") {
-                await entity.read("closuresWindowCovering", ["tuyaCalibration"]);
+                await entity.read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaCalibration"]);
             } else if (key === "calibration_to_close") {
-                await meta.device.getEndpoint(2).read("closuresWindowCovering", ["tuyaCalibration"]);
+                await meta.device.getEndpoint(2).read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaCalibration"]);
             } else if (key === "calibration_time" || key === "calibration_time_to_open") {
                 await entity.read("closuresWindowCovering", ["moesCalibrationTime"]);
             } else if (key === "calibration_time_to_close") {
-                await meta.device.getEndpoint(2).read("closuresWindowCovering", ["moesCalibrationTime"]);
+                await meta.device.getEndpoint(2).read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["moesCalibrationTime"]);
             }
         },
     } satisfies Tz.Converter,
@@ -2340,6 +2340,20 @@ const tuyaTz = {
         convertGet: async (entity, key, meta) => {
             if (key === "state") await tz.on_off.convertGet(entity, key, meta);
             if (key === "brightness") await entity.read("genLevelCtrl", [61440]);
+        },
+    } satisfies Tz.Converter,
+    cover_reversal: {
+        key: ["motor_reversal"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, key);
+            const lookup = {ON: 1, OFF: 0};
+            value = value.toUpperCase();
+            const reversal = utils.getFromLookup(value, lookup);
+            await entity.write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaMotorReversal: reversal});
+            return {state: {motor_reversal: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaMotorReversal"]);
         },
     } satisfies Tz.Converter,
 };
@@ -2645,7 +2659,24 @@ const tuyaFz = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"closuresWindowCovering", TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
+    cover_options_2: {
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.moesCalibrationTime !== undefined) {
+                const value = msg.data.moesCalibrationTime / 100;
+                result[utils.postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
+            }
+            if (msg.data.tuyaMotorReversal !== undefined) {
+                const value = msg.data.tuyaMotorReversal;
+                const reversalLookup: KeyValueAny = {0: "OFF", 1: "ON"};
+                result[utils.postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
     operation_mode: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
