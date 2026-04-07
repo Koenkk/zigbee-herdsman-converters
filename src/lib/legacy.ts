@@ -3949,7 +3949,7 @@ const fromZigbee = {
                 return {
                     // Same as in hvacThermostat:getWeeklyScheduleRsp hvacThermostat:setWeeklySchedule cluster format
                     weekly_schedule: {
-                        days: [constants.thermostatDayOfWeek[dayOfWeek]],
+                        days: [utils.getFromLookup(dayOfWeek, constants.thermostatDayOfWeek)],
                         transitions: dataToTransitions(value, maxTransitions, dataOffset),
                     },
                 };

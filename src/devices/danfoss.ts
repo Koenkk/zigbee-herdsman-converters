@@ -473,8 +473,8 @@ const danfossExtend = {
             cluster: "hvacThermostat",
             attribute: "danfossThermostatOrientation",
             description: "Thermostat Orientation. This is important for the PID in how it assesses temperature.",
-            valueOn: ["Vertical", true],
-            valueOff: ["Horizontal", false],
+            valueOn: ["vertical", true],
+            valueOff: ["horizontal", false],
             access: "ALL",
             entityCategory: "config",
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
@@ -486,8 +486,8 @@ const danfossExtend = {
             cluster: "hvacUserInterfaceCfg",
             attribute: "danfossViewingDirection",
             description: "Viewing/display direction",
-            valueOn: ["Upside-down", true],
-            valueOff: ["Normal", false],
+            valueOn: ["upside-down", true],
+            valueOff: ["normal", false],
             access: "ALL",
             entityCategory: "config",
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
@@ -502,8 +502,8 @@ const danfossExtend = {
                 "Not clear how this affects operation. However, it would appear that the device does not execute any " +
                 "motor functions if this is set to false. This may be a means to conserve battery during periods that the heating " +
                 "system is not energized (e.g. during summer).",
-            valueOn: ["Heat Available", true],
-            valueOff: ["No Heat Available", false],
+            valueOn: [true, true],
+            valueOff: [false, false],
             access: "ALL",
             entityCategory: "config",
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
@@ -515,8 +515,8 @@ const danfossExtend = {
             cluster: "hvacThermostat",
             attribute: "danfossHeatRequired",
             description: "Whether or not the unit needs warm water.",
-            valueOn: ["Heat Request", true],
-            valueOff: ["No Heat Request", false],
+            valueOn: [true, true],
+            valueOff: [false, false],
             access: "STATE_GET",
             entityCategory: "diagnostic",
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
@@ -530,9 +530,9 @@ const danfossExtend = {
             description: "Values observed",
             access: "STATE",
             lookup: {
-                Manual: 0,
-                Schedule: 1,
-                Externally: 2,
+                manual: 0,
+                schedule: 1,
+                externally: 2,
             },
             entityCategory: "diagnostic",
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
@@ -595,8 +595,8 @@ const danfossExtend = {
                 "covered radiators). Please note that this flag only controls how the TRV operates on the value of " +
                 "`External_measured_room_sensor`; only setting this flag without setting the `External_measured_room_sensor` " +
                 "has no (noticeable?) effect.",
-            valueOn: ["Room Sensor Mode", true],
-            valueOff: ["Auto Offset Mode", false],
+            valueOn: [true, true],
+            valueOff: [false, false],
             access: "ALL",
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
             ...args,
@@ -640,8 +640,8 @@ const danfossExtend = {
             cluster: "hvacThermostat",
             attribute: "danfossWindowOpenExternal",
             description: "Set if the window is open or closed. This setting will trigger a change in the internal window and heating demand.",
-            valueOn: ["Open", true],
-            valueOff: ["Closed", false],
+            valueOn: [true, true],
+            valueOff: [false, false],
             access: "ALL",
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
             ...args,
@@ -1261,6 +1261,11 @@ export const definitions: DefinitionWithExtend[] = [
                 piHeatingDemand: {values: true},
                 systemMode: {values: ["heat"]},
                 programmingOperationMode: {values: ["setpoint", "schedule", "schedule_with_preheat", "eco"]},
+                // weeklySchedule: {values: ["heat"]},   // gives an error in test:
+                // test/checks.test.ts > Check definitions > respect snake case naming conventions for exposes and options
+                // Error: Definitions not using snake case for expose/option:
+                // Danfoss|014G2461|expose.name=transitionTime
+                // Danfoss|014G2461|expose.name=heatSetpoint
                 setpointsLimit: {
                     maxHeatSetpointLimit: {min: 5, max: 35, step: 0.5},
                 },
@@ -1295,6 +1300,8 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossRegulationSetpointOffset(),
             m.writeTimeDaily({endpointId: 1}),
         ],
+        fromZigbee: [fz.thermostat_weekly_schedule],
+        toZigbee: [tz.thermostat_clear_weekly_schedule],
     },
     {
         fingerprint: [

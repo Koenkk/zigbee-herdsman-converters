@@ -895,9 +895,13 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["GRILLPLATS Plug\u0000", "GRILLPLATS Plug"],
-        model: "E2491",
+        whiteLabel: [
+            {model: "E2435", description: "TOFSMYGGA smart plug"},
+            {model: "E2491", description: "GRILLPLATS smart plug"},
+        ],
+        model: "E2435/E2491",
         vendor: "IKEA",
-        description: "GRILLPLATS smart plug",
+        description: "TOFSMYGGA/GRILLPLATS smart plug",
         extend: [m.onOff(), m.identify()],
     },
     // #endregion on/off controls

@@ -316,7 +316,7 @@ export const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: 0x1407,
                 attributes: {
                     totalVolatileOrganicCompounds: {
-                        name: "volatileCrganiccCompounds",
+                        name: "totalVolatileOrganicCompounds",
                         ID: 0x0000,
                         type: Zcl.DataType.UINT32,
                         write: true,

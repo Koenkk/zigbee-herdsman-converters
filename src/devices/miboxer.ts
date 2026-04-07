@@ -134,7 +134,7 @@ function miboxerFut089zControls() {
         colorTempConverter,
         colorConverter,
         fz.battery,
-        fz.tuya_switch_scene,
+        tuya.fz.switch_scene,
         // Add converters for numeric sensors (always included, but they check options internally)
         actionPropertyConverters.hue_saturation,
         actionPropertyConverters.color_temp,
@@ -210,7 +210,7 @@ function miboxerFut089zControls() {
                     }));
 
                     // Send the updated zone configuration to the device
-                    await endpoint.command("genGroups", "miboxerSetZones", {zones: zoneConfig});
+                    await endpoint.command<"genGroups", "miboxerSetZones", tuya.TuyaGenGroups>("genGroups", "miboxerSetZones", {zones: zoneConfig});
                 } catch (error) {
                     // Log error but don't throw to avoid breaking the update process
                     logger.error(`Failed to update zone configuration: ${error}`, "zhc:miboxer");
@@ -282,8 +282,8 @@ function miboxerFut089zControls() {
                     groupId: groupId,
                 }));
 
-                await endpoint.command("genGroups", "miboxerSetZones", {zones: zoneConfig});
-                await endpoint.command("genBasic", "tuyaSetup", {}, {disableDefaultResponse: true});
+                await endpoint.command<"genGroups", "miboxerSetZones", tuya.TuyaGenGroups>("genGroups", "miboxerSetZones", {zones: zoneConfig});
+                await endpoint.command<"genBasic", "tuyaSetup", tuya.TuyaGenBasic>("genBasic", "tuyaSetup", {}, {disableDefaultResponse: true});
             },
         ],
     };
@@ -304,6 +304,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "RGB+CCT Remote",
         whiteLabel: [tuya.whitelabel("Ledron", "YK-16", "RGB+CCT Remote", ["_TZ3000_zwszqdpy"])],
         extend: [
+            tuya.clusters.addTuyaGenGroupsCluster(),
+            tuya.clusters.addTuyaGenOnOffCluster(),
             miboxerFut089zControls(),
             m.quirkCheckinInterval(21600), // Device observed to report every 4h, set to 6h (21600s) for safety margin
         ],

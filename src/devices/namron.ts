@@ -17,6 +17,30 @@ const e = exposes.presets;
 
 const sunricherManufacturer = {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD};
 
+interface NamronPrivate04E0 {
+    attributes: {
+        ntc2Temperature: number;
+        ntcSensorType1: number;
+        ntcSensorType2: number;
+        waterSensorValue: number;
+        ntcCalibration1: number;
+        ntcCalibration2: number;
+        waterAlarmRelayAction: number;
+        ntc1OperationSelect: number;
+        ntc2OperationSelect: number;
+        ntc1RelayAutoTemp: number;
+        ntc2RelayAutoTemp: number;
+        overrideOption: number;
+        ntc1TempHysteresis: number;
+        ntc2TempHysteresis: number;
+        waterConditionAlarm: number;
+        ntcConditionAlarm: number;
+        isExecuteCondition: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     namron_panelheater: {
         cluster: "hvacThermostat",
@@ -2125,6 +2149,295 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.numeric("min_brightness", ea.ALL).withValueMin(1).withValueMax(127).withDescription("Minimum brightness (≈1–50%)"),
             exposes.numeric("max_brightness", ea.ALL).withValueMin(127).withValueMax(254).withDescription("Maximum brightness (≈50–100%)"),
             exposes.numeric("start_brightness", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Default brightness at power-on/startup"),
+        ],
+    },
+    {
+        zigbeeModel: ["4512785"],
+        model: "4512785",
+        vendor: "Namron",
+        description: "Zigbee 30A relay with NTC temperature sensors and water leak detection",
+        extend: [
+            m.deviceAddCustomCluster("namronPrivate04E0", {
+                ID: 0x04e0,
+                name: "namronPrivate04E0",
+                attributes: {
+                    ntc2Temperature: {ID: 0x0000, name: "ntc2Temperature", type: Zcl.DataType.INT16},
+                    ntcSensorType1: {ID: 0x0001, name: "ntcSensorType1", type: Zcl.DataType.ENUM8, write: true},
+                    ntcSensorType2: {ID: 0x0002, name: "ntcSensorType2", type: Zcl.DataType.ENUM8, write: true},
+                    waterSensorValue: {ID: 0x0003, name: "waterSensorValue", type: Zcl.DataType.BOOLEAN},
+                    ntcCalibration1: {ID: 0x0004, name: "ntcCalibration1", type: Zcl.DataType.INT8, write: true},
+                    ntcCalibration2: {ID: 0x0005, name: "ntcCalibration2", type: Zcl.DataType.INT8, write: true},
+                    waterAlarmRelayAction: {ID: 0x0006, name: "waterAlarmRelayAction", type: Zcl.DataType.ENUM8, write: true},
+                    ntc1OperationSelect: {ID: 0x0007, name: "ntc1OperationSelect", type: Zcl.DataType.ENUM8, write: true},
+                    ntc2OperationSelect: {ID: 0x0008, name: "ntc2OperationSelect", type: Zcl.DataType.ENUM8, write: true},
+                    ntc1RelayAutoTemp: {ID: 0x0009, name: "ntc1RelayAutoTemp", type: Zcl.DataType.INT16, write: true},
+                    ntc2RelayAutoTemp: {ID: 0x000a, name: "ntc2RelayAutoTemp", type: Zcl.DataType.INT16, write: true},
+                    overrideOption: {ID: 0x000b, name: "overrideOption", type: Zcl.DataType.ENUM8, write: true},
+                    ntc1TempHysteresis: {ID: 0x000c, name: "ntc1TempHysteresis", type: Zcl.DataType.INT8, write: true},
+                    ntc2TempHysteresis: {ID: 0x000d, name: "ntc2TempHysteresis", type: Zcl.DataType.INT8, write: true},
+                    waterConditionAlarm: {ID: 0x000e, name: "waterConditionAlarm", type: Zcl.DataType.BOOLEAN},
+                    ntcConditionAlarm: {ID: 0x000f, name: "ntcConditionAlarm", type: Zcl.DataType.BOOLEAN},
+                    isExecuteCondition: {ID: 0x0010, name: "isExecuteCondition", type: Zcl.DataType.BOOLEAN},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.onOff({powerOnBehavior: true}),
+            m.electricityMeter({voltage: {divisor: 10}, current: {divisor: 1000}, power: {divisor: 1}, energy: {divisor: 100}}),
+            // Override genDeviceTempCfg to relax currentTemperature max constraint
+            // (device reports in 0.1°C units, e.g. 311 = 31.1°C, exceeding ZCL max of 200)
+            m.deviceAddCustomCluster("genDeviceTempCfg", {
+                ID: 0x0002,
+                name: "genDeviceTempCfg",
+                attributes: {
+                    currentTemperature: {ID: 0x0000, name: "currentTemperature", type: Zcl.DataType.INT16, min: -2000, max: 2000},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            // Device reports currentTemperature in 0.1°C units (non-standard; ZCL spec is °C).
+            // e.g. raw 311 = 31.1°C. change: 10 raw units = 1°C reporting threshold; fzConvert divides by 10.
+            m.numeric({
+                name: "device_temperature",
+                cluster: "genDeviceTempCfg",
+                attribute: "currentTemperature",
+                reporting: {min: 15, max: 600, change: 10},
+                description: "Internal device temperature",
+                unit: "°C",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+                fzConvert: (model, msg) => {
+                    if (msg.data.currentTemperature !== undefined) {
+                        const raw = msg.data.currentTemperature;
+                        if (raw !== -32768 && raw !== 0x8000) {
+                            return {device_temperature: utils.precisionRound(raw, 2) / 10};
+                        }
+                    }
+                },
+            }),
+            // Device reports measuredValue in 0.01°C units (standard for msTemperatureMeasurement).
+            // e.g. raw 2250 = 22.50°C. change: 10 raw units = 0.1°C reporting threshold; fzConvert divides by 100.
+            m.numeric({
+                name: "ntc1_temperature",
+                cluster: "msTemperatureMeasurement",
+                attribute: "measuredValue",
+                reporting: {min: 15, max: 600, change: 10},
+                description: "External NTC1 temperature probe",
+                unit: "°C",
+                access: "STATE_GET",
+                fzConvert: (model, msg) => {
+                    if (msg.data.measuredValue !== undefined) {
+                        const raw = msg.data.measuredValue;
+                        if (raw !== -32768 && raw !== 0x8000) {
+                            return {ntc1_temperature: utils.precisionRound(raw, 2) / 100};
+                        }
+                    }
+                },
+            }),
+            // Device reports ntc2Temperature in 0.01°C units (same as NTC1).
+            // e.g. raw 2350 = 23.50°C. change: 10 raw units = 0.1°C reporting threshold; fzConvert divides by 100.
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "ntc2_temperature",
+                cluster: "namronPrivate04E0",
+                attribute: "ntc2Temperature",
+                reporting: {min: 15, max: 600, change: 10},
+                description: "External NTC2 temperature probe",
+                unit: "°C",
+                access: "STATE_GET",
+                fzConvert: (model, msg) => {
+                    if (msg.data.ntc2Temperature !== undefined) {
+                        const raw = msg.data.ntc2Temperature;
+                        if (raw !== -32768 && raw !== 0x8000) {
+                            return {ntc2_temperature: utils.precisionRound(raw, 2) / 100};
+                        }
+                    }
+                },
+            }),
+            // Water sensor (NO contacts: shorted = water detected)
+            m.binary<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "water_sensor",
+                cluster: "namronPrivate04E0",
+                attribute: "waterSensorValue",
+                description: "External water sensor (true = water detected)",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                access: "STATE_GET",
+                reporting: {min: 1, max: 300, change: 1},
+            }),
+            // NTC sensor type configuration
+            m.enumLookup<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "ntc1_sensor_type",
+                lookup: {none: 0, "NTC-10K": 1, "NTC-12K": 2, "NTC-15K": 3, "NTC-22K": 4, "NTC-33K": 5, "NTC-47K": 6},
+                cluster: "namronPrivate04E0",
+                attribute: "ntcSensorType1",
+                description: "NTC probe type for sensor #1 (must be set for temperature reporting)",
+                entityCategory: "config",
+            }),
+            m.enumLookup<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "ntc2_sensor_type",
+                lookup: {none: 0, "NTC-10K": 1, "NTC-12K": 2, "NTC-15K": 3, "NTC-22K": 4, "NTC-33K": 5, "NTC-47K": 6},
+                cluster: "namronPrivate04E0",
+                attribute: "ntcSensorType2",
+                description: "NTC probe type for sensor #2 (must be set for temperature reporting)",
+                entityCategory: "config",
+            }),
+            // Water alarm relay action
+            m.enumLookup<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "water_alarm_relay_action",
+                lookup: {
+                    no_action: 0,
+                    turn_off_restore: 1,
+                    turn_on_restore: 2,
+                    turn_off_stay: 3,
+                    turn_on_stay: 4,
+                    no_water_turn_off: 5,
+                    no_water_turn_on: 6,
+                },
+                cluster: "namronPrivate04E0",
+                attribute: "waterAlarmRelayAction",
+                description: "Relay behavior when water sensor detects a leak",
+                entityCategory: "config",
+            }),
+            // NTC operation modes
+            m.enumLookup<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "ntc1_operation_mode",
+                lookup: {no_action: 0, off_when_hot_on_when_cold: 1, on_when_hot_off_when_cold: 2, off_when_hot_stay: 3, on_when_hot_stay: 4},
+                cluster: "namronPrivate04E0",
+                attribute: "ntc1OperationSelect",
+                description: "Relay behavior based on NTC1 temperature threshold",
+                entityCategory: "config",
+            }),
+            m.enumLookup<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "ntc2_operation_mode",
+                lookup: {no_action: 0, off_when_hot_on_when_cold: 1, on_when_hot_off_when_cold: 2, off_when_hot_stay: 3, on_when_hot_stay: 4},
+                cluster: "namronPrivate04E0",
+                attribute: "ntc2OperationSelect",
+                description: "Relay behavior based on NTC2 temperature threshold",
+                entityCategory: "config",
+            }),
+            // Temperature thresholds for relay auto control
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "ntc1_relay_auto_temp",
+                cluster: "namronPrivate04E0",
+                attribute: "ntc1RelayAutoTemp",
+                description: "Temperature threshold for NTC1 relay control",
+                unit: "°C",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 0.1,
+                scale: 10,
+                precision: 1,
+                entityCategory: "config",
+            }),
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "ntc2_relay_auto_temp",
+                cluster: "namronPrivate04E0",
+                attribute: "ntc2RelayAutoTemp",
+                description: "Temperature threshold for NTC2 relay control",
+                unit: "°C",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 0.1,
+                scale: 10,
+                precision: 1,
+                entityCategory: "config",
+            }),
+            // Override priority
+            m.enumLookup<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "override_option",
+                lookup: {no_priority: 0, water_alarm_priority: 1, ntc_priority: 2},
+                cluster: "namronPrivate04E0",
+                attribute: "overrideOption",
+                description: "Priority when both water alarm and temperature conditions trigger",
+                entityCategory: "config",
+            }),
+            // Calibration offsets
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "ntc1_calibration",
+                cluster: "namronPrivate04E0",
+                attribute: "ntcCalibration1",
+                description: "Temperature calibration offset for NTC1",
+                unit: "°C",
+                valueMin: -10,
+                valueMax: 10,
+                entityCategory: "config",
+            }),
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "ntc2_calibration",
+                cluster: "namronPrivate04E0",
+                attribute: "ntcCalibration2",
+                description: "Temperature calibration offset for NTC2",
+                unit: "°C",
+                valueMin: -10,
+                valueMax: 10,
+                entityCategory: "config",
+            }),
+            // Hysteresis
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "ntc1_temp_hysteresis",
+                cluster: "namronPrivate04E0",
+                attribute: "ntc1TempHysteresis",
+                description: "Temperature hysteresis for NTC1 relay control",
+                unit: "°C",
+                valueMin: -10,
+                valueMax: 10,
+                entityCategory: "config",
+            }),
+            m.numeric<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "ntc2_temp_hysteresis",
+                cluster: "namronPrivate04E0",
+                attribute: "ntc2TempHysteresis",
+                description: "Temperature hysteresis for NTC2 relay control",
+                unit: "°C",
+                valueMin: -10,
+                valueMax: 10,
+                entityCategory: "config",
+            }),
+            // Condition alarms (read-only status)
+            m.binary<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "water_condition_alarm",
+                cluster: "namronPrivate04E0",
+                attribute: "waterConditionAlarm",
+                description: "Water leak alarm active",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                access: "STATE",
+            }),
+            m.binary<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "ntc_condition_alarm",
+                cluster: "namronPrivate04E0",
+                attribute: "ntcConditionAlarm",
+                description: "NTC temperature alarm active",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                access: "STATE",
+            }),
+            m.binary<"namronPrivate04E0", NamronPrivate04E0>({
+                name: "is_execute_condition",
+                cluster: "namronPrivate04E0",
+                attribute: "isExecuteCondition",
+                description: "Relay action triggered by conditions",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                access: "STATE",
+            }),
+            // Polling (5 min interval)
+            m.poll({
+                key: "namron_4512785_poll",
+                optionKey: "temperature_poll_interval",
+                option: e
+                    .numeric("temperature_poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription("Polling interval for NTC temperature sensors (default: 300s, -1 to disable)"),
+                defaultIntervalSeconds: 300,
+                poll: async (device) => {
+                    const ep = device.getEndpoint(1);
+                    if (!ep) return;
+                    await ep.read("genOnOff", [0x0000]);
+                    await ep.read("msTemperatureMeasurement", [0x0000]);
+                    await ep.read(0x04e0, [0x0000, 0x0003, 0x000e, 0x000f, 0x0010]);
+                },
+            }),
         ],
     },
 ];

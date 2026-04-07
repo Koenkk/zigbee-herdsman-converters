@@ -276,6 +276,7 @@ import {definitions as securifi} from "./securifi";
 import {definitions as sengled} from "./sengled";
 import {definitions as senoro} from "./senoro";
 import {definitions as sercomm} from "./sercomm";
+import {definitions as shada} from "./shada";
 import {definitions as shadeControl} from "./shade_control";
 import {definitions as shelly} from "./shelly";
 import {definitions as shenzhenHoma} from "./shenzhen_homa";
@@ -647,6 +648,7 @@ const definitions: DefinitionWithExtend[] = [
     ...sengled,
     ...senoro,
     ...sercomm,
+    ...shada,
     ...shadeControl,
     ...shelly,
     ...shenzhenHoma,

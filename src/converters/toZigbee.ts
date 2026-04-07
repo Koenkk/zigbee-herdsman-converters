@@ -67,39 +67,10 @@ export const light_color: Tz.Converter = {
         const newColor = libColor.Color.fromConverterArg(value);
         const newState: KeyValueAny = {};
         const transtime = utils.getTransition(entity, key, meta).time;
-        const supportsHueAndSaturation = utils.getMetaValue(entity, meta.mapped, "supportsHueAndSaturation", "allEqual", true);
-        const supportsEnhancedHue = utils.getMetaValue(entity, meta.mapped, "supportsEnhancedHue", "allEqual", true);
+        const supportsHueAndSaturation = utils.getMetaValue(entity, meta.mapped, "supportsHueAndSaturation", "allEqual", false);
+        const supportsEnhancedHue = utils.getMetaValue(entity, meta.mapped, "supportsEnhancedHue", "allEqual", false);
 
-        if (newColor.isHSV() && !supportsHueAndSaturation) {
-            // The color we got is HSV but the bulb does not support Hue/Saturation mode
-            throw new Error("This light does not support Hue/Saturation, please use X/Y instead.");
-        }
-
-        if (newColor.isRGB() || newColor.isXY()) {
-            // Convert RGB to XY color mode because Zigbee doesn't support RGB (only x/y and hue/saturation)
-            const xy = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY().rounded(4) : newColor.xy;
-
-            // Some bulbs e.g. RB 185 C don't turn to red (they don't respond at all) when x: 0.701 and y: 0.299
-            // is send. These values are e.g. send by Home Assistant when clicking red in the color wheel.
-            // If we slightly modify these values the bulb will respond.
-            // https://github.com/home-assistant/home-assistant/issues/31094
-            if (utils.getMetaValue(entity, meta.mapped, "applyRedFix", "allEqual", false) && xy.x === 0.701 && xy.y === 0.299) {
-                xy.x = 0.7006;
-                xy.y = 0.2993;
-            }
-
-            newState.color_mode = constants.colorModeLookup[1];
-            newState.color = xy.toObject();
-            const colorx = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
-            const colory = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
-
-            await entity.command(
-                "lightingColorCtrl",
-                "moveToColor",
-                {transtime, colorx, colory, optionsMask: 0, optionsOverride: 0},
-                utils.getOptions(meta.mapped, entity),
-            );
-        } else if (newColor.isHSV()) {
+        if (newColor.isHSV() && supportsHueAndSaturation) {
             const hsv = newColor.hsv;
             const hsvCorrected = hsv.colorCorrected(meta);
             newState.color_mode = constants.colorModeLookup[0];
@@ -164,6 +135,35 @@ export const light_color: Tz.Converter = {
                     utils.getOptions(meta.mapped, entity),
                 );
             }
+        } else if (newColor.isRGB() || newColor.isXY() || newColor.isHSV()) {
+            // convert RGB/HSV to XY color mode
+            // (many devices only support XY, some support also HSV, but RGB is not supported at all)
+            const xy = newColor.isRGB()
+                ? newColor.rgb.gammaCorrected().toXY().rounded(4)
+                : newColor.isHSV()
+                  ? newColor.hsv.colorCorrected(meta).toXY().rounded(4)
+                  : newColor.xy;
+
+            // Some bulbs e.g. RB 185 C don't turn to red (they don't respond at all) when x: 0.701 and y: 0.299
+            // is send. These values are e.g. send by Home Assistant when clicking red in the color wheel.
+            // If we slightly modify these values the bulb will respond.
+            // https://github.com/home-assistant/home-assistant/issues/31094
+            if (utils.getMetaValue(entity, meta.mapped, "applyRedFix", "allEqual", false) && xy.x === 0.701 && xy.y === 0.299) {
+                xy.x = 0.7006;
+                xy.y = 0.2993;
+            }
+
+            newState.color_mode = constants.colorModeLookup[1];
+            newState.color = xy.toObject();
+            const colorx = utils.mapNumberRange(xy.x, 0, 1, 0, 65535);
+            const colory = utils.mapNumberRange(xy.y, 0, 1, 0, 65535);
+
+            await entity.command(
+                "lightingColorCtrl",
+                "moveToColor",
+                {transtime, colorx, colory, optionsMask: 0, optionsOverride: 0},
+                utils.getOptions(meta.mapped, entity),
+            );
         } else {
             throw new Error("Invalid color");
         }
@@ -753,18 +753,19 @@ export const level_config: Tz.Converter = {
         utils.assertObject(value, key);
         // onOffTransitionTime - range 0x0000 to 0xffff - optional
         if (value.on_off_transition_time != null) {
-            let onOffTransitionTimeValue = Number(value.on_off_transition_time);
+            let onOffTransitionTimeValue = Number(value.on_off_transition_time) * 10;
             if (onOffTransitionTimeValue > 65535) onOffTransitionTimeValue = 65535;
             if (onOffTransitionTimeValue < 0) onOffTransitionTimeValue = 0;
 
             await entity.write("genLevelCtrl", {onOffTransitionTime: onOffTransitionTimeValue}, utils.getOptions(meta.mapped, entity));
-            Object.assign(state, {on_off_transition_time: onOffTransitionTimeValue});
+            Object.assign(state, {on_off_transition_time: onOffTransitionTimeValue / 10});
         }
 
         // onTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (value.on_transition_time != null) {
             let onTransitionTimeValue = value.on_transition_time;
+            if (typeof onTransitionTimeValue === "number") onTransitionTimeValue *= 10;
             if (typeof onTransitionTimeValue === "string" && onTransitionTimeValue.toLowerCase() === "disabled") {
                 onTransitionTimeValue = 65535;
             } else {
@@ -779,13 +780,16 @@ export const level_config: Tz.Converter = {
             if (onTransitionTimeValue === 65535) {
                 onTransitionTimeValue = "disabled";
             }
-            Object.assign(state, {on_transition_time: onTransitionTimeValue});
+            Object.assign(state, {
+                on_transition_time: typeof onTransitionTimeValue === "number" ? onTransitionTimeValue / 10 : onTransitionTimeValue,
+            });
         }
 
         // offTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (value.off_transition_time != null) {
             let offTransitionTimeValue = value.off_transition_time;
+            if (typeof offTransitionTimeValue === "number") offTransitionTimeValue *= 10;
             if (typeof offTransitionTimeValue === "string" && offTransitionTimeValue.toLowerCase() === "disabled") {
                 offTransitionTimeValue = 65535;
             } else {
@@ -800,7 +804,9 @@ export const level_config: Tz.Converter = {
             if (offTransitionTimeValue === 65535) {
                 offTransitionTimeValue = "disabled";
             }
-            Object.assign(state, {off_transition_time: offTransitionTimeValue});
+            Object.assign(state, {
+                off_transition_time: typeof offTransitionTimeValue === "number" ? offTransitionTimeValue / 10 : offTransitionTimeValue,
+            });
         }
 
         // startUpCurrentLevel - range 0x00 to 0xff - optional
@@ -3744,7 +3750,7 @@ export const scene_add: Tz.Converter = {
                     state.color = newColor.xy.toObject();
                 } else if (newColor.isHSV()) {
                     const hsvCorrected = newColor.hsv.colorCorrected(meta);
-                    if (utils.getMetaValue(entity, meta.mapped, "supportsEnhancedHue", "allEqual", true)) {
+                    if (utils.getMetaValue(entity, meta.mapped, "supportsEnhancedHue", "allEqual", false)) {
                         const hScaled = utils.mapNumberRange(hsvCorrected.hue, 0, 360, 0, 65535);
                         const sScaled = utils.mapNumberRange(hsvCorrected.saturation, 0, 100, 0, 254);
                         extensionfieldsets.push({
@@ -4230,22 +4236,6 @@ export const sihas_set_people: Tz.Converter = {
         await endpoint.read("genAnalogInput", ["presentValue"]);
     },
 };
-export const tuya_operation_mode: Tz.Converter = {
-    key: ["operation_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        // modes:
-        // 0 - 'command' mode. keys send commands. useful for group control
-        // 1 - 'event' mode. keys send events. useful for handling
-        utils.assertString(value, key);
-        const endpoint = meta.device.getEndpoint(1);
-        await endpoint.write("genOnOff", {tuyaOperationMode: utils.getFromLookup(value, {command: 0, event: 1})});
-        return {state: {operation_mode: value.toLowerCase()}};
-    },
-    convertGet: async (entity, key, meta) => {
-        const endpoint = meta.device.getEndpoint(1);
-        await endpoint.read("genOnOff", ["tuyaOperationMode"]);
-    },
-};
 export const led_on_motion: Tz.Converter = {
     key: ["led_on_motion"],
     convertSet: async (entity, key, value, meta) => {
@@ -4353,31 +4343,6 @@ export const TS110E_options: Tz.Converter = {
         if (key === "max_brightness") id = 64516;
         if (key === "light_type" || key === "switch_type") id = 64514;
         await entity.read("genLevelCtrl", [id]);
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS110E_onoff_brightness: Tz.Converter = {
-    key: ["state", "brightness"],
-    convertSet: async (entity, key, value, meta) => {
-        const {message, state} = meta;
-        if (message.state === "OFF" || (message.state != null && message.brightness == null)) {
-            return await on_off.convertSet(entity, key, value, meta);
-        }
-        if (message.brightness != null) {
-            // set brightness
-            if (state.state === "OFF") {
-                await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
-            }
-
-            const brightness = utils.toNumber(message.brightness, "brightness");
-            const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
-            await entity.command("genLevelCtrl", "moveToLevelTuya", {level, transtime: 100}, utils.getOptions(meta.mapped, entity));
-            return {state: {state: "ON", brightness}};
-        }
-    },
-    convertGet: async (entity, key, meta) => {
-        if (key === "state") await on_off.convertGet(entity, key, meta);
-        if (key === "brightness") await entity.read("genLevelCtrl", [61440]);
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
