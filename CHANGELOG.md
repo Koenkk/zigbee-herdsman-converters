@@ -1,5 +1,28 @@
 # Changelog
 
+## [26.31.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.30.0...v26.31.0) (2026-04-07)
+
+
+### Features
+
+* **add:** MFTWIFI ([#11873](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11873)) ([687d7ba](https://github.com/Koenkk/zigbee-herdsman-converters/commit/687d7baac945c2fd439787858d499eaf6ad8af1b))
+
+
+### Bug Fixes
+
+* Colorock CR-MNZ1: fix energy reporting ([#11898](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11898)) ([7f3324c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7f3324ccb971313fe944a3812a7a7d53cefd1b9c))
+* Danfoss Ally 014G2461: fix `programming_operation_mode` expose https://github.com/Koenkk/zigbee2mqtt/issues/31595 ([63b19be](https://github.com/Koenkk/zigbee-herdsman-converters/commit/63b19be96ca3ab8e7871c3082e0ee081761819ea))
+* Develco EMIZB-132: fix develcoInterfaceMode ([#11890](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11890)) ([9c4886d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c4886d2e374910eddfca200fb043a28af9e05d1))
+* Execllux ZG-104PLV: fix typo in illuminance exposes https://github.com/Koenkk/zigbee2mqtt/issues/31626 ([2ba138d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2ba138d3115ef098f92abb8b12afcee1e2d0ad50))
+* **ignore:** bump the minor-patch group with 2 updates ([#11884](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11884)) ([b01958b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b01958b82191702e26eb255ec087522b3632d353))
+* Inovelli: refactor ([#11761](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11761)) ([ffe3819](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ffe38191b288f0ccf207588fe38334eebd5ed8ae))
+* Shelly S4PL-00416EU: expose `ac_frequency` ([#11886](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11886)) ([be6430e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/be6430ea909167f06d95c377a1922e9671896480))
+* Tuya TS0505A: fix control ([#11897](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11897)) ([b384284](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b384284d0ed098998aa19fb2a9fb24db396b008a))
+* Tuya TS0601_heat_meter: fix `battery_voltage` ([#11862](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11862)) ([72686a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/72686a460d0a09943fa6048d3238ed1501b6faa9))
+* Tuya TYBAC-006: extend calibration range to -9..9 ([#11888](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11888)) ([51bacec](https://github.com/Koenkk/zigbee-herdsman-converters/commit/51bacecc71f26770d33f11d8ac6d8d848c4e091c))
+* Zemismart ZMS-206EU-X: fix time sync ([#11895](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11895)) ([4740bf5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4740bf53ecf06ec2b542670c27e5da9083a6b715))
+* ZG-204ZK changed motion_detection_sensitivity and detection_distance ([#11879](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11879)) ([040aab8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/040aab826e8298a95b8662b638eb1ac6c9d528bc))
+
 ## [26.30.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.29.0...v26.30.0) (2026-04-05)
 
 
