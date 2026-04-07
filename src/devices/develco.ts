@@ -337,6 +337,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             develcoModernExtend.emizb132DivisorInjector(),
             develcoModernExtend.emizb132InterfaceMode(),
+            develcoModernExtend.addCustomDevelcoSeMeteringCluster(),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             m.numeric<"haElectricalMeasurement", undefined>({
