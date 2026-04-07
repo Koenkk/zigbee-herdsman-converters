@@ -893,8 +893,14 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.configureReporting("haElectricalMeasurement", [
                 {attribute: "acPowerDivisor", minimumReportInterval: 10, maximumReportInterval: repInterval.MAX, reportableChange: 1},
             ]);
+            await endpoint.configureReporting("haElectricalMeasurement", [
+                {attribute: "acPowerMultiplier", minimumReportInterval: 10, maximumReportInterval: repInterval.MAX, reportableChange: 1},
+            ]);
             await endpoint.configureReporting("seMetering", [
                 {attribute: "divisor", minimumReportInterval: 10, maximumReportInterval: repInterval.MAX, reportableChange: 1},
+            ]);
+            await endpoint.configureReporting("seMetering", [
+                {attribute: "multiplier", minimumReportInterval: 10, maximumReportInterval: repInterval.MAX, reportableChange: 1},
             ]);
         },
     },
