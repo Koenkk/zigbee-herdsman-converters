@@ -18,7 +18,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Curtain/blind motor controller",
         extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
         fromZigbee: [fz.cover_position_tilt, tuya.fz.cover_options],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.moes_cover_calibration, tuya.tz.cover_calibration, tuya.tz.cover_reversal],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tuya.tz.moes_cover_calibration, tuya.tz.cover_calibration, tuya.tz.cover_reversal],
         meta: {coverInverted: true},
         exposes: [
             e.cover_position(),

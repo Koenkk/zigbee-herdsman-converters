@@ -2370,6 +2370,18 @@ const tuyaTz = {
             await entity.read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaMotorReversal"]);
         },
     } satisfies Tz.Converter,
+    moes_cover_calibration: {
+        key: ["calibration_time"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+            const calibration = value * 10;
+            await entity.write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {moesCalibrationTime: calibration});
+            return {state: {calibration_time: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["moesCalibrationTime"]);
+        },
+    } satisfies Tz.Converter,
 };
 
 export {tuyaTz as tz};

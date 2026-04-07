@@ -3947,18 +3947,6 @@ export const ts0216_alarm: Tz.Converter = {
         );
     },
 };
-export const moes_cover_calibration: Tz.Converter = {
-    key: ["calibration_time"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertNumber(value);
-        const calibration = value * 10;
-        await entity.write("closuresWindowCovering", {moesCalibrationTime: calibration});
-        return {state: {calibration_time: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("closuresWindowCovering", ["moesCalibrationTime"]);
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ZM35HQ_attr: Tz.Converter = {
     key: ["sensitivity", "keep_time"],

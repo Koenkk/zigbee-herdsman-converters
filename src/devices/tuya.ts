@@ -5034,7 +5034,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuyaBase()],
         meta: {coverInverted: true},
         fromZigbee: [tuya.fz.cover_options, fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tuya.tz.cover_reversal],
+        toZigbee: [tz.cover_state, tuya.tz.moes_cover_calibration, tz.cover_position_tilt, tuya.tz.cover_reversal],
         exposes: [
             e.cover_position(),
             e.numeric("calibration_time", ea.ALL).withValueMin(0).withValueMax(500).withUnit("s"),
@@ -14599,7 +14599,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart blind controller",
         extend: [tuyaBase()],
         fromZigbee: [fz.cover_position_tilt, tuya.fz.cover_options_2],
-        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.TS030F_border, tz.moes_cover_calibration, tuya.tz.cover_reversal],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.TS030F_border, tuya.tz.moes_cover_calibration, tuya.tz.cover_reversal],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "closuresWindowCovering"]);
