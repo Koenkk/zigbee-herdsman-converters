@@ -2266,9 +2266,13 @@ const tuyaTz = {
                 utils.assertNumber(value, key);
                 const calibration_time = value * 10;
                 if (key === "calibration_time" || key === "calibration_time_to_open") {
-                    await entity.write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {moesCalibrationTime: calibration_time});
+                    await entity.write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {
+                        moesCalibrationTime: calibration_time,
+                    });
                 } else if (key === "calibration_time_to_close") {
-                    await meta.device.getEndpoint(2).write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {moesCalibrationTime: calibration_time});
+                    await meta.device.getEndpoint(2).write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {
+                        moesCalibrationTime: calibration_time,
+                    });
                 }
                 return {state: {[key]: value}};
             }
@@ -2280,7 +2284,9 @@ const tuyaTz = {
             if (key === "calibration" || key === "calibration_to_open") {
                 await entity.write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaCalibration: calibration});
             } else if (key === "calibration_to_close") {
-                await meta.device.getEndpoint(2).write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaCalibration: calibration});
+                await meta.device
+                    .getEndpoint(2)
+                    .write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaCalibration: calibration});
             }
             return {state: {[key]: value}};
         },
@@ -2288,11 +2294,15 @@ const tuyaTz = {
             if (key === "calibration" || key === "calibration_to_open") {
                 await entity.read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaCalibration"]);
             } else if (key === "calibration_to_close") {
-                await meta.device.getEndpoint(2).read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaCalibration"]);
+                await meta.device
+                    .getEndpoint(2)
+                    .read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaCalibration"]);
             } else if (key === "calibration_time" || key === "calibration_time_to_open") {
                 await entity.read("closuresWindowCovering", ["moesCalibrationTime"]);
             } else if (key === "calibration_time_to_close") {
-                await meta.device.getEndpoint(2).read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["moesCalibrationTime"]);
+                await meta.device
+                    .getEndpoint(2)
+                    .read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["moesCalibrationTime"]);
             }
         },
     } satisfies Tz.Converter,
