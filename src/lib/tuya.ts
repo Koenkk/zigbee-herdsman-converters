@@ -774,6 +774,9 @@ export const valueConverterBasic = {
     divideBy: (value: number) => {
         return {to: (v: number) => v * value, from: (v: number) => v / value};
     },
+    multiplyBy: (value: number) => {
+        return {to: (v: number) => v / value, from: (v: number) => v * value};
+    },
     divideByFromOnly: (value: number) => {
         return {to: (v: number) => v, from: (v: number) => v / value};
     },
@@ -825,6 +828,7 @@ export const valueConverter = {
     divideBy10: valueConverterBasic.divideBy(10),
     divideBy100: valueConverterBasic.divideBy(100),
     divideBy1000: valueConverterBasic.divideBy(1000),
+    multiplyBy10: valueConverterBasic.multiplyBy(10),
     divideBy10FromOnly: valueConverterBasic.divideByFromOnly(10),
     switchMode: valueConverterBasic.lookup({switch: new Enum(0), scene: new Enum(1)}),
     switchMode2: valueConverterBasic.lookup({switch: new Enum(0), curtain: new Enum(1)}),
