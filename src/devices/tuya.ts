@@ -6341,7 +6341,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ["_TZ3000_tgddllx4"].includes(device.manufacturerName)
             ) {
                 logger.warning(
-                    `Detected ${device.modelID} ${device.manufacturerName} switch with appVersion ${device.applicationVersion}. Skip reporting for haElectricalMeasurement and seMeteringreporting in favor of polling.`,
+                    `Detected ${device.modelID} ${device.manufacturerName} switch with appVersion ${device.applicationVersion}. Skip reporting for haElectricalMeasurement and seMetering in favor of polling.`,
                     NS,
                 );
                 await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
