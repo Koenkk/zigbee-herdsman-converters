@@ -26,7 +26,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["Mill International\u0000Threa", "Mill InternationalThrea"],
         model: "MFTWIFI",
         vendor: "Mill",
-        description: "Mill Smart Floor Thermostat WiFi & Zigbee",
+        description: "Smart floor thermostat WiFi & Zigbee",
         extend: [
             m.thermostat({
                 setpoints: {
