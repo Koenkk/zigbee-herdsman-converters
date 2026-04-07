@@ -3463,7 +3463,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
     }
 
     if (programmingOperationMode) {
-        expose.withProgrammingOperationMode(programmingOperationMode.values);
+        exposes.push(e.programming_operation_mode(programmingOperationMode.values));
 
         if (!programmingOperationMode.toZigbee?.skip) {
             toZigbee.push(tz.thermostat_programming_operation_mode);
