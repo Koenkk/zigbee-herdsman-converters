@@ -778,7 +778,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zzm83zpz"]),
         model: "R12LM-Z11T",
         vendor: "Lincukoo",
-        description: "Human Motion & Presence Sensor",
+        description: "Human motion & presence sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("scan_environment", ea.STATE_SET, ["start"]).withDescription("Set no one environment"),
