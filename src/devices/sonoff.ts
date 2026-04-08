@@ -3838,6 +3838,29 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.battery({voltage: true, voltageReporting: true}),
             m.temperature(),
+            m.numeric({
+                name: "temperature_f",
+                label: "Temperature (°F)",
+                cluster: "msTemperatureMeasurement",
+                attribute: "measuredValue",
+                description: "Measured temperature value in Fahrenheit",
+                unit: "°F",
+                access: "STATE_GET",
+                reporting: false,
+                fzConvert: (model, msg, publish, options, meta) => {
+                    if (msg.data.measuredValue !== undefined) {
+                        const celsius = msg.data.measuredValue / 100.0;
+
+                        try {
+                            const adjustedCelsius = utils.calibrateAndPrecisionRoundOptions(celsius, options, "temperature");
+                            return {temperature_f: utils.precisionRound((adjustedCelsius * 9) / 5 + 32, 1)};
+                        } catch (error) {
+                            logger.error(`Failed to derive 'temperature_f' from temperature options: ${(error as Error).message}`, NS);
+                            return {temperature_f: (celsius * 9) / 5 + 32};
+                        }
+                    }
+                },
+            }),
             m.humidity(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
