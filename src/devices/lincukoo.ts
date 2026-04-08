@@ -773,4 +773,43 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zzm83zpz"]),
+        model: "R12LM-Z11T",
+        vendor: "Lincukoo",
+        description: "Human Motion & Presence Sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.enum("scan_environment", ea.STATE_SET, ["start"]).withDescription("Set no one environment"),
+            e.enum("scan_result", ea.STATE, ["normal", "scanning", "scan_success", "scan_failure", "scan_start"]).withDescription("Environment scan result"),
+            e.enum("mode", ea.STATE_SET, ["radar_mode", "fusion_mode"]).withDescription("Device mode"),
+            e.presence(),
+            e.illuminance(),
+            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
+            e
+                .numeric("set_detection_distance", ea.STATE_SET)
+                .withValueMin(3)
+                .withValueMax(9)
+                .withValueStep(1.5)
+                .withUnit("m")
+                .withDescription("Detection distance"),
+            e.enum("battery_state", ea.STATE, ["low", "middle", "high", "USB"]).withDescription("Battery status"),
+            e.binary("switch_night_light", ea.STATE_SET, "ON", "OFF").withDescription("Night light switch"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse0],
+                [8, "scan_result", tuya.valueConverterBasic.lookup({normal: 0, scanning: 1, scan_success: 2, scan_failure: 3, scan_start: 4})],
+                [101, "illuminance", tuya.valueConverter.raw],
+                [102, "mode", tuya.valueConverterBasic.lookup({radar_mode: tuya.enum(0), fusion_mode: tuya.enum(1)})],
+                [103, "radar_switch", tuya.valueConverter.onOff],
+                [105, "scan_environment", tuya.valueConverterBasic.lookup({start: tuya.enum(0)})],
+                [106, "set_detection_distance", tuya.valueConverter.divideBy100],
+                [108, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2), USB: tuya.enum(3)})],
+                [109, "switch_night_light", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+
 ];
