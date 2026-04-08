@@ -245,7 +245,7 @@ const ubisys = {
                     log("  Finalizing calibration...");
                     // disable calibration mode again
                     await sleepSeconds(2);
-                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
+                    await entity.write("closuresWindowCovering", {
                         windowCoveringMode: mode & ~modeCalibrationBitMask,
                     });
                     await sleepSeconds(2);
