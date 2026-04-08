@@ -773,7 +773,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zzm83zpz"]),
         model: "R12LM-Z11T",
@@ -782,7 +782,9 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("scan_environment", ea.STATE_SET, ["start"]).withDescription("Set no one environment"),
-            e.enum("scan_result", ea.STATE, ["normal", "scanning", "scan_success", "scan_failure", "scan_start"]).withDescription("Environment scan result"),
+            e
+                .enum("scan_result", ea.STATE, ["normal", "scanning", "scan_success", "scan_failure", "scan_start"])
+                .withDescription("Environment scan result"),
             e.enum("mode", ea.STATE_SET, ["radar_mode", "fusion_mode"]).withDescription("Device mode"),
             e.presence(),
             e.illuminance(),
@@ -806,10 +808,13 @@ export const definitions: DefinitionWithExtend[] = [
                 [103, "radar_switch", tuya.valueConverter.onOff],
                 [105, "scan_environment", tuya.valueConverterBasic.lookup({start: tuya.enum(0)})],
                 [106, "set_detection_distance", tuya.valueConverter.divideBy100],
-                [108, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2), USB: tuya.enum(3)})],
+                [
+                    108,
+                    "battery_state",
+                    tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2), USB: tuya.enum(3)}),
+                ],
                 [109, "switch_night_light", tuya.valueConverter.onOff],
             ],
         },
     },
-
 ];
