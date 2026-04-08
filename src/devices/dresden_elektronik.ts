@@ -1,5 +1,10 @@
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Expose} from "../lib/types";
+
+const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -17,8 +22,54 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["FLS-M"],
         model: "FLS-M",
         vendor: "Dresden Elektronik",
-        description: "Universal led controller",
-        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}), m.light({endpointNames: ["l1", "l2", "l3", "l4", "l5"]})],
+        description: "Universal LED controller (dynamic endpoints)",
+        ota: true,
+        meta: {
+            supportsEnhancedHue: () => false,
+        },
+        endpoint: (device) => {
+            const result: {[name: string]: number} = {};
+
+            for (const ep of device.endpoints) {
+                if (ep.inputClusters.includes(0x0006) || ep.inputClusters.includes(0x0008) || ep.inputClusters.includes(0x0300)) {
+                    result[`light_${ep.ID}`] = ep.ID;
+                }
+            }
+
+            return result;
+        },
+        exposes: (device): Expose[] => {
+            const result: Expose[] = [];
+
+            if (!("endpoints" in device)) return result;
+
+            for (const ep of device.endpoints) {
+                const name = `light_${ep.ID}`;
+
+                if (ep.inputClusters.includes(0x0300)) {
+                    result.push(e.light_colorhs().withBrightness().withColorTemp([140, 625]).withEndpoint(name));
+                } else if (ep.inputClusters.includes(0x0008)) {
+                    result.push(e.light_brightness().withEndpoint(name));
+                }
+            }
+
+            return result;
+        },
+
+        configure: async (device, coordinatorEndpoint, logger) => {
+            for (const ep of device.endpoints) {
+                if (ep.inputClusters.includes(0x0300)) {
+                    await ep.bind("lightingColorCtrl", coordinatorEndpoint);
+                } else if (ep.inputClusters.includes(0x0008)) {
+                    await ep.bind("genLevelCtrl", coordinatorEndpoint);
+                } else if (ep.inputClusters.includes(0x0006)) {
+                    await ep.bind("genOnOff", coordinatorEndpoint);
+                }
+            }
+        },
+
+        fromZigbee: [fz.on_off, fz.brightness, fz.color_colortemp],
+        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_color, tz.light_colortemp],
     },
     {
         zigbeeModel: ["FLS-CT"],
@@ -30,11 +81,11 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["Kobold"],
-        model: "BN-600110",
+        model: "Kobold",
         vendor: "Dresden Elektronik",
         description: "Zigbee 3.0 dimm actuator",
-        extend: [m.light()],
         ota: true,
+        extend: [m.light()],
     },
     {
         zigbeeModel: ["Hive"],
@@ -60,5 +111,27 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee Light Link wireless electronic ballast",
         ota: true,
         extend: [m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ["Scene Switch"],
+        model: "BN-600085",
+        vendor: "Dresden Elektronik",
+        description: "3 part zigbee powered scene switch",
+        ota: true,
+        extend: [m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl(), m.commandsScenes(), m.battery()],
+    },
+    {
+        zigbeeModel: ["Lighting Switch"],
+        model: "BN-600087",
+        vendor: "Dresden Elektronik",
+        description: "2 part zigbee powered light switch",
+        ota: true,
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
+            m.commandsOnOff({endpointNames: ["1", "2"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2"]}),
+            m.commandsColorCtrl({endpointNames: ["1", "2"]}),
+            m.battery(),
+        ],
     },
 ];

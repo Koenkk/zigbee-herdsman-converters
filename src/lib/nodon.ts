@@ -23,13 +23,15 @@ interface NodonPilotWire {
 }
 
 const pilotWireCluster = deviceAddCustomCluster(PILOT_WIRE_CLUSTER, {
+    name: "customClusterNodOnPilotWire",
     ID: 0xfc00,
     manufacturerCode: Zcl.ManufacturerCode.NODON,
     attributes: {
-        mode: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+        mode: {name: "mode", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
     },
     commands: {
         setMode: {
+            name: "setMode",
             ID: 0x0000,
             parameters: [{name: "mode", type: Zcl.DataType.UINT8, max: 0xff}],
         },

@@ -35,10 +35,11 @@ const tzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["MIR-MC100"],
+        zigbeeModel: ["MIR-MC100", "MIR-MC100-E"],
         model: "MIR-MC100",
         vendor: "MultIR",
         description: "Door sensor",
+        whiteLabel: [{model: "MIR-MC100-E", fingerprint: [{modelID: "MIR-MC100-E"}]}],
         extend: [
             m.battery(),
             m.iasZoneAlarm({
@@ -71,6 +72,16 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 entityCategory: "config",
             }),
+        ],
+    },
+    {
+        zigbeeModel: ["MIR-SM100-E"],
+        model: "MIR-SM100-E",
+        vendor: "MultIR",
+        description: "Smoke sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
+        exposes: [
+            exposes.enum("silence", ea.SET, ["ON"]).withDescription("After enabling mute, it will return to detection state after 90 seconds."),
         ],
     },
     {

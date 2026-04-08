@@ -37,7 +37,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.windowCovering({controls: ["lift"]})],
     },
     {
-        zigbeeModel: ["Sonesse Ultra 30 WF Li-Ion Rolle"],
+        zigbeeModel: ["Sonesse Ultra 30 WF Li-Ion Rolle", "Sonesse2 ULTRA 30 WF Li-ion Roll"],
         model: "SOMFY-1241752",
         vendor: "SOMFY",
         description: "Blinds",

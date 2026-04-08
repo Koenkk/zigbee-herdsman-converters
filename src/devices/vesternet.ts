@@ -3,9 +3,29 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
+import {precisionRound} from "../lib/utils";
 
 const e = exposes.presets;
+const fzLocal = {
+    battery_ves_zb_rem_013: {
+        cluster: "genPowerCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            if (msg.data.batteryPercentageRemaining !== undefined && msg.data.batteryPercentageRemaining < 255) {
+                // 2.5.3_r20 fw doesn't comply with Zigbee spec and reports battery as 0-100.
+                // Newer firmware has already this issue fixed and reports battery as 0-200.
+                const dontDividePercentage = meta.device.softwareBuildID === "2.5.3_r20";
+                let percentage = msg.data.batteryPercentageRemaining;
+                percentage = dontDividePercentage ? percentage : percentage / 2;
+                payload.battery = precisionRound(percentage, 2);
+            }
+
+            return payload;
+        },
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -76,7 +96,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VES-ZB-REM-013",
         vendor: "Vesternet",
         description: "Zigbee remote control - 12 button",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_recall, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_recall, fzLocal.battery_ves_zb_rem_013],
         exposes: [
             e.battery(),
             e.action([

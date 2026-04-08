@@ -1,3 +1,4 @@
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import {repInterval} from "../lib/constants";
@@ -11,6 +12,29 @@ import {isDummyDevice} from "../lib/utils";
 const NS = "zhc:profalux";
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface Profalux1 {
+    attributes: {
+        /** ID=0x0000 | type=UINT8 | write=true | max=255 */
+        motorCoverType: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+const profaluxExtend = {
+    addManuSpecificProfalux1Cluster: () =>
+        m.deviceAddCustomCluster("manuSpecificProfalux1", {
+            name: "manuSpecificProfalux1",
+            ID: 0xfc21,
+            manufacturerCode: Zcl.ManufacturerCode.PROFALUX,
+            attributes: {
+                motorCoverType: {name: "motorCoverType", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // 0 : rolling shutters (volet), 1 : rolling shutters with tilt (BSO), 2: shade (store)
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+};
 
 const mLocal = {
     pollBatteryVoltage: (): ModernExtend => {
@@ -65,6 +89,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MOT-C1ZxxC/F",
         vendor: "Profalux",
         description: "Cover",
+        extend: [profaluxExtend.addManuSpecificProfalux1Cluster()],
         fromZigbee: [fz.command_cover_close, fz.command_cover_open, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         options: [],
@@ -79,7 +104,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
-            await endpoint.read("manuSpecificProfalux1", ["motorCoverType"]).catch((e) => {
+            await endpoint.read<"manuSpecificProfalux1", Profalux1>("manuSpecificProfalux1", ["motorCoverType"]).catch((e) => {
                 logger.warning(`Failed to read zigbee attributes: ${e}`, NS);
             });
             const coverType = endpoint.getClusterAttributeValue("manuSpecificProfalux1", "motorCoverType");

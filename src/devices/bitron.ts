@@ -1,7 +1,7 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import type {ThermostatRunningState, ThermostatSystemMode} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
@@ -13,7 +13,43 @@ const ea = exposes.access;
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.ASTREL_GROUP_SRL};
 
+interface BitronHvacThermostat {
+    attributes: {
+        fourNoksHysteresisHigh: number;
+        fourNoksHysteresisLow: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const bitron = {
+    extend: {
+        bitronHvacThermostatCluster: () =>
+            m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    fourNoksHysteresisHigh: {
+                        name: "fourNoksHysteresisHigh",
+                        ID: 0x0101,
+                        type: Zcl.DataType.UINT16,
+                        manufacturerCode: Zcl.ManufacturerCode.ASTREL_GROUP_SRL,
+                        write: true,
+                        max: 0xffff,
+                    },
+                    fourNoksHysteresisLow: {
+                        name: "fourNoksHysteresisLow",
+                        ID: 0x0102,
+                        type: Zcl.DataType.UINT16,
+                        manufacturerCode: Zcl.ManufacturerCode.ASTREL_GROUP_SRL,
+                        write: true,
+                        max: 0xffff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+    },
     fz: {
         thermostat_hysteresis: {
             cluster: "hvacThermostat",
@@ -33,7 +69,7 @@ const bitron = {
 
                 return result;
             },
-        } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+        } satisfies Fz.Converter<"hvacThermostat", BitronHvacThermostat, ["attributeReport", "readResponse"]>,
     },
     tz: {
         thermostat_hysteresis: {
@@ -41,19 +77,31 @@ const bitron = {
             convertSet: async (entity, key, value: KeyValueAny, meta) => {
                 const result: KeyValueAny = {state: {hysteresis: {}}};
                 if (value.high != null) {
-                    await entity.write("hvacThermostat", {fourNoksHysteresisHigh: value.high}, manufacturerOptions);
+                    await entity.write<"hvacThermostat", BitronHvacThermostat>(
+                        "hvacThermostat",
+                        {fourNoksHysteresisHigh: value.high},
+                        manufacturerOptions,
+                    );
                     result.state.hysteresis.high = value.high;
                 }
 
                 if (value.low != null) {
-                    await entity.write("hvacThermostat", {fourNoksHysteresisLow: value.low}, manufacturerOptions);
+                    await entity.write<"hvacThermostat", BitronHvacThermostat>(
+                        "hvacThermostat",
+                        {fourNoksHysteresisLow: value.low},
+                        manufacturerOptions,
+                    );
                     result.state.hysteresis.low = value.low;
                 }
 
                 return result;
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("hvacThermostat", ["fourNoksHysteresisHigh", "fourNoksHysteresisLow"], manufacturerOptions);
+                await entity.read<"hvacThermostat", BitronHvacThermostat>(
+                    "hvacThermostat",
+                    ["fourNoksHysteresisHigh", "fourNoksHysteresisLow"],
+                    manufacturerOptions,
+                );
             },
         } satisfies Tz.Converter,
     },
@@ -227,6 +275,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AV2010/32",
         vendor: "SMaBiT (Bitron Video)",
         description: "Wireless wall thermostat with relay",
+        extend: [bitron.extend.bitronHvacThermostatCluster()],
         fromZigbee: [fz.thermostat, fz.battery, fz.hvac_user_interface, bitron.fz.thermostat_hysteresis],
         toZigbee: [
             tz.thermostat_control_sequence_of_operation,
@@ -246,7 +295,7 @@ export const definitions: DefinitionWithExtend[] = [
             let ctrlSeqeOfOper = !utils.isDummyDevice(device)
                 ? device.getEndpoint(1).getClusterAttributeValue("hvacThermostat", "ctrlSeqeOfOper")
                 : null;
-            const modes = [];
+            const modes: Array<ThermostatSystemMode & ThermostatRunningState> = [];
 
             if (typeof ctrlSeqeOfOper === "string") ctrlSeqeOfOper = Number.parseInt(ctrlSeqeOfOper, 10) ?? null;
 
@@ -273,8 +322,8 @@ export const definitions: DefinitionWithExtend[] = [
                     .climate()
                     .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5)
                     .withLocalTemperature()
-                    .withSystemMode(["off"].concat(modes))
-                    .withRunningState(["idle"].concat(modes))
+                    .withSystemMode([...modes, "off"])
+                    .withRunningState([...modes, "idle"])
                     .withLocalTemperatureCalibration()
                     .withControlSequenceOfOperation(["heating_only", "cooling_only"], ea.ALL),
             );

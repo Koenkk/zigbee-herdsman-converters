@@ -1,5 +1,6 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import type {ThermostatRunningState} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
@@ -22,6 +23,66 @@ const exposesLocal = {
 };
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        fingerprint: tuya.fingerprint("TS030F", ["_TZ3210_sxtfesc6"]),
+        model: "ADCBZI01",
+        vendor: "Moes",
+        description: "Curtain Robot",
+        fromZigbee: [fz.cover_position_tilt, tuya.fz.datapoints],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state, tuya.tz.datapoints],
+        exposes: [
+            e.cover_position(),
+            e.position(),
+            e.battery(),
+            e.illuminance(),
+            e.enum("work_state", ea.STATE, ["standby", "opening", "closing"]).withDescription("Current work state"),
+            e.numeric("total_time", ea.STATE).withUnit("s").withDescription("Total operation time"),
+            e.enum("situation_set", ea.STATE_SET, ["fully_open", "fully_close"]).withDescription("Situation control"),
+            e.enum("fault", ea.STATE, ["none"]).withDescription("Fault status"),
+            e.enum("charging_status", ea.STATE, ["none", "uncharged", "charging", "charged"]).withDescription("Charging status"),
+            e.numeric("open_threshold", ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription("Light threshold for opening"),
+            e.numeric("close_threshold", ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription("Light threshold for closing"),
+            e.numeric("curtain_status", ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription("Curtain status"),
+            e.numeric("total_distance", ea.STATE).withUnit("m").withDescription("Total distance traveled"),
+            e.numeric("factory_test", ea.STATE).withValueMin(0).withValueMax(100).withDescription("Factory test feedback"),
+            e.text("custom_week_prog_1", ea.STATE_SET).withDescription("Custom week program 1"),
+            e.text("custom_week_prog_2", ea.STATE_SET).withDescription("Custom week program 2"),
+            e.text("custom_week_prog_3", ea.STATE_SET).withDescription("Custom week program 3"),
+            e.text("custom_week_prog_4", ea.STATE_SET).withDescription("Custom week program 4"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({open: 0, stop: 1, close: 2})], // Control - open/stop/close
+                [2, "position", tuya.valueConverter.coverPosition], // Percent control - set position (0-100)
+                [3, "position", tuya.valueConverter.coverPositionInverted], // Percent state - current position (0-100)
+                [7, "work_state", tuya.valueConverterBasic.lookup({standby: 0, opening: 1, closing: 2})], // Work state
+                [10, "total_time", tuya.valueConverter.raw], // Total time (0-120000)
+                [11, "situation_set", tuya.valueConverterBasic.lookup({fully_open: 0, fully_close: 1})], // Situation control
+                [12, "fault", tuya.valueConverterBasic.lookup({none: 0})], // Fault (only 'none' available)
+                [13, "battery", tuya.valueConverter.raw], // Battery percentage (0-100)
+                [
+                    101,
+                    "charging_status",
+                    tuya.valueConverterBasic.lookup({
+                        none: 0,
+                        uncharged: 1,
+                        charging: 2,
+                        charged: 3,
+                    }),
+                ], // Charging status
+                [103, "custom_week_prog_1", tuya.valueConverter.raw], // Custom week program 1
+                [104, "custom_week_prog_2", tuya.valueConverter.raw], // Custom week program 2
+                [105, "custom_week_prog_3", tuya.valueConverter.raw], // Custom week program 3
+                [106, "custom_week_prog_4", tuya.valueConverter.raw], // Custom week program 4
+                [107, "illuminance", tuya.valueConverter.raw], // Light intensity (0-100)
+                [108, "open_threshold", tuya.valueConverter.raw], // Open window threshold (0-100)
+                [109, "close_threshold", tuya.valueConverter.raw], // Close window threshold (0-100)
+                [110, "curtain_status", tuya.valueConverter.raw], // Curtain status (0-255)
+                [111, "factory_test", tuya.valueConverter.raw], // Factory test (0-100)
+                [112, "total_distance", tuya.valueConverter.raw], // Total running distance in meters
+            ],
+        },
+    },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zxkwaztm"]),
         model: "ZHT-S03",
@@ -401,6 +462,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_on_behavior().withAccess(ea.STATE_SET),
             exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
             e.action(["scene_1"]),
+            exposes.enum("indicator_status", ea.ALL, ["off", "relay", "invert"]).withDescription("Indicator status"),
             exposes.enum("induction_mode", ea.ALL, ["ON", "OFF"]).withDescription("Induction mode"),
             exposes.enum("vibration_mode", ea.ALL, ["Gear 0", "Gear 1", "Gear 2", "Gear 3"]).withDescription("Vibration"),
         ],
@@ -420,7 +482,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [24, "state_l1", tuya.valueConverter.onOff],
                 [30, "countdown_l1", tuya.valueConverter.countdown],
                 [36, "backlight_mode", tuya.valueConverter.onOff],
-                [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: 0, relay: 1, pos: 2})],
+                [37, "indicator_status", tuya.valueConverterBasic.lookup({off: tuya.enum(0), relay: tuya.enum(1), invert: tuya.enum(2)})],
                 [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [103, "induction_mode", tuya.valueConverter.onOff],
                 [
@@ -462,6 +524,7 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.enum("mode", ea.STATE_SET, ["switch_1", "scene_1"]).withEndpoint("l1").withDescription("Switch1 mode"),
             exposes.enum("mode", ea.STATE_SET, ["switch_2", "scene_2"]).withEndpoint("l2").withDescription("Switch2 mode"),
             e.action(["scene_1", "scene_2"]),
+            exposes.enum("indicator_status", ea.ALL, ["off", "relay", "invert"]).withDescription("Indicator status"),
             exposes.enum("induction_mode", ea.ALL, ["ON", "OFF"]).withDescription("Induction mode"),
             exposes.enum("vibration_mode", ea.ALL, ["Gear 0", "Gear 1", "Gear 2", "Gear 3"]).withDescription("Vibration"),
         ],
@@ -480,7 +543,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [25, "state_l2", tuya.valueConverter.onOff],
                 [30, "countdown_l1", tuya.valueConverter.countdown],
                 [31, "countdown_l2", tuya.valueConverter.countdown],
-                [37, "indicator_mode", tuya.valueConverterBasic.lookup({none: 0, relay: 1, pos: 2})],
+                [37, "indicator_status", tuya.valueConverterBasic.lookup({off: tuya.enum(0), relay: tuya.enum(1), invert: tuya.enum(2)})],
                 [36, "backlight_mode", tuya.valueConverter.onOff],
                 [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [103, "induction_mode", tuya.valueConverter.onOff],
@@ -535,7 +598,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.action(["scene_1", "scene_2", "scene_3"]),
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.power_on_behavior().withAccess(ea.STATE_SET),
-            exposes.enum("indicator_status", ea.ALL, ["Off", "Relay", "Invert"]).withDescription("Indicator status"),
+            exposes.enum("indicator_status", ea.ALL, ["off", "relay", "invert"]).withDescription("Indicator status"),
             exposes.enum("induction_mode", ea.ALL, ["ON", "OFF"]).withDescription("Induction mode"),
             exposes.enum("vibration_mode", ea.ALL, ["Gear 0", "Gear 1", "Gear 2", "Gear 3"]).withDescription("Vibration"),
         ],
@@ -566,7 +629,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [31, "countdown_l2", tuya.valueConverter.countdown],
                 [32, "countdown_l3", tuya.valueConverter.countdown],
                 [36, "backlight_mode", tuya.valueConverter.onOff],
-                [37, "indicator_status", tuya.valueConverterBasic.lookup({off: tuya.enum(0), Relay: tuya.enum(1), Invert: tuya.enum(2)})],
+                [37, "indicator_status", tuya.valueConverterBasic.lookup({off: tuya.enum(0), relay: tuya.enum(1), invert: tuya.enum(2)})],
                 [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [103, "induction_mode", tuya.valueConverter.onOff],
                 [
@@ -631,7 +694,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.action(["scene_1", "scene_2", "scene_3", "scene_4"]),
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.power_on_behavior().withAccess(ea.STATE_SET),
-            exposes.enum("indicator_status", ea.ALL, ["Off", "Relay", "Invert"]).withDescription("Indicator status"),
+            exposes.enum("indicator_status", ea.ALL, ["off", "relay", "invert"]).withDescription("Indicator status"),
             exposes.enum("induction_mode", ea.ALL, ["ON", "OFF"]).withDescription("Induction mode"),
             exposes.enum("vibration_mode", ea.ALL, ["Gear 0", "Gear 1", "Gear 2", "Gear 3"]).withDescription("Vibration"),
         ],
@@ -666,7 +729,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [32, "countdown_l3", tuya.valueConverter.countdown],
                 [33, "countdown_l4", tuya.valueConverter.countdown],
                 [36, "backlight_mode", tuya.valueConverter.onOff],
-                [37, "indicator_status", tuya.valueConverterBasic.lookup({off: tuya.enum(0), Relay: tuya.enum(1), Invert: tuya.enum(2)})],
+                [37, "indicator_status", tuya.valueConverterBasic.lookup({off: tuya.enum(0), relay: tuya.enum(1), invert: tuya.enum(2)})],
                 [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [103, "induction_mode", tuya.valueConverter.onOff],
                 [
@@ -882,7 +945,8 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Moes", "BHT-002/BHT-006", "Smart heating thermostat", ["_TZE204_aoclfnxz"])],
         exposes: (device, options) => {
             const heatingStepSize = device.manufacturerName === "_TZE204_5toc8efa" ? 0.5 : 1;
-            const runningStates = device.manufacturerName === "_TZE200_aoclfnxz" ? ["idle", "heat"] : ["idle", "heat", "cool"];
+            const runningStates: ThermostatRunningState[] =
+                device.manufacturerName === "_TZE200_aoclfnxz" ? ["idle", "heat"] : ["idle", "heat", "cool"];
             return [
                 e.child_lock(),
                 e.deadzone_temperature(),
@@ -1088,7 +1152,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .climate()
                 .withLocalTemperature(ea.STATE)
-                .withSetpoint("current_heating_setpoint", 0.5, 30, 0.5, ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 0, 30, 0.5, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
                 .withPreset(["auto", "manual", "holiday"])
                 .withRunningState(["idle", "heat"], ea.STATE),
@@ -1233,6 +1297,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "UFO-R11",
         vendor: "Moes",
         description: "Universal smart IR remote control",
+        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), zosung.zosungExtend.addZosungIRControlCluster()],
         fromZigbee: [
             fzZosung.zosung_send_ir_code_00,
             fzZosung.zosung_send_ir_code_01,
@@ -1262,11 +1327,11 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Tuya", "iH-F8260", "Universal smart IR remote control", ["_TZ3290_gnl5a6a5xvql7c2a", "_TZ3290_785fbxik"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_cjfmu5he", "_TZ3000_mq4wujmp", "_TZ3000_5af5r192", "_TZE200_fphxkxue"]),
+        fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_cjfmu5he", "_TZ3000_mq4wujmp", "_TZ3000_5af5r192", "_TZ3000_ogjpfoyn"]),
         model: "ZWV-YC",
         vendor: "Moes",
         description: "Water valve",
-        extend: [m.battery(), m.onOff({powerOnBehavior: false})],
+        extend: [m.battery(), m.onOff({powerOnBehavior: false, configureReporting: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0011", ["_TZ3000_hhiodade"]),
@@ -1336,17 +1401,18 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Smart button",
         whiteLabel: [tuya.whitelabel("Loginovo", "ZG-101ZL", "Smart button", ["_TZ3000_ja5osu5g", "_TZ3000_lrfvzq1e", "_TZ3000_kaflzta4"])],
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         fromZigbee: [
             fz.command_step,
             fz.command_on,
             fz.command_off,
             fz.command_move_to_color_temp,
             fz.command_move_to_level,
-            fz.tuya_multi_action,
-            fz.tuya_operation_mode,
+            tuya.fz.multi_action,
+            tuya.fz.operation_mode,
             fz.battery,
         ],
-        toZigbee: [tz.tuya_operation_mode],
+        toZigbee: [tuya.tz.operation_mode],
         exposes: [
             e.action([
                 "single",
@@ -1436,7 +1502,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior2: true,
                 switchMode: true,
             }),
-            m.actionEnumLookup<"genOnOff", undefined, ["commandTuyaAction"]>({
+            m.actionEnumLookup<"genOnOff", tuya.TuyaGenOnOff, ["commandTuyaAction"]>({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
                 attribute: "value",
@@ -1592,11 +1658,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xtrnjaoz", "_TZE200_xtrnjaoz"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xtrnjaoz", "_TZE200_xtrnjaoz", "_TZE284_8whfphjv"]),
         model: "GM25TEQ-TYZ-2/25",
         vendor: "Moes",
         description: "Roller Shade Blinds Motor for 38mm Tube",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        whiteLabel: [tuya.whitelabel("Tuya", "GM35TEQ-TYZ-2/25", "Roller Shade Blinds Motor for 38mm Tube", ["_TZE284_8whfphjv"])],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Set the motor direction"),
@@ -1749,66 +1816,24 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_criiahcg"]),
-        model: "ZM4LT2",
-        vendor: "Moes",
-        description: "2-gang switch module",
-        extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            tuya.modernExtend.tuyaOnOff({
-                switchType: true,
-                indicatorMode: true,
-                onOffCountdown: true,
-                inchingSwitch: true,
-                endpoints: ["l1", "l2"],
-            }),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_mzcp0of6"]),
-        model: "ZM4LT3",
-        vendor: "Moes",
-        description: "3-gang switch module",
-        extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            tuya.modernExtend.tuyaOnOff({
-                switchType: true,
-                indicatorMode: true,
-                onOffCountdown: true,
-                inchingSwitch: true,
-                endpoints: ["l1", "l2", "l3"],
-            }),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
-        },
-    },
-    {
         fingerprint: tuya.fingerprint("TS0041", ["_TZ3000_axpdxqgu"]),
         model: "ZT-B-EU1",
         vendor: "Moes",
         description: "Scene remote with 1 key",
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
-        exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold"])],
+        exposes: [e.battery(), e.action(["single", "double", "hold"])],
         meta: {
             tuyaDatapoints: [
                 [
                     1,
                     "action",
                     tuya.valueConverterBasic.lookup({
-                        "1_single": 0,
-                        "1_double": 1,
-                        "1_hold": 2,
+                        single: 0,
+                        double: 1,
+                        hold: 2,
                     }),
                 ],
             ],
@@ -1820,6 +1845,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZT-B-EU2",
         vendor: "Moes",
         description: "Scene remote with 2 keys",
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
@@ -1853,6 +1879,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZT-B-EU3",
         vendor: "Moes",
         description: "Scene remote with 3 keys",
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
@@ -1886,6 +1913,478 @@ export const definitions: DefinitionWithExtend[] = [
                         "3_hold": 2,
                     }),
                 ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_qoi1aqxg"]),
+        model: "FWJZCEH18A001",
+        vendor: "Moes",
+        description: "Roller blind motor 17mm/25mm/28mm",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [9, "position", tuya.valueConverter.coverPosition],
+                [8, "position", tuya.valueConverter.coverPosition],
+                [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [13, "battery", {from: (v: string) => Buffer.from(v, "base64").readUInt32BE(0)}],
+                [
+                    16,
+                    "border",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                        up_delete: tuya.enum(2),
+                        down_delete: tuya.enum(3),
+                        remove_top_bottom: tuya.enum(4),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rlytpmij"]),
+        model: "ZHT-S01",
+        vendor: "Moes",
+        description: "Zigbee wall thermostat (air/internal temperature priority)",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        exposes: (device, options) => {
+            const WEEKDAY_PERIODS = [
+                {id: 1, desc: "get_up_in_the_morning"},
+                {id: 2, desc: "go_out_in_the_morning"},
+                {id: 3, desc: "back_home_in_the_noon"},
+                {id: 4, desc: "go_out_in_the_noon"},
+                {id: 5, desc: "back_home_in_the_evening"},
+                {id: 6, desc: "sleep_at_night"},
+            ];
+
+            const WEEKEND_PERIODS = [
+                {id: 1, desc: "get_up"},
+                {id: 2, desc: "sleep"},
+            ];
+
+            const SCHEDULE_DEFAULTS = {
+                weekday: [
+                    {hour: 6, minute: 0, temp: 20},
+                    {hour: 8, minute: 0, temp: 16},
+                    {hour: 11, minute: 30, temp: 20},
+                    {hour: 12, minute: 30, temp: 16},
+                    {hour: 17, minute: 0, temp: 20},
+                    {hour: 22, minute: 0, temp: 16},
+                ],
+                weekend: [
+                    {hour: 8, minute: 0, temp: 20},
+                    {hour: 23, minute: 0, temp: 16},
+                ],
+            };
+
+            // Generate schedule exposes
+            const scheduleExposes: ReturnType<typeof e.numeric>[] = [];
+
+            for (let i = 0; i < 6; i++) {
+                const num = i + 1;
+                const period = WEEKDAY_PERIODS[i];
+                const def = SCHEDULE_DEFAULTS.weekday[i];
+
+                scheduleExposes.push(
+                    e
+                        .numeric(`weekday_${num}_hour`, ea.STATE_SET)
+                        .withValueMin(0)
+                        .withValueMax(23)
+                        .withValueStep(1)
+                        .withPreset("default", def.hour, "Default value")
+                        .withDescription(`Weekday P${num} ${period.desc} - Hour`),
+                    e
+                        .numeric(`weekday_${num}_minute`, ea.STATE_SET)
+                        .withValueMin(0)
+                        .withValueMax(59)
+                        .withValueStep(1)
+                        .withPreset("default", def.minute, "Default value")
+                        .withDescription(`Weekday P${num} ${period.desc} - Minute`),
+                    e
+                        .numeric(`weekday_${num}_temp`, ea.STATE_SET)
+                        .withUnit("°C")
+                        .withValueMin(5)
+                        .withValueMax(35)
+                        .withValueStep(0.5)
+                        .withPreset("default", def.temp, "Default value")
+                        .withDescription(`Weekday P${num} ${period.desc} - Temperature`),
+                );
+            }
+
+            for (let i = 0; i < 2; i++) {
+                const num = i + 1;
+                const period = WEEKEND_PERIODS[i];
+                const def = SCHEDULE_DEFAULTS.weekend[i];
+
+                scheduleExposes.push(
+                    e
+                        .numeric(`weekend_${num}_hour`, ea.STATE_SET)
+                        .withValueMin(0)
+                        .withValueMax(23)
+                        .withValueStep(1)
+                        .withPreset("default", def.hour, "Default value")
+                        .withDescription(`Weekend P${num} ${period.desc} - Hour`),
+                    e
+                        .numeric(`weekend_${num}_minute`, ea.STATE_SET)
+                        .withValueMin(0)
+                        .withValueMax(59)
+                        .withValueStep(1)
+                        .withPreset("default", def.minute, "Default value")
+                        .withDescription(`Weekend P${num} ${period.desc} - Minute`),
+                    e
+                        .numeric(`weekend_${num}_temp`, ea.STATE_SET)
+                        .withUnit("°C")
+                        .withValueMin(5)
+                        .withValueMax(35)
+                        .withValueStep(0.5)
+                        .withPreset("default", def.temp, "Default value")
+                        .withDescription(`Weekend P${num} ${period.desc} - Temperature`),
+                );
+            }
+
+            return [
+                // Child lock
+                e.child_lock(),
+
+                // System mode separate expose (clearer in UI)
+                e.enum("system_mode", ea.STATE_SET, ["off", "heat"]).withDescription("Thermostat system mode (device enabled/disabled)"),
+
+                // Main climate control
+                e
+                    .climate()
+                    .withPreset(["manual", "auto", "eco"])
+                    .withRunningState(["idle", "heat"], ea.STATE)
+                    .withSystemMode(["off", "heat"], ea.STATE)
+                    .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                    .withLocalTemperature(ea.STATE) // DP 117 (Air/Internal sensor)
+                    .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
+
+                // Floor temperature (secondary sensor)
+                e.numeric("floor_temperature", ea.STATE).withUnit("°C").withDescription("Temperature from floor sensor (secondary)"),
+
+                // Valve state
+                e.binary("valve_state", ea.STATE, "OPEN", "CLOSED").withDescription("Valve state"),
+
+                // Fault alarm
+                e
+                    .enum("fault_alarm", ea.STATE, ["none", "e1", "e2", "e3", "e1_e2", "e1_e3", "e2_e3", "e1_e2_e3"])
+                    .withDescription("Fault alarm status"),
+
+                // Sensor selection
+                e.enum("sensor", ea.STATE_SET, ["internal", "external", "both"]).withDescription("Temperature sensor selection"),
+
+                // Temperature scale
+                e
+                    .enum("temperature_scale", ea.STATE_SET, ["celsius", "fahrenheit"])
+                    .withDescription("Temperature scale (WARNING: converter only supports Celsius datapoints)"),
+
+                // Backlight brightness
+                e.enum("backlight_brightness", ea.STATE_SET, ["off", "low", "medium", "high"]).withDescription("Backlight brightness"),
+
+                // Antifreeze
+                e.binary("antifreeze", ea.STATE_SET, "ON", "OFF").withDescription("Antifreeze mode"),
+
+                // Temperature limits
+                e
+                    .numeric("min_temperature_limit", ea.STATE_SET)
+                    .withValueMin(5)
+                    .withValueMax(20)
+                    .withValueStep(1)
+                    .withUnit("°C")
+                    .withDescription("Minimum temperature limit"),
+                e
+                    .numeric("max_temperature_limit", ea.STATE_SET)
+                    .withValueMin(30)
+                    .withValueMax(70)
+                    .withValueStep(1)
+                    .withUnit("°C")
+                    .withDescription("Maximum temperature limit"),
+
+                // Temperature hysteresis/deadzone
+                e
+                    .numeric("deadzone_temperature", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withValueMin(0.5)
+                    .withValueMax(3.0)
+                    .withValueStep(0.5)
+                    .withDescription("Temperature hysteresis/deadzone"),
+
+                // ECO mode temperature
+                e
+                    .numeric("eco_temperature", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withValueMin(5)
+                    .withValueMax(35)
+                    .withValueStep(1)
+                    .withDescription("ECO mode temperature setting"),
+
+                // Program mode
+                e
+                    .enum("program_mode", ea.STATE_SET, ["off", "weekend", "single_break", "no_day_off"])
+                    .withDescription("Weekly programming mode type"),
+
+                // Factory reset
+                e.binary("factory_reset", ea.SET, "ON", "OFF").withDescription("Factory reset (use with caution)"),
+
+                // Schedule exposes - individual fields for each period
+                ...scheduleExposes,
+            ];
+        },
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "system_mode",
+                    {
+                        from: (value: boolean) => (value === true ? "heat" : "off"),
+                        to: (value: string) => value === "heat",
+                    },
+                ],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        manual: tuya.enum(1),
+                        eco: tuya.enum(2),
+                    }),
+                ],
+                [
+                    3,
+                    "backlight_brightness",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        low: tuya.enum(1),
+                        medium: tuya.enum(2),
+                        high: tuya.enum(3),
+                    }),
+                ],
+                [19, "local_temperature_calibration", tuya.valueConverter.raw],
+                [
+                    20,
+                    "fault_alarm",
+                    {
+                        from: (v: number) => {
+                            if (v === 0) return "none";
+                            const faults: string[] = [];
+                            if (v & 1) faults.push("e1");
+                            if (v & 2) faults.push("e2");
+                            if (v & 4) faults.push("e3");
+                            return faults.join("_") || "none";
+                        },
+                    },
+                ],
+                [28, "factory_reset", tuya.valueConverter.onOff],
+                [
+                    32,
+                    "sensor",
+                    tuya.valueConverterBasic.lookup({
+                        internal: tuya.enum(0),
+                        external: tuya.enum(1),
+                        both: tuya.enum(2),
+                    }),
+                ],
+                [39, "child_lock", tuya.valueConverter.lockUnlock],
+                [
+                    46,
+                    "temperature_scale",
+                    tuya.valueConverterBasic.lookup({
+                        celsius: tuya.enum(0),
+                        fahrenheit: tuya.enum(1),
+                    }),
+                ],
+                [
+                    47,
+                    "running_state",
+                    tuya.valueConverterBasic.lookup({
+                        heat: tuya.enum(0),
+                        idle: tuya.enum(1),
+                    }),
+                ],
+                [
+                    47,
+                    "valve_state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        CLOSED: tuya.enum(1),
+                    }),
+                ],
+                // === STANDARD SENSOR MAPPING (AIR/INTERNAL PRIORITY) ===
+                [117, "local_temperature", tuya.valueConverter.divideBy10],
+                [101, "floor_temperature", tuya.valueConverter.divideBy10],
+                // ========================================================
+                [
+                    103,
+                    "antifreeze",
+                    {
+                        from: (value: boolean) => (value === true ? "ON" : "OFF"),
+                        to: (value: string) => value === "ON",
+                    },
+                ],
+                [
+                    104,
+                    "program_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        weekend: tuya.enum(1),
+                        single_break: tuya.enum(2),
+                        no_day_off: tuya.enum(3),
+                    }),
+                ],
+                [106, "deadzone_temperature", tuya.valueConverter.divideBy10],
+                [107, "eco_temperature", tuya.valueConverter.raw],
+                [111, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [114, "max_temperature_limit", tuya.valueConverter.divideBy10],
+                [116, "min_temperature_limit", tuya.valueConverter.divideBy10],
+                // Weekly programming DP 108 - read converter
+                [
+                    108,
+                    null,
+                    {
+                        from: (value: number[] | Buffer) => {
+                            const arr = Array.isArray(value) ? value : Array.from(value);
+                            if (!arr || arr.length < 24) return null;
+
+                            // Initialize cache if not exists
+                            // @ts-expect-error global cache
+                            if (!globalThis.zhtS01ScheduleCache) {
+                                // @ts-expect-error global cache
+                                globalThis.zhtS01ScheduleCache = {
+                                    weekday_1_hour: 6,
+                                    weekday_1_minute: 0,
+                                    weekday_1_temp: 20,
+                                    weekday_2_hour: 8,
+                                    weekday_2_minute: 0,
+                                    weekday_2_temp: 16,
+                                    weekday_3_hour: 11,
+                                    weekday_3_minute: 30,
+                                    weekday_3_temp: 20,
+                                    weekday_4_hour: 12,
+                                    weekday_4_minute: 30,
+                                    weekday_4_temp: 16,
+                                    weekday_5_hour: 17,
+                                    weekday_5_minute: 0,
+                                    weekday_5_temp: 20,
+                                    weekday_6_hour: 22,
+                                    weekday_6_minute: 0,
+                                    weekday_6_temp: 16,
+                                    weekend_1_hour: 8,
+                                    weekend_1_minute: 0,
+                                    weekend_1_temp: 20,
+                                    weekend_2_hour: 23,
+                                    weekend_2_minute: 0,
+                                    weekend_2_temp: 16,
+                                };
+                            }
+                            // @ts-expect-error global cache
+                            const cache = globalThis.zhtS01ScheduleCache as Record<string, number>;
+                            const result: Record<string, number> = {};
+
+                            // 6 weekday periods (18 bytes)
+                            for (let i = 0; i < 6; i++) {
+                                const num = i + 1;
+                                result[`weekday_${num}_hour`] = arr[i * 3];
+                                result[`weekday_${num}_minute`] = arr[i * 3 + 1];
+                                result[`weekday_${num}_temp`] = arr[i * 3 + 2];
+                                cache[`weekday_${num}_hour`] = arr[i * 3];
+                                cache[`weekday_${num}_minute`] = arr[i * 3 + 1];
+                                cache[`weekday_${num}_temp`] = arr[i * 3 + 2];
+                            }
+
+                            // 2 weekend periods (6 bytes)
+                            for (let i = 0; i < 2; i++) {
+                                const num = i + 1;
+                                result[`weekend_${num}_hour`] = arr[18 + i * 3];
+                                result[`weekend_${num}_minute`] = arr[18 + i * 3 + 1];
+                                result[`weekend_${num}_temp`] = arr[18 + i * 3 + 2];
+                                cache[`weekend_${num}_hour`] = arr[18 + i * 3];
+                                cache[`weekend_${num}_minute`] = arr[18 + i * 3 + 1];
+                                cache[`weekend_${num}_temp`] = arr[18 + i * 3 + 2];
+                            }
+
+                            return result;
+                        },
+                    },
+                ],
+                // Individual schedule field converters for DP 108
+                ...(() => {
+                    const getCache = (): Record<string, number> => {
+                        // @ts-expect-error global cache
+                        if (!globalThis.zhtS01ScheduleCache) {
+                            // @ts-expect-error global cache
+                            globalThis.zhtS01ScheduleCache = {
+                                weekday_1_hour: 6,
+                                weekday_1_minute: 0,
+                                weekday_1_temp: 20,
+                                weekday_2_hour: 8,
+                                weekday_2_minute: 0,
+                                weekday_2_temp: 16,
+                                weekday_3_hour: 11,
+                                weekday_3_minute: 30,
+                                weekday_3_temp: 20,
+                                weekday_4_hour: 12,
+                                weekday_4_minute: 30,
+                                weekday_4_temp: 16,
+                                weekday_5_hour: 17,
+                                weekday_5_minute: 0,
+                                weekday_5_temp: 20,
+                                weekday_6_hour: 22,
+                                weekday_6_minute: 0,
+                                weekday_6_temp: 16,
+                                weekend_1_hour: 8,
+                                weekend_1_minute: 0,
+                                weekend_1_temp: 20,
+                                weekend_2_hour: 23,
+                                weekend_2_minute: 0,
+                                weekend_2_temp: 16,
+                            };
+                        }
+                        // @ts-expect-error global cache
+                        return globalThis.zhtS01ScheduleCache as Record<string, number>;
+                    };
+
+                    const createScheduleFieldConverter = (field: string) => ({
+                        to: (value: number) => {
+                            const cache = getCache();
+                            cache[field] = value;
+
+                            // Build buffer from cache
+                            const buffer: number[] = [];
+                            for (let i = 1; i <= 6; i++) {
+                                buffer.push(cache[`weekday_${i}_hour`] || 0);
+                                buffer.push(cache[`weekday_${i}_minute`] || 0);
+                                buffer.push(cache[`weekday_${i}_temp`] || 20);
+                            }
+                            for (let i = 1; i <= 2; i++) {
+                                buffer.push(cache[`weekend_${i}_hour`] || 0);
+                                buffer.push(cache[`weekend_${i}_minute`] || 0);
+                                buffer.push(cache[`weekend_${i}_temp`] || 20);
+                            }
+                            return buffer;
+                        },
+                    });
+
+                    const fields: [number, string, ReturnType<typeof createScheduleFieldConverter>][] = [];
+                    for (let i = 1; i <= 6; i++) {
+                        fields.push([108, `weekday_${i}_hour`, createScheduleFieldConverter(`weekday_${i}_hour`)]);
+                        fields.push([108, `weekday_${i}_minute`, createScheduleFieldConverter(`weekday_${i}_minute`)]);
+                        fields.push([108, `weekday_${i}_temp`, createScheduleFieldConverter(`weekday_${i}_temp`)]);
+                    }
+                    for (let i = 1; i <= 2; i++) {
+                        fields.push([108, `weekend_${i}_hour`, createScheduleFieldConverter(`weekend_${i}_hour`)]);
+                        fields.push([108, `weekend_${i}_minute`, createScheduleFieldConverter(`weekend_${i}_minute`)]);
+                        fields.push([108, `weekend_${i}_temp`, createScheduleFieldConverter(`weekend_${i}_temp`)]);
+                    }
+                    return fields;
+                })(),
             ],
         },
     },

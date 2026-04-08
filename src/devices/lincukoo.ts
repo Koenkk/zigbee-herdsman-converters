@@ -147,11 +147,12 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_gw05grph"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gw05grph", "_TZE284_chcnj5st"]),
         model: "CZF02",
         vendor: "Lincukoo",
         description: "Finger Robot",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        whiteLabel: [tuya.whitelabel("Sygonix", "SY-6811314", "Zigbee Smart button/switch Pusher", ["_TZE284_chcnj5st"])],
         exposes: [
             e.switch(),
             e.enum("mode", ea.STATE_SET, ["click", "long_press"]).withDescription("work mode of the finger robot"),

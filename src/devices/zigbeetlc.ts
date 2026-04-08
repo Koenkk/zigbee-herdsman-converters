@@ -322,7 +322,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["MC-z"],
+        zigbeeModel: ["MC-z", "TH01-z", "TH01-2-z"],
         model: "MC-z",
         vendor: "ZBeacon",
         description: "Temperature & Humidity Sensor (pvxx/ZigbeeTLc)",

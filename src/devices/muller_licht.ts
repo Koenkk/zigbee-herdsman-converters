@@ -308,4 +308,33 @@ export const definitions: DefinitionWithExtend[] = [
         description: "tint Flores Gen2 garden light",
         extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"]}, effect: false, powerOnBehavior: false})],
     },
+    {
+        fingerprint: [{manufacturerName: "MLI", modelID: "Desk lamp"}],
+        model: "4041xx",
+        whiteLabel: [
+            {model: "404115", vendor: "Müller Licht", description: "tint Nolia desk lamp (black)"},
+            {model: "404116", vendor: "Müller Licht", description: "tint Nolia desk lamp (white)"},
+            {model: "404117", vendor: "Müller Licht", description: "tint Nolia desk lamp (anthracite)"},
+            {model: "404135", vendor: "Müller Licht", description: "tint Dalia desk lamp (black)"},
+            {model: "404136", vendor: "Müller Licht", description: "tint Dalia desk lamp (white)"},
+            {model: "404137", vendor: "Müller Licht", description: "tint Dalia desk lamp (anthracite)"},
+        ],
+        vendor: "Müller Licht",
+        description: "tint desk lamp, white+color",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["Power Socket"],
+        model: "404078",
+        vendor: "MLI",
+        description: "tint Smart Socket Tower Outdoor",
+        extend: [m.onOff({powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ["tint Retro Bulb white+ambiance"],
+        model: "404114",
+        vendor: "MLI",
+        description: "Tint LED Bulb, E27, 806 lumen, CCT, clear",
+        extend: [m.light({colorTemp: {range: [153, 555]}})],
+    },
 ];

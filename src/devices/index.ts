@@ -45,6 +45,7 @@ import {definitions as casaia} from "./casaia";
 import {definitions as cel} from "./cel";
 import {definitions as centralite} from "./centralite";
 import {definitions as chacon} from "./chacon";
+import {definitions as cigol} from "./cigol";
 import {definitions as cleode} from "./cleode";
 import {definitions as cleverio} from "./cleverio";
 import {definitions as climax} from "./climax";
@@ -117,6 +118,7 @@ import {definitions as gmy} from "./gmy";
 import {definitions as gs} from "./gs";
 import {definitions as gumax} from "./gumax";
 import {definitions as halemeier} from "./halemeier";
+import {definitions as haloSmartLabs} from "./halo_smart_labs";
 import {definitions as hamptonBay} from "./hampton_bay";
 import {definitions as heatit} from "./heatit";
 import {definitions as heiman} from "./heiman";
@@ -204,6 +206,7 @@ import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
+import {definitions as msh} from "./msh";
 import {definitions as mullerLicht} from "./muller_licht";
 import {definitions as multir} from "./multir";
 import {definitions as multiterm} from "./multiterm";
@@ -212,11 +215,13 @@ import {definitions as nanoleaf} from "./nanoleaf";
 import {definitions as nedis} from "./nedis";
 import {definitions as neo} from "./neo";
 import {definitions as net2grid} from "./net2grid";
+import {definitions as netica} from "./netica";
 import {definitions as netvox} from "./netvox";
 import {definitions as nexelec} from "./nexelec";
 import {definitions as niko} from "./niko";
 import {definitions as ninjaBlocks} from "./ninja_blocks";
 import {definitions as niviss} from "./niviss";
+import {definitions as nobo} from "./nobo";
 import {definitions as nodon} from "./nodon";
 import {definitions as nordtronic} from "./nordtronic";
 import {definitions as nous} from "./nous";
@@ -253,6 +258,7 @@ import {definitions as quotra} from "./quotra";
 import {definitions as rademacher} from "./rademacher";
 import {definitions as radium} from "./radium";
 import {definitions as raex} from "./raex";
+import {definitions as repenicLtd} from "./repenic_ltd";
 import {definitions as rgbGenie} from "./rgb_genie";
 import {definitions as robb} from "./robb";
 import {definitions as roome} from "./roome";
@@ -270,6 +276,7 @@ import {definitions as securifi} from "./securifi";
 import {definitions as sengled} from "./sengled";
 import {definitions as senoro} from "./senoro";
 import {definitions as sercomm} from "./sercomm";
+import {definitions as shada} from "./shada";
 import {definitions as shadeControl} from "./shade_control";
 import {definitions as shelly} from "./shelly";
 import {definitions as shenzhenHoma} from "./shenzhen_homa";
@@ -300,6 +307,7 @@ import {definitions as somfy} from "./somfy";
 import {definitions as somgoms} from "./somgoms";
 import {definitions as sonoff} from "./sonoff";
 import {definitions as sowilo} from "./sowilo";
+import {definitions as spacetronik} from "./spacetronik";
 import {definitions as spotmau} from "./spotmau";
 import {definitions as sprut} from "./sprut";
 import {definitions as stello} from "./stello";
@@ -309,6 +317,7 @@ import {definitions as superled} from "./superled";
 import {definitions as swann} from "./swann";
 import {definitions as sylvania} from "./sylvania";
 import {definitions as tapestry} from "./tapestry";
+import {definitions as taskLighting} from "./task_lighting";
 import {definitions as tci} from "./tci";
 import {definitions as tcl} from "./tcl";
 import {definitions as tech} from "./tech";
@@ -316,6 +325,7 @@ import {definitions as technicolor} from "./technicolor";
 import {definitions as terncy} from "./terncy";
 import {definitions as theLightGroup} from "./the_light_group";
 import {definitions as thirdReality} from "./third_reality";
+import {definitions as tisControl} from "./tis_control";
 import {definitions as titanProducts} from "./titan_products";
 import {definitions as tlwglobal} from "./tlwglobal";
 import {definitions as tnce} from "./tnce";
@@ -346,6 +356,7 @@ import {definitions as woolley} from "./woolley";
 import {definitions as woox} from "./woox";
 import {definitions as wyze} from "./wyze";
 import {definitions as xal} from "./xal";
+import {definitions as xenon} from "./xenon";
 import {definitions as xinghuoyuan} from "./xinghuoyuan";
 import {definitions as xyzroe} from "./xyzroe";
 import {definitions as yale} from "./yale";
@@ -354,10 +365,12 @@ import {definitions as ynoa} from "./ynoa";
 import {definitions as yokis} from "./yokis";
 import {definitions as yookee} from "./yookee";
 import {definitions as ysrsai} from "./ysrsai";
+import {definitions as zbeacon} from "./zbeacon";
 import {definitions as zemismart} from "./zemismart";
 import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
 import {definitions as zipato} from "./zipato";
+import {definitions as zunzunbee} from "./zunzunbee";
 
 const definitions: DefinitionWithExtend[] = [
     ...acova,
@@ -406,6 +419,7 @@ const definitions: DefinitionWithExtend[] = [
     ...cel,
     ...centralite,
     ...chacon,
+    ...cigol,
     ...cleode,
     ...cleverio,
     ...climax,
@@ -477,6 +491,7 @@ const definitions: DefinitionWithExtend[] = [
     ...gs,
     ...gumax,
     ...halemeier,
+    ...haloSmartLabs,
     ...hamptonBay,
     ...heatit,
     ...heiman,
@@ -563,6 +578,7 @@ const definitions: DefinitionWithExtend[] = [
     ...mindy,
     ...modular,
     ...moes,
+    ...msh,
     ...mullerLicht,
     ...multir,
     ...multiterm,
@@ -571,6 +587,7 @@ const definitions: DefinitionWithExtend[] = [
     ...neo,
     ...nedis,
     ...net2grid,
+    ...netica,
     ...netvox,
     ...nexelec,
     ...niko,
@@ -579,6 +596,7 @@ const definitions: DefinitionWithExtend[] = [
     ...nodon,
     ...nordtronic,
     ...nous,
+    ...nobo,
     ...novo,
     ...nue3a,
     ...nyce,
@@ -611,6 +629,7 @@ const definitions: DefinitionWithExtend[] = [
     ...rademacher,
     ...radium,
     ...raex,
+    ...repenicLtd,
     ...rgbGenie,
     ...robb,
     ...roome,
@@ -629,6 +648,7 @@ const definitions: DefinitionWithExtend[] = [
     ...sengled,
     ...senoro,
     ...sercomm,
+    ...shada,
     ...shadeControl,
     ...shelly,
     ...shenzhenHoma,
@@ -659,6 +679,7 @@ const definitions: DefinitionWithExtend[] = [
     ...somgoms,
     ...sonoff,
     ...sowilo,
+    ...spacetronik,
     ...spotmau,
     ...sprut,
     ...stello,
@@ -667,6 +688,7 @@ const definitions: DefinitionWithExtend[] = [
     ...superled,
     ...swann,
     ...sylvania,
+    ...taskLighting,
     ...tapestry,
     ...tci,
     ...tcl,
@@ -675,6 +697,7 @@ const definitions: DefinitionWithExtend[] = [
     ...terncy,
     ...theLightGroup,
     ...thirdReality,
+    ...tisControl,
     ...titanProducts,
     ...tlwglobal,
     ...tnce,
@@ -704,6 +727,7 @@ const definitions: DefinitionWithExtend[] = [
     ...wmun,
     ...wyze,
     ...xal,
+    ...xenon,
     ...xinghuoyuan,
     ...xyzroe,
     ...yale,
@@ -712,10 +736,12 @@ const definitions: DefinitionWithExtend[] = [
     ...yokis,
     ...yookee,
     ...ysrsai,
+    ...zbeacon,
     ...zemismart,
     ...zen,
     ...zigbeetlc,
     ...zipato,
+    ...zunzunbee,
     ...qa,
     ...engo,
     ...vsmart,

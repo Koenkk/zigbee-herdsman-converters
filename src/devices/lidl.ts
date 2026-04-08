@@ -20,7 +20,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {action: "on"};
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, "commandTuyaAction">,
+    } satisfies Fz.Converter<"genOnOff", tuya.TuyaGenOnOff, "commandTuyaAction">,
 };
 
 const valueConverterLocal = {
@@ -259,6 +259,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HG08164",
         vendor: "Lidl",
         description: "Silvercrest smart button",
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery, tuya.fz.on_off_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -313,6 +314,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FB20-002",
         vendor: "Lidl",
         description: "Livarno Lux switch and dimming light remote control",
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         exposes: [
             e.action(["on", "off", "brightness_stop", "brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down"]),
         ],
@@ -324,6 +326,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FB21-001",
         vendor: "Lidl",
         description: "Livarno Lux switch and dimming light remote control",
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         exposes: [
             e.action([
                 "on",
@@ -336,7 +339,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "switch_scene",
             ]),
         ],
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.tuya_switch_scene],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, tuya.fz.switch_scene],
         toZigbee: [],
     },
     {

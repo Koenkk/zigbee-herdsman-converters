@@ -214,6 +214,46 @@ const pushokExtend = {
             isModernExtend: true,
         };
     },
+    pulseCounter: (): ModernExtend => {
+        const exposes = [
+            presets.numeric("pulse_frequency", access.STATE_GET).withUnit("Hz").withDescription("Pulse frequency (counter mode)"),
+            presets.numeric("pulse_count", access.STATE_GET).withDescription("Total pulse count (counter mode)"),
+        ];
+        const fromZigbee = [
+            {
+                cluster: "genAnalogOutput",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    if (msg.data.presentValue !== undefined) {
+                        result.pulse_frequency = msg.data.presentValue;
+                    }
+                    if (msg.data.applicationType !== undefined) {
+                        result.pulse_count = msg.data.applicationType;
+                    }
+                    return result;
+                },
+            } satisfies Fz.Converter<"genAnalogOutput", undefined, ["attributeReport", "readResponse"]>,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["pulse_frequency", "pulse_count"],
+                convertGet: async (entity, key, meta) => {
+                    if (key === "pulse_frequency") {
+                        await entity.read("genAnalogOutput", ["presentValue"]);
+                    } else if (key === "pulse_count") {
+                        await entity.read("genAnalogOutput", ["applicationType"]);
+                    }
+                },
+            },
+        ];
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -305,6 +345,17 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.temperature({reporting: null}),
             m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
+            pushokExtend.pulseCounter(),
+            m.enumLookup({
+                name: "operating_mode",
+                lookup: {contact: 1, counter: 2},
+                cluster: "genMultistateInput",
+                attribute: "presentValue",
+                zigbeeCommandOptions: {},
+                description: "Operating mode: contact sensor or pulse counter",
+                access: "ALL",
+                reporting: null,
+            }),
         ],
         ota: true,
     },
@@ -428,7 +479,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "voltage_type",
-                lookup: {AC: 0, DC: 1},
+                lookup: {AC: 0, DC: 1, DC_COUNTER: 2},
                 cluster: "genMultistateOutput",
                 attribute: "presentValue",
                 zigbeeCommandOptions: {},
@@ -438,6 +489,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.identify({isSleepy: true}),
             m.battery({percentage: true, voltage: true, lowStatus: true, percentageReporting: false}),
+            pushokExtend.pulseCounter(),
         ],
         ota: true,
     },
@@ -460,6 +512,17 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature({reporting: null}),
             m.humidity({reporting: null, access: "STATE"}),
             m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
+            pushokExtend.pulseCounter(),
+            m.enumLookup({
+                name: "operating_mode",
+                lookup: {contact: 1, counter: 2},
+                cluster: "genMultistateInput",
+                attribute: "presentValue",
+                zigbeeCommandOptions: {},
+                description: "Operating mode: contact sensor or pulse counter",
+                access: "ALL",
+                reporting: null,
+            }),
         ],
         ota: true,
     },
@@ -641,6 +704,14 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             pushokExtend.pok020Thermostat(),
         ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["POK021"],
+        model: "POK021",
+        vendor: "PushOk Hardware",
+        description: "Gas pulse meter",
+        extend: [m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}), pushokExtend.pulseCounter()],
         ota: true,
     },
 ];
