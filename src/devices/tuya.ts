@@ -4941,22 +4941,22 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.cover_position_tilt,
             tuya.fz.indicator_mode,
-            fz.tuya_cover_options,
+            tuya.fz.cover_options,
             tuya.fz.backlight_mode_off_on,
             tuya.fz.switch_type_curtain,
         ],
         toZigbee: [
             tz.cover_state,
             tz.cover_position_tilt,
-            tz.tuya_cover_calibration,
-            tz.tuya_cover_reversal,
+            tuya.tz.cover_calibration,
+            tuya.tz.cover_reversal,
             tuya.tz.backlight_indicator_mode_2,
             tuya.tz.backlight_indicator_mode_1,
             tuya.tz.switch_type_curtain,
         ],
         meta: {coverInverted: true},
         extend: [
-            tuya.modernExtend.tuyaBase(),
+            tuyaBase(),
             m.deviceAddCustomCluster("closuresWindowCovering", {
                 name: "closuresWindowCovering",
                 ID: 0x0102,
@@ -5031,9 +5031,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Zigbee + RF curtain switch module",
         ota: true,
+        extend: [tuyaBase()],
         meta: {coverInverted: true},
-        fromZigbee: [fz.tuya_cover_options, fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.moes_cover_calibration, tz.cover_position_tilt, tz.tuya_cover_reversal],
+        fromZigbee: [tuya.fz.cover_options, fz.cover_position_tilt],
+        toZigbee: [tz.cover_state, tuya.tz.moes_cover_calibration, tz.cover_position_tilt, tuya.tz.cover_reversal],
         exposes: [
             e.cover_position(),
             e.numeric("calibration_time", ea.ALL).withValueMin(0).withValueMax(500).withUnit("s"),
@@ -14596,8 +14597,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS030F",
         vendor: "Tuya",
         description: "Smart blind controller",
-        fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options_2],
-        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.TS030F_border, tz.moes_cover_calibration, tz.tuya_cover_reversal],
+        extend: [tuyaBase()],
+        fromZigbee: [fz.cover_position_tilt, tuya.fz.cover_options_2],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.TS030F_border, tuya.tz.moes_cover_calibration, tuya.tz.cover_reversal],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "closuresWindowCovering"]);

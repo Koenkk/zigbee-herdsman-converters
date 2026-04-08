@@ -2202,56 +2202,6 @@ export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport"
         return result;
     },
 };
-export const tuya_cover_options_2: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresWindowCovering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.moesCalibrationTime !== undefined) {
-            const value = msg.data.moesCalibrationTime / 100;
-            result[postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
-        }
-        if (msg.data.tuyaMotorReversal !== undefined) {
-            const value = msg.data.tuyaMotorReversal;
-            const reversalLookup: KeyValueAny = {0: "OFF", 1: "ON"};
-            result[postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
-        }
-        return result;
-    },
-};
-export const tuya_cover_options: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresWindowCovering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.tuyaMovingState !== undefined) {
-            const value = msg.data.tuyaMovingState;
-            const movingLookup: KeyValueAny = {0: "UP", 1: "STOP", 2: "DOWN"};
-            result[postfixWithEndpointName("moving", msg, model, meta)] = movingLookup[value];
-        }
-        if (msg.data.tuyaCalibration !== undefined) {
-            const value = msg.data.tuyaCalibration;
-            const calibrationLookup: KeyValueAny = {0: "ON", 1: "OFF"};
-            result[postfixWithEndpointName("calibration", msg, model, meta)] = calibrationLookup[value];
-        }
-        if (msg.data.tuyaMotorReversal !== undefined) {
-            const value = msg.data.tuyaMotorReversal;
-            const reversalLookup: KeyValueAny = {0: "OFF", 1: "ON"};
-            result[postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
-        }
-        if (msg.data.moesCalibrationTime !== undefined) {
-            const value = msg.data.moesCalibrationTime / 10.0;
-            if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(meta.device.manufacturerName)) {
-                const endpoint = msg.endpoint.ID;
-                const calibrationLookup: KeyValueAny = {1: "to_open", 2: "to_close"};
-                result[postfixWithEndpointName(`calibration_time_${calibrationLookup[endpoint]}`, msg, model, meta)] = value;
-            } else {
-                result[postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
-            }
-        }
-        return result;
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "attributeReport"> = {
     cluster: 65029,
