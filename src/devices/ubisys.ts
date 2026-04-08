@@ -154,12 +154,10 @@ const ubisys = {
                 const stepsPerSecond = value.steps_per_second || 50;
                 const hasCalibrate = value.calibrate != null;
                 // cancel any running calibration
-                let mode = (
-                    await entity.read<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", ["windowCoveringMode"])
-                ).windowCoveringMode;
+                let mode = (await entity.read("closuresWindowCovering", ["windowCoveringMode"])).windowCoveringMode;
                 const modeCalibrationBitMask = 0x02;
                 if (mode & modeCalibrationBitMask) {
-                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
+                    await entity.write("closuresWindowCovering", {
                         windowCoveringMode: mode & ~modeCalibrationBitMask,
                     });
                     await sleepSeconds(2);
@@ -195,7 +193,7 @@ const ubisys = {
                     );
                     // enable calibration mode
                     await sleepSeconds(2);
-                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
+                    await entity.write("closuresWindowCovering", {
                         windowCoveringMode: mode | modeCalibrationBitMask,
                     });
                     await sleepSeconds(2);
