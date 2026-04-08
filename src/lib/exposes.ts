@@ -717,11 +717,6 @@ export class Climate extends Base {
         return this;
     }
 
-    withProgrammingOperationMode(modes: ThermostatProgrammingOperationMode[], access = a.ALL) {
-        this.addFeature(presets.programming_operation_mode(modes).withAccess(access));
-        return this;
-    }
-
     withSetpointChangeSource(access = a.STATE) {
         this.addFeature(
             new Enum("setpoint_change_source", access, Object.values(thermostatSetpointChangeSource)).withDescription(
@@ -1255,7 +1250,7 @@ export const presets = {
         new Numeric("power_reactive_phase_c", access.STATE).withUnit("VAR").withDescription("Instantaneous measured reactive power on phase C"),
     presence: () => new Binary("presence", access.STATE, true, false).withDescription("Indicates whether the device detected presence"),
     pressure: () => new Numeric("pressure", access.STATE).withUnit("hPa").withDescription("The measured atmospheric pressure"),
-    programming_operation_mode: (values = ["setpoint", "schedule", "schedule_with_preheat", "eco"]) =>
+    programming_operation_mode: (values: ThermostatProgrammingOperationMode[] = ["setpoint", "schedule", "schedule_with_preheat", "eco"]) =>
         new Enum("programming_operation_mode", access.ALL, values).withDescription(
             "Controls how programming affects the thermostat. Possible values: setpoint (only use specified setpoint), schedule (follow programmed setpoint schedule), schedule_with_preheat (follow programmed setpoint schedule with pre-heating). Changing this value does not clear programmed schedules.",
         ),
