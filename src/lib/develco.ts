@@ -6,13 +6,6 @@ import {exposeEndpoints} from "./utils";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
-const emizb132InterfaceModeLookup: Record<string, {payload: number; divisor: number}> = {
-    norwegian_han: {payload: 0x0200, divisor: 10},
-    norwegian_han_extra_load: {payload: 0x0201, divisor: 10},
-    aidon_meter: {payload: 0x0202, divisor: 10},
-    kaifa_and_kamstrup: {payload: 0x0203, divisor: 1000},
-};
-
 export interface DevelcoGenBasic {
     attributes: {
         develcoPrimarySwVersion: Buffer;
@@ -585,89 +578,6 @@ export const develcoModernExtend = {
             isModernExtend: true,
             exposes,
             toZigbee,
-        };
-    },
-    emizb132InterfaceMode: (): ModernExtend => {
-        const exposes = [
-            e
-                .enum("interface_mode", ea.ALL, Object.keys(emizb132InterfaceModeLookup))
-                .withDescription("Specifies the configuration of the external HAN port interface."),
-        ];
-
-        // Using the internal type from ModernExtend solves the generic requirement
-        const fromZigbee: ModernExtend["fromZigbee"] = [
-            {
-                cluster: "seMetering",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const value = msg.data.develcoInterfaceMode ?? msg.data[0x0000];
-                    if (value !== undefined) {
-                        const mode = Object.keys(emizb132InterfaceModeLookup).find((key) => emizb132InterfaceModeLookup[key].payload === value);
-                        return mode ? {interface_mode: mode} : undefined;
-                    }
-                },
-            },
-        ];
-
-        const toZigbee: ModernExtend["toZigbee"] = [
-            {
-                key: ["interface_mode"],
-                convertSet: async (entity, key, value, meta) => {
-                    const modeData = emizb132InterfaceModeLookup[value as string];
-                    if (!modeData) throw new Error(`Invalid interface_mode: ${value}`);
-
-                    const endpoint = meta.device.getEndpoint(2);
-
-                    // 1. Write the mode to the device using Enum8 (0x30)
-                    // We use 0x30 to avoid the 'INVALID_DATA_TYPE' error seen with 0x21
-                    await endpoint.write<"seMetering", DevelcoSeMetering>(
-                        "seMetering",
-                        // {develcoInterfaceMode: {value: modeData.payload, type: Zcl.DataType.ENUM16}},
-                        {develcoInterfaceMode: modeData.payload},
-                        {manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
-                    );
-                    // We prime the haElectricalMeasurement cache so that the very next current reading is divided by the correct number.
-                    const cache = {
-                        acCurrentDivisor: modeData.divisor,
-                        acCurrentMultiplier: 1,
-                    };
-                    endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", cache);
-
-                    // logger.info(`EMIZB-132: Mode set to ${value}. Divisor cache updated to ${modeData.divisor}.`, "zhc:develco");
-                    return {state: {interface_mode: value}};
-                },
-                convertGet: async (entity, key, meta) => {
-                    await meta.device.getEndpoint(2).read<"seMetering", DevelcoSeMetering>("seMetering", ["develcoInterfaceMode"]);
-                },
-            },
-        ];
-
-        return {
-            exposes,
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true as const,
-        };
-    },
-    emizb132DivisorInjector: (): ModernExtend => {
-        return {
-            fromZigbee: [
-                {
-                    cluster: "haElectricalMeasurement",
-                    type: ["attributeReport", "readResponse"],
-                    convert: (model, msg, publish, options, meta) => {
-                        const mode = (meta.state?.interface_mode as string) || "norwegian_han";
-                        const divisor = emizb132InterfaceModeLookup[mode]?.divisor || 10;
-
-                        msg.endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
-                            acCurrentDivisor: divisor,
-                            acCurrentMultiplier: 1,
-                        });
-                        return undefined;
-                    },
-                } as Fz.Converter<"haElectricalMeasurement", undefined, undefined>,
-            ],
-            isModernExtend: true as const,
         };
     },
 };
