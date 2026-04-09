@@ -1129,10 +1129,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S4PL-00416EU",
         vendor: "Shelly",
         description: "Power strip 4 Gen4",
+        version: "0.0.1",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
-            m.electricityMeter({endpointNames: ["1", "2", "3", "4"], acFrequency: true}),
+            m.electricityMeter({
+                endpointNames: ["1", "2", "3", "4"],
+                // Reduce reporting to prevent crashes
+                // https://github.com/Koenkk/zigbee2mqtt/issues/31183
+                acFrequency: {change: 125},
+                current: {change: 60},
+                voltage: {change: 625},
+                power: {change: 6},
+                energy: {change: 125000},
+            }),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["PowerstripUI"]),
