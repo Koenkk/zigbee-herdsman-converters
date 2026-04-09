@@ -1,5 +1,29 @@
 # Changelog
 
+## [26.32.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.31.0...v26.32.0) (2026-04-09)
+
+
+### Features
+
+* **add:** CK-BL702-AL-01(7008_Z102LG01-1) https://github.com/Koenkk/zigbee2mqtt/issues/31642 ([45711af](https://github.com/Koenkk/zigbee-herdsman-converters/commit/45711af799de94a010751d29492d42006ac7a34c))
+* **add:** DS-K02D/DS-K02E ([#11908](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11908)) ([609f20c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/609f20ca9b86a403f02456a3d64c735bdbea68a2))
+* **add:** R12LM-Z11T ([#11899](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11899)) ([f66a1bd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f66a1bdc9abbb0524fa61ec66de75079441a0c7c))
+* **add:** TS0045 ([#11905](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11905)) ([f361a49](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f361a49f72cf1bd0c8651b153dd44eed954b3fbf))
+* **add:** ZBEK-37 ([#11909](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11909)) ([9a100bc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9a100bc8b22336ce427ad3ae8f443fbadd8cd31a))
+* **add:** ZS-SF-EUC-WH-MS ([#11880](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11880)) ([bf8913e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bf8913e5988e2f16dbbc2a3b1e59df944f83426f))
+
+
+### Bug Fixes
+
+* CTM: Add custom clusters and attributes to devices  ([#11910](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11910)) ([f82bb64](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f82bb642787110458352953ce975366cf5a8ba5b))
+* **detect:** Detect `_TZE204_ai4rqhky` as Heiman HS2SA-1 ([#11903](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11903)) ([20c42ba](https://github.com/Koenkk/zigbee-herdsman-converters/commit/20c42ba5835d55ab57018df66b566e98f4070ca1))
+* Develco EMIZB-132: Simplify and hopefully improve the power issue ([#11904](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11904)) ([556a266](https://github.com/Koenkk/zigbee-herdsman-converters/commit/556a2665e2358462e8a2442f2b334767f9e6ff5e))
+* **ignore:** bump typescript from 5.9.3 to 6.0.2 ([#11839](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11839)) ([4d2f6d6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d2f6d600f25e68794f6fcc4344f93923b673a7a))
+* Improve type arguments for Ubisys  ([#11900](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11900)) ([3e99c88](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3e99c887b7ef8b0b2f71b2cbca727ee04844c6b7))
+* Move Tuya related attributes in cluster closuresWindowCovering from ZH to ZHC  ([#11894](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11894)) ([8b773a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8b773a67e9badeaf55b37365581e4cccb9e0981d))
+* Qa QAT42Z2B and QAT42Z3B: fix multi-channel scene switches ([#11892](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11892)) ([3c3b00b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c3b00be7430f48f838cb8f98da98c6553ec55f3))
+* Shelly S4PL-00416EU: fix excessive reporting https://github.com/Koenkk/zigbee2mqtt/issues/31183 ([5b6c6bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5b6c6bb55706f3f19ed2b6eb2e83693362a33ab6))
+
 ## [26.31.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.30.0...v26.31.0) (2026-04-07)
 
 
