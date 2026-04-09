@@ -1840,7 +1840,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("flow_rate", ea.STATE).withUnit("L/h").withDescription("Instantaneous water flow rate"),
             e.binary("auto_clean", ea.STATE_SET, "ON", "OFF").withDescription("Auto clean"),
             e.temperature(),
-            e.battery_voltage(),
+            e.numeric("battery_voltage", ea.STATE).withUnit("V").withDescription("Power supply voltage").withValueMin(0).withValueStep(0.01),
             e.text("meter_id", ea.STATE).withDescription("Meter identification number"),
             e.text("faults", ea.STATE).withDescription("Active fault status"),
             e.enum("report_period", ea.STATE_SET, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"]).withDescription("Report period"),
