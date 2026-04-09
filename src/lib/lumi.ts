@@ -44,6 +44,7 @@ import {
 const NS = "zhc:lumi";
 const e = exposes.presets;
 const ea = exposes.access;
+const ZNCLBL01LM_RUNNING_STORE_KEY = "ZNCLBL01LM_running";
 
 declare type Day = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
@@ -220,6 +221,13 @@ export const numericAttributes2Payload = async (
     dataObject: KeyValue,
 ) => {
     let payload: KeyValue = {};
+    const znclbl01lm1057Value = model.model === "ZNCLBL01LM" && typeof dataObject["1057"] === "number" ? dataObject["1057"] : undefined;
+    const znclbl01lmStopInCurrentPayload = znclbl01lm1057Value === 2;
+    const znclbl01lmRunningInCurrentPayload = znclbl01lm1057Value !== undefined && znclbl01lm1057Value < 2;
+    const znclbl01lmStoredRunning =
+        model.model === "ZNCLBL01LM" ? globalStore.getValue(msg.endpoint, ZNCLBL01LM_RUNNING_STORE_KEY, undefined) : undefined;
+    const shouldSuppressInStopPayload = znclbl01lmStopInCurrentPayload;
+    const shouldSuppressWhileStopped = znclbl01lmStoredRunning === false && !znclbl01lmRunningInCurrentPayload;
 
     for (const [key, value] of Object.entries(dataObject)) {
         switch (key) {
@@ -518,6 +526,9 @@ export const numericAttributes2Payload = async (
                 if (["RTCGQ14LM"].includes(model.model)) {
                     payload.trigger_indicator = value === 1;
                 } else if (["ZNCLBL01LM"].includes(model.model)) {
+                    if (shouldSuppressInStopPayload || shouldSuppressWhileStopped) {
+                        break;
+                    }
                     assertNumber(value);
                     const position = options.invert_cover ? 100 - value : value;
                     payload.position = position;
@@ -876,12 +887,22 @@ export const numericAttributes2Payload = async (
                 break;
             case "1057":
                 if (["ZNCLBL01LM"].includes(model.model)) {
+                    const previousRunning = globalStore.getValue(msg.endpoint, ZNCLBL01LM_RUNNING_STORE_KEY, undefined);
                     payload.motor_state = getFromLookup(
                         value,
                         options.invert_cover ? {0: "opening", 1: "closing", 2: "stopped"} : {0: "closing", 1: "opening", 2: "stopped"},
                     );
                     assertNumber(value);
                     payload.running = value < 2;
+                    globalStore.putValue(msg.endpoint, ZNCLBL01LM_RUNNING_STORE_KEY, payload.running);
+
+                    if (!payload.running && previousRunning !== false) {
+                        // After stop, read the final position.
+                        // Attr 107 can still be stale near the end.
+                        msg.endpoint
+                            .read("closuresWindowCovering", ["currentPositionLiftPercentage"])
+                            .catch((error) => logger.error(`Failed to read position '${msg.device.ieeeAddr}' (${error})`, NS));
+                    }
                 }
                 break;
             case "1061":
