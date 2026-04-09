@@ -7,7 +7,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -123,19 +123,33 @@ const develco = {
                 return state;
             },
         } satisfies Fz.Converter<"ssIasZone", DevelcoIasZone, ["attributeReport", "readResponse"]>,
-        fixInvalidMeteringValuesEmizb132: {
+        metering_emizb132: {
             cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
-            // Data filtering for currentSummDelivered (energy)
             convert: (model, msg, publish, options, meta) => {
-                const value = msg.data["currentSummDelivered"];
-                if (value === 0 || value === 0xffffffffffff || Number.isNaN(value)) {
-                    return;
+                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+                const payload: KeyValueAny = {};
+                const multiplier = 1; // msg.endpoint.getClusterAttributeValue("seMetering", "multiplier") as number;
+                const divisor = 1000; // msg.endpoint.getClusterAttributeValue("seMetering", "divisor") as number;
+                const factor = multiplier && divisor ? multiplier / divisor : null;
+
+                if (msg.data.currentSummDelivered !== undefined) {
+                    const value = msg.data.currentSummDelivered;
+                    if (value === 0 || value === 0xffffffffffff || Number.isNaN(value)) {
+                        return;
+                    }
+                    const property = utils.postfixWithEndpointName("energy", msg, model, meta);
+                    payload[property] = value * (factor ?? 1);
                 }
-                return fz.metering.convert(model, msg, publish, options, meta);
+                if (msg.data.currentSummReceived !== undefined) {
+                    const value = msg.data.currentSummReceived;
+                    const property = utils.postfixWithEndpointName("produced_energy", msg, model, meta);
+                    payload[property] = value * (factor ?? 1);
+                }
+                return payload;
             },
         } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
-        correctCurrentDivisorEmizb132: {
+        electrical_measurement_emizb132: {
             cluster: "haElectricalMeasurement",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
@@ -146,23 +160,20 @@ const develco = {
                     kaifa_and_kamstrup: {value: 0x0203, acCurrentDivisor: 1000},
                 };
                 const result = fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValue;
-                logger.info(`EMIZB-132 RAW DATA: ${JSON.stringify(msg.data)}`, "zhc:develco");
+                // Divisor for current depends on interface_mode, adjust converted values
                 if (result && typeof result === "object") {
                     const currentMode = (meta.state?.interface_mode as string) || "norwegian_han";
-                    const divisor = interfaceModeLookup[currentMode]?.acCurrentDivisor || 100;
-                    const clusterDivisor = msg.data["acCurrentDivisor"];
-                    logger.info(
-                        `EMIZB-132 DEBUG: Base current: ${result.current}, Mode: ${currentMode}, Target Divisor: ${divisor}, CluserDivisor: ${clusterDivisor}`,
-                        "zhc:develco",
-                    );
+                    const divisor = interfaceModeLookup[currentMode]?.acCurrentDivisor || 10;
+                    const clusterDivisor = msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", "acCurrentDivisor") as number;
+
                     if (result.current !== undefined) {
-                        result.current = msg.data["rmsCurrent"] / divisor;
+                        result.current = ((result.current as number) * clusterDivisor) / divisor;
                     }
                     if (result.current_phase_b !== undefined) {
-                        result.current_phase_b = msg.data["rmsCurrentPhB"] / divisor;
+                        result.current_phase_b = ((result.current_phase_b as number) * clusterDivisor) / divisor;
                     }
                     if (result.current_phase_c !== undefined) {
-                        result.current_phase_c = msg.data["rmsCurrentPhC"] / divisor;
+                        result.current_phase_c = ((result.current_phase_c as number) * clusterDivisor) / divisor;
                     }
                 }
                 return result;
@@ -335,8 +346,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Wattle AMS HAN power-meter sensor",
         ota: true,
         extend: [
-            develcoModernExtend.emizb132DivisorInjector(),
-            develcoModernExtend.emizb132InterfaceMode(),
             develcoModernExtend.addCustomDevelcoSeMeteringCluster(),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -356,14 +365,29 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "VAr",
                 access: "STATE_GET",
             }),
+            m.enumLookup<"seMetering", DevelcoSeMetering>({
+                name: "interface_mode",
+                cluster: "seMetering",
+                attribute: "develcoInterfaceMode",
+                description: "Specifies the configuration of the external HAN port interface.",
+                entityCategory: "config",
+                access: "ALL",
+                lookup: {
+                    norwegian_han: 0x0200,
+                    norwegian_han_extra_load: 0x0201,
+                    aidon_meter: 0x0202,
+                    kaifa_and_kamstrup: 0x0203,
+                },
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
+            }),
             m.electricityMeter({
                 power: false,
                 voltage: {divisor: 10},
                 current: {divisor: 10},
                 threePhase: true,
                 energy: {divisor: 1000, multiplier: 1},
-                fzMetering: develco.fz.fixInvalidMeteringValuesEmizb132, // avoid invalid values for currentSummDelivered (energy)
-                // fzElectricalMeasurement: develco.fz.correctCurrentDivisorEmizb132,
+                fzMetering: develco.fz.metering_emizb132,
+                fzElectricalMeasurement: develco.fz.electrical_measurement_emizb132,
             }),
         ],
     },
