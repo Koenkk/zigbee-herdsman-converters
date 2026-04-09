@@ -7,7 +7,7 @@ import type {ManuSpecificLumi} from "../lib/lumi";
 import * as lumi from "../lib/lumi";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Zh} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -64,6 +64,24 @@ const {
 
 const NS = "zhc:lumi";
 const {manufacturerCode} = lumi;
+const aqaraH2EuShutterSwitchEndpoints = {top_wireless_button: 3, bottom_wireless_button: 4} as const;
+type AqaraH2EuShutterSwitchEndpointName = keyof typeof aqaraH2EuShutterSwitchEndpoints;
+const aqaraH2EuShutterSwitchEndpointNames: AqaraH2EuShutterSwitchEndpointName[] = ["top_wireless_button", "bottom_wireless_button"];
+const aqaraH2EuShutterSwitchActionLookup = {hold: 0, single: 1, double: 2, release: 255};
+const aqaraH2EuShutterSwitchMultiEndpointSkip = ["energy", "position", "state", "tilt"];
+const aqaraH2EuShutterSwitchMultiClickAttribute = 0x0286;
+
+async function configureAqaraH2EuShutterSwitch(device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) {
+    for (const endpointName of aqaraH2EuShutterSwitchEndpointNames) {
+        const endpoint = device.getEndpoint(aqaraH2EuShutterSwitchEndpoints[endpointName]);
+        await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi", "genMultistateInput"]);
+        await endpoint.configureReporting("genMultistateInput", reporting.payload("presentValue", 0, 3600, 1));
+        // Initialize Aqara's per-button multi-click setting on startup.
+        await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [aqaraH2EuShutterSwitchMultiClickAttribute], {
+            manufacturerCode,
+        });
+    }
+}
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -4840,6 +4858,36 @@ export const definitions: DefinitionWithExtend[] = [
             lumiLockRelay({description: "Lock right switch", endpointName: "right"}),
             lumiMultiClick({description: "Multi-click mode for left down button", endpointName: "left_down"}),
             lumiMultiClick({description: "Multi-click mode for right down button", endpointName: "right_down"}),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.switch.aeu003"],
+        model: "DS-K02D/DS-K02E",
+        vendor: "Aqara",
+        description: "Aqara Shutter Switch H2 EU",
+        meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                if (payload.position_topic && payload.set_position_topic) {
+                    payload.device_class = "shutter";
+                }
+            },
+        },
+        configure: configureAqaraH2EuShutterSwitch,
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiZigbeeOTA(),
+            m.deviceEndpoints({
+                endpoints: aqaraH2EuShutterSwitchEndpoints,
+                multiEndpointSkip: aqaraH2EuShutterSwitchMultiEndpointSkip,
+            }),
+            m.electricityMeter({cluster: "metering", power: false, energy: {divisor: 1000}}),
+            m.windowCovering({controls: ["lift"], coverInverted: true, configureReporting: true}),
+            lumiAction({
+                actionLookup: aqaraH2EuShutterSwitchActionLookup,
+                endpointNames: aqaraH2EuShutterSwitchEndpointNames,
+            }),
+            lumiMultiClick({description: "Multi-click mode for top wireless button", endpointName: "top_wireless_button"}),
+            lumiMultiClick({description: "Multi-click mode for bottom wireless button", endpointName: "bottom_wireless_button"}),
         ],
     },
     {
