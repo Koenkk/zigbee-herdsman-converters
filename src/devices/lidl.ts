@@ -206,6 +206,46 @@ const valueConverterLocal = {
     }),
 };
 
+// Silvercrest 368308_2010 schedule converter
+// Wire format: [dayNum, temp1, time1, temp2, time2, ..., temp8, time8, temp9] = 18 bytes
+// Temperature: raw * 2 (0.5°C steps), Time: hour * 4 + minute / 15 (15-min steps)
+function silvercrestSchedule(dayNum: number) {
+    return {
+        from: (v: number[]) => {
+            if (!v || v.length < 18) return "";
+            const parts: string[] = [];
+            for (let i = 0; i < 8; i++) {
+                const temp = (v[1 + i * 2] / 2).toFixed(1);
+                const raw = v[2 + i * 2];
+                const hh = String(Math.floor(raw / 4)).padStart(2, "0");
+                const mm = String((raw % 4) * 15).padStart(2, "0");
+                parts.push(`${hh}:${mm}/${temp}`);
+            }
+            return parts.join(" ");
+        },
+        to: (v: string) => {
+            const parts = String(v).trim().split(/\s+/);
+            if (parts.length < 1 || parts.length > 8) {
+                throw new Error(`Invalid schedule: expected 1-8 transitions, got ${parts.length}`);
+            }
+            const buf = [dayNum];
+            let lastTemp = 34;
+            for (const part of parts) {
+                const [time, temp] = part.split("/");
+                if (!time || temp === undefined) throw new Error(`Invalid: "${part}"`);
+                const [hh, mm] = time.split(":").map(Number);
+                lastTemp = Math.round(Number.parseFloat(temp) * 2);
+                buf.push(lastTemp, Math.round(hh * 4 + mm / 15));
+            }
+            while (buf.length < 17) {
+                buf.push(lastTemp, 96);
+            }
+            buf.push(lastTemp);
+            return buf;
+        },
+    };
+}
+
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
@@ -549,36 +589,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "368308_2010",
         vendor: "Lidl",
         description: "Silvercrest radiator valve with thermostat",
-        fromZigbee: [fz.ignore_tuya_set_time, legacy.fromZigbee.zs_thermostat],
-        toZigbee: [
-            legacy.toZigbee.zs_thermostat_current_heating_setpoint,
-            legacy.toZigbee.zs_thermostat_child_lock,
-            legacy.toZigbee.zs_thermostat_comfort_temp,
-            legacy.toZigbee.zs_thermostat_eco_temp,
-            legacy.toZigbee.zs_thermostat_preset_mode,
-            legacy.toZigbee.zs_thermostat_system_mode,
-            legacy.toZigbee.zs_thermostat_local_temperature_calibration,
-            legacy.toZigbee.zs_thermostat_current_heating_setpoint_auto,
-            legacy.toZigbee.zs_thermostat_openwindow_time,
-            legacy.toZigbee.zs_thermostat_openwindow_temp,
-            legacy.toZigbee.zs_thermostat_binary_one,
-            legacy.toZigbee.zs_thermostat_binary_two,
-            legacy.toZigbee.zs_thermostat_away_setting,
-            legacy.toZigbee.zs_thermostat_local_schedule,
-        ],
-        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, bindBasicOnConfigure: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, bindBasicOnConfigure: true, timeStart: "1970"})],
         exposes: [
+            e.battery(),
             e.child_lock(),
-            e.comfort_temperature(),
-            e.eco_temperature(),
-            e.battery_voltage(),
-            e
-                .numeric("current_heating_setpoint_auto", ea.STATE_SET)
-                .withValueMin(0.5)
-                .withValueMax(29.5)
-                .withValueStep(0.5)
-                .withUnit("°C")
-                .withDescription("Temperature setpoint automatic"),
+            e.comfort_temperature().withValueMin(0).withValueMax(30),
+            e.eco_temperature().withValueMin(0).withValueMax(35),
             e
                 .climate()
                 .withSetpoint("current_heating_setpoint", 0.5, 29.5, 0.5, ea.STATE_SET)
@@ -587,80 +603,164 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSystemMode(["off", "heat", "auto"], ea.STATE_SET)
                 .withPreset(["schedule", "manual", "holiday", "boost"]),
             e
+                .numeric("current_heating_setpoint_auto", ea.STATE_SET)
+                .withValueMin(0.5)
+                .withValueMax(29.5)
+                .withValueStep(0.5)
+                .withUnit("°C")
+                .withDescription("Temperature setpoint automatic"),
+            e.binary("boost_heating", ea.STATE_SET, "ON", "OFF").withDescription("Boost heating mode toggle"),
+            e.numeric("boost_time", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(900).withDescription("Boost duration in seconds"),
+            e
                 .numeric("detectwindow_temperature", ea.STATE_SET)
                 .withUnit("°C")
-                .withDescription("Open window detection temperature")
                 .withValueMin(-10)
-                .withValueMax(35),
+                .withValueMax(35)
+                .withDescription("Open window detection temperature"),
             e
                 .numeric("detectwindow_timeminute", ea.STATE_SET)
                 .withUnit("min")
-                .withDescription("Open window time in minute")
                 .withValueMin(0)
-                .withValueMax(1000),
-            e.binary("binary_one", ea.STATE_SET, "ON", "OFF").withDescription("Unknown binary one"),
-            e.binary("binary_two", ea.STATE_SET, "ON", "OFF").withDescription("Unknown binary two"),
+                .withValueMax(1000)
+                .withDescription("Open window time in minute"),
             e.binary("away_mode", ea.STATE, "ON", "OFF").withDescription("Away mode"),
             e
                 .composite("away_setting", "away_setting", ea.STATE_SET)
-                .withFeature(e.away_preset_days())
-                .setAccess("away_preset_days", ea.ALL)
-                .withFeature(e.away_preset_temperature())
-                .setAccess("away_preset_temperature", ea.ALL)
-                .withFeature(e.numeric("away_preset_year", ea.ALL).withUnit("year").withDescription("Start away year 20xx"))
-                .withFeature(e.numeric("away_preset_month", ea.ALL).withUnit("month").withDescription("Start away month"))
-                .withFeature(e.numeric("away_preset_day", ea.ALL).withUnit("day").withDescription("Start away day"))
-                .withFeature(e.numeric("away_preset_hour", ea.ALL).withUnit("hour").withDescription("Start away hours"))
-                .withFeature(e.numeric("away_preset_minute", ea.ALL).withUnit("min").withDescription("Start away minutes")),
-            ...["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => {
-                const expose = e.composite(day, day, ea.STATE_SET);
-                [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach((i) => {
-                    expose.withFeature(
-                        e
-                            .numeric(`${day}_temp_${i}`, ea.ALL)
-                            .withValueMin(0.5)
-                            .withValueMax(29.5)
-                            .withValueStep(0.5)
-                            .withUnit("°C")
-                            .withDescription(`Temperature ${i}`),
-                    );
-                    expose.withFeature(
-                        e
-                            .enum(`${day}_hour_${i}`, ea.STATE_SET, [
-                                "00",
-                                "01",
-                                "02",
-                                "03",
-                                "04",
-                                "05",
-                                "06",
-                                "07",
-                                "08",
-                                "09",
-                                "10",
-                                "11",
-                                "12",
-                                "13",
-                                "14",
-                                "15",
-                                "16",
-                                "17",
-                                "18",
-                                "19",
-                                "20",
-                                "21",
-                                "22",
-                                "23",
-                                "24",
-                            ])
-                            .withDescription(`Hour TO for temp ${i}`),
-                    );
-                    expose.withFeature(
-                        e.enum(`${day}_minute_${i}`, ea.STATE_SET, ["00", "15", "30", "45"]).withDescription(`Minute TO for temp ${i}`),
-                    );
-                });
-                return expose;
-            }),
+                .withFeature(e.numeric("away_preset_days", ea.STATE_SET).withValueMin(0).withValueMax(9999).withDescription("Away duration in days"))
+                .withFeature(
+                    e
+                        .numeric("away_preset_temperature", ea.STATE_SET)
+                        .withValueMin(0.5)
+                        .withValueMax(29.5)
+                        .withUnit("°C")
+                        .withDescription("Away temperature"),
+                )
+                .withFeature(e.numeric("away_preset_year", ea.STATE_SET).withDescription("Start year (20xx)"))
+                .withFeature(e.numeric("away_preset_month", ea.STATE_SET).withValueMin(1).withValueMax(12).withDescription("Start month"))
+                .withFeature(e.numeric("away_preset_day", ea.STATE_SET).withValueMin(1).withValueMax(31).withDescription("Start day"))
+                .withFeature(e.numeric("away_preset_hour", ea.STATE_SET).withValueMin(0).withValueMax(23).withDescription("Start hour"))
+                .withFeature(e.numeric("away_preset_minute", ea.STATE_SET).withValueMin(0).withValueMax(59).withDescription("Start minute")),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "06:00/21.0 08:30/17.0 16:00/21.0 22:00/17.0 24:00/17.0 24:00/17.0 24:00/17.0 24:00/17.0"),
         ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    null,
+                    {
+                        from: (v: number) =>
+                            ({
+                                0: {system_mode: "heat", away_mode: "OFF", preset: "manual"},
+                                1: {system_mode: "auto", away_mode: "OFF", preset: "schedule"},
+                                2: {system_mode: "auto", away_mode: "ON", preset: "holiday"},
+                                3: {system_mode: "heat", away_mode: "OFF", preset: "boost"},
+                            })[v] || {system_mode: "heat", away_mode: "OFF", preset: "manual"},
+                    },
+                ],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        schedule: tuya.enum(1),
+                        holiday: tuya.enum(2),
+                        boost: tuya.enum(3),
+                    }),
+                ],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        heat: tuya.enum(0),
+                        auto: tuya.enum(1),
+                    }),
+                ],
+                [16, "current_heating_setpoint", {from: (v: number) => v / 2, to: (v: number) => Math.round(v * 2)}],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [35, "battery", {from: (v: number) => Math.min(v, 100), to: (v: number) => v}],
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+                [
+                    44,
+                    "local_temperature_calibration",
+                    {
+                        from: (v: number) => {
+                            let n = v;
+                            if (n > 0x7fffffff) n -= 0x100000000;
+                            return n / 10;
+                        },
+                        to: (v: number) => {
+                            let n = Math.round(v * 10);
+                            if (n < 0) n += 0x100000000;
+                            return n;
+                        },
+                    },
+                ],
+                [100, "boost_time", tuya.valueConverter.raw],
+                [101, "comfort_temperature", {from: (v: number) => v / 2, to: (v: number) => Math.round(v * 2)}],
+                [102, "eco_temperature", {from: (v: number) => v / 2, to: (v: number) => Math.round(v * 2)}],
+                [
+                    103,
+                    null,
+                    {
+                        from: (v: number[]) => ({
+                            away_preset_year: v[0],
+                            away_preset_month: v[1],
+                            away_preset_day: v[2],
+                            away_preset_hour: v[3],
+                            away_preset_minute: v[4],
+                            away_preset_temperature: v[5] / 2,
+                            away_preset_days: (v[6] << 8) + v[7],
+                        }),
+                    },
+                ],
+                [
+                    103,
+                    "away_setting",
+                    {
+                        to: (v: KeyValue, meta: {state: KeyValue}) => {
+                            const s = meta.state || {};
+                            const num = (a: unknown, b: unknown, def: number) => Number(a ?? b ?? def);
+                            let year = num(v?.away_preset_year, s.away_preset_year, 26);
+                            if (year < 17 || year > 99) year = 26;
+                            let month = num(v?.away_preset_month, s.away_preset_month, 1);
+                            if (month < 1 || month > 12) month = 1;
+                            const dim = new Date(2000 + year, month, 0).getDate();
+                            let day = num(v?.away_preset_day, s.away_preset_day, 1);
+                            if (day < 1 || day > dim) day = 1;
+                            let hour = num(v?.away_preset_hour, s.away_preset_hour, 0);
+                            if (hour < 0 || hour > 23) hour = 0;
+                            let min = num(v?.away_preset_minute, s.away_preset_minute, 0);
+                            if (min < 0 || min > 59) min = 0;
+                            let temp = num(v?.away_preset_temperature, s.away_preset_temperature, 17);
+                            if (temp < 0.5 || temp > 29.5) temp = 17;
+                            let days = num(v?.away_preset_days, s.away_preset_days, 1);
+                            if (days < 1 || days > 9999) days = 1;
+                            return [
+                                Math.round(year),
+                                Math.round(month),
+                                Math.round(day),
+                                Math.round(hour),
+                                Math.round(min),
+                                Math.round(temp * 2),
+                                (days >> 8) & 0xff,
+                                days & 0xff,
+                            ];
+                        },
+                    },
+                ],
+                [104, "detectwindow_temperature", {from: (v: number) => v / 2, to: (v: number) => Math.round(v * 2)}],
+                [105, "detectwindow_timeminute", tuya.valueConverter.raw],
+                [106, "boost_heating", tuya.valueConverter.onOff],
+                [108, "current_heating_setpoint_auto", {from: (v: number) => v / 2, to: (v: number) => Math.round(v * 2)}],
+                [109, "schedule_monday", silvercrestSchedule(1)],
+                [110, "schedule_tuesday", silvercrestSchedule(2)],
+                [111, "schedule_wednesday", silvercrestSchedule(3)],
+                [112, "schedule_thursday", silvercrestSchedule(4)],
+                [113, "schedule_friday", silvercrestSchedule(5)],
+                [114, "schedule_saturday", silvercrestSchedule(6)],
+                [115, "schedule_sunday", silvercrestSchedule(7)],
+            ],
+        },
     },
 ];
