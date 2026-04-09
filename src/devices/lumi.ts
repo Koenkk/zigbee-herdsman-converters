@@ -4865,6 +4865,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DS-K02D/DS-K02E",
         vendor: "Aqara",
         description: "Aqara Shutter Switch H2 EU",
+        meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                if (payload.position_topic && payload.set_position_topic) {
+                    payload.device_class = "shutter";
+                }
+            },
+        },
         configure: configureAqaraH2EuShutterSwitch,
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
