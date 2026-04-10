@@ -313,11 +313,11 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RAQ1096Z"],
         model: "3RAQ1096Z",
         vendor: "Third Reality",
-        description: 'Smart Air Quality Sensor',
+        description: "Smart Air Quality Sensor",
         ota: true,
         extend: [
-            m.temperature(), 
-            m.humidity(), 
+            m.temperature(),
+            m.humidity(),
             m.co2(),
             m.deviceAddCustomCluster("3rCO2SensorCluster", {
                 name: "3rCO2SensorCluster",
@@ -342,7 +342,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Measured VOC Index",
                 access: "STATE_GET",
             }),
-        ], 
+        ],
     },
     {
         zigbeeModel: ["3RPL01084Z"],
