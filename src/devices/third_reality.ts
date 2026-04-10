@@ -43,9 +43,13 @@ interface ThirdMotionSensor {
 interface Third60gRadarSensor {
     attributes: {
         totalVolatileOrganicCompounds: number;
-        presenceSensorSensitivity: number;
-        airThreshold: number;
+        presenceSensorDetectDistanceLevel: number;
         tvocSensorCalibration: number;
+        tvocAlertThreshold: number;
+        tvocAlertEnable: number;
+        motionDetectSensitivityLevel: number;
+        presenceDetectSensitivityLevel: number;
+        presenceHoldTimeLevel: number;
     };
     commands: never;
     commandResponses: never;
@@ -316,15 +320,19 @@ export const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: 0x1407,
                 attributes: {
                     totalVolatileOrganicCompounds: {
-                        name: "totalVolatileOrganicCompounds",
-                        ID: 0x0000,
-                        type: Zcl.DataType.UINT32,
-                        write: true,
-                        max: 0xffffffff,
+                    name: "totalVolatileOrganicCompounds",
+                    ID: 0x0000,
+                    type: Zcl.DataType.UINT32,
+                    write: false,
+                    max: 0xffffffff,
                     },
-                    presenceSensorSensitivity: {name: "presenceSensorSensitivity", ID: 0xf002, type: Zcl.DataType.UINT8, write: true, min: 1, max: 6},
-                    tvocSensorCalibration: {name: "tvocSensorCalibration", ID: 0xf001, type: Zcl.DataType.UINT8, write: true, min: 1, max: 1},
-                    airThreshold: {name: "airThreshold", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, min: 3000, max: 50000},
+                    presenceSensorDetectDistanceLevel: {name: "presenceSensorDetectDistanceLevel", ID: 0xf002, type: Zcl.DataType.UINT8, write: true, min: 1, max: 6 },
+                    tvocSensorCalibration: {name: "tvocSensorCalibration", ID: 0xf001, type: Zcl.DataType.UINT8, write: true, min: 1, max: 1 },
+                    tvocAlertThreshold: {name: "tvocAlertThreshold", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, min: 3000, max: 50000 },
+                    motionDetectSensitivityLevel: {name: "motionDetectSensitivityLevel", ID: 0xf004, type: Zcl.DataType.UINT8, write: true, min: 0, max: 20 },
+                    presenceDetectSensitivityLevel: {name: "presenceDetectSensitivityLevel", ID: 0xf005, type: Zcl.DataType.UINT8, write: true, min: 0, max: 20},
+                    presenceHoldTimeLevel: {name: "presenceHoldTimeLevel", ID: 0xf006, type: Zcl.DataType.UINT8, write: true, min: 1, max: 4 },
+                    tvocAlertEnable: {name: "tvocAlertEnable", ID: 0xf007, type: Zcl.DataType.UINT8, write: true, min: 0, max: 1 },
                 },
                 commands: {},
                 commandsResponse: {},
@@ -350,20 +358,60 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 1,
                 valueMax: 6,
                 cluster: "3r60gRadarSpecialCluster",
-                attribute: "presenceSensorSensitivity",
-                description: "Presence sensor sensitivity",
+                attribute: "presenceSensorDetectDistanceLevel",
+                description: "Presence sensor detect distance level",
                 access: "ALL",
             }),
             m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
-                name: "air_threshold",
+                name: "tvoc_alert_threshold",
                 valueMin: 3000,
                 valueMax: 50000,
                 cluster: "3r60gRadarSpecialCluster",
-                attribute: "airThreshold",
+                attribute: "tvocAlertThreshold",
                 unit: "ppb",
-                description: "Air threshold",
+                description: "TVOC alert threshold",
                 access: "ALL",
             }),
+            m.binary<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "tvoc_alert_enable",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "tvocAlertEnable",
+                description: "TVOC alert enable",
+                access: "ALL",
+            }),
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({    
+                name: "motion_detect_sensitivity_level",
+                valueMin: 0,
+                valueMax: 20,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "motionDetectSensitivityLevel",
+                unit: "level",
+                description: "Set motion detect sensitivity level",
+                access: "ALL",
+            }),
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "presence_detect_sensitivity_level",
+                valueMin: 0,
+                valueMax: 20,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "presenceDetectSensitivityLevel",
+                unit: "level",
+                description: "Set Presence detect sensitivity level",
+                access: "ALL",
+                }),
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "presence_hold_time_level",
+                valueMin: 1,
+                valueMax: 4,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "presenceHoldTimeLevel",
+                unit: "level",
+                description: "Set Presence hold time level",
+                access: "ALL",
+                }),
+
             m.light({
                 color: {modes: ["xy"], enhancedHue: true},
             }),
