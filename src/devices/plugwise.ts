@@ -608,7 +608,7 @@ const tzLocal = {
             try { await entity.read('genBasic', ['modelId']); } catch (err) { /* skip */ }
             try { await entity.read('genBasic', [ATTR_POWER_SOURCE]); } catch (err) { /* skip */ }
             try { await entity.read('genBasic', [ATTR_PRODUCT_CODE]); } catch (err) { /* skip */ }
-            try { await entity.read('genBasic', [ATTR_PRODUCT_URL]); } catch (e)rr { /* skip */ }
+            try { await entity.read('genBasic', [ATTR_PRODUCT_URL]); } catch (err) { /* skip */ }
             try { await entity.read('genBasic', [ATTR_SW_BUILD_ID]); } catch (err) { /* skip */ }
 
             // ── genPowerCfg — native ──────────────────────────────────────────
