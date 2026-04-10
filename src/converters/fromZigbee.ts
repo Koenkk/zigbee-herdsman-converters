@@ -93,8 +93,10 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             result[postfixWithEndpointName("setpoint_change_amount", msg, model, meta)] = msg.data.setpointChangeAmount / 100;
         }
         if (msg.data.setpointChangeSource !== undefined) {
-            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] =
-                constants.thermostatSetpointChangeSource[msg.data.setpointChangeSource];
+            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] = utils.getFromLookup(
+                msg.data.setpointChangeSource,
+                constants.thermostatSetpointChangeSource,
+            );
         }
         if (msg.data.setpointChangeSourceTimeStamp !== undefined) {
             const date = new Date(2000, 0, 1);
@@ -111,21 +113,34 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             };
         }
         if (msg.data.ctrlSeqeOfOper !== undefined) {
-            result[postfixWithEndpointName("control_sequence_of_operation", msg, model, meta)] =
-                constants.thermostatControlSequenceOfOperations[msg.data.ctrlSeqeOfOper];
+            result[postfixWithEndpointName("control_sequence_of_operation", msg, model, meta)] = utils.getFromLookup(
+                msg.data.ctrlSeqeOfOper,
+                constants.thermostatControlSequenceOfOperations,
+            );
         }
         if (msg.data.programingOperMode !== undefined) {
-            result[postfixWithEndpointName("programming_operation_mode", msg, model, meta)] =
-                constants.thermostatProgrammingOperationModes[msg.data.programingOperMode];
+            result[postfixWithEndpointName("programming_operation_mode", msg, model, meta)] = utils.getFromLookup(
+                msg.data.programingOperMode,
+                constants.thermostatProgrammingOperationModes,
+            );
         }
         if (msg.data.systemMode !== undefined) {
-            result[postfixWithEndpointName("system_mode", msg, model, meta)] = constants.thermostatSystemModes[msg.data.systemMode];
+            result[postfixWithEndpointName("system_mode", msg, model, meta)] = utils.getFromLookup(
+                msg.data.systemMode,
+                constants.thermostatSystemModes,
+            );
         }
         if (msg.data.runningMode !== undefined) {
-            result[postfixWithEndpointName("running_mode", msg, model, meta)] = constants.thermostatRunningMode[msg.data.runningMode];
+            result[postfixWithEndpointName("running_mode", msg, model, meta)] = utils.getFromLookup(
+                msg.data.runningMode,
+                constants.thermostatRunningMode,
+            );
         }
         if (msg.data.runningState !== undefined) {
-            result[postfixWithEndpointName("running_state", msg, model, meta)] = constants.thermostatRunningStates[msg.data.runningState];
+            result[postfixWithEndpointName("running_state", msg, model, meta)] = utils.getFromLookup(
+                msg.data.runningState,
+                constants.thermostatRunningStates,
+            );
         }
         if (msg.data.pIHeatingDemand !== undefined) {
             result[postfixWithEndpointName("pi_heating_demand", msg, model, meta)] = mapNumberRange(
@@ -195,8 +210,10 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             }
         }
         if (msg.data.acLouverPosition !== undefined) {
-            result[postfixWithEndpointName("ac_louver_position", msg, model, meta)] =
-                constants.thermostatAcLouverPositions[msg.data.acLouverPosition];
+            result[postfixWithEndpointName("ac_louver_position", msg, model, meta)] = utils.getFromLookup(
+                msg.data.acLouverPosition,
+                constants.thermostatAcLouverPositions,
+            );
         }
         return result;
     },
@@ -208,7 +225,7 @@ export const thermostat_weekly_schedule: Fz.Converter<"hvacThermostat", undefine
         const days = [];
         for (let i = 0; i < 8; i++) {
             if ((msg.data.dayofweek & (1 << i)) > 0) {
-                days.push(constants.thermostatDayOfWeek[i]);
+                days.push(utils.getFromLookup(i, constants.thermostatDayOfWeek));
             }
         }
 
@@ -2185,56 +2202,6 @@ export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport"
         return result;
     },
 };
-export const tuya_cover_options_2: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresWindowCovering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.moesCalibrationTime !== undefined) {
-            const value = msg.data.moesCalibrationTime / 100;
-            result[postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
-        }
-        if (msg.data.tuyaMotorReversal !== undefined) {
-            const value = msg.data.tuyaMotorReversal;
-            const reversalLookup: KeyValueAny = {0: "OFF", 1: "ON"};
-            result[postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
-        }
-        return result;
-    },
-};
-export const tuya_cover_options: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresWindowCovering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.tuyaMovingState !== undefined) {
-            const value = msg.data.tuyaMovingState;
-            const movingLookup: KeyValueAny = {0: "UP", 1: "STOP", 2: "DOWN"};
-            result[postfixWithEndpointName("moving", msg, model, meta)] = movingLookup[value];
-        }
-        if (msg.data.tuyaCalibration !== undefined) {
-            const value = msg.data.tuyaCalibration;
-            const calibrationLookup: KeyValueAny = {0: "ON", 1: "OFF"};
-            result[postfixWithEndpointName("calibration", msg, model, meta)] = calibrationLookup[value];
-        }
-        if (msg.data.tuyaMotorReversal !== undefined) {
-            const value = msg.data.tuyaMotorReversal;
-            const reversalLookup: KeyValueAny = {0: "OFF", 1: "ON"};
-            result[postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
-        }
-        if (msg.data.moesCalibrationTime !== undefined) {
-            const value = msg.data.moesCalibrationTime / 10.0;
-            if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(meta.device.manufacturerName)) {
-                const endpoint = msg.endpoint.ID;
-                const calibrationLookup: KeyValueAny = {1: "to_open", 2: "to_close"};
-                result[postfixWithEndpointName(`calibration_time_${calibrationLookup[endpoint]}`, msg, model, meta)] = value;
-            } else {
-                result[postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
-            }
-        }
-        return result;
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "attributeReport"> = {
     cluster: 65029,
@@ -2242,17 +2209,6 @@ export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "attributeRepor
     convert: (model, msg, publish, options, meta) => {
         const clickMapping: KeyValueNumberString = {0: "release", 1: "single", 2: "double", 3: "hold"};
         return {action: `${clickMapping[msg.data["1"]]}`};
-    },
-};
-export const tuya_switch_scene: Fz.Converter<"genOnOff", undefined, "commandTuyaAction"> = {
-    cluster: "genOnOff",
-    type: "commandTuyaAction",
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-        // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
-        // Send the defaultResponse here, otherwise the second button click delays.
-        // https://github.com/Koenkk/zigbee2mqtt/issues/8149
-        return {action: "switch_scene", action_scene: msg.data.value};
     },
 };
 export const livolo_switch_state: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
@@ -2871,6 +2827,7 @@ export const meazon_meter: Fz.Converter<"seMetering", undefined, ["attributeRepo
         return result;
     },
 };
+
 export const orvibo_raw_1: Fz.Converter<23, undefined, "raw"> = {
     cluster: 23,
     type: "raw",
@@ -4211,17 +4168,6 @@ export const sihas_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "co
         return {action: `${button}${lookup[msg.type]}`};
     },
 };
-export const tuya_operation_mode: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data.tuyaOperationMode !== undefined) {
-            const value = msg.data.tuyaOperationMode;
-            const lookup: KeyValueAny = {0: "command", 1: "event"};
-            return {operation_mode: lookup[value]};
-        }
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const sunricher_switch2801K2: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
@@ -4274,25 +4220,6 @@ export const command_stop_move_raw: Fz.Converter<"lightingColorCtrl", undefined,
         const payload = {action};
         addActionGroup(payload, msg, model);
         return payload;
-    },
-};
-export const tuya_multi_action: Fz.Converter<"genOnOff", undefined, ["commandTuyaAction", "commandTuyaAction2"]> = {
-    cluster: "genOnOff",
-    type: ["commandTuyaAction", "commandTuyaAction2"],
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-
-        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-        let action;
-        if (msg.type === "commandTuyaAction") {
-            const lookup: KeyValueAny = {0: "single", 1: "double", 2: "hold"};
-            action = lookup[msg.data.value];
-        } else if (msg.type === "commandTuyaAction2") {
-            const lookup: KeyValueAny = {0: "rotate_right", 1: "rotate_left"};
-            action = lookup[msg.data.value];
-        }
-
-        return {action};
     },
 };
 export const led_on_motion: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {

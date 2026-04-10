@@ -20,6 +20,7 @@ export interface Logger {
 }
 
 export type Range = [number, number];
+export type ValuesOf<T> = T[keyof T];
 export interface KeyValue {
     [s: string]: unknown;
 }
@@ -196,7 +197,7 @@ export interface DefinitionMeta {
     /**
      * see `toZigbee.light_color`
      *
-     * @defaultValue true
+     * @defaultValue false
      */
     supportsEnhancedHue?: boolean | ((entity: Zh.Endpoint) => boolean);
     /**
