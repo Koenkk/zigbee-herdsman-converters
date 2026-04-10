@@ -30,6 +30,16 @@ interface ThirdSoilSensor {
     commandResponses: never;
 }
 
+interface ThirdMotionSensor {
+    attributes: {
+        coldDownTime: number;
+        localRoutinTime: number;
+        luxThreshold: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface ThirdCO2Sensor {
     attributes: {
         volatileOrganicCompounds: number;
