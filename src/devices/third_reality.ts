@@ -320,11 +320,11 @@ export const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: 0x1407,
                 attributes: {
                     totalVolatileOrganicCompounds: {
-                    name: "totalVolatileOrganicCompounds",
-                    ID: 0x0000,
-                    type: Zcl.DataType.UINT32,
-                    write: false,
-                    max: 0xffffffff,
+                        name: "totalVolatileOrganicCompounds",
+                        ID: 0x0000,
+                        type: Zcl.DataType.UINT32,
+                        write: false,
+                        max: 0xffffffff,
                     },
                     presenceSensorDetectDistanceLevel: {name: "presenceSensorDetectDistanceLevel", ID: 0xf002, type: Zcl.DataType.UINT8, write: true, min: 1, max: 6 },
                     tvocSensorCalibration: {name: "tvocSensorCalibration", ID: 0xf001, type: Zcl.DataType.UINT8, write: true, min: 1, max: 1 },
