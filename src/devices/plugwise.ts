@@ -38,7 +38,7 @@ const PLUGWISE_MFG_CODE = 0x1172;
 
 // hvacThermostat standard attribute IDs
 const ATTR_OUTDOOR_TEMP = 0x0001; // INT16S   outdoor temperature
-const ATTR_PI_HEATING_DEMAND = 0x0008; // INT8U    PI heating demand
+// const ATTR_PI_HEATING_DEMAND = 0x0008; // INT8U    PI heating demand
 const ATTR_RUNNING_STATE = 0x0029; // BITMAP16 thermostat running state
 
 // Manufacturer-specific attributes on hvacThermostat (mfgCode 0x1172)
@@ -63,11 +63,11 @@ const ATTR_BATTERY_TYPE = 0x007F; // ENUM8         battery chemistry (mfgCode 0x
 
 // ZCL type tags
 const ZCL_ENUM8 = 0x30;
-const ZCL_UINT8 = 0x20;
+// const ZCL_UINT8 = 0x20;
 const ZCL_UINT16 = 0x21;
-const ZCL_INT8S = 0x28;
+// const ZCL_INT8S = 0x28;
 const ZCL_INT16S = 0x29;
-const ZCL_BITMAP8 = 0x18;
+// const ZCL_BITMAP8 = 0x18;
 
 // Power source enum → string
 const POWER_SOURCE_MAP = {
@@ -604,12 +604,12 @@ const tzLocal = {
         key: ['read_all_attributes'],
         convertSet: async (entity, key, value, meta) => {
             // ── genBasic — read one at a time to avoid INSUFFICIENT_SPACE ────
-            try { await entity.read('genBasic', ['manufacturerName']); } catch (e) { /* skip */ }
-            try { await entity.read('genBasic', ['modelId']); } catch (e) { /* skip */ }
-            try { await entity.read('genBasic', [ATTR_POWER_SOURCE]); } catch (e) { /* skip */ }
-            try { await entity.read('genBasic', [ATTR_PRODUCT_CODE]); } catch (e) { /* skip */ }
-            try { await entity.read('genBasic', [ATTR_PRODUCT_URL]); } catch (e) { /* skip */ }
-            try { await entity.read('genBasic', [ATTR_SW_BUILD_ID]); } catch (e) { /* skip */ }
+            try { await entity.read('genBasic', ['manufacturerName']); } catch (err) { /* skip */ }
+            try { await entity.read('genBasic', ['modelId']); } catch (err) { /* skip */ }
+            try { await entity.read('genBasic', [ATTR_POWER_SOURCE]); } catch (err) { /* skip */ }
+            try { await entity.read('genBasic', [ATTR_PRODUCT_CODE]); } catch (err) { /* skip */ }
+            try { await entity.read('genBasic', [ATTR_PRODUCT_URL]); } catch (e)rr { /* skip */ }
+            try { await entity.read('genBasic', [ATTR_SW_BUILD_ID]); } catch (err) { /* skip */ }
 
             // ── genPowerCfg — native ──────────────────────────────────────────
             await entity.read('genPowerCfg', ['batteryVoltage', 'batteryPercentageRemaining']);
@@ -915,12 +915,12 @@ export const definitions: DefinitionWithExtend[] = [
             await ep.bind('msRelativeHumidity', coordinatorEndpoint);
 
             // ── Read initial values — genBasic (one at a time: avoid INSUFFICIENT_SPACE) ──
-            try { await ep.read('genBasic', ['manufacturerName']); } catch (e) { logger.warn(`genBasic manufacturerName: ${e.message}`); }
-            try { await ep.read('genBasic', ['modelId']); } catch (e) { logger.warn(`genBasic modelId: ${e.message}`); }
-            try { await ep.read('genBasic', [ATTR_POWER_SOURCE]); } catch (e) { logger.warn(`genBasic powerSource: ${e.message}`); }
-            try { await ep.read('genBasic', [ATTR_PRODUCT_CODE]); } catch (e) { logger.warn(`genBasic productCode: ${e.message}`); }
-            try { await ep.read('genBasic', [ATTR_PRODUCT_URL]); } catch (e) { logger.warn(`genBasic productUrl: ${e.message}`); }
-            try { await ep.read('genBasic', [ATTR_SW_BUILD_ID]); } catch (e) { logger.warn(`genBasic swBuildId: ${e.message}`); }
+            try { await ep.read('genBasic', ['manufacturerName']); } catch (err) { logger.warn(`genBasic manufacturerName: ${err.message}`); }
+            try { await ep.read('genBasic', ['modelId']); } catch (err) { logger.warn(`genBasic modelId: ${err.message}`); }
+            try { await ep.read('genBasic', [ATTR_POWER_SOURCE]); } catch (err) { logger.warn(`genBasic powerSource: ${err.message}`); }
+            try { await ep.read('genBasic', [ATTR_PRODUCT_CODE]); } catch (err) { logger.warn(`genBasic productCode: ${err.message}`); }
+            try { await ep.read('genBasic', [ATTR_PRODUCT_URL]); } catch (err) { logger.warn(`genBasic productUrl: ${err.message}`); }
+            try { await ep.read('genBasic', [ATTR_SW_BUILD_ID]); } catch (err) { logger.warn(`genBasic swBuildId: ${err.message}`); }
 
             // ── Read initial values — genPowerCfg ─────────────────────────────────
             await ep.read('genPowerCfg', ['batteryPercentageRemaining']);
