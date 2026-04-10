@@ -604,12 +604,12 @@ const tzLocal = {
         key: ["read_all_attributes"],
         convertSet: async (entity, key, value, meta) => {
             // ── genBasic — read one at a time to avoid INSUFFICIENT_SPACE ────
-            try { await entity.read("genBasic", ["manufacturerName"]); } catch (err) { /* skip */ }
-            try { await entity.read("genBasic", ["modelId"]); } catch (err) { /* skip */ }
-            try { await entity.read("genBasic", [ATTR_POWER_SOURCE]); } catch (err) { /* skip */ }
-            try { await entity.read("genBasic", [ATTR_PRODUCT_CODE]); } catch (err) { /* skip */ }
-            try { await entity.read("genBasic", [ATTR_PRODUCT_URL]); } catch (err) { /* skip */ }
-            try { await entity.read("genBasic", [ATTR_SW_BUILD_ID]); } catch (err) { /* skip */ }
+            try { await entity.read("genBasic", ["manufacturerName"]); } catch (_err) { /* skip */ }
+            try { await entity.read("genBasic", ["modelId"]); } catch (_err) { /* skip */ }
+            try { await entity.read("genBasic", [ATTR_POWER_SOURCE]); } catch (_err) { /* skip */ }
+            try { await entity.read("genBasic", [ATTR_PRODUCT_CODE]); } catch (_err) { /* skip */ }
+            try { await entity.read("genBasic", [ATTR_PRODUCT_URL]); } catch (_err) { /* skip */ }
+            try { await entity.read("genBasic", [ATTR_SW_BUILD_ID]); } catch (_err) { /* skip */ }
 
             // ── genPowerCfg — native ──────────────────────────────────────────
             await entity.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
