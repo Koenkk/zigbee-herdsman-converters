@@ -400,7 +400,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "level",
                 description: "Set Presence detect sensitivity level",
                 access: "ALL",
-                }),
+            }),
             m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
                 name: "presence_hold_time_level",
                 valueMin: 1,
@@ -410,8 +410,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "level",
                 description: "Set Presence hold time level",
                 access: "ALL",
-                }),
-
+            }),
             m.light({
                 color: {modes: ["xy"], enhancedHue: true},
             }),
