@@ -498,7 +498,7 @@ const tzLocal = {
             const val = Object.keys(BATTERY_TYPE_MAP).find(k => BATTERY_TYPE_MAP[k] === value);
             if (val === undefined) throw new Error(`Unknown battery_type: ${value}`);
             await entity.write('genPowerCfg',
-                { [ATTR_BATTERY_TYPE]: { value: parseInt(val), type: ZCL_ENUM8 } },
+                { [ATTR_BATTERY_TYPE]: { value: parseInt(val, 16), type: ZCL_ENUM8 } },
                 { manufacturerCode: PLUGWISE_MFG_CODE });
             return { state: { battery_type: value } };
         },
