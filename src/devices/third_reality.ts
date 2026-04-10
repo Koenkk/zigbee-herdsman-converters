@@ -323,7 +323,6 @@ export const definitions: DefinitionWithExtend[] = [
                         name: "totalVolatileOrganicCompounds",
                         ID: 0x0000,
                         type: Zcl.DataType.UINT32,
-                        write: false,
                         max: 0xffffffff,
                     },
                     presenceSensorDetectDistanceLevel: {name: "presenceSensorDetectDistanceLevel", ID: 0xf002, type: Zcl.DataType.UINT8, write: true, min: 1, max: 6 },
