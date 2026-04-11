@@ -589,7 +589,7 @@ const tzLocal = {
 
                 // To switch between white mode and color mode, we have to send a special command:
                 const rgbMode = colorMode === colorModeLookup[ColorMode.HS] ? 1 : 0;
-                await entity.command("lightingColorCtrl", "tuyaRgbMode", {
+                await entity.command<"lightingColorCtrl", "tuyaRgbMode", tuya.TuyaLightingColorCtrl>("lightingColorCtrl", "tuyaRgbMode", {
                     enable: rgbMode,
                 });
             }
@@ -672,7 +672,7 @@ const tzLocal = {
                         saturation: utils.mapNumberRange(newSettings.saturation, 0, 100, 0, 1000),
                     };
                     // This command doesn't support a transition time
-                    await entity.command(
+                    await entity.command<"lightingColorCtrl", "tuyaMoveToHueAndSaturationBrightness2", tuya.TuyaLightingColorCtrl>(
                         "lightingColorCtrl",
                         "tuyaMoveToHueAndSaturationBrightness2",
                         zclData,
@@ -705,7 +705,7 @@ const tzLocal = {
                 (color.isXY() && (color.xy.x === 0.323 || color.xy.y === 0.329));
 
             if (enableWhite) {
-                await entity.command("lightingColorCtrl", "tuyaRgbMode", {enable: 0});
+                await entity.command<"lightingColorCtrl", "tuyaRgbMode", tuya.TuyaLightingColorCtrl>("lightingColorCtrl", "tuyaRgbMode", {enable: 0});
                 const newState: KeyValue = {color_mode: "xy"};
                 if (color.isXY()) {
                     newState.color = color.xy;
@@ -3575,12 +3575,13 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lidl", "14149505L/14149506L_2", "Livarno Lux light bar RGB+CCT (black/white)", ["_TZ3210_iystcadi"]),
             tuya.whitelabel("Tuya", "TS0505B_2_2", "Zigbee GU10/E14 5W smart bulb", ["_TZ3210_it1u8ahz"]),
         ],
-        toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
-        fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness],
+        extend: [tuyaLight()],
+        toZigbee: [tz.on_off, tzLocal.led_control],
+        fromZigbee: [fz.on_off, tuya.fz.led_controller, fz.brightness],
         meta: {
             applyRedFix: true, // https://github.com/Koenkk/zigbee-herdsman-converters/issues/11467
         },
-        exposes: [e.light_brightness_colortemp_colorhs([143, 500]).removeFeature("color_temp_startup"), tuya.exposes.doNotDisturb()],
+        exposes: [e.light_brightness_colortemp_colorhs([143, 500]).removeFeature("color_temp_startup")],
         configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
@@ -5577,8 +5578,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TYZS1L",
         vendor: "Tuya",
         description: "Led strip controller HSB",
+        extend: [tuyaLight()],
         exposes: [e.light_colorhs()],
-        fromZigbee: [fz.on_off, fz.tuya_led_controller],
+        fromZigbee: [fz.on_off, tuya.fz.led_controller],
         toZigbee: [tz.tuya_led_controller, tz.ignore_transition, tz.ignore_rate],
     },
     {
@@ -5661,8 +5663,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0505A_led",
         vendor: "Tuya",
         description: "RGB+CCT LED",
-        toZigbee: [tz.on_off, tz.tuya_led_control],
-        fromZigbee: [fz.on_off, fz.tuya_led_controller, fz.brightness],
+        extend: [tuyaLight()],
+        toZigbee: [tz.on_off, tuya.tz.led_control],
+        fromZigbee: [fz.on_off, tuya.fz.led_controller, fz.brightness],
         exposes: [e.light_brightness_colortemp_colorhs([153, 500]).removeFeature("color_temp_startup")],
     },
     {

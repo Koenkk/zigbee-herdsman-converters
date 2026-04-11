@@ -2073,52 +2073,6 @@ export const ias_smoke_alarm_1_develco: Fz.Converter<"ssIasZone", undefined, "co
         };
     },
 };
-export const tuya_led_controller: Fz.Converter<"lightingColorCtrl", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "lightingColorCtrl",
-    type: ["attributeReport", "readResponse"],
-    options: [exposes.options.color_sync()],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-
-        if (msg.data.colorTemperature !== undefined) {
-            const value = Number(msg.data.colorTemperature);
-            const color_temp = postfixWithEndpointName("color_temp", msg, model, meta);
-            result[color_temp] = value;
-        }
-
-        if (msg.data.tuyaBrightness !== undefined) {
-            const brightness = postfixWithEndpointName("brightness", msg, model, meta);
-            result[brightness] = msg.data.tuyaBrightness;
-        }
-
-        if (msg.data.tuyaRgbMode !== undefined) {
-            const color_mode = postfixWithEndpointName("color_mode", msg, model, meta);
-            if (msg.data.tuyaRgbMode === 1) {
-                result[color_mode] = constants.colorModeLookup[0];
-            } else {
-                result[color_mode] = constants.colorModeLookup[2];
-            }
-        }
-
-        const color = postfixWithEndpointName("color", msg, model, meta);
-        result[color] = {};
-
-        if (msg.data.currentHue !== undefined) {
-            result[color].hue = mapNumberRange(msg.data.currentHue, 0, 254, 0, 360);
-            result[color].h = result[color].hue;
-        }
-
-        if (msg.data.currentSaturation !== undefined) {
-            result[color].saturation = mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
-            result[color].s = result[color].saturation;
-        }
-
-        // Use postfixWithEndpointName with an empty value to get just the postfix that
-        // can be added to the result keys.
-        const epPostfix = postfixWithEndpointName("", msg, model, meta);
-        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
-    },
-};
 export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
