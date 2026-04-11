@@ -436,7 +436,7 @@ const tzLocal = {
                         await entity.write("hvacThermostat", {maxCoolSetpointLimit: scaledValue});
                         break;
                     case "local_temperature_calibration":
-                        await entity.write("hvacThermostat", {localTemperatureCalibration: {value: scaledValue, type: ZCL_INT16S}});
+                        await entity.write("hvacThermostat", {localTemperatureCalibration: scaledValue});
                         break;
                     default:
                         return;
