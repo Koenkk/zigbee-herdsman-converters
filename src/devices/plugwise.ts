@@ -278,7 +278,10 @@ const fzLocal = {
             const rawCode = d[ATTR_PRODUCT_CODE] != null ? d[ATTR_PRODUCT_CODE] : d.productCode;
             if (rawCode != null) r.product_code = decodeOctetString(rawCode);
             const ps = d[ATTR_POWER_SOURCE] != null ? d[ATTR_POWER_SOURCE] : d.powerSource;
-            if (typeof ps === "number") r.power_source = POWER_SOURCE_MAP[ps as keyof typeof POWER_SOURCE_MAP] ?? `unknown(0x${ps.toString(16)})`;
+            if (typeof ps === "number") {
+                const powerSource = POWER_SOURCE_MAP[ps as keyof typeof POWER_SOURCE_MAP];
+                if (powerSource != null) r.power_source = powerSource;
+            }
             const sw = d[ATTR_SW_BUILD_ID] != null ? d[ATTR_SW_BUILD_ID] : d.swBuildId;
             if (sw != null) r.firmware_version = decodeOctetString(sw);
             const url = d[ATTR_PRODUCT_URL] != null ? d[ATTR_PRODUCT_URL] : d.productUrl;
