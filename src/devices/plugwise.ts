@@ -243,7 +243,7 @@ const fzLocal = {
                 if (mappedBatteryType != null) {
                     r.battery_type = mappedBatteryType;
                 } else {
-                    logger.debug(`Ignoring unsupported battery type value: ${batteryType}`, "zhc:plugwise");
+                    logger.debug(`Ignoring unsupported battery type value: ${batteryType}`, NS);
                 }
             }
             return Object.keys(r).length ? r : undefined;
