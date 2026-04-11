@@ -3575,13 +3575,12 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lidl", "14149505L/14149506L_2", "Livarno Lux light bar RGB+CCT (black/white)", ["_TZ3210_iystcadi"]),
             tuya.whitelabel("Tuya", "TS0505B_2_2", "Zigbee GU10/E14 5W smart bulb", ["_TZ3210_it1u8ahz"]),
         ],
-        extend: [tuyaLight()],
+        extend: [tuyaLight({colorTemp: {range: [143, 500]}})],
         toZigbee: [tz.on_off, tzLocal.led_control],
         fromZigbee: [fz.on_off, tuya.fz.led_controller, fz.brightness],
         meta: {
             applyRedFix: true, // https://github.com/Koenkk/zigbee-herdsman-converters/issues/11467
         },
-        exposes: [e.light_brightness_colortemp_colorhs([143, 500]).removeFeature("color_temp_startup")],
         configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
                 colorCapabilities: 29,
@@ -5579,7 +5578,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Led strip controller HSB",
         extend: [tuyaLight()],
-        exposes: [e.light_colorhs()],
         fromZigbee: [fz.on_off, tuya.fz.led_controller],
         toZigbee: [tz.tuya_led_controller, tz.ignore_transition, tz.ignore_rate],
     },
@@ -5663,10 +5661,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0505A_led",
         vendor: "Tuya",
         description: "RGB+CCT LED",
-        extend: [tuyaLight()],
+        extend: [tuyaLight({colorTemp: {range: [153, 500]}})],
         toZigbee: [tz.on_off, tuya.tz.led_control],
         fromZigbee: [fz.on_off, tuya.fz.led_controller, fz.brightness],
-        exposes: [e.light_brightness_colortemp_colorhs([153, 500]).removeFeature("color_temp_startup")],
     },
     {
         zigbeeModel: ["TS0505A"],
