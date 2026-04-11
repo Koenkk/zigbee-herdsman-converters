@@ -219,12 +219,7 @@ const fzLocal = {
             }
             if (typeof d.pIHeatingDemand === "number") r.pi_heating_demand = d.pIHeatingDemand;
 
-            const rawOT =
-                d.outdoorTemp != null
-                    ? d.outdoorTemp
-                    : d.outdoorTemperature != null
-                      ? d.outdoorTemperature
-                      : d[ATTR_OUTDOOR_TEMP];
+            const rawOT = d.outdoorTemp != null ? d.outdoorTemp : d.outdoorTemperature != null ? d.outdoorTemperature : d[ATTR_OUTDOOR_TEMP];
             if (typeof rawOT === "number") r.outdoor_temperature = rawOT / 100;
 
             // Attr 0x0029 — herdsman may use thermostatRunningState, runningState, or numeric key
