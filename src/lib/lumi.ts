@@ -221,13 +221,6 @@ export const numericAttributes2Payload = async (
     dataObject: KeyValue,
 ) => {
     let payload: KeyValue = {};
-    const znclbl01lm1057Value = model.model === "ZNCLBL01LM" && typeof dataObject["1057"] === "number" ? dataObject["1057"] : undefined;
-    const znclbl01lmStopInCurrentPayload = znclbl01lm1057Value === 2;
-    const znclbl01lmRunningInCurrentPayload = znclbl01lm1057Value !== undefined && znclbl01lm1057Value < 2;
-    const znclbl01lmStoredRunning =
-        model.model === "ZNCLBL01LM" ? globalStore.getValue(msg.endpoint, ZNCLBL01LM_RUNNING_STORE_KEY, undefined) : undefined;
-    const shouldSuppressInStopPayload = znclbl01lmStopInCurrentPayload;
-    const shouldSuppressWhileStopped = znclbl01lmStoredRunning === false && !znclbl01lmRunningInCurrentPayload;
 
     for (const [key, value] of Object.entries(dataObject)) {
         switch (key) {
@@ -526,6 +519,12 @@ export const numericAttributes2Payload = async (
                 if (["RTCGQ14LM"].includes(model.model)) {
                     payload.trigger_indicator = value === 1;
                 } else if (["ZNCLBL01LM"].includes(model.model)) {
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/11911
+                    const value1057 = typeof dataObject["1057"] === "number" ? dataObject["1057"] : undefined;
+                    const storedRunning = globalStore.getValue(msg.endpoint, ZNCLBL01LM_RUNNING_STORE_KEY, undefined);
+                    const payloadRunning = value1057 !== undefined && value1057 < 2;
+                    const shouldSuppressInStopPayload = value1057 === 2;
+                    const shouldSuppressWhileStopped = storedRunning === false && !payloadRunning;
                     if (shouldSuppressInStopPayload || shouldSuppressWhileStopped) {
                         break;
                     }
@@ -896,6 +895,7 @@ export const numericAttributes2Payload = async (
                     payload.running = value < 2;
                     globalStore.putValue(msg.endpoint, ZNCLBL01LM_RUNNING_STORE_KEY, payload.running);
 
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/11911
                     if (!payload.running && previousRunning !== false) {
                         // After stop, read the final position.
                         // Attr 107 can still be stale near the end.
