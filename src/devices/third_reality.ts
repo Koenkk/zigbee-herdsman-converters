@@ -313,7 +313,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RAQ1096Z"],
         model: "3RAQ1096Z",
         vendor: "Third Reality",
-        description: "Smart Air Quality Sensor",
+        description: "Smart air quality sensor",
         ota: true,
         extend: [
             m.temperature(),
