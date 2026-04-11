@@ -757,18 +757,30 @@ export const definitions: DefinitionWithExtend[] = [
                 logConfigureWarning("genBasic swBuildId", err);
             }
 
-            await ep.read("genPowerCfg", [ATTR_BATTERY_TYPE], {manufacturerCode: PLUGWISE_MFG_CODE});
+            try {
+                await ep.read("genPowerCfg", [ATTR_BATTERY_TYPE], {manufacturerCode: PLUGWISE_MFG_CODE});
+            } catch (err) {
+                logConfigureWarning("genPowerCfg batteryType", err);
+            }
 
             await ep.read("hvacUserInterfaceCfg", ["keypadLockout"]);
 
-            await ep.read("hvacThermostat", [ATTR_EXT_HEAT_DEMAND, ATTR_EXT_HEAT_DEMAND_TIMEOUT, ATTR_MAX_DHW_SETPOINT, ATTR_MAX_BOILER_SETPOINT], {
-                manufacturerCode: PLUGWISE_MFG_CODE,
-            });
-            await ep.read(
-                "hvacThermostat",
-                [ATTR_BOILER_WATER_TEMP, ATTR_DHW_TEMP, ATTR_RETURN_WATER_TEMP, ATTR_APP_FAULT_CODE, ATTR_OEM_FAULT_CODE],
-                {manufacturerCode: PLUGWISE_MFG_CODE},
-            );
+            try {
+                await ep.read("hvacThermostat", [ATTR_EXT_HEAT_DEMAND, ATTR_EXT_HEAT_DEMAND_TIMEOUT, ATTR_MAX_DHW_SETPOINT, ATTR_MAX_BOILER_SETPOINT], {
+                    manufacturerCode: PLUGWISE_MFG_CODE,
+                });
+            } catch (err) {
+                logConfigureWarning("hvacThermostat manufacturer-specific setpoints", err);
+            }
+            try {
+                await ep.read(
+                    "hvacThermostat",
+                    [ATTR_BOILER_WATER_TEMP, ATTR_DHW_TEMP, ATTR_RETURN_WATER_TEMP, ATTR_APP_FAULT_CODE, ATTR_OEM_FAULT_CODE],
+                    {manufacturerCode: PLUGWISE_MFG_CODE},
+                );
+            } catch (err) {
+                logConfigureWarning("hvacThermostat OpenTherm readings", err);
+            }
         },
     },
 ];
