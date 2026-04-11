@@ -62,9 +62,6 @@ const BATTERY_TYPE_MAP = {
 const KEYPAD_LOCKOUT_TO_STR = {0: "unlock", 1: "lock1", 2: "lock2"};
 const KEYPAD_LOCKOUT_TO_INT = {unlock: 0, lock1: 1, lock2: 2};
 
-// System mode maps
-const SYS_MODE_TO_INT = {off: 0, auto: 1, cool: 3, heat: 4};
-
 // Application fault bitmap — OT message ID 5 high byte
 const APP_FAULT_BITS = [
     {bit: 0x01, name: "service_request"},
