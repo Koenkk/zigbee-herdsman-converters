@@ -206,7 +206,7 @@ const fzLocal = {
             const r: KeyValue = {};
 
             // Standard attributes
-            if (typeof d.localTemperatureCalibration === "number") r.local_temperature_calibration = d.localTemperatureCalibration / 100;
+            if (typeof d.localTemperatureCalibration === "number") r.local_temperature_calibration = d.localTemperatureCalibration / 10;
             if (typeof d.occupiedHeatingSetpoint === "number") r.occupied_heating_setpoint = d.occupiedHeatingSetpoint / 100;
             if (typeof d.occupiedCoolingSetpoint === "number") r.occupied_cooling_setpoint = d.occupiedCoolingSetpoint / 100;
             if (typeof d.minHeatSetpointLimit === "number") r.min_heat_setpoint_limit = d.minHeatSetpointLimit / 100;
