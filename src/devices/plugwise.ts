@@ -2,6 +2,7 @@ import {Buffer} from "node:buffer";
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
@@ -92,14 +93,6 @@ const KEYPAD_LOCKOUT_TO_INT = {unlock: 0, lock1: 1, lock2: 2};
 // System mode maps
 const SYS_MODE_TO_STR = {0: "off", 1: "auto", 3: "cool", 4: "heat"};
 const SYS_MODE_TO_INT = {off: 0, auto: 1, cool: 3, heat: 4};
-
-// Running state — BITMAP16 at attribute 0x0029 ("hvac relay state" in Gecko SDK)
-// bit 0 = heat active, bit 1 = cool active, 0x0000 = idle
-const RUNNING_STATE_MAP = {
-    0: "idle",
-    1: "heat",
-    2: "cool",
-};
 
 // Application fault bitmap — OT message ID 5 high byte
 const APP_FAULT_BITS = [
@@ -232,7 +225,7 @@ const fzLocal = {
                         ? d[ATTR_RUNNING_STATE]
                         : null;
             if (typeof rawRS === "number") {
-                r.running_state = RUNNING_STATE_MAP[rawRS as keyof typeof RUNNING_STATE_MAP] ?? "idle";
+                r.running_state = utils.getFromLookup(rawRS, constants.thermostatRunningStates) ?? `unknown(${rawRS})`;
             }
 
             // Manufacturer-specific (mfgCode 0x1172)
