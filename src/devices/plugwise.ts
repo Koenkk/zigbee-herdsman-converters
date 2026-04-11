@@ -491,7 +491,9 @@ const tzLocal = {
     external_heat_demand_timeout: {
         key: ["external_heat_demand_timeout"],
         convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== "number" || value < 300 || value > 3600) throw new Error("external_heat_demand_timeout must be 300–3600 seconds");
+            if (typeof value !== "number" || !Number.isInteger(value) || value < 300 || value > 3600) {
+                throw new Error("external_heat_demand_timeout must be an integer between 300 and 3600 seconds");
+            }
             await entity.write("hvacThermostat", {[ATTR_EXT_HEAT_DEMAND_TIMEOUT]: {value, type: ZCL_UINT16}}, {manufacturerCode: PLUGWISE_MFG_CODE});
             return {state: {external_heat_demand_timeout: value}};
         },
