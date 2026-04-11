@@ -28,6 +28,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Müller Licht",
         description: "Tint LED white+color",
         extend: [mullerLichtLight({colorTemp: {range: [153, 556]}, color: true})],
+        whiteLabel: [
+            {vendor: "Müller Licht", model: "404026", description: "Tint Outdoor LED-Strip white+color, 5m (IP44)"},
+            {vendor: "Müller Licht", model: "404075", description: "Tint Lichterkette Stella white+color, 12 bulbs (IP44)"},
+        ],
     },
     {
         zigbeeModel: ["Retro Bulb Gold XXL white+ambiance"],
