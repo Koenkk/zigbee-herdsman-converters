@@ -1,1 +1,344 @@
-aW1wb3J0ICogYXMgZnogZnJvbSAiLi4vY29udmVydGVycy9mcm9tWmlnYmVlIjsNCmltcG9ydCAqIGFzIHR6IGZyb20gIi4uL2NvbnZlcnRlcnMvdG9aaWdiZWUiOw0KaW1wb3J0ICogYXMgZXhwb3NlcyBmcm9tICIuLi9saWIvZXhwb3NlcyI7DQppbXBvcnQgKiBhcyBtIGZyb20gIi4uL2xpYi9tb2Rlcm5FeHRlbmQiOw0KaW1wb3J0ICogYXMgcmVwb3J0aW5nIGZyb20gIi4uL2xpYi9yZXBvcnRpbmciOw0KaW1wb3J0ICogYXMgdHV5YSBmcm9tICIuLi9saWIvdHV5YSI7DQppbXBvcnQgdHlwZSB7RGVmaW5pdGlvbldpdGhFeHRlbmQsIFpofSBmcm9tICIuLi9saWIvdHlwZXMiOw0KDQpjb25zdCBlID0gZXhwb3Nlcy5wcmVzZXRzOw0KDQpmdW5jdGlvbiBtdWxsZXJMaWNodExpZ2h0KGFyZ3M6IG0uTGlnaHRBcmdzKSB7DQogICAgY29uc3QgcmVzdWx0ID0gbS5saWdodChhcmdzKTsNCiAgICByZXN1bHQudG9aaWdiZWUucHVzaCh0ei50aW50X3NjZW5lKTsNCiAgICByZXR1cm4gcmVzdWx0Ow0KfQ0KDQpleHBvcnQgY29uc3QgZGVmaW5pdGlvbnM6IERlZmluaXRpb25XaXRoRXh0ZW5kW10gPSBbDQogICAgew0KICAgICAgICB6aWdiZWVNb2RlbDogWyJ0aW50LVNwb3RsaWdodHMiXSwNCiAgICAgICAgbW9kZWw6ICI0MDQwNTEiLA0KICAgICAgICB2ZW5kb3I6ICJNw7xsbGVyIExpY2h0IiwNCiAgICAgICAgZGVzY3JpcHRpb246ICJUaW50IExFRC1TcG90bGlnaHRzLCB3aGl0ZStjb2xvciAzeCAoMTgwMC02NTAwSytSR0IpIDE5VyIsDQogICAgICAgIGV4dGVuZDogW211bGxlckxpY2h0TGlnaHQoe2NvbG9yVGVtcDoge3JhbmdlOiBbMTUzLCA1NTZdfSwgY29sb3I6IHRydWV9KV0sDQogICAgfSwNCiAgICB7DQogICAgICAgIHppZ2JlZU1vZGVsOiBbInRpbnQtRXh0ZW5kZWRDb2xvciJdLA0KICAgICAgICBtb2RlbDogIjQwNDAzNi80NTMyNy80NTMxNy80NTMyOCIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBkZXNjcmlwdGlvbjogIlRpbnQgTEVEIHdoaXRlK2NvbG9yIiwNCiAgICAgICAgZXh0ZW5kOiBbbXVsbGVyTGljaHRMaWdodCh7Y29sb3JUZW1wOiB7cmFuZ2U6IFsxNTMsIDU1Nl19LCBjb2xvcjogdHJ1ZX0pXSwNCiAgICAgICAgd2hpdGVMYWJlbDogWw0KICAgICAgICAgICAge3ZlbmRvcjogIk3DvGxsZXIgTGljaHQiLCBtb2RlbDogIjQwNDAyNiIsIGRlc2NyaXB0aW9uOiAiVGludCBPdXRkb29yIExFRC1TdHJpcCB3aGl0ZStjb2xvciwgNW0gKElQNDQpIn0sDQogICAgICAgICAgICB7dmVuZG9yOiAiTcO8bGxlciBMaWNodCIsIG1vZGVsOiAiNDA0MDc1IiwgZGVzY3JpcHRpb246ICJUaW50IExpY2h0ZXJrZXR0ZSBTdGVsbGEgd2hpdGUrY29sb3IsIDEyIGJ1bGJzIChJUDQ0KSJ9LA0KICAgICAgICBdLA0KICAgIH0sDQogICAgew0KICAgICAgICB6aWdiZWVNb2RlbDogWyJSZXRybyBCdWxiIEdvbGQgWFhMIHdoaXRlK2FtYmlhbmNlIl0sDQogICAgICAgIG1vZGVsOiAiNDA0MDY1IiwNCiAgICAgICAgdmVuZG9yOiAiTcO8bGxlciBMaWNodCIsDQogICAgICAgIGRlc2NyaXB0aW9uOiAidGludCBMRUQtR2xvYmUgUmV0cm8gR29sZCBYWEwgRTI3IiwNCiAgICAgICAgZXh0ZW5kOiBbbXVsbGVyTGljaHRMaWdodCh7Y29sb3JUZW1wOiB7cmFuZ2U6IFsxNTMsIDU1NV19fSldLA0KICAgIH0sDQogICAgew0KICAgICAgICB6aWdiZWVNb2RlbDogWyJaQlQtRElNTGlnaHQtQTQ3MDAwMDEiXSwNCiAgICAgICAgbW9kZWw6ICI0MDQwMjMiLA0KICAgICAgICB2ZW5kb3I6ICJNw7xsbGVyIExpY2h0IiwNCiAgICAgICAgZGVzY3JpcHRpb246ICJMRUQgYnVsYiBFMjcgNDcwIGx1bWVuLCBkaW1tYWJsZSwgY2xlYXIiLA0KICAgICAgICBleHRlbmQ6IFttdWxsZXJMaWNodExpZ2h0KHt9KV0sDQogICAgfSwNCiAgICB7DQogICAgICAgIHppZ2JlZU1vZGVsOiBbIlNtYXJ0IFNvY2tldCJdLA0KICAgICAgICBtb2RlbDogIjQwNDAxNyIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBkZXNjcmlwdGlvbjogIlNtYXJ0IHBvd2VyIHN0cmlwIiwNCiAgICAgICAgZXh0ZW5kOiBbbS5vbk9mZigpXSwNCiAgICB9LA0KICAgIHsNCiAgICAgICAgemlnYmVlTW9kZWw6IFsidGludCBzbWFydCBwb3dlciBzdHJpcCJdLA0KICAgICAgICBtb2RlbDogIjQ1MzkxIiwNCiAgICAgICAgdmVuZG9yOiAiTcO8bGxlciBMaWNodCIsDQogICAgICAgIGRlc2NyaXB0aW9uOiAiU21hcnQgcG93ZXIgc3RyaXAiLA0KICAgICAgICBleHRlbmQ6IFttLm9uT2ZmKCldLA0KICAgIH0sDQogICAgew0KICAgICAgICAvLyBJZGVudGlmeSB0aHJvdWdoIGZpbmdlcnByaW50IGFzIG1vZGVsSUQgaXMgdGhlIHNhbWUgYXMgQWlyYW0gNDcxMzQwNw0KICAgICAgICBmaW5nZXJwcmludDogW3ttb2RlbElEOiAiWkJULURpbW1hYmxlTGlnaHQiLCBtYW51ZmFjdHVyZXJOYW1lOiAiTUxJIn1dLA0KICAgICAgICBtb2RlbDogIjQwNDAwMSIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBkZXNjcmlwdGlvbjogIkxFRCBidWxiIEUyNyA4MDYgbHVtZW4sIGRpbW1hYmxlIiwNCiAgICAgICAgZXh0ZW5kOiBbbXVsbGVyTGljaHRMaWdodCh7fSldLA0KICAgIH0sDQogICAgew0KICAgICAgICB6aWdiZWVNb2RlbDogWyJaQlQtRXh0ZW5kZWRDb2xvciIsICJCdWxiIHdoaXRlK2NvbG9yIl0sDQogICAgICAgIG1vZGVsOiAiNDA0MDAwLzQwNDAwNS80MDQwMTIvNDA0MDE5IiwNCiAgICAgICAgdmVuZG9yOiAiTcO8bGxlciBMaWNodCIsDQogICAgICAgIGRlc2NyaXB0aW9uOiAiVGludCBMRUQgYnVsYiBHVTEwL0UxNC9FMjcgMzUwLzQ3MC84MDYgbHVtZW4sIGRpbW1hYmxlLCBjb2xvciwgb3BhbCB3aGl0ZSIsDQogICAgICAgIGV4dGVuZDogW211bGxlckxpY2h0TGlnaHQoe2NvbG9yVGVtcDoge3JhbmdlOiBbMTUzLCA1NTZdfSwgY29sb3I6IHttb2RlczogWyJ4eSIsICJocyJdfX0pXSwNCiAgICAgICAgLy8gR1UxMCBidWxiIGRvZXMgbm90IHN1cHBvcnQgc3VwcG9ydHNFbmhhbmNlZEh1ZSwNCiAgICAgICAgLy8gd2UgY2FuIGlkZW50aWZ5IHRoZXNlIGJhc2VkIG9uIHRoZSBwcmVzZW5jZSBvZiBoYURpYWdub3N0aWMgaW5wdXQgY2x1c3Rlcg0KICAgICAgICBtZXRhOiB7c3VwcG9ydHNFbmhhbmNlZEh1ZTogKGVudGl0eTogWmguRW5kcG9pbnQpID0+ICFlbnRpdHkuZ2V0RGV2aWNlKCkuZ2V0RW5kcG9pbnQoMSkuaW5wdXRDbHVzdGVycy5pbmNsdWRlcygyODIxKX0sDQogICAgfSwNCiAgICB7DQogICAgICAgIHppZ2JlZU1vZGVsOiBbIlpCVC1Db2xvclRlbXBlcmF0dXJlIl0sDQogICAgICAgIG1vZGVsOiAiNDA0MDA2LzQwNDAwOC80MDQwMDQiLA0KICAgICAgICB2ZW5kb3I6ICJNw7xsbGVyIExpY2h0IiwNCiAgICAgICAgZGVzY3JpcHRpb246ICJUaW50IExFRCBidWxiIEdVMTAvRTE0L0UyNyAzNTAvNDcwLzgwNiBsdW1lbiwgZGltbWFibGUsIG9wYWwgd2hpdGUiLA0KICAgICAgICBleHRlbmQ6IFttdWxsZXJMaWNodExpZ2h0KHtjb2xvclRlbXA6IHtyYW5nZTogWzE1MywgMzcwXX19KV0sDQogICAgfSwNCiAgICB7DQogICAgICAgIHppZ2JlZU1vZGVsOiBbIlpCVC1DQ1RMaWdodC1HVTEwMDAwMCJdLA0KICAgICAgICBtb2RlbDogIjQwNDAyNCIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBkZXNjcmlwdGlvbjogIlRpbnQgcmV0cm8gTEVEIGJ1bGIgR1UxMCwgZGltbWFibGUiLA0KICAgICAgICBleHRlbmQ6IFttdWxsZXJMaWNodExpZ2h0KHtjb2xvclRlbXA6IHtyYW5nZTogdW5kZWZpbmVkfX0pXSwNCiAgICB9LA0KICAgIHsNCiAgICAgICAgemlnYmVlTW9kZWw6IFsiUkdCVyBMaWdodGluZyJdLA0KICAgICAgICBtb2RlbDogIjQ0NDM1IiwNCiAgICAgICAgdmVuZG9yOiAiTcO8bGxlciBMaWNodCIsDQogICAgICAgIGRlc2NyaXB0aW9uOiAiVGludCBMRUQgU3RyaXBlLCBjb2xvciwgb3BhbCB3aGl0ZSIsDQogICAgICAgIGV4dGVuZDogW211bGxlckxpY2h0TGlnaHQoe2NvbG9yVGVtcDoge3JhbmdlOiB1bmRlZmluZWR9LCBjb2xvcjogdHJ1ZX0pXSwNCiAgICB9LA0KICAgIHsNCiAgICAgICAgZmluZ2VycHJpbnQ6IFt7bWFudWZhY3R1cmVyTmFtZTogIk1MSSIsIG1vZGVsSUQ6ICJMRUQgU3RyaXAifV0sDQogICAgICAgIG1vZGVsOiAiNDA0MTI3IiwNCiAgICAgICAgdmVuZG9yOiAiTcO8bGxlciBMaWNodCIsDQogICAgICAgIGRlc2NyaXB0aW9uOiAiVGludCBMRUQtU3RyaXAgd2hpdGUrY29sb3IsIDMgbSAvIDZXIFJHQiIsDQogICAgICAgIGV4dGVuZDogW211bGxlckxpY2h0TGlnaHQoe2NvbG9yVGVtcDoge3JhbmdlOiBbMTUzLCA1NTVdfSwgY29sb3I6IHRydWV9KV0sDQogICAgfSwNCiAgICB7DQogICAgICAgIHppZ2JlZU1vZGVsOiBbIlJHQi1DQ1QiXSwNCiAgICAgICAgbW9kZWw6ICI0MDQwMjgvNDQ0MzUiLA0KICAgICAgICB2ZW5kb3I6ICJNw7xsbGVyIExpY2h0IiwNCiAgICAgICAgZGVzY3JpcHRpb246ICJUaW50IExFRCBQYW5lbCwgY29sb3IsIG9wYWwgd2hpdGUiLA0KICAgICAgICBleHRlbmQ6IFttdWxsZXJMaWNodExpZ2h0KHtjb2xvclRlbXA6IHtyYW5nZTogWzE1MywgNTU1XX0sIGNvbG9yOiB0cnVlfSldLA0KICAgIH0sDQogICAgew0KICAgICAgICBmaW5nZXJwcmludDogdHV5YS5maW5nZXJwcmludCgiVFMwNTA1QiIsIFsiX1RaMzIxMF9tbnR6YTBzdyIsICJfVFozMjEwX3IwdnpxMW9qIl0pLA0KICAgICAgICBtb2RlbDogIjQwNDA2MiIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBkZXNjcmlwdGlvbjogIktlYSBSR0IrQ0NUIiwNCiAgICAgICAgdG9aaWdiZWU6IFt0ei50aW50X3NjZW5lXSwNCiAgICAgICAgZXh0ZW5kOiBbdHV5YS5tb2Rlcm5FeHRlbmQudHV5YUxpZ2h0KHtjb2xvclRlbXA6IHtyYW5nZTogWzE1MywgNTAwXX0sIGNvbG9yOiB0cnVlfSldLA0KICAgIH0sDQogICAgew0KICAgICAgICBmaW5nZXJwcmludDogW3ttYW51ZmFjdHVyZXJOYW1lOiAiX1RaMzAwMF9iZGJiMGZvbiJ9XSwNCiAgICAgICAgemlnYmVlTW9kZWw6IFsiWkJULVJlbW90ZS1BTEwtUkdCVyIsICJUUzEwMDEiXSwNCiAgICAgICAgbW9kZWw6ICJNTEktNDA0MDExL01MSS00MDQwNDkiLA0KICAgICAgICBkZXNjcmlwdGlvbjogIlRpbnQgcmVtb3RlIGNvbnRyb2wiLA0KICAgICAgICB2ZW5kb3I6ICJNw7xsbGVyIExpY2h0IiwNCiAgICAgICAgZnJvbVppZ2JlZTogWw0KICAgICAgICAgICAgZnouY29tbWFuZF9vbiwNCiAgICAgICAgICAgIGZ6LmNvbW1hbmRfb2ZmLA0KICAgICAgICAgICAgZnouY29tbWFuZF90b2dnbGUsDQogICAgICAgICAgICBmei5jb21tYW5kX3N0ZXAsDQogICAgICAgICAgICBmei50aW50NDA0MDExX21vdmVfdG9fY29sb3JfdGVtcCwNCiAgICAgICAgICAgIGZ6LmNvbW1hbmRfbW92ZV90b19jb2xvciwNCiAgICAgICAgICAgIGZ6LnRpbnRfc2NlbmUsDQogICAgICAgICAgICBmei5jb21tYW5kX3N0b3AsDQogICAgICAgICAgICBmei5jb21tYW5kX21vdmUsDQogICAgICAgIF0sDQogICAgICAgIGV4cG9zZXM6IFsNCiAgICAgICAgICAgIGUuYWN0aW9uKFsNCiAgICAgICAgICAgICAgICAib24iLA0KICAgICAgICAgICAgICAgICJvZmYiLA0KICAgICAgICAgICAgICAgICJicmlnaHRuZXNzX3N0ZXBfdXAiLA0KICAgICAgICAgICAgICAgICJicmlnaHRuZXNzX3N0ZXBfZG93biIsDQogICAgICAgICAgICAgICAgImJyaWdodG5lc3NfbW92ZV91cCIsDQogICAgICAgICAgICAgICAgImJyaWdodG5lc3NfbW92ZV9kb3duIiwNCiAgICAgICAgICAgICAgICAiYnJpZ2h0bmVzc19zdG9wIiwNCiAgICAgICAgICAgICAgICAiY29sb3JfdGVtcGVyYXR1cmVfbW92ZSIsDQogICAgICAgICAgICAgICAgImNvbG9yX21vdmUiLA0KICAgICAgICAgICAgICAgICJzY2VuZV8xIiwNCiAgICAgICAgICAgICAgICAic2NlbmVfMiIsDQogICAgICAgICAgICAgICAgInNjZW5lXzMiLA0KICAgICAgICAgICAgICAgICJzY2VuZV80IiwNCiAgICAgICAgICAgICAgICAic2NlbmVfNSIsDQogICAgICAgICAgICAgICAgInNjZW5lXzYiLA0KICAgICAgICAgICAgXSksDQogICAgICAgICAgICBlLmFjdGlvbl9ncm91cCgpLA0KICAgICAgICBdLA0KICAgICAgICB0b1ppZ2JlZTogW10sDQogICAgfSwNCiAgICB7DQogICAgICAgIHppZ2JlZU1vZGVsOiBbIlpCVC1ESU1Db250cm9sbGVyLUQwODAwIl0sDQogICAgICAgIG1vZGVsOiAiNDA0MDAyIiwNCiAgICAgICAgZGVzY3JpcHRpb246ICJUaW50IGRpbSByZW1vdGUgY29udHJvbCIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBmcm9tWmlnYmVlOiBbZnouY29tbWFuZF9vbiwgZnouY29tbWFuZF9vZmYsIGZ6LmNvbW1hbmRfc3RlcCwgZnouY29tbWFuZF9tb3ZlLCBmei5jb21tYW5kX3N0b3AsIGZ6LmNvbW1hbmRfcmVjYWxsLCBmei5jb21tYW5kX3N0b3JlXSwNCiAgICAgICAgZXhwb3NlczogWw0KICAgICAgICAgICAgZS5hY3Rpb24oWw0KICAgICAgICAgICAgICAgICJvbiIsDQogICAgICAgICAgICAgICAgIm9mZiIsDQogICAgICAgICAgICAgICAgImJyaWdodG5lc3Nfc3RlcF91cCIsDQogICAgICAgICAgICAgICAgImJyaWdodG5lc3Nfc3RlcF9kb3duIiwNCiAgICAgICAgICAgICAgICAiYnJpZ2h0bmVzc19tb3ZlX3VwIiwNCiAgICAgICAgICAgICAgICAiYnJpZ2h0bmVzc19tb3ZlX2Rvd24iLA0KICAgICAgICAgICAgICAgICJicmlnaHRuZXNzX3N0b3AiLA0KICAgICAgICAgICAgICAgICJyZWNhbGxfMSIsDQogICAgICAgICAgICAgICAgInN0b3JlXzEiLA0KICAgICAgICAgICAgXSksDQogICAgICAgIF0sDQogICAgICAgIHRvWmlnYmVlOiBbXSwNCiAgICAgICAgY29uZmlndXJlOiBhc3luYyAoZGV2aWNlLCBjb29yZGluYXRvckVuZHBvaW50KSA9PiB7DQogICAgICAgICAgICBjb25zdCBlbmRwb2ludCA9IGRldmljZS5nZXRFbmRwb2ludCgxKTsNCiAgICAgICAgICAgIGF3YWl0IHJlcG9ydGluZy5iaW5kKGVuZHBvaW50LCBjb29yZGluYXRvckVuZHBvaW50LCBbImdlbkJhc2ljIiwgImdlbk9uT2ZmIiwgImdlbkxldmVsQ3RybCIsICJnZW5TY2VuZXMiXSk7DQogICAgICAgIH0sDQogICAgfSwNCiAgICB7DQogICAgICAgIHppZ2JlZU1vZGVsOiBbInRpbnQgU21hcnQgU3dpdGNoIl0sDQogICAgICAgIG1vZGVsOiAiNDA0MDIxIiwNCiAgICAgICAgZGVzY3JpcHRpb246ICJUaW50IHNtYXJ0IHN3aXRjaCIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBleHRlbmQ6IFttLm9uT2ZmKCldLA0KICAgIH0sDQogICAgew0KICAgICAgICBmaW5nZXJwcmludDogW3ttb2RlbElEOiAiUmVtb3RlIENvbnRyb2wiLCBtYW51ZmFjdHVyZXJOYW1lOiAiTUxJIn1dLA0KICAgICAgICB6aWdiZWVNb2RlbDogWyJ0aW50LVJlbW90ZS13aGl0ZSJdLA0KICAgICAgICBtb2RlbDogIjQwNDAyMi80MDQwNDlDIiwNCiAgICAgICAgZGVzY3JpcHRpb246ICJUaW50IGRpbSByZW1vdGUgY29udHJvbCIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBmcm9tWmlnYmVlOiBbDQogICAgICAgICAgICBmei5jb21tYW5kX29uLA0KICAgICAgICAgICAgZnouY29tbWFuZF9vZmYsDQogICAgICAgICAgICBmei5jb21tYW5kX3N0ZXAsDQogICAgICAgICAgICBmei5jb21tYW5kX21vdmUsDQogICAgICAgICAgICBmei5jb21tYW5kX3N0b3AsDQogICAgICAgICAgICBmei5jb21tYW5kX21vdmVfdG9fY29sb3JfdGVtcCwNCiAgICAgICAgICAgIGZ6LmNvbW1hbmRfbW92ZV90b19jb2xvciwNCiAgICAgICAgICAgIGZ6LnRpbnRfc2NlbmUsDQogICAgICAgIF0sDQogICAgICAgIGV4cG9zZXM6IFsNCiAgICAgICAgICAgIGUuYWN0aW9uKFsNCiAgICAgICAgICAgICAgICAib24iLA0KICAgICAgICAgICAgICAgICJvZmYiLA0KICAgICAgICAgICAgICAgICJicmlnaHRuZXNzX3N0ZXBfdXAiLA0KICAgICAgICAgICAgICAgICJicmlnaHRuZXNzX3N0ZXBfZG93biIsDQogICAgICAgICAgICAgICAgImJyaWdodG5lc3NfbW92ZV91cCIsDQogICAgICAgICAgICAgICAgImJyaWdodG5lc3NfbW92ZV9kb3duIiwNCiAgICAgICAgICAgICAgICAiYnJpZ2h0bmVzc19zdG9wIiwNCiAgICAgICAgICAgICAgICAiY29sb3JfdGVtcGVyYXR1cmVfbW92ZSIsDQogICAgICAgICAgICAgICAgImNvbG9yX21vdmUiLA0KICAgICAgICAgICAgICAgICJzY2VuZV8xIiwNCiAgICAgICAgICAgICAgICAic2NlbmVfMiIsDQogICAgICAgICAgICAgICAgInNjZW5lXzMiLA0KICAgICAgICAgICAgICAgICJzY2VuZV80IiwNCiAgICAgICAgICAgICAgICAic2NlbmVfNSIsDQogICAgICAgICAgICAgICAgInNjZW5lXzYiLA0KICAgICAgICAgICAgICAgICJzY2VuZV83IiwNCiAgICAgICAgICAgICAgICAic2NlbmVfOCIsDQogICAgICAgICAgICAgICAgInNjZW5lXzkiLA0KICAgICAgICAgICAgICAgICJzY2VuZV8xMCIsDQogICAgICAgICAgICBdKSwNCiAgICAgICAgICAgIGUuYWN0aW9uX2dyb3VwKCksDQogICAgICAgIF0sDQogICAgICAgIGV4dGVuZDogW20uZm9yY2VQb3dlclNvdXJjZSh7cG93ZXJTb3VyY2U6ICJCYXR0ZXJ5In0pXSwNCiAgICAgICAgd2hpdGVMYWJlbDogWw0KICAgICAgICAgICAgew0KICAgICAgICAgICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICAgICAgICAgIG1vZGVsOiAiNDA0MDQ5RCIsDQogICAgICAgICAgICAgICAgZGVzY3JpcHRpb246ICJUaW50IGRpbSByZW1vdGUgY29udHJvbCIsDQogICAgICAgICAgICAgICAgZmluZ2VycHJpbnQ6IFt7bW9kZWxJRDogIlJlbW90ZSBDb250cm9sIiwgbWFudWZhY3R1cmVyTmFtZTogIk1MSSJ9XSwNCiAgICAgICAgICAgIH0sDQogICAgICAgIF0sDQogICAgfSwNCiAgICB7DQogICAgICAgIHppZ2JlZU1vZGVsOiBbInRpbnQtQ29sb3JUZW1wZXJhdHVyZSIsICJ0aW50LUNvbG9yVGVtcGVyYXR1cmUyIl0sDQogICAgICAgIG1vZGVsOiAiNDA0MDM3LzQwNDAzOCIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBkZXNjcmlwdGlvbjogIkNDVCBMRUQtYnVsYiIsDQogICAgICAgIGV4dGVuZDogW211bGxlckxpY2h0TGlnaHQoe2NvbG9yVGVtcDoge3JhbmdlOiBbMTUzLCA1NTVdfX0pXSwNCiAgICB9LA0KICAgIHsNCiAgICAgICAgZmluZ2VycHJpbnQ6IFsNCiAgICAgICAgICAgIHsNCiAgICAgICAgICAgICAgICAvLyBJZGVudGlmeSB0aHJvdWdoIGZpbmdlcnByaW50IGFzIG1vZGVsSUQgaXMgdGhlIHNhbWUgYXMgU3VucmljaGVyIFpHMTkyOTEwLTQNCiAgICAgICAgICAgICAgICB0eXBlOiAiUm91dGVyIiwNCiAgICAgICAgICAgICAgICBtYW51ZmFjdHVyZXJJRDogNDYzNSwNCiAgICAgICAgICAgICAgICBtYW51ZmFjdHVyZXJOYW1lOiAiTUxJIiwNCiAgICAgICAgICAgICAgICBtb2RlbElEOiAiQ0NUIExpZ2h0aW5nIiwNCiAgICAgICAgICAgICAgICBwb3dlclNvdXJjZTogIk1haW5zIChzaW5nbGUgcGhhc2UpIiwNCiAgICAgICAgICAgICAgICBlbmRwb2ludHM6IFsNCiAgICAgICAgICAgICAgICAgICAge0lEOiAxLCBwcm9maWxlSUQ6IDQ5MjQ2LCBkZXZpY2VJRDogNTQ0LCBpbnB1dENsdXN0ZXJzOiBbMCwgMywgNCwgNSwgNiwgOCwgNzY4LCAyODIxLCA0MDk2XSwgb3V0cHV0Q2x1c3RlcnM6IFsyNV19LA0KICAgICAgICAgICAgICAgICAgICB7SUQ6IDI0MiwgcHJvZmlsZUlEOiA0MTQ0MCwgZGV2aWNlSUQ6IDEwMiwgaW5wdXRDbHVzdGVyczogWzMzXSwgb3V0cHV0Q2x1c3RlcnM6IFszM119LA0KICAgICAgICAgICAgICAgIF0sDQogICAgICAgICAgICB9LA0KICAgICAgICBdLA0KICAgICAgICBtb2RlbDogIjQwNDAzMSIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBkZXNjcmlwdGlvbjogIlRpbnQgQXJtYXJvIiwNCiAgICAgICAgZXh0ZW5kOiBbbXVsbGVyTGljaHRMaWdodCh7Y29sb3JUZW1wOiB7cmFuZ2U6IHVuZGVmaW5lZH19KV0sDQogICAgfSwNCiAgICB7DQogICAgICAgIGZpbmdlcnByaW50OiBbe21hbnVmYWN0dXJlck5hbWU6ICJNTEkiLCBtb2RlbElEOiAiQnVsYiB3aGl0ZSJ9XSwNCiAgICAgICAgbW9kZWw6ICI0NTcyNyIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBkZXNjcmlwdGlvbjogIlRpbnQgQW1lbGEgNDJjbSwgd2hpdGUrYW1iaWFuY2UgKDE4MDAtNjUwMEspIiwNCiAgICAgICAgZXh0ZW5kOiBbbXVsbGVyTGljaHRMaWdodCh7Y29sb3JUZW1wOiB7cmFuZ2U6IFsxNTMsIDU1NV19fSldLA0KICAgIH0sDQogICAgew0KICAgICAgICBmaW5nZXJwcmludDogW3ttYW51ZmFjdHVyZXJOYW1lOiAiTUxJIiwgbW9kZWxJRDogIkNhbmRsZSB3aGl0ZStjb2xvciJ9XSwNCiAgICAgICAgbW9kZWw6ICI0NTczMCIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBkZXNjcmlwdGlvbjogIlRpbnQgY2FuZGxlIEUxNCB3aGl0ZStjb2xvciIsDQogICAgICAgIGV4dGVuZDogW211bGxlckxpY2h0TGlnaHQoe2NvbG9yVGVtcDoge3JhbmdlOiBbMTUzLCA1NTVdfSwgY29sb3I6IHRydWV9KV0sDQogICAgfSwNCiAgICB7DQogICAgICAgIGZpbmdlcnByaW50OiBbe21hbnVmYWN0dXJlck5hbWU6ICJNTEkiLCBtb2RlbElEOiAiQnVsYiB3aGl0ZStjb2xvciJ9XSwNCiAgICAgICAgbW9kZWw6ICI0NTcyOCIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBkZXNjcmlwdGlvbjogIlRpbnQgYnVsYiBFMjcgd2hpdGUrY29sb3IiLA0KICAgICAgICBleHRlbmQ6IFttdWxsZXJMaWNodExpZ2h0KHtjb2xvclRlbXA6IHtyYW5nZTogWzE1MywgNTU1XX0sIGNvbG9yOiB0cnVlfSldLA0KICAgIH0sDQogICAgew0KICAgICAgICBmaW5nZXJwcmludDogW3ttYW51ZmFjdHVyZXJOYW1lOiAiTUxJIiwgbW9kZWxJRDogIkdVMTAgd2hpdGUrY29sb3IifV0sDQogICAgICAgIG1vZGVsOiAiNDU3MjMiLA0KICAgICAgICB2ZW5kb3I6ICJNw7xsbGVyIExpY2h0IiwNCiAgICAgICAgZGVzY3JpcHRpb246ICJUaW50IHNwb3RsaWdodCBHVTEwIHdoaXRlK2NvbG9yIiwNCiAgICAgICAgZXh0ZW5kOiBbbXVsbGVyTGljaHRMaWdodCh7Y29sb3JUZW1wOiB7cmFuZ2U6IFsxNTMsIDU1NV19LCBjb2xvcjoge21vZGVzOiBbInh5IiwgImhzIl0sIGVuaGFuY2VkSHVlOiB0cnVlfX0pXSwNCiAgICB9LA0KICAgIHsNCiAgICAgICAgZmluZ2VycHJpbnQ6IFt7bWFudWZhY3R1cmVyTmFtZTogIk1MSSIsIG1vZGVsSUQ6ICJDZWlsaW5nIGxpZ2h0In1dLA0KICAgICAgICBtb2RlbDogIjQwNDEyMi80MDQxMjMiLA0KICAgICAgICB2ZW5kb3I6ICJNw7xsbGVyIExpY2h0IiwNCiAgICAgICAgZGVzY3JpcHRpb246ICJUaW50IHNtYXJ0IGNlaWxpbmcgbGlnaHQgQ2FubyBibGFjay9zaWx2ZXIsIHdoaXRlK2NvbG9yICgxODAwLTY1MDBLK1JHQiksIDIxdyIsDQogICAgICAgIGV4dGVuZDogW211bGxlckxpY2h0TGlnaHQoe2NvbG9yVGVtcDoge3JhbmdlOiBbMTUzLCA1NTVdfSwgY29sb3I6IHttb2RlczogWyJ4eSIsICJocyJdLCBlbmhhbmNlZEh1ZTogdHJ1ZX19KV0sDQogICAgfSwNCiAgICB7DQogICAgICAgIGZpbmdlcnByaW50OiBbe21hbnVmYWN0dXJlck5hbWU6ICJNTEkiLCBtb2RlbElEOiAiR2FyZGVuIGxpZ2h0In1dLA0KICAgICAgICBtb2RlbDogIk1ER0FSRDQwMSIsDQogICAgICAgIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLA0KICAgICAgICBkZXNjcmlwdGlvbjogInRpbnQgRmxvcmVzIEdlbjIgZ2FyZGVuIGxpZ2h0IiwNCiAgICAgICAgZXh0ZW5kOiBbbXVsbGVyTGljaHRMaWdodCh7Y29sb3JUZW1wOiB7cmFuZ2U6IFsxNTMsIDU1NV19LCBjb2xvcjoge21vZGVzOiBbInh5IiwgImhzIl19LCBlZmZlY3Q6IGZhbHNlLCBwb3dlck9uQmVoYXZpb3I6IGZhbHNlfSldLA0KICAgIH0sDQogICAgew0KICAgICAgICBmaW5nZXJwcmludDogW3ttYW51ZmFjdHVyZXJOYW1lOiAiTUxJIiwgbW9kZWxJRDogIkRlc2sgbGFtcCJ9XSwNCiAgICAgICAgbW9kZWw6ICI0MDQxeHgiLA0KICAgICAgICB3aGl0ZUxhYmVsOiBbDQogICAgICAgICAgICB7bW9kZWw6ICI0MDQxMTUiLCB2ZW5kb3I6ICJNw7xsbGVyIExpY2h0IiwgZGVzY3JpcHRpb246ICJ0aW50IE5vbGlhIGRlc2sgbGFtcCAoYmxhY2spIn0sDQogICAgICAgICAgICB7bW9kZWw6ICI0MDQxMTYiLCB2ZW5kb3I6ICJNw7xsbGVyIExpY2h0IiwgZGVzY3JpcHRpb246ICJ0aW50IE5vbGlhIGRlc2sgbGFtcCAod2hpdGUpIn0sDQogICAgICAgICAgICB7bW9kZWw6ICI0MDQxMTciLCB2ZW5kb3I6ICJNw7xsbGVyIExpY2h0IiwgZGVzY3JpcHRpb246ICJ0aW50IE5vbGlhIGRlc2sgbGFtcCAoYW50aHJhY2l0ZSkifSwNCiAgICAgICAgICAgIHttb2RlbDogIjQwNDEzNSIsIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLCBkZXNjcmlwdGlvbjogInRpbnQgRGFsaWEgZGVzayBsYW1wIChibGFjaykifSwNCiAgICAgICAgICAgIHttb2RlbDogIjQwNDEzNiIsIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLCBkZXNjcmlwdGlvbjogInRpbnQgRGFsaWEgZGVzayBsYW1wICh3aGl0ZSkifSwNCiAgICAgICAgICAgIHttb2RlbDogIjQwNDEzNyIsIHZlbmRvcjogIk3DvGxsZXIgTGljaHQiLCBkZXNjcmlwdGlvbjogInRpbnQgRGFsaWEgZGVzayBsYW1wIChhbnRocmFjaXRlKSJ9LA0KICAgICAgICBdLA0KICAgICAgICB2ZW5kb3I6ICJNw7xsbGVyIExpY2h0IiwNCiAgICAgICAgZGVzY3JpcHRpb246ICJ0aW50IGRlc2sgbGFtcCwgd2hpdGUrY29sb3IiLA0KICAgICAgICBleHRlbmQ6IFttdWxsZXJMaWNodExpZ2h0KHtjb2xvclRlbXA6IHtyYW5nZTogWzE1MywgNTU1XX0sIGNvbG9yOiB7bW9kZXM6IFsieHkiLCAiaHMiXSwgZW5oYW5jZWRIdWU6IHRydWV9fSldLA0KICAgIH0sDQogICAgew0KICAgICAgICB6aWdiZWVNb2RlbDogWyJQb3dlciBTb2NrZXQiXSwNCiAgICAgICAgbW9kZWw6ICI0MDQwNzgiLA0KICAgICAgICB2ZW5kb3I6ICJNTEkiLA0KICAgICAgICBkZXNjcmlwdGlvbjogInRpbnQgU21hcnQgU29ja2V0IFRvd2VyIE91dGRvb3IiLA0KICAgICAgICBleHRlbmQ6IFttLm9uT2ZmKHtwb3dlck9uQmVoYXZpb3I6IGZhbHNlfSldLA0KICAgIH0sDQogICAgew0KICAgICAgICB6aWdiZWVNb2RlbDogWyJ0aW50IFJldHJvIEJ1bGIgd2hpdGUrYW1iaWFuY2UiXSwNCiAgICAgICAgbW9kZWw6ICI0MDQxMTQiLA0KICAgICAgICB2ZW5kb3I6ICJNTEkiLA0KICAgICAgICBkZXNjcmlwdGlvbjogIlRpbnQgTEVEIEJ1bGIsIEUyNywgODA2IGx1bWVuLCBDQ1QsIGNsZWFyIiwNCiAgICAgICAgZXh0ZW5kOiBbbS5saWdodCh7Y29sb3JUZW1wOiB7cmFuZ2U6IFsxNTMsIDU1NV19fSldLA0KICAgIH0sDQpdOw0K
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import * as tuya from "../lib/tuya";
+import type {DefinitionWithExtend, Zh} from "../lib/types";
+
+const e = exposes.presets;
+
+function mullerLichtLight(args: m.LightArgs) {
+    const result = m.light(args);
+    result.toZigbee.push(tz.tint_scene);
+    return result;
+}
+
+export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["tint-Spotlights"],
+        model: "404051",
+        vendor: "Müller Licht",
+        description: "Tint LED-Spotlights, white+color 3x (1800-6500K+RGB) 19W",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 556]}, color: true})],
+    },
+    {
+        zigbeeModel: ["tint-ExtendedColor"],
+        model: "404036/45327/45317/45328",
+        vendor: "Müller Licht",
+        description: "Tint LED white+color",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 556]}, color: true})],
+        whiteLabel: [
+            {vendor: "Müller Licht", model: "404026", description: "Tint Outdoor LED-Strip white+color, 5m (IP44)"},
+            {vendor: "Müller Licht", model: "404075", description: "Tint Lichterkette Stella white+color, 12 bulbs (IP44)"},
+        ],
+    },
+    {
+        zigbeeModel: ["Retro Bulb Gold XXL white+ambiance"],
+        model: "404065",
+        vendor: "Müller Licht",
+        description: "tint LED-Globe Retro Gold XXL E27",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}})],
+    },
+    {
+        zigbeeModel: ["ZBT-DIMLight-A4700001"],
+        model: "404023",
+        vendor: "Müller Licht",
+        description: "LED bulb E27 470 lumen, dimmable, clear",
+        extend: [mullerLichtLight({})],
+    },
+    {
+        zigbeeModel: ["Smart Socket"],
+        model: "404017",
+        vendor: "Müller Licht",
+        description: "Smart power strip",
+        extend: [m.onOff()],
+    },
+    {
+        zigbeeModel: ["tint smart power strip"],
+        model: "45391",
+        vendor: "Müller Licht",
+        description: "Smart power strip",
+        extend: [m.onOff()],
+    },
+    {
+        // Identify through fingerprint as modelID is the same as Airam 4713407
+        fingerprint: [{modelID: "ZBT-DimmableLight", manufacturerName: "MLI"}],
+        model: "404001",
+        vendor: "Müller Licht",
+        description: "LED bulb E27 806 lumen, dimmable",
+        extend: [mullerLichtLight({})],
+    },
+    {
+        zigbeeModel: ["ZBT-ExtendedColor", "Bulb white+color"],
+        model: "404000/404005/404012/404019",
+        vendor: "Müller Licht",
+        description: "Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, color, opal white",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"]}})],
+        // GU10 bulb does not support supportsEnhancedHue,
+        // we can identify these based on the presence of haDiagnostic input cluster
+        meta: {supportsEnhancedHue: (entity: Zh.Endpoint) => !entity.getDevice().getEndpoint(1).inputClusters.includes(2821)},
+    },
+    {
+        zigbeeModel: ["ZBT-ColorTemperature"],
+        model: "404006/404008/404004",
+        vendor: "Müller Licht",
+        description: "Tint LED bulb GU10/E14/E27 350/470/806 lumen, dimmable, opal white",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 370]}})],
+    },
+    {
+        zigbeeModel: ["ZBT-CCTLight-GU100000"],
+        model: "404024",
+        vendor: "Müller Licht",
+        description: "Tint retro LED bulb GU10, dimmable",
+        extend: [mullerLichtLight({colorTemp: {range: undefined}})],
+    },
+    {
+        zigbeeModel: ["RGBW Lighting"],
+        model: "44435",
+        vendor: "Müller Licht",
+        description: "Tint LED Stripe, color, opal white",
+        extend: [mullerLichtLight({colorTemp: {range: undefined}, color: true})],
+    },
+    {
+        fingerprint: [{manufacturerName: "MLI", modelID: "LED Strip"}],
+        model: "404127",
+        vendor: "Müller Licht",
+        description: "Tint LED-Strip white+color, 3 m / 6W RGB",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
+        zigbeeModel: ["RGB-CCT"],
+        model: "404028/44435",
+        vendor: "Müller Licht",
+        description: "Tint LED Panel, color, opal white",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0505B", ["_TZ3210_mntza0sw", "_TZ3210_r0vzq1oj"]),
+        model: "404062",
+        vendor: "Müller Licht",
+        description: "Kea RGB+CCT",
+        toZigbee: [tz.tint_scene],
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        fingerprint: [{manufacturerName: "_TZ3000_bdbb0fon"}],
+        zigbeeModel: ["ZBT-Remote-ALL-RGBW", "TS1001"],
+        model: "MLI-404011/MLI-404049",
+        description: "Tint remote control",
+        vendor: "Müller Licht",
+        fromZigbee: [
+            fz.command_on,
+            fz.command_off,
+            fz.command_toggle,
+            fz.command_step,
+            fz.tint404011_move_to_color_temp,
+            fz.command_move_to_color,
+            fz.tint_scene,
+            fz.command_stop,
+            fz.command_move,
+        ],
+        exposes: [
+            e.action([
+                "on",
+                "off",
+                "brightness_step_up",
+                "brightness_step_down",
+                "brightness_move_up",
+                "brightness_move_down",
+                "brightness_stop",
+                "color_temperature_move",
+                "color_move",
+                "scene_1",
+                "scene_2",
+                "scene_3",
+                "scene_4",
+                "scene_5",
+                "scene_6",
+            ]),
+            e.action_group(),
+        ],
+        toZigbee: [],
+    },
+    {
+        zigbeeModel: ["ZBT-DIMController-D0800"],
+        model: "404002",
+        description: "Tint dim remote control",
+        vendor: "Müller Licht",
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.command_recall, fz.command_store],
+        exposes: [
+            e.action([
+                "on",
+                "off",
+                "brightness_step_up",
+                "brightness_step_down",
+                "brightness_move_up",
+                "brightness_move_down",
+                "brightness_stop",
+                "recall_1",
+                "store_1",
+            ]),
+        ],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genOnOff", "genLevelCtrl", "genScenes"]);
+        },
+    },
+    {
+        zigbeeModel: ["tint Smart Switch"],
+        model: "404021",
+        description: "Tint smart switch",
+        vendor: "Müller Licht",
+        extend: [m.onOff()],
+    },
+    {
+        fingerprint: [{modelID: "Remote Control", manufacturerName: "MLI"}],
+        zigbeeModel: ["tint-Remote-white"],
+        model: "404022/404049C",
+        description: "Tint dim remote control",
+        vendor: "Müller Licht",
+        fromZigbee: [
+            fz.command_on,
+            fz.command_off,
+            fz.command_step,
+            fz.command_move,
+            fz.command_stop,
+            fz.command_move_to_color_temp,
+            fz.command_move_to_color,
+            fz.tint_scene,
+        ],
+        exposes: [
+            e.action([
+                "on",
+                "off",
+                "brightness_step_up",
+                "brightness_step_down",
+                "brightness_move_up",
+                "brightness_move_down",
+                "brightness_stop",
+                "color_temperature_move",
+                "color_move",
+                "scene_1",
+                "scene_2",
+                "scene_3",
+                "scene_4",
+                "scene_5",
+                "scene_6",
+                "scene_7",
+                "scene_8",
+                "scene_9",
+                "scene_10",
+            ]),
+            e.action_group(),
+        ],
+        extend: [m.forcePowerSource({powerSource: "Battery"})],
+        whiteLabel: [
+            {
+                vendor: "Müller Licht",
+                model: "404049D",
+                description: "Tint dim remote control",
+                fingerprint: [{modelID: "Remote Control", manufacturerName: "MLI"}],
+            },
+        ],
+    },
+    {
+        zigbeeModel: ["tint-ColorTemperature", "tint-ColorTemperature2"],
+        model: "404037/404038",
+        vendor: "Müller Licht",
+        description: "CCT LED-bulb",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}})],
+    },
+    {
+        fingerprint: [
+            {
+                // Identify through fingerprint as modelID is the same as Sunricher ZG192910-4
+                type: "Router",
+                manufacturerID: 4635,
+                manufacturerName: "MLI",
+                modelID: "CCT Lighting",
+                powerSource: "Mains (single phase)",
+                endpoints: [
+                    {ID: 1, profileID: 49246, deviceID: 544, inputClusters: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusters: [25]},
+                    {ID: 242, profileID: 41440, deviceID: 102, inputClusters: [33], outputClusters: [33]},
+                ],
+            },
+        ],
+        model: "404031",
+        vendor: "Müller Licht",
+        description: "Tint Armaro",
+        extend: [mullerLichtLight({colorTemp: {range: undefined}})],
+    },
+    {
+        fingerprint: [{manufacturerName: "MLI", modelID: "Bulb white"}],
+        model: "45727",
+        vendor: "Müller Licht",
+        description: "Tint Amela 42cm, white+ambiance (1800-6500K)",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}})],
+    },
+    {
+        fingerprint: [{manufacturerName: "MLI", modelID: "Candle white+color"}],
+        model: "45730",
+        vendor: "Müller Licht",
+        description: "Tint candle E14 white+color",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
+        fingerprint: [{manufacturerName: "MLI", modelID: "Bulb white+color"}],
+        model: "45728",
+        vendor: "Müller Licht",
+        description: "Tint bulb E27 white+color",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: true})],
+    },
+    {
+        fingerprint: [{manufacturerName: "MLI", modelID: "GU10 white+color"}],
+        model: "45723",
+        vendor: "Müller Licht",
+        description: "Tint spotlight GU10 white+color",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        fingerprint: [{manufacturerName: "MLI", modelID: "Ceiling light"}],
+        model: "404122/404123",
+        vendor: "Müller Licht",
+        description: "Tint smart ceiling light Cano black/silver, white+color (1800-6500K+RGB), 21w",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        fingerprint: [{manufacturerName: "MLI", modelID: "Garden light"}],
+        model: "MDGARD401",
+        vendor: "Müller Licht",
+        description: "tint Flores Gen2 garden light",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"]}, effect: false, powerOnBehavior: false})],
+    },
+    {
+        fingerprint: [{manufacturerName: "MLI", modelID: "Desk lamp"}],
+        model: "4041xx",
+        whiteLabel: [
+            {model: "404115", vendor: "Müller Licht", description: "tint Nolia desk lamp (black)"},
+            {model: "404116", vendor: "Müller Licht", description: "tint Nolia desk lamp (white)"},
+            {model: "404117", vendor: "Müller Licht", description: "tint Nolia desk lamp (anthracite)"},
+            {model: "404135", vendor: "Müller Licht", description: "tint Dalia desk lamp (black)"},
+            {model: "404136", vendor: "Müller Licht", description: "tint Dalia desk lamp (white)"},
+            {model: "404137", vendor: "Müller Licht", description: "tint Dalia desk lamp (anthracite)"},
+        ],
+        vendor: "Müller Licht",
+        description: "tint desk lamp, white+color",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["Power Socket"],
+        model: "404078",
+        vendor: "MLI",
+        description: "tint Smart Socket Tower Outdoor",
+        extend: [m.onOff({powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ["tint Retro Bulb white+ambiance"],
+        model: "404114",
+        vendor: "MLI",
+        description: "Tint LED Bulb, E27, 806 lumen, CCT, clear",
+        extend: [m.light({colorTemp: {range: [153, 555]}})],
+    },
+];
