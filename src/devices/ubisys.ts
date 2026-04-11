@@ -118,7 +118,9 @@ const ubisys = {
                     let operationalStatus = 0;
                     do {
                         await sleepSeconds(2);
-                        const response = await entity.read("closuresWindowCovering", ["operationalStatus"]);
+                        const response = await entity.read<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", [
+                            "operationalStatus",
+                        ]);
                         operationalStatus = response.operationalStatus;
                     } while (operationalStatus !== 0);
                     await sleepSeconds(2);
@@ -139,7 +141,11 @@ const ubisys = {
                             attrValue = converterFunc(attrValue);
                         }
                         const attributes = {[attr]: attrValue};
-                        await entity.write("closuresWindowCovering", attributes, manufacturerOptions.ubisys);
+                        await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>(
+                            "closuresWindowCovering",
+                            attributes,
+                            manufacturerOptions.ubisys,
+                        );
                         if (delaySecondsAfter) {
                             await sleepSeconds(delaySecondsAfter);
                         }
@@ -151,7 +157,7 @@ const ubisys = {
                 let mode = (await entity.read("closuresWindowCovering", ["windowCoveringMode"])).windowCoveringMode;
                 const modeCalibrationBitMask = 0x02;
                 if (mode & modeCalibrationBitMask) {
-                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
+                    await entity.write("closuresWindowCovering", {
                         windowCoveringMode: mode & ~modeCalibrationBitMask,
                     });
                     await sleepSeconds(2);
@@ -187,7 +193,7 @@ const ubisys = {
                     );
                     // enable calibration mode
                     await sleepSeconds(2);
-                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
+                    await entity.write("closuresWindowCovering", {
                         windowCoveringMode: mode | modeCalibrationBitMask,
                     });
                     await sleepSeconds(2);
@@ -237,7 +243,7 @@ const ubisys = {
                     log("  Finalizing calibration...");
                     // disable calibration mode again
                     await sleepSeconds(2);
-                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
+                    await entity.write("closuresWindowCovering", {
                         windowCoveringMode: mode & ~modeCalibrationBitMask,
                     });
                     await sleepSeconds(2);

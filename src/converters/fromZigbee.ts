@@ -2073,52 +2073,6 @@ export const ias_smoke_alarm_1_develco: Fz.Converter<"ssIasZone", undefined, "co
         };
     },
 };
-export const tuya_led_controller: Fz.Converter<"lightingColorCtrl", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "lightingColorCtrl",
-    type: ["attributeReport", "readResponse"],
-    options: [exposes.options.color_sync()],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-
-        if (msg.data.colorTemperature !== undefined) {
-            const value = Number(msg.data.colorTemperature);
-            const color_temp = postfixWithEndpointName("color_temp", msg, model, meta);
-            result[color_temp] = value;
-        }
-
-        if (msg.data.tuyaBrightness !== undefined) {
-            const brightness = postfixWithEndpointName("brightness", msg, model, meta);
-            result[brightness] = msg.data.tuyaBrightness;
-        }
-
-        if (msg.data.tuyaRgbMode !== undefined) {
-            const color_mode = postfixWithEndpointName("color_mode", msg, model, meta);
-            if (msg.data.tuyaRgbMode === 1) {
-                result[color_mode] = constants.colorModeLookup[0];
-            } else {
-                result[color_mode] = constants.colorModeLookup[2];
-            }
-        }
-
-        const color = postfixWithEndpointName("color", msg, model, meta);
-        result[color] = {};
-
-        if (msg.data.currentHue !== undefined) {
-            result[color].hue = mapNumberRange(msg.data.currentHue, 0, 254, 0, 360);
-            result[color].h = result[color].hue;
-        }
-
-        if (msg.data.currentSaturation !== undefined) {
-            result[color].saturation = mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
-            result[color].s = result[color].saturation;
-        }
-
-        // Use postfixWithEndpointName with an empty value to get just the postfix that
-        // can be added to the result keys.
-        const epPostfix = postfixWithEndpointName("", msg, model, meta);
-        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
-    },
-};
 export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -2198,56 +2152,6 @@ export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport"
 
         if (msg.data["61440"] !== undefined) {
             result.alarm = msg.data["61440"] !== 0;
-        }
-        return result;
-    },
-};
-export const tuya_cover_options_2: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresWindowCovering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.moesCalibrationTime !== undefined) {
-            const value = msg.data.moesCalibrationTime / 100;
-            result[postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
-        }
-        if (msg.data.tuyaMotorReversal !== undefined) {
-            const value = msg.data.tuyaMotorReversal;
-            const reversalLookup: KeyValueAny = {0: "OFF", 1: "ON"};
-            result[postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
-        }
-        return result;
-    },
-};
-export const tuya_cover_options: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresWindowCovering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.tuyaMovingState !== undefined) {
-            const value = msg.data.tuyaMovingState;
-            const movingLookup: KeyValueAny = {0: "UP", 1: "STOP", 2: "DOWN"};
-            result[postfixWithEndpointName("moving", msg, model, meta)] = movingLookup[value];
-        }
-        if (msg.data.tuyaCalibration !== undefined) {
-            const value = msg.data.tuyaCalibration;
-            const calibrationLookup: KeyValueAny = {0: "ON", 1: "OFF"};
-            result[postfixWithEndpointName("calibration", msg, model, meta)] = calibrationLookup[value];
-        }
-        if (msg.data.tuyaMotorReversal !== undefined) {
-            const value = msg.data.tuyaMotorReversal;
-            const reversalLookup: KeyValueAny = {0: "OFF", 1: "ON"};
-            result[postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
-        }
-        if (msg.data.moesCalibrationTime !== undefined) {
-            const value = msg.data.moesCalibrationTime / 10.0;
-            if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(meta.device.manufacturerName)) {
-                const endpoint = msg.endpoint.ID;
-                const calibrationLookup: KeyValueAny = {1: "to_open", 2: "to_close"};
-                result[postfixWithEndpointName(`calibration_time_${calibrationLookup[endpoint]}`, msg, model, meta)] = value;
-            } else {
-                result[postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
-            }
         }
         return result;
     },

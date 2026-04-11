@@ -2,6 +2,7 @@ import {Zcl} from "zigbee-herdsman";
 import type {MiboxerZone} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as libColor from "../lib/color";
 import * as constants from "./constants";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
@@ -33,6 +34,17 @@ const ea = exposes.access;
 
 interface KeyValueStringEnum {
     [s: string]: Enum;
+}
+
+export interface TuyaClosuresWindowCovering {
+    attributes: {
+        tuyaMovingState: number;
+        tuyaCalibration: number;
+        tuyaMotorReversal: number;
+        moesCalibrationTime: number;
+    };
+    commands: never;
+    commandResponses: never;
 }
 
 export interface TuyaGenBasic {
@@ -79,6 +91,45 @@ export interface TuyaGenLevelCtrl {
         moveToLevelTuya: {
             level: number;
             transtime: number;
+        };
+    };
+    commandResponses: never;
+}
+
+export interface TuyaLightingColorCtrl {
+    attributes: {
+        tuyaRgbMode: number;
+        tuyaBrightness: number;
+    };
+    commands: {
+        tuyaMoveToHueAndSaturationBrightness: {
+            hue: number;
+            saturation: number;
+            transtime: number;
+            brightness: number;
+        };
+        tuyaSetMinimumBrightness: {
+            minimum: number;
+        };
+        tuyaMoveToHueAndSaturationBrightness2: {
+            hue: number;
+            saturation: number;
+            brightness: number;
+        };
+        tuyaRgbMode: {
+            enable: number;
+        };
+        tuyaOnStartUp: {
+            mode: number;
+            data: number[];
+        };
+        tuyaDoNotDisturb: {
+            enable: number;
+        };
+        tuyaOnOffTransitionTime: {
+            unknown: number;
+            onTransitionTime: number;
+            offTransitionTime: number;
         };
     };
     commandResponses: never;
@@ -774,6 +825,9 @@ export const valueConverterBasic = {
     divideBy: (value: number) => {
         return {to: (v: number) => v * value, from: (v: number) => v / value};
     },
+    multiplyBy: (value: number) => {
+        return {to: (v: number) => v / value, from: (v: number) => v * value};
+    },
     divideByFromOnly: (value: number) => {
         return {to: (v: number) => v, from: (v: number) => v / value};
     },
@@ -825,6 +879,7 @@ export const valueConverter = {
     divideBy10: valueConverterBasic.divideBy(10),
     divideBy100: valueConverterBasic.divideBy(100),
     divideBy1000: valueConverterBasic.divideBy(1000),
+    multiplyBy10: valueConverterBasic.multiplyBy(10),
     divideBy10FromOnly: valueConverterBasic.divideByFromOnly(10),
     switchMode: valueConverterBasic.lookup({switch: new Enum(0), scene: new Enum(1)}),
     switchMode2: valueConverterBasic.lookup({switch: new Enum(0), curtain: new Enum(1)}),
@@ -2102,7 +2157,11 @@ const tuyaTz = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value, key);
             const payload = {minimum: value};
-            await entity.command("lightingColorCtrl", "tuyaSetMinimumBrightness", payload);
+            await entity.command<"lightingColorCtrl", "tuyaSetMinimumBrightness", TuyaLightingColorCtrl>(
+                "lightingColorCtrl",
+                "tuyaSetMinimumBrightness",
+                payload,
+            );
             return {state: {min_brightness: value}};
         },
         // The response contains the value but as the data type, randomly
@@ -2115,7 +2174,10 @@ const tuyaTz = {
         key: ["color_power_on_behavior"],
         convertSet: async (entity, key, value, meta) => {
             const v = utils.getFromLookup(value, {initial: 0, previous: 1, customized: 2});
-            await entity.command("lightingColorCtrl", "tuyaOnStartUp", {mode: v * 256, data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]});
+            await entity.command<"lightingColorCtrl", "tuyaOnStartUp", TuyaLightingColorCtrl>("lightingColorCtrl", "tuyaOnStartUp", {
+                mode: v * 256,
+                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            });
             return {state: {color_power_on_behavior: value}};
         },
     } satisfies Tz.Converter,
@@ -2165,7 +2227,9 @@ const tuyaTz = {
     do_not_disturb: {
         key: ["do_not_disturb"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command("lightingColorCtrl", "tuyaDoNotDisturb", {enable: value ? 1 : 0});
+            await entity.command<"lightingColorCtrl", "tuyaDoNotDisturb", TuyaLightingColorCtrl>("lightingColorCtrl", "tuyaDoNotDisturb", {
+                enable: value ? 1 : 0,
+            });
             return {state: {do_not_disturb: value}};
         },
     } satisfies Tz.Converter,
@@ -2241,6 +2305,60 @@ const tuyaTz = {
             return {state: {inching_control_set: value}};
         },
     } satisfies Tz.Converter,
+    cover_calibration: {
+        key: [
+            "calibration",
+            "calibration_to_open",
+            "calibration_to_close",
+            "calibration_time",
+            "calibration_time_to_open",
+            "calibration_time_to_close",
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            if (key.startsWith("calibration_time")) {
+                utils.assertNumber(value, key);
+                const calibration_time = value * 10;
+                if (key === "calibration_time" || key === "calibration_time_to_open") {
+                    await entity.write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {
+                        moesCalibrationTime: calibration_time,
+                    });
+                } else if (key === "calibration_time_to_close") {
+                    await meta.device.getEndpoint(2).write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {
+                        moesCalibrationTime: calibration_time,
+                    });
+                }
+                return {state: {[key]: value}};
+            }
+
+            utils.assertString(value, key);
+            const lookup = {ON: 0, OFF: 1};
+            value = value.toUpperCase();
+            const calibration = utils.getFromLookup(value, lookup);
+            if (key === "calibration" || key === "calibration_to_open") {
+                await entity.write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaCalibration: calibration});
+            } else if (key === "calibration_to_close") {
+                await meta.device
+                    .getEndpoint(2)
+                    .write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaCalibration: calibration});
+            }
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            if (key === "calibration" || key === "calibration_to_open") {
+                await entity.read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaCalibration"]);
+            } else if (key === "calibration_to_close") {
+                await meta.device
+                    .getEndpoint(2)
+                    .read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaCalibration"]);
+            } else if (key === "calibration_time" || key === "calibration_time_to_open") {
+                await entity.read("closuresWindowCovering", ["moesCalibrationTime"]);
+            } else if (key === "calibration_time_to_close") {
+                await meta.device
+                    .getEndpoint(2)
+                    .read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["moesCalibrationTime"]);
+            }
+        },
+    } satisfies Tz.Converter,
     operation_mode: {
         key: ["operation_mode"],
         convertSet: async (entity, key, value, meta) => {
@@ -2285,6 +2403,193 @@ const tuyaTz = {
         convertGet: async (entity, key, meta) => {
             if (key === "state") await tz.on_off.convertGet(entity, key, meta);
             if (key === "brightness") await entity.read("genLevelCtrl", [61440]);
+        },
+    } satisfies Tz.Converter,
+    cover_reversal: {
+        key: ["motor_reversal"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, key);
+            const lookup = {ON: 1, OFF: 0};
+            value = value.toUpperCase();
+            const reversal = utils.getFromLookup(value, lookup);
+            await entity.write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaMotorReversal: reversal});
+            return {state: {motor_reversal: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaMotorReversal"]);
+        },
+    } satisfies Tz.Converter,
+    moes_cover_calibration: {
+        key: ["calibration_time"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+            const calibration = value * 10;
+            await entity.write<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", {moesCalibrationTime: calibration});
+            return {state: {calibration_time: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["moesCalibrationTime"]);
+        },
+    } satisfies Tz.Converter,
+    led_control: {
+        key: ["brightness", "color", "color_temp"],
+        options: [exposes.options.color_sync()],
+        convertSet: async (entity, key, value, meta) => {
+            if (
+                key === "brightness" &&
+                meta.state.color_mode === constants.colorModeLookup[2] &&
+                meta.message.color == null &&
+                meta.message.color_temp == null
+            ) {
+                const level = Number(value);
+
+                await entity.command(
+                    "genLevelCtrl",
+                    "moveToLevel",
+                    {level, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                    utils.getOptions(meta.mapped, entity),
+                );
+
+                globalStore.putValue(entity, "brightness", level);
+
+                return {state: {brightness: level}};
+            }
+
+            if (key === "brightness" && utils.isNumber(meta.message.color_temp)) {
+                const level = Number(value);
+
+                await entity.command<"lightingColorCtrl", "tuyaRgbMode", TuyaLightingColorCtrl>("lightingColorCtrl", "tuyaRgbMode", {enable: 0});
+                await entity.command(
+                    "lightingColorCtrl",
+                    "moveToColorTemp",
+                    {
+                        colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254),
+                        transtime: 0,
+                        optionsMask: 0,
+                        optionsOverride: 0,
+                    },
+                    utils.getOptions(meta.mapped, entity),
+                );
+                await entity.command(
+                    "genLevelCtrl",
+                    "moveToLevel",
+                    {level, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                    utils.getOptions(meta.mapped, entity),
+                );
+
+                globalStore.putValue(entity, "brightness", level);
+
+                const newState = {
+                    brightness: level,
+                    color_mode: constants.colorModeLookup[2],
+                    color_temp: meta.message.color_temp,
+                };
+
+                return {state: libColor.syncColorState(newState, meta.state, entity, meta.options)};
+            }
+
+            if (key === "color_temp") {
+                utils.assertNumber(value, key);
+                const level = globalStore.getValue(entity, "brightness") || 100;
+
+                await entity.command<"lightingColorCtrl", "tuyaRgbMode", TuyaLightingColorCtrl>("lightingColorCtrl", "tuyaRgbMode", {enable: 0});
+                await entity.command(
+                    "lightingColorCtrl",
+                    "moveToColorTemp",
+                    {colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0, optionsMask: 0, optionsOverride: 0},
+                    utils.getOptions(meta.mapped, entity),
+                );
+                await entity.command(
+                    "genLevelCtrl",
+                    "moveToLevel",
+                    {level, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                    utils.getOptions(meta.mapped, entity),
+                );
+
+                const newState = {
+                    brightness: level,
+                    color_mode: constants.colorModeLookup[2],
+                    color_temp: value,
+                };
+
+                return {state: libColor.syncColorState(newState, meta.state, entity, meta.options)};
+            }
+
+            const zclData = {
+                brightness: globalStore.getValue(entity, "brightness") || 100,
+                // @ts-expect-error ignore
+                hue: utils.mapNumberRange(meta.state.color.h, 0, 360, 0, 254) || 100,
+                // @ts-expect-error ignore
+                saturation: utils.mapNumberRange(meta.state.color.s, 0, 100, 0, 254) || 100,
+                transtime: 0,
+            };
+
+            if (utils.isObject(value)) {
+                if (value.h) {
+                    zclData.hue = utils.mapNumberRange(value.h, 0, 360, 0, 254);
+                }
+                if (value.hue) {
+                    zclData.hue = utils.mapNumberRange(value.hue, 0, 360, 0, 254);
+                }
+                if (value.s) {
+                    zclData.saturation = utils.mapNumberRange(value.s, 0, 100, 0, 254);
+                }
+                if (value.saturation) {
+                    zclData.saturation = utils.mapNumberRange(value.saturation, 0, 100, 0, 254);
+                }
+                if (value.b) {
+                    zclData.brightness = Number(value.b);
+                }
+                if (value.brightness) {
+                    zclData.brightness = Number(value.brightness);
+                }
+                if (typeof value === "number") {
+                    zclData.brightness = value;
+                }
+            }
+
+            if (meta.message.color != null) {
+                if (utils.isObject(meta.message.color)) {
+                    if (meta.message.color.h) {
+                        zclData.hue = utils.mapNumberRange(meta.message.color.h, 0, 360, 0, 254);
+                    }
+                    if (meta.message.color.s) {
+                        zclData.saturation = utils.mapNumberRange(meta.message.color.s, 0, 100, 0, 254);
+                    }
+                    if (meta.message.color.b) {
+                        zclData.brightness = Number(meta.message.color.b);
+                    }
+                    if (meta.message.color.brightness) {
+                        zclData.brightness = Number(meta.message.color.brightness);
+                    }
+                }
+            }
+
+            await entity.command<"lightingColorCtrl", "tuyaRgbMode", TuyaLightingColorCtrl>("lightingColorCtrl", "tuyaRgbMode", {enable: 1});
+            await entity.command<"lightingColorCtrl", "tuyaMoveToHueAndSaturationBrightness", TuyaLightingColorCtrl>(
+                "lightingColorCtrl",
+                "tuyaMoveToHueAndSaturationBrightness",
+                zclData,
+                utils.getOptions(meta.mapped, entity),
+            );
+
+            globalStore.putValue(entity, "brightness", zclData.brightness);
+
+            const newState = {
+                brightness: zclData.brightness,
+                color: {
+                    h: utils.mapNumberRange(zclData.hue, 0, 254, 0, 360),
+                    hue: utils.mapNumberRange(zclData.hue, 0, 254, 0, 360),
+                    s: utils.mapNumberRange(zclData.saturation, 0, 254, 0, 100),
+                    saturation: utils.mapNumberRange(zclData.saturation, 0, 254, 0, 100),
+                },
+                color_mode: constants.colorModeLookup[0],
+            };
+
+            return {state: libColor.syncColorState(newState, meta.state, entity, meta.options)};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("lightingColorCtrl", ["currentHue", "currentSaturation", "tuyaBrightness", "tuyaRgbMode", "colorTemperature"]);
         },
     } satisfies Tz.Converter,
 };
@@ -2558,6 +2863,56 @@ const tuyaFz = {
             return result;
         },
     } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
+    cover_options: {
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.tuyaMovingState !== undefined) {
+                const value = msg.data.tuyaMovingState;
+                const movingLookup: KeyValueAny = {0: "UP", 1: "STOP", 2: "DOWN"};
+                result[utils.postfixWithEndpointName("moving", msg, model, meta)] = movingLookup[value];
+            }
+            if (msg.data.tuyaCalibration !== undefined) {
+                const value = msg.data.tuyaCalibration;
+                const calibrationLookup: KeyValueAny = {0: "ON", 1: "OFF"};
+                result[utils.postfixWithEndpointName("calibration", msg, model, meta)] = calibrationLookup[value];
+            }
+            if (msg.data.tuyaMotorReversal !== undefined) {
+                const value = msg.data.tuyaMotorReversal;
+                const reversalLookup: KeyValueAny = {0: "OFF", 1: "ON"};
+                result[utils.postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
+            }
+            if (msg.data.moesCalibrationTime !== undefined) {
+                const value = msg.data.moesCalibrationTime / 10.0;
+                if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(meta.device.manufacturerName)) {
+                    const endpoint = msg.endpoint.ID;
+                    const calibrationLookup: KeyValueAny = {1: "to_open", 2: "to_close"};
+                    result[utils.postfixWithEndpointName(`calibration_time_${calibrationLookup[endpoint]}`, msg, model, meta)] = value;
+                } else {
+                    result[utils.postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
+    cover_options_2: {
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.moesCalibrationTime !== undefined) {
+                const value = msg.data.moesCalibrationTime / 100;
+                result[utils.postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
+            }
+            if (msg.data.tuyaMotorReversal !== undefined) {
+                const value = msg.data.tuyaMotorReversal;
+                const reversalLookup: KeyValueAny = {0: "OFF", 1: "ON"};
+                result[utils.postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
     operation_mode: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -2599,6 +2954,52 @@ const tuyaFz = {
             return {action};
         },
     } satisfies Fz.Converter<"genOnOff", TuyaGenOnOff, ["commandTuyaAction", "commandTuyaAction2"]>,
+    led_controller: {
+        cluster: "lightingColorCtrl",
+        type: ["attributeReport", "readResponse"],
+        options: [exposes.options.color_sync()],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+
+            if (msg.data.colorTemperature !== undefined) {
+                const value = Number(msg.data.colorTemperature);
+                const color_temp = utils.postfixWithEndpointName("color_temp", msg, model, meta);
+                result[color_temp] = value;
+            }
+
+            if (msg.data.tuyaBrightness !== undefined) {
+                const brightness = utils.postfixWithEndpointName("brightness", msg, model, meta);
+                result[brightness] = msg.data.tuyaBrightness;
+            }
+
+            if (msg.data.tuyaRgbMode !== undefined) {
+                const color_mode = utils.postfixWithEndpointName("color_mode", msg, model, meta);
+                if (msg.data.tuyaRgbMode === 1) {
+                    result[color_mode] = constants.colorModeLookup[0];
+                } else {
+                    result[color_mode] = constants.colorModeLookup[2];
+                }
+            }
+
+            const color = utils.postfixWithEndpointName("color", msg, model, meta);
+            result[color] = {};
+
+            if (msg.data.currentHue !== undefined) {
+                result[color].hue = utils.mapNumberRange(msg.data.currentHue, 0, 254, 0, 360);
+                result[color].h = result[color].hue;
+            }
+
+            if (msg.data.currentSaturation !== undefined) {
+                result[color].saturation = utils.mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
+                result[color].s = result[color].saturation;
+            }
+
+            // Use postfixWithEndpointName with an empty value to get just the postfix that
+            // can be added to the result keys.
+            const epPostfix = utils.postfixWithEndpointName("", msg, model, meta);
+            return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", TuyaLightingColorCtrl, ["attributeReport", "readResponse"]>,
 };
 
 export {tuyaFz as fz};
@@ -3285,6 +3686,10 @@ const tuyaModernExtend = {
             result.exposes.push(tuyaExposes.colorPowerOnBehavior());
         }
 
+        const tuyaLightingColorCtrl = tuyaClusters.addTuyaLightingColorCtrlCluster();
+        result.onEvent = [...(tuyaLightingColorCtrl.onEvent ?? []), ...(result.onEvent ?? [])];
+        result.configure = [...(tuyaLightingColorCtrl.configure ?? []), ...(result.configure ?? [])];
+
         result.configure.push(configureSetPowerSourceWhenUnknown("Mains (single phase)"));
 
         return result;
@@ -3715,6 +4120,19 @@ const tuyaModernExtend = {
 export {tuyaModernExtend as modernExtend};
 
 const tuyaClusters = {
+    addTuyaClosuresWindowCoveringCluster: () =>
+        modernExtend.deviceAddCustomCluster("closuresWindowCovering", {
+            name: "closuresWindowCovering",
+            ID: Zcl.Clusters.closuresWindowCovering.ID,
+            attributes: {
+                tuyaMovingState: {name: "tuyaMovingState", ID: 0xf000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                tuyaCalibration: {name: "tuyaCalibration", ID: 0xf001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                tuyaMotorReversal: {name: "tuyaMotorReversal", ID: 0xf002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                moesCalibrationTime: {name: "moesCalibrationTime", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
     addTuyaGenBasicCluster: () =>
         modernExtend.deviceAddCustomCluster("genBasic", {
             name: "genBasic",
@@ -3775,6 +4193,61 @@ const tuyaClusters = {
                     parameters: [
                         {name: "level", type: Zcl.DataType.UINT16, max: 0xffff},
                         {name: "transtime", type: Zcl.DataType.UINT16, max: 0xffff},
+                    ],
+                },
+            },
+            commandsResponse: {},
+        }),
+    addTuyaLightingColorCtrlCluster: () =>
+        modernExtend.deviceAddCustomCluster("lightingColorCtrl", {
+            name: "lightingColorCtrl",
+            ID: Zcl.Clusters.lightingColorCtrl.ID,
+            attributes: {
+                tuyaRgbMode: {name: "tuyaRgbMode", ID: 0xf000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                tuyaBrightness: {name: "tuyaBrightness", ID: 0xf001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            },
+            commands: {
+                tuyaMoveToHueAndSaturationBrightness: {
+                    name: "tuyaMoveToHueAndSaturationBrightness",
+                    ID: 0x06,
+                    parameters: [
+                        {name: "hue", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "saturation", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "transtime", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "brightness", type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },
+                tuyaSetMinimumBrightness: {
+                    name: "tuyaSetMinimumBrightness",
+                    ID: 0xe0,
+                    parameters: [{name: "minimum", type: Zcl.DataType.UINT16, max: 0xffff}],
+                },
+                tuyaMoveToHueAndSaturationBrightness2: {
+                    name: "tuyaMoveToHueAndSaturationBrightness2",
+                    ID: 0xe1,
+                    parameters: [
+                        {name: "hue", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "saturation", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "brightness", type: Zcl.DataType.UINT16, max: 0xffff},
+                    ],
+                },
+                tuyaRgbMode: {name: "tuyaRgbMode", ID: 0xf0, parameters: [{name: "enable", type: Zcl.DataType.UINT8, max: 0xff}]},
+                tuyaOnStartUp: {
+                    name: "tuyaOnStartUp",
+                    ID: 0xf9,
+                    parameters: [
+                        {name: "mode", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8},
+                    ],
+                },
+                tuyaDoNotDisturb: {name: "tuyaDoNotDisturb", ID: 0xfa, parameters: [{name: "enable", type: Zcl.DataType.UINT8, max: 0xff}]},
+                tuyaOnOffTransitionTime: {
+                    name: "tuyaOnOffTransitionTime",
+                    ID: 0xfb,
+                    parameters: [
+                        {name: "unknown", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "onTransitionTime", type: Zcl.BuffaloZclDataType.BIG_ENDIAN_UINT24},
+                        {name: "offTransitionTime", type: Zcl.BuffaloZclDataType.BIG_ENDIAN_UINT24},
                     ],
                 },
             },

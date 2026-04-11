@@ -4,6 +4,7 @@ import type {DummyDevice, Fz, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from
 import * as utils from "../lib/utils";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
+import type {TuyaClosuresWindowCovering} from "./tuya";
 
 const NS = "zhc:legrand";
 const e = exposes.presets;
@@ -437,7 +438,7 @@ export const fzLegrand = {
             }
             return payload;
         },
-    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"closuresWindowCovering", TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
     identify: {
         cluster: "genIdentify",
         type: ["attributeReport", "readResponse"],
