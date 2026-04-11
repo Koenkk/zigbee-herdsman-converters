@@ -38,7 +38,7 @@ const NS = "zhc:plugwise";
  *   §11 msRelativeHumidity
  */
 
-const PLUGWISE_MFG_CODE = 0x1172;
+const PLUGWISE_MFG_CODE = Zcl.ManufacturerCode.PLUGWISE_B_V;
 
 // hvacThermostat standard attribute IDs
 const ATTR_OUTDOOR_TEMP = 0x0001; // INT16S   outdoor temperature
