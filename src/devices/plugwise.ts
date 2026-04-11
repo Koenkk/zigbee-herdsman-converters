@@ -554,7 +554,9 @@ const tzLocal = {
     max_setpoints: {
         key: ["max_dhw_setpoint", "max_boiler_setpoint"],
         convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== "number" || value < 30 || value > 100) throw new Error(`${key} must be 30–100 °C (write 0 to clear / use default)`);
+            if (typeof value !== "number" || value > 100 || (value !== 0 && value < 30)) {
+                throw new Error(`${key} must be 0 or 30–100 °C (write 0 to clear / use default)`);
+            }
             const attrId = key === "max_dhw_setpoint" ? ATTR_MAX_DHW_SETPOINT : ATTR_MAX_BOILER_SETPOINT;
             await entity.write(
                 "hvacThermostat",
@@ -825,7 +827,7 @@ export const definitions: DefinitionWithExtend[] = [
                         "bit3=gas_flame_fault, bit4=air_pressure_fault, bit5=water_over_temp)",
                 ),
 
-            exposes.text("application_fault_flags", ea.STATE).withDescription("OpenTherm Active fault flags, comma-separated"),
+            exposes.text("application_fault_flags", ea.STATE_GET).withDescription("OpenTherm Active fault flags, comma-separated"),
 
             exposes.numeric("oem_fault_code", ea.STATE_GET).withValueMin(0).withValueMax(255).withDescription("OpenTherm OEM-specific fault code"),
 
@@ -877,18 +879,18 @@ export const definitions: DefinitionWithExtend[] = [
             exposes
                 .numeric("max_dhw_setpoint", ea.ALL)
                 .withUnit("°C")
-                .withValueMin(30)
+                .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(0.01)
-                .withDescription("Maximum DHW setpoint sent to boiler via OpenTherm (requires Unlock External Control)"),
+                .withDescription("Maximum DHW setpoint sent to boiler via OpenTherm (0 = clear / use default, requires Unlock External Control)"),
 
             exposes
                 .numeric("max_boiler_setpoint", ea.ALL)
                 .withUnit("°C")
-                .withValueMin(30)
+                .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(0.01)
-                .withDescription("Maximum CH boiler setpoint sent via OpenTherm (requires Unlock External Control)"),
+                .withDescription("Maximum CH boiler setpoint sent via OpenTherm (0 = clear / use default, requires Unlock External Control)"),
 
             // ── Device info ───────────────────────────────────────────────────────
             exposes.text("product_code", ea.STATE_GET).withDescription("Boiler protocol"),
