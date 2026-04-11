@@ -824,9 +824,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("%")
                 .withValueMin(0)
                 .withValueMax(100)
-                .withDescription("PI heating demand value in %"),
+                .withDescription("PI heating demand value as a percentage, where 0% means no heat is demanded and 100% means maximum heat is demanded"),
 
-            exposes.numeric("boiler_water_temperature", ea.STATE_GET).withUnit("°C").withDescription("PI heating demand value as a percentage"),
+            exposes.numeric("boiler_water_temperature", ea.STATE_GET).withUnit("°C"),
             exposes.numeric("dhw_temperature", ea.STATE_GET).withUnit("°C"),
 
             exposes.numeric("return_water_temperature", ea.STATE_GET).withUnit("°C"),
