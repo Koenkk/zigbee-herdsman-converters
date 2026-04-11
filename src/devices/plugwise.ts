@@ -249,26 +249,6 @@ const fzLocal = {
             return Object.keys(r).length ? r : undefined;
         },
     } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
-
-    temperature: {
-        cluster: "msTemperatureMeasurement",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg) => {
-            const measuredValue = (msg.data as KeyValue).measuredValue;
-            if (typeof measuredValue !== "number") return undefined;
-            return {temperature: measuredValue / 100};
-        },
-    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
-
-    humidity: {
-        cluster: "msRelativeHumidity",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg) => {
-            const measuredValue = (msg.data as KeyValue).measuredValue;
-            if (typeof measuredValue !== "number") return undefined;
-            return {humidity: measuredValue / 100};
-        },
-    } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
