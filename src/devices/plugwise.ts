@@ -413,14 +413,10 @@ const tzLocal = {
     } satisfies Tz.Converter,
 
     thermostat_read: {
-        key: ["running_state", "pi_heating_demand", "outdoor_temperature"],
+        key: ["outdoor_temperature"],
         convertGet: async (entity, key, meta) => {
-            if (key === "pi_heating_demand") {
-                await entity.read("hvacThermostat", ["pIHeatingDemand"]);
-            } else if (key === "outdoor_temperature") {
+            if (key === "outdoor_temperature") {
                 await entity.read("hvacThermostat", [ATTR_OUTDOOR_TEMP]);
-            } else if (key === "running_state") {
-                await entity.read("hvacThermostat", [ATTR_RUNNING_STATE]);
             }
         },
     } satisfies Tz.Converter,
@@ -756,6 +752,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [fzLocal.emma_thermostat_extra, fzLocal.keypad_lockout, fzLocal.basic_info, fzLocal.emma_battery_extra],
         toZigbee: [
+            tzLocal.thermostat_read,
             tzLocal.keypad_lockout,
             tzLocal.battery,
             tzLocal.external_heat_demand,
