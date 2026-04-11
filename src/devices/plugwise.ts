@@ -614,7 +614,7 @@ const tzLocal = {
         key: ["read_all_attributes"],
         convertSet: async (entity, key, value, meta) => {
             if (value !== "trigger") {
-                throw new Error(`read_all_attributes must be \"trigger\", got ${String(value)}`);
+                throw new Error(`read_all_attributes must be "trigger", got ${String(value)}`);
             }
 
             // ── genBasic — read one at a time to avoid INSUFFICIENT_SPACE ────
