@@ -339,8 +339,8 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
 
-    battery: {
-        key: ["battery", "battery_type"],
+    battery_type: {
+        key: ["battery_type"],
         convertSet: async (entity, key, value, meta) => {
             if (key !== "battery_type") return undefined;
             if (typeof value !== "string") throw new Error(`battery_type must be a string, got ${typeof value}`);
@@ -646,7 +646,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [
             tzLocal.thermostat_read,
             tzLocal.keypad_lockout,
-            tzLocal.battery,
+            tzLocal.battery_type,
             tzLocal.external_heat_demand,
             tzLocal.external_heat_demand_timeout,
             tzLocal.max_setpoints,
