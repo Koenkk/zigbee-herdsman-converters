@@ -2,6 +2,7 @@ import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
@@ -9,6 +10,7 @@ import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const NS = "zhc:plugwise";
 
 /**
  * Zigbee2MQTT external converter for the Plugwise Emma Wired Pro / Emma Wireless thermostat (model 170-01).
@@ -202,22 +204,25 @@ const fzLocal = {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg) => {
-            const d = msg.data;
-            const r = {};
+            const d = msg.data as KeyValue;
+            const r: KeyValue = {};
 
             // Standard attributes
-            if (d.localTemperatureCalibration != null) r.local_temperature_calibration = d.localTemperatureCalibration / 100;
-            if (d.occupiedHeatingSetpoint != null) r.occupied_heating_setpoint = d.occupiedHeatingSetpoint / 100;
-            if (d.occupiedCoolingSetpoint != null) r.occupied_cooling_setpoint = d.occupiedCoolingSetpoint / 100;
-            if (d.minHeatSetpointLimit != null) r.min_heat_setpoint_limit = d.minHeatSetpointLimit / 100;
-            if (d.maxHeatSetpointLimit != null) r.max_heat_setpoint_limit = d.maxHeatSetpointLimit / 100;
-            if (d.minCoolSetpointLimit != null) r.min_cool_setpoint_limit = d.minCoolSetpointLimit / 100;
-            if (d.maxCoolSetpointLimit != null) r.max_cool_setpoint_limit = d.maxCoolSetpointLimit / 100;
-            if (d.systemMode != null) r.system_mode = SYS_MODE_TO_STR[d.systemMode] || `unknown(${d.systemMode})`;
-            if (d.pIHeatingDemand != null) r.pi_heating_demand = d.pIHeatingDemand;
+            if (typeof d.localTemperatureCalibration === "number") r.local_temperature_calibration = d.localTemperatureCalibration / 100;
+            if (typeof d.occupiedHeatingSetpoint === "number") r.occupied_heating_setpoint = d.occupiedHeatingSetpoint / 100;
+            if (typeof d.occupiedCoolingSetpoint === "number") r.occupied_cooling_setpoint = d.occupiedCoolingSetpoint / 100;
+            if (typeof d.minHeatSetpointLimit === "number") r.min_heat_setpoint_limit = d.minHeatSetpointLimit / 100;
+            if (typeof d.maxHeatSetpointLimit === "number") r.max_heat_setpoint_limit = d.maxHeatSetpointLimit / 100;
+            if (typeof d.minCoolSetpointLimit === "number") r.min_cool_setpoint_limit = d.minCoolSetpointLimit / 100;
+            if (typeof d.maxCoolSetpointLimit === "number") r.max_cool_setpoint_limit = d.maxCoolSetpointLimit / 100;
+            if (typeof d.systemMode === "number") {
+                const systemMode = d.systemMode;
+                r.system_mode = SYS_MODE_TO_STR[systemMode as keyof typeof SYS_MODE_TO_STR] ?? `unknown(${systemMode})`;
+            }
+            if (typeof d.pIHeatingDemand === "number") r.pi_heating_demand = d.pIHeatingDemand;
 
             const rawOT = d.outdoorTemperature != null ? d.outdoorTemperature : d[ATTR_OUTDOOR_TEMP];
-            if (rawOT != null) r.outdoor_temperature = rawOT / 100;
+            if (typeof rawOT === "number") r.outdoor_temperature = rawOT / 100;
 
             // Attr 0x0029 — herdsman may use thermostatRunningState, runningState, or numeric key
             const rawRS =
@@ -228,52 +233,56 @@ const fzLocal = {
                       : d[ATTR_RUNNING_STATE] != null
                         ? d[ATTR_RUNNING_STATE]
                         : null;
-            if (rawRS != null) r.running_state = RUNNING_STATE_MAP[rawRS] != null ? RUNNING_STATE_MAP[rawRS] : "idle";
+            if (typeof rawRS === "number") {
+                r.running_state = RUNNING_STATE_MAP[rawRS as keyof typeof RUNNING_STATE_MAP] ?? "idle";
+            }
 
             // Manufacturer-specific (mfgCode 0x1172)
-            if (d[ATTR_EXT_HEAT_DEMAND] != null) r.external_heat_demand = d[ATTR_EXT_HEAT_DEMAND] / 100;
-            if (d[ATTR_EXT_HEAT_DEMAND_TIMEOUT] != null) r.external_heat_demand_timeout = d[ATTR_EXT_HEAT_DEMAND_TIMEOUT];
+            if (typeof d[ATTR_EXT_HEAT_DEMAND] === "number") r.external_heat_demand = d[ATTR_EXT_HEAT_DEMAND] / 100;
+            if (typeof d[ATTR_EXT_HEAT_DEMAND_TIMEOUT] === "number") r.external_heat_demand_timeout = d[ATTR_EXT_HEAT_DEMAND_TIMEOUT];
 
             // OpenTherm boiler readings (read-only, firmware-reported)
-            if (d[ATTR_BOILER_WATER_TEMP] != null) r.boiler_water_temperature = d[ATTR_BOILER_WATER_TEMP] / 100;
-            if (d[ATTR_DHW_TEMP] != null) r.dhw_temperature = d[ATTR_DHW_TEMP] / 100;
-            if (d[ATTR_RETURN_WATER_TEMP] != null) r.return_water_temperature = d[ATTR_RETURN_WATER_TEMP] / 100;
-            if (d[ATTR_APP_FAULT_CODE] != null) {
+            if (typeof d[ATTR_BOILER_WATER_TEMP] === "number") r.boiler_water_temperature = d[ATTR_BOILER_WATER_TEMP] / 100;
+            if (typeof d[ATTR_DHW_TEMP] === "number") r.dhw_temperature = d[ATTR_DHW_TEMP] / 100;
+            if (typeof d[ATTR_RETURN_WATER_TEMP] === "number") r.return_water_temperature = d[ATTR_RETURN_WATER_TEMP] / 100;
+            if (typeof d[ATTR_APP_FAULT_CODE] === "number") {
                 const v = d[ATTR_APP_FAULT_CODE];
                 r.application_fault_code = v;
                 const active = APP_FAULT_BITS.filter((f) => v & f.bit).map((f) => f.name);
                 r.application_fault_flags = active.length ? active.join(", ") : "none";
             }
-            if (d[ATTR_OEM_FAULT_CODE] != null) r.oem_fault_code = d[ATTR_OEM_FAULT_CODE];
+            if (typeof d[ATTR_OEM_FAULT_CODE] === "number") r.oem_fault_code = d[ATTR_OEM_FAULT_CODE];
 
             // Max setpoints (mfgCode 0x1172, INT16S, hundredths °C)
-            if (d[ATTR_MAX_DHW_SETPOINT] != null) r.max_dhw_setpoint = d[ATTR_MAX_DHW_SETPOINT] / 100;
-            if (d[ATTR_MAX_BOILER_SETPOINT] != null) r.max_boiler_setpoint = d[ATTR_MAX_BOILER_SETPOINT] / 100;
+            if (typeof d[ATTR_MAX_DHW_SETPOINT] === "number") r.max_dhw_setpoint = d[ATTR_MAX_DHW_SETPOINT] / 100;
+            if (typeof d[ATTR_MAX_BOILER_SETPOINT] === "number") r.max_boiler_setpoint = d[ATTR_MAX_BOILER_SETPOINT] / 100;
 
             return Object.keys(r).length ? r : undefined;
         },
-    },
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 
     keypad_lockout: {
         cluster: "hvacUserInterfaceCfg",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg) => {
-            if (msg.data.keypadLockout == null) return undefined;
-            const v = msg.data.keypadLockout;
-            return {keypad_lockout: KEYPAD_LOCKOUT_TO_STR[v] || `unknown(${v})`};
+            const keypadLockout = (msg.data as KeyValue).keypadLockout;
+            if (typeof keypadLockout !== "number") return undefined;
+            return {
+                keypad_lockout: KEYPAD_LOCKOUT_TO_STR[keypadLockout as keyof typeof KEYPAD_LOCKOUT_TO_STR] ?? `unknown(${keypadLockout})`,
+            };
         },
-    },
+    } satisfies Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]>,
 
     basic_info: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg) => {
-            const d = msg.data;
-            const r = {};
+            const d = msg.data as KeyValue;
+            const r: KeyValue = {};
             const rawCode = d[ATTR_PRODUCT_CODE] != null ? d[ATTR_PRODUCT_CODE] : d.productCode;
             if (rawCode != null) r.product_code = decodeOctetString(rawCode);
             const ps = d[ATTR_POWER_SOURCE] != null ? d[ATTR_POWER_SOURCE] : d.powerSource;
-            if (ps != null) r.power_source = POWER_SOURCE_MAP[ps] || `unknown(0x${ps.toString(16)})`;
+            if (typeof ps === "number") r.power_source = POWER_SOURCE_MAP[ps as keyof typeof POWER_SOURCE_MAP] ?? `unknown(0x${ps.toString(16)})`;
             const sw = d[ATTR_SW_BUILD_ID] != null ? d[ATTR_SW_BUILD_ID] : d.swBuildId;
             if (sw != null) r.firmware_version = decodeOctetString(sw);
             const url = d[ATTR_PRODUCT_URL] != null ? d[ATTR_PRODUCT_URL] : d.productUrl;
@@ -282,37 +291,42 @@ const fzLocal = {
             if (d.modelId != null) r.model_id = decodeOctetString(d.modelId);
             return Object.keys(r).length ? r : undefined;
         },
-    },
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
 
     battery: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg) => {
-            const r = {};
-            if (msg.data.batteryPercentageRemaining != null) r.battery = Math.round(msg.data.batteryPercentageRemaining / 2);
-            if (msg.data[ATTR_BATTERY_TYPE] != null)
-                r.battery_type = BATTERY_TYPE_MAP[msg.data[ATTR_BATTERY_TYPE]] || `unknown(${msg.data[ATTR_BATTERY_TYPE]})`;
+            const d = msg.data as KeyValue;
+            const r: KeyValue = {};
+            if (typeof d.batteryPercentageRemaining === "number") r.battery = Math.round(d.batteryPercentageRemaining / 2);
+            if (typeof d[ATTR_BATTERY_TYPE] === "number") {
+                const batteryType = d[ATTR_BATTERY_TYPE];
+                r.battery_type = BATTERY_TYPE_MAP[batteryType as keyof typeof BATTERY_TYPE_MAP] ?? `unknown(${batteryType})`;
+            }
             return Object.keys(r).length ? r : undefined;
         },
-    },
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
 
     temperature: {
         cluster: "msTemperatureMeasurement",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg) => {
-            if (msg.data.measuredValue == null) return undefined;
-            return {temperature: msg.data.measuredValue / 100};
+            const measuredValue = (msg.data as KeyValue).measuredValue;
+            if (typeof measuredValue !== "number") return undefined;
+            return {temperature: measuredValue / 100};
         },
-    },
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
 
     humidity: {
         cluster: "msRelativeHumidity",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg) => {
-            if (msg.data.measuredValue == null) return undefined;
-            return {humidity: msg.data.measuredValue / 100};
+            const measuredValue = (msg.data as KeyValue).measuredValue;
+            if (typeof measuredValue !== "number") return undefined;
+            return {humidity: measuredValue / 100};
         },
-    },
+    } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -403,15 +417,22 @@ const tzLocal = {
                 min_cool_setpoint_limit: {attr: "minCoolSetpointLimit", scale: 100},
                 max_cool_setpoint_limit: {attr: "maxCoolSetpointLimit", scale: 100},
                 local_temperature_calibration: {attr: "localTemperatureCalibration", scale: 100, type: ZCL_INT16S},
-            };
+            } as const;
             if (key === "system_mode") {
-                const mode = SYS_MODE_TO_INT[value];
+                if (typeof value !== "string") throw new Error(`system_mode must be a string, got ${typeof value}`);
+                const mode = SYS_MODE_TO_INT[value as keyof typeof SYS_MODE_TO_INT];
                 if (mode === undefined) throw new Error(`Unknown system_mode: ${value}`);
                 await entity.write("hvacThermostat", {systemMode: mode});
-            } else {
-                const m = attrMap[key];
-                const payload = m.type ? {[m.attr]: {value: Math.round(value * m.scale), type: m.type}} : {[m.attr]: Math.round(value * m.scale)};
+            } else if (key in attrMap) {
+                if (typeof value !== "number") throw new Error(`${key} must be a number`);
+                const thermostatKey = key as keyof typeof attrMap;
+                const mappedAttr = attrMap[thermostatKey];
+                const payload = "type" in mappedAttr
+                    ? {[mappedAttr.attr]: {value: Math.round(value * mappedAttr.scale), type: mappedAttr.type}}
+                    : {[mappedAttr.attr]: Math.round(value * mappedAttr.scale)};
                 await entity.write("hvacThermostat", payload);
+            } else {
+                return;
             }
             return {state: {[key]: value}};
         },
@@ -425,10 +446,10 @@ const tzLocal = {
                 max_heat_setpoint_limit: "maxHeatSetpointLimit",
                 min_cool_setpoint_limit: "minCoolSetpointLimit",
                 max_cool_setpoint_limit: "maxCoolSetpointLimit",
-            };
-            if (getMap[key]) await entity.read("hvacThermostat", [getMap[key]]);
+            } as const;
+            if (key in getMap) await entity.read("hvacThermostat", [getMap[key as keyof typeof getMap]]);
         },
-    },
+    } satisfies Tz.Converter,
 
     thermostat_read: {
         key: ["running_state", "pi_heating_demand", "outdoor_temperature"],
@@ -437,19 +458,20 @@ const tzLocal = {
                 running_state: "thermostatRunningState",
                 pi_heating_demand: "pIHeatingDemand",
                 outdoor_temperature: "outdoorTemperature",
-            };
-            if (getMap[key]) {
-                await entity.read("hvacThermostat", [getMap[key]]);
+            } as const;
+            if (key in getMap) {
+                await entity.read("hvacThermostat", [getMap[key as keyof typeof getMap]]);
             } else if (key === "running_state") {
                 await entity.read("hvacThermostat", [ATTR_RUNNING_STATE]);
             }
         },
-    },
+    } satisfies Tz.Converter,
 
     keypad_lockout: {
         key: ["keypad_lockout"],
         convertSet: async (entity, key, value, meta) => {
-            const v = KEYPAD_LOCKOUT_TO_INT[value];
+            if (typeof value !== "string") throw new Error(`keypad_lockout must be a string, got ${typeof value}`);
+            const v = KEYPAD_LOCKOUT_TO_INT[value as keyof typeof KEYPAD_LOCKOUT_TO_INT];
             if (v === undefined) throw new Error(`Unknown keypad_lockout: ${value}`);
             await entity.write("hvacUserInterfaceCfg", {keypadLockout: v});
             return {state: {keypad_lockout: value}};
@@ -457,31 +479,32 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacUserInterfaceCfg", ["keypadLockout"]);
         },
-    },
+    } satisfies Tz.Converter,
 
     temperature: {
         key: ["temperature"],
         convertGet: async (entity, key, meta) => {
             await entity.read("msTemperatureMeasurement", ["measuredValue"]);
         },
-    },
+    } satisfies Tz.Converter,
 
     humidity: {
         key: ["humidity"],
         convertGet: async (entity, key, meta) => {
             await entity.read("msRelativeHumidity", ["measuredValue"]);
         },
-    },
+    } satisfies Tz.Converter,
 
     battery: {
         key: ["battery", "battery_type"],
         convertSet: async (entity, key, value, meta) => {
             if (key !== "battery_type") return undefined;
-            const val = Object.keys(BATTERY_TYPE_MAP).find((k) => BATTERY_TYPE_MAP[k] === value);
-            if (val === undefined) throw new Error(`Unknown battery_type: ${value}`);
+            if (typeof value !== "string") throw new Error(`battery_type must be a string, got ${typeof value}`);
+            const batteryTypeEntry = Object.entries(BATTERY_TYPE_MAP).find(([, label]) => label === value);
+            if (batteryTypeEntry === undefined) throw new Error(`Unknown battery_type: ${value}`);
             await entity.write(
                 "genPowerCfg",
-                {[ATTR_BATTERY_TYPE]: {value: Number.parseInt(val, 16), type: ZCL_ENUM8}},
+                {[ATTR_BATTERY_TYPE]: {value: Number(batteryTypeEntry[0]), type: ZCL_ENUM8}},
                 {manufacturerCode: PLUGWISE_MFG_CODE},
             );
             return {state: {battery_type: value}};
@@ -493,7 +516,7 @@ const tzLocal = {
                 await entity.read("genPowerCfg", ["batteryPercentageRemaining"]);
             }
         },
-    },
+    } satisfies Tz.Converter,
 
     external_heat_demand: {
         key: ["external_heat_demand"],
@@ -509,7 +532,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacThermostat", [ATTR_EXT_HEAT_DEMAND], {manufacturerCode: PLUGWISE_MFG_CODE});
         },
-    },
+    } satisfies Tz.Converter,
 
     external_heat_demand_timeout: {
         key: ["external_heat_demand_timeout"],
@@ -521,7 +544,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read("hvacThermostat", [ATTR_EXT_HEAT_DEMAND_TIMEOUT], {manufacturerCode: PLUGWISE_MFG_CODE});
         },
-    },
+    } satisfies Tz.Converter,
 
     max_setpoints: {
         key: ["max_dhw_setpoint", "max_boiler_setpoint"],
@@ -539,7 +562,7 @@ const tzLocal = {
             const attrId = key === "max_dhw_setpoint" ? ATTR_MAX_DHW_SETPOINT : ATTR_MAX_BOILER_SETPOINT;
             await entity.read("hvacThermostat", [attrId], {manufacturerCode: PLUGWISE_MFG_CODE});
         },
-    },
+    } satisfies Tz.Converter,
 
     boiler_ot_readings: {
         key: [
@@ -558,10 +581,12 @@ const tzLocal = {
                 application_fault_code: ATTR_APP_FAULT_CODE,
                 application_fault_flags: ATTR_APP_FAULT_CODE,
                 oem_fault_code: ATTR_OEM_FAULT_CODE,
-            };
-            await entity.read("hvacThermostat", [attrMap[key]], {manufacturerCode: PLUGWISE_MFG_CODE});
+            } as const;
+            if (key in attrMap) {
+                await entity.read("hvacThermostat", [attrMap[key as keyof typeof attrMap]], {manufacturerCode: PLUGWISE_MFG_CODE});
+            }
         },
-    },
+    } satisfies Tz.Converter,
 
     basic_info: {
         key: ["product_code", "power_source", "firmware_version", "product_url", "manufacturer_name", "model_id"],
@@ -573,10 +598,10 @@ const tzLocal = {
                 product_url: ATTR_PRODUCT_URL,
                 manufacturer_name: "manufacturerName",
                 model_id: "modelId",
-            };
-            await entity.read("genBasic", [attrMap[key]]);
+            } as const;
+            if (key in attrMap) await entity.read("genBasic", [attrMap[key as keyof typeof attrMap]]);
         },
-    },
+    } satisfies Tz.Converter,
 
     read_all: {
         key: ["read_all_attributes"],
@@ -660,7 +685,7 @@ const tzLocal = {
             // ── msRelativeHumidity ────────────────────────────────────────────
             await entity.read("msRelativeHumidity", ["measuredValue"]);
         },
-    },
+    } satisfies Tz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -873,8 +898,11 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.enum("read_all_attributes", ea.SET, ["trigger"]),
         ],
 
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint, _definition) => {
             const ep = device.getEndpoint(1);
+            const logConfigureWarning = (message: string, error: unknown) => {
+                logger.warning(`${message}: ${error instanceof Error ? error.message : String(error)}`, NS);
+            };
 
             // ── Bind clusters ─────────────────────────────────────────────────────
             await ep.bind("genBasic", coordinatorEndpoint);
@@ -889,32 +917,32 @@ export const definitions: DefinitionWithExtend[] = [
             try {
                 await ep.read("genBasic", ["manufacturerName"]);
             } catch (err) {
-                logger.warn(`genBasic manufacturerName: ${err.message}`);
+                logConfigureWarning("genBasic manufacturerName", err);
             }
             try {
                 await ep.read("genBasic", ["modelId"]);
             } catch (err) {
-                logger.warn(`genBasic modelId: ${err.message}`);
+                logConfigureWarning("genBasic modelId", err);
             }
             try {
                 await ep.read("genBasic", [ATTR_POWER_SOURCE]);
             } catch (err) {
-                logger.warn(`genBasic powerSource: ${err.message}`);
+                logConfigureWarning("genBasic powerSource", err);
             }
             try {
                 await ep.read("genBasic", [ATTR_PRODUCT_CODE]);
             } catch (err) {
-                logger.warn(`genBasic productCode: ${err.message}`);
+                logConfigureWarning("genBasic productCode", err);
             }
             try {
                 await ep.read("genBasic", [ATTR_PRODUCT_URL]);
             } catch (err) {
-                logger.warn(`genBasic productUrl: ${err.message}`);
+                logConfigureWarning("genBasic productUrl", err);
             }
             try {
                 await ep.read("genBasic", [ATTR_SW_BUILD_ID]);
             } catch (err) {
-                logger.warn(`genBasic swBuildId: ${err.message}`);
+                logConfigureWarning("genBasic swBuildId", err);
             }
 
             // ── Read initial values — genPowerCfg ─────────────────────────────────
@@ -948,17 +976,17 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                 ]);
             } catch (e) {
-                logger.warn(`Outdoor temperature configureReporting failed: ${e.message}`);
+                logConfigureWarning("Outdoor temperature configureReporting failed", e);
             }
             try {
                 await ep.read("hvacThermostat", [ATTR_OUTDOOR_TEMP]);
             } catch (e) {
-                logger.warn(`Outdoor temperature initial read failed: ${e.message}`);
+                logConfigureWarning("Outdoor temperature initial read failed", e);
             }
             try {
                 await ep.read("hvacThermostat", [ATTR_RUNNING_STATE]);
             } catch (e) {
-                logger.warn(`Running state initial read failed: ${e.message}`);
+                logConfigureWarning("Running state initial read failed", e);
             }
 
             // ── Read initial values — hvacUserInterfaceCfg ────────────────────────
