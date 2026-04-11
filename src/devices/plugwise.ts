@@ -427,9 +427,10 @@ const tzLocal = {
                 if (typeof value !== "number") throw new Error(`${key} must be a number`);
                 const thermostatKey = key as keyof typeof attrMap;
                 const mappedAttr = attrMap[thermostatKey];
-                const payload = "type" in mappedAttr
-                    ? {[mappedAttr.attr]: {value: Math.round(value * mappedAttr.scale), type: mappedAttr.type}}
-                    : {[mappedAttr.attr]: Math.round(value * mappedAttr.scale)};
+                const payload =
+                    "type" in mappedAttr
+                        ? {[mappedAttr.attr]: {value: Math.round(value * mappedAttr.scale), type: mappedAttr.type}}
+                        : {[mappedAttr.attr]: Math.round(value * mappedAttr.scale)};
                 await entity.write("hvacThermostat", payload);
             } else {
                 return;
