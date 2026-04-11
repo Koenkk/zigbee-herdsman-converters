@@ -409,31 +409,40 @@ const tzLocal = {
             "max_cool_setpoint_limit",
         ],
         convertSet: async (entity, key, value, meta) => {
-            const attrMap = {
-                occupied_heating_setpoint: {attr: "occupiedHeatingSetpoint", scale: 100},
-                occupied_cooling_setpoint: {attr: "occupiedCoolingSetpoint", scale: 100},
-                min_heat_setpoint_limit: {attr: "minHeatSetpointLimit", scale: 100},
-                max_heat_setpoint_limit: {attr: "maxHeatSetpointLimit", scale: 100},
-                min_cool_setpoint_limit: {attr: "minCoolSetpointLimit", scale: 100},
-                max_cool_setpoint_limit: {attr: "maxCoolSetpointLimit", scale: 100},
-                local_temperature_calibration: {attr: "localTemperatureCalibration", scale: 100, type: ZCL_INT16S},
-            } as const;
             if (key === "system_mode") {
                 if (typeof value !== "string") throw new Error(`system_mode must be a string, got ${typeof value}`);
                 const mode = SYS_MODE_TO_INT[value as keyof typeof SYS_MODE_TO_INT];
                 if (mode === undefined) throw new Error(`Unknown system_mode: ${value}`);
                 await entity.write("hvacThermostat", {systemMode: mode});
-            } else if (key in attrMap) {
-                if (typeof value !== "number") throw new Error(`${key} must be a number`);
-                const thermostatKey = key as keyof typeof attrMap;
-                const mappedAttr = attrMap[thermostatKey];
-                const payload =
-                    "type" in mappedAttr
-                        ? {[mappedAttr.attr]: {value: Math.round(value * mappedAttr.scale), type: mappedAttr.type}}
-                        : {[mappedAttr.attr]: Math.round(value * mappedAttr.scale)};
-                await entity.write("hvacThermostat", payload);
             } else {
-                return;
+                if (typeof value !== "number") throw new Error(`${key} must be a number`);
+                const scaledValue = Math.round(value * 100);
+
+                switch (key) {
+                    case "occupied_heating_setpoint":
+                        await entity.write("hvacThermostat", {occupiedHeatingSetpoint: scaledValue});
+                        break;
+                    case "occupied_cooling_setpoint":
+                        await entity.write("hvacThermostat", {occupiedCoolingSetpoint: scaledValue});
+                        break;
+                    case "min_heat_setpoint_limit":
+                        await entity.write("hvacThermostat", {minHeatSetpointLimit: scaledValue});
+                        break;
+                    case "max_heat_setpoint_limit":
+                        await entity.write("hvacThermostat", {maxHeatSetpointLimit: scaledValue});
+                        break;
+                    case "min_cool_setpoint_limit":
+                        await entity.write("hvacThermostat", {minCoolSetpointLimit: scaledValue});
+                        break;
+                    case "max_cool_setpoint_limit":
+                        await entity.write("hvacThermostat", {maxCoolSetpointLimit: scaledValue});
+                        break;
+                    case "local_temperature_calibration":
+                        await entity.write("hvacThermostat", {localTemperatureCalibration: {value: scaledValue, type: ZCL_INT16S}});
+                        break;
+                    default:
+                        return;
+                }
             }
             return {state: {[key]: value}};
         },
@@ -455,13 +464,10 @@ const tzLocal = {
     thermostat_read: {
         key: ["running_state", "pi_heating_demand", "outdoor_temperature"],
         convertGet: async (entity, key, meta) => {
-            const getMap = {
-                running_state: "thermostatRunningState",
-                pi_heating_demand: "pIHeatingDemand",
-                outdoor_temperature: "outdoorTemperature",
-            } as const;
-            if (key in getMap) {
-                await entity.read("hvacThermostat", [getMap[key as keyof typeof getMap]]);
+            if (key === "pi_heating_demand") {
+                await entity.read("hvacThermostat", ["pIHeatingDemand"]);
+            } else if (key === "outdoor_temperature") {
+                await entity.read("hvacThermostat", [ATTR_OUTDOOR_TEMP]);
             } else if (key === "running_state") {
                 await entity.read("hvacThermostat", [ATTR_RUNNING_STATE]);
             }
@@ -970,7 +976,7 @@ export const definitions: DefinitionWithExtend[] = [
             try {
                 await ep.configureReporting("hvacThermostat", [
                     {
-                        attribute: "outdoorTemperature",
+                        attribute: "outdoorTemp",
                         minimumReportInterval: 60,
                         maximumReportInterval: 600,
                         reportableChange: 50,
