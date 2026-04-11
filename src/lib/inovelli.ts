@@ -2651,13 +2651,18 @@ const fzLocal = {
         cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
         type: ["commandReportTargetInfo"],
         convert: (model, msg, publish, options, meta) => {
+            // Per Inovelli cluster docs: each target is x,y,z,dop,id as int16 (10 bytes), after targetNum.
+            const stride = 10;
+            const buf = msg.data.targets;
             const targets: Array<{id: number; x: number; y: number; z: number; dop: number}> = [];
-            for (let i = 0; i < msg.data.targetNum; i++) {
-                const x = msg.data.targets.readInt16LE(i * 9);
-                const y = msg.data.targets.readInt16LE(i * 9 + 2);
-                const z = msg.data.targets.readInt16LE(i * 9 + 4);
-                const dop = msg.data.targets.readInt16LE(i * 9 + 6);
-                const id = msg.data.targets.readUInt8(i * 9 + 8);
+            const count = Math.min(msg.data.targetNum, Math.floor(buf.length / stride));
+            for (let i = 0; i < count; i++) {
+                const o = i * stride;
+                const x = buf.readInt16LE(o);
+                const y = buf.readInt16LE(o + 2);
+                const z = buf.readInt16LE(o + 4);
+                const dop = buf.readInt16LE(o + 6);
+                const id = buf.readInt16LE(o + 8);
                 targets.push({id, x, y, z, dop});
             }
             return {mmwave_targets: targets};
@@ -2899,7 +2904,7 @@ const exposeStayAreas = () => {
 const exposeMMWaveTargets = () => {
     const targetComposite = e
         .composite("target", "target", ea.STATE)
-        .withFeature(e.numeric("id", ea.STATE).withValueMin(0).withValueMax(255).withDescription("Target ID"))
+        .withFeature(e.numeric("id", ea.STATE).withDescription("Target ID"))
         .withFeature(e.numeric("x", ea.STATE).withUnit("cm").withDescription("X-axis coordinate of the target in centimeters"))
         .withFeature(e.numeric("y", ea.STATE).withUnit("cm").withDescription("Y-axis coordinate of the target in centimeters"))
         .withFeature(e.numeric("z", ea.STATE).withUnit("cm").withDescription("Z-axis coordinate of the target in centimeters"))
