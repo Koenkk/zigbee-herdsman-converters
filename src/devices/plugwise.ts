@@ -18,7 +18,6 @@ const PLUGWISE_MFG_CODE = Zcl.ManufacturerCode.PLUGWISE_B_V;
 
 // hvacThermostat standard attribute IDs
 const ATTR_OUTDOOR_TEMP = 0x0001; // INT16S   outdoor temperature
-// const ATTR_PI_HEATING_DEMAND = 0x0008; // INT8U    PI heating demand
 const ATTR_RUNNING_STATE = 0x0029; // BITMAP16 thermostat running state
 
 // Manufacturer-specific attributes on hvacThermostat (mfgCode 0x1172)
@@ -43,11 +42,8 @@ const ATTR_BATTERY_TYPE = 0x007f; // ENUM8         battery chemistry (mfgCode 0x
 
 // ZCL type tags
 const ZCL_ENUM8 = Zcl.DataType.ENUM8;
-// const ZCL_UINT8 = Zcl.DataType.UINT8;
 const ZCL_UINT16 = Zcl.DataType.UINT16;
-// const ZCL_INT8S = Zcl.DataType.INT8;
 const ZCL_INT16S = Zcl.DataType.INT16;
-// const ZCL_BITMAP8 = Zcl.DataType.BITMAP8;
 
 // Power source enum → string
 const POWER_SOURCE_MAP = {
@@ -67,7 +63,6 @@ const KEYPAD_LOCKOUT_TO_STR = {0: "unlock", 1: "lock1", 2: "lock2"};
 const KEYPAD_LOCKOUT_TO_INT = {unlock: 0, lock1: 1, lock2: 2};
 
 // System mode maps
-const SYS_MODE_TO_STR = {0: "off", 1: "auto", 3: "cool", 4: "heat"};
 const SYS_MODE_TO_INT = {off: 0, auto: 1, cool: 3, heat: 4};
 
 // Application fault bitmap — OT message ID 5 high byte
