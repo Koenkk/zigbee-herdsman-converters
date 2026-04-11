@@ -14,30 +14,6 @@ const e = exposes.presets;
 const ea = exposes.access;
 const NS = "zhc:plugwise";
 
-/**
- * Zigbee2MQTT external converter for the Plugwise Emma Wired Pro / Emma Wireless thermostat (model 170-01).
- *
- * Compatible with Zigbee2MQTT v2.x / zigbee-herdsman-converters v26.x.
- *
- * NOTE: This converter intentionally does NOT use exposes.climate(). Using it causes
- * ZHC v26 to auto-inject a built-in climate modernExtend configure function that sends
- * reportableChange:10 for cooling/heating setpoints. Emma rejects this with INVALID_VALUE
- * (§15 requires reportableChange >= 50 / 0.5 °C). Because the auto-injected configure runs
- * before our custom configure and throws, our configure would never execute.
- * Individual attribute exposes are used instead; HA will create individual entities.
- *
- * Clusters covered:
- *   §3  genBasic              — product code (0x000A, octet string), power source (0x0007), SW build ID (0x4000)
- *   §4  genPowerCfg           — battery percentage
- *   §5  genIdentify           — front-light identify
- *   §8  hvacThermostat        — setpoints, system mode, running state (0x0029), PI heating demand,
- *                               calibration, outdoor temp, external heat demand,
- *                               boiler/DHW/return water temperatures, fault codes (mfgCode 0x1172)
- *   §9  hvacUserInterfaceCfg  — keypad lockout
- *   §10 msTemperatureMeasurement
- *   §11 msRelativeHumidity
- */
-
 const PLUGWISE_MFG_CODE = Zcl.ManufacturerCode.PLUGWISE_B_V;
 
 // hvacThermostat standard attribute IDs
@@ -191,47 +167,15 @@ const fzLocal = {
     } satisfies Fz.Converter<"hvacThermostat", PlugwiseHvacThermostat, ["attributeReport", "readResponse"]>,
 
     // -- Emma Pro/Wireless related --
-    thermostat: {
+    emma_thermostat_extra: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg) => {
             const d = msg.data as KeyValue;
             const r: KeyValue = {};
 
-            // Standard attributes
-            if (typeof d.localTemperatureCalibration === "number") r.local_temperature_calibration = d.localTemperatureCalibration / 10;
-            if (typeof d.occupiedHeatingSetpoint === "number") r.occupied_heating_setpoint = d.occupiedHeatingSetpoint / 100;
-            if (typeof d.occupiedCoolingSetpoint === "number") r.occupied_cooling_setpoint = d.occupiedCoolingSetpoint / 100;
-            if (typeof d.minHeatSetpointLimit === "number") r.min_heat_setpoint_limit = d.minHeatSetpointLimit / 100;
-            if (typeof d.maxHeatSetpointLimit === "number") r.max_heat_setpoint_limit = d.maxHeatSetpointLimit / 100;
-            if (typeof d.minCoolSetpointLimit === "number") r.min_cool_setpoint_limit = d.minCoolSetpointLimit / 100;
-            if (typeof d.maxCoolSetpointLimit === "number") r.max_cool_setpoint_limit = d.maxCoolSetpointLimit / 100;
-            if (typeof d.systemMode === "number") {
-                const systemMode = d.systemMode;
-                const mappedSystemMode = SYS_MODE_TO_STR[systemMode as keyof typeof SYS_MODE_TO_STR];
-                if (mappedSystemMode !== undefined) {
-                    r.system_mode = mappedSystemMode;
-                } else {
-                    logger.warning(`Ignoring unsupported systemMode value '${systemMode}' for system_mode state`, "zhc:plugwise");
-                }
-            }
-            if (typeof d.pIHeatingDemand === "number") r.pi_heating_demand = d.pIHeatingDemand;
-
             const rawOT = d.outdoorTemp != null ? d.outdoorTemp : d.outdoorTemperature != null ? d.outdoorTemperature : d[ATTR_OUTDOOR_TEMP];
             if (typeof rawOT === "number") r.outdoor_temperature = rawOT / 100;
-
-            // Attr 0x0029 — herdsman may use thermostatRunningState, runningState, or numeric key
-            const rawRS =
-                d.thermostatRunningState != null
-                    ? d.thermostatRunningState
-                    : d.runningState != null
-                      ? d.runningState
-                      : d[ATTR_RUNNING_STATE] != null
-                        ? d[ATTR_RUNNING_STATE]
-                        : null;
-            if (typeof rawRS === "number") {
-                r.running_state = utils.getFromLookup(rawRS, constants.thermostatRunningStates) ?? `unknown(${rawRS})`;
-            }
 
             // Manufacturer-specific (mfgCode 0x1172)
             if (typeof d[ATTR_EXT_HEAT_DEMAND] === "number") r.external_heat_demand = d[ATTR_EXT_HEAT_DEMAND] / 100;
@@ -292,13 +236,12 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
 
-    battery: {
+    emma_battery_extra: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg) => {
             const d = msg.data as KeyValue;
             const r: KeyValue = {};
-            if (typeof d.batteryPercentageRemaining === "number") r.battery = Math.round(d.batteryPercentageRemaining / 2);
             if (typeof d[ATTR_BATTERY_TYPE] === "number") {
                 const batteryType = d[ATTR_BATTERY_TYPE];
                 const mappedBatteryType = BATTERY_TYPE_MAP[batteryType as keyof typeof BATTERY_TYPE_MAP];
@@ -792,15 +735,33 @@ export const definitions: DefinitionWithExtend[] = [
         model: "170-01",
         vendor: "Plugwise",
         description: "Emma Wired Pro / Emma Wireless",
-
-        fromZigbee: [fzLocal.thermostat, fzLocal.keypad_lockout, fzLocal.temperature, fzLocal.humidity, fzLocal.battery, fzLocal.basic_info],
-
+        extend: [
+            m.temperature(),
+            m.thermostat({
+                localTemperatureCalibration: {values: {min: -12.5, max: 12.5, step: 0.1}},
+                setpoints: {
+                    values: {
+                        occupiedCoolingSetpoint: {min: 0, max: 30, step: 0.5},
+                        occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
+                    },
+                    configure: {reporting: {min: "MIN", max: "1_HOUR", change: 50}},
+                },
+                setpointsLimit: {
+                    minHeatSetpointLimit: {min: 0, max: 90, step: 0.5},
+                    maxHeatSetpointLimit: {min: 0, max: 90, step: 0.5},
+                    minCoolSetpointLimit: {min: 0, max: 90, step: 0.5},
+                    maxCoolSetpointLimit: {min: 0, max: 90, step: 0.5},
+                },
+                systemMode: {values: ["off", "heat", "cool", "auto"]},
+                runningState: {values: [...new Set(Object.values(constants.thermostatRunningStates))]},
+                piHeatingDemand: {values: ea.STATE_GET},
+            }),
+            m.battery(),
+            m.humidity(),
+        ],
+        fromZigbee: [fzLocal.emma_thermostat_extra, fzLocal.keypad_lockout, fzLocal.basic_info, fzLocal.emma_battery_extra],
         toZigbee: [
-            tzLocal.thermostat,
-            tzLocal.thermostat_read,
             tzLocal.keypad_lockout,
-            tzLocal.temperature,
-            tzLocal.humidity,
             tzLocal.battery,
             tzLocal.external_heat_demand,
             tzLocal.external_heat_demand_timeout,
@@ -809,28 +770,37 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.basic_info,
             tzLocal.read_all,
         ],
-
         exposes: [
-            // ── Temperature & humidity sensors ────────────────────────────────────
-            exposes.numeric("temperature", ea.STATE_GET).withUnit("°C"),
-
-            exposes.numeric("humidity", ea.STATE_GET).withUnit("%"),
-
-            // ── OpenTherm boiler readings (read-only, firmware-reported) ─────────
-            exposes.enum("running_state", ea.STATE_GET, [...new Set(Object.values(constants.thermostatRunningStates))]),
-
+            exposes.numeric("outdoor_temperature", ea.STATE_GET).withUnit("°C"),
             exposes
-                .numeric("pi_heating_demand", ea.STATE_GET)
-                .withUnit("%")
+                .enum("keypad_lockout", ea.ALL, ["unlock", "lock1", "lock2"])
+                .withDescription("Keypad lockout. lock1: menu locked. lock2: all buttons locked"),
+            exposes
+                .numeric("external_heat_demand", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(0)
+                .withValueMax(90)
+                .withValueStep(0.01)
+                .withDescription("External heat demand setpoint in °C (0 = disabled, requires Unlock External Control)"),
+            exposes.numeric("external_heat_demand_timeout", ea.ALL).withUnit("s").withValueMin(300).withValueMax(3600).withValueStep(1),
+            exposes.enum("battery_type", ea.ALL, ["alkaline", "nimh"]),
+            exposes
+                .numeric("max_dhw_setpoint", ea.ALL)
+                .withUnit("°C")
                 .withValueMin(0)
                 .withValueMax(100)
-                .withDescription("PI heating demand value as a percentage, where 0% means no heat is demanded and 100% means maximum heat is demanded"),
-
+                .withValueStep(0.01)
+                .withDescription("Maximum DHW setpoint sent to boiler via OpenTherm (0 = clear / use default, requires Unlock External Control)"),
+            exposes
+                .numeric("max_boiler_setpoint", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(0.01)
+                .withDescription("Maximum CH boiler setpoint sent via OpenTherm (0 = clear / use default, requires Unlock External Control)"),
             exposes.numeric("boiler_water_temperature", ea.STATE_GET).withUnit("°C"),
             exposes.numeric("dhw_temperature", ea.STATE_GET).withUnit("°C"),
-
             exposes.numeric("return_water_temperature", ea.STATE_GET).withUnit("°C"),
-
             exposes
                 .numeric("application_fault_code", ea.STATE_GET)
                 .withValueMin(0)
@@ -840,105 +810,25 @@ export const definitions: DefinitionWithExtend[] = [
                         "(bit0=service_request, bit1=lockout_reset, bit2=low_water_pressure, " +
                         "bit3=gas_flame_fault, bit4=air_pressure_fault, bit5=water_over_temp)",
                 ),
-
-            exposes.text("application_fault_flags", ea.STATE_GET).withDescription("OpenTherm Active fault flags, comma-separated"),
-
+            exposes.text("application_fault_flags", ea.STATE_GET).withDescription("OpenTherm active fault flags, comma-separated"),
             exposes.numeric("oem_fault_code", ea.STATE_GET).withValueMin(0).withValueMax(255).withDescription("OpenTherm OEM-specific fault code"),
-
-            // ── Other read out values  ────────────────────────────────────
-            exposes.numeric("outdoor_temperature", ea.STATE_GET).withUnit("°C"),
-
-            exposes.numeric("battery", ea.STATE_GET).withUnit("%").withValueMin(0).withValueMax(100),
-
-            // ── Thermostat control ────────────────────────────────────────────────
-            exposes.enum("system_mode", ea.STATE_SET, ["off", "heat", "cool", "auto"]),
-
-            exposes.numeric("occupied_heating_setpoint", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(30).withValueStep(0.5),
-
-            exposes.numeric("occupied_cooling_setpoint", ea.STATE_SET).withUnit("°C").withValueMin(0).withValueMax(30).withValueStep(0.5),
-
-            // ── Setpoint limits ───────────────────────────────────────────────────
-            exposes.numeric("min_heat_setpoint_limit", ea.STATE_SET).withUnit("°C").withValueMin(0).withValueMax(90).withValueStep(0.5),
-
-            exposes.numeric("max_heat_setpoint_limit", ea.STATE_SET).withUnit("°C").withValueMin(0).withValueMax(90).withValueStep(0.5),
-
-            exposes.numeric("min_cool_setpoint_limit", ea.STATE_SET).withUnit("°C").withValueMin(0).withValueMax(90).withValueStep(0.5),
-
-            exposes.numeric("max_cool_setpoint_limit", ea.STATE_SET).withUnit("°C").withValueMin(0).withValueMax(90).withValueStep(0.5),
-
-            // ── Temperature calibration ───────────────────────────────────────────
-            exposes.numeric("local_temperature_calibration", ea.ALL).withUnit("°C").withValueMin(-12.5).withValueMax(12.5).withValueStep(0.1),
-
-            // ── Keypad lockout ────────────────────────────────────────────────────
-            exposes
-                .enum("keypad_lockout", ea.ALL, ["unlock", "lock1", "lock2"])
-                .withDescription("Keypad lockout. lock1: menu locked. lock2: all buttons locked"),
-
-            // ── External heat demand (requires Unlock External Control on thermostat) ───────────
-            exposes
-                .numeric("external_heat_demand", ea.ALL)
-                .withUnit("°C")
-                .withValueMin(0)
-                .withValueMax(90)
-                .withValueStep(0.01)
-                .withDescription("External heat demand setpoint in °C (0 = disabled, requires Unlock External Control)"),
-
-            exposes.numeric("external_heat_demand_timeout", ea.ALL).withUnit("s").withValueMin(300).withValueMax(3600).withValueStep(1),
-
-            // ── Battery ───────────────────────────────────────────────────────────
-
-            exposes.enum("battery_type", ea.ALL, ["alkaline", "nimh"]),
-
-            // ── Max setpoints (requires Unlock External Control on thermostat) ──────────────────
-            exposes
-                .numeric("max_dhw_setpoint", ea.ALL)
-                .withUnit("°C")
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(0.01)
-                .withDescription("Maximum DHW setpoint sent to boiler via OpenTherm (0 = clear / use default, requires Unlock External Control)"),
-
-            exposes
-                .numeric("max_boiler_setpoint", ea.ALL)
-                .withUnit("°C")
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(0.01)
-                .withDescription("Maximum CH boiler setpoint sent via OpenTherm (0 = clear / use default, requires Unlock External Control)"),
-
-            // ── Device info ───────────────────────────────────────────────────────
             exposes.text("product_code", ea.STATE_GET).withDescription("Boiler protocol"),
-
             exposes.enum("power_source", ea.STATE_GET, ["mains", "battery", "dc"]),
-
             exposes.text("firmware_version", ea.STATE_GET),
-
             exposes.text("product_url", ea.STATE_GET),
-
             exposes.text("manufacturer_name", ea.STATE_GET),
-
             exposes.text("model_id", ea.STATE_GET),
-
-            // ── Read-all button ───────────────────────────────────────────────────
             exposes.enum("read_all_attributes", ea.SET, ["trigger"]),
         ],
-
         configure: async (device, coordinatorEndpoint, _definition) => {
             const ep = device.getEndpoint(1);
             const logConfigureWarning = (message: string, error: unknown) => {
                 logger.warning(`${message}: ${error instanceof Error ? error.message : String(error)}`, NS);
             };
 
-            // ── Bind clusters ─────────────────────────────────────────────────────
             await ep.bind("genBasic", coordinatorEndpoint);
-            await ep.bind("genPowerCfg", coordinatorEndpoint);
-            await ep.bind("genIdentify", coordinatorEndpoint);
-            await ep.bind("hvacThermostat", coordinatorEndpoint);
             await ep.bind("hvacUserInterfaceCfg", coordinatorEndpoint);
-            await ep.bind("msTemperatureMeasurement", coordinatorEndpoint);
-            await ep.bind("msRelativeHumidity", coordinatorEndpoint);
 
-            // ── Read initial values — genBasic (one at a time: avoid INSUFFICIENT_SPACE) ──
             try {
                 await ep.read("genBasic", ["manufacturerName"]);
             } catch (err) {
@@ -970,26 +860,7 @@ export const definitions: DefinitionWithExtend[] = [
                 logConfigureWarning("genBasic swBuildId", err);
             }
 
-            // ── Read initial values — genPowerCfg ─────────────────────────────────
-            await ep.read("genPowerCfg", ["batteryPercentageRemaining"]);
             await ep.read("genPowerCfg", [ATTR_BATTERY_TYPE], {manufacturerCode: PLUGWISE_MFG_CODE});
-
-            // ── Read initial values — msTemperatureMeasurement / msRelativeHumidity
-            await ep.read("msTemperatureMeasurement", ["measuredValue"]);
-            await ep.read("msRelativeHumidity", ["measuredValue"]);
-
-            // ── Read initial values — hvacThermostat standard ─────────────────────
-            await ep.read("hvacThermostat", [
-                "occupiedHeatingSetpoint",
-                "occupiedCoolingSetpoint",
-                "systemMode",
-                "localTemperatureCalibration",
-                "pIHeatingDemand",
-                "minHeatSetpointLimit",
-                "maxHeatSetpointLimit",
-                "minCoolSetpointLimit",
-                "maxCoolSetpointLimit",
-            ]);
 
             try {
                 await ep.configureReporting("hvacThermostat", [
@@ -1000,28 +871,20 @@ export const definitions: DefinitionWithExtend[] = [
                         reportableChange: 50,
                     },
                 ]);
-            } catch (e) {
-                logConfigureWarning("Outdoor temperature configureReporting failed", e);
+            } catch (err) {
+                logConfigureWarning("Outdoor temperature configureReporting failed", err);
             }
             try {
                 await ep.read("hvacThermostat", [ATTR_OUTDOOR_TEMP]);
-            } catch (e) {
-                logConfigureWarning("Outdoor temperature initial read failed", e);
-            }
-            try {
-                await ep.read("hvacThermostat", [ATTR_RUNNING_STATE]);
-            } catch (e) {
-                logConfigureWarning("Running state initial read failed", e);
+            } catch (err) {
+                logConfigureWarning("Outdoor temperature initial read failed", err);
             }
 
-            // ── Read initial values — hvacUserInterfaceCfg ────────────────────────
             await ep.read("hvacUserInterfaceCfg", ["keypadLockout"]);
 
-            // ── Read initial values — hvacThermostat manufacturer-specific ────────
             await ep.read("hvacThermostat", [ATTR_EXT_HEAT_DEMAND, ATTR_EXT_HEAT_DEMAND_TIMEOUT, ATTR_MAX_DHW_SETPOINT, ATTR_MAX_BOILER_SETPOINT], {
                 manufacturerCode: PLUGWISE_MFG_CODE,
             });
-
             await ep.read(
                 "hvacThermostat",
                 [ATTR_BOILER_WATER_TEMP, ATTR_DHW_TEMP, ATTR_RETURN_WATER_TEMP, ATTR_APP_FAULT_CODE, ATTR_OEM_FAULT_CODE],
