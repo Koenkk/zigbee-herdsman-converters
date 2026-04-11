@@ -1,3 +1,4 @@
+import {Buffer} from "node:buffer";
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -113,7 +114,7 @@ const APP_FAULT_BITS = [
 /**
  * Decode a ZCL octet string attribute value.
  * Zigbee-herdsman delivers OCTET_STRING as a Buffer (data bytes only, length prefix stripped).
- * Returns the ASCII string representation.
+ * Returns the string representation.
  */
 function decodeOctetString(val: unknown): string | null {
     if (val == null) return null;
@@ -121,9 +122,6 @@ function decodeOctetString(val: unknown): string | null {
     if (typeof val === "string") return val;
     return String(val);
 }
-
-// -- Non-Emma related --
-const _manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V};
 
 const plugwisePushForceLookup = {
     0: "standard",
@@ -286,7 +284,7 @@ const fzLocal = {
             const sw = d[ATTR_SW_BUILD_ID] != null ? d[ATTR_SW_BUILD_ID] : d.swBuildId;
             if (sw != null) r.firmware_version = decodeOctetString(sw);
             const url = d[ATTR_PRODUCT_URL] != null ? d[ATTR_PRODUCT_URL] : d.productUrl;
-            if (url != null) r.product_url = url;
+            if (url != null) r.product_url = decodeOctetString(url);
             if (d.manufacturerName != null) r.manufacturer_name = decodeOctetString(d.manufacturerName);
             if (d.modelId != null) r.model_id = decodeOctetString(d.modelId);
             return Object.keys(r).length ? r : undefined;
@@ -613,6 +611,10 @@ const tzLocal = {
     read_all: {
         key: ["read_all_attributes"],
         convertSet: async (entity, key, value, meta) => {
+            if (value !== "trigger") {
+                throw new Error(`read_all_attributes must be \"trigger\", got ${String(value)}`);
+            }
+
             // ── genBasic — read one at a time to avoid INSUFFICIENT_SPACE ────
             try {
                 await entity.read("genBasic", ["manufacturerName"]);
@@ -805,7 +807,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("%")
                 .withValueMin(0)
                 .withValueMax(100)
-                .withDescription("PI heating demand value in °C"),
+                .withDescription("PI heating demand value in %"),
 
             exposes.numeric("boiler_water_temperature", ea.STATE_GET).withUnit("°C"),
 
