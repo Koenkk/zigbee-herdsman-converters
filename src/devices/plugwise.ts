@@ -17,28 +17,28 @@ const NS = "zhc:plugwise";
 const PLUGWISE_MFG_CODE = Zcl.ManufacturerCode.PLUGWISE_B_V;
 
 // hvacThermostat standard attribute IDs
-const ATTR_OUTDOOR_TEMP = 0x0001; // INT16S   outdoor temperature
-const ATTR_RUNNING_STATE = 0x0029; // BITMAP16 thermostat running state
+const ATTR_OUTDOOR_TEMP = 0x0001; // INT16S  outdoor temperature
+const ATTR_RUNNING_STATE = 0x0029; // BITMAP16  thermostat running state
 
 // Manufacturer-specific attributes on hvacThermostat (mfgCode 0x1172)
-const ATTR_EXT_HEAT_DEMAND = 0xf000; // INT16U   hundredths of °C (OT) / non-zero=ON (OnOff)
-const ATTR_EXT_HEAT_DEMAND_TIMEOUT = 0xf001; // INT16U   watchdog seconds, 300–3600
-const ATTR_BOILER_WATER_TEMP = 0xf002; // INT16S   boiler supply water temperature (hundredths °C)
-const ATTR_DHW_TEMP = 0xf003; // INT16S   domestic hot water temperature (hundredths °C)
-const ATTR_RETURN_WATER_TEMP = 0xf004; // INT16S   boiler return water temperature (hundredths °C)
+const ATTR_EXT_HEAT_DEMAND = 0xf000; // INT16U  hundredths of °C (OT) / non-zero=ON (OnOff)
+const ATTR_EXT_HEAT_DEMAND_TIMEOUT = 0xf001; // INT16U  watchdog seconds, 300–3600
+const ATTR_BOILER_WATER_TEMP = 0xf002; // INT16S  boiler supply water temperature (hundredths °C)
+const ATTR_DHW_TEMP = 0xf003; // INT16S  domestic hot water temperature (hundredths °C)
+const ATTR_RETURN_WATER_TEMP = 0xf004; // INT16S  boiler return water temperature (hundredths °C)
 const ATTR_APP_FAULT_CODE = 0xf005; // BITMAP8  OT fault flag byte (ID 5 high byte)
-const ATTR_OEM_FAULT_CODE = 0xf006; // INT8U    OT OEM-specific fault code (ID 5 low byte)
-const ATTR_MAX_DHW_SETPOINT = 0xf007; // INT16S   max DHW setpoint (hundredths °C, mfgCode 0x1172)
-const ATTR_MAX_BOILER_SETPOINT = 0xf008; // INT16S   max boiler setpoint (hundredths °C, mfgCode 0x1172)
+const ATTR_OEM_FAULT_CODE = 0xf006; // INT8U  OT OEM-specific fault code (ID 5 low byte)
+const ATTR_MAX_DHW_SETPOINT = 0xf007; // INT16S  max DHW setpoint (hundredths °C, mfgCode 0x1172)
+const ATTR_MAX_BOILER_SETPOINT = 0xf008; // INT16S  max boiler setpoint (hundredths °C, mfgCode 0x1172)
 
 // genBasic attribute IDs
 const ATTR_PRODUCT_CODE = 0x000a; // OCTET_STRING  boiler-protocol product code
-const ATTR_POWER_SOURCE = 0x0007; // ENUM8          power source
-const ATTR_SW_BUILD_ID = 0x4000; // CHAR_STRING    firmware version
-const ATTR_PRODUCT_URL = 0x000b; // CHAR_STRING    product URL
+const ATTR_POWER_SOURCE = 0x0007; // ENUM8  power source
+const ATTR_SW_BUILD_ID = 0x4000; // CHAR_STRING  firmware version
+const ATTR_PRODUCT_URL = 0x000b; // CHAR_STRING  product URL
 
 // genPowerCfg attribute IDs (manufacturer-specific)
-const ATTR_BATTERY_TYPE = 0x007f; // ENUM8         battery chemistry (mfgCode 0x1172)
+const ATTR_BATTERY_TYPE = 0x007f; // ENUM8  battery chemistry (mfgCode 0x1172)
 
 // ZCL type tags
 const ZCL_ENUM8 = Zcl.DataType.ENUM8;
