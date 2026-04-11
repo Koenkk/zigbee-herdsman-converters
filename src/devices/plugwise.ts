@@ -800,7 +800,11 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.numeric("humidity", ea.STATE_GET).withUnit("%"),
 
             // ── OpenTherm boiler readings (read-only, firmware-reported) ─────────
-            exposes.enum("running_state", ea.STATE_GET, ["idle", "heat", "cool"]),
+            exposes.enum(
+                "running_state",
+                ea.STATE_GET,
+                Object.values(constants.thermostatRunningStates).filter((value): value is string => typeof value === "string"),
+            ),
 
             exposes
                 .numeric("pi_heating_demand", ea.STATE_GET)
