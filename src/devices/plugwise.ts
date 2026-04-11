@@ -111,8 +111,8 @@ interface PlugwiseHvacThermostat {
 }
 
 const plugwiseExtend = {
-    plugwiseHvacThermostatCluster: () =>
-        m.deviceAddCustomCluster("hvacThermostat", {
+    plugwiseHvacThermostatCluster: () => {
+        const customCluster = m.deviceAddCustomCluster("hvacThermostat", {
             name: "hvacThermostat",
             ID: Zcl.Clusters.hvacThermostat.ID,
             attributes: {
@@ -127,7 +127,20 @@ const plugwiseExtend = {
                 plugwiseCalibrateValve: {name: "plugwiseCalibrateValve", ID: 0xa0, parameters: []},
             },
             commandsResponse: {},
-        }),
+        });
+
+        return {
+            ...customCluster,
+            configure: [
+                ...(customCluster.configure ?? []),
+                m.setupConfigureForReporting("hvacThermostat", "outdoorTemp", {
+                    config: {min: 60, max: 600, change: 50},
+                    access: ea.STATE_GET,
+                    singleEndpoint: true,
+                }),
+            ],
+        };
+    },
 };
 
 const fzLocal = {
@@ -745,24 +758,6 @@ export const definitions: DefinitionWithExtend[] = [
             }
 
             await ep.read("genPowerCfg", [ATTR_BATTERY_TYPE], {manufacturerCode: PLUGWISE_MFG_CODE});
-
-            try {
-                await ep.configureReporting("hvacThermostat", [
-                    {
-                        attribute: "outdoorTemp",
-                        minimumReportInterval: 60,
-                        maximumReportInterval: 600,
-                        reportableChange: 50,
-                    },
-                ]);
-            } catch (err) {
-                logConfigureWarning("Outdoor temperature configureReporting failed", err);
-            }
-            try {
-                await ep.read("hvacThermostat", [ATTR_OUTDOOR_TEMP]);
-            } catch (err) {
-                logConfigureWarning("Outdoor temperature initial read failed", err);
-            }
 
             await ep.read("hvacUserInterfaceCfg", ["keypadLockout"]);
 
