@@ -820,7 +820,7 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.enum(
                 "running_state",
                 ea.STATE_GET,
-                Object.values(constants.thermostatRunningStates).filter((value): value is string => typeof value === "string"),
+                [...new Set(Object.values(constants.thermostatRunningStates))],
             ),
 
             exposes
