@@ -298,7 +298,12 @@ const fzLocal = {
             if (typeof d.batteryPercentageRemaining === "number") r.battery = Math.round(d.batteryPercentageRemaining / 2);
             if (typeof d[ATTR_BATTERY_TYPE] === "number") {
                 const batteryType = d[ATTR_BATTERY_TYPE];
-                r.battery_type = BATTERY_TYPE_MAP[batteryType as keyof typeof BATTERY_TYPE_MAP] ?? `unknown(${batteryType})`;
+                const mappedBatteryType = BATTERY_TYPE_MAP[batteryType as keyof typeof BATTERY_TYPE_MAP];
+                if (mappedBatteryType != null) {
+                    r.battery_type = mappedBatteryType;
+                } else {
+                    logger.debug(`Ignoring unsupported battery type value: ${batteryType}`, "zhc:plugwise");
+                }
             }
             return Object.keys(r).length ? r : undefined;
         },
