@@ -66,12 +66,12 @@ const ATTR_PRODUCT_URL = 0x000b; // CHAR_STRING    product URL
 const ATTR_BATTERY_TYPE = 0x007f; // ENUM8         battery chemistry (mfgCode 0x1172)
 
 // ZCL type tags
-const ZCL_ENUM8 = 0x30;
-// const ZCL_UINT8 = 0x20;
-const ZCL_UINT16 = 0x21;
-// const ZCL_INT8S = 0x28;
-const ZCL_INT16S = 0x29;
-// const ZCL_BITMAP8 = 0x18;
+const ZCL_ENUM8 = Zcl.DataType.ENUM8;
+// const ZCL_UINT8 = Zcl.DataType.UINT8;
+const ZCL_UINT16 = Zcl.DataType.UINT16;
+// const ZCL_INT8S = Zcl.DataType.INT8;
+const ZCL_INT16S = Zcl.DataType.INT16;
+// const ZCL_BITMAP8 = Zcl.DataType.BITMAP8;
 
 // Power source enum → string
 const POWER_SOURCE_MAP = {
