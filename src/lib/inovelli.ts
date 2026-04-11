@@ -2904,7 +2904,7 @@ const exposeStayAreas = () => {
 const exposeMMWaveTargets = () => {
     const targetComposite = e
         .composite("target", "target", ea.STATE)
-        .withFeature(e.numeric("id", ea.STATE).withValueMin(0).withValueMax(255).withDescription("Target ID"))
+        .withFeature(e.numeric("id", ea.STATE).withDescription("Target ID"))
         .withFeature(e.numeric("x", ea.STATE).withUnit("cm").withDescription("X-axis coordinate of the target in centimeters"))
         .withFeature(e.numeric("y", ea.STATE).withUnit("cm").withDescription("Y-axis coordinate of the target in centimeters"))
         .withFeature(e.numeric("z", ea.STATE).withUnit("cm").withDescription("Z-axis coordinate of the target in centimeters"))
