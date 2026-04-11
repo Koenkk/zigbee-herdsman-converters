@@ -420,29 +420,38 @@ const tzLocal = {
                 await entity.write("hvacThermostat", {systemMode: mode});
             } else {
                 if (typeof value !== "number") throw new Error(`${key} must be a number`);
-                const scaledValue = Math.round(value * 100);
+                const epsilon = 0.000001;
+                const halfDegreeSteps = Math.round(value * 2);
+                const tenthDegreeSteps = Math.round(value * 10);
 
                 switch (key) {
                     case "occupied_heating_setpoint":
-                        await entity.write("hvacThermostat", {occupiedHeatingSetpoint: scaledValue});
+                        if (Math.abs(value * 2 - halfDegreeSteps) > epsilon) throw new Error(`${key} must be in 0.5 °C steps`);
+                        await entity.write("hvacThermostat", {occupiedHeatingSetpoint: halfDegreeSteps * 50});
                         break;
                     case "occupied_cooling_setpoint":
-                        await entity.write("hvacThermostat", {occupiedCoolingSetpoint: scaledValue});
+                        if (Math.abs(value * 2 - halfDegreeSteps) > epsilon) throw new Error(`${key} must be in 0.5 °C steps`);
+                        await entity.write("hvacThermostat", {occupiedCoolingSetpoint: halfDegreeSteps * 50});
                         break;
                     case "min_heat_setpoint_limit":
-                        await entity.write("hvacThermostat", {minHeatSetpointLimit: scaledValue});
+                        if (Math.abs(value * 2 - halfDegreeSteps) > epsilon) throw new Error(`${key} must be in 0.5 °C steps`);
+                        await entity.write("hvacThermostat", {minHeatSetpointLimit: halfDegreeSteps * 50});
                         break;
                     case "max_heat_setpoint_limit":
-                        await entity.write("hvacThermostat", {maxHeatSetpointLimit: scaledValue});
+                        if (Math.abs(value * 2 - halfDegreeSteps) > epsilon) throw new Error(`${key} must be in 0.5 °C steps`);
+                        await entity.write("hvacThermostat", {maxHeatSetpointLimit: halfDegreeSteps * 50});
                         break;
                     case "min_cool_setpoint_limit":
-                        await entity.write("hvacThermostat", {minCoolSetpointLimit: scaledValue});
+                        if (Math.abs(value * 2 - halfDegreeSteps) > epsilon) throw new Error(`${key} must be in 0.5 °C steps`);
+                        await entity.write("hvacThermostat", {minCoolSetpointLimit: halfDegreeSteps * 50});
                         break;
                     case "max_cool_setpoint_limit":
-                        await entity.write("hvacThermostat", {maxCoolSetpointLimit: scaledValue});
+                        if (Math.abs(value * 2 - halfDegreeSteps) > epsilon) throw new Error(`${key} must be in 0.5 °C steps`);
+                        await entity.write("hvacThermostat", {maxCoolSetpointLimit: halfDegreeSteps * 50});
                         break;
                     case "local_temperature_calibration":
-                        await entity.write("hvacThermostat", {localTemperatureCalibration: Math.round(value * 10)});
+                        if (Math.abs(value * 10 - tenthDegreeSteps) > epsilon) throw new Error(`${key} must be in 0.1 °C steps`);
+                        await entity.write("hvacThermostat", {localTemperatureCalibration: tenthDegreeSteps});
                         break;
                     default:
                         return;
