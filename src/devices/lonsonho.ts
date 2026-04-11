@@ -96,6 +96,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "X701A",
         vendor: "Lonsonho",
         description: "1 gang switch with backlight",
+        whiteLabel: [tuya.whitelabel("Lonsonho", "X701A", "1 gang switch with backlight", ["_TZ3000_ehgouyvu"])],
         extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
