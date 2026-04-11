@@ -40,6 +40,14 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
+interface ThirdCO2Sensor {
+    attributes: {
+        volatileOrganicCompounds: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface Third60gRadarSensor {
     attributes: {
         totalVolatileOrganicCompounds: number;
@@ -298,6 +306,41 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["3RAQ1096Z"],
+        model: "3RAQ1096Z",
+        vendor: "Third Reality",
+        description: "Smart air quality sensor",
+        ota: true,
+        extend: [
+            m.temperature(),
+            m.humidity(),
+            m.co2(),
+            m.deviceAddCustomCluster("3rCO2SensorCluster", {
+                name: "3rCO2SensorCluster",
+                ID: 0x042e,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    volatileOrganicCompounds: {
+                        name: "volatileOrganicCompounds",
+                        ID: 0x0000,
+                        type: Zcl.DataType.UINT32,
+                        max: 0xffffffff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"3rCO2SensorCluster", ThirdCO2Sensor>({
+                name: "voc_index",
+                cluster: "3rCO2SensorCluster",
+                attribute: "volatileOrganicCompounds",
+                unit: "aqi",
+                description: "Measured VOC Index",
+                access: "STATE_GET",
             }),
         ],
     },
