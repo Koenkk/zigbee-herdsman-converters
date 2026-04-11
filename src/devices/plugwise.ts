@@ -766,9 +766,13 @@ export const definitions: DefinitionWithExtend[] = [
             await ep.read("hvacUserInterfaceCfg", ["keypadLockout"]);
 
             try {
-                await ep.read("hvacThermostat", [ATTR_EXT_HEAT_DEMAND, ATTR_EXT_HEAT_DEMAND_TIMEOUT, ATTR_MAX_DHW_SETPOINT, ATTR_MAX_BOILER_SETPOINT], {
-                    manufacturerCode: PLUGWISE_MFG_CODE,
-                });
+                await ep.read(
+                    "hvacThermostat",
+                    [ATTR_EXT_HEAT_DEMAND, ATTR_EXT_HEAT_DEMAND_TIMEOUT, ATTR_MAX_DHW_SETPOINT, ATTR_MAX_BOILER_SETPOINT],
+                    {
+                        manufacturerCode: PLUGWISE_MFG_CODE,
+                    },
+                );
             } catch (err) {
                 logConfigureWarning("hvacThermostat manufacturer-specific setpoints", err);
             }
