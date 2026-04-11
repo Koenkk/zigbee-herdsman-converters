@@ -339,20 +339,6 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
 
-    temperature: {
-        key: ["temperature"],
-        convertGet: async (entity, key, meta) => {
-            await entity.read("msTemperatureMeasurement", ["measuredValue"]);
-        },
-    } satisfies Tz.Converter,
-
-    humidity: {
-        key: ["humidity"],
-        convertGet: async (entity, key, meta) => {
-            await entity.read("msRelativeHumidity", ["measuredValue"]);
-        },
-    } satisfies Tz.Converter,
-
     battery: {
         key: ["battery", "battery_type"],
         convertSet: async (entity, key, value, meta) => {
