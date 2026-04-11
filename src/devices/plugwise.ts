@@ -113,9 +113,9 @@ const APP_FAULT_BITS = [
  * Zigbee-herdsman delivers OCTET_STRING as a Buffer (data bytes only, length prefix stripped).
  * Returns the ASCII string representation.
  */
-function decodeOctetString(val) {
+function decodeOctetString(val: unknown): string | null {
     if (val == null) return null;
-    if (Buffer.isBuffer(val)) return val.toString("ascii");
+    if (Buffer.isBuffer(val)) return val.toString();
     if (typeof val === "string") return val;
     return String(val);
 }
