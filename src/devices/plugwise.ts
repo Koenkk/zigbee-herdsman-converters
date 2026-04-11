@@ -208,7 +208,12 @@ const fzLocal = {
             if (typeof d.maxCoolSetpointLimit === "number") r.max_cool_setpoint_limit = d.maxCoolSetpointLimit / 100;
             if (typeof d.systemMode === "number") {
                 const systemMode = d.systemMode;
-                r.system_mode = SYS_MODE_TO_STR[systemMode as keyof typeof SYS_MODE_TO_STR] ?? `unknown(${systemMode})`;
+                const mappedSystemMode = SYS_MODE_TO_STR[systemMode as keyof typeof SYS_MODE_TO_STR];
+                if (mappedSystemMode !== undefined) {
+                    r.system_mode = mappedSystemMode;
+                } else {
+                    logger.warning(`Ignoring unsupported systemMode value '${systemMode}' for system_mode state`, "zhc:plugwise");
+                }
             }
             if (typeof d.pIHeatingDemand === "number") r.pi_heating_demand = d.pIHeatingDemand;
 
