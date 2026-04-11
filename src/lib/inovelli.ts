@@ -7,7 +7,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "./exposes";
 import * as m from "./modernExtend";
 import * as reporting from "./reporting";
-import type {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "./types";
+import type {Configure, DummyDevice, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "./types";
 import * as utils from "./utils";
 
 const e = exposes.presets;
@@ -611,11 +611,13 @@ const inovelliExtend = {
         });
     },
     device: ({
+        model,
         attrs,
         supportsLedEffects,
         supportsButtonTaps,
         splitValuesByEndpoint = false,
     }: {
+        model: Model;
         attrs: Array<{attributes: {[s: string]: Attribute}; clusterName: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME}>;
         supportsLedEffects?: boolean;
         supportsButtonTaps: boolean;
@@ -624,26 +626,39 @@ const inovelliExtend = {
         // biome-ignore lint/suspicious/noExplicitAny: generic
         const fromZigbee: Fz.Converter<any, any, any>[] = [];
         const toZigbee: Tz.Converter[] = [];
-        const exposes: Expose[] = [];
+        const staticExposes: Expose[] = [];
 
         if (supportsLedEffects) {
             fromZigbee.push(fzLocal.led_effect_complete);
             toZigbee.push(tzLocal.inovelli_led_effect, tzLocal.inovelli_individual_led_effect);
-            exposes.push(exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete());
+            staticExposes.push(exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete());
+        }
+        if (supportsButtonTaps) {
+            staticExposes.push(e.action(BUTTON_TAP_SEQUENCES));
         }
 
         for (const attr of attrs) {
-            fromZigbee.push(fzLocal.inovelli(attr.attributes, attr.clusterName, splitValuesByEndpoint));
+            fromZigbee.push(fzLocal.inovelli(attr.attributes, attr.clusterName, splitValuesByEndpoint, model));
             toZigbee.push(
-                tzLocal.inovelli_parameters(attr.attributes, attr.clusterName),
+                tzLocal.inovelli_parameters(attr.attributes, attr.clusterName, model),
                 tzLocal.inovelli_parameters_readOnly(attr.attributes, attr.clusterName),
             );
-            attributesToExposeList(attr.attributes, exposes);
         }
 
-        if (supportsButtonTaps) {
-            exposes.push(e.action(BUTTON_TAP_SEQUENCES));
-        }
+        const dynamicExposes = (device: Zh.Device | DummyDevice, _options: KeyValue): Expose[] => {
+            const result: Expose[] = [];
+            if (utils.isDummyDevice(device)) {
+                for (const attr of attrs) {
+                    attributesToExposeList(adjustAttributesForDevice(attr.attributes, model), result);
+                }
+            } else {
+                const fw = device.softwareBuildID ? parseFirmwareVersion(device.softwareBuildID) : undefined;
+                for (const attr of attrs) {
+                    attributesToExposeList(adjustAttributesForDevice(attr.attributes, model, fw), result);
+                }
+            }
+            return result;
+        };
 
         const configure: Configure[] = [
             async (device, coordinatorEndpoint, definition) => {
@@ -654,13 +669,16 @@ const inovelliExtend = {
                 const endpoint2 = device.getEndpoint(2);
                 await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
 
+                const fw = device.softwareBuildID ? parseFirmwareVersion(device.softwareBuildID) : undefined;
+
                 for (const attr of attrs) {
+                    const filtered = adjustAttributesForDevice(attr.attributes, model, fw);
                     if (!splitValuesByEndpoint) {
-                        await chunkedRead(endpoint, Object.keys(attr.attributes), attr.clusterName);
+                        await chunkedRead(endpoint, Object.keys(filtered), attr.clusterName);
                     } else {
                         await chunkedRead(
                             endpoint,
-                            Object.keys(attr.attributes).flatMap((key) => {
+                            Object.keys(filtered).flatMap((key) => {
                                 const keysplit = key.split("_");
                                 if (keysplit.length === 2) {
                                     if (Number(keysplit[1]) === 1) {
@@ -674,7 +692,7 @@ const inovelliExtend = {
                         );
                         await chunkedRead(
                             endpoint2,
-                            Object.keys(attr.attributes).flatMap((key) => {
+                            Object.keys(filtered).flatMap((key) => {
                                 const keysplit = key.split("_");
                                 if (keysplit.length === 2) {
                                     if (Number(keysplit[1]) === 2) {
@@ -693,7 +711,7 @@ const inovelliExtend = {
         return {
             fromZigbee,
             toZigbee,
-            exposes,
+            exposes: [...staticExposes, dynamicExposes],
             configure,
             isModernExtend: true,
         } as ModernExtend;
@@ -806,6 +824,26 @@ const LED_NOTIFICATION_TYPES: {[key: number]: string} = {
     "-1": "CONFIG_BUTTON_DOUBLE_PRESS",
 };
 
+type FirmwareVersion = [major: number, minor: number];
+
+export const enum Model {
+    // biome-ignore lint/style/useNamingConvention: matches device model ID
+    VZM30 = "VZM30-SN",
+    // biome-ignore lint/style/useNamingConvention: matches device model ID
+    VZM31 = "VZM31-SN",
+    // biome-ignore lint/style/useNamingConvention: matches device model ID
+    VZM32 = "VZM32-SN",
+    // biome-ignore lint/style/useNamingConvention: matches device model ID
+    VZM35 = "VZM35-SN",
+    // biome-ignore lint/style/useNamingConvention: matches device model ID
+    VZM36 = "VZM36",
+}
+
+interface ModelValuesEntry {
+    values?: {[s: string]: number};
+    conditionalValues?: {[valueName: string]: {addedInFirmware?: FirmwareVersion; removedInFirmware?: FirmwareVersion}};
+}
+
 interface Attribute {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ID: number;
@@ -816,9 +854,12 @@ interface Attribute {
     category?: "config" | "diagnostic";
     unit?: string;
     displayType?: string;
-    values?: {[s: string]: number};
     readOnly?: boolean;
+    addedInFirmware?: Partial<Record<Model, FirmwareVersion>>;
+    modelValues?: {default: ModelValuesEntry} & Partial<Record<Model, ModelValuesEntry>>;
 }
+
+type ResolvedAttribute = Omit<Attribute, "modelValues"> & {values?: {[s: string]: number}};
 
 interface BreezeModeValues {
     speed1: string;
@@ -872,12 +913,69 @@ const speedToInt = (speedIn: string): number => {
     }
 };
 
+const parseFirmwareVersion = (version: string): FirmwareVersion | undefined => {
+    const match = version.match(/(\d+)\.(\d+)/);
+    if (!match) return undefined;
+    return [Number.parseInt(match[1], 10), Number.parseInt(match[2], 10)];
+};
+
+const fwGte = (firmware: FirmwareVersion, target: FirmwareVersion): boolean => {
+    return firmware[0] > target[0] || (firmware[0] === target[0] && firmware[1] >= target[1]);
+};
+
+const resolveValueMap = (attr: Attribute, model?: Model): {[s: string]: number} | undefined => {
+    if (!attr.modelValues) return undefined;
+    const entry = model ? attr.modelValues[model] : undefined;
+    return entry?.values ?? attr.modelValues.default.values;
+};
+
+const adjustAttributesForDevice = (
+    attributes: {[s: string]: Attribute},
+    model: Model,
+    firmware?: FirmwareVersion,
+): {[s: string]: ResolvedAttribute} => {
+    const result: {[s: string]: ResolvedAttribute} = {};
+
+    for (const [key, attr] of Object.entries(attributes)) {
+        if (attr.addedInFirmware) {
+            const threshold = attr.addedInFirmware[model];
+            if (!threshold) continue;
+            if (firmware && !fwGte(firmware, threshold)) continue;
+        }
+
+        if (attr.modelValues) {
+            const entry = attr.modelValues[model] ?? attr.modelValues.default;
+            const baseValues = {...(entry.values ?? attr.modelValues.default.values)};
+
+            if (firmware && entry.conditionalValues) {
+                for (const [valueName, constraint] of Object.entries(entry.conditionalValues)) {
+                    if (!(valueName in baseValues)) continue;
+                    if (constraint.addedInFirmware && !fwGte(firmware, constraint.addedInFirmware)) {
+                        delete baseValues[valueName];
+                    }
+                    if (constraint.removedInFirmware && fwGte(firmware, constraint.removedInFirmware)) {
+                        delete baseValues[valueName];
+                    }
+                }
+            }
+
+            const {modelValues: _, ...rest} = attr;
+            result[key] = {...rest, values: baseValues};
+            continue;
+        }
+
+        result[key] = attr as ResolvedAttribute;
+    }
+
+    return result;
+};
+
 // Create Expose list with Inovelli Parameters definitions
-const attributesToExposeList = (attributes: {[s: string]: Attribute}, exposesList: Expose[]) => {
+const attributesToExposeList = (attributes: {[s: string]: ResolvedAttribute}, exposesList: Expose[]) => {
     Object.keys(attributes).forEach((key) => {
         if (attributes[key].displayType === "enum") {
             const enumE = e
-                .enum(key, attributes[key].readOnly ? ea.STATE_GET : ea.ALL, Object.keys(attributes[key].values))
+                .enum(key, attributes[key].readOnly ? ea.STATE_GET : ea.ALL, Object.keys(attributes[key].values ?? {}))
                 .withDescription(attributes[key].description);
             if (!attributes[key].readOnly) {
                 enumE.withCategory(attributes[key].category ?? "config");
@@ -1015,7 +1113,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 11,
         dataType: Zcl.DataType.BOOLEAN,
         displayType: "enum",
-        values: {Yes: 1, No: 0},
+        modelValues: {default: {values: {Yes: 1, No: 0}}},
         min: 0,
         max: 1,
         description:
@@ -1028,7 +1126,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         max: 32767,
         dataType: Zcl.DataType.UINT16,
         unit: "seconds",
-        values: {Disabled: 0},
+        modelValues: {default: {values: {Disabled: 0}}},
         description:
             "Automatically turns the switch off after this many seconds." +
             " When the switch is turned on a timer is started. When the timer expires, the switch is turned off. 0 = Auto off is disabled.",
@@ -1065,19 +1163,23 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
             "Shows the level that the load is at for x number of seconds after the load is adjusted" +
             " and then returns to the Default LED state. 0 = Stay Off, 1-10 = seconds, 11 = Stay On.",
         displayType: "enum",
-        values: {
-            "Stay Off": 0,
-            "1 Second": 1,
-            "2 Seconds": 2,
-            "3 Seconds": 3,
-            "4 Seconds": 4,
-            "5 Seconds": 5,
-            "6 Seconds": 6,
-            "7 Seconds": 7,
-            "8 Seconds": 8,
-            "9 Seconds": 9,
-            "10 Seconds": 10,
-            "Stay On": 11,
+        modelValues: {
+            default: {
+                values: {
+                    "Stay Off": 0,
+                    "1 Second": 1,
+                    "2 Seconds": 2,
+                    "3 Seconds": 3,
+                    "4 Seconds": 4,
+                    "5 Seconds": 5,
+                    "6 Seconds": 6,
+                    "7 Seconds": 7,
+                    "8 Seconds": 8,
+                    "9 Seconds": 9,
+                    "10 Seconds": 10,
+                    "Stay On": 11,
+                },
+            },
         },
         min: 0,
         max: 11,
@@ -1086,7 +1188,13 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 22,
         dataType: Zcl.DataType.UINT8,
         displayType: "enum",
-        values: {"Single Pole": 0, "3-Way Dumb Switch": 1, "3-Way Aux Switch": 2, "Single-Pole Full Sine Wave": 3},
+        modelValues: {
+            default: {values: {"Single Pole": 0, "Aux Switch": 1}},
+            [Model.VZM31]: {
+                values: {"Single Pole": 0, "3-Way Dumb Switch": 1, "3-Way Aux Switch": 2, "Single-Pole Full Sine Wave": 3},
+                conditionalValues: {"Single-Pole Full Sine Wave": {removedInFirmware: [3, 0]}},
+            },
+        },
         min: 0,
         max: 3,
         description: "Set the switch configuration.",
@@ -1105,7 +1213,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 33,
         dataType: Zcl.DataType.BOOLEAN,
         displayType: "enum",
-        values: {"No Alert": 0, Overheated: 1},
+        modelValues: {default: {values: {"No Alert": 0, Overheated: 1}}},
         min: 0,
         max: 1,
         readOnly: true,
@@ -1114,17 +1222,21 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     buttonDelay: {
         ID: 50,
         dataType: Zcl.DataType.UINT8,
-        values: {
-            "0ms": 0,
-            "100ms": 1,
-            "200ms": 2,
-            "300ms": 3,
-            "400ms": 4,
-            "500ms": 5,
-            "600ms": 6,
-            "700ms": 7,
-            "800ms": 8,
-            "900ms": 9,
+        modelValues: {
+            default: {
+                values: {
+                    "0ms": 0,
+                    "100ms": 1,
+                    "200ms": 2,
+                    "300ms": 3,
+                    "400ms": 4,
+                    "500ms": 5,
+                    "600ms": 6,
+                    "700ms": 7,
+                    "800ms": 8,
+                    "900ms": 9,
+                },
+            },
         },
         displayType: "enum",
         min: 0,
@@ -1141,21 +1253,24 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 52,
         dataType: Zcl.DataType.BOOLEAN,
         displayType: "enum",
-        values: {Disabled: 0, "Smart Bulb Mode": 1},
+        modelValues: {
+            default: {values: {Disabled: 0, "Smart Bulb Mode": 1}},
+            [Model.VZM35]: {values: {Disabled: 0, "Smart Fan Mode": 1}},
+        },
         description: "For use with Smart Bulbs that need constant power and are controlled via commands rather than power.",
     },
     doubleTapUpToParam55: {
         ID: 53,
         dataType: Zcl.DataType.BOOLEAN,
         displayType: "enum",
-        values: {Disabled: 0, Enabled: 1},
+        modelValues: {default: {values: {Disabled: 0, Enabled: 1}}},
         description: "Enable or Disable setting level to parameter 55 on double-tap UP.",
     },
     doubleTapDownToParam56: {
         ID: 54,
         dataType: Zcl.DataType.BOOLEAN,
         displayType: "enum",
-        values: {Disabled: 0, Enabled: 1},
+        modelValues: {default: {values: {Disabled: 0, Enabled: 1}}},
         description: "Enable or Disable setting level to parameter 56 on double-tap DOWN.",
     },
     brightnessLevelForDoubleTapUp: {
@@ -1177,16 +1292,20 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
-        values: {
-            Red: 0,
-            Orange: 21,
-            Yellow: 42,
-            Green: 85,
-            Cyan: 127,
-            Blue: 170,
-            Violet: 212,
-            Pink: 234,
-            White: 255,
+        modelValues: {
+            default: {
+                values: {
+                    Red: 0,
+                    Orange: 21,
+                    Yellow: 42,
+                    Green: 85,
+                    Cyan: 127,
+                    Blue: 170,
+                    Violet: 212,
+                    Pink: 234,
+                    White: 255,
+                },
+            },
         },
         description: "Set the color of the LED Indicator when the load is on.",
     },
@@ -1195,16 +1314,20 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
-        values: {
-            Red: 0,
-            Orange: 21,
-            Yellow: 42,
-            Green: 85,
-            Cyan: 127,
-            Blue: 170,
-            Violet: 212,
-            Pink: 234,
-            White: 255,
+        modelValues: {
+            default: {
+                values: {
+                    Red: 0,
+                    Orange: 21,
+                    Yellow: 42,
+                    Green: 85,
+                    Cyan: 127,
+                    Blue: 170,
+                    Violet: 212,
+                    Pink: 234,
+                    White: 255,
+                },
+            },
         },
         description: "Set the color of the LED Indicator when the load is off.",
     },
@@ -1226,7 +1349,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 120,
         dataType: Zcl.DataType.UINT8,
         displayType: "enum",
-        values: {"Old Behavior": 0, "New Behavior": 1, "Down Always Off": 2},
+        modelValues: {default: {values: {"Old Behavior": 0, "New Behavior": 1, "Down Always Off": 2}}},
         description:
             "Behavior of single tapping the on or off button. Old behavior turns the switch on or off. " +
             "New behavior cycles through the levels set by P131-133. Down Always Off is like the new behavior but " +
@@ -1236,7 +1359,12 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 130,
         dataType: Zcl.DataType.UINT8,
         displayType: "enum",
-        values: {Disabled: 0, "Multi Tap": 1, Cycle: 2, Toggle: 3},
+        modelValues: {
+            default: {values: {Disabled: 0, "Multi Tap": 1, Cycle: 2, Toggle: 3}},
+            [Model.VZM31]: {
+                conditionalValues: {Toggle: {addedInFirmware: [3, 0]}},
+            },
+        },
         description: "Which mode to use when binding EP3 (config button) to another device (like a fan module).",
     },
     lowLevelForFanControlMode: {
@@ -1265,16 +1393,20 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 255,
-        values: {
-            Red: 0,
-            Orange: 21,
-            Yellow: 42,
-            Green: 85,
-            Cyan: 127,
-            Blue: 170,
-            Violet: 212,
-            Pink: 234,
-            White: 255,
+        modelValues: {
+            default: {
+                values: {
+                    Red: 0,
+                    Orange: 21,
+                    Yellow: 42,
+                    Green: 85,
+                    Cyan: 127,
+                    Blue: 170,
+                    Violet: 212,
+                    Pink: 234,
+                    White: 255,
+                },
+            },
         },
         description: "LED color used to display fan control mode.",
     },
@@ -1282,27 +1414,27 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 123,
         dataType: Zcl.DataType.BOOLEAN,
         displayType: "enum",
-        values: {Disabled: 0, Enabled: 1},
+        modelValues: {default: {values: {Disabled: 0, Enabled: 1}}},
         description: "Have unique scene numbers for scenes activated with the aux switch.",
     },
     bindingOffToOnSyncLevel: {
         ID: 125,
         dataType: Zcl.DataType.BOOLEAN,
         displayType: "enum",
-        values: {Disabled: 0, Enabled: 1},
+        modelValues: {default: {values: {Disabled: 0, Enabled: 1}}},
         description: "Send Move_To_Level using Default Level with Off/On to bound devices.",
     },
     localProtection: {
         ID: 256,
         dataType: Zcl.DataType.BOOLEAN,
-        values: {Disabled: 0, Enabled: 1},
+        modelValues: {default: {values: {Disabled: 0, Enabled: 1}}},
         description: "Ability to control switch from the wall.",
         displayType: "enum",
     },
     remoteProtection: {
         ID: 257,
         dataType: Zcl.DataType.BOOLEAN,
-        values: {Disabled: 0, Enabled: 1},
+        modelValues: {default: {values: {Disabled: 0, Enabled: 1}}},
         readOnly: true,
         description: "Ability to control switch from the hub.",
         displayType: "enum",
@@ -1311,7 +1443,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 259,
         min: 0,
         max: 1,
-        values: {All: 0, One: 1},
+        modelValues: {default: {values: {All: 0, One: 1}}},
         dataType: Zcl.DataType.BOOLEAN,
         description: "When the device is in On/Off mode, use full LED bar or just one LED.",
         displayType: "enum",
@@ -1319,7 +1451,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
     firmwareUpdateInProgressIndicator: {
         ID: 260,
         dataType: Zcl.DataType.BOOLEAN,
-        values: {Disabled: 0, Enabled: 1},
+        modelValues: {default: {values: {Disabled: 0, Enabled: 1}}},
         description: "Display progress on LED bar during firmware update.",
         displayType: "enum",
     },
@@ -1537,7 +1669,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 121,
         dataType: Zcl.DataType.BOOLEAN,
         displayType: "enum",
-        values: {Disabled: 0, Enabled: 1},
+        modelValues: {default: {values: {Disabled: 0, Enabled: 1}}},
         description: "Enable or disable advanced timer mode to have the switch act like a bathroom fan timer",
     },
     doubleTapClearNotifications: {
@@ -1546,7 +1678,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         min: 0,
         max: 1,
         description: "Double-Tap the Config button to clear notifications.",
-        values: {"Enabled (Default)": 0, Disabled: 1},
+        modelValues: {default: {values: {"Enabled (Default)": 0, Disabled: 1}}},
         displayType: "enum",
     },
     fanLedLevelType: {
@@ -1554,7 +1686,7 @@ const COMMON_ATTRIBUTES: {[s: string]: Attribute} = {
         dataType: Zcl.DataType.UINT8,
         min: 0,
         max: 10,
-        values: {"Limitless (like VZM31)": 0, "Adaptive LED": 10},
+        modelValues: {default: {values: {"Limitless (like VZM31)": 0, "Adaptive LED": 10}}},
         description: "Level display of the LED Strip",
     },
 };
@@ -1591,7 +1723,7 @@ const COMMON_DIMMER_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 21,
         dataType: Zcl.DataType.BOOLEAN,
         displayType: "enum",
-        values: {"Non Neutral": 0, Neutral: 1},
+        modelValues: {default: {values: {"Non Neutral": 0, Neutral: 1}}},
         min: 0,
         max: 1,
         readOnly: true,
@@ -1601,7 +1733,10 @@ const COMMON_DIMMER_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 258,
         min: 0,
         max: 1,
-        values: {Dimmer: 0, "On/Off": 1},
+        modelValues: {
+            default: {values: {Dimmer: 0, "On/Off": 1}},
+            [Model.VZM35]: {values: {"Ceiling Fan (3-Speed)": 0, "Exhaust Fan (On/Off)": 1}},
+        },
         dataType: Zcl.DataType.BOOLEAN,
         description: "Use device as a Dimmer or an On/Off switch.",
         displayType: "enum",
@@ -1635,7 +1770,7 @@ const COMMON_DIMMABLE_LIGHT_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 25,
         dataType: Zcl.DataType.BOOLEAN,
         displayType: "enum",
-        values: {"Disabled (default)": 0, Enabled: 1},
+        modelValues: {default: {values: {"Disabled (default)": 0, Enabled: 1}}},
         min: 0,
         max: 1,
         description: "Increase level in non-neutral mode",
@@ -1644,7 +1779,7 @@ const COMMON_DIMMABLE_LIGHT_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 26,
         dataType: Zcl.DataType.UINT8,
         displayType: "enum",
-        values: {"Leading edge": 0, "Trailing edge": 1},
+        modelValues: {default: {values: {"Leading edge": 0, "Trailing edge": 1}}},
         min: 0,
         max: 1,
         readOnly: true,
@@ -1658,7 +1793,8 @@ const COMMON_DIMMABLE_LIGHT_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 27,
         dataType: Zcl.DataType.UINT8,
         displayType: "enum",
-        values: {"Old dimming algorithm (v2.18)": 0, "New dimming algorithm (v3.04)": 1},
+        modelValues: {default: {values: {"Old dimming algorithm (v2.18)": 0, "New dimming algorithm (v3.04)": 1}}},
+        addedInFirmware: {[Model.VZM31]: [3, 5] as FirmwareVersion},
         min: 0,
         max: 1,
         description:
@@ -1669,6 +1805,7 @@ const COMMON_DIMMABLE_LIGHT_ATTRIBUTES: {[s: string]: Attribute} = {
     auxDetectionLevel: {
         ID: 124,
         dataType: Zcl.DataType.UINT8,
+        addedInFirmware: {[Model.VZM31]: [3, 5] as FirmwareVersion},
         min: 0,
         max: 4,
         description:
@@ -1689,7 +1826,7 @@ const COMMON_DIMMER_ON_OFF_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 100,
         dataType: Zcl.DataType.BOOLEAN,
         displayType: "enum",
-        values: {"Gen3 method (VZM-style)": 0, "Gen2 method (LZW-style)": 1},
+        modelValues: {default: {values: {"Gen3 method (VZM-style)": 0, "Gen2 method (LZW-style)": 1}}},
         description: "Method used for scaling.",
     },
     activePowerReports: {
@@ -1720,11 +1857,6 @@ const COMMON_DIMMER_ON_OFF_ATTRIBUTES: {[s: string]: Attribute} = {
 export const VZM30_ATTRIBUTES: {[s: string]: Attribute} = {
     ...COMMON_ATTRIBUTES,
     ...COMMON_DIMMER_ON_OFF_ATTRIBUTES,
-    switchType: {
-        ...COMMON_ATTRIBUTES.switchType,
-        values: {"Single Pole": 0, "Aux Switch": 1},
-        max: 1,
-    },
     outputMode: {
         ...COMMON_DIMMER_ATTRIBUTES.outputMode,
         description: "Use device as a Dimmer or an On/Off switch. Only applies when controlling bound devices.",
@@ -1745,7 +1877,7 @@ export const VZM31_ATTRIBUTES: {[s: string]: Attribute} = {
             "In neutral on/off setups, the default is to have a clicking sound to notify you that the relay " +
             "is open or closed. You may disable this sound by creating a, “simulated” on/off where the switch " +
             "only will turn onto 100 or off to 0.",
-        values: {"Disabled (Click Sound On)": 0, "Enabled (Click Sound Off)": 1},
+        modelValues: {default: {values: {"Disabled (Click Sound On)": 0, "Enabled (Click Sound Off)": 1}}},
         displayType: "enum",
     },
 };
@@ -1754,19 +1886,18 @@ export const VZM32_ATTRIBUTES: {[s: string]: Attribute} = {
     ...COMMON_DIMMER_ATTRIBUTES,
     ...COMMON_DIMMER_ON_OFF_ATTRIBUTES,
     ...COMMON_DIMMABLE_LIGHT_ATTRIBUTES,
-    switchType: {
-        ...COMMON_ATTRIBUTES.switchType,
-        values: {"Single Pole": 0, "Aux Switch": 1},
-        max: 1,
-    },
     otaImageType: {
         ID: 34,
         dataType: Zcl.DataType.UINT8,
         displayType: "enum",
-        values: {
-            "Zigbee (259)": 0,
-            "mmWave (260)": 1,
-            "Alternating (259 & 260) (default)": 2,
+        modelValues: {
+            default: {
+                values: {
+                    "Zigbee (259)": 0,
+                    "mmWave (260)": 1,
+                    "Alternating (259 & 260) (default)": 2,
+                },
+            },
         },
         min: 0,
         max: 2,
@@ -1776,14 +1907,18 @@ export const VZM32_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 110,
         dataType: Zcl.DataType.UINT8,
         displayType: "enum",
-        values: {
-            Disabled: 0,
-            "Occupancy (default)": 1,
-            Vacancy: 2,
-            "Wasteful Occupancy": 3,
-            "Mirrored Occupancy": 4,
-            "Mirrored Vacancy": 5,
-            "Mirrored Wasteful Occupancy": 6,
+        modelValues: {
+            default: {
+                values: {
+                    Disabled: 0,
+                    "Occupancy (default)": 1,
+                    Vacancy: 2,
+                    "Wasteful Occupancy": 3,
+                    "Mirrored Occupancy": 4,
+                    "Mirrored Vacancy": 5,
+                    "Mirrored Wasteful Occupancy": 6,
+                },
+            },
         },
         min: 0,
         max: 6,
@@ -1801,11 +1936,15 @@ export const VZM32_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 117,
         dataType: Zcl.DataType.UINT8,
         displayType: "enum",
-        values: {
-            Custom: 0,
-            Small: 1,
-            Medium: 2,
-            Large: 3,
+        modelValues: {
+            default: {
+                values: {
+                    Custom: 0,
+                    Small: 1,
+                    Medium: 2,
+                    Large: 3,
+                },
+            },
         },
         min: 0,
         max: 3,
@@ -1831,7 +1970,7 @@ export const VZM32_MMWAVE_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 112,
         dataType: Zcl.DataType.UINT8,
         displayType: "enum",
-        values: {Low: 0, Medium: 1, "High (default)": 2},
+        modelValues: {default: {values: {Low: 0, Medium: 1, "High (default)": 2}}},
         min: 0,
         max: 2,
         description: "The sensitivity of the mmWave sensor.",
@@ -1840,7 +1979,7 @@ export const VZM32_MMWAVE_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 113,
         dataType: Zcl.DataType.UINT8,
         displayType: "enum",
-        values: {"Slow (5s)": 0, "Medium (1s)": 1, "Fast (0.2s, default)": 2},
+        modelValues: {default: {values: {"Slow (5s)": 0, "Medium (1s)": 1, "Fast (0.2s, default)": 2}}},
         min: 0,
         max: 2,
         description: "The time from detecting a person to triggering an action.",
@@ -1849,7 +1988,7 @@ export const VZM32_MMWAVE_ATTRIBUTES: {[s: string]: Attribute} = {
         ID: 107,
         dataType: Zcl.DataType.UINT8,
         displayType: "enum",
-        values: {"Disable (default)": 0, Enable: 1},
+        modelValues: {default: {values: {"Disable (default)": 0, Enable: 1}}},
         min: 0,
         max: 1,
         description: "Send target info report when bound to mmWave cluster.",
@@ -1933,15 +2072,9 @@ export const VZM35_ATTRIBUTES: {[s: string]: Attribute} = {
         ...COMMON_DIMMER_ATTRIBUTES.maximumLevel,
         description: "2-84: The level corresponding to the fan is Low, Medium, High.",
     },
-    switchType: {
-        ...COMMON_ATTRIBUTES.switchType,
-        values: {"Single Pole": 0, "Aux Switch": 1},
-        max: 1,
-    },
     smartBulbMode: {
         ...COMMON_ATTRIBUTES.smartBulbMode,
         description: "For use with Smart Fans that need constant power and are controlled via commands rather than power.",
-        values: {Disabled: 0, "Smart Fan Mode": 1},
     },
     quickStartTime: {
         ID: 23,
@@ -1966,7 +2099,6 @@ export const VZM35_ATTRIBUTES: {[s: string]: Attribute} = {
     },
     outputMode: {
         ...COMMON_DIMMER_ATTRIBUTES.outputMode,
-        values: {"Ceiling Fan (3-Speed)": 0, "Exhaust Fan (On/Off)": 1},
         description: "Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.",
     },
 };
@@ -2104,14 +2236,14 @@ export const VZM36_ATTRIBUTES: {[s: string]: Attribute} = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     smartBulbMode_2: {
         ...COMMON_DIMMER_ATTRIBUTES.smartBulbMode,
-        values: {Disabled: 0, "Smart Fan Mode": 1},
+        modelValues: {default: {values: {Disabled: 0, "Smart Fan Mode": 1}}},
         description: "For use with Smart Fans that need constant power and are controlled via commands rather than power.",
     },
     // remote protection readonly..
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     outputMode_2: {
         ...COMMON_DIMMER_ATTRIBUTES.outputMode,
-        values: {"Ceiling Fan (3-Speed)": 0, "Exhaust Fan (On/Off)": 1},
+        modelValues: {default: {values: {"Ceiling Fan (3-Speed)": 0, "Exhaust Fan (On/Off)": 1}}},
         description: "Use device in ceiling fan (3-Speed) or in exhaust fan (On/Off) mode.",
     },
 };
@@ -2197,7 +2329,11 @@ function resolveEndpointAndKey(entity: Zh.Endpoint | Zh.Group, key: string, meta
 }
 
 const tzLocal = {
-    inovelli_parameters: (attributes: {[s: string]: Attribute}, cluster: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME) =>
+    inovelli_parameters: (
+        attributes: {[s: string]: Attribute},
+        cluster: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME,
+        model: Model,
+    ) =>
         ({
             key: Object.keys(attributes).filter((a) => !attributes[a].readOnly),
             convertSet: async (entity, key, value, meta) => {
@@ -2207,13 +2343,10 @@ const tzLocal = {
                     return;
                 }
 
+                const valueMap = resolveValueMap(attributes[key], model);
                 const payload = {
                     [attributes[key].ID]: {
-                        value:
-                            attributes[key].displayType === "enum"
-                                ? // @ts-expect-error ignore
-                                  attributes[key].values[value]
-                                : value,
+                        value: attributes[key].displayType === "enum" ? valueMap?.[value as string] : value,
                         type: attributes[key].dataType,
                     },
                 };
@@ -2491,6 +2624,7 @@ const fzLocal = {
         attributes: {[s: string]: Attribute},
         cluster: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME,
         splitValuesByEndpoint = false,
+        deviceModel?: Model,
     ) =>
         ({
             cluster: cluster,
@@ -2521,10 +2655,11 @@ const fzLocal = {
                         const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
                         const raw = (msg.data as Record<string | number, unknown>)[c];
                         if (attributes[key] && attributes[key].displayType === "enum") {
+                            const valueMap = resolveValueMap(attributes[key], deviceModel);
                             return {
                                 // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
                                 ...p,
-                                [key]: Object.keys(attributes[key].values).find((k) => attributes[key].values[k] === raw),
+                                [key]: valueMap ? Object.keys(valueMap).find((k) => valueMap[k] === raw) : raw,
                             };
                         }
                         // biome-ignore lint/performance/noAccumulatingSpread: ignored using `--suppress`
