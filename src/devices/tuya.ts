@@ -23,7 +23,6 @@ const {tuyaLight, tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup, 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
