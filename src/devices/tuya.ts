@@ -11733,6 +11733,22 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
+        fingerprint: [ {modelID: 'TS0222', manufacturerName: '_TZ3000_j6adk9id'} ],
+        model: 'TS0222_light',
+        vendor: 'Tuya',
+        description: 'Light sensor (ZCL standard)',
+        fromZigbee: [
+            fz.illuminance,
+            fz.battery,
+        ],
+        toZigbee: [],
+        exposes: [
+            e.illuminance(),      // Raw value (Zigbee logarithmic)
+            e.illuminance_lux(),  // Lux
+            e.battery(),
+        ],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0222", ["_TZ3000_t9qqxn70"]),
         model: "THE01860A",
         vendor: "Tuya",
