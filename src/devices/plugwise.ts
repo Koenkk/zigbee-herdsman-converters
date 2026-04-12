@@ -26,11 +26,20 @@ const plugwiseRadioStrengthLookup = {
 interface PlugwiseHvacThermostat {
     attributes: {
         plugwiseValvePosition: number;
-        // plugviseErrorStatus: number;
+        // plugwiseErrorStatus: number;
         plugwiseCurrentHeatingSetpoint: number;
         plugwiseTDiff: number;
         plugwisePushForce: number;
         plugwiseRadioStrength: number;
+        emmaExternalHeatDemand: number;
+        emmaExternalHeatDemandTimeout: number;
+        emmaBoilerWaterTemp: number;
+        emmaDhwTemp: number;
+        emmaReturnWaterTemp: number;
+        emmaApplicationFaultCode: number;
+        emmaOemFaultCode: number;
+        emmaMaxDhwSetpoint: number;
+        emmaMaxBoilerSetpoint: number;
     };
     commands: {
         plugwiseCalibrateValve: Record<string, never>;
@@ -45,11 +54,69 @@ const plugwiseExtend = {
             ID: Zcl.Clusters.hvacThermostat.ID,
             attributes: {
                 plugwiseValvePosition: {name: "plugwiseValvePosition", ID: 0x4001, type: Zcl.DataType.UINT8},
-                // plugviseErrorStatus: {name: "plugviseErrorStatus", ID: 0x4002, type: Zcl.DataType.??},
+                // plugwiseErrorStatus: {name: "plugwiseErrorStatus", ID: 0x4002, type: Zcl.DataType.??},
                 plugwiseCurrentHeatingSetpoint: {name: "plugwiseCurrentHeatingSetpoint", ID: 0x4003, type: Zcl.DataType.INT16},
                 plugwiseTDiff: {name: "plugwiseTDiff", ID: 0x4008, type: Zcl.DataType.INT16},
                 plugwisePushForce: {name: "plugwisePushForce", ID: 0x4012, type: Zcl.DataType.UINT32},
                 plugwiseRadioStrength: {name: "plugwiseRadioStrength", ID: 0x4014, type: Zcl.DataType.BOOLEAN},
+                emmaExternalHeatDemand: {
+                    name: "emmaExternalHeatDemand",
+                    ID: 0xf000,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                emmaExternalHeatDemandTimeout: {
+                    name: "emmaExternalHeatDemandTimeout",
+                    ID: 0xf001,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                emmaBoilerWaterTemp: {
+                    name: "emmaBoilerWaterTemp",
+                    ID: 0xf002,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                },
+                emmaDhwTemp: {
+                    name: "emmaDhwTemp",
+                    ID: 0xf003,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                },
+                emmaReturnWaterTemp: {
+                    name: "emmaReturnWaterTemp",
+                    ID: 0xf004,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                },
+                emmaApplicationFaultCode: {
+                    name: "emmaApplicationFaultCode",
+                    ID: 0xf005,
+                    type: Zcl.DataType.BITMAP8,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                },
+                emmaOemFaultCode: {
+                    name: "emmaOemFaultCode",
+                    ID: 0xf006,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                },
+                emmaMaxDhwSetpoint: {
+                    name: "emmaMaxDhwSetpoint",
+                    ID: 0xf007,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                emmaMaxBoilerSetpoint: {
+                    name: "emmaMaxBoilerSetpoint",
+                    ID: 0xf008,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
             },
             commands: {
                 plugwiseCalibrateValve: {name: "plugwiseCalibrateValve", ID: 0xa0, parameters: []},
