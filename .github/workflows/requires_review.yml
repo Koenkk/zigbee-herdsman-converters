@@ -22,7 +22,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
-        # Check if PR has external-reviewer-approved label
+        # Skip if PR already has the approval label
         LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
         for label in $LABELS; do
           if [[ "$label" == "external-reviewer-approved" ]]; then
@@ -30,34 +30,63 @@ jobs:
           fi
         done
 
-        # No external-reviewer-approved label, check if files that require
-        # external review have been modified
+        # Build reviewer map from CODEOWNERS
+        declare -a PATTERNS=()
+        declare -A PATTERN_REVIEWERS=()
+        while IFS= read -r line; do
+          line="${line%%#*}"
+          [[ -z "${line// }" ]] && continue
+          read -r pattern owners <<< "$line"
+          PATTERNS+=("$pattern")
+          PATTERN_REVIEWERS["$pattern"]="$owners"
+        done < CODEOWNERS
 
-        # Get list of changed files
         CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }})
-        
-        # List of files that require review
-        declare -A FILE_REVIEWERS=(
-          ["src/devices/vesternet.ts"]="@martyn-vesternet"
-          ["src/devices/candeo.ts"]="@candeodevelopment / @dhc25"
-          ["src/devices/inovelli.ts"]="@InovelliUSA / @rohankapoorcom"
-          ["src/devices/efekta.ts"]="@smartboxchannel"
-        )
-        
-        # Flag to track if forbidden files were modified
+
         MATCH=false
-        
-        # Check each changed file against requires review list
+        declare -A MATCHED_REVIEWERS=()
+
+        shopt -s extglob
         for file in $CHANGED_FILES; do
-          for pattern in "${!FILE_REVIEWERS[@]}"; do
-            if [[ $file == $pattern || $file == $pattern* ]]; then
-              echo "::error::Review required for '$file' by '${FILE_REVIEWERS[$pattern]}'"
+          for pattern in "${PATTERNS[@]}"; do
+            # CODEOWNERS patterns: leading "/" anchors to root (strip it for
+            # matching against repo-relative paths), otherwise match anywhere.
+            glob="$pattern"
+            [[ "$glob" == /* ]] && glob="${glob:1}"
+
+            if [[ $file == $glob ]]; then
+              reviewers="${PATTERN_REVIEWERS[$pattern]}"
+              echo "::error::Review required for '$file' by '$reviewers'"
+              MATCHED_REVIEWERS["$reviewers"]+="$file"$'\n'
               MATCH=true
             fi
           done
         done
-        
-        # Fail the workflow if forbidden files were changed
+
+        # Post a comment tagging the owners (only once per PR)
         if [ "$MATCH" = true ]; then
+          MARKER="<!-- requires-external-review -->"
+          EXISTING=$(gh pr view $PR_NUMBER --json comments \
+            --jq ".comments[].body | select(contains(\"$MARKER\"))" || true)
+
+          if [ -z "$EXISTING" ]; then
+            BODY="$MARKER"$'\n'
+            BODY+="## External review required"$'\n\n'
+            BODY+="This PR modifies files that require review from their code owners before merging."$'\n\n'
+
+            for reviewers in "${!MATCHED_REVIEWERS[@]}"; do
+              FILES="${MATCHED_REVIEWERS[$reviewers]}"
+              BODY+="**$reviewers**:"$'\n'
+              while IFS= read -r f; do
+                [[ -n "$f" ]] && BODY+="- \`$f\`"$'\n'
+              done <<< "$FILES"
+              BODY+=$'\n'
+            done
+
+            BODY+="Once reviewed, add the \`external-reviewer-approved\` label to unblock this check."
+
+            gh pr comment $PR_NUMBER --body "$BODY"
+          fi
+
           exit 1
         fi
