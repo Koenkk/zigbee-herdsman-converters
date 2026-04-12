@@ -42,7 +42,6 @@ const ATTR_BATTERY_TYPE = 0x007f; // ENUM8  battery chemistry (mfgCode 0x1172)
 
 // ZCL type tags
 const ZCL_ENUM8 = Zcl.DataType.ENUM8;
-const ZCL_UINT16 = Zcl.DataType.UINT16;
 const ZCL_INT16S = Zcl.DataType.INT16;
 
 // Power source enum → string
@@ -72,6 +71,14 @@ const APP_FAULT_BITS = [
     {bit: 0x20, name: "water_over_temp"},
 ];
 
+const strictIntegerScale: m.ScaleFunction = (value, type) => {
+    if (type === "to" && !Number.isInteger(value)) {
+        throw new Error("external_heat_demand_timeout must be an integer between 300 and 3600 seconds");
+    }
+
+    return value;
+};
+
 /**
  * Decode a ZCL octet string attribute value.
  * Zigbee-herdsman delivers OCTET_STRING as a Buffer (data bytes only, length prefix stripped).
@@ -98,7 +105,7 @@ const plugwiseRadioStrengthLookup = {
 interface PlugwiseHvacThermostat {
     attributes: {
         plugwiseValvePosition: number;
-        // plugviseErrorStatus: number;
+        // plugwiseErrorStatus: number;
         plugwiseCurrentHeatingSetpoint: number;
         plugwiseTDiff: number;
         plugwisePushForce: number;
@@ -111,13 +118,13 @@ interface PlugwiseHvacThermostat {
 }
 
 const plugwiseExtend = {
-    plugwiseHvacThermostatCluster: () => {
-        const customCluster = m.deviceAddCustomCluster("hvacThermostat", {
+    tomHvacThermostatCluster: () =>
+        m.deviceAddCustomCluster("hvacThermostat", {
             name: "hvacThermostat",
             ID: Zcl.Clusters.hvacThermostat.ID,
             attributes: {
                 plugwiseValvePosition: {name: "plugwiseValvePosition", ID: 0x4001, type: Zcl.DataType.UINT8},
-                // plugviseErrorStatus: {name: "plugviseErrorStatus", ID: 0x4002, type: Zcl.DataType.??},
+                // plugwiseErrorStatus: {name: "plugwiseErrorStatus", ID: 0x4002, type: Zcl.DataType.??},
                 plugwiseCurrentHeatingSetpoint: {name: "plugwiseCurrentHeatingSetpoint", ID: 0x4003, type: Zcl.DataType.INT16},
                 plugwiseTDiff: {name: "plugwiseTDiff", ID: 0x4008, type: Zcl.DataType.INT16},
                 plugwisePushForce: {name: "plugwisePushForce", ID: 0x4012, type: Zcl.DataType.UINT32},
@@ -127,20 +134,171 @@ const plugwiseExtend = {
                 plugwiseCalibrateValve: {name: "plugwiseCalibrateValve", ID: 0xa0, parameters: []},
             },
             commandsResponse: {},
-        });
+        }),
+    emmaHvacThermostatCluster: () =>
+        m.deviceAddCustomCluster("hvacThermostat", {
+            name: "hvacThermostat",
+            ID: Zcl.Clusters.hvacThermostat.ID,
+            attributes: {
+                emmaExternalHeatDemand: {
+                    name: "emmaExternalHeatDemand",
+                    ID: ATTR_EXT_HEAT_DEMAND,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: PLUGWISE_MFG_CODE,
+                    write: true,
+                },
+                emmaExternalHeatDemandTimeout: {
+                    name: "emmaExternalHeatDemandTimeout",
+                    ID: ATTR_EXT_HEAT_DEMAND_TIMEOUT,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: PLUGWISE_MFG_CODE,
+                    write: true,
+                },
+                emmaBoilerWaterTemp: {
+                    name: "emmaBoilerWaterTemp",
+                    ID: ATTR_BOILER_WATER_TEMP,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: PLUGWISE_MFG_CODE,
+                },
+                emmaDhwTemp: {
+                    name: "emmaDhwTemp",
+                    ID: ATTR_DHW_TEMP,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: PLUGWISE_MFG_CODE,
+                },
+                emmaReturnWaterTemp: {
+                    name: "emmaReturnWaterTemp",
+                    ID: ATTR_RETURN_WATER_TEMP,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: PLUGWISE_MFG_CODE,
+                },
+                emmaApplicationFaultCode: {
+                    name: "emmaApplicationFaultCode",
+                    ID: ATTR_APP_FAULT_CODE,
+                    type: Zcl.DataType.BITMAP8,
+                    manufacturerCode: PLUGWISE_MFG_CODE,
+                },
+                emmaOemFaultCode: {
+                    name: "emmaOemFaultCode",
+                    ID: ATTR_OEM_FAULT_CODE,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: PLUGWISE_MFG_CODE,
+                },
+                emmaMaxDhwSetpoint: {
+                    name: "emmaMaxDhwSetpoint",
+                    ID: ATTR_MAX_DHW_SETPOINT,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: PLUGWISE_MFG_CODE,
+                    write: true,
+                },
+                emmaMaxBoilerSetpoint: {
+                    name: "emmaMaxBoilerSetpoint",
+                    ID: ATTR_MAX_BOILER_SETPOINT,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: PLUGWISE_MFG_CODE,
+                    write: true,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+};
 
-        return {
-            ...customCluster,
-            configure: [
-                ...(customCluster.configure ?? []),
-                m.setupConfigureForReporting("hvacThermostat", "outdoorTemp", {
-                    config: {min: 60, max: 600, change: 50},
-                    access: ea.STATE_GET,
-                    singleEndpoint: true,
-                }),
-            ],
-        };
-    },
+const emmaExtend = {
+    outdoorTemperature: m.numeric({
+        name: "outdoor_temperature",
+        cluster: "hvacThermostat",
+        attribute: "outdoorTemp",
+        description: "Outdoor temperature reported by thermostat.",
+        access: "STATE_GET",
+        unit: "°C",
+        scale: 100,
+        reporting: false,
+    }),
+    externalHeatDemand: m.numeric({
+        name: "external_heat_demand",
+        cluster: "hvacThermostat",
+        attribute: "emmaExternalHeatDemand",
+        description: "External heat demand setpoint in °C (0 = disabled, requires Unlock External Control).",
+        zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
+        access: "ALL",
+        unit: "°C",
+        valueMin: 0,
+        valueMax: 90,
+        valueStep: 0.01,
+        scale: 100,
+        reporting: false,
+    }),
+    externalHeatDemandTimeout: m.numeric({
+        name: "external_heat_demand_timeout",
+        cluster: "hvacThermostat",
+        attribute: "emmaExternalHeatDemandTimeout",
+        description: "Timeout for external heat demand override in seconds.",
+        zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
+        access: "ALL",
+        unit: "s",
+        valueMin: 300,
+        valueMax: 3600,
+        valueStep: 1,
+        scale: strictIntegerScale,
+        reporting: false,
+    }),
+    boilerWaterTemperature: m.numeric({
+        name: "boiler_water_temperature",
+        cluster: "hvacThermostat",
+        attribute: "emmaBoilerWaterTemp",
+        description: "Boiler supply water temperature reported by OpenTherm.",
+        zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
+        access: "STATE_GET",
+        unit: "°C",
+        scale: 100,
+        reporting: false,
+    }),
+    dhwTemperature: m.numeric({
+        name: "dhw_temperature",
+        cluster: "hvacThermostat",
+        attribute: "emmaDhwTemp",
+        description: "Domestic hot water temperature reported by OpenTherm.",
+        zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
+        access: "STATE_GET",
+        unit: "°C",
+        scale: 100,
+        reporting: false,
+    }),
+    returnWaterTemperature: m.numeric({
+        name: "return_water_temperature",
+        cluster: "hvacThermostat",
+        attribute: "emmaReturnWaterTemp",
+        description: "Boiler return water temperature reported by OpenTherm.",
+        zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
+        access: "STATE_GET",
+        unit: "°C",
+        scale: 100,
+        reporting: false,
+    }),
+    applicationFaultCode: m.numeric({
+        name: "application_fault_code",
+        cluster: "hvacThermostat",
+        attribute: "emmaApplicationFaultCode",
+        description:
+            "OpenTherm application fault bitmap (bit0=service_request, bit1=lockout_reset, bit2=low_water_pressure, bit3=gas_flame_fault, bit4=air_pressure_fault, bit5=water_over_temp).",
+        zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
+        access: "STATE_GET",
+        valueMin: 0,
+        valueMax: 255,
+        reporting: false,
+    }),
+    oemFaultCode: m.numeric({
+        name: "oem_fault_code",
+        cluster: "hvacThermostat",
+        attribute: "emmaOemFaultCode",
+        description: "OpenTherm OEM-specific fault code.",
+        zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
+        access: "STATE_GET",
+        valueMin: 0,
+        valueMax: 255,
+        reporting: false,
+    }),
 };
 
 const fzLocal = {
@@ -179,28 +337,12 @@ const fzLocal = {
             const d = msg.data as KeyValue;
             const r: KeyValue = {};
 
-            const rawOT = d.outdoorTemp != null ? d.outdoorTemp : d.outdoorTemperature != null ? d.outdoorTemperature : d[ATTR_OUTDOOR_TEMP];
-            if (typeof rawOT === "number") r.outdoor_temperature = rawOT / 100;
-
-            // Manufacturer-specific (mfgCode 0x1172)
-            if (typeof d[ATTR_EXT_HEAT_DEMAND] === "number") r.external_heat_demand = d[ATTR_EXT_HEAT_DEMAND] / 100;
-            if (typeof d[ATTR_EXT_HEAT_DEMAND_TIMEOUT] === "number") r.external_heat_demand_timeout = d[ATTR_EXT_HEAT_DEMAND_TIMEOUT];
-
-            // OpenTherm boiler readings (read-only, firmware-reported)
-            if (typeof d[ATTR_BOILER_WATER_TEMP] === "number") r.boiler_water_temperature = d[ATTR_BOILER_WATER_TEMP] / 100;
-            if (typeof d[ATTR_DHW_TEMP] === "number") r.dhw_temperature = d[ATTR_DHW_TEMP] / 100;
-            if (typeof d[ATTR_RETURN_WATER_TEMP] === "number") r.return_water_temperature = d[ATTR_RETURN_WATER_TEMP] / 100;
-            if (typeof d[ATTR_APP_FAULT_CODE] === "number") {
-                const v = d[ATTR_APP_FAULT_CODE];
-                r.application_fault_code = v;
+            const rawAppFault = d.emmaApplicationFaultCode != null ? d.emmaApplicationFaultCode : d[ATTR_APP_FAULT_CODE];
+            if (typeof rawAppFault === "number") {
+                const v = rawAppFault;
                 const active = APP_FAULT_BITS.filter((f) => v & f.bit).map((f) => f.name);
                 r.application_fault_flags = active.length ? active.join(", ") : "none";
             }
-            if (typeof d[ATTR_OEM_FAULT_CODE] === "number") r.oem_fault_code = d[ATTR_OEM_FAULT_CODE];
-
-            // Max setpoints (mfgCode 0x1172, INT16S, hundredths °C)
-            if (typeof d[ATTR_MAX_DHW_SETPOINT] === "number") r.max_dhw_setpoint = d[ATTR_MAX_DHW_SETPOINT] / 100;
-            if (typeof d[ATTR_MAX_BOILER_SETPOINT] === "number") r.max_boiler_setpoint = d[ATTR_MAX_BOILER_SETPOINT] / 100;
 
             return Object.keys(r).length ? r : undefined;
         },
@@ -329,15 +471,6 @@ const tzLocal = {
     } satisfies Tz.Converter,
 
     // -- Emma Pro/Wireless related --
-    thermostat_read: {
-        key: ["outdoor_temperature"],
-        convertGet: async (entity, key, meta) => {
-            if (key === "outdoor_temperature") {
-                await entity.read("hvacThermostat", [ATTR_OUTDOOR_TEMP]);
-            }
-        },
-    } satisfies Tz.Converter,
-
     keypad_lockout: {
         key: ["keypad_lockout"],
         convertSet: async (entity, key, value, meta) => {
@@ -371,36 +504,6 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
 
-    external_heat_demand: {
-        key: ["external_heat_demand"],
-        convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== "number" || value < 0 || value > 90) throw new Error("external_heat_demand must be 0–90 (write 0 to disable)");
-            await entity.write(
-                "hvacThermostat",
-                {[ATTR_EXT_HEAT_DEMAND]: {value: Math.round(value * 100), type: ZCL_UINT16}},
-                {manufacturerCode: PLUGWISE_MFG_CODE},
-            );
-            return {state: {external_heat_demand: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", [ATTR_EXT_HEAT_DEMAND], {manufacturerCode: PLUGWISE_MFG_CODE});
-        },
-    } satisfies Tz.Converter,
-
-    external_heat_demand_timeout: {
-        key: ["external_heat_demand_timeout"],
-        convertSet: async (entity, key, value, meta) => {
-            if (typeof value !== "number" || !Number.isInteger(value) || value < 300 || value > 3600) {
-                throw new Error("external_heat_demand_timeout must be an integer between 300 and 3600 seconds");
-            }
-            await entity.write("hvacThermostat", {[ATTR_EXT_HEAT_DEMAND_TIMEOUT]: {value, type: ZCL_UINT16}}, {manufacturerCode: PLUGWISE_MFG_CODE});
-            return {state: {external_heat_demand_timeout: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", [ATTR_EXT_HEAT_DEMAND_TIMEOUT], {manufacturerCode: PLUGWISE_MFG_CODE});
-        },
-    } satisfies Tz.Converter,
-
     max_setpoints: {
         key: ["max_dhw_setpoint", "max_boiler_setpoint"],
         convertSet: async (entity, key, value, meta) => {
@@ -422,25 +525,10 @@ const tzLocal = {
     } satisfies Tz.Converter,
 
     boiler_ot_readings: {
-        key: [
-            "boiler_water_temperature",
-            "dhw_temperature",
-            "return_water_temperature",
-            "application_fault_code",
-            "application_fault_flags",
-            "oem_fault_code",
-        ],
+        key: ["application_fault_flags"],
         convertGet: async (entity, key, meta) => {
-            const attrMap = {
-                boiler_water_temperature: ATTR_BOILER_WATER_TEMP,
-                dhw_temperature: ATTR_DHW_TEMP,
-                return_water_temperature: ATTR_RETURN_WATER_TEMP,
-                application_fault_code: ATTR_APP_FAULT_CODE,
-                application_fault_flags: ATTR_APP_FAULT_CODE,
-                oem_fault_code: ATTR_OEM_FAULT_CODE,
-            } as const;
-            if (key in attrMap) {
-                await entity.read("hvacThermostat", [attrMap[key as keyof typeof attrMap]], {manufacturerCode: PLUGWISE_MFG_CODE});
+            if (key === "application_fault_flags") {
+                await entity.read("hvacThermostat", [ATTR_APP_FAULT_CODE], {manufacturerCode: PLUGWISE_MFG_CODE});
             }
         },
     } satisfies Tz.Converter,
@@ -571,7 +659,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "106-03",
         vendor: "Plugwise",
         description: "Tom thermostatic radiator valve",
-        extend: [plugwiseExtend.plugwiseHvacThermostatCluster()],
+        extend: [plugwiseExtend.tomHvacThermostatCluster()],
         fromZigbee: [fz.temperature, fz.battery, fzLocal.plugwise_radiator_valve],
         // system_mode and occupied_heating_setpoint is not supported: https://github.com/Koenkk/zigbee2mqtt.io/pull/1666
         toZigbee: [
@@ -650,32 +738,29 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.battery(),
             m.humidity(),
+            plugwiseExtend.emmaHvacThermostatCluster(),
+            emmaExtend.outdoorTemperature,
+            emmaExtend.externalHeatDemand,
+            emmaExtend.externalHeatDemandTimeout,
+            emmaExtend.boilerWaterTemperature,
+            emmaExtend.dhwTemperature,
+            emmaExtend.returnWaterTemperature,
+            emmaExtend.applicationFaultCode,
+            emmaExtend.oemFaultCode,
         ],
         fromZigbee: [fzLocal.emma_thermostat_extra, fzLocal.keypad_lockout, fzLocal.basic_info, fzLocal.emma_battery_extra],
         toZigbee: [
-            tzLocal.thermostat_read,
             tzLocal.keypad_lockout,
             tzLocal.battery_type,
-            tzLocal.external_heat_demand,
-            tzLocal.external_heat_demand_timeout,
             tzLocal.max_setpoints,
             tzLocal.boiler_ot_readings,
             tzLocal.basic_info,
             tzLocal.read_all,
         ],
         exposes: [
-            exposes.numeric("outdoor_temperature", ea.STATE_GET).withUnit("°C"),
             exposes
                 .enum("keypad_lockout", ea.ALL, ["unlock", "lock1", "lock2"])
                 .withDescription("Keypad lockout. lock1: menu locked. lock2: all buttons locked"),
-            exposes
-                .numeric("external_heat_demand", ea.ALL)
-                .withUnit("°C")
-                .withValueMin(0)
-                .withValueMax(90)
-                .withValueStep(0.01)
-                .withDescription("External heat demand setpoint in °C (0 = disabled, requires Unlock External Control)"),
-            exposes.numeric("external_heat_demand_timeout", ea.ALL).withUnit("s").withValueMin(300).withValueMax(3600).withValueStep(1),
             exposes.enum("battery_type", ea.ALL, ["alkaline", "nimh"]),
             exposes
                 .numeric("max_dhw_setpoint", ea.ALL)
@@ -683,28 +768,15 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(0.01)
-                .withDescription("Maximum DHW setpoint sent to boiler via OpenTherm (0 = clear / use default, requires Unlock External Control)"),
+                .withDescription("Maximum DHW setpoint sent to boiler via OpenTherm (valid values: 0 or 30-100; 0 = clear / use default, requires Unlock External Control)"),
             exposes
                 .numeric("max_boiler_setpoint", ea.ALL)
                 .withUnit("°C")
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(0.01)
-                .withDescription("Maximum CH boiler setpoint sent via OpenTherm (0 = clear / use default, requires Unlock External Control)"),
-            exposes.numeric("boiler_water_temperature", ea.STATE_GET).withUnit("°C"),
-            exposes.numeric("dhw_temperature", ea.STATE_GET).withUnit("°C"),
-            exposes.numeric("return_water_temperature", ea.STATE_GET).withUnit("°C"),
-            exposes
-                .numeric("application_fault_code", ea.STATE_GET)
-                .withValueMin(0)
-                .withValueMax(255)
-                .withDescription(
-                    "OpenTherm application fault bitmap " +
-                        "(bit0=service_request, bit1=lockout_reset, bit2=low_water_pressure, " +
-                        "bit3=gas_flame_fault, bit4=air_pressure_fault, bit5=water_over_temp)",
-                ),
+                .withDescription("Maximum CH boiler setpoint sent via OpenTherm (valid values: 0 or 30-100; 0 = clear / use default, requires Unlock External Control)"),
             exposes.text("application_fault_flags", ea.STATE_GET).withDescription("OpenTherm active fault flags, comma-separated"),
-            exposes.numeric("oem_fault_code", ea.STATE_GET).withValueMin(0).withValueMax(255).withDescription("OpenTherm OEM-specific fault code"),
             exposes.text("product_code", ea.STATE_GET).withDescription("Boiler protocol"),
             exposes.enum("power_source", ea.STATE_GET, ["mains", "battery", "dc"]),
             exposes.text("firmware_version", ea.STATE_GET),
