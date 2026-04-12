@@ -226,7 +226,7 @@ const emmaExtend = {
         valueMin: 0,
         valueMax: 90,
         valueStep: 0.01,
-        scale: 100,
+        scale: strictIntegerScale,
         reporting: false,
     }),
     externalHeatDemandTimeout: m.numeric({
