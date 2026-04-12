@@ -768,14 +768,18 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(0.01)
-                .withDescription("Maximum DHW setpoint sent to boiler via OpenTherm (valid values: 0 or 30-100; 0 = clear / use default, requires Unlock External Control)"),
+                .withDescription(
+                    "Maximum DHW setpoint sent to boiler via OpenTherm (valid values: 0 or 30-100; 0 = clear / use default, requires Unlock External Control)",
+                ),
             exposes
                 .numeric("max_boiler_setpoint", ea.ALL)
                 .withUnit("°C")
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(0.01)
-                .withDescription("Maximum CH boiler setpoint sent via OpenTherm (valid values: 0 or 30-100; 0 = clear / use default, requires Unlock External Control)"),
+                .withDescription(
+                    "Maximum CH boiler setpoint sent via OpenTherm (valid values: 0 or 30-100; 0 = clear / use default, requires Unlock External Control)",
+                ),
             exposes.text("application_fault_flags", ea.STATE_GET).withDescription("OpenTherm active fault flags, comma-separated"),
             exposes.text("product_code", ea.STATE_GET).withDescription("Boiler protocol"),
             exposes.enum("power_source", ea.STATE_GET, ["mains", "battery", "dc"]),
