@@ -16,4 +16,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "3 gang smart dimming switch",
         extend: [m.deviceEndpoints({endpoints: {left: 1, center: 3, right: 4}}), m.light({endpointNames: ["left", "center", "right"]})],
     },
+     {
+    zigbeeModel: ['S2100-1003'],
+    model: 'S2100-1003',
+    vendor: 'Simon',
+    description: 'Automatically generated definition',
+    extend: [m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), m.light({endpointNames: ["left", "center", "right"]})],
+    },
 ];
