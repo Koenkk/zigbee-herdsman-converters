@@ -367,11 +367,7 @@ const tzLocal = {
             return {state: {battery_type: value}};
         },
         convertGet: async (entity, key, meta) => {
-            if (key === "battery_type") {
-                await entity.read("genPowerCfg", [ATTR_BATTERY_TYPE], {manufacturerCode: PLUGWISE_MFG_CODE});
-            } else {
-                await entity.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            }
+            await entity.read("genPowerCfg", [ATTR_BATTERY_TYPE], {manufacturerCode: PLUGWISE_MFG_CODE});
         },
     } satisfies Tz.Converter,
 
