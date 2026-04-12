@@ -835,7 +835,11 @@ export const definitions: DefinitionWithExtend[] = [
                 logConfigureWarning("genPowerCfg batteryType", err);
             }
 
-            await ep.read("hvacUserInterfaceCfg", ["keypadLockout"]);
+            try {
+                await ep.read("hvacUserInterfaceCfg", ["keypadLockout"]);
+            } catch (err) {
+                logConfigureWarning("hvacUserInterfaceCfg keypadLockout", err);
+            }
 
             try {
                 await ep.read(
