@@ -218,7 +218,7 @@ const emmaExtend = {
     externalHeatDemand: m.numeric({
         name: "external_heat_demand",
         cluster: "hvacThermostat",
-        attribute: "emmaExternalHeatDemand",
+        attribute: {ID: ATTR_EXT_HEAT_DEMAND, type: Zcl.DataType.UINT16},
         description: "External heat demand setpoint in °C (0 = disabled, requires Unlock External Control).",
         zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
         access: "ALL",
@@ -232,7 +232,7 @@ const emmaExtend = {
     externalHeatDemandTimeout: m.numeric({
         name: "external_heat_demand_timeout",
         cluster: "hvacThermostat",
-        attribute: "emmaExternalHeatDemandTimeout",
+        attribute: {ID: ATTR_EXT_HEAT_DEMAND_TIMEOUT, type: Zcl.DataType.UINT16},
         description: "Timeout for external heat demand override in seconds.",
         zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
         access: "ALL",
@@ -246,7 +246,7 @@ const emmaExtend = {
     boilerWaterTemperature: m.numeric({
         name: "boiler_water_temperature",
         cluster: "hvacThermostat",
-        attribute: "emmaBoilerWaterTemp",
+        attribute: {ID: ATTR_BOILER_WATER_TEMP, type: Zcl.DataType.INT16},
         description: "Boiler supply water temperature reported by OpenTherm.",
         zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
         access: "STATE_GET",
@@ -257,7 +257,7 @@ const emmaExtend = {
     dhwTemperature: m.numeric({
         name: "dhw_temperature",
         cluster: "hvacThermostat",
-        attribute: "emmaDhwTemp",
+        attribute: {ID: ATTR_DHW_TEMP, type: Zcl.DataType.INT16},
         description: "Domestic hot water temperature reported by OpenTherm.",
         zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
         access: "STATE_GET",
@@ -268,7 +268,7 @@ const emmaExtend = {
     returnWaterTemperature: m.numeric({
         name: "return_water_temperature",
         cluster: "hvacThermostat",
-        attribute: "emmaReturnWaterTemp",
+        attribute: {ID: ATTR_RETURN_WATER_TEMP, type: Zcl.DataType.INT16},
         description: "Boiler return water temperature reported by OpenTherm.",
         zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
         access: "STATE_GET",
@@ -279,7 +279,7 @@ const emmaExtend = {
     applicationFaultCode: m.numeric({
         name: "application_fault_code",
         cluster: "hvacThermostat",
-        attribute: "emmaApplicationFaultCode",
+        attribute: {ID: ATTR_APP_FAULT_CODE, type: Zcl.DataType.BITMAP8},
         description:
             "OpenTherm application fault bitmap (bit0=service_request, bit1=lockout_reset, bit2=low_water_pressure, bit3=gas_flame_fault, bit4=air_pressure_fault, bit5=water_over_temp).",
         zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
@@ -291,7 +291,7 @@ const emmaExtend = {
     oemFaultCode: m.numeric({
         name: "oem_fault_code",
         cluster: "hvacThermostat",
-        attribute: "emmaOemFaultCode",
+        attribute: {ID: ATTR_OEM_FAULT_CODE, type: Zcl.DataType.UINT8},
         description: "OpenTherm OEM-specific fault code.",
         zigbeeCommandOptions: {manufacturerCode: PLUGWISE_MFG_CODE},
         access: "STATE_GET",
