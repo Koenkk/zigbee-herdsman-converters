@@ -916,6 +916,7 @@ describe("Inovelli baseline exposes", () => {
             "doubleTapClearNotifications",
             "doubleTapDownToParam56",
             "doubleTapUpToParam55",
+            "dumbDetectionLevel",
             "energy",
             "energy_reset",
             "fanControlMode",
@@ -1257,6 +1258,12 @@ describe("Inovelli firmware-gated exposes", () => {
             const exposes = resolveExposes(definition, device);
             expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
         });
+
+        it("dumbDetectionLevel should not be exposed", async () => {
+            const {device, definition} = await setupVZM31("2.18");
+            const exposes = resolveExposes(definition, device);
+            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
+        });
     });
 
     describe("VZM31-SN firmware 3.0", () => {
@@ -1284,6 +1291,12 @@ describe("Inovelli firmware-gated exposes", () => {
             const {device, definition} = await setupVZM31("3.0");
             const exposes = resolveExposes(definition, device);
             expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
+        });
+
+        it("dumbDetectionLevel should not be exposed (below 3.07)", async () => {
+            const {device, definition} = await setupVZM31("3.0");
+            const exposes = resolveExposes(definition, device);
+            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
         });
     });
 
@@ -1313,6 +1326,12 @@ describe("Inovelli firmware-gated exposes", () => {
             const exposes = resolveExposes(definition, device);
             expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
         });
+
+        it("dumbDetectionLevel should not be exposed (below 3.07)", async () => {
+            const {device, definition} = await setupVZM31("3.04");
+            const exposes = resolveExposes(definition, device);
+            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
+        });
     });
 
     describe("VZM31-SN firmware 3.05+", () => {
@@ -1341,6 +1360,20 @@ describe("Inovelli firmware-gated exposes", () => {
             const exposes = resolveExposes(definition, device);
             expect(findExpose(exposes, "auxDetectionLevel")).toBeDefined();
         });
+
+        it("dumbDetectionLevel should not be exposed (below 3.07)", async () => {
+            const {device, definition} = await setupVZM31("3.05");
+            const exposes = resolveExposes(definition, device);
+            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
+        });
+    });
+
+    describe("VZM31-SN firmware 3.07+", () => {
+        it("dumbDetectionLevel should be exposed", async () => {
+            const {device, definition} = await setupVZM31("3.07");
+            const exposes = resolveExposes(definition, device);
+            expect(findExpose(exposes, "dumbDetectionLevel")).toBeDefined();
+        });
     });
 
     describe("VZM31-SN with no firmware version", () => {
@@ -1356,6 +1389,7 @@ describe("Inovelli firmware-gated exposes", () => {
 
             expect(findExpose(exposes, "dimmingAlgorithm")).toBeDefined();
             expect(findExpose(exposes, "auxDetectionLevel")).toBeDefined();
+            expect(findExpose(exposes, "dumbDetectionLevel")).toBeDefined();
         });
     });
 
@@ -1386,12 +1420,13 @@ describe("Inovelli firmware-gated exposes", () => {
         });
     });
 
-    describe("VZM30-SN has no dimmingAlgorithm or auxDetectionLevel", () => {
+    describe("VZM30-SN has no dimmingAlgorithm, auxDetectionLevel, or dumbDetectionLevel", () => {
         it("regardless of firmware version", async () => {
             const {device, definition} = await setupVZM30("3.05");
             const exposes = resolveExposes(definition, device);
             expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
             expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
+            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
         });
     });
 
@@ -1422,12 +1457,13 @@ describe("Inovelli firmware-gated exposes", () => {
         });
     });
 
-    describe("VZM32-SN dimmingAlgorithm and auxDetectionLevel are not available", () => {
+    describe("VZM32-SN dimmingAlgorithm, auxDetectionLevel, and dumbDetectionLevel are not available", () => {
         it("should not be exposed regardless of firmware", async () => {
             const {device, definition} = await setupVZM32("3.05");
             const exposes = resolveExposes(definition, device);
             expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
             expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
+            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
         });
     });
 
@@ -1449,12 +1485,13 @@ describe("Inovelli firmware-gated exposes", () => {
         });
     });
 
-    describe("VZM35-SN has no dimmingAlgorithm or auxDetectionLevel", () => {
+    describe("VZM35-SN has no dimmingAlgorithm, auxDetectionLevel, or dumbDetectionLevel", () => {
         it("regardless of firmware version", async () => {
             const {device, definition} = await setupVZM35("3.05");
             const exposes = resolveExposes(definition, device);
             expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
             expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
+            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
         });
     });
 });
@@ -1516,10 +1553,11 @@ describe("Inovelli configure attribute filtering", () => {
             });
         }
 
-        it("should not read dimmingAlgorithm or auxDetectionLevel on firmware below 3.05", async () => {
+        it("should not read dimmingAlgorithm, auxDetectionLevel, or dumbDetectionLevel on firmware below 3.05", async () => {
             const readKeys = await runConfigure(createVZM31("3.0"));
             expect(readKeys).not.toContain("dimmingAlgorithm");
             expect(readKeys).not.toContain("auxDetectionLevel");
+            expect(readKeys).not.toContain("dumbDetectionLevel");
         });
 
         it("should read dimmingAlgorithm and auxDetectionLevel on firmware 3.05+", async () => {
@@ -1528,10 +1566,21 @@ describe("Inovelli configure attribute filtering", () => {
             expect(readKeys).toContain("auxDetectionLevel");
         });
 
+        it("should not read dumbDetectionLevel on firmware 3.05 (below 3.07)", async () => {
+            const readKeys = await runConfigure(createVZM31("3.05"));
+            expect(readKeys).not.toContain("dumbDetectionLevel");
+        });
+
+        it("should read dumbDetectionLevel on firmware 3.07+", async () => {
+            const readKeys = await runConfigure(createVZM31("3.07"));
+            expect(readKeys).toContain("dumbDetectionLevel");
+        });
+
         it("should read all attributes when firmware is unknown", async () => {
             const readKeys = await runConfigure(createVZM31());
             expect(readKeys).toContain("dimmingAlgorithm");
             expect(readKeys).toContain("auxDetectionLevel");
+            expect(readKeys).toContain("dumbDetectionLevel");
             expect(readKeys).toContain("switchType");
             expect(readKeys).toContain("fanControlMode");
         });
@@ -1560,10 +1609,11 @@ describe("Inovelli configure attribute filtering", () => {
             });
         }
 
-        it("should never read dimmingAlgorithm or auxDetectionLevel regardless of firmware", async () => {
+        it("should never read dimmingAlgorithm, auxDetectionLevel, or dumbDetectionLevel regardless of firmware", async () => {
             const readKeys = await runConfigure(createVZM32("3.05"));
             expect(readKeys).not.toContain("dimmingAlgorithm");
             expect(readKeys).not.toContain("auxDetectionLevel");
+            expect(readKeys).not.toContain("dumbDetectionLevel");
         });
 
         it("should still read other common attributes", async () => {
@@ -1574,7 +1624,7 @@ describe("Inovelli configure attribute filtering", () => {
     });
 
     describe("VZM30-SN configure", () => {
-        it("should not read dimmingAlgorithm or auxDetectionLevel", async () => {
+        it("should not read dimmingAlgorithm, auxDetectionLevel, or dumbDetectionLevel", async () => {
             const device = mockDevice({
                 modelID: "VZM30-SN",
                 endpoints: [
@@ -1598,6 +1648,7 @@ describe("Inovelli configure attribute filtering", () => {
             const readKeys = await runConfigure(device);
             expect(readKeys).not.toContain("dimmingAlgorithm");
             expect(readKeys).not.toContain("auxDetectionLevel");
+            expect(readKeys).not.toContain("dumbDetectionLevel");
         });
     });
 });
