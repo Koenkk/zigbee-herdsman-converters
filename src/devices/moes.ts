@@ -1448,8 +1448,8 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await endpoint.write("genOnOff", {tuyaOperationMode: 1});
-            await endpoint.read("genOnOff", ["tuyaOperationMode"]);
+            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
             try {
                 await endpoint.read(0xe001, [0xd011]);
             } catch {

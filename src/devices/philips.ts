@@ -4980,4 +4980,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Hue Essential lightstrip (16ft)",
         extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
+    {
+        zigbeeModel: ["929004611002"],
+        model: "929004611002",
+        vendor: "Philips",
+        description: "Hue Flux Outdoor strip light (6m)",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
 ];

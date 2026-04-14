@@ -1,0 +1,13 @@
+# External code owners — changes to these paths require review from the listed
+# owners before merging.  The requires_review.yml workflow enforces this gate
+# and posts a comment tagging the owners when unreviewed changes are detected.
+#
+# Syntax follows GitHub CODEOWNERS (glob patterns, @-prefixed GitHub handles).
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+src/devices/vesternet.ts    @martyn-vesternet
+src/devices/candeo.ts       @candeodevelopment @dhc25
+src/devices/inovelli.ts     @InovelliUSA @rohankapoorcom
+src/lib/inovelli.ts         @InovelliUSA @rohankapoorcom
+test/inovelli.test.ts       @InovelliUSA @rohankapoorcom
+src/devices/efekta.ts       @smartboxchannel

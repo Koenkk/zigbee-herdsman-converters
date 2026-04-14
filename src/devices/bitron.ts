@@ -346,7 +346,11 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryAlarmState(endpoint);
             await reporting.batteryVoltage(endpoint);
             await endpoint.read("hvacThermostat", ["ctrlSeqeOfOper", "localTemperatureCalibration"]);
-            await endpoint.read("hvacThermostat", ["fourNoksHysteresisHigh", "fourNoksHysteresisLow"], manufacturerOptions);
+            await endpoint.read<"hvacThermostat", BitronHvacThermostat>(
+                "hvacThermostat",
+                ["fourNoksHysteresisHigh", "fourNoksHysteresisLow"],
+                manufacturerOptions,
+            );
         },
     },
     {

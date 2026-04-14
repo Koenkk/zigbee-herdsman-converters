@@ -144,14 +144,14 @@ const simplify_col = (n: number) => Math.floor((n - 1) / 2) + 1;
 const simplify_sub = (n: number) => (n % 2 === 1 ? "up" : "down");
 
 // Minimal custom-cluster shape to satisfy Fz.Converter generic constraints
-type ZosungIRCustomCluster = {
+type NamronPrivateE004 = {
     attributes: Record<string, never>;
     commands: Record<string, never>;
     commandResponses: Record<string, never>;
 };
 
 // Helper to safely parse bytes from msg without any/unknown
-function parseZosungIRBytes(msg: Fz.Message<"zosungIRControl", ZosungIRCustomCluster, ["raw"]>): number[] {
+function parseNamronBytes(msg: Fz.Message<"namronPrivateE004", NamronPrivateE004, ["raw"]>): number[] {
     type RawContainer = {data?: number[]};
     type DataShape = RawContainer | number[] | Record<string, number>;
     const m = msg as {type?: string; data?: DataShape};
@@ -181,11 +181,11 @@ function parseZosungIRBytes(msg: Fz.Message<"zosungIRControl", ZosungIRCustomClu
     return [];
 }
 
-const fzNamronSimplifyRemote: Fz.Converter<"zosungIRControl", ZosungIRCustomCluster, ["raw"]> = {
-    cluster: "zosungIRControl",
+const fzNamronSimplifyRemote: Fz.Converter<"namronPrivateE004", NamronPrivateE004, ["raw"]> = {
+    cluster: "namronPrivateE004",
     type: ["raw"],
     convert(model, msg, publish, _options, meta) {
-        const bytes = parseZosungIRBytes(msg);
+        const bytes = parseNamronBytes(msg);
         if (bytes.length === 0) return;
 
         const btn = bytes.at(-2);
@@ -2105,7 +2105,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512793",
         vendor: "Namron",
         description: "Simplify 6-button remote with battery",
-        extend: [m.battery()],
+        extend: [m.battery(), namron.namronExtend.addCustomClusterNamronPrivateE004()],
         fromZigbee: [fzNamronSimplifyRemote],
         toZigbee: [],
         exposes: [

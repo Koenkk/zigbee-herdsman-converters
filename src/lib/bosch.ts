@@ -1439,6 +1439,15 @@ export const boschBmctExtend = {
                 },
             },
         ];
+
+        const reportActionExtend = boschBmctExtend.reportSwitchAction({
+            switchTypeLookup: stateSwitchType,
+            hasDualSwitchInputs: true,
+        });
+        if (reportActionExtend.fromZigbee !== undefined) {
+            fromZigbee.push(...reportActionExtend.fromZigbee);
+        }
+
         return {
             fromZigbee,
             toZigbee,
