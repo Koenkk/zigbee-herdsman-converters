@@ -949,7 +949,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_nsa76jai"]),
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_nsa76jai", "_TZ3000_a37eix1s"]),
         model: "KES-606US-L4",
         vendor: "Zemismart",
         description: "Smart light switch - 4 gang (US)",
