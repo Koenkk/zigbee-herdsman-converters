@@ -9,6 +9,10 @@ on:
       - labeled
       - unlabeled
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   requires-external-review:
     runs-on: ubuntu-latest
@@ -85,7 +89,8 @@ jobs:
 
             BODY+="Once reviewed, add the \`external-reviewer-approved\` label to unblock this check."
 
-            gh pr comment $PR_NUMBER --body "$BODY"
+            # Fork PRs may still get a read-only token; do not fail the job on comment alone.
+            gh pr comment $PR_NUMBER --body "$BODY" || echo "::warning::Could not post PR comment (token may lack pull-requests:write for this PR). Check logs for required reviewers."
           fi
 
           exit 1
