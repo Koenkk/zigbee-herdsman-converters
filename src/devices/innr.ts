@@ -940,11 +940,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [100, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
-        zigbeeModel: ['OSL 232 C'],
-        model: 'OSL 232 C',
-        vendor: 'Innr',
-        description: 'Outdoor Smart Spot White & Colour',
-        extend: [m.light({"colorTemp":{"range":[50,1000]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        zigbeeModel: ["OSL 232 C"],
+        model: "OSL 232 C",
+        vendor: "Innr",
+        description: "Outdoor Smart Spot White & Colour",
+        extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["BE 220"],
