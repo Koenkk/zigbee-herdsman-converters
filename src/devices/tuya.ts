@@ -9366,6 +9366,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_b28wrpvx",
                 "_TZ3000_2uollq9d",
                 "_TZ3210_zifx0xoj",
+                "_TZ3000_ko6v90pg",
             ]),
             tuya.whitelabel("BSEED", "_TZ3210_5ct6e7ye", "Wall-mounted electrical EU/FR/UK socket with power monitoring and USB", [
                 "_TZ3210_5ct6e7ye",
