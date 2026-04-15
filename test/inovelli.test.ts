@@ -182,18 +182,6 @@ async function runInovelliConfigure(device: MockConfiguredDevice): Promise<strin
     return collectReadAttributes(device);
 }
 
-async function configuredVzm35Device(): Promise<MockConfiguredDevice> {
-    const {device, definition} = await setupVZM35();
-    await patchAndConfigure(device, definition);
-    return device;
-}
-
-async function configuredVzm36Device(): Promise<MockConfiguredDevice> {
-    const {device, definition} = await setupVZM36();
-    await patchAndConfigure(device, definition);
-    return device;
-}
-
 describe("Inovelli toZigbee converters", () => {
     describe("inovelli_parameters (write + get)", () => {
         it("convertSet for an enum attribute should write mapped numeric value", async () => {
@@ -1699,7 +1687,8 @@ describe("Inovelli configure attribute filtering", () => {
 describe("Inovelli configure (VZM35/VZM36) and OTA", () => {
     describe("VZM35-SN fan configure", () => {
         it("should bind EP1 to genOnOff, genLevelCtrl, and manuSpecificInovelli; EP2 to manuSpecificInovelli only", async () => {
-            const device = await configuredVzm35Device();
+            const {device, definition} = await setupVZM35();
+            await patchAndConfigure(device, definition);
 
             const binds = collectBindClusters(device);
             expect(binds.get(1)?.filter((c) => c === "manuSpecificInovelli")).toHaveLength(1);
@@ -1710,7 +1699,8 @@ describe("Inovelli configure (VZM35/VZM36) and OTA", () => {
         });
 
         it("should read manuSpecificInovelli attributes on EP1 only (fan cluster reads stay on EP1)", async () => {
-            const device = await configuredVzm35Device();
+            const {device, definition} = await setupVZM35();
+            await patchAndConfigure(device, definition);
 
             const manuReads = collectManuInovelliReadAttrsByEndpoint(device);
             expect(manuReads.get(1)?.length).toBeGreaterThan(0);
@@ -1719,7 +1709,8 @@ describe("Inovelli configure (VZM35/VZM36) and OTA", () => {
         });
 
         it("should configure genOnOff reporting on the fan endpoint", async () => {
-            const device = await configuredVzm35Device();
+            const {device, definition} = await setupVZM35();
+            await patchAndConfigure(device, definition);
 
             const ep1 = device.getEndpoint(1);
             expect(ep1.configureReporting).toHaveBeenCalled();
@@ -1730,7 +1721,8 @@ describe("Inovelli configure (VZM35/VZM36) and OTA", () => {
 
     describe("VZM36 split endpoint configure", () => {
         it("should bind manuSpecificInovelli on both EP1 and EP2", async () => {
-            const device = await configuredVzm36Device();
+            const {device, definition} = await setupVZM36();
+            await patchAndConfigure(device, definition);
 
             const binds = collectBindClusters(device);
             expect(binds.get(1)?.filter((c) => c === "manuSpecificInovelli")).toHaveLength(1);
@@ -1738,7 +1730,8 @@ describe("Inovelli configure (VZM35/VZM36) and OTA", () => {
         });
 
         it("should read manuSpecificInovelli on both endpoints (split _1 / _2 attribute keys)", async () => {
-            const device = await configuredVzm36Device();
+            const {device, definition} = await setupVZM36();
+            await patchAndConfigure(device, definition);
 
             const manuReads = collectManuInovelliReadAttrsByEndpoint(device);
             expect(manuReads.get(1)?.length).toBeGreaterThan(0);
