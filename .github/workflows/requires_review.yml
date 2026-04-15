@@ -1,7 +1,7 @@
 name: Requires external review
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - opened
       - synchronize
@@ -19,7 +19,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
       with:
-        fetch-depth: 0
+        fetch-depth: 1
 
     - name: Check for files that require external review
       env:
@@ -45,7 +45,8 @@ jobs:
           PATTERN_REVIEWERS["$pattern"]="$owners"
         done < CODEOWNERS
 
-        CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }})
+        # pull_request_target runs in base-repo context; get changed files from the PR API.
+        CHANGED_FILES=$(gh pr view "$PR_NUMBER" --json files --jq '.files[].path')
 
         MATCH=false
         declare -A MATCHED_REVIEWERS=()
