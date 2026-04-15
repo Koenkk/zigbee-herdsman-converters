@@ -1,8 +1,13 @@
-import {describe, expect, it, vi} from "vitest";
+import {beforeAll, describe, expect, it, vi} from "vitest";
 import {definitions as inovelliDeviceDefinitions} from "../src/devices/inovelli";
 import {findByDevice} from "../src/index";
 import type {Definition, Expose, Fz, KeyValue, KeyValueAny, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
+
+/** EP2 raw scene buffer: `data[4]` must be `0x00` for scene parsing; `data[5]` / `data[6]` index `buttonLookup` / `clickLookup` in `src/lib/inovelli.ts`. */
+function rawInovelliEp2Scene(data4: number, buttonLookupKey: number, clickLookupKey: number): number[] {
+    return [0, 0, 0, 0, data4, buttonLookupKey, clickLookupKey];
+}
 
 function processFromZigbeeMessage(definition: Definition, cluster: string, type: string, data: KeyValue | number[], endpointID: number) {
     const converters = definition.fromZigbee.filter((c) => {
@@ -764,7 +769,7 @@ describe("Inovelli toZigbee converters", () => {
 describe("Inovelli VZM36", () => {
     let definition: Definition;
 
-    it("should find definition", async () => {
+    beforeAll(async () => {
         ({definition} = await setupVZM36());
         expect(definition.model).toBe("VZM36");
     });
@@ -1311,145 +1316,138 @@ describe("Inovelli baseline exposes", () => {
 
 describe("Inovelli firmware-gated exposes", () => {
     describe("VZM31-SN firmware below 3.0", () => {
-        it("switchType should include Single-Pole Full Sine Wave", async () => {
+        let exposes: Expose[];
+
+        beforeAll(async () => {
             const {device, definition} = await setupVZM31("2.18");
-            const exposes = resolveExposes(definition, device);
+            exposes = resolveExposes(definition, device);
+        });
+
+        it("switchType should include Single-Pole Full Sine Wave", () => {
             const switchType = assertExpose(exposes, "switchType");
             expect(getEnumValues(switchType)).toContain("Single-Pole Full Sine Wave");
         });
 
-        it("fanControlMode should not include Toggle", async () => {
-            const {device, definition} = await setupVZM31("2.18");
-            const exposes = resolveExposes(definition, device);
+        it("fanControlMode should not include Toggle", () => {
             const fanControlMode = assertExpose(exposes, "fanControlMode");
             expect(getEnumValues(fanControlMode)).not.toContain("Toggle");
         });
 
-        it("dimmingAlgorithm should not be exposed", async () => {
-            const {device, definition} = await setupVZM31("2.18");
-            const exposes = resolveExposes(definition, device);
+        it("dimmingAlgorithm should not be exposed", () => {
             expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
         });
 
-        it("auxDetectionLevel should not be exposed", async () => {
-            const {device, definition} = await setupVZM31("2.18");
-            const exposes = resolveExposes(definition, device);
+        it("auxDetectionLevel should not be exposed", () => {
             expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
         });
 
-        it("dumbDetectionLevel should not be exposed", async () => {
-            const {device, definition} = await setupVZM31("2.18");
-            const exposes = resolveExposes(definition, device);
+        it("dumbDetectionLevel should not be exposed", () => {
             expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
         });
     });
 
     describe("VZM31-SN firmware 3.0", () => {
-        it("switchType should not include Single-Pole Full Sine Wave", async () => {
+        let exposes: Expose[];
+
+        beforeAll(async () => {
             const {device, definition} = await setupVZM31("3.0");
-            const exposes = resolveExposes(definition, device);
+            exposes = resolveExposes(definition, device);
+        });
+
+        it("switchType should not include Single-Pole Full Sine Wave", () => {
             const switchType = assertExpose(exposes, "switchType");
             expect(getEnumValues(switchType)).not.toContain("Single-Pole Full Sine Wave");
         });
 
-        it("fanControlMode should include Toggle", async () => {
-            const {device, definition} = await setupVZM31("3.0");
-            const exposes = resolveExposes(definition, device);
+        it("fanControlMode should include Toggle", () => {
             const fanControlMode = assertExpose(exposes, "fanControlMode");
             expect(getEnumValues(fanControlMode)).toContain("Toggle");
         });
 
-        it("dimmingAlgorithm should not be exposed (below 3.05)", async () => {
-            const {device, definition} = await setupVZM31("3.0");
-            const exposes = resolveExposes(definition, device);
+        it("dimmingAlgorithm should not be exposed (below 3.05)", () => {
             expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
         });
 
-        it("auxDetectionLevel should not be exposed (below 3.05)", async () => {
-            const {device, definition} = await setupVZM31("3.0");
-            const exposes = resolveExposes(definition, device);
+        it("auxDetectionLevel should not be exposed (below 3.05)", () => {
             expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
         });
 
-        it("dumbDetectionLevel should not be exposed (below 3.07)", async () => {
-            const {device, definition} = await setupVZM31("3.0");
-            const exposes = resolveExposes(definition, device);
+        it("dumbDetectionLevel should not be exposed (below 3.07)", () => {
             expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
         });
     });
 
     describe("VZM31-SN firmware 3.04 (between 3.0 and 3.05)", () => {
-        it("switchType should not include Single-Pole Full Sine Wave", async () => {
+        let exposes: Expose[];
+
+        beforeAll(async () => {
             const {device, definition} = await setupVZM31("3.04");
-            const exposes = resolveExposes(definition, device);
+            exposes = resolveExposes(definition, device);
+        });
+
+        it("switchType should not include Single-Pole Full Sine Wave", () => {
             const switchType = assertExpose(exposes, "switchType");
             expect(getEnumValues(switchType)).not.toContain("Single-Pole Full Sine Wave");
         });
 
-        it("fanControlMode should include Toggle", async () => {
-            const {device, definition} = await setupVZM31("3.04");
-            const exposes = resolveExposes(definition, device);
+        it("fanControlMode should include Toggle", () => {
             const fanControlMode = assertExpose(exposes, "fanControlMode");
             expect(getEnumValues(fanControlMode)).toContain("Toggle");
         });
 
-        it("dimmingAlgorithm should not be exposed", async () => {
-            const {device, definition} = await setupVZM31("3.04");
-            const exposes = resolveExposes(definition, device);
+        it("dimmingAlgorithm should not be exposed", () => {
             expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
         });
 
-        it("auxDetectionLevel should not be exposed", async () => {
-            const {device, definition} = await setupVZM31("3.04");
-            const exposes = resolveExposes(definition, device);
+        it("auxDetectionLevel should not be exposed", () => {
             expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
         });
 
-        it("dumbDetectionLevel should not be exposed (below 3.07)", async () => {
-            const {device, definition} = await setupVZM31("3.04");
-            const exposes = resolveExposes(definition, device);
+        it("dumbDetectionLevel should not be exposed (below 3.07)", () => {
             expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
         });
     });
 
     describe("VZM31-SN firmware 3.05+", () => {
-        it("switchType should not include Single-Pole Full Sine Wave", async () => {
+        let exposes: Expose[];
+
+        beforeAll(async () => {
             const {device, definition} = await setupVZM31("3.05");
-            const exposes = resolveExposes(definition, device);
+            exposes = resolveExposes(definition, device);
+        });
+
+        it("switchType should not include Single-Pole Full Sine Wave", () => {
             const switchType = assertExpose(exposes, "switchType");
             expect(getEnumValues(switchType)).not.toContain("Single-Pole Full Sine Wave");
         });
 
-        it("fanControlMode should include Toggle", async () => {
-            const {device, definition} = await setupVZM31("3.05");
-            const exposes = resolveExposes(definition, device);
+        it("fanControlMode should include Toggle", () => {
             const fanControlMode = assertExpose(exposes, "fanControlMode");
             expect(getEnumValues(fanControlMode)).toContain("Toggle");
         });
 
-        it("dimmingAlgorithm should be exposed", async () => {
-            const {device, definition} = await setupVZM31("3.05");
-            const exposes = resolveExposes(definition, device);
+        it("dimmingAlgorithm should be exposed", () => {
             expect(findExpose(exposes, "dimmingAlgorithm")).toBeDefined();
         });
 
-        it("auxDetectionLevel should be exposed", async () => {
-            const {device, definition} = await setupVZM31("3.05");
-            const exposes = resolveExposes(definition, device);
+        it("auxDetectionLevel should be exposed", () => {
             expect(findExpose(exposes, "auxDetectionLevel")).toBeDefined();
         });
 
-        it("dumbDetectionLevel should not be exposed (below 3.07)", async () => {
-            const {device, definition} = await setupVZM31("3.05");
-            const exposes = resolveExposes(definition, device);
+        it("dumbDetectionLevel should not be exposed (below 3.07)", () => {
             expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
         });
     });
 
     describe("VZM31-SN firmware 3.07+", () => {
-        it("dumbDetectionLevel should be exposed", async () => {
+        let exposes: Expose[];
+
+        beforeAll(async () => {
             const {device, definition} = await setupVZM31("3.07");
-            const exposes = resolveExposes(definition, device);
+            exposes = resolveExposes(definition, device);
+        });
+
+        it("dumbDetectionLevel should be exposed", () => {
             expect(findExpose(exposes, "dumbDetectionLevel")).toBeDefined();
         });
     });
@@ -1472,16 +1470,11 @@ describe("Inovelli firmware-gated exposes", () => {
     });
 
     describe("VZM30-SN switchType never includes Single-Pole Full Sine Wave", () => {
-        it("old firmware", async () => {
-            const {device, definition} = await setupVZM30("2.18");
-            const exposes = resolveExposes(definition, device);
-            const switchType = assertExpose(exposes, "switchType");
-            expect(getEnumValues(switchType)).not.toContain("Single-Pole Full Sine Wave");
-            expect(getEnumValues(switchType)).toStrictEqual(["Single Pole", "Aux Switch"]);
-        });
-
-        it("new firmware", async () => {
-            const {device, definition} = await setupVZM30("3.05");
+        it.each([
+            {title: "old firmware", fw: "2.18"},
+            {title: "new firmware", fw: "3.05"},
+        ])("$title", async ({fw}) => {
+            const {device, definition} = await setupVZM30(fw);
             const exposes = resolveExposes(definition, device);
             const switchType = assertExpose(exposes, "switchType");
             expect(getEnumValues(switchType)).not.toContain("Single-Pole Full Sine Wave");
@@ -1509,16 +1502,11 @@ describe("Inovelli firmware-gated exposes", () => {
     });
 
     describe("VZM32-SN switchType never includes Single-Pole Full Sine Wave", () => {
-        it("old firmware", async () => {
-            const {device, definition} = await setupVZM32("2.18");
-            const exposes = resolveExposes(definition, device);
-            const switchType = assertExpose(exposes, "switchType");
-            expect(getEnumValues(switchType)).not.toContain("Single-Pole Full Sine Wave");
-            expect(getEnumValues(switchType)).toStrictEqual(["Single Pole", "Aux Switch"]);
-        });
-
-        it("new firmware", async () => {
-            const {device, definition} = await setupVZM32("3.05");
+        it.each([
+            {title: "old firmware", fw: "2.18"},
+            {title: "new firmware", fw: "3.05"},
+        ])("$title", async ({fw}) => {
+            const {device, definition} = await setupVZM32(fw);
             const exposes = resolveExposes(definition, device);
             const switchType = assertExpose(exposes, "switchType");
             expect(getEnumValues(switchType)).not.toContain("Single-Pole Full Sine Wave");
@@ -1754,7 +1742,7 @@ describe("Inovelli fromZigbee converters", () => {
     describe("VZM31-SN", () => {
         let definition: Definition;
 
-        it("should find definition", async () => {
+        beforeAll(async () => {
             const device = mockDevice({
                 modelID: "VZM31-SN",
                 endpoints: [{ID: 1, inputClusters: ["genOnOff", "genLevelCtrl"]}, {ID: 2}, {ID: 3}],
@@ -1765,42 +1753,42 @@ describe("Inovelli fromZigbee converters", () => {
 
         describe("button scene actions (raw EP2)", () => {
             it("should parse down_single", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", [0, 0, 0, 0, 0x00, 1, 0], 2);
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 1, 0), 2);
                 expect(payload).toHaveProperty("action", "down_single");
             });
 
             it("should parse up_double", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", [0, 0, 0, 0, 0x00, 2, 3], 2);
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 2, 3), 2);
                 expect(payload).toHaveProperty("action", "up_double");
             });
 
             it("should parse config_held", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", [0, 0, 0, 0, 0x00, 3, 2], 2);
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 3, 2), 2);
                 expect(payload).toHaveProperty("action", "config_held");
             });
 
             it("should parse aux_down_quintuple", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", [0, 0, 0, 0, 0x00, 4, 6], 2);
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 4, 6), 2);
                 expect(payload).toHaveProperty("action", "aux_down_quintuple");
             });
 
             it("should parse aux_up_release", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", [0, 0, 0, 0, 0x00, 5, 1], 2);
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 5, 1), 2);
                 expect(payload).toHaveProperty("action", "aux_up_release");
             });
 
             it("should parse aux_config_triple", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", [0, 0, 0, 0, 0x00, 6, 4], 2);
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 6, 4), 2);
                 expect(payload).toHaveProperty("action", "aux_config_triple");
             });
 
             it("should not fire on endpoint 1", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", [0, 0, 0, 0, 0x00, 1, 0], 1);
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 1, 0), 1);
                 expect(payload).not.toHaveProperty("action");
             });
 
             it("should not fire when data[4] is not 0x00", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", [0, 0, 0, 0, 0x01, 1, 0], 2);
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x01, 1, 0), 2);
                 expect(payload).not.toHaveProperty("action");
             });
         });
@@ -1892,7 +1880,7 @@ describe("Inovelli fromZigbee converters", () => {
     describe("VZM35-SN fan converters", () => {
         let definition: Definition;
 
-        it("should find definition", async () => {
+        beforeAll(async () => {
             const device = mockDevice({
                 modelID: "VZM35-SN",
                 endpoints: [{ID: 1, inputClusters: ["genOnOff", "genLevelCtrl"]}, {ID: 2}],
@@ -2009,7 +1997,7 @@ describe("Inovelli fromZigbee converters", () => {
     describe("VZM36 split endpoint attribute reports", () => {
         let definition: Definition;
 
-        it("should find definition", async () => {
+        beforeAll(async () => {
             const device = mockDevice({
                 modelID: "VZM36",
                 endpoints: [
@@ -2045,7 +2033,7 @@ describe("Inovelli fromZigbee converters", () => {
     describe("VZM32-SN mmWave converters", () => {
         let definition: Definition;
 
-        it("should find definition", async () => {
+        beforeAll(async () => {
             const device = mockDevice({
                 modelID: "VZM32-SN",
                 endpoints: [{ID: 1, inputClusters: ["genOnOff", "genLevelCtrl"]}, {ID: 2}, {ID: 3}],
