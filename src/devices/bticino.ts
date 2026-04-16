@@ -20,6 +20,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLegrand.K4003C_state, tzLegrand.led_mode, tzLegrand.identify],
         extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: [e.switch(), e.action(["identify", "on", "off"]), eLegrand.identify(), eLegrand.ledInDark(), eLegrand.ledIfOn()],
+        version: "0.0.1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genOnOff", "genBinaryInput"]);
