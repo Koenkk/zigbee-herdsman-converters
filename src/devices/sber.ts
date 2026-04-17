@@ -474,6 +474,7 @@ const sdevicesCustomCluster: Cluster = {
         ledIndicatorOffH: {name: "ledIndicatorOffH", ID: 0x2006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
         ledIndicatorOffS: {name: "ledIndicatorOffS", ID: 0x2007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
         ledIndicatorOffB: {name: "ledIndicatorOffB", ID: 0x2008, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+        ledIndicationType: {name: "ledIndicationType", ID: 0x2009, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
         emergencyShutoffState: {name: "emergencyShutoffState", ID: 0x3001, type: Zcl.DataType.BITMAP16},
         emergencyShutoffRecovery: {name: "emergencyShutoffRecovery", ID: 0x3002, type: Zcl.DataType.BITMAP16, write: true, max: 0xffff},
         upperVoltageThreshold: {name: "upperVoltageThreshold", ID: 0x3011, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
@@ -483,6 +484,8 @@ const sdevicesCustomCluster: Cluster = {
         rmsVoltageMv: {name: "rmsVoltageMv", ID: 0x4001, type: Zcl.DataType.UINT32},
         rmsCurrentMa: {name: "rmsCurrentMa", ID: 0x4002, type: Zcl.DataType.UINT32},
         activePowerMw: {name: "activePowerMw", ID: 0x4003, type: Zcl.DataType.INT32},
+        powerProfile: {name: "powerProfile", ID: 0x4100, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+        neutralPresence: {name: "neutralPresence", ID: 0x4101, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
         rtcStatus: {name: "rtcStatus", ID: 0x5001, type: Zcl.DataType.BITMAP16},
     },
     commands: {},
@@ -500,6 +503,7 @@ interface SberDevices {
         ledIndicatorOffH: number;
         ledIndicatorOffS: number;
         ledIndicatorOffB: number;
+        ledIndicationType: number;
         emergencyShutoffState: number;
         emergencyShutoffRecovery: number;
         upperVoltageThreshold: number;
@@ -509,6 +513,8 @@ interface SberDevices {
         rmsVoltageMv: number;
         rmsCurrentMa: number;
         activePowerMw: number;
+        powerProfile: number;
+        neutralPresence: number;
         rtcStatus: number;
     };
     commands: never;
@@ -1364,6 +1370,36 @@ const sdevicesExtend = {
         }
         return extend;
     },
+    ledIndicationType: () =>
+        m.enumLookup<"manuSpecificSDevices", SberDevices>({
+            name: "led_indication_type",
+            description: "Type of LED indication (ignored in cover controller mode). Either continuous light, or short flashes",
+            cluster: "manuSpecificSDevices",
+            attribute: "ledIndicationType",
+            lookup: {continuous: 0, flashes: 1},
+            zigbeeCommandOptions: manufacturerOptions,
+        }),
+    powerProfile: () =>
+        m.enumLookup<"manuSpecificSDevices", SberDevices>({
+            name: "power_profile",
+            description:
+                "Power Profile when neutral wire is absent: quick mode is for fastest device response; anti-flicker (af) modes have different polling intervals (in ms). Anti-flicker fallback mode is the safest one: device will fall back to it automatically if unstable behavior has been detected in more responsive mode",
+            cluster: "manuSpecificSDevices",
+            attribute: "powerProfile",
+            lookup: {quick: 0, af_250: 1, af_500: 2, af_750: 3, af_1000: 4, af_1250: 5, af_1750: 6, af_2000: 7, af_fallback: 254},
+            zigbeeCommandOptions: manufacturerOptions,
+        }),
+    neutralPresence: () =>
+        m.binary<"manuSpecificSDevices", SberDevices>({
+            name: "neutral_presence",
+            cluster: "manuSpecificSDevices",
+            attribute: "neutralPresence",
+            description: "Neutral wire presence status",
+            valueOn: ["YES", 0x01],
+            valueOff: ["NO", 0x00],
+            access: "STATE_GET",
+            zigbeeCommandOptions: manufacturerOptions,
+        }),
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -1489,6 +1525,70 @@ export const definitions: DefinitionWithExtend[] = [
                     logger.warning(`Configure failed: ${error}`, NS);
                 }
             }
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genMultistateInput"]);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["haDiagnostic"]);
+        },
+    },
+    {
+        fingerprint: [{modelID: "SBDV-00197", manufacturerName: "SDevices"}],
+        model: "SBDV-00197",
+        vendor: "Sber",
+        description: "Smart Wall Switch (optional neutral wire, single button)",
+        fromZigbee: [],
+        toZigbee: [],
+        extend: [
+            sdevicesExtend.sdevicesCustomCluster(),
+            sdevicesExtend.haDiagnosticCluster(),
+            sdevicesExtend.genOnOffCluster(),
+            m.binary<"manuSpecificSDevices", SberDevices>({
+                name: "allow_double_click",
+                cluster: "manuSpecificSDevices",
+                attribute: "buttonEnableMultiClick",
+                description: "Allow detection of double clicks, may introduce delay in reaction when enabled",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+                zigbeeCommandOptions: manufacturerOptions,
+            }),
+            sdevicesExtend.ledIndicatorSettings(),
+            m.identify(),
+            m.onOff({
+                powerOnBehavior: true,
+                configureReporting: false,
+            }),
+            sdevicesExtend.onOffRelayDecouple({
+                name: "relay_mode",
+                description: "Decoupled mode for button",
+            }),
+            m.actionEnumLookup({
+                cluster: "genMultistateInput",
+                attribute: "presentValue",
+                actionLookup: {hold: 0, single: 1, double: 2},
+            }),
+            sdevicesExtend.childLock(),
+            sdevicesExtend.deviceInfo(),
+            sdevicesExtend.neutralPresence(),
+            sdevicesExtend.powerProfile(),
+            sdevicesExtend.ledIndicationType(),
+            sdevicesExtend.deviceCustomDiagnostic(2, 1),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            await device.getEndpoint(1).read("genOnOff", ["onOff", "startUpOnOff"]);
+            await device.getEndpoint(1).read("genBasic", ["serialNumber"]);
+            await device
+                .getEndpoint(1)
+                .read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", [
+                    "ledIndicatorOnEnable",
+                    "ledIndicatorOnH",
+                    "ledIndicatorOnS",
+                    "ledIndicatorOnB",
+                    "ledIndicatorOffEnable",
+                    "ledIndicatorOffH",
+                    "ledIndicatorOffS",
+                    "ledIndicatorOffB",
+                ]);
+            await device.getEndpoint(1).read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["buttonEnableMultiClick"]);
+            await device.getEndpoint(1).read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["childLock"]);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genMultistateInput"]);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["haDiagnostic"]);
         },
@@ -1815,6 +1915,317 @@ export const definitions: DefinitionWithExtend[] = [
                         logger.warning(`Configure failed: ${error}`, NS);
                     }
                 }
+            }
+            device.save();
+        },
+    },
+    {
+        fingerprint: [{modelID: "SBDV-00200", manufacturerName: "SDevices"}],
+        model: "SBDV-00200",
+        vendor: "Sber",
+        description: "Smart Wall Switch (optional neutral wire, two buttons)",
+        fromZigbee: [
+            fz.on_off,
+            fz.power_on_behavior,
+            sdevices.fz.cover_position_tilt,
+            sdevices.fz.multistate_input,
+            sdevices.fz.led_indicator_settings,
+            sdevices.fz.decouple_relay,
+            sdevices.fz.allow_double_click,
+            sdevices.fz.closures,
+        ],
+        toZigbee: [
+            sdevices.tz.custom_on_off,
+            tz.power_on_behavior,
+            tz.cover_position_tilt,
+            sdevices.tz.cover_state,
+            sdevices.tz.cover_mode,
+            sdevices.tz.identify,
+            sdevices.tz.led_indicator_on_settings,
+            sdevices.tz.led_indicator_off_settings,
+            sdevices.tz.decouple_relay,
+            sdevices.tz.allow_double_click,
+            sdevices.tz.closures_custom,
+        ],
+        exposes: (device, options) => {
+            const switchExposes = [];
+            const coversEpName = "cover";
+            const coversExposes = [
+                e.enum("state", ea.STATE_SET, ["OPEN", "CLOSE", "STOP"]).withProperty("current_state").withEndpoint(coversEpName),
+                e
+                    .numeric("position", ea.ALL)
+                    .withValueMin(0)
+                    .withValueMax(100)
+                    .withDescription("Position of this cover, 100 is fully open if 'Invert cover' option is false (default)")
+                    .withUnit("%")
+                    .withEndpoint(coversEpName),
+                e
+                    .composite("cover_mode", "cover_mode", ea.ALL)
+                    .withFeature(e.binary("reversed", ea.ALL, true, false).withDescription("Reversal of the motor rotating direction"))
+                    .withEndpoint(coversEpName),
+                e
+                    .numeric("calibration_time", ea.ALL)
+                    .withValueMin(0)
+                    .withValueMax(3600)
+                    .withValueStep(0.1)
+                    .withDescription("Calibration time")
+                    .withUnit("s")
+                    .withEndpoint(coversEpName),
+                e
+                    .numeric("motor_timeout", ea.ALL)
+                    .withValueMin(0)
+                    .withValueMax(3600)
+                    .withDescription("Timeout for continuous motor action")
+                    .withUnit("s")
+                    .withEndpoint(coversEpName),
+                e.enum("buttons_mode", ea.ALL, ["normal", "inverted"]).withProperty("buttons_mode").withEndpoint(coversEpName),
+                e
+                    .enum("identify", ea.SET, ["identify"])
+                    .withLabel("Identify")
+                    .withDescription("Initiate device identification")
+                    .withCategory("config")
+                    .withEndpoint(coversEpName),
+                e
+                    .binary("led_indicator_off_enable", ea.ALL, "ON", "OFF")
+                    .withLabel("LED indication")
+                    .withDescription("Is LED indicator enabled")
+                    .withEndpoint(coversEpName),
+                e
+                    .numeric("led_indicator_off_h", ea.ALL)
+                    .withUnit("°")
+                    .withValueMin(0)
+                    .withValueMax(359)
+                    .withLabel("Hue")
+                    .withDescription("Hue of LED indicator")
+                    .withEndpoint(coversEpName),
+                e
+                    .numeric("led_indicator_off_s", ea.ALL)
+                    .withValueMin(0)
+                    .withValueMax(0xfe)
+                    .withLabel("Saturation")
+                    .withDescription("Saturation of LED indicator")
+                    .withEndpoint(coversEpName),
+                e
+                    .numeric("led_indicator_off_b", ea.ALL)
+                    .withValueMin(1)
+                    .withValueMax(0xfe)
+                    .withLabel("Brightness")
+                    .withDescription("Brightness of LED indicator")
+                    .withEndpoint(coversEpName),
+            ];
+            const endpointsCount = 2;
+            switchExposes.push(
+                e.action(["hold_switch_1", "hold_switch_2", "single_switch_1", "single_switch_2", "double_switch_1", "double_switch_2"]),
+            );
+            for (let i = 1; i <= endpointsCount; i++) {
+                const epName = `switch_${i}`;
+                const epPrefix = `(${i}) `;
+                switchExposes.push(e.switch().withEndpoint(epName));
+                switchExposes.push(
+                    e.power_on_behavior(["off", "on", "toggle", "previous"]).withLabel(`${epPrefix}Power-on behavior`).withEndpoint(epName),
+                );
+                switchExposes.push(
+                    e
+                        .enum("relay_mode", ea.ALL, ["control_relay", "decoupled"])
+                        .withLabel(`${epPrefix}Relay mode`)
+                        .withDescription("Decoupled mode")
+                        .withEndpoint(epName),
+                );
+                switchExposes.push(
+                    e
+                        .binary("allow_double_click", ea.ALL, "ON", "OFF")
+                        .withLabel(`${epPrefix}Allow double clicks`)
+                        .withDescription("Allow detection of double clicks, may introduce delay in reaction when enabled")
+                        .withEndpoint(epName),
+                );
+                switchExposes.push(
+                    e
+                        .enum("identify", ea.SET, ["identify"])
+                        .withLabel(`${epPrefix}Identify`)
+                        .withDescription("Initiate device identification")
+                        .withCategory("config")
+                        .withEndpoint(epName),
+                );
+                switchExposes.push(
+                    e
+                        .binary("led_indicator_on_enable", ea.ALL, "ON", "OFF")
+                        .withLabel(`${epPrefix}LED indication`)
+                        .withDescription("Is LED indicator enabled in ON state")
+                        .withEndpoint(epName),
+                );
+                switchExposes.push(
+                    e
+                        .numeric("led_indicator_on_h", ea.ALL)
+                        .withUnit("°")
+                        .withValueMin(0)
+                        .withValueMax(359)
+                        .withLabel(`${epPrefix}Hue`)
+                        .withDescription("Hue of LED in ON state")
+                        .withEndpoint(epName),
+                );
+                switchExposes.push(
+                    e
+                        .numeric("led_indicator_on_s", ea.ALL)
+                        .withValueMin(0)
+                        .withValueMax(0xfe)
+                        .withLabel(`${epPrefix}Saturation`)
+                        .withDescription("Saturation of LED in ON state")
+                        .withEndpoint(epName),
+                );
+                switchExposes.push(
+                    e
+                        .numeric("led_indicator_on_b", ea.ALL)
+                        .withValueMin(1)
+                        .withValueMax(0xfe)
+                        .withLabel(`${epPrefix}Brightness`)
+                        .withDescription("Brightness of LED in ON state")
+                        .withEndpoint(epName),
+                );
+                switchExposes.push(
+                    e
+                        .binary("led_indicator_off_enable", ea.ALL, "ON", "OFF")
+                        .withLabel(`${epPrefix}LED indication`)
+                        .withDescription("Is LED indicator enabled in OFF state")
+                        .withEndpoint(epName),
+                );
+                switchExposes.push(
+                    e
+                        .numeric("led_indicator_off_h", ea.ALL)
+                        .withUnit("°")
+                        .withValueMin(0)
+                        .withValueMax(359)
+                        .withLabel(`${epPrefix}Hue`)
+                        .withDescription("Hue of LED in OFF state")
+                        .withEndpoint(epName),
+                );
+                switchExposes.push(
+                    e
+                        .numeric("led_indicator_off_s", ea.ALL)
+                        .withValueMin(0)
+                        .withValueMax(0xfe)
+                        .withLabel(`${epPrefix}Saturation`)
+                        .withDescription("Saturation of LED in OFF state")
+                        .withEndpoint(epName),
+                );
+                switchExposes.push(
+                    e
+                        .numeric("led_indicator_off_b", ea.ALL)
+                        .withValueMin(1)
+                        .withValueMax(0xfe)
+                        .withLabel(`${epPrefix}Brightness`)
+                        .withDescription("Brightness of LED in OFF state")
+                        .withEndpoint(epName),
+                );
+            }
+            if (!utils.isDummyDevice(device)) {
+                return device.meta.window_covering_enabled ? [...coversExposes] : [...switchExposes];
+            }
+            return [...switchExposes, ...coversExposes];
+        },
+        extend: [
+            m.deviceEndpoints({endpoints: {switch_1: 1, switch_2: 2, cover: 3}}),
+            sdevicesExtend.sdevicesCustomCluster(),
+            sdevicesExtend.haDiagnosticCluster(),
+            sdevicesExtend.genOnOffCluster(),
+            sdevicesExtend.closuresWindowCoveringCluster(),
+            sdevicesExtend.childLock(),
+            sdevicesExtend.deviceInfo(),
+            sdevicesExtend.neutralPresence(),
+            sdevicesExtend.powerProfile(),
+            sdevicesExtend.ledIndicationType(),
+            sdevicesExtend.deviceCustomDiagnostic(3, 2),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            if (!device.customClusters.manuSpecificSDevices) {
+                device.addCustomCluster("manuSpecificSDevices", sdevicesCustomCluster);
+            }
+            const coveringEp = device.getEndpoint(3);
+            if (coveringEp != null) {
+                try {
+                    const deviceCoverMode = await device.getEndpoint(3).read("genBasic", ["deviceEnabled"]);
+                    device.meta.window_covering_enabled = !!deviceCoverMode.deviceEnabled;
+                    device.save();
+                } catch (error) {
+                    if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                        device.meta.window_covering_enabled = false;
+                        device.save();
+                    } else {
+                        throw error;
+                    }
+                }
+            } else {
+                device.meta.window_covering_enabled = false;
+                device.save();
+            }
+            if (device.meta.window_covering_enabled) {
+                /* Device is in Window Covering mode */
+                await device.getEndpoint(3).read("genBasic", ["serialNumber"]);
+                await device.getEndpoint(3).read("closuresWindowCovering", ["currentPositionLiftPercentage", "windowCoveringMode"]);
+                await device
+                    .getEndpoint(3)
+                    .read<"closuresWindowCovering", SberClosures>(
+                        "closuresWindowCovering",
+                        ["sdevicesCalibrationTime", "sdevicesButtonsMode", "sdevicesMotorTimeout"],
+                        manufacturerOptions,
+                    );
+                await device
+                    .getEndpoint(3)
+                    .read<"manuSpecificSDevices", SberDevices>(
+                        "manuSpecificSDevices",
+                        ["ledIndicatorOffEnable", "ledIndicatorOffH", "ledIndicatorOffS", "ledIndicatorOffB"],
+                        manufacturerOptions,
+                    );
+                await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["closuresWindowCovering"]);
+                await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["manuSpecificSDevices"]);
+                await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["haDiagnostic"]);
+                await device.getEndpoint(3).read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["childLock"]);
+            } else {
+                /* Device is in 2-button Switch mode */
+                await device.getEndpoint(1).read("genBasic", ["serialNumber"]);
+                await device.getEndpoint(1).read("genOnOff", ["onOff", "startUpOnOff"]);
+                await device.getEndpoint(2).read("genOnOff", ["onOff", "startUpOnOff"]);
+                await device.getEndpoint(1).read<"genOnOff", SberGenOnOff>("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
+                await device.getEndpoint(2).read<"genOnOff", SberGenOnOff>("genOnOff", ["sdevicesRelayDecouple"], manufacturerOptions);
+                await device
+                    .getEndpoint(1)
+                    .read<"manuSpecificSDevices", SberDevices>(
+                        "manuSpecificSDevices",
+                        [
+                            "buttonEnableMultiClick",
+                            "ledIndicatorOnEnable",
+                            "ledIndicatorOnH",
+                            "ledIndicatorOnS",
+                            "ledIndicatorOnB",
+                            "ledIndicatorOffEnable",
+                            "ledIndicatorOffH",
+                            "ledIndicatorOffS",
+                            "ledIndicatorOffB",
+                        ],
+                        manufacturerOptions,
+                    );
+                await device
+                    .getEndpoint(2)
+                    .read<"manuSpecificSDevices", SberDevices>(
+                        "manuSpecificSDevices",
+                        [
+                            "buttonEnableMultiClick",
+                            "ledIndicatorOnEnable",
+                            "ledIndicatorOnH",
+                            "ledIndicatorOnS",
+                            "ledIndicatorOnB",
+                            "ledIndicatorOffEnable",
+                            "ledIndicatorOffH",
+                            "ledIndicatorOffS",
+                            "ledIndicatorOffB",
+                        ],
+                        manufacturerOptions,
+                    );
+                await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff", "genMultistateInput"]);
+                await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff", "genMultistateInput"]);
+                await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["manuSpecificSDevices"]);
+                await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["haDiagnostic"]);
+                await device.getEndpoint(1).read<"manuSpecificSDevices", SberDevices>("manuSpecificSDevices", ["childLock"]);
             }
             device.save();
         },
