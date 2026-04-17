@@ -17,12 +17,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light()],
     },
     {
-        zigbeeModel: ['PFMOT001'],
-        model: 'PFMOT001',
-        vendor: 'LDS',
-        description: 'Hive Pet Friendly Motion sensor',
-        extend: [
-        m.battery(),
-        m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1', 'tamper', 'battery_low']})],
-    }
+        zigbeeModel: ["PFMOT001"],
+        model: "PFMOT001",
+        vendor: "LDS",
+        description: "Hive Pet Friendly Motion sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
+    },
 ];
