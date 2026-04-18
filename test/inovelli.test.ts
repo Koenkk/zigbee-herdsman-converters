@@ -170,7 +170,8 @@ function fzFingerprint(converter: {cluster: string | number; type: string | stri
     };
 }
 
-type ReportingExpectation = {cluster: string; attribute: string; min: number; max: number; change: number};
+type ReportingItemExpectation = {attribute: string; min: number; max: number; change: number | null | "NaN"};
+type ReportingCallExpectation = {cluster: string; items: ReportingItemExpectation[]};
 
 interface IntegrationAssertion {
     model: string;
@@ -184,7 +185,7 @@ interface IntegrationAssertion {
     readCount: Record<number, number>;
     readClusters?: Record<number, string[]>;
     writeCount: Record<number, number>;
-    configureReporting: Record<number, ReportingExpectation[]>;
+    configureReporting: Record<number, ReportingCallExpectation[]>;
 }
 
 /** Assert a full Inovelli device definition against its configure-time side effects. */
@@ -231,21 +232,30 @@ async function assertInovelliIntegration(e: IntegrationAssertion): Promise<Defin
         const reportingCalls = (ep.configureReporting as ReturnType<typeof vi.fn>).mock.calls;
         const expectedReporting = e.configureReporting[ep.ID] ?? [];
         expect(reportingCalls.length, `configureReporting count (EP${ep.ID})`).toBe(expectedReporting.length);
-        reportingCalls.forEach((call, idx) => {
-            const want = expectedReporting[idx];
-            const item = (call[1] as ReportingItem[])[0];
-            expect(call[0], `configureReporting[${idx}] cluster (EP${ep.ID})`).toBe(want.cluster);
-            expect(item.attribute, `configureReporting[${idx}] attribute (EP${ep.ID})`).toBe(want.attribute);
-            expect(item.minimumReportInterval, `configureReporting[${idx}] min (EP${ep.ID})`).toBe(want.min);
-            expect(item.maximumReportInterval, `configureReporting[${idx}] max (EP${ep.ID})`).toBe(want.max);
-            expect(item.reportableChange, `configureReporting[${idx}] change (EP${ep.ID})`).toBe(want.change);
+        reportingCalls.forEach((call, callIdx) => {
+            const want = expectedReporting[callIdx];
+            const items = call[1] as ReportingItem[];
+            expect(call[0], `configureReporting[${callIdx}] cluster (EP${ep.ID})`).toBe(want.cluster);
+            expect(items.length, `configureReporting[${callIdx}] item count (EP${ep.ID}, cluster=${want.cluster})`).toBe(want.items.length);
+            items.forEach((item, itemIdx) => {
+                const wantItem = want.items[itemIdx];
+                const label = `configureReporting[${callIdx}].items[${itemIdx}] (EP${ep.ID}, cluster=${want.cluster})`;
+                expect(item.attribute, `${label} attribute`).toBe(wantItem.attribute);
+                expect(item.minimumReportInterval, `${label} min`).toBe(wantItem.min);
+                expect(item.maximumReportInterval, `${label} max`).toBe(wantItem.max);
+                if (wantItem.change === "NaN") {
+                    expect(item.reportableChange, `${label} change`).toBeNaN();
+                } else {
+                    expect(item.reportableChange, `${label} change`).toBe(wantItem.change);
+                }
+            });
         });
     }
 
     return definition;
 }
 
-type ReportingItem = {attribute: string; minimumReportInterval: number; maximumReportInterval: number; reportableChange: number};
+type ReportingItem = {attribute: string; minimumReportInterval: number; maximumReportInterval: number; reportableChange: number | null | typeof NaN};
 
 function collectManuInovelliReadAttrsByEndpoint(device: MockConfiguredDevice): Map<number, string[]> {
     const map = new Map<number, string[]>();
@@ -2450,9 +2460,9 @@ describe("Inovelli VZM31-SN definition integration", () => {
             writeCount: {1: 0, 2: 0, 3: 0},
             configureReporting: {
                 1: [
-                    {cluster: "genOnOff", attribute: "onOff", min: 0, max: 3600, change: 0},
-                    {cluster: "haElectricalMeasurement", attribute: "activePower", min: 15, max: 3600, change: 1},
-                    {cluster: "seMetering", attribute: "currentSummDelivered", min: 15, max: 3600, change: 0},
+                    {cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]},
+                    {cluster: "haElectricalMeasurement", items: [{attribute: "activePower", min: 15, max: 3600, change: 1}]},
+                    {cluster: "seMetering", items: [{attribute: "currentSummDelivered", min: 15, max: 3600, change: 0}]},
                 ],
                 2: [],
                 3: [],
@@ -2481,5 +2491,217 @@ describe("Inovelli VZM31-SN definition integration", () => {
         // Common attributes still present
         expect(ep1ReadAttrs).toContain("switchType");
         expect(ep1ReadAttrs).toContain("fanControlMode");
+    });
+});
+
+describe("Inovelli VZM30-SN definition integration", () => {
+    it("matches expected integration shape for firmware 3.07", async () => {
+        const device = mockDevice({
+            modelID: "VZM30-SN",
+            endpoints: [
+                {
+                    ID: 1,
+                    inputClusters: [
+                        "genOnOff",
+                        "genLevelCtrl",
+                        "haElectricalMeasurement",
+                        "seMetering",
+                        "msTemperatureMeasurement",
+                        "msRelativeHumidity",
+                    ],
+                },
+                {ID: 2, inputClusters: []},
+                {ID: 3, inputClusters: []},
+                {ID: 4, inputClusters: []},
+            ],
+            softwareBuildID: "3.07",
+        });
+
+        await assertInovelliIntegration({
+            model: "VZM30-SN",
+            device,
+            meta: {
+                multiEndpoint: true,
+                multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "temperature", "humidity"],
+            },
+            // Same 8 converters as VZM31-SN plus temperature + humidity measurement converters.
+            fromZigbeeFingerprint: [
+                {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
+                {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
+                {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
+                {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
+                {cluster: "manuSpecificInovelli", type: ["commandLedEffectComplete"]},
+                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "haElectricalMeasurement", type: ["attributeReport", "readResponse"]},
+                {cluster: "seMetering", type: ["attributeReport", "readResponse"]},
+                {cluster: "msTemperatureMeasurement", type: ["attributeReport", "readResponse"]},
+                {cluster: "msRelativeHumidity", type: ["attributeReport", "readResponse"]},
+            ],
+            toZigbeeKeysContain: [
+                // light() extend
+                "state",
+                "brightness",
+                "brightness_percent",
+                "transition",
+                "power_on_behavior",
+                "level_config",
+                "brightness_move",
+                "brightness_step",
+                // device() extend: LED effect commands and parameter writes
+                "led_effect",
+                "individual_led_effect",
+                "switchType",
+                "dimmingSpeedUpRemote",
+                "internalTemperature",
+                "deviceBindNumber",
+                // identify + energyReset extends
+                "identify",
+                "energy_reset",
+                // electricityMeter extend (current/voltage exposed for VZM30 unlike VZM31)
+                "power",
+                "energy",
+                "current",
+                "voltage",
+                // temperature + humidity extends
+                "temperature",
+                "humidity",
+            ],
+            // VZM30-SN is a switch (not a dimmer), so dimming-algorithm / aux-detection attributes are not exposed.
+            toZigbeeKeysOmit: ["dimmingAlgorithm", "auxDetectionLevel", "dumbDetectionLevel"],
+            exposeFingerprints: [
+                "action",
+                "activeEnergyReports",
+                "activePowerReports",
+                "autoTimerOff",
+                "auxSwitchUniqueScenes",
+                "bindingOffToOnSyncLevel",
+                "brightnessLevelForDoubleTapDown",
+                "brightnessLevelForDoubleTapUp",
+                "buttonDelay",
+                "current",
+                "defaultLed1ColorWhenOff",
+                "defaultLed1ColorWhenOn",
+                "defaultLed1IntensityWhenOff",
+                "defaultLed1IntensityWhenOn",
+                "defaultLed2ColorWhenOff",
+                "defaultLed2ColorWhenOn",
+                "defaultLed2IntensityWhenOff",
+                "defaultLed2IntensityWhenOn",
+                "defaultLed3ColorWhenOff",
+                "defaultLed3ColorWhenOn",
+                "defaultLed3IntensityWhenOff",
+                "defaultLed3IntensityWhenOn",
+                "defaultLed4ColorWhenOff",
+                "defaultLed4ColorWhenOn",
+                "defaultLed4IntensityWhenOff",
+                "defaultLed4IntensityWhenOn",
+                "defaultLed5ColorWhenOff",
+                "defaultLed5ColorWhenOn",
+                "defaultLed5IntensityWhenOff",
+                "defaultLed5IntensityWhenOn",
+                "defaultLed6ColorWhenOff",
+                "defaultLed6ColorWhenOn",
+                "defaultLed6IntensityWhenOff",
+                "defaultLed6IntensityWhenOn",
+                "defaultLed7ColorWhenOff",
+                "defaultLed7ColorWhenOn",
+                "defaultLed7IntensityWhenOff",
+                "defaultLed7IntensityWhenOn",
+                "defaultLevelLocal",
+                "defaultLevelRemote",
+                "deviceBindNumber",
+                "dimmingSpeedDownLocal",
+                "dimmingSpeedDownRemote",
+                "dimmingSpeedUpLocal",
+                "dimmingSpeedUpRemote",
+                "doubleTapClearNotifications",
+                "doubleTapDownToParam56",
+                "doubleTapUpToParam55",
+                "energy",
+                "energy_reset",
+                "fanControlMode",
+                "fanLedLevelType",
+                "fanTimerMode",
+                "firmwareUpdateInProgressIndicator",
+                "highLevelForFanControlMode",
+                "humidity",
+                "identify",
+                "individual_led_effect",
+                "internalTemperature",
+                "invertSwitch",
+                "ledBarScaling",
+                "ledColorForFanControlMode",
+                "ledColorWhenOff",
+                "ledColorWhenOn",
+                "ledIntensityWhenOff",
+                "ledIntensityWhenOn",
+                "led_effect",
+                "light(state,brightness)",
+                "loadLevelIndicatorTimeout",
+                "localProtection",
+                "lowLevelForFanControlMode",
+                "mediumLevelForFanControlMode",
+                "notificationComplete",
+                "onOffLedMode",
+                "outputMode",
+                "overheat",
+                "periodicPowerAndEnergyReports",
+                "power",
+                "rampRateOffToOnLocal",
+                "rampRateOffToOnRemote",
+                "rampRateOnToOffLocal",
+                "rampRateOnToOffRemote",
+                "remoteProtection",
+                "singleTapBehavior",
+                "smartBulbMode",
+                "stateAfterPowerRestored",
+                "switchType",
+                "temperature",
+                "voltage",
+            ],
+            bind: {
+                1: [
+                    "genOnOff",
+                    "genLevelCtrl",
+                    "manuSpecificInovelli",
+                    "haElectricalMeasurement",
+                    "seMetering",
+                    "msTemperatureMeasurement",
+                    "msRelativeHumidity",
+                ],
+                2: ["manuSpecificInovelli"],
+                3: [],
+                4: [],
+            },
+            // EP1 reads: 11 batched manuSpecificInovelli reads + haElectricalMeasurement (divisor/multiplier + activePower + rmsCurrent + rmsVoltage)
+            // + seMetering (divisor/multiplier + currentSummDelivered) + msTemperatureMeasurement (measuredValue) + msRelativeHumidity (measuredValue).
+            readCount: {1: 15, 2: 0, 3: 0, 4: 0},
+            readClusters: {
+                1: ["haElectricalMeasurement", "manuSpecificInovelli", "msRelativeHumidity", "msTemperatureMeasurement", "seMetering"],
+                2: [],
+                3: [],
+                4: [],
+            },
+            writeCount: {1: 0, 2: 0, 3: 0, 4: 0},
+            configureReporting: {
+                1: [
+                    {cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]},
+                    {
+                        cluster: "haElectricalMeasurement",
+                        items: [
+                            {attribute: "activePower", min: 10, max: 65000, change: 50},
+                            {attribute: "rmsCurrent", min: 10, max: 65000, change: "NaN"},
+                            {attribute: "rmsVoltage", min: 10, max: 65000, change: "NaN"},
+                        ],
+                    },
+                    {cluster: "seMetering", items: [{attribute: "currentSummDelivered", min: 10, max: 65000, change: 100}]},
+                    {cluster: "msTemperatureMeasurement", items: [{attribute: "measuredValue", min: 10, max: 3600, change: 100}]},
+                    {cluster: "msRelativeHumidity", items: [{attribute: "measuredValue", min: 10, max: 3600, change: 100}]},
+                ],
+                2: [],
+                3: [],
+                4: [],
+            },
+        });
     });
 });
