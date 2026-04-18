@@ -16,13 +16,17 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "BTicino",
         description: "Light switch with neutral",
         ota: true,
-        fromZigbee: [fz.identify, fz.on_off, fz.K4003C_binary_input, fzLegrand.cluster_fc01],
-        toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify],
+        fromZigbee: [fz.identify, fz.K4003C_binary_input, fzLegrand.cluster_fc01],
+        toZigbee: [tzLegrand.K4003C_state, tzLegrand.led_mode, tzLegrand.identify],
         extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: [e.switch(), e.action(["identify", "on", "off"]), eLegrand.identify(), eLegrand.ledInDark(), eLegrand.ledIfOn()],
+        version: "0.0.1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genOnOff", "genBinaryInput"]);
+            await endpoint.configureReporting("genBinaryInput", [
+                {attribute: "presentValue", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+            ]);
         },
     },
     {

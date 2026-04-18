@@ -98,6 +98,7 @@ interface ThirdPlug {
         resetTotalEnergy: number;
         countdownToTurnOff: number;
         countdownToTurnOn: number;
+        redLedBrightness: number;
     };
     commands: never;
     commandResponses: never;
@@ -476,6 +477,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.light({
                 color: {modes: ["xy"], enhancedHue: true},
+                colorTemp: {range: [154, 500]},
             }),
         ],
     },
@@ -1161,6 +1163,15 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+            m.deviceAddCustomCluster("genBasic", {
+                name: "genBasic",
+                ID: 0x0000,
+                attributes: {
+                    redLedBrightness: {name: "redLedBrightness", ID: 0xff01, type: Zcl.DataType.UINT8, write: true, min: 0, max: 100},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
             m.enumLookup<"3rDualPlugSpecialcluster", ThirdPlug>({
                 endpointName: "1",
                 name: "reset_total_energy",
@@ -1221,6 +1232,16 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "3rDualPlugSpecialcluster",
                 attribute: "countdownToTurnOn",
                 description: "(OFF-ON)",
+                access: "ALL",
+            }),
+            m.numeric<"genBasic", ThirdPlug>({
+                name: "red_led_brightness",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "genBasic",
+                attribute: "redLedBrightness",
+                description: "Set red led brightness",
                 access: "ALL",
             }),
         ],

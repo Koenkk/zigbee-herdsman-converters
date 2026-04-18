@@ -35,6 +35,7 @@ import type {
     LevelConfigFeatures,
     ModernExtend,
     OnEvent,
+    PowerSource,
     Range,
     Tz,
     Zh,
@@ -307,7 +308,7 @@ export function forceDeviceType(args: {type: "EndDevice" | "Router"}): ModernExt
     return {configure, isModernExtend: true};
 }
 
-export function forcePowerSource(args: {powerSource: "Mains (single phase)" | "Battery"}): ModernExtend {
+export function forcePowerSource(args: {powerSource: PowerSource}): ModernExtend {
     const configure: Configure[] = [
         (device, coordinatorEndpoint, definition) => {
             device.powerSource = args.powerSource;
