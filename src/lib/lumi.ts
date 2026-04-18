@@ -3000,12 +3000,12 @@ export const lumiModernExtend = {
     lumiBattery: (args?: {
         cluster?: "genBasic" | "manuSpecificLumi";
         voltageToPercentage?: BatteryNonLinearVoltage | BatteryLinearVoltage;
-        percentageAtrribute?: number;
+        percentageAttribute?: number;
         voltageAttribute?: number;
     }): ModernExtend => {
         args = {
             cluster: "manuSpecificLumi",
-            percentageAtrribute: 1,
+            percentageAttribute: 1,
             voltageAttribute: 1,
             ...args,
         };
@@ -3018,8 +3018,8 @@ export const lumiModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const payload: KeyValueAny = {};
                     const lookup: KeyValueAny = numericAttributes2Lookup(model, msg.data);
-                    if (lookup[args.percentageAtrribute.toString()]) {
-                        const value = lookup[args.percentageAtrribute];
+                    if (lookup[args.percentageAttribute.toString()]) {
+                        const value = lookup[args.percentageAttribute];
                         assertNumber(value);
                         if (!args.voltageToPercentage) payload.battery = value;
                     }
