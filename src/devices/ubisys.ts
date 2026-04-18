@@ -268,7 +268,7 @@ const ubisys = {
                     ]),
                 );
                 log(
-                    await entity.read("closuresWindowCovering", [
+                    await entity.read<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", [
                         "configStatus",
                         "windowCoveringMode",
                         "currentPositionLiftPercentage",
