@@ -2092,22 +2092,22 @@ const tuyaTz = {
                 value,
                 key === "backlight_mode" ? {low: 0, medium: 1, high: 2, off: 0, normal: 1, inverted: 2} : {off: 0, "off/on": 1, "on/off": 2, on: 3},
             );
-            await entity.write("genOnOff", {tuyaBacklightMode});
+            await entity.write<"genOnOff", TuyaGenOnOff>("genOnOff", {tuyaBacklightMode});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("genOnOff", ["tuyaBacklightMode"]);
+            await entity.read<"genOnOff", TuyaGenOnOff>("genOnOff", ["tuyaBacklightMode"]);
         },
     } satisfies Tz.Converter,
     backlight_indicator_mode_2: {
         key: ["backlight_mode"],
         convertSet: async (entity, key, value, meta) => {
             const tuyaBacklightSwitch = utils.getFromLookup(value, {off: 0, on: 1});
-            await entity.write("genOnOff", {tuyaBacklightSwitch});
+            await entity.write<"genOnOff", TuyaGenOnOff>("genOnOff", {tuyaBacklightSwitch});
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("genOnOff", ["tuyaBacklightSwitch"]);
+            await entity.read<"genOnOff", TuyaGenOnOff>("genOnOff", ["tuyaBacklightSwitch"]);
         },
     } satisfies Tz.Converter,
     backlight_indicator_mode_none_relay_pos: {
@@ -2119,15 +2119,15 @@ const tuyaTz = {
             const result = utils.getFromLookup(value, lookup);
 
             if (key === "backlight_mode") {
-                await entity.write("genOnOff", {tuyaBacklightSwitch: result});
+                await entity.write<"genOnOff", TuyaGenOnOff>("genOnOff", {tuyaBacklightSwitch: result});
             } else {
-                await entity.write("genOnOff", {tuyaBacklightMode: result});
+                await entity.write<"genOnOff", TuyaGenOnOff>("genOnOff", {tuyaBacklightMode: result});
             }
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
             const attribute = key === "backlight_mode" ? "tuyaBacklightSwitch" : "tuyaBacklightMode";
-            await entity.read("genOnOff", [attribute]);
+            await entity.read<"genOnOff", TuyaGenOnOff>("genOnOff", [attribute]);
         },
     } satisfies Tz.Converter,
     child_lock: {
@@ -2351,7 +2351,7 @@ const tuyaTz = {
                     .getEndpoint(2)
                     .read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaCalibration"]);
             } else if (key === "calibration_time" || key === "calibration_time_to_open") {
-                await entity.read("closuresWindowCovering", ["moesCalibrationTime"]);
+                await entity.read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", ["moesCalibrationTime"]);
             } else if (key === "calibration_time_to_close") {
                 await meta.device
                     .getEndpoint(2)
@@ -2589,7 +2589,13 @@ const tuyaTz = {
             return {state: libColor.syncColorState(newState, meta.state, entity, meta.options)};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("lightingColorCtrl", ["currentHue", "currentSaturation", "tuyaBrightness", "tuyaRgbMode", "colorTemperature"]);
+            await entity.read<"lightingColorCtrl", TuyaLightingColorCtrl>("lightingColorCtrl", [
+                "currentHue",
+                "currentSaturation",
+                "tuyaBrightness",
+                "tuyaRgbMode",
+                "colorTemperature",
+            ]);
         },
     } satisfies Tz.Converter,
 };
@@ -2617,7 +2623,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data.moesStartUpOnOff]};
             }
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"genOnOff", TuyaGenOnOff, ["attributeReport", "readResponse"]>,
     power_on_behavior_2: {
         cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
@@ -2640,7 +2646,7 @@ const tuyaFz = {
                 return {[property]: lookup[msg.data.moesStartUpOnOff]};
             }
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"genOnOff", TuyaGenOnOff, ["attributeReport", "readResponse"]>,
     switch_type: {
         cluster: "manuSpecificTuya3",
         type: ["attributeReport", "readResponse"],
@@ -2702,7 +2708,7 @@ const tuyaFz = {
                 return {backlight_mode: utils.getFromLookup(msg.data.tuyaBacklightSwitch, {0: "OFF", 1: "ON"})};
             }
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"genOnOff", TuyaGenOnOff, ["attributeReport", "readResponse"]>,
     indicator_mode: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -3952,7 +3958,7 @@ const tuyaModernExtend = {
         return {configure: [configureMagicPacket], isModernExtend: true};
     },
     tuyaOnOffAction(args?: Partial<modernExtend.ActionEnumLookupArgs<"genOnOff">>): ModernExtend {
-        return modernExtend.actionEnumLookup<"genOnOff", undefined, ["commandTuyaAction"]>({
+        return modernExtend.actionEnumLookup<"genOnOff", TuyaGenOnOff, ["commandTuyaAction"]>({
             actionLookup: {0: "single", 1: "double", 2: "hold"},
             cluster: "genOnOff",
             commands: ["commandTuyaAction"],

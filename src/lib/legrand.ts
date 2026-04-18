@@ -266,6 +266,20 @@ export const tzLegrand = {
             },
         } satisfies Tz.Converter;
     },
+    // biome-ignore lint/style/useNamingConvention: model-specific converter
+    K4003C_state: {
+        key: ["state"],
+        convertSet: async (entity, key, value, meta) => {
+            const cmd = String(value).toUpperCase();
+            const command = cmd === "TOGGLE" ? "toggle" : cmd === "ON" ? "on" : "off";
+            await entity.command("genOnOff", command, {}, {});
+            if (cmd === "TOGGLE") return {};
+            return {state: {state: cmd}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genBinaryInput", ["presentValue"]);
+        },
+    } satisfies Tz.Converter,
     led_mode: {
         key: ["led_in_dark", "led_if_on"],
         convertSet: async (entity, key, value, meta) => {

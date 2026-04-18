@@ -92,7 +92,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_t3s9qmmg"]),
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_t3s9qmmg", "_TZ3000_ehgouyvu"]),
         model: "X701A",
         vendor: "Lonsonho",
         description: "1 gang switch with backlight",

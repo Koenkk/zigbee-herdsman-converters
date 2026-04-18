@@ -151,6 +151,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_nnhwcvbk",
             "_TZE284_nnhwcvbk",
             "_TZE204_z7a2jmyy",
+            "_TZE204_4fblxpma",
             "_TZE284_z7a2jmyy",
         ]),
         model: "NAS-WV03B",
