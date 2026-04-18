@@ -162,6 +162,91 @@ function collectBindClusters(device: MockConfiguredDevice): Map<number, (string 
     return map;
 }
 
+/** Normalize a fromZigbee converter (or a bare fingerprint) to {cluster, sorted type}. */
+function fzFingerprint(converter: {cluster: string | number; type: string | string[]}) {
+    return {
+        cluster: converter.cluster,
+        type: Array.isArray(converter.type) ? [...converter.type].sort() : converter.type,
+    };
+}
+
+type ReportingExpectation = {cluster: string; attribute: string; min: number; max: number; change: number};
+
+interface IntegrationAssertion {
+    model: string;
+    device: MockConfiguredDevice;
+    meta: Record<string, unknown>;
+    fromZigbeeFingerprint: {cluster: string; type: string | string[]}[];
+    toZigbeeKeysContain: string[];
+    toZigbeeKeysOmit?: string[];
+    exposeFingerprints: string[];
+    bind: Record<number, string[]>;
+    readCount: Record<number, number>;
+    readClusters?: Record<number, string[]>;
+    writeCount: Record<number, number>;
+    configureReporting: Record<number, ReportingExpectation[]>;
+}
+
+/** Assert a full Inovelli device definition against its configure-time side effects. */
+async function assertInovelliIntegration(e: IntegrationAssertion): Promise<Definition> {
+    patchDeviceForConfigure(e.device);
+    const definition = await findByDevice(e.device);
+
+    expect(definition.model).toBe(e.model);
+    expect(definition.ota).toBe(true);
+    expect(definition.meta).toEqual(e.meta);
+
+    expect(definition.fromZigbee.map(fzFingerprint)).toStrictEqual(e.fromZigbeeFingerprint.map(fzFingerprint));
+
+    const allTzKeys = definition.toZigbee.flatMap((c) => c.key);
+    for (const key of e.toZigbeeKeysContain) {
+        expect(allTzKeys, `toZigbee should contain "${key}"`).toContain(key);
+    }
+    for (const key of e.toZigbeeKeysOmit ?? []) {
+        expect(allTzKeys, `toZigbee should not contain "${key}"`).not.toContain(key);
+    }
+
+    const exposes = resolveExposes(definition, e.device);
+    const actualFingerprints = exposes
+        .map((ex) => ex.property ?? `${ex.type}${ex.endpoint ? `_${ex.endpoint}` : ""}(${ex.features?.map((f) => f.name).join(",")})`)
+        .sort();
+    expect(actualFingerprints).toStrictEqual([...e.exposeFingerprints].sort());
+
+    await definition.configure(e.device, e.device.getEndpoint(1), definition);
+
+    for (const ep of e.device.endpoints) {
+        const bindCalls = (ep.bind as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0]);
+        expect(bindCalls, `bind(EP${ep.ID})`).toStrictEqual(e.bind[ep.ID] ?? []);
+
+        const readCalls = (ep.read as ReturnType<typeof vi.fn>).mock.calls;
+        expect(readCalls.length, `read count (EP${ep.ID})`).toBe(e.readCount[ep.ID] ?? 0);
+        if (e.readClusters?.[ep.ID]) {
+            const clustersRead = Array.from(new Set(readCalls.map((c) => c[0] as string))).sort();
+            expect(clustersRead, `read clusters (EP${ep.ID})`).toStrictEqual([...e.readClusters[ep.ID]].sort());
+        }
+
+        const writeCalls = (ep.write as ReturnType<typeof vi.fn>).mock.calls;
+        expect(writeCalls.length, `write count (EP${ep.ID})`).toBe(e.writeCount[ep.ID] ?? 0);
+
+        const reportingCalls = (ep.configureReporting as ReturnType<typeof vi.fn>).mock.calls;
+        const expectedReporting = e.configureReporting[ep.ID] ?? [];
+        expect(reportingCalls.length, `configureReporting count (EP${ep.ID})`).toBe(expectedReporting.length);
+        reportingCalls.forEach((call, idx) => {
+            const want = expectedReporting[idx];
+            const item = (call[1] as ReportingItem[])[0];
+            expect(call[0], `configureReporting[${idx}] cluster (EP${ep.ID})`).toBe(want.cluster);
+            expect(item.attribute, `configureReporting[${idx}] attribute (EP${ep.ID})`).toBe(want.attribute);
+            expect(item.minimumReportInterval, `configureReporting[${idx}] min (EP${ep.ID})`).toBe(want.min);
+            expect(item.maximumReportInterval, `configureReporting[${idx}] max (EP${ep.ID})`).toBe(want.max);
+            expect(item.reportableChange, `configureReporting[${idx}] change (EP${ep.ID})`).toBe(want.change);
+        });
+    }
+
+    return definition;
+}
+
+type ReportingItem = {attribute: string; minimumReportInterval: number; maximumReportInterval: number; reportableChange: number};
+
 function collectManuInovelliReadAttrsByEndpoint(device: MockConfiguredDevice): Map<number, string[]> {
     const map = new Map<number, string[]>();
     for (const ep of device.endpoints) {
@@ -766,7 +851,7 @@ describe("Inovelli toZigbee converters", () => {
     });
 });
 
-describe("Inovelli VZM36", () => {
+describe("Inovelli VZM36 endpoint routing", () => {
     let definition: Definition;
 
     beforeAll(async () => {
@@ -1743,11 +1828,7 @@ describe("Inovelli fromZigbee converters", () => {
         let definition: Definition;
 
         beforeAll(async () => {
-            const device = mockDevice({
-                modelID: "VZM31-SN",
-                endpoints: [{ID: 1, inputClusters: ["genOnOff", "genLevelCtrl"]}, {ID: 2}, {ID: 3}],
-            });
-            definition = await findByDevice(device);
+            ({definition} = await setupVZM31());
             expect(definition.model).toBe("VZM31-SN");
         });
 
@@ -1881,11 +1962,7 @@ describe("Inovelli fromZigbee converters", () => {
         let definition: Definition;
 
         beforeAll(async () => {
-            const device = mockDevice({
-                modelID: "VZM35-SN",
-                endpoints: [{ID: 1, inputClusters: ["genOnOff", "genLevelCtrl"]}, {ID: 2}],
-            });
-            definition = await findByDevice(device);
+            ({definition} = await setupVZM35());
             expect(definition.model).toBe("VZM35-SN");
         });
 
@@ -1998,14 +2075,7 @@ describe("Inovelli fromZigbee converters", () => {
         let definition: Definition;
 
         beforeAll(async () => {
-            const device = mockDevice({
-                modelID: "VZM36",
-                endpoints: [
-                    {ID: 1, inputClusters: ["genOnOff", "genLevelCtrl"]},
-                    {ID: 2, inputClusters: ["genOnOff", "genLevelCtrl"]},
-                ],
-            });
-            definition = await findByDevice(device);
+            ({definition} = await setupVZM36());
             expect(definition.model).toBe("VZM36");
         });
 
@@ -2034,11 +2104,7 @@ describe("Inovelli fromZigbee converters", () => {
         let definition: Definition;
 
         beforeAll(async () => {
-            const device = mockDevice({
-                modelID: "VZM32-SN",
-                endpoints: [{ID: 1, inputClusters: ["genOnOff", "genLevelCtrl"]}, {ID: 2}, {ID: 3}],
-            });
-            definition = await findByDevice(device);
+            ({definition} = await setupVZM32());
             expect(definition.model).toBe("VZM32-SN");
         });
 
@@ -2207,5 +2273,213 @@ describe("Inovelli fromZigbee converters", () => {
                 });
             });
         });
+    });
+});
+
+describe("Inovelli VZM31-SN definition integration", () => {
+    it("matches expected integration shape for firmware 3.07 (all firmware-gated attributes enabled)", async () => {
+        const device = mockDevice({
+            modelID: "VZM31-SN",
+            endpoints: [
+                {ID: 1, inputClusters: ["genOnOff", "genLevelCtrl", "haElectricalMeasurement", "seMetering"]},
+                {ID: 2, inputClusters: []},
+                {ID: 3, inputClusters: []},
+            ],
+            softwareBuildID: "3.07",
+        });
+
+        await assertInovelliIntegration({
+            model: "VZM31-SN",
+            device,
+            meta: {multiEndpoint: true, multiEndpointSkip: ["state", "power", "energy", "brightness"]},
+            // 8 converters: light (on_off EP1 + brightness + level_config + power_on_behavior), device (led_effect_complete + main),
+            // electricityMeter (electrical_measurement + metering).
+            fromZigbeeFingerprint: [
+                {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
+                {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
+                {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
+                {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
+                {cluster: "manuSpecificInovelli", type: ["commandLedEffectComplete"]},
+                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "haElectricalMeasurement", type: ["attributeReport", "readResponse"]},
+                {cluster: "seMetering", type: ["attributeReport", "readResponse"]},
+            ],
+            toZigbeeKeysContain: [
+                // light() extend
+                "state",
+                "brightness",
+                "brightness_percent",
+                "transition",
+                "power_on_behavior",
+                "level_config",
+                "brightness_move",
+                "brightness_step",
+                // device() extend: LED effect commands and parameter writes
+                "led_effect",
+                "individual_led_effect",
+                "switchType",
+                "dimmingSpeedUpRemote",
+                "dimmingAlgorithm",
+                "auxDetectionLevel",
+                "dumbDetectionLevel",
+                "internalTemperature",
+                "deviceBindNumber",
+                // identify + energyReset extends
+                "identify",
+                "energy_reset",
+                // electricityMeter extend
+                "power",
+                "energy",
+            ],
+            // electricityMeter is configured with current:false, voltage:false so those props are dropped from exposes.
+            toZigbeeKeysOmit: [],
+            exposeFingerprints: [
+                "action",
+                "activeEnergyReports",
+                "activePowerReports",
+                "autoTimerOff",
+                "auxDetectionLevel",
+                "auxSwitchUniqueScenes",
+                "bindingOffToOnSyncLevel",
+                "brightnessLevelForDoubleTapDown",
+                "brightnessLevelForDoubleTapUp",
+                "buttonDelay",
+                "defaultLed1ColorWhenOff",
+                "defaultLed1ColorWhenOn",
+                "defaultLed1IntensityWhenOff",
+                "defaultLed1IntensityWhenOn",
+                "defaultLed2ColorWhenOff",
+                "defaultLed2ColorWhenOn",
+                "defaultLed2IntensityWhenOff",
+                "defaultLed2IntensityWhenOn",
+                "defaultLed3ColorWhenOff",
+                "defaultLed3ColorWhenOn",
+                "defaultLed3IntensityWhenOff",
+                "defaultLed3IntensityWhenOn",
+                "defaultLed4ColorWhenOff",
+                "defaultLed4ColorWhenOn",
+                "defaultLed4IntensityWhenOff",
+                "defaultLed4IntensityWhenOn",
+                "defaultLed5ColorWhenOff",
+                "defaultLed5ColorWhenOn",
+                "defaultLed5IntensityWhenOff",
+                "defaultLed5IntensityWhenOn",
+                "defaultLed6ColorWhenOff",
+                "defaultLed6ColorWhenOn",
+                "defaultLed6IntensityWhenOff",
+                "defaultLed6IntensityWhenOn",
+                "defaultLed7ColorWhenOff",
+                "defaultLed7ColorWhenOn",
+                "defaultLed7IntensityWhenOff",
+                "defaultLed7IntensityWhenOn",
+                "defaultLevelLocal",
+                "defaultLevelRemote",
+                "deviceBindNumber",
+                "dimmingAlgorithm",
+                "dimmingMode",
+                "dimmingSpeedDownLocal",
+                "dimmingSpeedDownRemote",
+                "dimmingSpeedUpLocal",
+                "dimmingSpeedUpRemote",
+                "doubleTapClearNotifications",
+                "doubleTapDownToParam56",
+                "doubleTapUpToParam55",
+                "dumbDetectionLevel",
+                "energy",
+                "energy_reset",
+                "fanControlMode",
+                "fanLedLevelType",
+                "firmwareUpdateInProgressIndicator",
+                "highLevelForFanControlMode",
+                "higherOutputInNonNeutral",
+                "identify",
+                "individual_led_effect",
+                "internalTemperature",
+                "invertSwitch",
+                "ledBarScaling",
+                "ledColorForFanControlMode",
+                "ledColorWhenOff",
+                "ledColorWhenOn",
+                "ledIntensityWhenOff",
+                "ledIntensityWhenOn",
+                "led_effect",
+                "light(state,brightness)",
+                "loadLevelIndicatorTimeout",
+                "localProtection",
+                "lowLevelForFanControlMode",
+                "maximumLevel",
+                "mediumLevelForFanControlMode",
+                "minimumLevel",
+                "notificationComplete",
+                "onOffLedMode",
+                "outputMode",
+                "overheat",
+                "periodicPowerAndEnergyReports",
+                "power",
+                "powerType",
+                "quickStartLevel",
+                "quickStartTime",
+                "rampRateOffToOnLocal",
+                "rampRateOffToOnRemote",
+                "rampRateOnToOffLocal",
+                "rampRateOnToOffRemote",
+                "relayClick",
+                "remoteProtection",
+                "singleTapBehavior",
+                "smartBulbMode",
+                "stateAfterPowerRestored",
+                "switchType",
+            ],
+            bind: {
+                1: ["genOnOff", "genLevelCtrl", "manuSpecificInovelli", "haElectricalMeasurement", "seMetering"],
+                2: ["manuSpecificInovelli"],
+                3: [],
+            },
+            // EP1 reads: 9 batched manuSpecificInovelli reads (all firmware-gated attrs included at 3.07)
+            // + haElectricalMeasurement (divisor/multiplier + activePower) + seMetering (divisor/multiplier + currentSummDelivered).
+            readCount: {
+                1: 13,
+                2: 0,
+                3: 0,
+            },
+            readClusters: {
+                1: ["haElectricalMeasurement", "manuSpecificInovelli", "seMetering"],
+                2: [],
+                3: [],
+            },
+            writeCount: {1: 0, 2: 0, 3: 0},
+            configureReporting: {
+                1: [
+                    {cluster: "genOnOff", attribute: "onOff", min: 0, max: 3600, change: 0},
+                    {cluster: "haElectricalMeasurement", attribute: "activePower", min: 15, max: 3600, change: 1},
+                    {cluster: "seMetering", attribute: "currentSummDelivered", min: 15, max: 3600, change: 0},
+                ],
+                2: [],
+                3: [],
+            },
+        });
+    });
+
+    it("drops firmware-gated attributes on older firmware (2.18)", async () => {
+        const device = mockDevice({
+            modelID: "VZM31-SN",
+            endpoints: [
+                {ID: 1, inputClusters: ["genOnOff", "genLevelCtrl", "haElectricalMeasurement", "seMetering"]},
+                {ID: 2, inputClusters: []},
+                {ID: 3, inputClusters: []},
+            ],
+            softwareBuildID: "2.18",
+        });
+        patchDeviceForConfigure(device);
+        const definition = await findByDevice(device);
+        await definition.configure(device, device.getEndpoint(1), definition);
+
+        const ep1ReadAttrs = (device.getEndpoint(1).read as ReturnType<typeof vi.fn>).mock.calls.flatMap((c) => c[1] as string[]);
+        expect(ep1ReadAttrs).not.toContain("dimmingAlgorithm");
+        expect(ep1ReadAttrs).not.toContain("auxDetectionLevel");
+        expect(ep1ReadAttrs).not.toContain("dumbDetectionLevel");
+        // Common attributes still present
+        expect(ep1ReadAttrs).toContain("switchType");
+        expect(ep1ReadAttrs).toContain("fanControlMode");
     });
 });
