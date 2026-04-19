@@ -5635,7 +5635,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.lumiBattery({
                 voltageToPercentage: {min: 2850, max: 3000},
                 voltageAttribute: 0x0017, // Attribute: 23
-                //percentageAtrribute: 0x0018 // Attribute: 24 // TODO: Should confirm to be sure
+                //percentageAttribute: 0x0018 // Attribute: 24 // TODO: Should confirm to be sure
             }),
             lumi.lumiModernExtend.fp1ePresence(),
             lumi.lumiModernExtend.fp300PIRDetection(),
