@@ -2473,7 +2473,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.lumiPreventReset(),
             lumi.lumiModernExtend.lumiBattery({
                 voltageAttribute: 0x17,
-                percentageAtrribute: 0x18, // typo intentional — matches z-h-c lumiBattery() arg name
+                percentageAttribute: 0x18,
             }),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
             m.enumLookup({
