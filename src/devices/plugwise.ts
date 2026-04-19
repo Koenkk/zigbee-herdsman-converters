@@ -428,9 +428,15 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 100,
                 reporting: {min: "10_SECONDS", max: 870, change: 0.1},
             }),
-            plugwiseExtend.dhwTemperature(),
-            plugwiseExtend.returnWaterTemperature(),
-            plugwiseExtend.boilerWaterTemperature(),
+            plugwiseExtend.dhwTemperature({
+                reporting: {min: "1_MINUTE", max: 870, change: 0.1},
+            }),
+            plugwiseExtend.returnWaterTemperature({
+                reporting: {min: "1_MINUTE", max: 870, change: 0.1},
+            }),
+            plugwiseExtend.boilerWaterTemperature({
+                reporting: {min: "1_MINUTE", max: 870, change: 0.1},
+            }),
             m.numeric({
                 name: "boiler_setpoint",
                 cluster: "hvacThermostat",
