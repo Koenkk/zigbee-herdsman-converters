@@ -1,5 +1,21 @@
 # Changelog
 
+## [26.37.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.36.0...v26.37.0) (2026-04-19)
+
+
+### Features
+
+* Add SLZB-06MG26U router variant ([#11969](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11969)) ([1bfa887](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1bfa88724d501d70b5a326d560f24aff6cd5fc76))
+* **add:** PFMOT001 ([#11964](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11964)) ([e42782e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e42782eacc5740299166248b6144d41bee59c743))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_4fblxpma` as NEO NAS-WV03B ([#11966](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11966)) ([fc2b54f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc2b54f3ab2b766713dc885ccf4b1cdde1e80203))
+* **detect:** Detect `_TZE284_xuflgcnz` as RTX ZVG1 ([#11967](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11967)) ([2f6110f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2f6110ff1e8d4a3b4ff4fc2b6326b9a4dd199ca5))
+* Fix `percentageAttribute` typo ([#11971](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11971)) ([1a6fd40](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1a6fd407ad8a9e3fbdbd941965a36abb76cdfebd))
+* **ignore:** add VZM31-SN and VZM30-SN definition integration tests (phases 4-5) ([#11968](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11968)) ([0e4d6c6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0e4d6c62ae70b0bb16a1b89181f335655fa45f8c))
+
 ## [26.36.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.35.0...v26.36.0) (2026-04-17)
 
 
