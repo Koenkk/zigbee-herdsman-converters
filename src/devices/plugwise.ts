@@ -26,20 +26,11 @@ const plugwiseRadioStrengthLookup = {
 interface PlugwiseHvacThermostat {
     attributes: {
         plugwiseValvePosition: number;
-        // plugwiseErrorStatus: number;
+        // plugviseErrorStatus: number;
         plugwiseCurrentHeatingSetpoint: number;
         plugwiseTDiff: number;
         plugwisePushForce: number;
         plugwiseRadioStrength: number;
-        plugwiseExternalHeatDemand: number;
-        plugwiseExternalHeatDemandTimeout: number;
-        plugwiseBoilerWaterTemp: number;
-        plugwiseDhwTemp: number;
-        plugwiseReturnWaterTemp: number;
-        plugwiseApplicationFaultCode: number;
-        plugwiseOemFaultCode: number;
-        plugwiseMaxDhwSetpoint: number;
-        plugwiseMaxBoilerSetpoint: number;
     };
     commands: {
         plugwiseCalibrateValve: Record<string, never>;
@@ -54,163 +45,16 @@ const plugwiseExtend = {
             ID: Zcl.Clusters.hvacThermostat.ID,
             attributes: {
                 plugwiseValvePosition: {name: "plugwiseValvePosition", ID: 0x4001, type: Zcl.DataType.UINT8},
-                // plugwiseErrorStatus: {name: "plugwiseErrorStatus", ID: 0x4002, type: Zcl.DataType.??},
+                // plugviseErrorStatus: {name: "plugviseErrorStatus", ID: 0x4002, type: Zcl.DataType.??},
                 plugwiseCurrentHeatingSetpoint: {name: "plugwiseCurrentHeatingSetpoint", ID: 0x4003, type: Zcl.DataType.INT16},
                 plugwiseTDiff: {name: "plugwiseTDiff", ID: 0x4008, type: Zcl.DataType.INT16},
                 plugwisePushForce: {name: "plugwisePushForce", ID: 0x4012, type: Zcl.DataType.UINT32},
                 plugwiseRadioStrength: {name: "plugwiseRadioStrength", ID: 0x4014, type: Zcl.DataType.BOOLEAN},
-                plugwiseExternalHeatDemand: {
-                    name: "plugwiseExternalHeatDemand",
-                    ID: 0xf000,
-                    type: Zcl.DataType.UINT16,
-                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
-                    write: true,
-                },
-                plugwiseExternalHeatDemandTimeout: {
-                    name: "plugwiseExternalHeatDemandTimeout",
-                    ID: 0xf001,
-                    type: Zcl.DataType.UINT16,
-                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
-                    write: true,
-                },
-                plugwiseBoilerWaterTemp: {
-                    name: "plugwiseBoilerWaterTemp",
-                    ID: 0xf002,
-                    type: Zcl.DataType.INT16,
-                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
-                },
-                plugwiseDhwTemp: {
-                    name: "plugwiseDhwTemp",
-                    ID: 0xf003,
-                    type: Zcl.DataType.INT16,
-                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
-                },
-                plugwiseReturnWaterTemp: {
-                    name: "plugwiseReturnWaterTemp",
-                    ID: 0xf004,
-                    type: Zcl.DataType.INT16,
-                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
-                },
-                plugwiseApplicationFaultCode: {
-                    name: "plugwiseApplicationFaultCode",
-                    ID: 0xf005,
-                    type: Zcl.DataType.BITMAP8,
-                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
-                },
-                plugwiseOemFaultCode: {
-                    name: "plugwiseOemFaultCode",
-                    ID: 0xf006,
-                    type: Zcl.DataType.UINT8,
-                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
-                },
-                plugwiseMaxDhwSetpoint: {
-                    name: "plugwiseMaxDhwSetpoint",
-                    ID: 0xf007,
-                    type: Zcl.DataType.INT16,
-                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
-                    write: true,
-                },
-                plugwiseMaxBoilerSetpoint: {
-                    name: "plugwiseMaxBoilerSetpoint",
-                    ID: 0xf008,
-                    type: Zcl.DataType.INT16,
-                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
-                    write: true,
-                },
             },
             commands: {
                 plugwiseCalibrateValve: {name: "plugwiseCalibrateValve", ID: 0xa0, parameters: []},
             },
             commandsResponse: {},
-        }),
-    boilerWaterTemperature: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
-        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
-            name: "boiler_water_temperature",
-            cluster: "hvacThermostat",
-            attribute: "plugwiseBoilerWaterTemp",
-            description: "Boiler supply water temperature reported by OpenTherm.",
-            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
-            access: "STATE",
-            unit: "°C",
-            scale: 100,
-            ...args,
-        }),
-    dhwTemperature: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
-        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
-            name: "dhw_temperature",
-            cluster: "hvacThermostat",
-            attribute: "plugwiseDhwTemp",
-            description: "Domestic hot water temperature reported by OpenTherm.",
-            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
-            access: "STATE",
-            unit: "°C",
-            scale: 100,
-            ...args,
-        }),
-    returnWaterTemperature: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
-        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
-            name: "return_water_temperature",
-            cluster: "hvacThermostat",
-            attribute: "plugwiseReturnWaterTemp",
-            description: "Boiler return water temperature reported by OpenTherm.",
-            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
-            access: "STATE",
-            unit: "°C",
-            scale: 100,
-            ...args,
-        }),
-    applicationFaultCode: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
-        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
-            name: "application_fault_code",
-            cluster: "hvacThermostat",
-            attribute: "plugwiseApplicationFaultCode",
-            description:
-                "OpenTherm application fault bitmap (bit0=service_request, bit1=lockout_reset, bit2=low_water_pressure, bit3=gas_flame_fault, bit4=air_pressure_fault, bit5=water_over_temp).",
-            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
-            access: "STATE",
-            valueMin: 0,
-            valueMax: 255,
-            reporting: false,
-            ...args,
-        }),
-    oemFaultCode: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
-        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
-            name: "oem_fault_code",
-            cluster: "hvacThermostat",
-            attribute: "plugwiseOemFaultCode",
-            description: "OpenTherm OEM-specific fault code.",
-            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
-            access: "STATE",
-            valueMin: 0,
-            valueMax: 255,
-            reporting: false,
-            ...args,
-        }),
-    applicationFaultCodeStatus: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
-        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
-            name: "application_fault_status",
-            cluster: "hvacThermostat",
-            attribute: "plugwiseApplicationFaultCode",
-            description: "OpenTherm application fault status.",
-            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
-            access: "STATE",
-            fzConvert: (model, msg, publish, options, meta) => {
-                if (msg.data.plugwiseApplicationFaultCode !== undefined) {
-                    const value = msg.data.plugwiseApplicationFaultCode;
-                    const activeFaults = [];
-                    if ((value & (1 << 0)) > 0) activeFaults.push("Service request");
-                    if ((value & (1 << 1)) > 0) activeFaults.push("Lockout reset");
-                    if ((value & (1 << 2)) > 0) activeFaults.push("Low water pressure");
-                    if ((value & (1 << 3)) > 0) activeFaults.push("Gas/flame fault");
-                    if ((value & (1 << 4)) > 0) activeFaults.push("Air pressure fault");
-                    if ((value & (1 << 5)) > 0) activeFaults.push("Water over-temperature");
-                    return {
-                        application_fault_status: activeFaults.length > 0 ? activeFaults.join(", ") : "None",
-                    };
-                }
-            },
-            reporting: false,
-            ...args,
         }),
 };
 
@@ -386,71 +230,19 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["170-01"],
         model: "170-01",
         vendor: "Plugwise",
-        description: "Emma Wired Pro / Emma Wireless",
+        description: "Emma Pro thermostat",
         extend: [
-            plugwiseExtend.plugwiseHvacThermostatCluster(),
-            plugwiseExtend.applicationFaultCodeStatus(),
-            plugwiseExtend.oemFaultCode(),
-            m.temperature({
-                reporting: {min: "1_SECOND", max: 870, change: 0.1},
-            }),
             m.thermostat({
                 setpoints: {
                     values: {
                         occupiedCoolingSetpoint: {min: 0, max: 30, step: 0.5},
-                        occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
+                        occupiedHeatingSetpoint: {min: 0, max: 30, step: 0.5},
                     },
-                    configure: {reporting: {min: "1_SECOND", max: 870, change: 0.5}},
                 },
-                runningState: {
-                    values: ["idle", "heat", "cool"],
-                    configure: {reporting: {min: "1_SECOND", max: 870, change: null}},
-                },
-                systemMode: {
-                    values: ["off", "heat", "cool", "auto"],
-                    configure: {reporting: {min: "1_SECOND", max: 870, change: null}},
-                },
-                localTemperatureCalibration: {
-                    values: {min: 12.5, max: 12.5, step: 0.1},
-                    configure: {reporting: {min: "1_SECOND", max: 870, change: 0}},
-                },
-            }),
-            m.humidity({
-                reporting: {min: "10_SECONDS", max: 870, change: 3},
-            }),
-            m.numeric({
-                name: "outdoor_temperature",
-                cluster: "hvacThermostat",
-                attribute: "outdoorTemp",
-                description: "Outdoor temperature reported by thermostat.",
-                access: "STATE_GET",
-                unit: "°C",
-                scale: 100,
-                reporting: {min: "10_SECONDS", max: 870, change: 0.1},
-            }),
-            plugwiseExtend.dhwTemperature(),
-            plugwiseExtend.returnWaterTemperature(),
-            plugwiseExtend.boilerWaterTemperature(),
-            m.numeric({
-                name: "boiler_setpoint",
-                cluster: "hvacThermostat",
-                attribute: "pIHeatingDemand",
-                description: "Intended boiler water temperature",
-                unit: "°C",
-                access: "STATE",
-                reporting: {min: "1_SECOND", max: 870, change: 1},
+                systemMode: {values: ["off", "heat", "cool"]},
             }),
             m.battery(),
-            m.enumLookup({
-                name: "keypad_lockout",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: "keypadLockout",
-                lookup: {"No lockout": 0x00, "Level 1": 0x01, "Level 2": 0x02},
-                description:
-                    "Keaypad lockout. No lockout — all buttons active. Level 1 — normal operation, menu blocked; setpoint change via slider still allowed. Level 2 — all buttons and slider blocked; only the hardware unlock sequence is accepted.",
-                reporting: {min: "1_SECOND", max: 870, change: null},
-                entityCategory: "config",
-            }),
+            m.humidity(),
         ],
     },
 ];
