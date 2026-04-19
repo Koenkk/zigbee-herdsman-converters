@@ -411,7 +411,7 @@ export const definitions: DefinitionWithExtend[] = [
                     configure: {reporting: {min: "1_SECOND", max: 870, change: null}},
                 },
                 localTemperatureCalibration: {
-                    values: {min: 12.5, max: 12.5, step: 0.1},
+                    values: {min: -12.5, max: 12.5, step: 0.1},
                     configure: {reporting: {min: "1_SECOND", max: 870, change: 0}},
                 },
             }),
