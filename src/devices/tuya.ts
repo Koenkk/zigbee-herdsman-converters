@@ -7094,6 +7094,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE204_odlldrxx",
                 "_TZE204_wzre8hu2",
                 "_TZE200_odlldrxx",
+                "_TZE200_m6lwazh9",
                 "_TZE204_zuq5xxib",
             ]),
             ...tuya.fingerprint("zo2pocs\u0000", ["_TYST11_fzo2pocs"]),
