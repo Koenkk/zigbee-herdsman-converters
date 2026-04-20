@@ -172,6 +172,8 @@ function fzFingerprint(converter: {cluster: string | number; type: string | stri
 
 type ReportingItemExpectation = {attribute: string; min: number; max: number; change: number | null | "NaN"};
 type ReportingCallExpectation = {cluster: string; items: ReportingItemExpectation[]};
+/** Expected `endpoint.command(cluster, command, payload, ...)` call during `configure()`. */
+type CommandCallExpectation = {cluster: string; command: string; payload: Record<string, unknown>};
 
 interface IntegrationAssertion {
     model: string;
@@ -186,6 +188,8 @@ interface IntegrationAssertion {
     readClusters?: Record<number, string[]>;
     writeCount: Record<number, number>;
     configureReporting: Record<number, ReportingCallExpectation[]>;
+    /** Optional: assert that specific `endpoint.command(...)` calls were made during `configure()` (e.g. mmWave query_areas). */
+    commands?: Record<number, CommandCallExpectation[]>;
 }
 
 /** Assert a full Inovelli device definition against its configure-time side effects. */
@@ -250,6 +254,12 @@ async function assertInovelliIntegration(e: IntegrationAssertion): Promise<Defin
                 }
             });
         });
+
+        for (const want of e.commands?.[ep.ID] ?? []) {
+            const match = (ep.command as ReturnType<typeof vi.fn>).mock.calls.find((call) => call[0] === want.cluster && call[1] === want.command);
+            expect(match, `command ${want.cluster}.${want.command} (EP${ep.ID})`).toBeDefined();
+            expect(match?.[2]).toStrictEqual(want.payload);
+        }
     }
 
     return definition;
@@ -1598,8 +1608,8 @@ describe("Inovelli firmware-gated exposes", () => {
 
     describe("VZM32-SN switchType never includes Single-Pole Full Sine Wave", () => {
         it.each([
-            {title: "old firmware", fw: "2.18"},
-            {title: "new firmware", fw: "3.05"},
+            {title: "early 1.x firmware", fw: "1.0"},
+            {title: "later 1.x firmware", fw: "1.15"},
         ])("$title", async ({fw}) => {
             const {device, definition} = await setupVZM32(fw);
             const exposes = resolveExposes(definition, device);
@@ -1611,7 +1621,7 @@ describe("Inovelli firmware-gated exposes", () => {
 
     describe("VZM32-SN fanControlMode Toggle is not firmware-gated", () => {
         it("should always include Toggle regardless of firmware", async () => {
-            const {device, definition} = await setupVZM32("2.18");
+            const {device, definition} = await setupVZM32("1.0");
             const exposes = resolveExposes(definition, device);
             const fanControlMode = assertExpose(exposes, "fanControlMode");
             expect(getEnumValues(fanControlMode)).toContain("Toggle");
@@ -1620,7 +1630,7 @@ describe("Inovelli firmware-gated exposes", () => {
 
     describe("VZM32-SN dimmingAlgorithm, auxDetectionLevel, and dumbDetectionLevel are not available", () => {
         it("should not be exposed regardless of firmware", async () => {
-            const {device, definition} = await setupVZM32("3.05");
+            const {device, definition} = await setupVZM32("1.15");
             const exposes = resolveExposes(definition, device);
             expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
             expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
@@ -2703,5 +2713,333 @@ describe("Inovelli VZM30-SN definition integration", () => {
                 4: [],
             },
         });
+    });
+});
+
+describe("Inovelli VZM32-SN definition integration", () => {
+    it("matches expected integration shape (mmWave dimmer with dual custom clusters)", async () => {
+        const device = mockDevice({
+            modelID: "VZM32-SN",
+            endpoints: [
+                {
+                    ID: 1,
+                    inputClusters: [
+                        "genOnOff",
+                        "genLevelCtrl",
+                        "haElectricalMeasurement",
+                        "seMetering",
+                        "msIlluminanceMeasurement",
+                        "msOccupancySensing",
+                    ],
+                },
+                {ID: 2, inputClusters: []},
+                {ID: 3, inputClusters: []},
+            ],
+            softwareBuildID: "1.15",
+        });
+
+        await assertInovelliIntegration({
+            model: "VZM32-SN",
+            device,
+            meta: {
+                multiEndpoint: true,
+                multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "illuminance", "occupancy"],
+            },
+            // 15 converters: light (on_off EP1 + brightness + level_config + power_on_behavior), device (led_effect_complete + main),
+            // mmWave (main attr report + 3 command converters: anyone_in_reporting_area, report_areas, report_target_info),
+            // electricityMeter (electrical_measurement + metering), illuminance (measured + raw), occupancy.
+            fromZigbeeFingerprint: [
+                {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
+                {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
+                {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
+                {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
+                {cluster: "manuSpecificInovelli", type: ["commandLedEffectComplete"]},
+                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelliMMWave", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelliMMWave", type: ["commandAnyoneInReportingArea"]},
+                {
+                    cluster: "manuSpecificInovelliMMWave",
+                    type: ["commandReportInterferenceArea", "commandReportDetectionArea", "commandReportStayArea"],
+                },
+                {cluster: "manuSpecificInovelliMMWave", type: ["commandReportTargetInfo"]},
+                {cluster: "haElectricalMeasurement", type: ["attributeReport", "readResponse"]},
+                {cluster: "seMetering", type: ["attributeReport", "readResponse"]},
+                {cluster: "msIlluminanceMeasurement", type: ["attributeReport", "readResponse"]},
+                {cluster: "msIlluminanceMeasurement", type: ["attributeReport", "readResponse"]},
+                {cluster: "msOccupancySensing", type: ["attributeReport", "readResponse"]},
+            ],
+            toZigbeeKeysContain: [
+                // light() extend
+                "state",
+                "brightness",
+                "brightness_percent",
+                "transition",
+                "power_on_behavior",
+                "level_config",
+                "brightness_move",
+                "brightness_step",
+                // device() extend: LED effect commands, main-cluster parameter writes, and mmWave-cluster parameter writes.
+                "led_effect",
+                "individual_led_effect",
+                "switchType",
+                "dimmingSpeedUpRemote",
+                "otaImageType",
+                "mmwaveControlWiredDevice",
+                "mmWaveRoomSizePreset",
+                "mmWaveHoldTime",
+                "mmWaveDetectSensitivity",
+                "mmWaveDetectTrigger",
+                "mmWaveTargetInfoReport",
+                "mmWaveStayLife",
+                "mmWaveVersion",
+                "mmWaveHeightMin",
+                "mmWaveHeightMax",
+                "mmWaveWidthMin",
+                "mmWaveWidthMax",
+                "mmWaveDepthMin",
+                "mmWaveDepthMax",
+                "internalTemperature",
+                "deviceBindNumber",
+                // mmWave() extend: control commands and area setters
+                "mmwave_control_commands",
+                "mmwave_detection_areas",
+                "mmwave_interference_areas",
+                "mmwave_stay_areas",
+                // identify + energyReset extends
+                "identify",
+                "energy_reset",
+                // electricityMeter extend
+                "power",
+                "energy",
+                "current",
+                "voltage",
+                // illuminance + occupancy extends
+                "illuminance",
+                "occupancy",
+            ],
+            // VZM32-SN exposes omit dimmingAlgorithm/auxDetectionLevel/dumbDetectionLevel (firmware-gated off for this model),
+            // but the underlying attributes stay in the toZigbee key list since they're shared with the dimmer attribute set.
+            toZigbeeKeysOmit: [],
+            exposeFingerprints: [
+                "action",
+                "activeEnergyReports",
+                "activePowerReports",
+                "autoTimerOff",
+                "auxSwitchUniqueScenes",
+                "bindingOffToOnSyncLevel",
+                "brightnessLevelForDoubleTapDown",
+                "brightnessLevelForDoubleTapUp",
+                "buttonDelay",
+                "current",
+                "defaultLed1ColorWhenOff",
+                "defaultLed1ColorWhenOn",
+                "defaultLed1IntensityWhenOff",
+                "defaultLed1IntensityWhenOn",
+                "defaultLed2ColorWhenOff",
+                "defaultLed2ColorWhenOn",
+                "defaultLed2IntensityWhenOff",
+                "defaultLed2IntensityWhenOn",
+                "defaultLed3ColorWhenOff",
+                "defaultLed3ColorWhenOn",
+                "defaultLed3IntensityWhenOff",
+                "defaultLed3IntensityWhenOn",
+                "defaultLed4ColorWhenOff",
+                "defaultLed4ColorWhenOn",
+                "defaultLed4IntensityWhenOff",
+                "defaultLed4IntensityWhenOn",
+                "defaultLed5ColorWhenOff",
+                "defaultLed5ColorWhenOn",
+                "defaultLed5IntensityWhenOff",
+                "defaultLed5IntensityWhenOn",
+                "defaultLed6ColorWhenOff",
+                "defaultLed6ColorWhenOn",
+                "defaultLed6IntensityWhenOff",
+                "defaultLed6IntensityWhenOn",
+                "defaultLed7ColorWhenOff",
+                "defaultLed7ColorWhenOn",
+                "defaultLed7IntensityWhenOff",
+                "defaultLed7IntensityWhenOn",
+                "defaultLevelLocal",
+                "defaultLevelRemote",
+                "deviceBindNumber",
+                "dimmingMode",
+                "dimmingSpeedDownLocal",
+                "dimmingSpeedDownRemote",
+                "dimmingSpeedUpLocal",
+                "dimmingSpeedUpRemote",
+                "doubleTapClearNotifications",
+                "doubleTapDownToParam56",
+                "doubleTapUpToParam55",
+                "energy",
+                "energy_reset",
+                "fanControlMode",
+                "fanLedLevelType",
+                "fanTimerMode",
+                "firmwareUpdateInProgressIndicator",
+                "highLevelForFanControlMode",
+                "higherOutputInNonNeutral",
+                "identify",
+                "illuminance",
+                "individual_led_effect",
+                "internalTemperature",
+                "invertSwitch",
+                "ledBarScaling",
+                "ledColorForFanControlMode",
+                "ledColorWhenOff",
+                "ledColorWhenOn",
+                "ledIntensityWhenOff",
+                "ledIntensityWhenOn",
+                "led_effect",
+                "light(state,brightness)",
+                "loadLevelIndicatorTimeout",
+                "localProtection",
+                "lowLevelForFanControlMode",
+                "maximumLevel",
+                "mediumLevelForFanControlMode",
+                "minimumLevel",
+                "mmWaveDepthMax",
+                "mmWaveDepthMin",
+                "mmWaveDetectSensitivity",
+                "mmWaveDetectTrigger",
+                "mmWaveHeightMax",
+                "mmWaveHeightMin",
+                "mmWaveHoldTime",
+                "mmWaveRoomSizePreset",
+                "mmWaveStayLife",
+                "mmWaveTargetInfoReport",
+                "mmWaveVersion",
+                "mmWaveWidthMax",
+                "mmWaveWidthMin",
+                "mmwaveControlWiredDevice",
+                "mmwave_area1_occupancy",
+                "mmwave_area2_occupancy",
+                "mmwave_area3_occupancy",
+                "mmwave_area4_occupancy",
+                "mmwave_control_commands",
+                "mmwave_detection_areas",
+                "mmwave_interference_areas",
+                "mmwave_stay_areas",
+                "mmwave_targets",
+                "notificationComplete",
+                "occupancy",
+                "onOffLedMode",
+                "otaImageType",
+                "outputMode",
+                "overheat",
+                "periodicPowerAndEnergyReports",
+                "power",
+                "powerType",
+                "quickStartLevel",
+                "quickStartTime",
+                "rampRateOffToOnLocal",
+                "rampRateOffToOnRemote",
+                "rampRateOnToOffLocal",
+                "rampRateOnToOffRemote",
+                "remoteProtection",
+                "singleTapBehavior",
+                "smartBulbMode",
+                "stateAfterPowerRestored",
+                "switchType",
+                "voltage",
+            ],
+            bind: {
+                1: [
+                    "genOnOff",
+                    "genLevelCtrl",
+                    "manuSpecificInovelli",
+                    "manuSpecificInovelliMMWave",
+                    "haElectricalMeasurement",
+                    "seMetering",
+                    "msIlluminanceMeasurement",
+                    "msOccupancySensing",
+                ],
+                2: ["manuSpecificInovelli"],
+                3: [],
+            },
+            // EP1 reads: batched manuSpecificInovelli chunks + batched manuSpecificInovelliMMWave chunks
+            // + haElectricalMeasurement (divisor/multiplier + activePower + rmsCurrent + rmsVoltage)
+            // + seMetering (divisor/multiplier + currentSummDelivered)
+            // + msIlluminanceMeasurement (measuredValue) + msOccupancySensing (occupancy).
+            readCount: {1: 18, 2: 0, 3: 0},
+            readClusters: {
+                1: [
+                    "haElectricalMeasurement",
+                    "manuSpecificInovelli",
+                    "manuSpecificInovelliMMWave",
+                    "msIlluminanceMeasurement",
+                    "msOccupancySensing",
+                    "seMetering",
+                ],
+                2: [],
+                3: [],
+            },
+            writeCount: {1: 0, 2: 0, 3: 0},
+            configureReporting: {
+                1: [
+                    {cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]},
+                    {
+                        cluster: "haElectricalMeasurement",
+                        items: [
+                            {attribute: "activePower", min: 10, max: 65000, change: 50},
+                            {attribute: "rmsCurrent", min: 10, max: 65000, change: "NaN"},
+                            {attribute: "rmsVoltage", min: 10, max: 65000, change: "NaN"},
+                        ],
+                    },
+                    {cluster: "seMetering", items: [{attribute: "currentSummDelivered", min: 10, max: 65000, change: 100}]},
+                    {cluster: "msIlluminanceMeasurement", items: [{attribute: "measuredValue", min: 10, max: 3600, change: 5}]},
+                    {cluster: "msOccupancySensing", items: [{attribute: "occupancy", min: 0, max: 3600, change: 0}]},
+                ],
+                2: [],
+                3: [],
+            },
+            // The mmWave() extend issues a `query_areas` command on EP1 during configure so the device
+            // reports back its current detection/interference/stay area configuration at startup.
+            // controlID 2 corresponds to `query_areas` in `mmWaveControlCommands`.
+            commands: {
+                1: [{cluster: "manuSpecificInovelliMMWave", command: "mmWaveControl", payload: {controlID: 2}}],
+            },
+        });
+    });
+
+    it("never exposes dimmingAlgorithm / auxDetectionLevel / dumbDetectionLevel regardless of firmware", async () => {
+        // Unlike VZM31-SN, the VZM32-SN dimmer's firmware-gated aux/dumb-wire detection attributes are
+        // disabled by the model config, so they should neither appear in exposes nor be read at configure-time
+        // even on the newest firmware. The baseline dimmer attributes must still be present.
+        const device = mockDevice({
+            modelID: "VZM32-SN",
+            endpoints: [
+                {
+                    ID: 1,
+                    inputClusters: [
+                        "genOnOff",
+                        "genLevelCtrl",
+                        "haElectricalMeasurement",
+                        "seMetering",
+                        "msIlluminanceMeasurement",
+                        "msOccupancySensing",
+                    ],
+                },
+                {ID: 2, inputClusters: []},
+                {ID: 3, inputClusters: []},
+            ],
+            softwareBuildID: "1.15",
+        });
+        patchDeviceForConfigure(device);
+        const definition = await findByDevice(device);
+
+        const exposeProps = resolveExposes(definition, device)
+            .map((ex) => ex.property)
+            .filter(Boolean);
+        expect(exposeProps).not.toContain("dimmingAlgorithm");
+        expect(exposeProps).not.toContain("auxDetectionLevel");
+        expect(exposeProps).not.toContain("dumbDetectionLevel");
+        expect(exposeProps).toContain("switchType");
+        expect(exposeProps).toContain("dimmingSpeedUpRemote");
+
+        await definition.configure(device, device.getEndpoint(1), definition);
+        const ep1ReadAttrs = (device.getEndpoint(1).read as ReturnType<typeof vi.fn>).mock.calls.flatMap((c) => c[1] as string[]);
+        expect(ep1ReadAttrs).not.toContain("dimmingAlgorithm");
+        expect(ep1ReadAttrs).not.toContain("auxDetectionLevel");
+        expect(ep1ReadAttrs).not.toContain("dumbDetectionLevel");
     });
 });

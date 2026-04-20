@@ -1579,6 +1579,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Icon2",
         vendor: "Danfoss",
         description: "Icon2 Main Controller, Room Thermostat or Sensor",
+        ota: true,
         extend: [danfossExtend.addDanfossHvacThermostatCluster(), danfossExtend.addDanfossHaDiagnosticCluster()],
         fromZigbee: [
             fzLocal.danfoss_icon_battery,
