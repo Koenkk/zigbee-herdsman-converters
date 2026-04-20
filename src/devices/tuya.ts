@@ -1075,11 +1075,9 @@ const tzLocal = {
                 schedule: 1,
             };
 
-            if (!(value in lookup)) {
-                throw new Error(`Invalid work_mode: ${value}`);
-            }
+            const mode = utils.getFromLookup(value, lookup);
 
-            await tuya.sendDataPointEnum(entity, 2, lookup[value]);
+            await tuya.sendDataPointEnum(entity, 2, mode);
 
             return {
                 state: {
@@ -26309,7 +26307,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Floor thermostat",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tzLocal.hd_t1000_current_heating_setpoint, tzLocal.hd_t1000_work_mode, tzLocal.hd_t1000_child_lock, tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e
@@ -26328,7 +26325,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "running_state", tuya.valueConverterBasic.lookup({heat: 0, idle: 1})],
                 [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [24, "local_temperature", tuya.valueConverter.divideBy10],
-                [40, "child_lock", tuya.valueConverter.trueFalse],
+                [40, "child_lock", tuya.valueConverter.trueFalse1],
             ],
         },
     },
