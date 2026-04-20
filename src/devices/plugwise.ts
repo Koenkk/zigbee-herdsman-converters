@@ -451,7 +451,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "keypad_lockout",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: "keypadLockout",
-                lookup: {"no_lockout": 0x00, "level_1": 0x01, "level_2": 0x02},
+                lookup: {no_lockout: 0x00, level_1: 0x01, level_2: 0x02},
                 description:
                     "Keaypad lockout. No lockout — all buttons active. Level 1 — normal operation, menu blocked; setpoint change via slider still allowed. Level 2 — all buttons and slider blocked; only the hardware unlock sequence is accepted.",
                 reporting: {min: "1_SECOND", max: 870, change: null},
