@@ -537,7 +537,6 @@ const tzLocal = {
             await entity.command<"manuSpecificTuyaE001", "setCountdown", Ts0049Countdown>("manuSpecificTuyaE001", "setCountdown", {data});
         },
     } satisfies Tz.Converter,
-
     ts110eCountdown: {
         key: ["countdown"],
         convertSet: async (entity, key, value, meta) => {
@@ -1047,6 +1046,62 @@ const tzLocal = {
                 default: // Unknown key
                     logger.warning(`Unhandled key ${key}`, NS);
             }
+        },
+    } satisfies Tz.Converter,
+    hd_t1000_current_heating_setpoint: {
+        key: ['current_heating_setpoint'],
+        convertSet: async (entity, key, value, meta) => {
+            const num = Number(value);
+
+            if (!Number.isFinite(num)) {
+                throw new Error(`Invalid current_heating_setpoint: ${value}`);
+            }
+
+            const scaled = Math.round(num * 10);
+            await tuya.sendDataPointValue(entity, 16, scaled);
+
+            return {
+                state: {
+                    current_heating_setpoint: num,
+                },
+            };
+        },
+    } satisfies Tz.Converter,
+    hd_t1000_work_mode: {
+        key: ['work_mode'],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {
+                manual: 0,
+                schedule: 1,
+            };
+
+            if (!(value in lookup)) {
+                throw new Error(`Invalid work_mode: ${value}`);
+            }
+
+            await tuya.sendDataPointEnum(entity, 2, lookup[value]);
+
+            return {
+                state: {
+                    work_mode: value,
+                },
+            };
+        },
+    } satisfies Tz.Converter,
+    hd_t1000_child_lock: {
+        key: ['child_lock'],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value !== 'boolean') {
+                throw new Error(`Invalid child_lock: ${value}. Expected boolean.`);
+            }
+
+            await tuya.sendDataPointBool(entity, 40, value);
+
+            return {
+                state: {
+                    child_lock: value,
+                },
+            };
         },
     } satisfies Tz.Converter,
 };
@@ -26247,4 +26302,64 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: [
+            {modelID: 'TS0601', manufacturerName: '_TZE200_spyvfeti'},
+        ],
+        model: 'HD-T1000',
+        vendor: 'Heat Decor',
+        description: 'Floor thermostat',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [
+            tzLocal.hd_t1000_current_heating_setpoint,
+            tzLocal.hd_t1000_work_mode,
+            tzLocal.hd_t1000_child_lock,
+            tuya.tz.datapoints,
+        ],
+        onEvent: tuya.onEventSetTime,
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.climate()
+                .withSystemMode(['off', 'heat'], ea.STATE_SET)
+                .withRunningState(['idle', 'heat'], ea.STATE)
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint('current_heating_setpoint', 5, 35, 0.5, ea.STATE_SET),
+            e.enum('work_mode', ea.STATE_SET, ['manual', 'schedule']),
+            e.binary('child_lock', ea.STATE_SET, true, false),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    'system_mode',
+                    tuya.valueConverterBasic.lookup({'heat': true, 'off': false}),
+                ],
+                [
+                    2,
+                    'work_mode',
+                    tuya.valueConverterBasic.lookup({'manual': 0, 'schedule': 1}),
+                ],
+                [
+                    3,
+                    'running_state',
+                    tuya.valueConverterBasic.lookup({'heat': 0, 'idle': 1}),
+                ],
+                [
+                    16,
+                    'current_heating_setpoint',
+                    tuya.valueConverter.divideBy10,
+                ],
+                [
+                    24,
+                    'local_temperature',
+                    tuya.valueConverter.divideBy10,
+                ],
+                [
+                    40,
+                    'child_lock',
+                    tuya.valueConverter.trueFalse,
+                ],
+            ],
+        },
+    }
 ];
