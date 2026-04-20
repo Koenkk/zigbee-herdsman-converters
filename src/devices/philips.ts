@@ -2419,7 +2419,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["LLC006"],
+        zigbeeModel: ["LLC006", "7099930PH"],
         model: "7099930PH",
         vendor: "Philips",
         description: "Hue Iris (Generation 2)",
