@@ -26251,9 +26251,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HD-T1000",
         vendor: "Heat Decor",
         description: "Floor thermostat",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e
                 .climate()
@@ -26262,23 +26260,15 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET),
-
             e.enum("work_mode", ea.STATE_SET, ["manual", "schedule"]),
             e.binary("child_lock", ea.STATE_SET, true, false),
-
             e.binary("frost_protection", ea.STATE_SET, true, false),
             e.binary("window_detection", ea.STATE_SET, true, false),
-
             e.numeric("max_air_temperature", ea.STATE_SET).withUnit("°C").withValueMin(35).withValueMax(95).withValueStep(0.5),
-
             e.numeric("max_floor_temperature", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(60).withValueStep(0.5),
-
             e.numeric("deadzone_temperature", ea.STATE_SET).withUnit("°C").withValueMin(0.5).withValueMax(5).withValueStep(0.5),
-
             e.numeric("window_detection_time", ea.STATE_SET).withUnit("min").withValueMin(2).withValueMax(30).withValueStep(1),
-
             e.numeric("window_detection_temperature", ea.STATE_SET).withUnit("°C").withValueMin(2).withValueMax(4).withValueStep(1),
-
             e.numeric("window_detection_recovery_time", ea.STATE_SET).withUnit("min").withValueMin(10).withValueMax(60).withValueStep(1),
         ],
         meta: {
