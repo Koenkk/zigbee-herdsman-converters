@@ -8,6 +8,7 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -25,11 +26,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Triggers the self-checking process: Beeps 4 times and takes 20 seconds to complete")
                 .withLabel("Test device"),
             e.binary("testing", ea.STATE, true, false).withDescription("Indicates if self-checking is currently running"),
-            e.binary("fault", ea.STATE, true, false).withDescription("Sensor fault indicator"),
+            te.fault().withDescription("Sensor fault indicator"),
             e
                 .binary("end_of_life", ea.STATE, true, false)
                 .withDescription("Indicates whether the sensor is past its certified service life (10 years) and should be replaced"),
-            tuya.exposes.batteryState(),
+            te.batteryState(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -42,15 +43,22 @@ export const definitions: DefinitionWithExtend[] = [
                 // checking_result
                 [9, "testing", tuya.valueConverter.trueFalseEnum0],
                 // preheat
-                [10, "warming_up", tuya.valueConverter.raw],
-                // fault - bitmap, no info from Tuya
                 [
-                    11,
-                    "fault",
+                    10,
+                    "warming_up",
                     {
-                        from: (v: tuya.Bitmap) => !!v,
+                        from: (v: boolean, meta, options, publish) => {
+                            if (!v) return false;
+
+                            setTimeout(() => {
+                                publish({warming_up: false});
+                            }, 120 * 1000);
+                            return true;
+                        },
                     },
                 ],
+                // fault - bitmap, no info from Tuya
+                [11, "fault", tuya.valueConverter.fault],
                 // lifecycle
                 [12, "end_of_life", tuya.valueConverter.trueFalseInvert],
                 [14, "battery_state", tuya.valueConverter.batteryState],
@@ -221,20 +229,26 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_qvxrkeif"]),
         model: "E9",
         vendor: "Nous",
-        description: "Zigbee gas sensor",
+        description: "Household combustible gas detector",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.gas(),
-            e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
-            tuya.exposes.faultAlarm(),
-            e.binary("lifecycle", ea.STATE, true, false).withDescription("Sensor lifetime limit"),
+            e
+                .gas()
+                .withDescription(
+                    "Indicates whether the device detected combustible gas (Methane) and the buzzer is ringing. Also triggers when the test button is pressed",
+                ),
+            e.binary("warming_up", ea.STATE, true, false).withDescription("Sensor preheating status: Takes 3 mins to complete after power-on"),
+            te.fault().withDescription("Sensor fault indicator"),
+            e
+                .binary("end_of_life", ea.STATE, true, false)
+                .withDescription("Indicates whether the sensor is past its certified service life (5 years) and should be replaced"),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "gas", tuya.valueConverter.trueFalse0],
-                [10, "preheat", tuya.valueConverter.raw],
-                [11, "fault_alarm", tuya.valueConverter.trueFalse1],
-                [12, "lifecycle", tuya.valueConverter.trueFalse0],
+                [1, "gas", tuya.valueConverter.trueFalseEnum0], // gas_sensor_status, gas_detection_state
+                [10, "warming_up", tuya.valueConverter.raw], // preheat
+                [11, "fault", tuya.valueConverter.fault], // fault_alarm
+                [12, "end_of_life", tuya.valueConverter.trueFalseInvert], // lifecycle
             ],
         },
     },

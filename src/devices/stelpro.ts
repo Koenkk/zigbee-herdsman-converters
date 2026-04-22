@@ -1,14 +1,39 @@
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const fzLocal = {
+interface StelproHvacThermostat {
+    attributes: {
+        stelproOutdoorTemp: number;
+        stelproSystemMode: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export const tzLocal = {
+    stelpro_thermostat_outdoor_temperature: {
+        key: ["outdoor_temperature_display"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            if (value < -32 || value > 119) {
+                throw new Error("Outdoor temperature must be between -32 and 119 degrees Celsius");
+            }
+            await entity.write<"hvacThermostat", StelproHvacThermostat>("hvacThermostat", {stelproOutdoorTemp: value * 100});
+        },
+    } satisfies Tz.Converter,
+};
+
+export const fzLocal = {
     power: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -27,6 +52,35 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    stelpro_thermostat: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
+            if (result && msg.data.stelproSystemMode === 5) {
+                // 'Eco' mode is translated into 'auto' here
+                result.system_mode = constants.thermostatSystemModes[1];
+            }
+            if (result && msg.data.pIHeatingDemand !== undefined) {
+                result.running_state = msg.data.pIHeatingDemand >= 10 ? "heat" : "idle";
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", StelproHvacThermostat, ["attributeReport", "readResponse"]>,
+};
+
+export const stelproExtend = {
+    addStelproHvacThermostatCluster: () =>
+        m.deviceAddCustomCluster("hvacThermostat", {
+            name: "hvacThermostat",
+            ID: Zcl.Clusters.hvacThermostat.ID,
+            attributes: {
+                stelproOutdoorTemp: {name: "stelproOutdoorTemp", ID: 0x4001, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                stelproSystemMode: {name: "stelproSystemMode", ID: 0x401c, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -35,7 +89,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HT402",
         vendor: "Stelpro",
         description: "Hilo thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface, fzLocal.power, fzLocal.energy],
+        extend: [stelproExtend.addStelproHvacThermostatCluster()],
+        fromZigbee: [fzLocal.stelpro_thermostat, fz.hvac_user_interface, fzLocal.power, fzLocal.energy],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -45,7 +100,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
             tz.stelpro_peak_demand_event_icon,
-            tz.stelpro_thermostat_outdoor_temperature,
+            tzLocal.stelpro_thermostat_outdoor_temperature,
         ],
         exposes: [
             e.keypad_lockout(),
@@ -89,7 +144,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ST218",
         vendor: "Stelpro",
         description: "Ki convector, line-voltage thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface],
+        extend: [stelproExtend.addStelproHvacThermostatCluster()],
+        fromZigbee: [fzLocal.stelpro_thermostat, fz.hvac_user_interface],
         whiteLabel: [{description: "Style Fan Heater", model: "SonomaStyle", fingerprint: [{modelID: "SonomaStyle"}]}],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -99,7 +155,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tz.stelpro_thermostat_outdoor_temperature,
+            tzLocal.stelpro_thermostat_outdoor_temperature,
         ],
         exposes: [
             e.local_temperature(),
@@ -124,9 +180,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
-            await endpoint.configureReporting("hvacThermostat", [
+            await endpoint.configureReporting<"hvacThermostat", StelproHvacThermostat>("hvacThermostat", [
                 {
-                    attribute: "StelproSystemMode",
+                    attribute: "stelproSystemMode",
                     minimumReportInterval: constants.repInterval.MINUTE,
                     maximumReportInterval: constants.repInterval.HOUR,
                     reportableChange: 1,
@@ -139,7 +195,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "STZB402",
         vendor: "Stelpro",
         description: "Ki, line-voltage thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
+        extend: [stelproExtend.addStelproHvacThermostatCluster()],
+        fromZigbee: [fzLocal.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -148,7 +205,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tz.stelpro_thermostat_outdoor_temperature,
+            tzLocal.stelpro_thermostat_outdoor_temperature,
         ],
         exposes: [
             e.local_temperature(),
@@ -173,9 +230,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
-            await endpoint.configureReporting("hvacThermostat", [
+            await endpoint.configureReporting<"hvacThermostat", StelproHvacThermostat>("hvacThermostat", [
                 {
-                    attribute: "StelproSystemMode",
+                    attribute: "stelproSystemMode",
                     minimumReportInterval: constants.repInterval.MINUTE,
                     maximumReportInterval: constants.repInterval.HOUR,
                     reportableChange: 1,
@@ -188,7 +245,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SMT402",
         vendor: "Stelpro",
         description: "Maestro, line-voltage thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
+        extend: [stelproExtend.addStelproHvacThermostatCluster()],
+        fromZigbee: [fzLocal.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -197,7 +255,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tz.stelpro_thermostat_outdoor_temperature,
+            tzLocal.stelpro_thermostat_outdoor_temperature,
         ],
         exposes: [
             e.local_temperature(),
@@ -231,9 +289,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
-            await endpoint.configureReporting("hvacThermostat", [
+            await endpoint.configureReporting<"hvacThermostat", StelproHvacThermostat>("hvacThermostat", [
                 {
-                    attribute: "StelproSystemMode",
+                    attribute: "stelproSystemMode",
                     minimumReportInterval: constants.repInterval.MINUTE,
                     maximumReportInterval: constants.repInterval.HOUR,
                     reportableChange: 1,
@@ -246,7 +304,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SORB",
         vendor: "Stelpro",
         description: "ORLÉANS fan heater",
-        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface],
+        extend: [stelproExtend.addStelproHvacThermostatCluster()],
+        fromZigbee: [fzLocal.stelpro_thermostat, fz.hvac_user_interface],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
@@ -277,9 +336,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
-            await endpoint.configureReporting("hvacThermostat", [
+            await endpoint.configureReporting<"hvacThermostat", StelproHvacThermostat>("hvacThermostat", [
                 {
-                    attribute: "StelproSystemMode",
+                    attribute: "stelproSystemMode",
                     minimumReportInterval: constants.repInterval.MINUTE,
                     maximumReportInterval: constants.repInterval.HOUR,
                     reportableChange: 1,
@@ -292,7 +351,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SMT402AD",
         vendor: "Stelpro",
         description: "Maestro, line-voltage thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
+        extend: [stelproExtend.addStelproHvacThermostatCluster()],
+        fromZigbee: [fzLocal.stelpro_thermostat, fz.hvac_user_interface, fz.humidity],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -301,7 +361,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tz.stelpro_thermostat_outdoor_temperature,
+            tzLocal.stelpro_thermostat_outdoor_temperature,
         ],
         exposes: [
             e.local_temperature(),
@@ -335,9 +395,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatPIHeatingDemand(endpoint);
             await reporting.thermostatKeypadLockMode(endpoint);
             // cluster 0x0201 attribute 0x401c
-            await endpoint.configureReporting("hvacThermostat", [
+            await endpoint.configureReporting<"hvacThermostat", StelproHvacThermostat>("hvacThermostat", [
                 {
-                    attribute: "StelproSystemMode",
+                    attribute: "stelproSystemMode",
                     minimumReportInterval: constants.repInterval.MINUTE,
                     maximumReportInterval: constants.repInterval.HOUR,
                     reportableChange: 1,

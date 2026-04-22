@@ -814,6 +814,96 @@ const tzLocal = {
             );
         },
     } satisfies Tz.Converter,
+
+    /**
+     * Configure RS485 serial port parameters using the data point protocol.
+     * Each setting is an independent data point command, concatenated and sent in one tunneling transfer.
+     *
+     * Baud rate  (0x0201): [01 02 04 23 <uint32-LE>]
+     * Parity     (0x0205): [05 02 01 30 <0=NONE|1=EVEN|2=ODD>]
+     * Stop bits  (0x0209): [09 02 01 30 <0=1bit|1=1.5bits|2=2bits>]
+     *
+     * TunnelID must be 0x0001 per the data-point tunneling protocol.
+     */
+    easyiot_rs485_set_config: {
+        key: ["rs485_config"],
+        convertSet: async (entity, key, value, meta) => {
+            assertObject(value, "rs485_config must be an object");
+            const payload = value as KeyValueAny;
+
+            const commands: Buffer[] = [];
+
+            // --- Baud rate: 0x0201, data type uint32 (0x23), little-endian ---
+            if (payload.baud_rate !== undefined) {
+                const baudRateMap: KeyValueAny = {
+                    "1200": 1200,
+                    "2400": 2400,
+                    "4800": 4800,
+                    "9600": 9600,
+                    "19200": 19200,
+                    "38400": 38400,
+                    "57600": 57600,
+                    "115200": 115200,
+                    "230400": 230400,
+                    "460800": 460800,
+                    "921600": 921600,
+                };
+                const baudRate = String(payload.baud_rate);
+                if (!(baudRate in baudRateMap)) {
+                    throw new Error(`baud_rate must be one of: ${Object.keys(baudRateMap).join(", ")}`);
+                }
+                const buf = Buffer.alloc(8);
+                buf[0] = 0x01; // command low byte  (0x0201)
+                buf[1] = 0x02; // command high byte
+                buf[2] = 0x04; // data length
+                buf[3] = 0x23; // data type: uint32
+                buf.writeUInt32LE(baudRateMap[baudRate] as number, 4);
+                commands.push(buf);
+            }
+
+            // --- Parity: 0x0205, data type enum8 (0x30) ---
+            // 0 = NONE, 1 = EVEN, 2 = ODD
+            if (payload.parity !== undefined) {
+                const parityMap: KeyValueAny = {none: 0x00, even: 0x01, odd: 0x02};
+                const parity = String(payload.parity);
+                if (!(parity in parityMap)) {
+                    throw new Error(`parity must be one of: ${Object.keys(parityMap).join(", ")}`);
+                }
+                commands.push(Buffer.from([0x05, 0x02, 0x01, 0x30, parityMap[parity] as number]));
+            }
+
+            // --- Stop bits: 0x0209, data type enum8 (0x30) ---
+            // 0 = 1 stop bit, 1 = 1.5 stop bits, 2 = 2 stop bits
+            if (payload.stop_bits !== undefined) {
+                const stopBitsMap: KeyValueAny = {"1": 0x00, "1.5": 0x01, "2": 0x02};
+                const stopBits = String(payload.stop_bits);
+                if (!(stopBits in stopBitsMap)) {
+                    throw new Error(`stop_bits must be one of: ${Object.keys(stopBitsMap).join(", ")}`);
+                }
+                commands.push(Buffer.from([0x09, 0x02, 0x01, 0x30, stopBitsMap[stopBits] as number]));
+            }
+
+            if (commands.length === 0) {
+                throw new Error("At least one of baud_rate, parity, or stop_bits must be specified");
+            }
+
+            const data = Buffer.concat(commands);
+            logger.debug(`Sending RS485 config (hex): ${data.toString("hex")}`, NS);
+
+            await entity.command(
+                "seTunneling",
+                "transferData",
+                {
+                    tunnelId: 0x0001,
+                    data,
+                },
+                {disableDefaultResponse: true},
+            );
+
+            logger.debug("Sending RS485 config success.", NS);
+            return {state: {rs485_config: payload}};
+        },
+    } satisfies Tz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -909,10 +999,33 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "easyiot",
         description: "Zigbee to RS485 controller",
         fromZigbee: [fzLocal.easyiot_ir_recv_command],
-        toZigbee: [tzLocal.easyiot_ir_send_command],
+        toZigbee: [tzLocal.easyiot_ir_send_command, tzLocal.easyiot_rs485_set_config],
+        ota: true,
         exposes: [
             e.text("last_received_command", ea.STATE).withDescription("Received data"),
             e.text("send_command", ea.SET).withDescription("Send data"),
+            e
+                .composite("rs485_config", "rs485_config", ea.SET)
+                .withDescription("RS485 serial port configuration")
+                .withFeature(
+                    e
+                        .enum("baud_rate", ea.SET, [
+                            "1200",
+                            "2400",
+                            "4800",
+                            "9600",
+                            "19200",
+                            "38400",
+                            "57600",
+                            "115200",
+                            "230400",
+                            "460800",
+                            "921600",
+                        ])
+                        .withDescription("Baud rate (bps)"),
+                )
+                .withFeature(e.enum("parity", ea.SET, ["none", "even", "odd"]).withDescription("Parity (none / even / odd)"))
+                .withFeature(e.enum("stop_bits", ea.SET, ["1", "1.5", "2"]).withDescription("Stop bits (1 / 1.5 / 2)")),
         ],
     },
     {

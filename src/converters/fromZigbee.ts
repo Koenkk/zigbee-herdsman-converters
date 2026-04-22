@@ -93,8 +93,10 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             result[postfixWithEndpointName("setpoint_change_amount", msg, model, meta)] = msg.data.setpointChangeAmount / 100;
         }
         if (msg.data.setpointChangeSource !== undefined) {
-            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] =
-                constants.thermostatSetpointChangeSource[msg.data.setpointChangeSource];
+            result[postfixWithEndpointName("setpoint_change_source", msg, model, meta)] = utils.getFromLookup(
+                msg.data.setpointChangeSource,
+                constants.thermostatSetpointChangeSource,
+            );
         }
         if (msg.data.setpointChangeSourceTimeStamp !== undefined) {
             const date = new Date(2000, 0, 1);
@@ -111,21 +113,34 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             };
         }
         if (msg.data.ctrlSeqeOfOper !== undefined) {
-            result[postfixWithEndpointName("control_sequence_of_operation", msg, model, meta)] =
-                constants.thermostatControlSequenceOfOperations[msg.data.ctrlSeqeOfOper];
+            result[postfixWithEndpointName("control_sequence_of_operation", msg, model, meta)] = utils.getFromLookup(
+                msg.data.ctrlSeqeOfOper,
+                constants.thermostatControlSequenceOfOperations,
+            );
         }
         if (msg.data.programingOperMode !== undefined) {
-            result[postfixWithEndpointName("programming_operation_mode", msg, model, meta)] =
-                constants.thermostatProgrammingOperationModes[msg.data.programingOperMode];
+            result[postfixWithEndpointName("programming_operation_mode", msg, model, meta)] = utils.getFromLookup(
+                msg.data.programingOperMode,
+                constants.thermostatProgrammingOperationModes,
+            );
         }
         if (msg.data.systemMode !== undefined) {
-            result[postfixWithEndpointName("system_mode", msg, model, meta)] = constants.thermostatSystemModes[msg.data.systemMode];
+            result[postfixWithEndpointName("system_mode", msg, model, meta)] = utils.getFromLookup(
+                msg.data.systemMode,
+                constants.thermostatSystemModes,
+            );
         }
         if (msg.data.runningMode !== undefined) {
-            result[postfixWithEndpointName("running_mode", msg, model, meta)] = constants.thermostatRunningMode[msg.data.runningMode];
+            result[postfixWithEndpointName("running_mode", msg, model, meta)] = utils.getFromLookup(
+                msg.data.runningMode,
+                constants.thermostatRunningMode,
+            );
         }
         if (msg.data.runningState !== undefined) {
-            result[postfixWithEndpointName("running_state", msg, model, meta)] = constants.thermostatRunningStates[msg.data.runningState];
+            result[postfixWithEndpointName("running_state", msg, model, meta)] = utils.getFromLookup(
+                msg.data.runningState,
+                constants.thermostatRunningStates,
+            );
         }
         if (msg.data.pIHeatingDemand !== undefined) {
             result[postfixWithEndpointName("pi_heating_demand", msg, model, meta)] = mapNumberRange(
@@ -195,8 +210,10 @@ export const thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeRe
             }
         }
         if (msg.data.acLouverPosition !== undefined) {
-            result[postfixWithEndpointName("ac_louver_position", msg, model, meta)] =
-                constants.thermostatAcLouverPositions[msg.data.acLouverPosition];
+            result[postfixWithEndpointName("ac_louver_position", msg, model, meta)] = utils.getFromLookup(
+                msg.data.acLouverPosition,
+                constants.thermostatAcLouverPositions,
+            );
         }
         return result;
     },
@@ -208,7 +225,7 @@ export const thermostat_weekly_schedule: Fz.Converter<"hvacThermostat", undefine
         const days = [];
         for (let i = 0; i < 8; i++) {
             if ((msg.data.dayofweek & (1 << i)) > 0) {
-                days.push(constants.thermostatDayOfWeek[i]);
+                days.push(utils.getFromLookup(i, constants.thermostatDayOfWeek));
             }
         }
 
@@ -622,25 +639,23 @@ export const level_config: Fz.Converter<"genLevelCtrl", undefined, ["attributeRe
 
         // onOffTransitionTime - range 0x0000 to 0xffff - optional
         if (msg.data.onOffTransitionTime !== undefined && msg.data.onOffTransitionTime !== undefined) {
-            result[level_config].on_off_transition_time = Number(msg.data.onOffTransitionTime);
+            result[level_config].on_off_transition_time = Number(msg.data.onOffTransitionTime) / 10;
         }
 
         // onTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (msg.data.onTransitionTime !== undefined && msg.data.onTransitionTime !== undefined) {
-            result[level_config].on_transition_time = Number(msg.data.onTransitionTime);
-            if (result[level_config].on_transition_time === 65535) {
+            if (Number(msg.data.onTransitionTime) === 65535) {
                 result[level_config].on_transition_time = "disabled";
-            }
+            } else result[level_config].on_transition_time = Number(msg.data.onTransitionTime) / 10;
         }
 
         // offTransitionTime - range 0x0000 to 0xffff - optional
         //                    0xffff = use onOffTransitionTime
         if (msg.data.offTransitionTime !== undefined && msg.data.offTransitionTime !== undefined) {
-            result[level_config].off_transition_time = Number(msg.data.offTransitionTime);
-            if (result[level_config].off_transition_time === 65535) {
+            if (Number(msg.data.offTransitionTime) === 65535) {
                 result[level_config].off_transition_time = "disabled";
-            }
+            } else result[level_config].off_transition_time = Number(msg.data.offTransitionTime) / 10;
         }
 
         // startUpCurrentLevel - range 0x00 to 0xff - optional
@@ -2058,52 +2073,6 @@ export const ias_smoke_alarm_1_develco: Fz.Converter<"ssIasZone", undefined, "co
         };
     },
 };
-export const tuya_led_controller: Fz.Converter<"lightingColorCtrl", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "lightingColorCtrl",
-    type: ["attributeReport", "readResponse"],
-    options: [exposes.options.color_sync()],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-
-        if (msg.data.colorTemperature !== undefined) {
-            const value = Number(msg.data.colorTemperature);
-            const color_temp = postfixWithEndpointName("color_temp", msg, model, meta);
-            result[color_temp] = value;
-        }
-
-        if (msg.data.tuyaBrightness !== undefined) {
-            const brightness = postfixWithEndpointName("brightness", msg, model, meta);
-            result[brightness] = msg.data.tuyaBrightness;
-        }
-
-        if (msg.data.tuyaRgbMode !== undefined) {
-            const color_mode = postfixWithEndpointName("color_mode", msg, model, meta);
-            if (msg.data.tuyaRgbMode === 1) {
-                result[color_mode] = constants.colorModeLookup[0];
-            } else {
-                result[color_mode] = constants.colorModeLookup[2];
-            }
-        }
-
-        const color = postfixWithEndpointName("color", msg, model, meta);
-        result[color] = {};
-
-        if (msg.data.currentHue !== undefined) {
-            result[color].hue = mapNumberRange(msg.data.currentHue, 0, 254, 0, 360);
-            result[color].h = result[color].hue;
-        }
-
-        if (msg.data.currentSaturation !== undefined) {
-            result[color].saturation = mapNumberRange(msg.data.currentSaturation, 0, 254, 0, 100);
-            result[color].s = result[color].saturation;
-        }
-
-        // Use postfixWithEndpointName with an empty value to get just the postfix that
-        // can be added to the result keys.
-        const epPostfix = postfixWithEndpointName("", msg, model, meta);
-        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
-    },
-};
 export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -2187,56 +2156,6 @@ export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport"
         return result;
     },
 };
-export const tuya_cover_options_2: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresWindowCovering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.moesCalibrationTime !== undefined) {
-            const value = msg.data.moesCalibrationTime / 100;
-            result[postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
-        }
-        if (msg.data.tuyaMotorReversal !== undefined) {
-            const value = msg.data.tuyaMotorReversal;
-            const reversalLookup: KeyValueAny = {0: "OFF", 1: "ON"};
-            result[postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
-        }
-        return result;
-    },
-};
-export const tuya_cover_options: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresWindowCovering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.tuyaMovingState !== undefined) {
-            const value = msg.data.tuyaMovingState;
-            const movingLookup: KeyValueAny = {0: "UP", 1: "STOP", 2: "DOWN"};
-            result[postfixWithEndpointName("moving", msg, model, meta)] = movingLookup[value];
-        }
-        if (msg.data.tuyaCalibration !== undefined) {
-            const value = msg.data.tuyaCalibration;
-            const calibrationLookup: KeyValueAny = {0: "ON", 1: "OFF"};
-            result[postfixWithEndpointName("calibration", msg, model, meta)] = calibrationLookup[value];
-        }
-        if (msg.data.tuyaMotorReversal !== undefined) {
-            const value = msg.data.tuyaMotorReversal;
-            const reversalLookup: KeyValueAny = {0: "OFF", 1: "ON"};
-            result[postfixWithEndpointName("motor_reversal", msg, model, meta)] = reversalLookup[value];
-        }
-        if (msg.data.moesCalibrationTime !== undefined) {
-            const value = msg.data.moesCalibrationTime / 10.0;
-            if (["_TZ3000_cet6ch1r", "_TZ3000_5iixzdo7"].includes(meta.device.manufacturerName)) {
-                const endpoint = msg.endpoint.ID;
-                const calibrationLookup: KeyValueAny = {1: "to_open", 2: "to_close"};
-                result[postfixWithEndpointName(`calibration_time_${calibrationLookup[endpoint]}`, msg, model, meta)] = value;
-            } else {
-                result[postfixWithEndpointName("calibration_time", msg, model, meta)] = value;
-            }
-        }
-        return result;
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "attributeReport"> = {
     cluster: 65029,
@@ -2244,17 +2163,6 @@ export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "attributeRepor
     convert: (model, msg, publish, options, meta) => {
         const clickMapping: KeyValueNumberString = {0: "release", 1: "single", 2: "double", 3: "hold"};
         return {action: `${clickMapping[msg.data["1"]]}`};
-    },
-};
-export const tuya_switch_scene: Fz.Converter<"genOnOff", undefined, "commandTuyaAction"> = {
-    cluster: "genOnOff",
-    type: "commandTuyaAction",
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-        // Since it is a non standard ZCL command, no default response is send from zigbee-herdsman
-        // Send the defaultResponse here, otherwise the second button click delays.
-        // https://github.com/Koenkk/zigbee2mqtt/issues/8149
-        return {action: "switch_scene", action_scene: msg.data.value};
     },
 };
 export const livolo_switch_state: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
@@ -2873,6 +2781,7 @@ export const meazon_meter: Fz.Converter<"seMetering", undefined, ["attributeRepo
         return result;
     },
 };
+
 export const orvibo_raw_1: Fz.Converter<23, undefined, "raw"> = {
     cluster: 23,
     type: "raw",
@@ -3021,11 +2930,13 @@ export const diyruz_rspm: Fz.Converter<"genOnOff", undefined, ["attributeReport"
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const K4003C_binary_input: Fz.Converter<"genBinaryInput", undefined, "attributeReport"> = {
+export const K4003C_binary_input: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBinaryInput",
-    type: "attributeReport",
+    type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
-        return {action: msg.data.presentValue === 1 ? "off" : "on"};
+        if (msg.data.presentValue === undefined) return;
+        const isOn = Boolean(msg.data.presentValue);
+        return {action: isOn ? "on" : "off", state: isOn ? "ON" : "OFF"};
     },
 };
 export const enocean_ptm215z: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
@@ -4213,17 +4124,6 @@ export const sihas_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "co
         return {action: `${button}${lookup[msg.type]}`};
     },
 };
-export const tuya_operation_mode: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data.tuyaOperationMode !== undefined) {
-            const value = msg.data.tuyaOperationMode;
-            const lookup: KeyValueAny = {0: "command", 1: "event"};
-            return {operation_mode: lookup[value]};
-        }
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const sunricher_switch2801K2: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
@@ -4276,25 +4176,6 @@ export const command_stop_move_raw: Fz.Converter<"lightingColorCtrl", undefined,
         const payload = {action};
         addActionGroup(payload, msg, model);
         return payload;
-    },
-};
-export const tuya_multi_action: Fz.Converter<"genOnOff", undefined, ["commandTuyaAction", "commandTuyaAction2"]> = {
-    cluster: "genOnOff",
-    type: ["commandTuyaAction", "commandTuyaAction2"],
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-
-        // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
-        let action;
-        if (msg.type === "commandTuyaAction") {
-            const lookup: KeyValueAny = {0: "single", 1: "double", 2: "hold"};
-            action = lookup[msg.data.value];
-        } else if (msg.type === "commandTuyaAction2") {
-            const lookup: KeyValueAny = {0: "rotate_right", 1: "rotate_left"};
-            action = lookup[msg.data.value];
-        }
-
-        return {action};
     },
 };
 export const led_on_motion: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
@@ -4626,58 +4507,6 @@ export const SP600_power: Fz.Converter<"seMetering", undefined, ["attributeRepor
             return result;
         }
         return metering.convert(model, msg, publish, options, meta);
-    },
-};
-export const stelpro_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
-        if (result && msg.data.StelproSystemMode === 5) {
-            // 'Eco' mode is translated into 'auto' here
-            result.system_mode = constants.thermostatSystemModes[1];
-        }
-        if (result && msg.data.pIHeatingDemand !== undefined) {
-            result.running_state = msg.data.pIHeatingDemand >= 10 ? "heat" : "idle";
-        }
-        return result;
-    },
-};
-export const viessmann_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
-
-        if (result) {
-            // ViessMann TRVs report piHeatingDemand from 0-5
-            // NOTE: remove the result for now, but leave it configure for reporting
-            //       it will show up in the debug log still to help try and figure out
-            //       what this value potentially means.
-            delete result.pi_heating_demand;
-
-            // viessmannWindowOpenInternal
-            // 0-2, 5: unknown
-            // 3: window open (OO on display, no heating)
-            // 4: window open (OO on display, heating)
-            if (msg.data.viessmannWindowOpenInternal !== undefined) {
-                result.window_open = msg.data.viessmannWindowOpenInternal === 3 || msg.data.viessmannWindowOpenInternal === 4;
-            }
-
-            // viessmannWindowOpenForce (rw, bool)
-            if (msg.data.viessmannWindowOpenForce !== undefined) {
-                result.window_open_force = msg.data.viessmannWindowOpenForce === 1;
-            }
-
-            // viessmannAssemblyMode (ro, bool)
-            // 0: TRV installed
-            // 1: TRV ready to install (-- on display)
-            if (msg.data.viessmannAssemblyMode !== undefined) {
-                result.assembly_mode = msg.data.viessmannAssemblyMode === 1;
-            }
-        }
-
-        return result;
     },
 };
 export const eurotronic_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {

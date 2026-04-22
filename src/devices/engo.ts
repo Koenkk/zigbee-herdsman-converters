@@ -1037,4 +1037,205 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_gtouvmvl"]),
+        model: "EONE-BATB",
+        vendor: "ENGO",
+        description: "Zigbee smart thermostat",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", queryOnConfigure: true})],
+        exposes: [
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
+            e
+                .climate()
+                .withSystemMode(["heat", "cool"], ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 5, 45, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-3.5, 3.5, 0.5, ea.STATE_SET)
+                .withRunningState(["idle", "heat", "cool"], ea.STATE)
+                .withPreset(["manual", "schedule", "holiday", "frost"]),
+            e.numeric("local_temperature", ea.STATE).withUnit("°C").withDescription("Measured room temperature"),
+            e.numeric("floor_temperature", ea.STATE).withUnit("°C").withDescription("Measured floor temperature"),
+            e.numeric("humidity", ea.STATE).withUnit("%").withDescription("Measured humidity"),
+            e.numeric("backlight", ea.STATE_SET).withUnit("%").withDescription("Backlight brightness").withValueMin(0).withValueMax(100),
+            e.enum("sensor_error", ea.STATE, ["normal", "E1", "E2"]).withDescription("Sensor error status"),
+            e.child_lock(),
+            e.battery(),
+            e
+                .enum("sensor_choose", ea.STATE_SET, ["internal", "floor_temp", "external", "external_on_off"])
+                .withDescription("Sensor selection S1/S2"),
+            e
+                .numeric("holiday_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Holiday temperature")
+                .withValueMin(5)
+                .withValueMax(45)
+                .withValueStep(0.5),
+            e
+                .numeric("holiday_days", ea.STATE_SET)
+                .withUnit("days")
+                .withDescription("Number of holiday days")
+                .withValueMin(1)
+                .withValueMax(30)
+                .withValueStep(1),
+            e
+                .numeric("frost_set", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Frost protection temperature")
+                .withValueMin(5)
+                .withValueMax(17)
+                .withValueStep(0.5),
+            e
+                .numeric("max_floor_temp_heating", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Maximum floor temperature while heating (requires sensor mode floor_temp)")
+                .withValueMin(5)
+                .withValueMax(45)
+                .withValueStep(0.5),
+            e
+                .numeric("min_floor_temp_heating", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Minimum floor temperature while heating (requires sensor mode floor_temp)")
+                .withValueMin(5)
+                .withValueMax(45)
+                .withValueStep(0.5),
+            e
+                .numeric("max_floor_temp_cooling", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Maximum floor temperature while cooling (requires sensor mode floor_temp)")
+                .withValueMin(5)
+                .withValueMax(45)
+                .withValueStep(0.5),
+            e
+                .numeric("min_floor_temp_coolnig", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Minimum floor temperature while cooling (requires sensor mode floor_temp)")
+                .withValueMin(5)
+                .withValueMax(45)
+                .withValueStep(0.5),
+            e
+                .enum("control_algorithm", ea.STATE_SET, [
+                    "TPI_UFH",
+                    "TPI_RAD",
+                    "TPI_ELE",
+                    "HIS_02",
+                    "HIS_04",
+                    "HIS_06",
+                    "HIS_08",
+                    "HIS_10",
+                    "HIS_20",
+                    "HIS_30",
+                    "HIS_40",
+                ])
+                .withDescription("Control algorithm"),
+            e
+                .enum("valve_protection", ea.STATE_SET, ["off", "on", "anti_stop"])
+                .withLabel("Valve Protection")
+                .withDescription("Prevents valve blockage during long periods of inactivity"),
+            e
+                .enum("comfort_warm_floor", ea.STATE_SET, ["OFF", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"])
+                .withDescription("Comfort warm floor setting"),
+            e.enum("temp_resolution", ea.STATE_SET, ["one", "five"]).withDescription("Temperature resolution"),
+            e.max_temperature().withValueMin(5).withValueMax(45).withDescription("Max temperature"),
+            e.min_temperature().withValueMin(5).withValueMax(45).withDescription("Min temperature"),
+            e.text("schedule_monday", ea.STATE_SET).withDescription("Schedule Monday"),
+            e.text("schedule_tuesday", ea.STATE_SET).withDescription("Schedule Tuesday"),
+            e.text("schedule_wednesday", ea.STATE_SET).withDescription("Schedule Wednesday"),
+            e.text("schedule_thursday", ea.STATE_SET).withDescription("Schedule Thursday"),
+            e.text("schedule_friday", ea.STATE_SET).withDescription("Schedule Friday"),
+            e.text("schedule_saturday", ea.STATE_SET).withDescription("Schedule Saturday"),
+            e.text("schedule_sunday", ea.STATE_SET).withDescription("Schedule Sunday"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [2, "system_mode", tuya.valueConverterBasic.lookup({heat: tuya.enum(0), cool: tuya.enum(1)})],
+                [3, "running_state", tuya.valueConverterBasic.lookup({heat: tuya.enum(1), idle: tuya.enum(2)})],
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [19, "max_temperature", tuya.valueConverter.divideBy10],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [26, "min_temperature", tuya.valueConverter.divideBy10],
+                [27, "local_temperature_calibration", tuya.valueConverter.divideBy10],
+                [32, "holiday_temperature", tuya.valueConverter.divideBy10],
+                [33, "holiday_days", tuya.valueConverter.raw],
+                [34, "humidity", tuya.valueConverter.raw],
+                [35, "battery", tuya.valueConverter.raw],
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+                [
+                    43,
+                    "sensor_choose",
+                    tuya.valueConverterBasic.lookup({
+                        internal: tuya.enum(0),
+                        floor_temp: tuya.enum(1),
+                        external: tuya.enum(2),
+                        external_on_off: tuya.enum(3),
+                    }),
+                ],
+                [44, "backlight", tuya.valueConverter.raw],
+                [
+                    58,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        schedule: tuya.enum(1),
+                        holiday: tuya.enum(2),
+                        frost: tuya.enum(5),
+                    }),
+                ],
+                [
+                    101,
+                    "control_algorithm",
+                    tuya.valueConverterBasic.lookup({
+                        TPI_UFH: tuya.enum(0),
+                        TPI_RAD: tuya.enum(1),
+                        TPI_ELE: tuya.enum(2),
+                        HIS_02: tuya.enum(3),
+                        HIS_04: tuya.enum(4),
+                        HIS_06: tuya.enum(5),
+                        HIS_08: tuya.enum(6),
+                        HIS_10: tuya.enum(7),
+                        HIS_20: tuya.enum(8),
+                        HIS_30: tuya.enum(9),
+                        HIS_40: tuya.enum(10),
+                    }),
+                ],
+                [102, "max_floor_temp_heating", tuya.valueConverter.divideBy10],
+                [103, "min_floor_temp_heating", tuya.valueConverter.divideBy10],
+                [104, "max_floor_temp_cooling", tuya.valueConverter.divideBy10],
+                [105, "min_floor_temp_cooling", tuya.valueConverter.divideBy10],
+                [106, "frost_set", tuya.valueConverter.divideBy10],
+                // [107], "Setpoint change, when device locked" not implemented
+                [
+                    108,
+                    "valve_protection",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on: tuya.enum(1),
+                        anti_stop: tuya.enum(2),
+                    }),
+                ],
+                [109, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [110, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [111, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
+                [112, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [113, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
+                [114, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
+                [115, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [116, "floor_temperature", tuya.valueConverter.divideBy10],
+                [117, "temp_resolution", tuya.valueConverterBasic.lookup({one: tuya.enum(0), five: tuya.enum(1)})],
+                [
+                    118,
+                    "comfort_warm_floor",
+                    tuya.valueConverterBasic.lookup({
+                        OFF: tuya.enum(0),
+                        LEVEL1: tuya.enum(1),
+                        LEVEL2: tuya.enum(2),
+                        LEVEL3: tuya.enum(3),
+                        LEVEL4: tuya.enum(4),
+                        LEVEL5: tuya.enum(5),
+                    }),
+                ],
+                [120, "sensor_error", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), E1: tuya.enum(1), E2: tuya.enum(2)})],
+            ],
+        },
+    },
 ];

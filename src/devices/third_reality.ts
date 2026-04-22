@@ -40,12 +40,24 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
+interface ThirdCO2Sensor {
+    attributes: {
+        volatileOrganicCompounds: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface Third60gRadarSensor {
     attributes: {
         totalVolatileOrganicCompounds: number;
-        presenceSensorSensitivity: number;
-        airThreshold: number;
+        presenceSensorDetectDistanceLevel: number;
         tvocSensorCalibration: number;
+        tvocAlertThreshold: number;
+        tvocAlertEnable: number;
+        motionDetectSensitivityLevel: number;
+        presenceDetectSensitivityLevel: number;
+        presenceHoldTimeLevel: number;
     };
     commands: never;
     commandResponses: never;
@@ -86,6 +98,7 @@ interface ThirdPlug {
         resetTotalEnergy: number;
         countdownToTurnOff: number;
         countdownToTurnOn: number;
+        redLedBrightness: number;
     };
     commands: never;
     commandResponses: never;
@@ -99,15 +112,6 @@ interface ThirdPlugGen3 {
         resetTotalEnergy: number;
         countdownToTurnOff: number;
         countdownToTurnOn: number;
-    };
-    commands: never;
-    commandResponses: never;
-}
-
-interface ThirdAirPressureSensor {
-    attributes: {
-        sendCommandUpThreshold: number;
-        sendCommandDownThreshold: number;
     };
     commands: never;
     commandResponses: never;
@@ -311,6 +315,41 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["3RAQ1096Z"],
+        model: "3RAQ1096Z",
+        vendor: "Third Reality",
+        description: "Smart air quality sensor",
+        ota: true,
+        extend: [
+            m.temperature(),
+            m.humidity(),
+            m.co2(),
+            m.deviceAddCustomCluster("3rCO2SensorCluster", {
+                name: "3rCO2SensorCluster",
+                ID: 0x042e,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    volatileOrganicCompounds: {
+                        name: "volatileOrganicCompounds",
+                        ID: 0x0000,
+                        type: Zcl.DataType.UINT32,
+                        max: 0xffffffff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"3rCO2SensorCluster", ThirdCO2Sensor>({
+                name: "voc_index",
+                cluster: "3rCO2SensorCluster",
+                attribute: "volatileOrganicCompounds",
+                unit: "aqi",
+                description: "Measured VOC Index",
+                access: "STATE_GET",
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["3RPL01084Z"],
         model: "3RPL01084Z",
         vendor: "Third Reality",
@@ -325,15 +364,39 @@ export const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: 0x1407,
                 attributes: {
                     totalVolatileOrganicCompounds: {
-                        name: "volatileCrganiccCompounds",
+                        name: "totalVolatileOrganicCompounds",
                         ID: 0x0000,
                         type: Zcl.DataType.UINT32,
-                        write: true,
                         max: 0xffffffff,
                     },
-                    presenceSensorSensitivity: {name: "presenceSensorSensitivity", ID: 0xf002, type: Zcl.DataType.UINT8, write: true, min: 1, max: 6},
+                    presenceSensorDetectDistanceLevel: {
+                        name: "presenceSensorDetectDistanceLevel",
+                        ID: 0xf002,
+                        type: Zcl.DataType.UINT8,
+                        write: true,
+                        min: 1,
+                        max: 6,
+                    },
                     tvocSensorCalibration: {name: "tvocSensorCalibration", ID: 0xf001, type: Zcl.DataType.UINT8, write: true, min: 1, max: 1},
-                    airThreshold: {name: "airThreshold", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, min: 3000, max: 50000},
+                    tvocAlertThreshold: {name: "tvocAlertThreshold", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, min: 3000, max: 50000},
+                    motionDetectSensitivityLevel: {
+                        name: "motionDetectSensitivityLevel",
+                        ID: 0xf004,
+                        type: Zcl.DataType.UINT8,
+                        write: true,
+                        min: 0,
+                        max: 20,
+                    },
+                    presenceDetectSensitivityLevel: {
+                        name: "presenceDetectSensitivityLevel",
+                        ID: 0xf005,
+                        type: Zcl.DataType.UINT8,
+                        write: true,
+                        min: 0,
+                        max: 20,
+                    },
+                    presenceHoldTimeLevel: {name: "presenceHoldTimeLevel", ID: 0xf006, type: Zcl.DataType.UINT8, write: true, min: 1, max: 4},
+                    tvocAlertEnable: {name: "tvocAlertEnable", ID: 0xf007, type: Zcl.DataType.UINT8, write: true, min: 0, max: 1},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -359,22 +422,62 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 1,
                 valueMax: 6,
                 cluster: "3r60gRadarSpecialCluster",
-                attribute: "presenceSensorSensitivity",
-                description: "Presence sensor sensitivity",
+                attribute: "presenceSensorDetectDistanceLevel",
+                description: "Presence sensor detect distance level",
                 access: "ALL",
             }),
             m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
-                name: "air_threshold",
+                name: "tvoc_alert_threshold",
                 valueMin: 3000,
                 valueMax: 50000,
                 cluster: "3r60gRadarSpecialCluster",
-                attribute: "airThreshold",
+                attribute: "tvocAlertThreshold",
                 unit: "ppb",
-                description: "Air threshold",
+                description: "TVOC alert threshold",
+                access: "ALL",
+            }),
+            m.binary<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "tvoc_alert_enable",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "tvocAlertEnable",
+                description: "TVOC alert enable",
+                access: "ALL",
+            }),
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "motion_detect_sensitivity_level",
+                valueMin: 0,
+                valueMax: 20,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "motionDetectSensitivityLevel",
+                unit: "level",
+                description: "Set motion detect sensitivity level",
+                access: "ALL",
+            }),
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "presence_detect_sensitivity_level",
+                valueMin: 0,
+                valueMax: 20,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "presenceDetectSensitivityLevel",
+                unit: "level",
+                description: "Set Presence detect sensitivity level",
+                access: "ALL",
+            }),
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "presence_hold_time_level",
+                valueMin: 1,
+                valueMax: 4,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "presenceHoldTimeLevel",
+                unit: "level",
+                description: "Set Presence hold time level",
                 access: "ALL",
             }),
             m.light({
                 color: {modes: ["xy"], enhancedHue: true},
+                colorTemp: {range: [154, 500]},
             }),
         ],
     },
@@ -512,7 +615,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attributes: {
                     infraredEnable: {name: "infraredEnable", ID: 0x0000, type: 0x20, write: true, min: 0, max: 1},
                     compensationSpeed: {name: "compensationSpeed", ID: 0x0001, type: 0x28, write: true, min: -100, max: 100},
-                    limitPosition: {name: "limitPosition", ID: 0x0002, type: 0x21, write: true, min: 50, max: 4000},
+                    limitPosition: {name: "limitPosition", ID: 0x0002, type: 0x21, write: true, min: 50, max: 4100},
                     totalCycleTimes: {name: "totalCycleTimes", ID: 0x0003, type: 0x21, write: true, min: 200, max: 334},
                     lastRemainingBatteryPercentage: {name: "lastRemainingBatteryPercentage", ID: 0x0004, type: 0x20, write: true, min: 0, max: 100},
                 },
@@ -539,7 +642,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
                 name: "preset_bottom_position",
                 valueMin: 50,
-                valueMax: 4000,
+                valueMax: 4100,
                 cluster: "3rSmartBlindGen2SpecialCluster",
                 attribute: "limitPosition",
                 description: "Preset the bottom limit position of the blind",
@@ -1060,6 +1163,15 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+            m.deviceAddCustomCluster("genBasic", {
+                name: "genBasic",
+                ID: 0x0000,
+                attributes: {
+                    redLedBrightness: {name: "redLedBrightness", ID: 0xff01, type: Zcl.DataType.UINT8, write: true, min: 0, max: 100},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
             m.enumLookup<"3rDualPlugSpecialcluster", ThirdPlug>({
                 endpointName: "1",
                 name: "reset_total_energy",
@@ -1120,6 +1232,16 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "3rDualPlugSpecialcluster",
                 attribute: "countdownToTurnOn",
                 description: "(OFF-ON)",
+                access: "ALL",
+            }),
+            m.numeric<"genBasic", ThirdPlug>({
+                name: "red_led_brightness",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "genBasic",
+                attribute: "redLedBrightness",
+                description: "Set red led brightness",
                 access: "ALL",
             }),
         ],
@@ -1186,7 +1308,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RCB01057Z",
         vendor: "Third Reality",
         description: "Smart Color Bulb ZL1",
-        whiteLabel: [{vendor: "Third Reality", model: "3RCB02070Z", description: "Smart Color Bulb ZL4", fingerprint: [{modelID: "3RCB02070Z"}]}],
+        whiteLabel: [
+            {vendor: "Third Reality", model: "3RCB02070Z", description: "Smart Color Bulb ZL4", fingerprint: [{modelID: "3RCB02070Z"}]},
+            {vendor: "Third Reality", model: "3RCB1095Z", description: "Smart Color Bulb ZL2", fingerprint: [{modelID: "3RCB1095Z"}]},
+        ],
         ota: true,
         extend: [
             m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
@@ -1282,39 +1407,15 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart air pressure sensor",
         extend: [
             m.battery(),
-            m.pressure({attribute: {ID: 0xff01, type: Zcl.DataType.UINT32}, name: "pressure", unit: "Pa", scale: 1}),
-            m.commandsOnOff(),
-            m.deviceAddCustomCluster("3rAirsensorSpecialCluster", {
-                name: "3rAirsensorSpecialCluster",
-                ID: 0xff01,
-                manufacturerCode: 0x1407,
-                attributes: {
-                    sendCommandUpThreshold: {name: "sendCommandUpThreshold", ID: 0x0040, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    sendCommandDownThreshold: {name: "sendCommandDownThreshold", ID: 0x0041, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                },
-                commands: {},
-                commandsResponse: {},
+            m.numeric({
+                name: "dirty_level",
+                unit: "%",
+                cluster: "genAnalogInput",
+                attribute: "presentValue",
+                description: "Measure dirty level",
+                access: "STATE_GET",
             }),
-            m.numeric<"3rAirsensorSpecialCluster", ThirdAirPressureSensor>({
-                name: "pressure_raised_threshold",
-                unit: "Pa",
-                valueMin: 0,
-                valueMax: 65535,
-                cluster: "3rAirsensorSpecialCluster",
-                attribute: "sendCommandUpThreshold",
-                description: "Reports sudden air-pressure changes. Pressure rise and fall alerts can be enabled separately. Threshold adjustable.",
-                access: "ALL",
-            }),
-            m.numeric<"3rAirsensorSpecialCluster", ThirdAirPressureSensor>({
-                name: "pressure_falls_threshold",
-                unit: "Pa",
-                valueMin: 0,
-                valueMax: 65535,
-                cluster: "3rAirsensorSpecialCluster",
-                attribute: "sendCommandDownThreshold",
-                description: "Reports sudden air-pressure changes. Pressure rise and fall alerts can be enabled separately. Threshold adjustable.",
-                access: "ALL",
-            }),
+            m.pressure(),
         ],
         ota: true,
     },
@@ -1337,13 +1438,12 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.binary<"3r24gRadarcluster", Third24gRadar>({
-                name: "sensor_calibation",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
+            m.enumLookup<"3r24gRadarcluster", Third24gRadar>({
+                name: "sensor_calibration",
+                lookup: {Press: 1},
                 cluster: "3r24gRadarcluster",
                 attribute: "sensorCalibration",
-                description: "sensor calibationit",
+                description: "sensor calibration",
                 access: "ALL",
             }),
             m.numeric<"3r24gRadarcluster", Third24gRadar>({

@@ -1,5 +1,6 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import type {ThermostatRunningState} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
@@ -438,6 +439,21 @@ export const definitions: DefinitionWithExtend[] = [
                 l2: 1,
                 l3: 1,
             };
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_upt8lzi0"]),
+        model: "ZS-SF-EUC-WH-MS",
+        vendor: "Moes",
+        description: "Star feather Zigbee curtain switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        options: [exposes.options.invert_cover()],
+        exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [2, "position", tuya.valueConverter.coverPosition],
+            ],
         },
     },
     {
@@ -944,7 +960,8 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Moes", "BHT-002/BHT-006", "Smart heating thermostat", ["_TZE204_aoclfnxz"])],
         exposes: (device, options) => {
             const heatingStepSize = device.manufacturerName === "_TZE204_5toc8efa" ? 0.5 : 1;
-            const runningStates = device.manufacturerName === "_TZE200_aoclfnxz" ? ["idle", "heat"] : ["idle", "heat", "cool"];
+            const runningStates: ThermostatRunningState[] =
+                device.manufacturerName === "_TZE200_aoclfnxz" ? ["idle", "heat"] : ["idle", "heat", "cool"];
             return [
                 e.child_lock(),
                 e.deadzone_temperature(),
@@ -1362,7 +1379,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Heiman", "HS-720ES", "Carbon monoxide alarm", ["_TZE200_hr0tdd47"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vawy74yh", "_TZE284_vawy74yh"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vawy74yh", "_TZE204_vawy74yh", "_TZE284_vawy74yh"]),
         model: "ZSS-HM-SSD01",
         vendor: "Moes",
         description: "Smoke sensor",
@@ -1399,17 +1416,18 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Smart button",
         whiteLabel: [tuya.whitelabel("Loginovo", "ZG-101ZL", "Smart button", ["_TZ3000_ja5osu5g", "_TZ3000_lrfvzq1e", "_TZ3000_kaflzta4"])],
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         fromZigbee: [
             fz.command_step,
             fz.command_on,
             fz.command_off,
             fz.command_move_to_color_temp,
             fz.command_move_to_level,
-            fz.tuya_multi_action,
-            fz.tuya_operation_mode,
+            tuya.fz.multi_action,
+            tuya.fz.operation_mode,
             fz.battery,
         ],
-        toZigbee: [tz.tuya_operation_mode],
+        toZigbee: [tuya.tz.operation_mode],
         exposes: [
             e.action([
                 "single",
@@ -1430,8 +1448,8 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await endpoint.write("genOnOff", {tuyaOperationMode: 1});
-            await endpoint.read("genOnOff", ["tuyaOperationMode"]);
+            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
             try {
                 await endpoint.read(0xe001, [0xd011]);
             } catch {
@@ -1499,7 +1517,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior2: true,
                 switchMode: true,
             }),
-            m.actionEnumLookup<"genOnOff", undefined, ["commandTuyaAction"]>({
+            m.actionEnumLookup<"genOnOff", tuya.TuyaGenOnOff, ["commandTuyaAction"]>({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
                 attribute: "value",
@@ -1817,6 +1835,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZT-B-EU1",
         vendor: "Moes",
         description: "Scene remote with 1 key",
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
@@ -1841,6 +1860,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZT-B-EU2",
         vendor: "Moes",
         description: "Scene remote with 2 keys",
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
@@ -1874,6 +1894,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZT-B-EU3",
         vendor: "Moes",
         description: "Scene remote with 3 keys",
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         fromZigbee: [tuya.fz.on_off_action, fz.battery, tuya.fz.datapoints],
         toZigbee: [],
         configure: tuya.configureMagicPacket,

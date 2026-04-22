@@ -664,11 +664,11 @@ const extend = {
                         result.preset = utils.getFromLookup(awayOrBoostMode, awayOrBoostModeLookup);
                         result.away_or_boost_mode = utils.getFromLookup(awayOrBoostMode, awayOrBoostModeLookup);
                         if (systemMode !== undefined) {
-                            result.system_mode = constants.thermostatSystemModes[systemMode];
+                            result.system_mode = utils.getFromLookup(systemMode, constants.thermostatSystemModes);
                         }
                     } else if (systemMode !== undefined) {
                         result.preset = utils.getFromLookup(systemMode, systemModeLookup);
-                        result.system_mode = constants.thermostatSystemModes[systemMode];
+                        result.system_mode = utils.getFromLookup(systemMode, constants.thermostatSystemModes);
                         if (awayOrBoostMode !== undefined) {
                             result.away_or_boost_mode = utils.getFromLookup(awayOrBoostMode, awayOrBoostModeLookup);
                         }
@@ -701,7 +701,7 @@ const extend = {
                             state: {
                                 // @ts-expect-error ignore
                                 preset: systemModeLookup[systemMode],
-                                system_mode: constants.thermostatSystemModes[systemMode],
+                                system_mode: utils.getFromLookup(systemMode, constants.thermostatSystemModes),
                             },
                         };
                     }
@@ -719,7 +719,7 @@ const extend = {
                         state: {
                             // @ts-expect-error ignore
                             preset: systemModeLookup[systemMode],
-                            system_mode: constants.thermostatSystemModes[systemMode],
+                            system_mode: utils.getFromLookup(systemMode, constants.thermostatSystemModes),
                         },
                     };
                 },

@@ -1,25 +1,8 @@
-export const YEAR_2000_IN_UTC = Math.floor(Date.UTC(2000, 0, 1) / 1000);
-
 /**
- * Parse timezone offset from ISO 8601 datetime.
- * Returns seconds, `0` for `Z`, or `undefined` when no offset is present.
+ * Unix timestamp in seconds for `2000-01-01T00:00:00Z`.
+ * Sonoff irrigation devices encode local datetimes relative to this base.
  */
-export const parseIsoOffsetSeconds = (value: string): number | undefined => {
-    const match = value.match(/(Z|[+-]\d{2}:\d{2})$/);
-    if (!match) {
-        return;
-    }
-
-    const offset = match[1];
-    if (offset === "Z") {
-        return 0;
-    }
-
-    const sign = offset[0] === "+" ? 1 : -1;
-    const hours = Number(offset.slice(1, 3));
-    const minutes = Number(offset.slice(4, 6));
-    return sign * (hours * 3600 + minutes * 60);
-};
+export const YEAR_2000_IN_UTC = Math.floor(Date.UTC(2000, 0, 1) / 1000);
 
 /**
  * Convert Unix UTC seconds to device local-time seconds (2000 base).
@@ -30,12 +13,9 @@ export const utcToDeviceLocal2000Seconds = (utcSeconds: number, offsetSeconds: n
 
 /**
  * Convert device local-time seconds (2000 base) back to Unix UTC seconds.
- * The runtime timezone is used as the device-local timezone baseline.
  */
-export const deviceLocal2000ToUTCSeconds = (deviceSeconds: number): number => {
-    const approxUtcSeconds = deviceSeconds + YEAR_2000_IN_UTC;
-    const offsetSeconds = -new Date(approxUtcSeconds * 1000).getTimezoneOffset() * 60;
-    return approxUtcSeconds - offsetSeconds;
+export const deviceLocal2000ToUTCSeconds = (deviceSeconds: number, offsetSeconds: number): number => {
+    return deviceSeconds - offsetSeconds + YEAR_2000_IN_UTC;
 };
 
 /**
@@ -43,7 +23,7 @@ export const deviceLocal2000ToUTCSeconds = (deviceSeconds: number): number => {
  * Returns `undefined` when format is invalid or parsed value is negative.
  */
 export const parseIsoWithOffsetToUtcSeconds = (value: string): number | undefined => {
-    if (parseIsoOffsetSeconds(value) === undefined) {
+    if (!/(Z|[+-]\d{2}:\d{2})$/.test(value)) {
         return;
     }
 
@@ -61,29 +41,67 @@ export const parseIsoWithOffsetToUtcSeconds = (value: string): number | undefine
 };
 
 /**
- * Format Unix UTC seconds to ISO 8601 with the runtime local timezone offset.
+ * Get runtime local timezone offset in seconds for the specified UTC timestamp.
  */
-export const formatUtcSecondsToIsoWithOffset = (utcSeconds: number): string => {
+export const getRuntimeLocalOffsetSeconds = (utcSeconds: number): number => {
     const date = new Date(utcSeconds * 1000);
-    const utcOffsetMinutes = -date.getTimezoneOffset();
-    const sign = utcOffsetMinutes >= 0 ? "+" : "-";
-    const offsetMinutesAbs = Math.abs(utcOffsetMinutes);
+    return -date.getTimezoneOffset() * 60;
+};
+
+/**
+ * Format Unix UTC seconds to ISO 8601 with the specified timezone offset.
+ * Falls back to the runtime local timezone offset when not provided.
+ */
+export const formatUtcSecondsToIsoWithOffset = (utcSeconds: number, offsetSeconds?: number): string => {
+    const resolvedOffsetSeconds =
+        typeof offsetSeconds === "number" && Number.isFinite(offsetSeconds) ? offsetSeconds : getRuntimeLocalOffsetSeconds(utcSeconds);
+
+    const sign = resolvedOffsetSeconds >= 0 ? "+" : "-";
+    const offsetMinutesAbs = Math.abs(Math.floor(resolvedOffsetSeconds / 60));
     const offsetHours = Math.floor(offsetMinutesAbs / 60);
     const offsetMinutes = offsetMinutesAbs % 60;
+    const localMs = utcSeconds * 1000 + resolvedOffsetSeconds * 1000;
+    const localDate = new Date(localMs);
 
     return (
-        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T` +
-        `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}` +
+        `${localDate.getUTCFullYear()}-${String(localDate.getUTCMonth() + 1).padStart(2, "0")}-${String(localDate.getUTCDate()).padStart(2, "0")}T` +
+        `${String(localDate.getUTCHours()).padStart(2, "0")}:${String(localDate.getUTCMinutes()).padStart(2, "0")}:${String(localDate.getUTCSeconds()).padStart(2, "0")}` +
         `${sign}${String(offsetHours).padStart(2, "0")}:${String(offsetMinutes).padStart(2, "0")}`
     );
 };
 
-export type ParsedRawZclCommand = {
+/**
+ * Shift UTC seconds by local calendar months under a fixed UTC -> local offset.
+ */
+export const shiftUtcSecondsByOffsetMonths = (utcSeconds: number, monthDelta: number, offsetSeconds = 0): number => {
+    const localMs = utcSeconds * 1000 + offsetSeconds * 1000;
+    const localDate = new Date(localMs);
+    const shiftedLocalMs = Date.UTC(
+        localDate.getUTCFullYear(),
+        localDate.getUTCMonth() + monthDelta,
+        localDate.getUTCDate(),
+        localDate.getUTCHours(),
+        localDate.getUTCMinutes(),
+        localDate.getUTCSeconds(),
+        localDate.getUTCMilliseconds(),
+    );
+
+    return Math.floor((shiftedLocalMs - offsetSeconds * 1000) / 1000);
+};
+
+/**
+ * Parsed view of a raw SWV-ZN/ZF ZCL frame.
+ */
+type ParsedSWVZFRawZclCommand = {
     commandId: number;
     payload: Buffer;
 };
 
-export const parseRawZclCommand = (buffer: Buffer): ParsedRawZclCommand | undefined => {
+/**
+ * Extract the ZCL command id and payload from a raw SWV-ZN/ZF frame.
+ * Handles both standard and manufacturer-specific headers.
+ */
+export const parseSWVZFRawZclCommand = (buffer: Buffer): ParsedSWVZFRawZclCommand | undefined => {
     if (buffer.length < 3) {
         return;
     }

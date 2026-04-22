@@ -206,6 +206,7 @@ import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
+import {definitions as msh} from "./msh";
 import {definitions as mullerLicht} from "./muller_licht";
 import {definitions as multir} from "./multir";
 import {definitions as multiterm} from "./multiterm";
@@ -275,6 +276,7 @@ import {definitions as securifi} from "./securifi";
 import {definitions as sengled} from "./sengled";
 import {definitions as senoro} from "./senoro";
 import {definitions as sercomm} from "./sercomm";
+import {definitions as shada} from "./shada";
 import {definitions as shadeControl} from "./shade_control";
 import {definitions as shelly} from "./shelly";
 import {definitions as shenzhenHoma} from "./shenzhen_homa";
@@ -576,6 +578,7 @@ const definitions: DefinitionWithExtend[] = [
     ...mindy,
     ...modular,
     ...moes,
+    ...msh,
     ...mullerLicht,
     ...multir,
     ...multiterm,
@@ -645,6 +648,7 @@ const definitions: DefinitionWithExtend[] = [
     ...sengled,
     ...senoro,
     ...sercomm,
+    ...shada,
     ...shadeControl,
     ...shelly,
     ...shenzhenHoma,

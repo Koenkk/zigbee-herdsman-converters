@@ -4,6 +4,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz} from "../lib/types";
+import * as stelpro from "./stelpro";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -35,7 +36,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "STLO-34",
         vendor: "Stello",
         description: "Hilo thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface, fzLocal.power, fzLocal.energy],
+        extend: [stelpro.stelproExtend.addStelproHvacThermostatCluster()],
+        fromZigbee: [stelpro.fzLocal.stelpro_thermostat, fz.hvac_user_interface, fzLocal.power, fzLocal.energy],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -45,7 +47,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
             tz.stelpro_peak_demand_event_icon,
-            tz.stelpro_thermostat_outdoor_temperature,
+            stelpro.tzLocal.stelpro_thermostat_outdoor_temperature,
         ],
         exposes: [
             e.local_temperature(),
