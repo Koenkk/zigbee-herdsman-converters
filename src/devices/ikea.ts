@@ -1027,7 +1027,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "BILRESA remote control with buttons",
         extend: [
             addIkeaGenScenesCluster(),
-            m.battery({voltage: true, dontDividePercentage: true}),
+            m.battery({voltage: true, dontDividePercentage: true, limitPercentage: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_up", "brightness_move_down", "brightness_stop"]}),
@@ -1042,7 +1042,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "BILRESA remote control with scroll wheel",
         extend: [
             addIkeaGenScenesCluster(),
-            m.battery({voltage: true, dontDividePercentage: true}),
+            m.battery({voltage: true, dontDividePercentage: true, limitPercentage: true}),
             m.identify({isSleepy: true}),
             m.commandsOnOff({commands: ["on", "off"]}),
             m.commandsLevelCtrl({commands: ["brightness_move_to_level"]}),

@@ -352,6 +352,7 @@ export function linkQuality(args: LinkQualityArgs = {}): ModernExtend {
 export interface BatteryArgs {
     voltageToPercentage?: BatteryNonLinearVoltage | BatteryLinearVoltage;
     dontDividePercentage?: boolean;
+    limitPercentage?: boolean;
     percentage?: boolean;
     voltage?: boolean;
     lowStatus?: boolean;
@@ -369,6 +370,7 @@ export function battery(args: BatteryArgs = {}): ModernExtend {
         percentageReporting = true,
         voltageReporting = false,
         dontDividePercentage = false,
+        limitPercentage = false,
         percentageReportingConfig = {min: "1_HOUR", max: "MAX", change: 10},
         voltageReportingConfig = {min: "1_HOUR", max: "MAX", change: 10},
         lowStatusReportingConfig = undefined,
@@ -407,6 +409,7 @@ export function battery(args: BatteryArgs = {}): ModernExtend {
                     // batteryPercentageRemaining of 100 when the battery is full (should be 200).
                     let percentage = msg.data.batteryPercentageRemaining;
                     percentage = dontDividePercentage ? percentage : percentage / 2;
+                    percentage = limitPercentage ? Math.min(percentage, 100) : percentage;
                     payload.battery = precisionRound(percentage, 2);
                 }
 
@@ -488,10 +491,11 @@ export function battery(args: BatteryArgs = {}): ModernExtend {
         result.configure.push(configureSetPowerSourceWhenUnknown("Battery"));
     }
 
-    if (voltageToPercentage || dontDividePercentage) {
+    if (voltageToPercentage || dontDividePercentage || limitPercentage) {
         const meta: DefinitionMeta = {battery: {}};
         if (voltageToPercentage) meta.battery.voltageToPercentage = voltageToPercentage;
         if (dontDividePercentage) meta.battery.dontDividePercentage = dontDividePercentage;
+        if (limitPercentage) meta.battery.limitPercentage = limitPercentage;
         result.meta = meta;
     }
 

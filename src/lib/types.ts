@@ -170,6 +170,12 @@ export interface DefinitionMeta {
          * @defaultValue false
          */
         dontDividePercentage?: boolean;
+        /**
+         * Prevents batteryPercentageRemaining from being above 100%
+         *
+         * @defaultValue false
+         */
+        limitPercentage?: boolean;
     };
     /**
      * see `toZigbee.light_color`

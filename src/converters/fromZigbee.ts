@@ -442,8 +442,10 @@ export const battery: Fz.Converter<"genPowerCfg", undefined, ["attributeReport",
             // Some devices do not comply to the ZCL and report a
             // batteryPercentageRemaining of 100 when the battery is full (should be 200).
             const dontDividePercentage = model.meta?.battery?.dontDividePercentage;
+            const limitPercentage = model.meta?.battery?.limitPercentage;
             let percentage = msg.data.batteryPercentageRemaining;
             percentage = dontDividePercentage ? percentage : percentage / 2;
+            percentage = limitPercentage ? Math.min(percentage, 100) : percentage;
             payload.battery = precisionRound(percentage, 2);
         }
 
