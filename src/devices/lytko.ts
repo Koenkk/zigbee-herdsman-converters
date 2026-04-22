@@ -430,7 +430,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint3.read("hvacThermostat", [30464, 30465], manufacturerOptions);
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-            await endpoint1.read("hvacUserInterfaceCfg", ["brightness", 30465], manufacturerOptions);
+            await endpoint1.read("hvacUserInterfaceCfg", [30464, 30465], manufacturerOptions);
         },
     },
     {
