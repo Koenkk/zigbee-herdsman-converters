@@ -16,7 +16,7 @@ const ea = exposes.access;
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.CUSTOM_LYTKO};
 const sensorTypes = ["3.3", "5", "6.8", "10", "12", "14.8", "15", "20", "33", "47"];
 
-interface LyktoThermostat {
+interface LytkoThermostat {
     attributes: {
         occupiedSetback: number;
         lytkoSensor: number;
@@ -28,7 +28,7 @@ interface LyktoThermostat {
     commandResponses: never;
 }
 
-interface LyktoUIThermostat {
+interface LytkoUIThermostat {
     attributes: {
         brightnessActive: number;
         brightnessStandby: number;
@@ -39,8 +39,8 @@ interface LyktoUIThermostat {
     commandResponses: never;
 }
 
-const lyktoExtend = {
-    lyktoHvacThermostatCluster: () =>
+const lytkoExtend = {
+    lytkoHvacThermostatCluster: () =>
         deviceAddCustomCluster("hvacThermostat", {
             name: "hvacThermostat",
             ID: Zcl.Clusters.hvacThermostat.ID,
@@ -85,7 +85,7 @@ const lyktoExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    lyktoHvacUserInterfaceCfg: () =>
+    lytkoHvacUserInterfaceCfg: () =>
         deviceAddCustomCluster("hvacUserInterfaceCfg", {
             name: "hvacUserInterfaceCfg",
             ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
@@ -124,8 +124,8 @@ const lyktoExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    occupiedSetback: (args?: Partial<m.NumericArgs<"hvacThermostat", LyktoThermostat>>) =>
-        numeric<"hvacThermostat", LyktoThermostat>({
+    occupiedSetback: (args?: Partial<m.NumericArgs<"hvacThermostat", LytkoThermostat>>) =>
+        numeric<"hvacThermostat", LytkoThermostat>({
             name: "occupied_setback",
             description: "Hysteresis",
             unit: "°C",
@@ -152,8 +152,8 @@ const lyktoExtend = {
             entityCategory: "config",
             ...args,
         }),
-    lytkoTargetFirst: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", LyktoThermostat>>) =>
-        enumLookup<"hvacThermostat", LyktoThermostat>({
+    lytkoTargetFirst: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", LytkoThermostat>>) =>
+        enumLookup<"hvacThermostat", LytkoThermostat>({
             name: "target_first",
             label: "First temperature",
             description: "Display target/current temperature first",
@@ -165,8 +165,8 @@ const lyktoExtend = {
             entityCategory: "config",
             ...args,
         }),
-    lytkoSensor: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", LyktoThermostat>>) =>
-        enumLookup<"hvacThermostat", LyktoThermostat>({
+    lytkoSensor: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", LytkoThermostat>>) =>
+        enumLookup<"hvacThermostat", LytkoThermostat>({
             name: "sensor_type",
             label: "Sensor",
             description: "Sensor type",
@@ -179,8 +179,8 @@ const lyktoExtend = {
             entityCategory: "config",
             ...args,
         }),
-    brightnessActive: (args?: Partial<m.NumericArgs<"hvacUserInterfaceCfg", LyktoUIThermostat>>) =>
-        numeric<"hvacUserInterfaceCfg", LyktoUIThermostat>({
+    brightnessActive: (args?: Partial<m.NumericArgs<"hvacUserInterfaceCfg", LytkoUIThermostat>>) =>
+        numeric<"hvacUserInterfaceCfg", LytkoUIThermostat>({
             name: "brigness_Active",
             label: "Brigness Active",
             description: "Display brightness in work mode",
@@ -194,8 +194,8 @@ const lyktoExtend = {
             entityCategory: "config",
             ...args,
         }),
-    brightnessStandby: (args?: Partial<m.NumericArgs<"hvacUserInterfaceCfg", LyktoUIThermostat>>) =>
-        numeric<"hvacUserInterfaceCfg", LyktoUIThermostat>({
+    brightnessStandby: (args?: Partial<m.NumericArgs<"hvacUserInterfaceCfg", LytkoUIThermostat>>) =>
+        numeric<"hvacUserInterfaceCfg", LytkoUIThermostat>({
             name: "brigness_Standby",
             label: "Brigness Standby",
             description: "Display brightness in standby mode",
@@ -962,7 +962,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            lyktoExtend.lyktoHvacThermostatCluster(),
+            lytkoExtend.lytkoHvacThermostatCluster(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3},
             }),
@@ -991,13 +991,13 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoint: "3",
             }),
             identify(),
-            lyktoExtend.occupiedSetback({
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3"],
             }),
-            lyktoExtend.remoteSensing({
+            lytkoExtend.remoteSensing({
                 endpointName: "3",
             }),
-            lyktoExtend.lytkoSensor({
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
             }),
         ],
@@ -1010,7 +1010,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            lyktoExtend.lyktoHvacThermostatCluster(),
+            lytkoExtend.lytkoHvacThermostatCluster(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3},
             }),
@@ -1039,13 +1039,13 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoint: "3",
             }),
             identify(),
-            lyktoExtend.occupiedSetback({
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3"],
             }),
-            lyktoExtend.remoteSensing({
+            lytkoExtend.remoteSensing({
                 endpointName: "3",
             }),
-            lyktoExtend.lytkoSensor({
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
             }),
             numeric({
@@ -1078,8 +1078,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            lyktoExtend.lyktoHvacThermostatCluster(),
-            lyktoExtend.lyktoHvacUserInterfaceCfg(),
+            lytkoExtend.lytkoHvacThermostatCluster(),
+            lytkoExtend.lytkoHvacUserInterfaceCfg(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3},
             }),
@@ -1119,15 +1119,15 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["unlock", 0],
                 entityCategory: "config",
             }),
-            lyktoExtend.brightnessActive(),
-            lyktoExtend.brightnessStandby(),
-            lyktoExtend.occupiedSetback({
+            lytkoExtend.brightnessActive(),
+            lytkoExtend.brightnessStandby(),
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3"],
             }),
-            lyktoExtend.lytkoSensor({
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
             }),
-            lyktoExtend.lytkoTargetFirst({
+            lytkoExtend.lytkoTargetFirst({
                 endpointName: "3",
             }),
         ],
@@ -1140,7 +1140,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            lyktoExtend.lyktoHvacThermostatCluster(),
+            lytkoExtend.lytkoHvacThermostatCluster(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3, 4: 4},
             }),
@@ -1193,19 +1193,19 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoint: "4",
             }),
             identify(),
-            lyktoExtend.occupiedSetback({
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3", "4"],
             }),
-            lyktoExtend.remoteSensing({
+            lytkoExtend.remoteSensing({
                 endpointName: "3",
             }),
-            lyktoExtend.remoteSensing({
+            lytkoExtend.remoteSensing({
                 endpointName: "4",
             }),
-            lyktoExtend.lytkoSensor({
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
             }),
-            lyktoExtend.lytkoSensor({
+            lytkoExtend.lytkoSensor({
                 endpointName: "4",
             }),
         ],
@@ -1218,7 +1218,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            lyktoExtend.lyktoHvacThermostatCluster(),
+            lytkoExtend.lytkoHvacThermostatCluster(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3, 4: 4},
             }),
@@ -1271,19 +1271,19 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoint: "4",
             }),
             identify(),
-            lyktoExtend.occupiedSetback({
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3", "4"],
             }),
-            lyktoExtend.remoteSensing({
+            lytkoExtend.remoteSensing({
                 endpointName: "3",
             }),
-            lyktoExtend.remoteSensing({
+            lytkoExtend.remoteSensing({
                 endpointName: "4",
             }),
-            lyktoExtend.lytkoSensor({
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
             }),
-            lyktoExtend.lytkoSensor({
+            lytkoExtend.lytkoSensor({
                 endpointName: "4",
             }),
             numeric({
@@ -1316,8 +1316,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            lyktoExtend.lyktoHvacThermostatCluster(),
-            lyktoExtend.lyktoHvacUserInterfaceCfg(),
+            lytkoExtend.lytkoHvacThermostatCluster(),
+            lytkoExtend.lytkoHvacUserInterfaceCfg(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3, 4: 4},
             }),
@@ -1381,22 +1381,22 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["unlock", 0],
                 entityCategory: "config",
             }),
-            lyktoExtend.brightnessActive(),
-            lyktoExtend.brightnessStandby(),
-            lyktoExtend.occupiedSetback({
+            lytkoExtend.brightnessActive(),
+            lytkoExtend.brightnessStandby(),
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3", "4"],
             }),
-            lyktoExtend.lytkoSensor({
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
             }),
-            lyktoExtend.lytkoSensor({
+            lytkoExtend.lytkoSensor({
                 endpointName: "4",
             }),
-            lyktoExtend.lytkoTargetFirst({
+            lytkoExtend.lytkoTargetFirst({
                 name: "target_first_3",
                 endpointName: "3",
             }),
-            lyktoExtend.lytkoTargetFirst({
+            lytkoExtend.lytkoTargetFirst({
                 name: "target_first_4",
                 endpointName: "4",
             }),
@@ -1410,8 +1410,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            lyktoExtend.lyktoHvacThermostatCluster(),
-            lyktoExtend.lyktoHvacUserInterfaceCfg(),
+            lytkoExtend.lytkoHvacThermostatCluster(),
+            lytkoExtend.lytkoHvacUserInterfaceCfg(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3},
             }),
@@ -1451,13 +1451,13 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["unlock", 0],
                 entityCategory: "config",
             }),
-            lyktoExtend.occupiedSetback({
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3"],
             }),
-            lyktoExtend.lytkoSensor({
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
             }),
-            lyktoExtend.lytkoTargetFirst({
+            lytkoExtend.lytkoTargetFirst({
                 endpointName: "3",
             }),
         ],
