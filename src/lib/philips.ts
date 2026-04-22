@@ -249,19 +249,31 @@ const philipsModernExtend = {
         const toZigbee = result.toZigbee;
         result.toZigbee = [];
 
-        const keys = toZigbee.flatMap((value) => value.key).filter((value, index, array) => array.indexOf(value) === index);
-        keys.push(...philips2Keys);
+        // philipsLightTz claims all standard light keys plus Philips2-specific extras.
+        // At runtime, if the user hasn't enabled `philips2_native_control` option,
+        // we delegate standard keys back to the original converters so users get the
+        // ZCL default behavior
+        const keys = [...toZigbee.flatMap((value) => value.key).filter((value, index, array) => array.indexOf(value) === index), ...philips2Keys];
         const philipsLightTz = {
             key: keys,
             convertSet: async (entity, key, value, meta) => {
-                // Old bulbs may not support manuSpecificPhilips2 — fall back to standard converters.
-                // Since Z2M calls us once and marks us as used for all our keys, we must delegate
-                // ALL message keys to the appropriate standard converters in one shot,
-                // mimicking Z2M's own per-key dispatch loop.
-                if (utils.isEndpoint(entity) && !entity.supportsInputCluster("manuSpecificPhilips2")) {
+                // Resolve control mode: explicit option wins; otherwise default to standard converters.
+                const nativeControl = (meta.options as KeyValueAny).philips2_native_control === true;
+
+                // Delegate to standard converters if:
+                //   - Device doesn't support manuSpecificPhilips2 cluster (old bulbs), OR
+                //   - User hasn't opted into native Philips2 control (default)
+                // This mimics Z2M's own per-key dispatch so a single message routes
+                // each key to the appropriate converter.
+                const mustDelegate = (utils.isEndpoint(entity) && !entity.supportsInputCluster("manuSpecificPhilips2")) || !nativeControl;
+
+                if (mustDelegate) {
                     const used = new Set<Tz.Converter>();
                     let mergedState: KeyValue = {};
                     for (const [msgKey, msgValue] of Object.entries(meta.message)) {
+                        // Only delegate keys we claimed
+                        // philips2Keys have no standard equivalent and must still be handled below by the Philips2 path
+                        if (philips2Keys.includes(msgKey)) continue;
                         for (const tz of toZigbee) {
                             if (!used.has(tz) && tz.key.includes(msgKey) && tz.convertSet) {
                                 used.add(tz);
@@ -273,10 +285,22 @@ const philipsModernExtend = {
                             }
                         }
                     }
-                    return Object.keys(mergedState).length > 0 ? {state: mergedState} : undefined;
+                    // In delegated mode, we still need to handle Philips2-specific keys (effect_color,
+                    // effect_speed, gradient_scale, etc.) below. But if the current call is for a
+                    // standard key and no Philips2-specific keys are in the message, we're done.
+                    const hasPhilips2Keys = Object.keys(meta.message).some((k) => philips2Keys.includes(k));
+                    if (!hasPhilips2Keys) {
+                        return Object.keys(mergedState).length > 0 ? {state: mergedState} : undefined;
+                    }
+                    // Fall through: continue below to handle Philips2-specific fields only.
                 }
 
-                const {message} = meta;
+                // Native control mode (or handling Philips2-specific keys in delegate mode):
+                // build a Philips2 payload from the message. In delegate mode, we filter out
+                // standard keys since the standard converters already sent them.
+                const message = nativeControl
+                    ? meta.message
+                    : Object.fromEntries(Object.entries(meta.message).filter(([k]) => philips2Keys.includes(k)));
                 const newState: KeyValue = {};
 
                 const data: Philips2Data = {};
@@ -492,15 +516,26 @@ const philipsModernExtend = {
                 }
             },
             options: [
+                new exposes.Binary("philips2_native_control", ea.SET, true, false).withDescription(
+                    "Control this light using a Philips-specific protocol instead of standard Zigbee commands. " +
+                        "When enabled, on/off, brightness, color, and color temperature are combined into single atomic commands. " +
+                        "This is required to use the Effect color update mode. " +
+                        "When disabled (default), standard Zigbee commands are used, which preserves the usual behavior, " +
+                        "including simulating on/off transitions.",
+                ),
                 new exposes.Enum("effect_color_mode", ea.SET, ["stop", "update"]).withDescription(
-                    "Controls what happens when color is changed while an effect is active. " +
+                    "Controls what happens when color is changed while an effect is active (requires Philips2 native control). " +
                         "'stop' (default): color change stops the effect (Hue app behavior). " +
                         "'update': color change re-sends the effect with the new color.",
                 ),
             ],
         } satisfies Tz.Converter;
 
-        result.toZigbee.push(philipsLightTz, philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
+        // philipsLightTz claims all standard light keys. Inside convertSet, it delegates
+        // back to the original standard converters by default (opt-out), or sends via
+        // manuSpecificPhilips2 when the user enables the philips2_native_control option.
+        // The original standard converters are captured in the `toZigbee` closure above.
+        result.toZigbee = [philipsLightTz, philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error];
 
         if (args.hueEffect || args.gradient) {
             result.toZigbee.push(philipsTz.effect);
