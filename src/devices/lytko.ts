@@ -22,7 +22,7 @@ interface LyktoThermostat {
         lytkoSensor: number;
         lytkoTargetFirst: boolean;
         sensorType: number;
-        targetTempFirst: boolean
+        targetTempFirst: boolean;
     };
     commands: never;
     commandResponses: never;
