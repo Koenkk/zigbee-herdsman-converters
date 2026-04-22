@@ -150,18 +150,6 @@ function collectReadAttributes(device: MockConfiguredDevice): string[] {
     return allReadKeys;
 }
 
-function collectBindClusters(device: MockConfiguredDevice): Map<number, (string | number)[]> {
-    const map = new Map<number, (string | number)[]>();
-    for (const ep of device.endpoints) {
-        const clusters: (string | number)[] = [];
-        for (const call of (ep.bind as ReturnType<typeof vi.fn>).mock.calls) {
-            clusters.push(call[0]);
-        }
-        map.set(ep.ID, clusters);
-    }
-    return map;
-}
-
 /** Normalize a fromZigbee converter (or a bare fingerprint) to {cluster, sorted type}. */
 function fzFingerprint(converter: {cluster: string | number; type: string | string[]}) {
     return {
@@ -178,7 +166,7 @@ type CommandCallExpectation = {cluster: string; command: string; payload: Record
 interface IntegrationAssertion {
     model: string;
     device: MockConfiguredDevice;
-    meta: Record<string, unknown>;
+    meta: Record<string, unknown> | undefined;
     fromZigbeeFingerprint: {cluster: string; type: string | string[]}[];
     toZigbeeKeysContain: string[];
     toZigbeeKeysOmit?: string[];
@@ -267,28 +255,10 @@ async function assertInovelliIntegration(e: IntegrationAssertion): Promise<Defin
 
 type ReportingItem = {attribute: string; minimumReportInterval: number; maximumReportInterval: number; reportableChange: number | null | typeof NaN};
 
-function collectManuInovelliReadAttrsByEndpoint(device: MockConfiguredDevice): Map<number, string[]> {
-    const map = new Map<number, string[]>();
-    for (const ep of device.endpoints) {
-        const attrs: string[] = [];
-        for (const call of (ep.read as ReturnType<typeof vi.fn>).mock.calls) {
-            if (call[0] === "manuSpecificInovelli") {
-                attrs.push(...(call[1] as string[]));
-            }
-        }
-        map.set(ep.ID, attrs);
-    }
-    return map;
-}
-
-async function patchAndConfigure(device: MockConfiguredDevice, definition: Definition): Promise<void> {
-    patchDeviceForConfigure(device);
-    await definition.configure(device, device.getEndpoint(1), definition);
-}
-
 async function runInovelliConfigure(device: MockConfiguredDevice): Promise<string[]> {
     const definition = await findByDevice(device);
-    await patchAndConfigure(device, definition);
+    patchDeviceForConfigure(device);
+    await definition.configure(device, device.getEndpoint(1), definition);
     return collectReadAttributes(device);
 }
 
@@ -572,54 +542,27 @@ describe("Inovelli toZigbee converters", () => {
     });
 
     describe("fan_mode toZigbee (VZM35-SN)", () => {
-        it("should send moveToLevelWithOnOff with correct level for low", async () => {
+        // `low`/`medium`/`high` map to the same levels that the fromZigbee path parses back; `transtime=0xffff`
+        // signals "no transition" to the firmware. `state: "ON"` is implicitly added to the returned state.
+        it.each([
+            {fan_mode: "low", level: 2},
+            {fan_mode: "medium", level: 86},
+            {fan_mode: "high", level: 170},
+        ])("sends moveToLevelWithOnOff level=$level for fan_mode=$fan_mode", async ({fan_mode, level}) => {
             const {device, definition} = await setupVZM35();
             const converter = findTzConverter(definition, "fan_mode");
             const ep1 = device.getEndpoint(1);
-            const meta = buildMeta(device, {mapped: definition, message: {fan_mode: "low"}, state: {}});
+            const meta = buildMeta(device, {mapped: definition, message: {fan_mode}, state: {}});
 
-            const result = await converter.convertSet(ep1, "fan_mode", "low", meta);
+            const result = await converter.convertSet(ep1, "fan_mode", fan_mode, meta);
 
             expect(ep1.command).toHaveBeenCalledWith(
                 "genLevelCtrl",
                 "moveToLevelWithOnOff",
-                {level: 2, transtime: 0xffff, optionsMask: 0, optionsOverride: 0},
+                {level, transtime: 0xffff, optionsMask: 0, optionsOverride: 0},
                 expect.any(Object),
             );
-            expect(result).toStrictEqual({state: {fan_mode: "low", state: "ON"}});
-        });
-
-        it("should send correct level for medium", async () => {
-            const {device, definition} = await setupVZM35();
-            const converter = findTzConverter(definition, "fan_mode");
-            const ep1 = device.getEndpoint(1);
-            const meta = buildMeta(device, {mapped: definition, message: {fan_mode: "medium"}, state: {}});
-
-            const result = await converter.convertSet(ep1, "fan_mode", "medium", meta);
-
-            expect(ep1.command).toHaveBeenCalledWith(
-                "genLevelCtrl",
-                "moveToLevelWithOnOff",
-                {level: 86, transtime: 0xffff, optionsMask: 0, optionsOverride: 0},
-                expect.any(Object),
-            );
-            expect(result).toStrictEqual({state: {fan_mode: "medium", state: "ON"}});
-        });
-
-        it("should send correct level for high", async () => {
-            const {device, definition} = await setupVZM35();
-            const converter = findTzConverter(definition, "fan_mode");
-            const ep1 = device.getEndpoint(1);
-            const meta = buildMeta(device, {mapped: definition, message: {fan_mode: "high"}, state: {}});
-
-            await converter.convertSet(ep1, "fan_mode", "high", meta);
-
-            expect(ep1.command).toHaveBeenCalledWith(
-                "genLevelCtrl",
-                "moveToLevelWithOnOff",
-                {level: 170, transtime: 0xffff, optionsMask: 0, optionsOverride: 0},
-                expect.any(Object),
-            );
+            expect(result).toStrictEqual({state: {fan_mode, state: "ON"}});
         });
 
         it("convertGet should read currentLevel from the correct endpoint", async () => {
@@ -744,11 +687,16 @@ describe("Inovelli toZigbee converters", () => {
     });
 
     describe("mmWave toZigbee (VZM32-SN)", () => {
-        it("mmwave_control_commands should map reset_mmwave_module to controlID 0", async () => {
+        // mmwave_control_commands maps a string command to a numeric controlID that the firmware accepts.
+        it.each([
+            {controlID: "reset_mmwave_module", id: 0},
+            {controlID: "set_interference", id: 1},
+            {controlID: "query_areas", id: 2},
+        ])("mmwave_control_commands maps $controlID to controlID $id", async ({controlID, id}) => {
             const {device, definition} = await setupVZM32();
             const converter = findTzConverter(definition, "mmwave_control_commands");
             const endpoint = device.getEndpoint(1);
-            const values = {controlID: "reset_mmwave_module"};
+            const values = {controlID};
             const meta = buildMeta(device, {mapped: definition, message: {mmwave_control_commands: values}});
 
             const result = await converter.convertSet(endpoint, "mmwave_control_commands", values, meta);
@@ -756,44 +704,10 @@ describe("Inovelli toZigbee converters", () => {
             expect(endpoint.command).toHaveBeenCalledWith(
                 "manuSpecificInovelliMMWave",
                 "mmWaveControl",
-                {controlID: 0},
+                {controlID: id},
                 {disableResponse: true, disableDefaultResponse: true},
             );
             expect(result).toStrictEqual({state: {mmwave_control_commands: values}});
-        });
-
-        it("mmwave_control_commands should map set_interference to controlID 1", async () => {
-            const {device, definition} = await setupVZM32();
-            const converter = findTzConverter(definition, "mmwave_control_commands");
-            const endpoint = device.getEndpoint(1);
-            const values = {controlID: "set_interference"};
-            const meta = buildMeta(device, {mapped: definition, message: {mmwave_control_commands: values}});
-
-            await converter.convertSet(endpoint, "mmwave_control_commands", values, meta);
-
-            expect(endpoint.command).toHaveBeenCalledWith(
-                "manuSpecificInovelliMMWave",
-                "mmWaveControl",
-                {controlID: 1},
-                {disableResponse: true, disableDefaultResponse: true},
-            );
-        });
-
-        it("mmwave_control_commands should map query_areas to controlID 2", async () => {
-            const {device, definition} = await setupVZM32();
-            const converter = findTzConverter(definition, "mmwave_control_commands");
-            const endpoint = device.getEndpoint(1);
-            const values = {controlID: "query_areas"};
-            const meta = buildMeta(device, {mapped: definition, message: {mmwave_control_commands: values}});
-
-            await converter.convertSet(endpoint, "mmwave_control_commands", values, meta);
-
-            expect(endpoint.command).toHaveBeenCalledWith(
-                "manuSpecificInovelliMMWave",
-                "mmWaveControl",
-                {controlID: 2},
-                {disableResponse: true, disableDefaultResponse: true},
-            );
         });
 
         it("mmwave_detection_areas should send setDetectionArea for each area", async () => {
@@ -1420,426 +1334,166 @@ describe("Inovelli baseline exposes", () => {
 });
 
 describe("Inovelli firmware-gated exposes", () => {
-    describe("VZM31-SN firmware below 3.0", () => {
+    /**
+     * VZM31-SN is the only model whose exposes depend on firmware: `Single-Pole Full Sine Wave` is
+     * removed from `switchType` starting at fw 3.0, `Toggle` is added to `fanControlMode` at fw 3.0,
+     * `dimmingAlgorithm`/`auxDetectionLevel` appear at fw 3.05, and `dumbDetectionLevel` appears at 3.07.
+     * When firmware is unknown (undefined) we expose *everything* so the UI has maximum capabilities.
+     */
+    describe.each([
+        {fw: undefined, singlePoleFullSine: true, fanToggle: true, dimmingAlgo: true, auxDetection: true, dumbDetection: true},
+        {fw: "2.18", singlePoleFullSine: true, fanToggle: false, dimmingAlgo: false, auxDetection: false, dumbDetection: false},
+        {fw: "3.0", singlePoleFullSine: false, fanToggle: true, dimmingAlgo: false, auxDetection: false, dumbDetection: false},
+        {fw: "3.04", singlePoleFullSine: false, fanToggle: true, dimmingAlgo: false, auxDetection: false, dumbDetection: false},
+        {fw: "3.05", singlePoleFullSine: false, fanToggle: true, dimmingAlgo: true, auxDetection: true, dumbDetection: false},
+        {fw: "3.07", singlePoleFullSine: false, fanToggle: true, dimmingAlgo: true, auxDetection: true, dumbDetection: true},
+    ])("VZM31-SN firmware $fw", ({fw, singlePoleFullSine, fanToggle, dimmingAlgo, auxDetection, dumbDetection}) => {
         let exposes: Expose[];
 
         beforeAll(async () => {
-            const {device, definition} = await setupVZM31("2.18");
+            const {device, definition} = await setupVZM31(fw);
             exposes = resolveExposes(definition, device);
         });
 
-        it("switchType should include Single-Pole Full Sine Wave", () => {
-            const switchType = assertExpose(exposes, "switchType");
-            expect(getEnumValues(switchType)).toContain("Single-Pole Full Sine Wave");
+        it(`switchType ${singlePoleFullSine ? "includes" : "excludes"} Single-Pole Full Sine Wave`, () => {
+            const values = getEnumValues(assertExpose(exposes, "switchType"));
+            if (singlePoleFullSine) {
+                expect(values).toContain("Single-Pole Full Sine Wave");
+            } else {
+                expect(values).not.toContain("Single-Pole Full Sine Wave");
+            }
         });
 
-        it("fanControlMode should not include Toggle", () => {
-            const fanControlMode = assertExpose(exposes, "fanControlMode");
-            expect(getEnumValues(fanControlMode)).not.toContain("Toggle");
+        it(`fanControlMode ${fanToggle ? "includes" : "excludes"} Toggle`, () => {
+            const values = getEnumValues(assertExpose(exposes, "fanControlMode"));
+            if (fanToggle) {
+                expect(values).toContain("Toggle");
+            } else {
+                expect(values).not.toContain("Toggle");
+            }
         });
 
-        it("dimmingAlgorithm should not be exposed", () => {
-            expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
-        });
-
-        it("auxDetectionLevel should not be exposed", () => {
-            expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
-        });
-
-        it("dumbDetectionLevel should not be exposed", () => {
-            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
-        });
-    });
-
-    describe("VZM31-SN firmware 3.0", () => {
-        let exposes: Expose[];
-
-        beforeAll(async () => {
-            const {device, definition} = await setupVZM31("3.0");
-            exposes = resolveExposes(definition, device);
-        });
-
-        it("switchType should not include Single-Pole Full Sine Wave", () => {
-            const switchType = assertExpose(exposes, "switchType");
-            expect(getEnumValues(switchType)).not.toContain("Single-Pole Full Sine Wave");
-        });
-
-        it("fanControlMode should include Toggle", () => {
-            const fanControlMode = assertExpose(exposes, "fanControlMode");
-            expect(getEnumValues(fanControlMode)).toContain("Toggle");
-        });
-
-        it("dimmingAlgorithm should not be exposed (below 3.05)", () => {
-            expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
-        });
-
-        it("auxDetectionLevel should not be exposed (below 3.05)", () => {
-            expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
-        });
-
-        it("dumbDetectionLevel should not be exposed (below 3.07)", () => {
-            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
-        });
-    });
-
-    describe("VZM31-SN firmware 3.04 (between 3.0 and 3.05)", () => {
-        let exposes: Expose[];
-
-        beforeAll(async () => {
-            const {device, definition} = await setupVZM31("3.04");
-            exposes = resolveExposes(definition, device);
-        });
-
-        it("switchType should not include Single-Pole Full Sine Wave", () => {
-            const switchType = assertExpose(exposes, "switchType");
-            expect(getEnumValues(switchType)).not.toContain("Single-Pole Full Sine Wave");
-        });
-
-        it("fanControlMode should include Toggle", () => {
-            const fanControlMode = assertExpose(exposes, "fanControlMode");
-            expect(getEnumValues(fanControlMode)).toContain("Toggle");
-        });
-
-        it("dimmingAlgorithm should not be exposed", () => {
-            expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
-        });
-
-        it("auxDetectionLevel should not be exposed", () => {
-            expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
-        });
-
-        it("dumbDetectionLevel should not be exposed (below 3.07)", () => {
-            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
-        });
-    });
-
-    describe("VZM31-SN firmware 3.05+", () => {
-        let exposes: Expose[];
-
-        beforeAll(async () => {
-            const {device, definition} = await setupVZM31("3.05");
-            exposes = resolveExposes(definition, device);
-        });
-
-        it("switchType should not include Single-Pole Full Sine Wave", () => {
-            const switchType = assertExpose(exposes, "switchType");
-            expect(getEnumValues(switchType)).not.toContain("Single-Pole Full Sine Wave");
-        });
-
-        it("fanControlMode should include Toggle", () => {
-            const fanControlMode = assertExpose(exposes, "fanControlMode");
-            expect(getEnumValues(fanControlMode)).toContain("Toggle");
-        });
-
-        it("dimmingAlgorithm should be exposed", () => {
-            expect(findExpose(exposes, "dimmingAlgorithm")).toBeDefined();
-        });
-
-        it("auxDetectionLevel should be exposed", () => {
-            expect(findExpose(exposes, "auxDetectionLevel")).toBeDefined();
-        });
-
-        it("dumbDetectionLevel should not be exposed (below 3.07)", () => {
-            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
-        });
-    });
-
-    describe("VZM31-SN firmware 3.07+", () => {
-        let exposes: Expose[];
-
-        beforeAll(async () => {
-            const {device, definition} = await setupVZM31("3.07");
-            exposes = resolveExposes(definition, device);
-        });
-
-        it("dumbDetectionLevel should be exposed", () => {
-            expect(findExpose(exposes, "dumbDetectionLevel")).toBeDefined();
-        });
-    });
-
-    describe("VZM31-SN with no firmware version", () => {
-        it("should expose all attributes with all values", async () => {
-            const {device, definition} = await setupVZM31();
-            const exposes = resolveExposes(definition, device);
-            const switchType = assertExpose(exposes, "switchType");
-            expect(getEnumValues(switchType)).toContain("Single-Pole Full Sine Wave");
-            expect(getEnumValues(switchType)).toContain("Single Pole");
-
-            const fanControlMode = assertExpose(exposes, "fanControlMode");
-            expect(getEnumValues(fanControlMode)).toContain("Toggle");
-
-            expect(findExpose(exposes, "dimmingAlgorithm")).toBeDefined();
-            expect(findExpose(exposes, "auxDetectionLevel")).toBeDefined();
-            expect(findExpose(exposes, "dumbDetectionLevel")).toBeDefined();
-        });
-    });
-
-    describe("VZM30-SN switchType never includes Single-Pole Full Sine Wave", () => {
         it.each([
-            {title: "old firmware", fw: "2.18"},
-            {title: "new firmware", fw: "3.05"},
-        ])("$title", async ({fw}) => {
-            const {device, definition} = await setupVZM30(fw);
-            const exposes = resolveExposes(definition, device);
-            const switchType = assertExpose(exposes, "switchType");
-            expect(getEnumValues(switchType)).not.toContain("Single-Pole Full Sine Wave");
-            expect(getEnumValues(switchType)).toStrictEqual(["Single Pole", "Aux Switch"]);
+            {attr: "dimmingAlgorithm", present: dimmingAlgo},
+            {attr: "auxDetectionLevel", present: auxDetection},
+            {attr: "dumbDetectionLevel", present: dumbDetection},
+        ])("$attr is $present", ({attr, present}) => {
+            if (present) {
+                expect(findExpose(exposes, attr)).toBeDefined();
+            } else {
+                expect(findExpose(exposes, attr)).toBeUndefined();
+            }
         });
     });
 
-    describe("VZM30-SN fanControlMode Toggle is not firmware-gated", () => {
-        it("should always include Toggle regardless of firmware", async () => {
-            const {device, definition} = await setupVZM30("2.18");
-            const exposes = resolveExposes(definition, device);
-            const fanControlMode = assertExpose(exposes, "fanControlMode");
-            expect(getEnumValues(fanControlMode)).toContain("Toggle");
-        });
-    });
+    /**
+     * VZM30/VZM32/VZM35 all hard-code the non-firmware-gated behavior: `switchType` is always
+     * `["Single Pole", "Aux Switch"]`, `fanControlMode` always includes `Toggle`, and the three
+     * firmware-gated dimmer attributes (`dimmingAlgorithm`, `auxDetectionLevel`, `dumbDetectionLevel`)
+     * are never exposed. Parameterize by (model, firmware) to exercise both low/high firmware paths.
+     */
+    describe.each([
+        {model: "VZM30-SN", setup: setupVZM30, fw: "2.18"},
+        {model: "VZM30-SN", setup: setupVZM30, fw: "3.05"},
+        {model: "VZM32-SN", setup: setupVZM32, fw: "1.0"},
+        {model: "VZM32-SN", setup: setupVZM32, fw: "1.15"},
+        {model: "VZM35-SN", setup: setupVZM35, fw: "2.18"},
+        {model: "VZM35-SN", setup: setupVZM35, fw: "3.05"},
+    ])("$model firmware $fw: model-independent exposes", ({setup, fw}) => {
+        let exposes: Expose[];
 
-    describe("VZM30-SN has no dimmingAlgorithm, auxDetectionLevel, or dumbDetectionLevel", () => {
-        it("regardless of firmware version", async () => {
-            const {device, definition} = await setupVZM30("3.05");
-            const exposes = resolveExposes(definition, device);
-            expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
-            expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
-            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
+        beforeAll(async () => {
+            const {device, definition} = await setup(fw);
+            exposes = resolveExposes(definition, device);
         });
-    });
 
-    describe("VZM32-SN switchType never includes Single-Pole Full Sine Wave", () => {
-        it.each([
-            {title: "early 1.x firmware", fw: "1.0"},
-            {title: "later 1.x firmware", fw: "1.15"},
-        ])("$title", async ({fw}) => {
-            const {device, definition} = await setupVZM32(fw);
-            const exposes = resolveExposes(definition, device);
-            const switchType = assertExpose(exposes, "switchType");
-            expect(getEnumValues(switchType)).not.toContain("Single-Pole Full Sine Wave");
-            expect(getEnumValues(switchType)).toStrictEqual(["Single Pole", "Aux Switch"]);
+        it("switchType is exactly ['Single Pole', 'Aux Switch']", () => {
+            expect(getEnumValues(assertExpose(exposes, "switchType"))).toStrictEqual(["Single Pole", "Aux Switch"]);
         });
-    });
 
-    describe("VZM32-SN fanControlMode Toggle is not firmware-gated", () => {
-        it("should always include Toggle regardless of firmware", async () => {
-            const {device, definition} = await setupVZM32("1.0");
-            const exposes = resolveExposes(definition, device);
-            const fanControlMode = assertExpose(exposes, "fanControlMode");
-            expect(getEnumValues(fanControlMode)).toContain("Toggle");
+        it("fanControlMode includes Toggle", () => {
+            expect(getEnumValues(assertExpose(exposes, "fanControlMode"))).toContain("Toggle");
         });
-    });
 
-    describe("VZM32-SN dimmingAlgorithm, auxDetectionLevel, and dumbDetectionLevel are not available", () => {
-        it("should not be exposed regardless of firmware", async () => {
-            const {device, definition} = await setupVZM32("1.15");
-            const exposes = resolveExposes(definition, device);
-            expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
-            expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
-            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
-        });
-    });
-
-    describe("VZM35-SN switchType always uses default values", () => {
-        it("should only have Single Pole and Aux Switch", async () => {
-            const {device, definition} = await setupVZM35("2.18");
-            const exposes = resolveExposes(definition, device);
-            const switchType = assertExpose(exposes, "switchType");
-            expect(getEnumValues(switchType)).toStrictEqual(["Single Pole", "Aux Switch"]);
-        });
-    });
-
-    describe("VZM35-SN fanControlMode Toggle is not firmware-gated", () => {
-        it("should always include Toggle regardless of firmware", async () => {
-            const {device, definition} = await setupVZM35("2.18");
-            const exposes = resolveExposes(definition, device);
-            const fanControlMode = assertExpose(exposes, "fanControlMode");
-            expect(getEnumValues(fanControlMode)).toContain("Toggle");
-        });
-    });
-
-    describe("VZM35-SN has no dimmingAlgorithm, auxDetectionLevel, or dumbDetectionLevel", () => {
-        it("regardless of firmware version", async () => {
-            const {device, definition} = await setupVZM35("3.05");
-            const exposes = resolveExposes(definition, device);
-            expect(findExpose(exposes, "dimmingAlgorithm")).toBeUndefined();
-            expect(findExpose(exposes, "auxDetectionLevel")).toBeUndefined();
-            expect(findExpose(exposes, "dumbDetectionLevel")).toBeUndefined();
+        it.each(["dimmingAlgorithm", "auxDetectionLevel", "dumbDetectionLevel"])("%s is not exposed", (attr) => {
+            expect(findExpose(exposes, attr)).toBeUndefined();
         });
     });
 });
 
 describe("Inovelli configure attribute filtering", () => {
-    describe("VZM31-SN configure", () => {
-        function createVZM31(softwareBuildID?: string) {
-            return mockDevice({
-                modelID: "VZM31-SN",
-                endpoints: [
-                    {ID: 1, inputClusters: ["genOnOff", "genLevelCtrl", "haElectricalMeasurement", "seMetering"]},
-                    {ID: 2, inputClusters: []},
-                    {ID: 3, inputClusters: []},
-                ],
-                softwareBuildID,
-            });
-        }
+    /**
+     * Firmware gating of the VZM31-SN parameter-read list mirrors the expose gating: below 3.05 the
+     * device doesn't implement `dimmingAlgorithm`/`auxDetectionLevel`, and `dumbDetectionLevel` arrives
+     * at 3.07. Crucially, when firmware is unknown (undefined) we read *all* parameters so the UI has
+     * the freshest possible state even if the exposes list under-specifies. VZM30/VZM32 hard-code the
+     * gating to "never" since those models never implement those parameters at any firmware.
+     */
+    const VZM31_ENDPOINTS = [
+        {ID: 1, inputClusters: ["genOnOff", "genLevelCtrl", "haElectricalMeasurement", "seMetering"]},
+        {ID: 2, inputClusters: []},
+        {ID: 3, inputClusters: []},
+    ];
+    const VZM32_ENDPOINTS = [
+        {
+            ID: 1,
+            inputClusters: ["genOnOff", "genLevelCtrl", "haElectricalMeasurement", "seMetering", "msIlluminanceMeasurement", "msOccupancySensing"],
+        },
+        {ID: 2, inputClusters: []},
+        {ID: 3, inputClusters: []},
+    ];
+    const VZM30_ENDPOINTS = [
+        {
+            ID: 1,
+            inputClusters: ["genOnOff", "genLevelCtrl", "haElectricalMeasurement", "seMetering", "msTemperatureMeasurement", "msRelativeHumidity"],
+        },
+        {ID: 2, inputClusters: []},
+        {ID: 3, inputClusters: []},
+        {ID: 4, inputClusters: []},
+    ];
 
-        it("should not read dimmingAlgorithm, auxDetectionLevel, or dumbDetectionLevel on firmware below 3.05", async () => {
-            const readKeys = await runInovelliConfigure(createVZM31("3.0"));
-            expect(readKeys).not.toContain("dimmingAlgorithm");
-            expect(readKeys).not.toContain("auxDetectionLevel");
-            expect(readKeys).not.toContain("dumbDetectionLevel");
+    describe.each([
+        // VZM31: firmware-gated
+        {model: "VZM31-SN", endpoints: VZM31_ENDPOINTS, fw: "3.0", dimmingAlgo: false, auxDetection: false, dumbDetection: false},
+        {model: "VZM31-SN", endpoints: VZM31_ENDPOINTS, fw: "3.05", dimmingAlgo: true, auxDetection: true, dumbDetection: false},
+        {model: "VZM31-SN", endpoints: VZM31_ENDPOINTS, fw: "3.07", dimmingAlgo: true, auxDetection: true, dumbDetection: true},
+        {model: "VZM31-SN", endpoints: VZM31_ENDPOINTS, fw: undefined, dimmingAlgo: true, auxDetection: true, dumbDetection: true},
+        // VZM32 and VZM30: never
+        {model: "VZM32-SN", endpoints: VZM32_ENDPOINTS, fw: "3.05", dimmingAlgo: false, auxDetection: false, dumbDetection: false},
+        {model: "VZM30-SN", endpoints: VZM30_ENDPOINTS, fw: "3.05", dimmingAlgo: false, auxDetection: false, dumbDetection: false},
+    ])("$model configure (firmware $fw)", ({model, endpoints, fw, dimmingAlgo, auxDetection, dumbDetection}) => {
+        let readKeys: string[];
+
+        beforeAll(async () => {
+            readKeys = await runInovelliConfigure(mockDevice({modelID: model, endpoints, softwareBuildID: fw}));
         });
 
-        it("should read dimmingAlgorithm and auxDetectionLevel on firmware 3.05+", async () => {
-            const readKeys = await runInovelliConfigure(createVZM31("3.05"));
-            expect(readKeys).toContain("dimmingAlgorithm");
-            expect(readKeys).toContain("auxDetectionLevel");
-        });
-
-        it("should not read dumbDetectionLevel on firmware 3.05 (below 3.07)", async () => {
-            const readKeys = await runInovelliConfigure(createVZM31("3.05"));
-            expect(readKeys).not.toContain("dumbDetectionLevel");
-        });
-
-        it("should read dumbDetectionLevel on firmware 3.07+", async () => {
-            const readKeys = await runInovelliConfigure(createVZM31("3.07"));
-            expect(readKeys).toContain("dumbDetectionLevel");
-        });
-
-        it("should read all attributes when firmware is unknown", async () => {
-            const readKeys = await runInovelliConfigure(createVZM31());
-            expect(readKeys).toContain("dimmingAlgorithm");
-            expect(readKeys).toContain("auxDetectionLevel");
-            expect(readKeys).toContain("dumbDetectionLevel");
+        it("reads common attributes switchType and fanControlMode", () => {
             expect(readKeys).toContain("switchType");
             expect(readKeys).toContain("fanControlMode");
         });
-    });
 
-    describe("VZM32-SN configure", () => {
-        function createVZM32(softwareBuildID?: string) {
-            return mockDevice({
-                modelID: "VZM32-SN",
-                endpoints: [
-                    {
-                        ID: 1,
-                        inputClusters: [
-                            "genOnOff",
-                            "genLevelCtrl",
-                            "haElectricalMeasurement",
-                            "seMetering",
-                            "msIlluminanceMeasurement",
-                            "msOccupancySensing",
-                        ],
-                    },
-                    {ID: 2, inputClusters: []},
-                    {ID: 3, inputClusters: []},
-                ],
-                softwareBuildID,
-            });
-        }
-
-        it("should never read dimmingAlgorithm, auxDetectionLevel, or dumbDetectionLevel but still read common attrs on 3.05+", async () => {
-            const readKeys = await runInovelliConfigure(createVZM32("3.05"));
-            expect(readKeys).not.toContain("dimmingAlgorithm");
-            expect(readKeys).not.toContain("auxDetectionLevel");
-            expect(readKeys).not.toContain("dumbDetectionLevel");
-            expect(readKeys).toContain("switchType");
-            expect(readKeys).toContain("fanControlMode");
-        });
-    });
-
-    describe("VZM30-SN configure", () => {
-        it("should not read dimmingAlgorithm, auxDetectionLevel, or dumbDetectionLevel", async () => {
-            const device = mockDevice({
-                modelID: "VZM30-SN",
-                endpoints: [
-                    {
-                        ID: 1,
-                        inputClusters: [
-                            "genOnOff",
-                            "genLevelCtrl",
-                            "haElectricalMeasurement",
-                            "seMetering",
-                            "msTemperatureMeasurement",
-                            "msRelativeHumidity",
-                        ],
-                    },
-                    {ID: 2, inputClusters: []},
-                    {ID: 3, inputClusters: []},
-                    {ID: 4, inputClusters: []},
-                ],
-                softwareBuildID: "3.05",
-            });
-            const readKeys = await runInovelliConfigure(device);
-            expect(readKeys).not.toContain("dimmingAlgorithm");
-            expect(readKeys).not.toContain("auxDetectionLevel");
-            expect(readKeys).not.toContain("dumbDetectionLevel");
+        it.each([
+            {attr: "dimmingAlgorithm", read: dimmingAlgo},
+            {attr: "auxDetectionLevel", read: auxDetection},
+            {attr: "dumbDetectionLevel", read: dumbDetection},
+        ])("$attr is $read", ({attr, read}) => {
+            if (read) {
+                expect(readKeys).toContain(attr);
+            } else {
+                expect(readKeys).not.toContain(attr);
+            }
         });
     });
 });
 
-describe("Inovelli configure (VZM35/VZM36) and OTA", () => {
-    describe("VZM35-SN fan configure", () => {
-        it("should bind EP1 to genOnOff, genLevelCtrl, and manuSpecificInovelli; EP2 to manuSpecificInovelli only", async () => {
-            const {device, definition} = await setupVZM35();
-            await patchAndConfigure(device, definition);
-
-            const binds = collectBindClusters(device);
-            expect(binds.get(1)?.filter((c) => c === "manuSpecificInovelli")).toHaveLength(1);
-            expect(binds.get(1)).toContain("genOnOff");
-            expect(binds.get(1)).toContain("genLevelCtrl");
-            expect(binds.get(2)?.filter((c) => c === "manuSpecificInovelli")).toHaveLength(1);
-            expect(binds.get(2)).not.toContain("genOnOff");
-        });
-
-        it("should read manuSpecificInovelli attributes on EP1 only (fan cluster reads stay on EP1)", async () => {
-            const {device, definition} = await setupVZM35();
-            await patchAndConfigure(device, definition);
-
-            const manuReads = collectManuInovelliReadAttrsByEndpoint(device);
-            expect(manuReads.get(1)?.length).toBeGreaterThan(0);
-            expect(manuReads.get(1)).toContain("switchType");
-            expect(manuReads.get(2)?.length).toBe(0);
-        });
-
-        it("should configure genOnOff reporting on the fan endpoint", async () => {
-            const {device, definition} = await setupVZM35();
-            await patchAndConfigure(device, definition);
-
-            const ep1 = device.getEndpoint(1);
-            expect(ep1.configureReporting).toHaveBeenCalled();
-            const reportingClusters = (ep1.configureReporting as ReturnType<typeof vi.fn>).mock.calls.map((c: unknown[]) => c[0]);
-            expect(reportingClusters).toContain("genOnOff");
-        });
-    });
-
-    describe("VZM36 split endpoint configure", () => {
-        it("should bind manuSpecificInovelli on both EP1 and EP2", async () => {
-            const {device, definition} = await setupVZM36();
-            await patchAndConfigure(device, definition);
-
-            const binds = collectBindClusters(device);
-            expect(binds.get(1)?.filter((c) => c === "manuSpecificInovelli")).toHaveLength(1);
-            expect(binds.get(2)?.filter((c) => c === "manuSpecificInovelli")).toHaveLength(1);
-        });
-
-        it("should read manuSpecificInovelli on both endpoints (split _1 / _2 attribute keys)", async () => {
-            const {device, definition} = await setupVZM36();
-            await patchAndConfigure(device, definition);
-
-            const manuReads = collectManuInovelliReadAttrsByEndpoint(device);
-            expect(manuReads.get(1)?.length).toBeGreaterThan(0);
-            expect(manuReads.get(2)?.length).toBeGreaterThan(0);
-            expect(manuReads.get(1)).toContain("dimmingSpeedUpRemote");
-            expect(manuReads.get(2)).toContain("dimmingSpeedUpRemote");
-            expect(manuReads.get(1)?.length).not.toBe(manuReads.get(2)?.length);
-        });
-    });
-
-    describe("OTA", () => {
-        it("should set ota: true on every Inovelli device definition", () => {
-            expect(inovelliDeviceDefinitions).toHaveLength(5);
-            expect(inovelliDeviceDefinitions.every((d) => d.ota === true)).toBe(true);
-        });
+// Fine-grained bind/read/configureReporting assertions for VZM35-SN and VZM36 live in their
+// `assertInovelliIntegration` blocks at the bottom of this file; here we just aggregate the OTA check
+// across all 5 Inovelli definitions, which the per-model integration tests don't exercise together.
+describe("Inovelli OTA", () => {
+    it("should set ota: true on every Inovelli device definition", () => {
+        expect(inovelliDeviceDefinitions).toHaveLength(5);
+        expect(inovelliDeviceDefinitions.every((d) => d.ota === true)).toBe(true);
     });
 });
 
@@ -1853,115 +1507,75 @@ describe("Inovelli fromZigbee converters", () => {
         });
 
         describe("button scene actions (raw EP2)", () => {
-            it("should parse down_single", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 1, 0), 2);
-                expect(payload).toHaveProperty("action", "down_single");
+            // The raw frame layout is `[_, _, button, tap, _, marker, _...]`: button index (1=down,2=up,3=config,
+            // 4-6=aux_*) and tap (0=single..6=quintuple). Only fires when endpoint=2 AND marker (data[4])=0x00.
+            it.each([
+                {button: 1, tap: 0, expected: "down_single"},
+                {button: 2, tap: 3, expected: "up_double"},
+                {button: 3, tap: 2, expected: "config_held"},
+                {button: 4, tap: 6, expected: "aux_down_quintuple"},
+                {button: 5, tap: 1, expected: "aux_up_release"},
+                {button: 6, tap: 4, expected: "aux_config_triple"},
+            ])("parses button=$button tap=$tap as $expected on EP2", ({button, tap, expected}) => {
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, button, tap), 2);
+                expect(payload).toHaveProperty("action", expected);
             });
 
-            it("should parse up_double", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 2, 3), 2);
-                expect(payload).toHaveProperty("action", "up_double");
-            });
-
-            it("should parse config_held", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 3, 2), 2);
-                expect(payload).toHaveProperty("action", "config_held");
-            });
-
-            it("should parse aux_down_quintuple", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 4, 6), 2);
-                expect(payload).toHaveProperty("action", "aux_down_quintuple");
-            });
-
-            it("should parse aux_up_release", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 5, 1), 2);
-                expect(payload).toHaveProperty("action", "aux_up_release");
-            });
-
-            it("should parse aux_config_triple", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 6, 4), 2);
-                expect(payload).toHaveProperty("action", "aux_config_triple");
-            });
-
-            it("should not fire on endpoint 1", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x00, 1, 0), 1);
-                expect(payload).not.toHaveProperty("action");
-            });
-
-            it("should not fire when data[4] is not 0x00", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(0x01, 1, 0), 2);
+            it.each([
+                {label: "wrong endpoint (EP1)", marker: 0x00, endpoint: 1},
+                {label: "wrong marker (data[4]=0x01)", marker: 0x01, endpoint: 2},
+            ])("does not fire on $label", ({marker, endpoint}) => {
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "raw", rawInovelliEp2Scene(marker, 1, 0), endpoint);
                 expect(payload).not.toHaveProperty("action");
             });
         });
 
         describe("custom cluster attribute reports with enum lookup", () => {
-            it("should reverse-lookup enum value for switchType", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "attributeReport", {switchType: 0}, 1);
-                expect(payload).toHaveProperty("switchType", "Single Pole");
-            });
-
-            it("should reverse-lookup another switchType value", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "readResponse", {switchType: 2}, 1);
-                expect(payload).toHaveProperty("switchType", "3-Way Aux Switch");
-            });
-
-            it("should reverse-lookup outputMode enum", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "attributeReport", {outputMode: 1}, 1);
-                expect(payload).toHaveProperty("outputMode", "On/Off");
-            });
-
-            it("should pass through numeric attribute values", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "attributeReport", {dimmingSpeedUpRemote: 50}, 1);
-                expect(payload).toHaveProperty("dimmingSpeedUpRemote", 50);
-            });
-
-            it("should handle readResponse the same as attributeReport for numeric values", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "readResponse", {dimmingSpeedUpRemote: 25}, 1);
-                expect(payload).toHaveProperty("dimmingSpeedUpRemote", 25);
-            });
-
-            it("should handle multiple attributes in one message", () => {
-                const payload = processFromZigbeeMessage(
-                    definition,
-                    "manuSpecificInovelli",
-                    "attributeReport",
-                    {switchType: 1, dimmingSpeedUpRemote: 42},
-                    1,
-                );
-                expect(payload).toHaveProperty("switchType", "3-Way Dumb Switch");
-                expect(payload).toHaveProperty("dimmingSpeedUpRemote", 42);
+            // Enum-valued attributes get reverse-looked up to human-readable strings; numeric attributes pass through
+            // unchanged. `attributeReport` and `readResponse` must be treated identically by the converter.
+            it.each([
+                {label: "switchType=0 -> 'Single Pole'", type: "attributeReport", attrs: {switchType: 0}, expected: {switchType: "Single Pole"}},
+                {
+                    label: "switchType=2 -> '3-Way Aux Switch' (via readResponse)",
+                    type: "readResponse",
+                    attrs: {switchType: 2},
+                    expected: {switchType: "3-Way Aux Switch"},
+                },
+                {label: "outputMode=1 -> 'On/Off'", type: "attributeReport", attrs: {outputMode: 1}, expected: {outputMode: "On/Off"}},
+                {label: "numeric pass-through", type: "attributeReport", attrs: {dimmingSpeedUpRemote: 50}, expected: {dimmingSpeedUpRemote: 50}},
+                {
+                    label: "readResponse numeric pass-through",
+                    type: "readResponse",
+                    attrs: {dimmingSpeedUpRemote: 25},
+                    expected: {dimmingSpeedUpRemote: 25},
+                },
+                {
+                    label: "mixed enum + numeric in one message",
+                    type: "attributeReport",
+                    attrs: {switchType: 1, dimmingSpeedUpRemote: 42},
+                    expected: {switchType: "3-Way Dumb Switch", dimmingSpeedUpRemote: 42},
+                },
+            ])("$label", ({type, attrs, expected}) => {
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", type, attrs, 1);
+                for (const [key, value] of Object.entries(expected)) {
+                    expect(payload).toHaveProperty(key, value);
+                }
             });
         });
 
         describe("LED effect complete", () => {
-            it("should map notificationType 0 to LED_1", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "commandLedEffectComplete", {notificationType: 0}, 1);
-                expect(payload).toStrictEqual({notificationComplete: "LED_1"});
-            });
-
-            it("should map notificationType 3 to LED_4", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "commandLedEffectComplete", {notificationType: 3}, 1);
-                expect(payload).toStrictEqual({notificationComplete: "LED_4"});
-            });
-
-            it("should map notificationType 6 to LED_7", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "commandLedEffectComplete", {notificationType: 6}, 1);
-                expect(payload).toStrictEqual({notificationComplete: "LED_7"});
-            });
-
-            it("should map notificationType 16 to ALL_LEDS", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "commandLedEffectComplete", {notificationType: 16}, 1);
-                expect(payload).toStrictEqual({notificationComplete: "ALL_LEDS"});
-            });
-
-            it("should map notificationType -1 to CONFIG_BUTTON_DOUBLE_PRESS", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "commandLedEffectComplete", {notificationType: -1}, 1);
-                expect(payload).toStrictEqual({notificationComplete: "CONFIG_BUTTON_DOUBLE_PRESS"});
-            });
-
-            it("should return Unknown for unmapped notificationType", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "commandLedEffectComplete", {notificationType: 99}, 1);
-                expect(payload).toStrictEqual({notificationComplete: "Unknown"});
+            // notificationType 0..6 -> LED_1..LED_7 (1-indexed), 16 -> ALL_LEDS, -1 -> CONFIG_BUTTON_DOUBLE_PRESS,
+            // any other value -> "Unknown" fallback to keep the pipeline resilient.
+            it.each([
+                {notificationType: 0, expected: "LED_1"},
+                {notificationType: 3, expected: "LED_4"},
+                {notificationType: 6, expected: "LED_7"},
+                {notificationType: 16, expected: "ALL_LEDS"},
+                {notificationType: -1, expected: "CONFIG_BUTTON_DOUBLE_PRESS"},
+                {notificationType: 99, expected: "Unknown"},
+            ])("maps notificationType=$notificationType to $expected", ({notificationType, expected}) => {
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "commandLedEffectComplete", {notificationType}, 1);
+                expect(payload).toStrictEqual({notificationComplete: expected});
             });
         });
 
@@ -1987,60 +1601,40 @@ describe("Inovelli fromZigbee converters", () => {
         });
 
         describe("fan_mode", () => {
-            it("should map currentLevel 2 to low", () => {
-                const payload = processFromZigbeeMessage(definition, "genLevelCtrl", "attributeReport", {currentLevel: 2}, 1);
-                expect(payload).toHaveProperty("fan_mode", "low");
+            // Fan level boundaries (from fzLocal.fan_mode): <=85 low, <=170 medium, else high. Smart (4) is
+            // a sentinel value, and 0 falls back to 1 => low via the `|| 1` guard in the converter.
+            it.each([
+                {currentLevel: 2, expected: "low"},
+                {currentLevel: 86, expected: "medium"},
+                {currentLevel: 170, expected: "high"},
+                {currentLevel: 255, expected: "high"},
+                {currentLevel: 4, expected: "smart"},
+                {currentLevel: 0, expected: "low"},
+            ])("maps currentLevel=$currentLevel to $expected on EP1", ({currentLevel, expected}) => {
+                const payload = processFromZigbeeMessage(definition, "genLevelCtrl", "attributeReport", {currentLevel}, 1);
+                expect(payload).toHaveProperty("fan_mode", expected);
             });
 
-            it("should map currentLevel 86 to medium", () => {
-                const payload = processFromZigbeeMessage(definition, "genLevelCtrl", "attributeReport", {currentLevel: 86}, 1);
-                expect(payload).toHaveProperty("fan_mode", "medium");
-            });
-
-            it("should map currentLevel 170 to high", () => {
-                const payload = processFromZigbeeMessage(definition, "genLevelCtrl", "attributeReport", {currentLevel: 170}, 1);
-                expect(payload).toHaveProperty("fan_mode", "high");
-            });
-
-            it("should map currentLevel 255 to high", () => {
-                const payload = processFromZigbeeMessage(definition, "genLevelCtrl", "attributeReport", {currentLevel: 255}, 1);
-                expect(payload).toHaveProperty("fan_mode", "high");
-            });
-
-            it("should map currentLevel 4 to smart", () => {
-                const payload = processFromZigbeeMessage(definition, "genLevelCtrl", "attributeReport", {currentLevel: 4}, 1);
-                expect(payload).toHaveProperty("fan_mode", "smart");
-            });
-
-            it("should map currentLevel 0 to low (0 || 1 fallback)", () => {
-                const payload = processFromZigbeeMessage(definition, "genLevelCtrl", "attributeReport", {currentLevel: 0}, 1);
-                expect(payload).toHaveProperty("fan_mode", "low");
-            });
-
-            it("should not fire on wrong endpoint", () => {
+            it("does not fire on wrong endpoint", () => {
                 const payload = processFromZigbeeMessage(definition, "genLevelCtrl", "attributeReport", {currentLevel: 86}, 2);
                 expect(payload).not.toHaveProperty("fan_mode");
             });
         });
 
         describe("fan_state", () => {
-            it("should return fan_state ON for onOff=1", () => {
-                const payload = processFromZigbeeMessage(definition, "genOnOff", "attributeReport", {onOff: 1}, 1);
-                expect(payload).toHaveProperty("fan_state", "ON");
+            it.each([
+                {onOff: 1, expected: "ON"},
+                {onOff: 0, expected: "OFF"},
+            ])("returns fan_state=$expected for onOff=$onOff on EP1", ({onOff, expected}) => {
+                const payload = processFromZigbeeMessage(definition, "genOnOff", "attributeReport", {onOff}, 1);
+                expect(payload).toHaveProperty("fan_state", expected);
             });
 
-            it("should return fan_state OFF for onOff=0", () => {
-                const payload = processFromZigbeeMessage(definition, "genOnOff", "attributeReport", {onOff: 0}, 1);
-                expect(payload).toHaveProperty("fan_state", "OFF");
-            });
-
-            it("should not fire on wrong endpoint", () => {
-                const payload = processFromZigbeeMessage(definition, "genOnOff", "attributeReport", {onOff: 1}, 2);
-                expect(payload).not.toHaveProperty("fan_state");
-            });
-
-            it("should return nothing when onOff is undefined", () => {
-                const payload = processFromZigbeeMessage(definition, "genOnOff", "attributeReport", {}, 1);
+            it.each([
+                {label: "wrong endpoint", msg: {onOff: 1}, endpoint: 2},
+                {label: "missing onOff attribute", msg: {}, endpoint: 1},
+            ])("does not fire on $label", ({msg, endpoint}) => {
+                const payload = processFromZigbeeMessage(definition, "genOnOff", "attributeReport", msg, endpoint);
                 expect(payload).not.toHaveProperty("fan_state");
             });
         });
@@ -2099,24 +1693,16 @@ describe("Inovelli fromZigbee converters", () => {
             expect(definition.model).toBe("VZM36");
         });
 
-        it("should add _1 suffix for EP1 enum attribute", () => {
-            const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "attributeReport", {outputMode: 0}, 1);
-            expect(payload).toHaveProperty("outputMode_1", "Dimmer");
-        });
-
-        it("should add _2 suffix for EP2 enum attribute with model-specific values", () => {
-            const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "attributeReport", {outputMode: 1}, 2);
-            expect(payload).toHaveProperty("outputMode_2", "Exhaust Fan (On/Off)");
-        });
-
-        it("should add _1 suffix for EP1 numeric attribute", () => {
-            const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "attributeReport", {dimmingSpeedUpRemote: 42}, 1);
-            expect(payload).toHaveProperty("dimmingSpeedUpRemote_1", 42);
-        });
-
-        it("should add _2 suffix for EP2 numeric attribute", () => {
-            const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "attributeReport", {dimmingSpeedUpRemote: 99}, 2);
-            expect(payload).toHaveProperty("dimmingSpeedUpRemote_2", 99);
+        // Split-by-endpoint attributes get an `_1`/`_2` suffix based on endpoint, and enum values can
+        // diverge per endpoint (EP1 dimmer is "Dimmer", EP2 fan is "Exhaust Fan (On/Off)" for the same value).
+        it.each<{label: string; endpoint: number; attr: Record<string, unknown>; expectedKey: string; expectedValue: unknown}>([
+            {label: "EP1 enum (dimmer)", endpoint: 1, attr: {outputMode: 0}, expectedKey: "outputMode_1", expectedValue: "Dimmer"},
+            {label: "EP2 enum (fan variant)", endpoint: 2, attr: {outputMode: 1}, expectedKey: "outputMode_2", expectedValue: "Exhaust Fan (On/Off)"},
+            {label: "EP1 numeric", endpoint: 1, attr: {dimmingSpeedUpRemote: 42}, expectedKey: "dimmingSpeedUpRemote_1", expectedValue: 42},
+            {label: "EP2 numeric", endpoint: 2, attr: {dimmingSpeedUpRemote: 99}, expectedKey: "dimmingSpeedUpRemote_2", expectedValue: 99},
+        ])("suffixes $label with the right endpoint id", ({endpoint, attr, expectedKey, expectedValue}) => {
+            const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "attributeReport", attr, endpoint);
+            expect(payload).toHaveProperty(expectedKey, expectedValue);
         });
     });
 
@@ -2228,68 +1814,30 @@ describe("Inovelli fromZigbee converters", () => {
                 area4: {width_min: -25, width_max: 25, depth_min: -50, depth_max: 50, height_min: 0, height_max: 50},
             };
 
-            it("should map commandReportDetectionArea to mmwave_detection_areas", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelliMMWave", "commandReportDetectionArea", areaData, 1);
-                expect(payload).toStrictEqual({mmwave_detection_areas: expectedAreas});
-            });
-
-            it("should map commandReportInterferenceArea to mmwave_interference_areas", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelliMMWave", "commandReportInterferenceArea", areaData, 1);
-                expect(payload).toStrictEqual({mmwave_interference_areas: expectedAreas});
-            });
-
-            it("should map commandReportStayArea to mmwave_stay_areas", () => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelliMMWave", "commandReportStayArea", areaData, 1);
-                expect(payload).toStrictEqual({mmwave_stay_areas: expectedAreas});
+            // Three separate commands share identical area-packing semantics but publish to different payload keys.
+            it.each([
+                {command: "commandReportDetectionArea", payloadKey: "mmwave_detection_areas"},
+                {command: "commandReportInterferenceArea", payloadKey: "mmwave_interference_areas"},
+                {command: "commandReportStayArea", payloadKey: "mmwave_stay_areas"},
+            ])("$command maps to $payloadKey", ({command, payloadKey}) => {
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelliMMWave", command, areaData, 1);
+                expect(payload).toStrictEqual({[payloadKey]: expectedAreas});
             });
         });
 
         describe("anyone_in_reporting_area", () => {
-            it("should map mixed area occupancy", () => {
-                const payload = processFromZigbeeMessage(
-                    definition,
-                    "manuSpecificInovelliMMWave",
-                    "commandAnyoneInReportingArea",
-                    {area1: 1, area2: 0, area3: 1, area4: 0},
-                    1,
-                );
+            // Each area's occupancy flag (0/1) is normalized to a boolean on `mmwave_areaN_occupancy`.
+            it.each([
+                {label: "mixed", input: {area1: 1, area2: 0, area3: 1, area4: 0}, expected: [true, false, true, false]},
+                {label: "all occupied", input: {area1: 1, area2: 1, area3: 1, area4: 1}, expected: [true, true, true, true]},
+                {label: "all unoccupied", input: {area1: 0, area2: 0, area3: 0, area4: 0}, expected: [false, false, false, false]},
+            ])("$label area occupancy", ({input, expected}) => {
+                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelliMMWave", "commandAnyoneInReportingArea", input, 1);
                 expect(payload).toStrictEqual({
-                    mmwave_area1_occupancy: true,
-                    mmwave_area2_occupancy: false,
-                    mmwave_area3_occupancy: true,
-                    mmwave_area4_occupancy: false,
-                });
-            });
-
-            it("should map all areas occupied", () => {
-                const payload = processFromZigbeeMessage(
-                    definition,
-                    "manuSpecificInovelliMMWave",
-                    "commandAnyoneInReportingArea",
-                    {area1: 1, area2: 1, area3: 1, area4: 1},
-                    1,
-                );
-                expect(payload).toStrictEqual({
-                    mmwave_area1_occupancy: true,
-                    mmwave_area2_occupancy: true,
-                    mmwave_area3_occupancy: true,
-                    mmwave_area4_occupancy: true,
-                });
-            });
-
-            it("should map all areas unoccupied", () => {
-                const payload = processFromZigbeeMessage(
-                    definition,
-                    "manuSpecificInovelliMMWave",
-                    "commandAnyoneInReportingArea",
-                    {area1: 0, area2: 0, area3: 0, area4: 0},
-                    1,
-                );
-                expect(payload).toStrictEqual({
-                    mmwave_area1_occupancy: false,
-                    mmwave_area2_occupancy: false,
-                    mmwave_area3_occupancy: false,
-                    mmwave_area4_occupancy: false,
+                    mmwave_area1_occupancy: expected[0],
+                    mmwave_area2_occupancy: expected[1],
+                    mmwave_area3_occupancy: expected[2],
+                    mmwave_area4_occupancy: expected[3],
                 });
             });
         });
@@ -3041,5 +2589,288 @@ describe("Inovelli VZM32-SN definition integration", () => {
         expect(ep1ReadAttrs).not.toContain("dimmingAlgorithm");
         expect(ep1ReadAttrs).not.toContain("auxDetectionLevel");
         expect(ep1ReadAttrs).not.toContain("dumbDetectionLevel");
+    });
+});
+
+describe("Inovelli VZM35-SN definition integration", () => {
+    it("matches expected integration shape (fan controller with breeze mode, LED effects, and button taps)", async () => {
+        const device = mockDevice({
+            modelID: "VZM35-SN",
+            endpoints: [
+                {ID: 1, inputClusters: ["genOnOff", "genLevelCtrl"]},
+                {ID: 2, inputClusters: []},
+            ],
+            softwareBuildID: "2.18",
+        });
+
+        await assertInovelliIntegration({
+            model: "VZM35-SN",
+            device,
+            // VZM35-SN does not use m.deviceEndpoints(), so no multiEndpoint meta is set (definition.meta is undefined).
+            meta: undefined,
+            // 5 converters: fan (fan_mode + breeze_mode + fan_state), device (led_effect_complete + main).
+            // No light/electricityMeter/etc. extends, so the custom cluster is the only "attrs" source.
+            fromZigbeeFingerprint: [
+                {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
+                {cluster: "manuSpecificInovelli", type: ["attributeReport", "readResponse"]},
+                {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
+                {cluster: "manuSpecificInovelli", type: ["commandLedEffectComplete"]},
+                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
+            ],
+            toZigbeeKeysContain: [
+                // fan() extend
+                "fan_mode",
+                "breezeMode",
+                "fan_state",
+                // device() extend: LED effect commands and parameter writes/reads
+                "led_effect",
+                "individual_led_effect",
+                "switchType",
+                "dimmingSpeedUpRemote",
+                "internalTemperature",
+                "deviceBindNumber",
+                // identify extend
+                "identify",
+            ],
+            // VZM35-SN has no dimmer-only or energy-meter attributes at all.
+            toZigbeeKeysOmit: [
+                "dimmingAlgorithm",
+                "auxDetectionLevel",
+                "dumbDetectionLevel",
+                "power",
+                "energy",
+                "current",
+                "voltage",
+                "energy_reset",
+                "state",
+                "brightness",
+            ],
+            // VZM35-SN baseline exposes (see "Inovelli baseline exposes > VZM35-SN") with two fingerprint-only
+            // entries: "breeze mode" becomes the composite's property ("breezeMode"), and the fan() expose has
+            // no name/property so it renders as "fan(state,mode)".
+            exposeFingerprints: [
+                "action",
+                "autoTimerOff",
+                "auxSwitchUniqueScenes",
+                "bindingOffToOnSyncLevel",
+                "breezeMode",
+                "brightnessLevelForDoubleTapDown",
+                "brightnessLevelForDoubleTapUp",
+                "buttonDelay",
+                "defaultLed1ColorWhenOff",
+                "defaultLed1ColorWhenOn",
+                "defaultLed1IntensityWhenOff",
+                "defaultLed1IntensityWhenOn",
+                "defaultLed2ColorWhenOff",
+                "defaultLed2ColorWhenOn",
+                "defaultLed2IntensityWhenOff",
+                "defaultLed2IntensityWhenOn",
+                "defaultLed3ColorWhenOff",
+                "defaultLed3ColorWhenOn",
+                "defaultLed3IntensityWhenOff",
+                "defaultLed3IntensityWhenOn",
+                "defaultLed4ColorWhenOff",
+                "defaultLed4ColorWhenOn",
+                "defaultLed4IntensityWhenOff",
+                "defaultLed4IntensityWhenOn",
+                "defaultLed5ColorWhenOff",
+                "defaultLed5ColorWhenOn",
+                "defaultLed5IntensityWhenOff",
+                "defaultLed5IntensityWhenOn",
+                "defaultLed6ColorWhenOff",
+                "defaultLed6ColorWhenOn",
+                "defaultLed6IntensityWhenOff",
+                "defaultLed6IntensityWhenOn",
+                "defaultLed7ColorWhenOff",
+                "defaultLed7ColorWhenOn",
+                "defaultLed7IntensityWhenOff",
+                "defaultLed7IntensityWhenOn",
+                "defaultLevelLocal",
+                "defaultLevelRemote",
+                "deviceBindNumber",
+                "dimmingSpeedDownLocal",
+                "dimmingSpeedDownRemote",
+                "dimmingSpeedUpLocal",
+                "dimmingSpeedUpRemote",
+                "doubleTapClearNotifications",
+                "doubleTapDownToParam56",
+                "doubleTapUpToParam55",
+                "fan(state,mode)",
+                "fanControlMode",
+                "fanLedLevelType",
+                "fanTimerMode",
+                "firmwareUpdateInProgressIndicator",
+                "highLevelForFanControlMode",
+                "identify",
+                "individual_led_effect",
+                "internalTemperature",
+                "invertSwitch",
+                "ledColorForFanControlMode",
+                "ledColorWhenOff",
+                "ledColorWhenOn",
+                "ledIntensityWhenOff",
+                "ledIntensityWhenOn",
+                "led_effect",
+                "loadLevelIndicatorTimeout",
+                "localProtection",
+                "lowLevelForFanControlMode",
+                "maximumLevel",
+                "mediumLevelForFanControlMode",
+                "minimumLevel",
+                "nonNeutralAuxLowGear",
+                "nonNeutralAuxMediumGear",
+                "notificationComplete",
+                "onOffLedMode",
+                "outputMode",
+                "overheat",
+                "powerType",
+                "quickStartTime",
+                "rampRateOffToOnLocal",
+                "rampRateOffToOnRemote",
+                "rampRateOnToOffLocal",
+                "rampRateOnToOffRemote",
+                "remoteProtection",
+                "singleTapBehavior",
+                "smartBulbMode",
+                "stateAfterPowerRestored",
+                "switchType",
+            ],
+            // fan() extend binds genOnOff/genLevelCtrl on EP1. device() extend binds manuSpecificInovelli on
+            // EP1 (main) and EP2 (button-event reporting).
+            bind: {
+                1: ["genOnOff", "genLevelCtrl", "manuSpecificInovelli"],
+                2: ["manuSpecificInovelli"],
+            },
+            // EP1: one batched manuSpecificInovelli read per 10 attributes in VZM35_ATTRIBUTES (chunkedRead).
+            // EP2 gets no reads (fan lives on EP1; the EP2 bind is solely for button-event reporting).
+            readCount: {1: 8, 2: 0},
+            readClusters: {1: ["manuSpecificInovelli"], 2: []},
+            writeCount: {1: 0, 2: 0},
+            // fan() extend also configures onOff reporting on EP1; no other reporting clusters for VZM35-SN.
+            configureReporting: {
+                1: [{cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]}],
+                2: [],
+            },
+        });
+    });
+});
+
+describe("Inovelli VZM36 definition integration", () => {
+    it("matches expected integration shape (canopy module: split-endpoint light + fan, no LED effects or button taps)", async () => {
+        const device = mockDevice({
+            modelID: "VZM36",
+            endpoints: [
+                {ID: 1, inputClusters: ["genOnOff", "genLevelCtrl"]},
+                {ID: 2, inputClusters: ["genOnOff", "genLevelCtrl"]},
+            ],
+        });
+
+        await assertInovelliIntegration({
+            model: "VZM36",
+            device,
+            // VZM36 does not use m.deviceEndpoints() either; split behavior is handled by the light/fan/device extends.
+            meta: undefined,
+            // VZM36 defines `fromZigbee: []` on the definition, so every fz converter comes from extends:
+            // 2 from light (on_off_for_endpoint(1) + brightness; no level_config/power_on_behavior in split mode)
+            // 3 from fan (fan_mode(2) + breeze_mode(2) + fan_state(2))
+            // 1 from device (inovelli -- no led_effect_complete since supportsLedEffects=false)
+            fromZigbeeFingerprint: [
+                {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
+                {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
+                {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
+                {cluster: "manuSpecificInovelli", type: ["attributeReport", "readResponse"]},
+                {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
+                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
+            ],
+            toZigbeeKeysContain: [
+                // light() extend (split)
+                "state",
+                "brightness",
+                "power_on_behavior",
+                "transition",
+                "level_config",
+                "brightness_move",
+                "brightness_step",
+                // fan() extend (split, EP2)
+                "fan_mode",
+                "breezeMode",
+                "fan_state",
+                // device() extend: split-endpoint parameter writes use `_1`/`_2`-suffixed keys
+                "dimmingSpeedUpRemote_1",
+                "dimmingSpeedUpRemote_2",
+                "minimumLevel_1",
+                "minimumLevel_2",
+                // identify extend
+                "identify",
+            ],
+            // VZM36 has no LED effects, no button taps, no energy meter, no standalone parameter reads.
+            toZigbeeKeysOmit: [
+                "led_effect",
+                "individual_led_effect",
+                "energy_reset",
+                "switchType",
+                "dimmingAlgorithm",
+                "auxDetectionLevel",
+                "dumbDetectionLevel",
+                "power",
+                "energy",
+                "internalTemperature",
+                "deviceBindNumber",
+            ],
+            // VZM36 baseline exposes (see "Inovelli baseline exposes > VZM36") plus "light(state,brightness)" and
+            // "fan(state,mode)" (the light/fan exposes have no name/property, so they render via the type fallback).
+            exposeFingerprints: [
+                "autoTimerOff_1",
+                "autoTimerOff_2",
+                "breezeMode",
+                "defaultLevelRemote_1",
+                "defaultLevelRemote_2",
+                "dimmingMode_1",
+                "dimmingSpeedDownRemote_1",
+                "dimmingSpeedDownRemote_2",
+                "dimmingSpeedUpRemote_1",
+                "dimmingSpeedUpRemote_2",
+                "fan(state,mode)",
+                "higherOutputInNonNeutral_1",
+                "identify",
+                "ledColorWhenOn_1",
+                "ledIntensityWhenOn_1",
+                "light(state,brightness)",
+                "maximumLevel_1",
+                "maximumLevel_2",
+                "minimumLevel_1",
+                "minimumLevel_2",
+                "outputMode_1",
+                "outputMode_2",
+                "quickStartLevel_1",
+                "quickStartTime_1",
+                "quickStartTime_2",
+                "rampRateOffToOnRemote_1",
+                "rampRateOffToOnRemote_2",
+                "rampRateOnToOffRemote_1",
+                "rampRateOnToOffRemote_2",
+                "smartBulbMode_1",
+                "smartBulbMode_2",
+                "stateAfterPowerRestored_1",
+                "stateAfterPowerRestored_2",
+            ],
+            // light() binds genOnOff/genLevelCtrl on EP1, fan() binds them on EP2, device() binds
+            // manuSpecificInovelli on BOTH endpoints for split attribute reads.
+            bind: {
+                1: ["genOnOff", "genLevelCtrl", "manuSpecificInovelli"],
+                2: ["genOnOff", "genLevelCtrl", "manuSpecificInovelli"],
+            },
+            // Split-endpoint reads: device() extend issues chunkedRead on EP1 for all `*_1` attrs (stripped of
+            // suffix) and on EP2 for all `*_2` attrs. VZM36_ATTRIBUTES has asymmetric keys, so the two endpoints
+            // read different attribute counts.
+            readCount: {1: 2, 2: 2},
+            readClusters: {1: ["manuSpecificInovelli"], 2: ["manuSpecificInovelli"]},
+            writeCount: {1: 0, 2: 0},
+            // light() configures onOff reporting on EP1; fan() configures onOff reporting on EP2.
+            configureReporting: {
+                1: [{cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]}],
+                2: [{cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]}],
+            },
+        });
     });
 });

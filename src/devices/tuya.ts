@@ -537,7 +537,6 @@ const tzLocal = {
             await entity.command<"manuSpecificTuyaE001", "setCountdown", Ts0049Countdown>("manuSpecificTuyaE001", "setCountdown", {data});
         },
     } satisfies Tz.Converter,
-
     ts110eCountdown: {
         key: ["countdown"],
         convertSet: async (entity, key, value, meta) => {
@@ -4017,6 +4016,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_myd45weu",
             "_TZE284_myd45weu",
             "_TZE284_oitavov2",
+            "_TZE284_2nhqasjh",
             "_TZE284_2se8efxh",
             "_TZE200_9cqcpkgb",
         ]),
@@ -5622,7 +5622,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZB210_lmqquxus",
                 "_TZB210_ue01a0s2",
             ]),
-            tuya.whitelabel("MiBoxer", "E2-ZR", "2 in 1 LED controller", ["_TZB210_ayx58ft5", "_TZB210_eiwanbeb"]),
+            tuya.whitelabel("MiBoxer", "E2-ZR", "2 in 1 LED controller", ["_TZB210_ayx58ft5", "_TZB210_eiwanbeb", "_TZB210_ue01a0s2"]),
             tuya.whitelabel("MiBoxer", "PZ2", "2 in 1 LED controller", ["_TZB210_0bkzabht"]),
             tuya.whitelabel("Lidl", "14156408L", "Livarno Lux smart LED ceiling light", ["_TZ3210_c2iwpxf1"]),
             tuya.whitelabel("EcoDim", "ED-10032", "Zigbee LED filament lamp dimmable E27, bulb A60, Smokey 2000K-4000K", ["_TZ3210_09hzmirw"]),
@@ -9359,6 +9359,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_4ux0ondb",
                 "_TZ3000_b28wrpvx",
                 "_TZ3000_2uollq9d",
+                "_TZ3210_2uollq9d",
                 "_TZ3210_zifx0xoj",
                 "_TZ3000_ko6v90pg",
             ]),
@@ -26225,6 +26226,51 @@ export const definitions: DefinitionWithExtend[] = [
                 [104, "deadzone_temperature", tuya.valueConverter.divideBy10],
                 [107, "eco_temperature_heating", tuya.valueConverter.raw],
                 [109, "eco_temperature_cooling", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_spyvfeti"}],
+        model: "HD-T1000",
+        vendor: "Heat Decor",
+        description: "Floor thermostat",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e
+                .climate()
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET),
+            e.enum("work_mode", ea.STATE_SET, ["manual", "schedule"]),
+            e.binary("child_lock", ea.STATE_SET, true, false),
+            e.binary("frost_protection", ea.STATE_SET, true, false),
+            e.binary("window_detection", ea.STATE_SET, true, false),
+            e.numeric("max_air_temperature", ea.STATE_SET).withUnit("°C").withValueMin(35).withValueMax(95).withValueStep(0.5),
+            e.numeric("max_floor_temperature", ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(60).withValueStep(0.5),
+            e.numeric("deadzone_temperature", ea.STATE_SET).withUnit("°C").withValueMin(0.5).withValueMax(5).withValueStep(0.5),
+            e.numeric("window_detection_time", ea.STATE_SET).withUnit("min").withValueMin(2).withValueMax(30).withValueStep(1),
+            e.numeric("window_detection_temperature", ea.STATE_SET).withUnit("°C").withValueMin(2).withValueMax(4).withValueStep(1),
+            e.numeric("window_detection_recovery_time", ea.STATE_SET).withUnit("min").withValueMin(10).withValueMax(60).withValueStep(1),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
+                [2, "work_mode", tuya.valueConverterBasic.lookup({manual: tuya.enum(0), schedule: tuya.enum(1)})],
+                [3, "running_state", tuya.valueConverterBasic.lookup({heat: 0, idle: 1})],
+                [10, "frost_protection", tuya.valueConverter.raw],
+                [8, "window_detection", tuya.valueConverter.raw],
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [19, "max_air_temperature", tuya.valueConverter.divideBy10],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [27, "local_temperature_calibration", tuya.valueConverter.raw],
+                [40, "child_lock", tuya.valueConverter.raw],
+                [101, "max_floor_temperature", tuya.valueConverter.divideBy10],
+                [102, "deadzone_temperature", tuya.valueConverter.divideBy10],
+                [104, "window_detection_time", tuya.valueConverter.raw],
+                [105, "window_detection_temperature", tuya.valueConverter.raw],
+                [106, "window_detection_recovery_time", tuya.valueConverter.raw],
             ],
         },
     },

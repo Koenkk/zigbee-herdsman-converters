@@ -59,6 +59,7 @@ const {
     lumiMultiClick,
     lumiPreventLeave,
     lumiExternalSensor,
+    w600ExternalTempSensor,
     lumiReadPositionOnReport,
 } = lumi.modernExtend;
 
@@ -5559,6 +5560,7 @@ export const definitions: DefinitionWithExtend[] = [
                     minHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
                 },
             }),
+            w600ExternalTempSensor(),
             m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "calibrate",
                 lookup: {start: 1},
