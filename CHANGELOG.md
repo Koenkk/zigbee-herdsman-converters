@@ -1,5 +1,12 @@
 # Changelog
 
+## [26.39.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.39.0...v26.39.1) (2026-04-23)
+
+
+### Bug Fixes
+
+* **ignore:** Revert "feat: Hue lights: support `hue_native_control` ([#11655](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11655))" ([1dfa9cd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1dfa9cddff08c1be3caf50bcc1f0f9e03b2cd230))
+
 ## [26.39.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.38.1...v26.39.0) (2026-04-23)
 
 
