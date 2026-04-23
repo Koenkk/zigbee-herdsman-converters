@@ -1,5 +1,23 @@
 # Changelog
 
+## [26.39.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.38.1...v26.39.0) (2026-04-23)
+
+
+### Features
+
+* **add:** 929004277004 ([#12000](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12000)) ([5bce3a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5bce3a62634061ebd5cd3cc5b67abc20a4005a58))
+* **add:** HM-722ESY-E Plus, HS1CA-E Plus ([#12002](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12002)) ([35bb2ad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/35bb2ad88d3d0254d1013aed07a42b6a45b0e613))
+* **add:** S4SN-0U61X ([#12003](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12003)) ([2461c81](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2461c8136b9c3430367e6b77365626c23320c6a5))
+* Hue lights: support `hue_native_control` ([#11655](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11655)) ([e079ac9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e079ac9ae1142ec5d23c99a15657737cda03d452))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_awepdiwi` as NEO NAS-STH02B2 ([#12005](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12005)) ([abcd4fd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/abcd4fde86a217dc3dbf6d8060d587221e237a87))
+* **ignore:** Revert "fix(detect): Detect `_TZB210_ue01a0s2` as MiBoxer E2-ZR ([#11990](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11990))" ([#11998](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11998)) ([1b10d63](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1b10d634a810178ce8023703fede11aae9e91a16))
+* Lytko: refactor to modernExtend ([#11999](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11999)) ([0a9610c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0a9610cda479ea03db68283d5fe6fe7dac33cbc2))
+* Tuya `_TZE204_bvfld3xc`: fix illuminance not working https://github.com/Koenkk/zigbee2mqtt/issues/31767 ([142ec23](https://github.com/Koenkk/zigbee-herdsman-converters/commit/142ec2370622b3c5022d930f261256485865be96))
+
 ## [26.38.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.38.0...v26.38.1) (2026-04-22)
 
 
