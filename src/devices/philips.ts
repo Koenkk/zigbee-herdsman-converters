@@ -4960,7 +4960,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["929004276902", "929004277002", "929004277102"],
+        zigbeeModel: ["929004276902", "929004277002", "929004277004", "929004277102"],
         model: "929004276902",
         vendor: "Philips",
         description: "Hue Neon Outdoor Lightstrip (3m)",
@@ -4970,6 +4970,12 @@ export const definitions: DefinitionWithExtend[] = [
                 vendor: "Philips",
                 description: "Hue Neon Outdoor Lightstrip (5m)",
                 fingerprint: [{modelID: "929004277002"}],
+            },
+            {
+                model: "929004277004",
+                vendor: "Philips",
+                description: "Hue Neon Outdoor Lightstrip (5m)",
+                fingerprint: [{modelID: "929004277004"}],
             },
             {
                 model: "929004277102",
