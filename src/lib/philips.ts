@@ -250,7 +250,7 @@ const philipsModernExtend = {
         result.toZigbee = [];
 
         // philipsLightTz claims all standard light keys plus Philips2-specific extras.
-        // At runtime, if the user hasn't enabled `philips2_native_control` option,
+        // At runtime, if the user hasn't enabled `hue_native_control` option,
         // we delegate standard keys back to the original converters so users get the
         // ZCL default behavior
         const keys = [...toZigbee.flatMap((value) => value.key).filter((value, index, array) => array.indexOf(value) === index), ...philips2Keys];
@@ -258,7 +258,7 @@ const philipsModernExtend = {
             key: keys,
             convertSet: async (entity, key, value, meta) => {
                 // Resolve control mode: explicit option wins; otherwise default to standard converters.
-                const nativeControl = (meta.options as KeyValueAny).philips2_native_control === true;
+                const nativeControl = (meta.options as KeyValueAny).hue_native_control === true;
 
                 // Delegate to standard converters if:
                 //   - Device doesn't support manuSpecificPhilips2 cluster (old bulbs), OR
@@ -516,7 +516,7 @@ const philipsModernExtend = {
                 }
             },
             options: [
-                new exposes.Binary("philips2_native_control", ea.SET, true, false).withDescription(
+                new exposes.Binary("hue_native_control", ea.SET, true, false).withDescription(
                     "Control this light using a Philips-specific protocol instead of standard Zigbee commands. " +
                         "When enabled, on/off, brightness, color, and color temperature are combined into single atomic commands. " +
                         "This is required to use the Effect color update mode. " +
@@ -524,7 +524,7 @@ const philipsModernExtend = {
                         "including simulating on/off transitions.",
                 ),
                 new exposes.Enum("effect_color_mode", ea.SET, ["stop", "update"]).withDescription(
-                    "Controls what happens when color is changed while an effect is active (requires Philips2 native control). " +
+                    "Controls what happens when color is changed while an effect is active (requires Hue native control). " +
                         "'stop' (default): color change stops the effect (Hue app behavior). " +
                         "'update': color change re-sends the effect with the new color.",
                 ),
@@ -533,7 +533,7 @@ const philipsModernExtend = {
 
         // philipsLightTz claims all standard light keys. Inside convertSet, it delegates
         // back to the original standard converters by default (opt-out), or sends via
-        // manuSpecificPhilips2 when the user enables the philips2_native_control option.
+        // manuSpecificPhilips2 when the user enables the hue_native_control option.
         // The original standard converters are captured in the `toZigbee` closure above.
         result.toZigbee = [philipsLightTz, philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error];
 
