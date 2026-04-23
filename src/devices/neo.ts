@@ -306,7 +306,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rqcuwlsa"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rqcuwlsa", "_TZE284_awepdiwi"]),
         model: "NAS-STH02B2",
         vendor: "NEO",
         description: "Soil moisture, temperature, and ec",
