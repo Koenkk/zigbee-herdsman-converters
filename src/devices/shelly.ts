@@ -1038,6 +1038,33 @@ const fzLocal = {
             return {action: event};
         },
     } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
+
+    switch_input_type: {
+        cluster: "genOnOffSwitchCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (!Object.hasOwn(msg.data, "switchType")) return {};
+            const epName = utils.getFromLookup(msg.endpoint.ID, {3: "sw1", 4: "sw2"});
+            if (!epName) return {};
+            return {[`switch_type_${epName}`]: utils.getFromLookup(msg.data.switchType as number, {0: "toggle", 1: "momentary"})};
+        },
+    } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["attributeReport", "readResponse"]>,
+};
+
+const tzLocal = {
+    switch_input_type: {
+        key: ["switch_type"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {toggle: 0, momentary: 1} as const;
+            const ep = determineEndpoint(entity, meta, "genOnOffSwitchCfg");
+            await ep.write("genOnOffSwitchCfg", {switchType: utils.getFromLookup(value as string, lookup)});
+            return {state: {[`switch_type_${meta.endpoint_name}`]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const ep = determineEndpoint(entity, meta, "genOnOffSwitchCfg");
+            await ep.read("genOnOffSwitchCfg", ["switchType"]);
+        },
+    } satisfies Tz.Converter,
 };
 
 // =============================================================================
@@ -1146,9 +1173,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S4SW-002P16EU-SWITCH",
         vendor: "Shelly",
         description: "2PM Gen4 (Switch mode)",
-        fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events],
+        fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.switch_input_type],
         exposes: [
             e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold", "input_2_on", "input_2_off", "input_2_toggle", "input_2_hold"]),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw2"),
         ],
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, sw1: 3, sw2: 4}}),
@@ -1164,6 +1194,7 @@ export const definitions: DefinitionWithExtend[] = [
                 if (ep) {
                     await ep.bind("genOnOff", coordinatorEndpoint);
                     await ep.bind("genScenes", coordinatorEndpoint);
+                    await ep.read("genOnOffSwitchCfg", ["switchType"]);
                 }
             }
         },
