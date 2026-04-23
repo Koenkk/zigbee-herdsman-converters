@@ -24,7 +24,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Door or window contact switch",
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [e.contact(), e.battery_low()],
+        exposes: [e.contact(), e.battery_low(), e.battery()],
     },
     {
         zigbeeModel: ["JD-SWITCH\u000002"],

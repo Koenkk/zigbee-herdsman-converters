@@ -5,8 +5,9 @@ import type {
     ClusterOrRawAttributeKeys,
     TCustomCluster,
     TCustomClusterPayload,
+    ZigbeeOtaImageMeta,
 } from "zigbee-herdsman/dist/controller/tstype";
-import type {Header as ZHZclHeader} from "zigbee-herdsman/dist/zspec/zcl";
+import type {Header as ZHZclHeader, PowerSource as ZHZclPowerSource} from "zigbee-herdsman/dist/zspec/zcl";
 import type {TClusterAttributeKeys, TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import type {FrameControl} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import type * as exposes from "./exposes";
@@ -19,6 +20,8 @@ export interface Logger {
 }
 
 export type Range = [number, number];
+export type ValuesOf<T> = T[keyof T];
+export type PowerSource = keyof typeof ZHZclPowerSource;
 export interface KeyValue {
     [s: string]: unknown;
 }
@@ -56,7 +59,7 @@ export interface Fingerprint {
     hardwareVersion?: number;
     manufacturerName?: string;
     modelID?: string;
-    powerSource?: "Battery" | "Mains (single phase)";
+    powerSource?: PowerSource;
     softwareBuildID?: string;
     stackVersion?: number;
     zclVersion?: number;
@@ -67,7 +70,7 @@ export interface Fingerprint {
 }
 export type WhiteLabel =
     | {vendor?: string; model: string; description?: string; fingerprint: Fingerprint[]}
-    | {vendor: string; model: string; description?: string};
+    | {vendor?: string; model: string; description?: string};
 
 export interface MockProperty {
     property: string;
@@ -180,7 +183,13 @@ export interface DefinitionMeta {
      * @defaultValue false
      */
     turnsOffAtBrightness1?: boolean;
-    moveToLevelWithOnOffDisable?: boolean;
+    moveToLevelWithOnOffDisable?: boolean | ((entity: Zh.Endpoint) => boolean);
+    /**
+     * Omit optional optionsMask/optionsOverride parameters for devices with strict ZCL v1 compliance
+     *
+     * @defaultValue false
+     */
+    omitOptionalLevelParams?: boolean;
     tuyaThermostatPreset?: {[s: number]: string};
     /** Tuya specific thermostat options */
     tuyaThermostatSystemMode?: {[s: number]: string};
@@ -189,7 +198,7 @@ export interface DefinitionMeta {
     /**
      * see `toZigbee.light_color`
      *
-     * @defaultValue true
+     * @defaultValue false
      */
     supportsEnhancedHue?: boolean | ((entity: Zh.Endpoint) => boolean);
     /**
@@ -218,6 +227,10 @@ export interface DefinitionMeta {
      * Never use a transition when transitioning to off (even when specified)
      */
     noOffTransitionWhenOff?: boolean | ((entity: Zh.Endpoint) => boolean);
+    /**
+     * Manufacturer specific
+     */
+    sinopeAlternateBacklightAutoDim?: boolean;
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void> | void;
@@ -270,11 +283,23 @@ type DefinitionBase = {
 
 type DefinitionConfig = {
     endpoint?: (device: Zh.Device) => {[s: string]: number};
+    /**
+     * Semver version of the definition.
+     * Changing this from one ZHC version to another, informs the application that it should trigger specific behavior (migration-like):
+     * - major: reserved for future use
+     * - minor: reserved for future use
+     * - patch: the application should re-`configure` the device
+     */
+    version?: `0.0.${number}`;
     configure?: Configure;
     options?: Option[];
     meta?: DefinitionMeta;
     onEvent?: OnEvent.Handler;
-    ota?: boolean | Ota.ExtraMetas;
+    ota?:
+        | boolean
+        | (Pick<ZigbeeOtaImageMeta, "modelId" | "otaHeaderString" | "hardwareVersionMin" | "hardwareVersionMax"> & {
+              manufacturerName?: string;
+          });
 };
 
 type DefinitionFeatures = {
@@ -284,7 +309,7 @@ type DefinitionFeatures = {
     exposes: DefinitionExposes;
 };
 
-export type Definition = DefinitionMatcher & DefinitionBase & DefinitionConfig & DefinitionFeatures;
+export type Definition = DefinitionMatcher & DefinitionBase & DefinitionConfig & DefinitionFeatures & Required<Pick<DefinitionConfig, "version">>;
 
 export type DefinitionWithExtend = DefinitionMatcher &
     DefinitionBase &
@@ -446,7 +471,7 @@ export namespace Tuya {
             publish?: Publish,
             // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
             msg?: Fz.Message<any>,
-        ) => number | string | boolean | KeyValue | null;
+        ) => number | string | boolean | KeyValue | KeyValue[] | null;
     }
     export interface MetaTuyaDataPointsMeta {
         skip?: (meta: Tz.Meta) => boolean;
@@ -454,85 +479,6 @@ export namespace Tuya {
     }
     export type MetaTuyaDataPointsSingle = [number, string, ValueConverterSingle, MetaTuyaDataPointsMeta?];
     export type MetaTuyaDataPoints = MetaTuyaDataPointsSingle[];
-}
-
-export namespace Ota {
-    export type OnProgress = (progress: number, remaining?: number) => void;
-    export type CustomParseLogic = undefined | "telinkEncrypted";
-
-    export interface Settings {
-        dataDir: string;
-        overrideIndexLocation?: string;
-        imageBlockResponseDelay?: number;
-        defaultMaximumDataSize?: number;
-    }
-
-    export interface UpdateAvailableResult {
-        available: boolean;
-        currentFileVersion: number;
-        otaFileVersion: number;
-    }
-    export interface Version {
-        imageType: number;
-        manufacturerCode: number;
-        fileVersion: number;
-    }
-    export interface ImageHeader {
-        otaUpgradeFileIdentifier: Buffer;
-        otaHeaderVersion: number;
-        otaHeaderLength: number;
-        otaHeaderFieldControl: number;
-        manufacturerCode: number;
-        imageType: number;
-        fileVersion: number;
-        zigbeeStackVersion: number;
-        otaHeaderString: string;
-        totalImageSize: number;
-        securityCredentialVersion?: number;
-        upgradeFileDestination?: Buffer;
-        minimumHardwareVersion?: number;
-        maximumHardwareVersion?: number;
-    }
-    export interface ImageElement {
-        tagID: number;
-        length: number;
-        data: Buffer;
-    }
-    export interface Image {
-        header: ImageHeader;
-        elements: ImageElement[];
-        raw: Buffer;
-    }
-    export interface ImageInfo {
-        imageType: ImageHeader["imageType"];
-        fileVersion: ImageHeader["fileVersion"];
-        manufacturerCode: ImageHeader["manufacturerCode"];
-        hardwareVersion?: number;
-    }
-    export interface ImageMeta {
-        fileVersion: ImageHeader["fileVersion"];
-        fileSize?: ImageHeader["totalImageSize"];
-        url: string;
-        force?: boolean;
-        sha512?: string;
-        otaHeaderString?: ImageHeader["otaHeaderString"];
-        hardwareVersionMin?: ImageHeader["minimumHardwareVersion"];
-        hardwareVersionMax?: ImageHeader["maximumHardwareVersion"];
-    }
-    export interface ZigbeeOTAImageMeta extends ImageInfo, ImageMeta {
-        fileName: string;
-        modelId?: string;
-        manufacturerName?: string[];
-        minFileVersion?: ImageHeader["fileVersion"];
-        maxFileVersion?: ImageHeader["fileVersion"];
-        originalUrl?: string;
-        releaseNotes?: string;
-        customParseLogic?: CustomParseLogic;
-    }
-    export type ExtraMetas = Pick<ZigbeeOTAImageMeta, "modelId" | "otaHeaderString" | "hardwareVersionMin" | "hardwareVersionMax"> & {
-        manufacturerName?: string;
-        suppressElementImageParseFailure?: boolean;
-    };
 }
 
 export namespace Reporting {

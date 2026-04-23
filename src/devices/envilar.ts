@@ -90,7 +90,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["7859"],
         model: "7859",
-        vendor: "ENVILAR",
+        vendor: "Envilar",
         description: "ZigBee DIN Rail Smart Dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter()],
     },

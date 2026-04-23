@@ -7,6 +7,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "P2-WT",
         vendor: "TCL",
         description: "Water leak detector",
-        extend: [m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
+        extend: [m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}), m.battery()],
     },
 ];

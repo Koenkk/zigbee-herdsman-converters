@@ -184,7 +184,7 @@ export const definitions: DefinitionWithExtend[] = [
                 type: tuya.dataTypes.bool,
                 valueOn: ["ON", true],
                 valueOff: ["OFF", false],
-                expose: e.switch().withEndpoint("l1"),
+                description: "On/off state of the switch",
             }),
             tuya.modernExtend.dpBinary({
                 name: "state_l2",
@@ -192,7 +192,7 @@ export const definitions: DefinitionWithExtend[] = [
                 type: tuya.dataTypes.bool,
                 valueOn: ["ON", true],
                 valueOff: ["OFF", false],
-                expose: e.switch().withEndpoint("l2"),
+                description: "On/off state of the switch",
             }),
             tuya.modernExtend.dpEnumLookup({
                 name: "record_rf",

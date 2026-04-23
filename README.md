@@ -1,4 +1,4 @@
-[![NPM](https://nodei.co/npm/zigbee-herdsman-converters.png)](https://nodei.co/npm/zigbee-herdsman-converters/)
+[![NPM](https://nodei.co/npm/zigbee-herdsman-converters.png)](https://www.npmjs.com/package/zigbee-herdsman-converters)
 
 # zigbee-herdsman-converters
 

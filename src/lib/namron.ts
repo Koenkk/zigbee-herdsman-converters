@@ -429,3 +429,14 @@ export const edgeThermostat = {
             }),
     },
 };
+
+export const namronExtend = {
+    addCustomClusterNamronPrivateE004: () =>
+        modernExtend.deviceAddCustomCluster("namronPrivateE004", {
+            name: "namronPrivateE004",
+            ID: 0xe004,
+            attributes: {},
+            commands: {},
+            commandsResponse: {},
+        }),
+};

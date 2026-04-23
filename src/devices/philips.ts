@@ -142,19 +142,20 @@ const fzLocal = {
 const extendLocal = {
     addCustomClusterHueChime: () =>
         m.deviceAddCustomCluster("customHueChime", {
+            name: "customHueChime",
             ID: 0xfc07,
             manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
             attributes: {
-                sirenIsMuted: {ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
-                soundIDPlaying: {ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                unknownAttr: {ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                sirenIsMuted: {name: "sirenIsMuted", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+                soundIDPlaying: {name: "soundIDPlaying", ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                unknownAttr: {name: "unknownAttr", ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
             },
             commands: {
-                mute: {ID: 0x00, parameters: []},
-                unmute: {ID: 0x01, parameters: []},
-                triggerSiren: {ID: 0x02, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                playSound: {ID: 0x03, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                playTripleBeep: {ID: 0x04, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                mute: {name: "mute", ID: 0x00, parameters: []},
+                unmute: {name: "unmute", ID: 0x01, parameters: []},
+                triggerSiren: {name: "triggerSiren", ID: 0x02, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                playSound: {name: "playSound", ID: 0x03, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+                playTripleBeep: {name: "playTripleBeep", ID: 0x04, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
             },
             commandsResponse: {},
         }),
@@ -169,11 +170,30 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
+        zigbeeModel: ["LCX027"],
+        model: "929004582001",
+        vendor: "Philips",
+        description: "Hue Festavia globe outdoor string lights (21 meter with 30 bulbs)",
+        extend: [
+            philips.m.light({
+                colorTemp: {range: [50, 1000]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+                gradient: {extraEffects: ["sparkle", "opal", "glisten"]},
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["LCX028"],
         model: "929004581901",
         vendor: "Philips",
         description: "Hue Festavia globe outdoor string lights (14 meter with 20 bulbs)",
-        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        extend: [
+            philips.m.light({
+                colorTemp: {range: [50, 1000]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+                gradient: {extraEffects: ["sparkle", "opal", "glisten"]},
+            }),
+        ],
     },
     {
         zigbeeModel: ["LCX029"],
@@ -204,10 +224,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["929003809401"],
+        zigbeeModel: ["929003809201", "929003809401"],
         model: "929003809401",
         vendor: "Philips",
-        description: "Hue White and Color Ambiance GU10 (Centura)",
+        description: "Hue White and Color Ambiance GU10 (Centura - Black)",
+        whiteLabel: [
+            {
+                model: "929003809201",
+                vendor: "Philips",
+                description: "Hue White and Color Ambiance GU10 (Centura - Silver)",
+                fingerprint: [{modelID: "929003809201"}],
+            },
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -299,6 +327,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}})],
     },
     {
+        zigbeeModel: ["LTA017"],
+        model: "9290038551",
+        vendor: "Philips",
+        description: "Hue white ambiance A19 810lm with Bluetooth E26",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}})],
+    },
+    {
         zigbeeModel: ["LTA018"],
         model: "9290038552",
         vendor: "Philips",
@@ -385,11 +420,15 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["929003055801"],
+        zigbeeModel: ["929003055801", "929004611401", "929004611501_01", "929004611501_02", "929004611501_03"],
         model: "929003055801",
         vendor: "Philips",
         description: "Hue white ambiance bathroom ceiling light Adore with Bluetooth",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+        whiteLabel: [
+            {model: "929004611401", fingerprint: [{modelID: "929004611401"}]},
+            {model: "929004611501", fingerprint: [{modelID: "929004611501_01"}, {modelID: "929004611501_02"}, {modelID: "929004611501_03"}]},
+        ],
     },
     {
         zigbeeModel: ["LCZ001", "LCZ002"],
@@ -420,24 +459,31 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["929003809301_01", "929003809301_02", "929003809301_03"],
+        model: "929003809301",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance GU10 (Centura - Silver)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["929003809501_01", "929003809501_02", "929003809501_03"],
         model: "929003809501",
         vendor: "Philips",
-        description: "Hue White and Color Ambiance GU10 (Centura)",
+        description: "Hue White and Color Ambiance GU10 (Centura - Black)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         zigbeeModel: ["929003045201_01", "929003045201_02", "929003045201_03"],
         model: "929003045201",
         vendor: "Philips",
-        description: "Hue White and Color Ambiance GU10 (Centura round white)",
+        description: "Hue White and Color Ambiance GU10 (Centura - White)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         zigbeeModel: ["929003809701_01", "929003809701_02", "929003809701_03"],
         model: "929003809701",
         vendor: "Philips",
-        description: "Hue White and Color Ambiance GU10 (Centura round white)",
+        description: "Hue White and Color Ambiance GU10 (Centura - White)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
@@ -721,10 +767,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["LTD021", "LTD022"],
+        zigbeeModel: ["LTD020", "LTD021", "LTD022"],
         model: "9290035842",
         vendor: "Philips",
-        description: "Garnea downlight",
+        description: "Garnea White Ambience Downlight",
+        whiteLabel: [{model: "929003123801", vendor: "Philips", description: "Garnea White Ambience Downlight", fingerprint: [{modelID: "LTD020"}]}],
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
@@ -805,7 +852,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
-        zigbeeModel: ["LCP001", "LCP002", "4090331P9_01", "4090331P9_02", "929003053301_01", "929003053301_02"],
+        zigbeeModel: ["LCP001", "LCP002", "4090331P9_01", "4090331P9_02", "929003053301_01", "929003053301_02", "929003785101_01", "929003785101_02"],
         model: "4090331P9",
         vendor: "Philips",
         description: "Hue Ensis (white)",
@@ -817,6 +864,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Ensis (black)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+
+    {
+        zigbeeModel: ["929003736701_01", "929003736701_02"],
+        model: "929003736701",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance Datura Ceiling Light Square",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["929003055901", "929003055901_01", "929003055901_02", "929003055901_03"],
@@ -1288,7 +1343,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["LWW003", "LWF003"],
+        zigbeeModel: ["LWW003", "LWF003", "1740547P0"],
         model: "9290018216",
         vendor: "Philips",
         description: "Hue white A60 bulb E27 bluetooth",
@@ -1400,6 +1455,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ["4090631U9"],
+        model: "4090631U9",
+        vendor: "Philips",
+        description: "Hue Flourish white and color ambiance pendant light",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["LWB010"],
         model: "8718696449691",
         vendor: "Philips",
@@ -1505,7 +1567,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["LCW004"],
+        zigbeeModel: ["LCW004", "LCW005"],
         model: "046677585235",
         vendor: "Philips",
         description: "Hue Dymera indoor and outdoor wall light",
@@ -1690,7 +1752,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["LTD008"],
-        model: "929003123801",
+        model: "929003134801",
         vendor: "Philips",
         description: 'Hue white ambiance 6" downlight',
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
@@ -1700,6 +1762,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290019534",
         vendor: "Philips",
         description: "Hue white ambiance GU10 with Bluetooth",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["LTT002"],
+        model: "4505848C5",
+        vendor: "Philips",
+        description: "Hue white ambiance Within LED table light ",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
@@ -2062,10 +2131,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["929003597802"],
+        zigbeeModel: ["929003597802", "929003597602"],
         model: "929003597802",
         vendor: "Philips",
         description: "Hue black ambiance Aurelle square panel light",
+        whiteLabel: [
+            {
+                model: "929003597602",
+                vendor: "Philips",
+                description: "Hue black ambiance Aurelle square panel light 60x60",
+                fingerprint: [{modelID: "929003597602"}],
+            },
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
@@ -2076,7 +2153,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["929003099001", "929003099201"],
+        zigbeeModel: ["929003099001", "929003099201", "929003099002"],
         model: "929003099001",
         vendor: "Philips",
         description: "Hue white ambiance Aurelle square panel light",
@@ -2230,6 +2307,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
+        zigbeeModel: ["LWS003"],
+        model: "9290031509",
+        vendor: "Philips",
+        description: "Hue white PAR38 outdoor",
+        extend: [philips.m.light()],
+    },
+    {
         zigbeeModel: ["LLC010"],
         model: "7199960PH",
         vendor: "Philips",
@@ -2335,7 +2419,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["LLC006"],
+        zigbeeModel: ["LLC006", "7099930PH"],
         model: "7099930PH",
         vendor: "Philips",
         description: "Hue Iris (Generation 2)",
@@ -2711,7 +2795,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003017102",
         vendor: "Philips",
         description: "Hue wall switch module",
-        fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, fz.hue_wall_switch, fz.command_toggle, fz.command_move, fz.command_stop],
+        extend: [philips.m.addManuSpecificPhilipsCluster()],
+        fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, philips.fz.hue_wall_switch, fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [
             e.battery(),
             e.action([
@@ -2743,13 +2828,13 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RWL020", "RWL021"],
         model: "324131092621",
         vendor: "Philips",
-        description: "Hue dimmer switch",
+        description: "Hue dimmer switch gen 1",
         fromZigbee: [
             fz.ignore_command_on,
             fz.ignore_command_off_with_effect,
             fz.ignore_command_step,
             fz.ignore_command_stop,
-            fz.hue_dimmer_switch,
+            philips.fz.hue_dimmer_switch,
             fz.battery,
         ],
         exposes: [
@@ -2788,20 +2873,21 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {ep1: 1, ep2: 2};
         },
-        extend: [m.quirkCheckinInterval("1_HOUR")],
+        extend: [philips.m.addManuSpecificPhilipsCluster(), m.quirkCheckinInterval("1_HOUR")],
         ota: true,
     },
     {
         zigbeeModel: ["RWL022"],
         model: "929002398602",
         vendor: "Philips",
-        description: "Hue dimmer switch",
+        description: "Hue dimmer switch gen 2",
+        extend: [philips.m.addManuSpecificPhilipsCluster()],
         fromZigbee: [
             fz.ignore_command_on,
             fz.ignore_command_off_with_effect,
             fz.ignore_command_step,
             fz.ignore_command_stop,
-            fz.hue_dimmer_switch,
+            philips.fz.hue_dimmer_switch,
             fz.battery,
             fz.command_recall,
         ],
@@ -2843,7 +2929,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "8718699693985",
         vendor: "Philips",
         description: "Hue smart button",
-        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.command_step, fz.hue_smart_button_event, fz.battery],
+        extend: [philips.m.addManuSpecificPhilipsCluster()],
+        fromZigbee: [fz.command_on, fz.command_off_with_effect, fz.command_step, philips.fz.hue_smart_button_event, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(["on", "off", "press", "hold", "release"])],
         configure: async (device, coordinatorEndpoint) => {
@@ -3465,18 +3552,24 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
-        zigbeeModel: ["929004608001"],
+        zigbeeModel: ["929004608001", "929004608003", "929004608004", "929004608101", "929004608103", "929004608201"],
         model: "929004608001",
         vendor: "Philips",
-        description: "Hue OmniGlow lightstrip 3m",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
-    },
-    {
-        zigbeeModel: ["929004608004"],
-        model: "929004608004",
-        vendor: "Philips",
-        description: "Hue OmniGlow lightstrip",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
+        description: "Hue OmniGlow lightstrip (3m)",
+        whiteLabel: [
+            {model: "929004608003", vendor: "Philips", description: "Hue OmniGlow lightstrip AU (3m)", fingerprint: [{modelID: "929004608003"}]},
+            {model: "929004608004", vendor: "Philips", description: "Hue OmniGlow lightstrip US (10ft)", fingerprint: [{modelID: "929004608004"}]},
+            {model: "929004608101", vendor: "Philips", description: "Hue OmniGlow lightstrip (5m)", fingerprint: [{modelID: "929004608101"}]},
+            {model: "929004608103", vendor: "Philips", description: "Hue OmniGlow lightstrip AU (5m)", fingerprint: [{modelID: "929004608103"}]},
+            {model: "929004608201", vendor: "Philips", description: "Hue OmniGlow lightstrip (10m)", fingerprint: [{modelID: "929004608201"}]},
+        ],
+        extend: [
+            philips.m.light({
+                colorTemp: {range: [50, 1000]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+                gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
+            }),
+        ],
     },
     {
         zigbeeModel: ["929003099301", "929003099302"],
@@ -3598,6 +3691,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "8719514440937/8719514440999",
         vendor: "Philips",
         description: "Hue Tap dial switch",
+        extend: [philips.m.addManuSpecificPhilipsCluster()],
         fromZigbee: [fz.ignore_command_step, philips.fz.hue_tap_dial, fz.battery, fz.command_step],
         toZigbee: [],
         exposes: [
@@ -3816,7 +3910,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["LTF001"],
+        zigbeeModel: ["LTF001", "LTC009"],
         model: "6109231C5",
         vendor: "Philips",
         description: "Hue white ambiance Apogee square",
@@ -3890,6 +3984,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "8719514382350",
         vendor: "Philips",
         description: "Akari downlight",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ["LCD012"],
+        model: "929004291601",
+        vendor: "Philips",
+        description: "Akari downlight (black)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
@@ -4068,10 +4169,17 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
+        zigbeeModel: ["929003048201_01", "929003048201_02", "929003048201_03", "929003048201_04"],
+        model: "929003048201",
+        vendor: "Philips",
+        description: "Hue white ambiance Buckram quadruple spotlight with Bluetooth (White)",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
         zigbeeModel: ["929003048301_01", "929003048301_02", "929003048301_03", "929003048301_04"],
         model: "8719514339163",
         vendor: "Philips",
-        description: "Hue white ambiance Buckram quadruple spotlight with Bluetooth",
+        description: "Hue white ambiance Buckram quadruple spotlight with Bluetooth (Black)",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
@@ -4187,6 +4295,27 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
+        zigbeeModel: ["929004611201", "929003812601", "929003812801"],
+        model: "929004611201",
+        vendor: "Philips",
+        description: "Hue Xamento White and Color Ambiance Spot (White)",
+        whiteLabel: [
+            {
+                model: "929003812601",
+                vendor: "Philips",
+                description: "Hue Xamento White and Color Ambiance Spot (Black)",
+                fingerprint: [{modelID: "929003812601"}],
+            },
+            {
+                model: "929003812801",
+                vendor: "Philips",
+                description: "Hue Xamento White and Color Ambiance Spot (Silver)",
+                fingerprint: [{modelID: "929003812801"}],
+            },
+        ],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["LWE008"],
         model: "929003021301",
         vendor: "Philips",
@@ -4222,102 +4351,114 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}})],
     },
     {
-        zigbeeModel: ["929003115801"],
-        model: "929003115801",
-        vendor: "Philips",
-        description: "Hue Perifo cylinder spotlight (white)",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
-    },
-    {
-        zigbeeModel: ["929003115701", "929003617901"],
+        zigbeeModel: ["929003115701", "929003115801", "929003617901"],
         model: "929003115701",
         vendor: "Philips",
-        description: "Hue Perifo cylinder spotlight (black)",
+        description: "Hue Perifo cylinder spotlight (Black)",
+        whiteLabel: [
+            {
+                model: "929003115801",
+                vendor: "Philips",
+                description: "Hue Perifo cylinder spotlight (White)",
+                fingerprint: [{modelID: "929003115801"}],
+            },
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003116201"],
-        model: "929003116201",
-        vendor: "Philips",
-        description: "Hue Perifo linear light bar (white)",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
-    },
-    {
-        zigbeeModel: ["929003116101", "929003618201"],
+        zigbeeModel: ["929003116101", "929003116201", "929003618201"],
         model: "929003116101",
         vendor: "Philips",
-        description: "Hue Perifo linear light bar (black)",
+        description: "Hue Perifo linear light bar (Black)",
+        whiteLabel: [
+            {model: "929003116201", vendor: "Philips", description: "Hue Perifo linear light bar (White)", fingerprint: [{modelID: "929003116201"}]},
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003115901"],
-        model: "929003117101",
-        vendor: "Philips",
-        description: "Hue Perifo ceiling light, 3 pendant (black)",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
-    },
-    {
-        zigbeeModel: ["929003117201"],
+        zigbeeModel: ["929003117101", "929003117201"],
         model: "929003117201",
         vendor: "Philips",
-        description: "Hue Perifo ceiling light, 3 pendant (white)",
+        description: "Hue Perifo ceiling light, 3 pendant (White)",
+        whiteLabel: [
+            {
+                model: "929003117101",
+                vendor: "Philips",
+                description: "Hue Perifo ceiling light, 3 pendant (Black)",
+                fingerprint: [{modelID: "929003117101"}],
+            },
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003117301"],
-        model: "929003117301",
-        vendor: "Philips",
-        description: "Hue Perifo ceiling light, 4 spotlights (black)",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
-    },
-    {
-        zigbeeModel: ["929003117401"],
+        zigbeeModel: ["929003117301", "929003117401"],
         model: "929003117401",
         vendor: "Philips",
-        description: "Hue Perifo ceiling light, 4 spotlights (white)",
+        description: "Hue Perifo ceiling light, 4 spotlights (White)",
+        whiteLabel: [
+            {
+                model: "929003117301",
+                vendor: "Philips",
+                description: "Hue Perifo Wall Light, 4 spotlights (Black)",
+                fingerprint: [{modelID: "929003117301"}],
+            },
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003117701"],
-        model: "929003117701",
-        vendor: "Philips",
-        description: "Hue Perifo Wall Light, 3 spotlights (black)",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
-    },
-    {
-        zigbeeModel: ["929003117801"],
+        zigbeeModel: ["929003117701", "929003117801"],
         model: "929003117801",
         vendor: "Philips",
-        description: "Hue Perifo Wall Light, 3 spotlights (white)",
+        description: "Hue Perifo Wall Light, 3 spotlights (White)",
+        whiteLabel: [
+            {
+                model: "929003117701",
+                vendor: "Philips",
+                description: "Hue Perifo Wall Light, 3 spotlights (Black)",
+                fingerprint: [{modelID: "929003117701"}],
+            },
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["929003116301"],
-        model: "929003116301",
-        vendor: "Philips",
-        description: "Hue Perifo gradient light tube small (black)",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
-    },
-    {
-        zigbeeModel: ["929003116401"],
+        zigbeeModel: ["929003116301", "929003116401"],
         model: "929003116401",
         vendor: "Philips",
-        description: "Hue Perifo gradient light tube small (white)",
+        description: "Hue Perifo gradient light tube small (White)",
+        whiteLabel: [
+            {
+                model: "929003116301",
+                vendor: "Philips",
+                description: "Hue Perifo gradient light tube small (Black)",
+                fingerprint: [{modelID: "929003116301"}],
+            },
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
     },
     {
-        zigbeeModel: ["929003116501"],
-        model: "929003116501",
-        vendor: "Philips",
-        description: "Hue Perifo gradient light tube large (black)",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
-    },
-    {
-        zigbeeModel: ["929003116601"],
+        zigbeeModel: ["929003116501", "929003116601"],
         model: "929003116601",
         vendor: "Philips",
-        description: "Hue Perifo gradient light tube large (white)",
+        description: "Hue Perifo gradient light tube large (White)",
+        whiteLabel: [
+            {
+                model: "929003116501",
+                vendor: "Philips",
+                description: "Hue Perifo gradient light tube large (Black)",
+                fingerprint: [{modelID: "929003116501"}],
+            },
+        ],
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+    },
+    {
+        zigbeeModel: ["929003116001", "929003115901"],
+        model: "929003116001",
+        vendor: "Philips",
+        description: "Hue Perifo cylinder pendant (White)",
+        whiteLabel: [
+            {model: "929003115901", vendor: "Philips", description: "Hue Perifo cylinder pendant (Black)", fingerprint: [{modelID: "929003115901"}]},
+        ],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["915005988101"],
@@ -4356,14 +4497,31 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["929003055701", "929004297402", "929004297501"],
+        zigbeeModel: ["929003055701"],
         model: "929003055701",
         vendor: "Philips",
-        description: "Hue White Ambiance Devote",
+        description: "Hue Devote Ceiling Hanging Light White Ambiance",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
+        zigbeeModel: ["929004297401", "929004297402", "929004297501"],
+        model: "929004297401",
+        vendor: "Philips",
+        description: "Hue Devote S Ceiling Light Panel White & Color Ambiance (White)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
         whiteLabel: [
-            {model: "929004297402", fingerprint: [{modelID: "929004297402"}]},
-            {model: "929004297501", fingerprint: [{modelID: "929004297501"}]},
+            {
+                model: "929004297402",
+                vendor: "Philips",
+                description: "Hue Devote S Ceiling Light White & Color Ambiance (White)",
+                fingerprint: [{modelID: "929004297402"}],
+            },
+            {
+                model: "929004297501",
+                vendor: "Philips",
+                description: "Hue Devote M Ceiling Light White & Color Ambiance (White)",
+                fingerprint: [{modelID: "929004297501"}],
+            },
         ],
     },
     {
@@ -4495,6 +4653,7 @@ export const definitions: DefinitionWithExtend[] = [
             {model: "929003711401", vendor: "Philips", description: "Hue Twilight sleep and wake-up light black", fingerprint: [{modelID: "LGT003"}]},
         ],
         extend: [
+            philips.m.addManuSpecificPhilipsCluster(),
             m.deviceEndpoints({endpoints: {switch: 1, back: 11, front: 12}}),
             philips.m.light({colorTemp: {range: [153, 500]}, color: true, endpointNames: ["front"]}),
             philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true, endpointNames: ["back"]}),
@@ -4504,13 +4663,6 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["929003812901_01", "929003812901_02", "929003812901_03"],
         model: "929003812901",
-        vendor: "Philips",
-        description: "Hue White and Color Ambiance GU10",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
-        zigbeeModel: ["929003812801"],
-        model: "929003812801",
         vendor: "Philips",
         description: "Hue White and Color Ambiance GU10",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
@@ -4569,13 +4721,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "046677577490",
         vendor: "Philips",
         description: "Hue Lightguide E26/E27 Triangle 500lm",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
-        zigbeeModel: ["929004297401"],
-        model: "929004297401",
-        vendor: "Philips",
-        description: "Hue Devote Slim ceiling light",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -4743,36 +4888,122 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}})],
     },
     {
-        zigbeeModel: ["929004610602", "929004610702", "929004610802", "929004610502", "929004610402"],
-        model: "929004610602",
+        zigbeeModel: ["929004610401", "929004610402", "929004610502", "929004610602", "929004610702", "929004610802"],
+        model: "929004610402",
         vendor: "Philips",
-        description: "Hue White and Color Flux Strip Light 5m",
+        description: "Hue White and Color Lightstrip Flux (3m)",
         whiteLabel: [
+            {
+                model: "929004610502",
+                vendor: "Philips",
+                description: "Hue White and Color Lightstrip Flux (4m)",
+                fingerprint: [{modelID: "929004610502"}],
+            },
+            {
+                model: "929004610602",
+                vendor: "Philips",
+                description: "Hue White and Color Lightstrip Flux (5m)",
+                fingerprint: [{modelID: "929004610602"}],
+            },
             {
                 model: "929004610702",
                 vendor: "Philips",
-                description: "Hue White and Color Flux Strip Light 6m",
+                description: "Hue White and Color Lightstrip Flux (6m)",
                 fingerprint: [{modelID: "929004610702"}],
             },
             {
                 model: "929004610802",
                 vendor: "Philips",
-                description: "Hue White and Color Flux Strip Light 10m",
+                description: "Hue White and Color Lightstrip Flux (10m)",
                 fingerprint: [{modelID: "929004610802"}],
             },
             {
-                model: "929004610502",
+                model: "929004610401",
                 vendor: "Philips",
-                description: "Hue White and Color Flux Strip Light 4m",
-                fingerprint: [{modelID: "929004610502"}],
-            },
-            {
-                model: "929004610402",
-                vendor: "Philips",
-                description: "Hue White and Color Flux Strip Light 3m",
-                fingerprint: [{modelID: "929004610402"}],
+                description: "Hue White and Color Lightstrip Flux (10ft)",
+                fingerprint: [{modelID: "929004610401"}],
             },
         ],
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        extend: [
+            philips.m.light({
+                colorTemp: {range: [50, 1000]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+                gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["929004276602", "929004276702", "929004276802"],
+        model: "929004276602",
+        vendor: "Philips",
+        description: "Hue White and Color Lightstrip Ultra Bright (3m)",
+        whiteLabel: [
+            {
+                model: "929004276702",
+                vendor: "Philips",
+                description: "Hue White and Color Lightstrip Ultra Bright (5m)",
+                fingerprint: [{modelID: "929004276702"}],
+            },
+            {
+                model: "929004276802",
+                vendor: "Philips",
+                description: "Hue White and Color Lightstrip Ultra Bright (10m)",
+                fingerprint: [{modelID: "929004276802"}],
+            },
+        ],
+        extend: [
+            philips.m.light({
+                colorTemp: {range: [50, 1000]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+                gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["929004276902", "929004277002", "929004277004", "929004277102"],
+        model: "929004276902",
+        vendor: "Philips",
+        description: "Hue Neon Outdoor Lightstrip (3m)",
+        whiteLabel: [
+            {
+                model: "929004277002",
+                vendor: "Philips",
+                description: "Hue Neon Outdoor Lightstrip (5m)",
+                fingerprint: [{modelID: "929004277002"}],
+            },
+            {
+                model: "929004277004",
+                vendor: "Philips",
+                description: "Hue Neon Outdoor Lightstrip (5m)",
+                fingerprint: [{modelID: "929004277004"}],
+            },
+            {
+                model: "929004277102",
+                vendor: "Philips",
+                description: "Hue Neon Outdoor Lightstrip (10m)",
+                fingerprint: [{modelID: "929004277102"}],
+            },
+        ],
+        extend: [
+            philips.m.light({
+                colorTemp: {range: [50, 1000]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+                gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["929004294903"],
+        model: "929004294903",
+        vendor: "Philips",
+        description: "Hue Essential lightstrip (16ft)",
+        extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["929004611002"],
+        model: "929004611002",
+        vendor: "Philips",
+        description: "Hue Flux Outdoor strip light (6m)",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
 ];
