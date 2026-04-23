@@ -249,30 +249,55 @@ const philipsModernExtend = {
         const toZigbee = result.toZigbee;
         result.toZigbee = [];
 
-        // philipsLightTz claims all standard light keys plus Philips2-specific extras.
-        // At runtime, if the user hasn't enabled `hue_native_control` option,
-        // we delegate standard keys back to the original converters so users get the
-        // ZCL default behavior
-        const keys = [...toZigbee.flatMap((value) => value.key).filter((value, index, array) => array.indexOf(value) === index), ...philips2Keys];
+        // Keys we intercept for Hue native control: core light attributes
+        // that can be sent atomically via the manuSpecificPhilips2 cluster.
+        // Command-only keys (brightness_move, hue_step, etc.) have no Philips2
+        // equivalent and are left to their standard converters in the array.
+        const nativeKeys = ["state", "brightness", "brightness_percent", "color", "color_temp", "color_temp_percent", "transition"];
+        const keys = [...nativeKeys, ...philips2Keys];
         const philipsLightTz = {
             key: keys,
             convertSet: async (entity, key, value, meta) => {
                 // Resolve control mode: explicit option wins; otherwise default to standard converters.
                 const nativeControl = (meta.options as KeyValueAny).hue_native_control === true;
 
+                // Check if device supports the manuSpecificPhilips2 cluster.
+                // Wrapped in try-catch because supportsInputCluster may throw for
+                // custom clusters not in the cluster registry (e.g. in test mocks).
+                let hasPhilips2Cluster = false;
+                if (utils.isEndpoint(entity)) {
+                    try {
+                        hasPhilips2Cluster = entity.supportsInputCluster("manuSpecificPhilips2");
+                    } catch {
+                        hasPhilips2Cluster = false;
+                    }
+                }
+
                 // Delegate to standard converters if:
                 //   - Device doesn't support manuSpecificPhilips2 cluster (old bulbs), OR
                 //   - User hasn't opted into native Philips2 control (default)
                 // This mimics Z2M's own per-key dispatch so a single message routes
                 // each key to the appropriate converter.
-                const mustDelegate = (utils.isEndpoint(entity) && !entity.supportsInputCluster("manuSpecificPhilips2")) || !nativeControl;
+                const mustDelegate = (utils.isEndpoint(entity) && !hasPhilips2Cluster) || !nativeControl;
 
                 if (mustDelegate) {
                     const used = new Set<Tz.Converter>();
                     let mergedState: KeyValue = {};
-                    for (const [msgKey, msgValue] of Object.entries(meta.message)) {
-                        // Only delegate keys we claimed
-                        // philips2Keys have no standard equivalent and must still be handled below by the Philips2 path
+                    // Replicate Z2M's key ordering (publish.ts): when turning off,
+                    // state/brightness come first; otherwise they come last. This ensures
+                    // standard converters are called in the same sequence as without our
+                    // intercepting converter, so e.g. the light turns on before color is
+                    // set, and color is set before the light turns off.
+                    const messageEntries = Object.entries(meta.message);
+                    const stateValue = typeof meta.message.state === "string" ? (meta.message.state as string).toLowerCase() : undefined;
+                    const sorter = stateValue === "off" ? 1 : -1;
+                    messageEntries.sort((a) => (["state", "brightness", "brightness_percent"].includes(a[0]) ? sorter : sorter * -1));
+                    for (const [msgKey, msgValue] of messageEntries) {
+                        // Only delegate keys we claim. Command-only keys (brightness_move,
+                        // hue_step, etc.) are NOT in our key list — Z2M routes them to
+                        // their standard converters directly.
+                        if (!keys.includes(msgKey)) continue;
+                        // philips2Keys have no standard equivalent and are handled below.
                         if (philips2Keys.includes(msgKey)) continue;
                         for (const tz of toZigbee) {
                             if (!used.has(tz) && tz.key.includes(msgKey) && tz.convertSet) {
@@ -501,7 +526,15 @@ const philipsModernExtend = {
                 }
             },
             convertGet: async (entity, key, meta) => {
-                if (utils.isEndpoint(entity) && !entity.supportsInputCluster("manuSpecificPhilips2")) {
+                let hasPhilips2Cluster = false;
+                if (utils.isEndpoint(entity)) {
+                    try {
+                        hasPhilips2Cluster = entity.supportsInputCluster("manuSpecificPhilips2");
+                    } catch {
+                        hasPhilips2Cluster = false;
+                    }
+                }
+                if (utils.isEndpoint(entity) && !hasPhilips2Cluster) {
                     for (const tz of toZigbee) {
                         if (tz.key.includes(key) && tz.convertGet) {
                             return await tz.convertGet(entity, key, meta);
@@ -535,7 +568,23 @@ const philipsModernExtend = {
         // back to the original standard converters by default (opt-out), or sends via
         // manuSpecificPhilips2 when the user enables the hue_native_control option.
         // The original standard converters are captured in the `toZigbee` closure above.
-        result.toZigbee = [philipsLightTz, philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error];
+        // Standard converters for keys we DON'T claim. For converters that handle
+        // both claimed and unclaimed keys (e.g. light_onoff_brightness handles "state"
+        // which we claim AND "on_time" which we don't), we create wrappers with only
+        // the unclaimed keys so Z2M doesn't double-dispatch.
+        const unclaimed: Tz.Converter[] = [];
+        for (const tz of toZigbee) {
+            const unclaimedKeys = tz.key.filter((k: string) => !keys.includes(k));
+            if (unclaimedKeys.length === 0) continue; // We claim all keys of this converter
+            if (unclaimedKeys.length === tz.key.length) {
+                // No overlap — include as-is
+                unclaimed.push(tz);
+            } else {
+                // Partial overlap — wrap with only unclaimed keys
+                unclaimed.push({...tz, key: unclaimedKeys});
+            }
+        }
+        result.toZigbee = [philipsLightTz, philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error, ...unclaimed];
 
         if (args.hueEffect || args.gradient) {
             result.toZigbee.push(philipsTz.effect);
@@ -565,8 +614,16 @@ const philipsModernExtend = {
             // reports for effects, brightness, color, etc. on non-gradient bulbs too.
             result.fromZigbee.push(manuSpecificPhilips2Fz);
             result.configure.push(async (device, coordinatorEndpoint, definition) => {
-                for (const ep of device.endpoints.filter((ep) => ep.supportsInputCluster("manuSpecificPhilips2"))) {
-                    await ep.bind("manuSpecificPhilips2", coordinatorEndpoint);
+                for (const ep of device.endpoints) {
+                    let supported = false;
+                    try {
+                        supported = ep.supportsInputCluster("manuSpecificPhilips2");
+                    } catch {
+                        // Custom cluster not in registry — skip
+                    }
+                    if (supported) {
+                        await ep.bind("manuSpecificPhilips2", coordinatorEndpoint);
+                    }
                 }
             });
             // All Hue-specific effects per Bifrost spec
