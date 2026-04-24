@@ -403,6 +403,7 @@ const onokomExtend = {
             valueOff: ["OFF", 0],
             description: "Screen low bright",
             zigbeeCommandOptions: {manufacturerCode},
+            ...args,
         }),
     targetFanRpm: (args?: Partial<m.NumericArgs<"hvacFanCtrl", OnokomHvacFanCtrl>>) =>
         m.numeric<"hvacFanCtrl", OnokomHvacFanCtrl>({
@@ -414,6 +415,7 @@ const onokomExtend = {
             valueStep: 1,
             description: "Target fan speed",
             zigbeeCommandOptions: {manufacturerCode},
+            ...args,
         }),
     indoorHeatExchangerTemperature: (args?: Partial<m.NumericArgs<"hvacThermostat", OnokomHvacThermostat>>) =>
         m.numeric<"hvacThermostat", OnokomHvacThermostat>({
@@ -427,6 +429,7 @@ const onokomExtend = {
             unit: "°C",
             description: "Indoor heat exchanger temperature",
             zigbeeCommandOptions: {manufacturerCode},
+            ...args,
         }),
     beeper: (args?: Partial<m.BinaryArgs<"hvacThermostat", OnokomHvacThermostat>>) =>
         m.binary<"hvacThermostat", OnokomHvacThermostat>({
@@ -437,6 +440,7 @@ const onokomExtend = {
             valueOff: ["OFF", 0],
             description: "Beeper",
             zigbeeCommandOptions: {manufacturerCode},
+            ...args,
         }),
     targetCompressorPower: (args?: Partial<m.NumericArgs<"hvacFanCtrl", OnokomHvacFanCtrl>>) =>
         m.numeric<"hvacFanCtrl", OnokomHvacFanCtrl>({
@@ -449,6 +453,7 @@ const onokomExtend = {
             valueStep: 1,
             description: "Target compressor power",
             zigbeeCommandOptions: {manufacturerCode},
+            ...args,
         }),
     outdoorHeatExchangerTemperature: (args?: Partial<m.NumericArgs<"hvacThermostat", OnokomHvacThermostat>>) =>
         m.numeric<"hvacThermostat", OnokomHvacThermostat>({
@@ -462,6 +467,7 @@ const onokomExtend = {
             unit: "°C",
             description: "Outdoor heat exchanger temperature",
             zigbeeCommandOptions: {manufacturerCode},
+            ...args,
         }),
     smartSleepMode: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", OnokomHvacThermostat>>) =>
         m.enumLookup<"hvacThermostat", OnokomHvacThermostat>({
@@ -477,6 +483,7 @@ const onokomExtend = {
             },
             description: "Smart sleep mode",
             zigbeeCommandOptions: {manufacturerCode},
+            ...args,
         }),
     smartEye: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", OnokomHvacThermostat>>) =>
         m.enumLookup<"hvacThermostat", OnokomHvacThermostat>({
@@ -490,6 +497,7 @@ const onokomExtend = {
             },
             description: "Smart eye",
             zigbeeCommandOptions: {manufacturerCode},
+            ...args,
         }),
     heating8Deg: (args?: Partial<m.BinaryArgs<"hvacThermostat", OnokomHvacThermostat>>) =>
         m.binary<"hvacThermostat", OnokomHvacThermostat>({
@@ -500,6 +508,7 @@ const onokomExtend = {
             valueOff: ["OFF", 0],
             description: "Heating 8 deg",
             zigbeeCommandOptions: {manufacturerCode},
+            ...args,
         }),
     gentleWind: (args?: Partial<m.BinaryArgs<"hvacThermostat", OnokomHvacThermostat>>) =>
         m.binary<"hvacThermostat", OnokomHvacThermostat>({
@@ -510,6 +519,7 @@ const onokomExtend = {
             valueOff: ["OFF", 0],
             description: "Gentle wind",
             zigbeeCommandOptions: {manufacturerCode},
+            ...args,
         }),
 };
 
