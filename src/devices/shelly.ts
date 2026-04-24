@@ -1173,6 +1173,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S4SW-002P16EU-SWITCH",
         vendor: "Shelly",
         description: "2PM Gen4 (Switch mode)",
+        ota: true,
         fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: [
