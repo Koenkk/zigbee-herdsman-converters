@@ -50,11 +50,7 @@ interface OnokomHvacFanCtrl {
 }
 
 const onokomExtend = {
-<<<<<<< HEAD
-    onokomHvacThermostCluster: () =>
-=======
     onokomHvacThermostatCluster: () =>
->>>>>>> baba89108 (Refactoring of modernextend usage)
         m.deviceAddCustomCluster("hvacThermostat", {
             name: "hvacThermostat",
             ID: Zcl.Clusters.hvacThermostat.ID,
@@ -525,11 +521,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household and semi-industrial AUX systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -576,11 +568,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household and semi-industrial AUX systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -627,11 +615,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household Daikin systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -682,11 +666,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household Daikin systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -737,11 +717,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household GREE systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -799,11 +775,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for control of semi-industrial and multi-split systems GREE",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -853,11 +825,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household and semi-industrial Haier systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -907,11 +875,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household and semi-industrial Haier systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -961,11 +925,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household Hisesnse systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -1024,11 +984,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household Hisesnse systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -1087,11 +1043,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household Hitachi systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -1124,11 +1076,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household Hitachi systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -1161,11 +1109,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household MDV systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -1218,11 +1162,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household MDV systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -1275,11 +1215,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for semi-industrial MDV systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -1324,11 +1260,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for semi-industrial MDV systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -1373,11 +1305,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household and semi-industrial Mitsubishi Electric systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -1420,11 +1348,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household and semi-industrial Mitsubishi Electric systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -1467,11 +1391,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for household TCL systems ",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -1583,11 +1503,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for semi industrial TCL systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
@@ -1635,11 +1551,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Adapter for semi industrial TCL systems",
         ota: true,
         extend: [
-<<<<<<< HEAD
-            onokomExtend.onokomHvacThermostCluster(),
-=======
             onokomExtend.onokomHvacThermostatCluster(),
->>>>>>> baba89108 (Refactoring of modernextend usage)
             onokomExtend.onokomHvacFanCtrlCluster(),
             onokomExtend.acConnected(),
             m.onOff({
