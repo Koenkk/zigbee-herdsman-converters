@@ -1533,7 +1533,7 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, "read">,
-    running_state_from_piheat: {
+    thermostat_running_state_from_piheat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
@@ -2960,7 +2960,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE011680",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
-        fromZigbee: [fzLocal.running_state_from_piheat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
+        fromZigbee: [fzLocal.thermostat_running_state_from_piheat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_system_mode,
@@ -3319,7 +3319,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S520619",
         vendor: "Schneider Electric",
         description: "Wiser Odace Smart thermostat",
-        fromZigbee: [fzLocal.running_state_from_piheat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature, fz.occupancy],
+        fromZigbee: [
+            fzLocal.thermostat_running_state_from_piheat,
+            fz.metering,
+            fzLocal.wiser_device_info,
+            fz.hvac_user_interface,
+            fz.temperature,
+            fz.occupancy,
+        ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint,
