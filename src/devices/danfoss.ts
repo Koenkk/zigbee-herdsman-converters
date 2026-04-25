@@ -799,6 +799,16 @@ const danfossExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
             ...args,
         }),
+    danfossPreheatTime: (args?: Partial<m.NumericArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", DanfossHvacThermostat>({
+            name: "preheat_time",
+            cluster: "hvacThermostat",
+            attribute: "danfossPreheatTime",
+            description: "Timestamp of the scheduled setpoint currently being preheated to (read-only)",
+            access: "STATE_GET",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
+            ...args,
+        }),
     danfossAdaptionRunStatus: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
         m.enumLookup<"hvacThermostat", DanfossHvacThermostat>({
             name: "adaptation_run_status",
@@ -1315,6 +1325,7 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossLoadRoomMean(),
             danfossExtend.danfossLoadEstimate(),
             danfossExtend.danfossPreheatStatus(),
+            danfossExtend.danfossPreheatTime(),
             danfossExtend.danfossAdaptionRunStatus(),
             danfossExtend.danfossAdaptionRunSettings(),
             danfossExtend.danfossAdaptionRunControl(),
