@@ -58,6 +58,10 @@ interface DanfossHvacThermostat {
             setpointType: number;
             setpoint: number;
         };
+        danfossPreHeatCommand: {
+            type: number;
+            timestamp: number;
+        };
     };
     commandResponses: never;
 }
@@ -329,6 +333,14 @@ const danfossExtend = {
                     parameters: [
                         {name: "setpointType", type: Zcl.DataType.ENUM8, max: 0xff},
                         {name: "setpoint", type: Zcl.DataType.INT16, min: -32768, max: 32767},
+                    ],
+                },
+                danfossPreHeatCommand: {
+                    name: "danfossPreHeatCommand",
+                    ID: 0x42,
+                    parameters: [
+                        {name: "type", type: Zcl.DataType.ENUM8, max: 0xff},
+                        {name: "timestamp", type: Zcl.DataType.UINT32},
                     ],
                 },
             },
@@ -1035,6 +1047,22 @@ const tzLocal = {
             await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossIcon2PreHeatStatus"], {
                 manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
             });
+        },
+    } satisfies Tz.Converter,
+    danfoss_preheat_command: {
+        key: ["preheat_command"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertObject(value);
+            const payload = {
+                type: 0x00, // Force preheat
+                timestamp: value.timestamp,
+            };
+            await entity.command<"hvacThermostat", "danfossPreHeatCommand", DanfossHvacThermostat>(
+                "hvacThermostat",
+                "danfossPreHeatCommand",
+                payload,
+                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
+            );
         },
     } satisfies Tz.Converter,
     danfoss_system_status_code: {
