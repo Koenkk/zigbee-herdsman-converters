@@ -1367,7 +1367,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withCategory("diagnostic"),
         ],
         fromZigbee: [fz.thermostat_weekly_schedule],
-        toZigbee: [tz.thermostat_clear_weekly_schedule],
+        toZigbee: [tz.thermostat_clear_weekly_schedule, tzLocal.danfoss_system_status_code, tzLocal.danfoss_preheat_command],
     },
     {
         fingerprint: [
