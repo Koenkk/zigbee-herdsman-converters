@@ -1029,6 +1029,15 @@ const tzLocal = {
     } satisfies Tz.Converter,
     danfoss_system_status_code: {
         key: ["system_status_code"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            await entity.write<"haDiagnostic", DanfossHaDiagnostic>(
+                "haDiagnostic",
+                {danfossSystemStatusCode: value},
+                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
+            );
+            return {state: {system_status_code: value}};
+        },
         convertGet: async (entity, key, meta) => {
             await entity.read<"haDiagnostic", DanfossHaDiagnostic>("haDiagnostic", ["danfossSystemStatusCode"], {
                 manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
@@ -1238,6 +1247,17 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacUserInterfaceCfg", DanfossHvacUserInterfaceCfg, ["attributeReport", "readResponse"]>,
+    danfoss_system_status_code: {
+        cluster: "haDiagnostic",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.danfossSystemStatusCode !== undefined) {
+                result.system_status_code = msg.data.danfossSystemStatusCode;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"haDiagnostic", DanfossHaDiagnostic, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -1256,6 +1276,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             danfossExtend.addDanfossHvacThermostatCluster(),
             danfossExtend.addDanfossHvacUserInterfaceCfgCluster(),
+            danfossExtend.addDanfossHaDiagnosticCluster(),
             danfossExtend.danfossThermostat({
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 35, step: 0.5}}},
                 piHeatingDemand: {values: true},
@@ -1299,6 +1320,12 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossAdaptionRunControl(),
             danfossExtend.danfossRegulationSetpointOffset(),
             m.writeTimeDaily({endpointId: 1}),
+        ],
+        exposes: [
+            e
+                .numeric("system_status_code", ea.STATE_GET)
+                .withDescription("Diagnostic status bitmap (bit 9 = time/clock lost).")
+                .withCategory("diagnostic"),
         ],
         fromZigbee: [fz.thermostat_weekly_schedule],
         toZigbee: [tz.thermostat_clear_weekly_schedule],
