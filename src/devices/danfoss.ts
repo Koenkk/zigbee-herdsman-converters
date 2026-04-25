@@ -1,4 +1,4 @@
-import {Zcl} from "zigbee-herdsman";
+import {getTimeClusterAttributes, Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -12,12 +12,22 @@ import {postfixWithEndpointName, precisionRound} from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const setTime = async (device: Zh.Device) => {
+const setTime = async (device: Zh.Device, sendPolicy?: "immediate" | "queue") => {
     const endpoint = device.getEndpoint(1);
-    const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
-    // Time-master + synchronised
-    const values = {timeStatus: 1, time: time, timeZone: new Date().getTimezoneOffset() * -1 * 60};
-    await endpoint.write("genTime", values);
+    const {time, timeZone, dstStart, dstEnd, dstShift} = getTimeClusterAttributes();
+
+    await endpoint.write(
+        "genTime",
+        {
+            time,
+            timeStatus: 0x02, // bit 1 = synchronized (per Danfoss spec §1.2)
+            timeZone,
+            dstStart,
+            dstEnd,
+            dstShift,
+        },
+        sendPolicy ? {sendPolicy} : undefined,
+    );
 };
 
 interface DanfossHvacThermostat {
@@ -1358,7 +1368,13 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossAdaptionRunSettings(),
             danfossExtend.danfossAdaptionRunControl(),
             danfossExtend.danfossRegulationSetpointOffset(),
-            m.writeTimeDaily({endpointId: 1}),
+            m.poll({
+                key: "danfossTime",
+                defaultIntervalSeconds: 60 * 60 * 24, // 24 hours
+                poll: async (device) => {
+                    await setTime(device, "queue");
+                },
+            }),
         ],
         exposes: [
             e
