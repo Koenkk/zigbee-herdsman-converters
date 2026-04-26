@@ -344,6 +344,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EMIZB-132",
         vendor: "Develco",
         description: "Wattle AMS HAN power-meter sensor",
+        version: "0.0.1",
         ota: true,
         extend: [
             develcoModernExtend.addCustomDevelcoSeMeteringCluster(),
