@@ -1382,8 +1382,26 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Diagnostic status bitmap (bit 9 = time/clock lost).")
                 .withCategory("diagnostic"),
         ],
-        fromZigbee: [fz.thermostat_weekly_schedule],
+        fromZigbee: [fz.thermostat_weekly_schedule, fzLocal.danfoss_system_status_code],
         toZigbee: [tz.thermostat_clear_weekly_schedule, tzLocal.danfoss_system_status_code, tzLocal.danfoss_preheat_command],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
+            await reporting.bind(endpoint, coordinatorEndpoint, ["haDiagnostic"]);
+            await endpoint.configureReporting<"haDiagnostic", DanfossHaDiagnostic>(
+                "haDiagnostic",
+                [
+                    {
+                        attribute: "danfossSystemStatusCode",
+                        minimumReportInterval: 0,
+                        maximumReportInterval: constants.repInterval.HOUR,
+                        reportableChange: 1,
+                    },
+                ],
+                options,
+            );
+            await endpoint.read<"haDiagnostic", DanfossHaDiagnostic>("haDiagnostic", ["danfossSystemStatusCode"], options);
+        },
     },
     {
         fingerprint: [
