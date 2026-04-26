@@ -6735,6 +6735,30 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3210_ok0ggpk7"]),
+        model: "TS0003_2_switch_1_socket_tz3210",
+        vendor: "Nova Digital",
+        description: "2 switches and 1 socket with backlight",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaMagicPacket(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ["l1", "l2", "l3"],
+                onOffCountdown: true,
+                powerOutageMemory: true,
+                indicatorMode: true,
+                backlightModeOffOn: true,
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_fawk5xjv", "_TZ3000_bvij6kod", "_TZ3000_aracgljk"]),
         model: "NFZB-03",
         vendor: "Nova Digital",
