@@ -7,7 +7,7 @@ import type {ManuSpecificLumi} from "../lib/lumi";
 import * as lumi from "../lib/lumi";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Zh} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -59,11 +59,30 @@ const {
     lumiMultiClick,
     lumiPreventLeave,
     lumiExternalSensor,
+    w600ExternalTempSensor,
     lumiReadPositionOnReport,
 } = lumi.modernExtend;
 
 const NS = "zhc:lumi";
 const {manufacturerCode} = lumi;
+const aqaraH2EuShutterSwitchEndpoints = {top_wireless_button: 3, bottom_wireless_button: 4} as const;
+type AqaraH2EuShutterSwitchEndpointName = keyof typeof aqaraH2EuShutterSwitchEndpoints;
+const aqaraH2EuShutterSwitchEndpointNames: AqaraH2EuShutterSwitchEndpointName[] = ["top_wireless_button", "bottom_wireless_button"];
+const aqaraH2EuShutterSwitchActionLookup = {hold: 0, single: 1, double: 2, release: 255};
+const aqaraH2EuShutterSwitchMultiEndpointSkip = ["energy", "position", "state", "tilt"];
+const aqaraH2EuShutterSwitchMultiClickAttribute = 0x0286;
+
+async function configureAqaraH2EuShutterSwitch(device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) {
+    for (const endpointName of aqaraH2EuShutterSwitchEndpointNames) {
+        const endpoint = device.getEndpoint(aqaraH2EuShutterSwitchEndpoints[endpointName]);
+        await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi", "genMultistateInput"]);
+        await endpoint.configureReporting("genMultistateInput", reporting.payload("presentValue", 0, 3600, 1));
+        // Initialize Aqara's per-button multi-click setting on startup.
+        await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [aqaraH2EuShutterSwitchMultiClickAttribute], {
+            manufacturerCode,
+        });
+    }
+}
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -2442,6 +2461,155 @@ export const definitions: DefinitionWithExtend[] = [
             lumiBattery({voltageToPercentage: {min: 2850, max: 3000}}),
             lumiZigbeeOTA(),
             m.quirkCheckinInterval("1_HOUR"),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.vibration.agl002"],
+        model: "DWZTCGQ11LM",
+        vendor: "Aqara",
+        description: "Multi-state sensor P100",
+        extend: [
+            m.quirkCheckinInterval("1_HOUR"),
+            lumi.lumiModernExtend.addManuSpecificLumiCluster(),
+            lumi.lumiModernExtend.lumiPreventReset(),
+            lumi.lumiModernExtend.lumiBattery({
+                voltageAttribute: 0x17,
+                percentageAttribute: 0x18,
+            }),
+            lumi.lumiModernExtend.lumiZigbeeOTA(),
+            m.enumLookup({
+                name: "device_mode",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0116, type: 0x20},
+                lookup: {door_window: 3, object: 5},
+                description: "Device operating mode",
+                access: "STATE_SET",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.enumLookup({
+                name: "door_window_type",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x01eb, type: 0x20},
+                lookup: {casement_window: 1, hopper_window: 2, composite_window: 3, hinged_door: 4},
+                description: "Door/window type (applies when device_mode = door window)",
+                access: "STATE_SET",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "sensitivity",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x010c, type: 0x20},
+                valueMin: 1,
+                valueMax: 10,
+                description: "Detection sensitivity (1 = low, 10 = high)",
+                access: "STATE_SET",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "report_interval",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x01ec, type: 0x23},
+                unit: "s",
+                valueMin: 5,
+                valueMax: 300,
+                description: "Reporting interval in seconds",
+                access: "STATE_SET",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.binary({
+                name: "orientation_detection",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x01f0, type: 0x10},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Enable orientation event detection",
+                access: "STATE_SET",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.binary({
+                name: "movement_detection",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x01ed, type: 0x10},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Enable movement event detection",
+                access: "STATE_SET",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.binary({
+                name: "fall_detection",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x01d8, type: 0x10},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Enable fall event detection",
+                access: "STATE_SET",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.binary({
+                name: "vibration_detection",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0107, type: 0x10},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Enable vibration event detection",
+                access: "STATE_SET",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.binary({
+                name: "triple_tap_detection",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x01ef, type: 0x10},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Enable triple-tap event detection",
+                access: "STATE_SET",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.enumLookup({
+                name: "orientation",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x01f1, type: 0x20},
+                lookup: {face_up: 1, face_down: 2, vertical: 3, tilt: 4},
+                description: "Last reported orientation (relevant when action = orientation)",
+                access: "STATE",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            // 0x01f3 fires true on every detection but never resets — no signal beyond `action`, not exposed.
+            m.actionEnumLookup({
+                cluster: "closuresDoorLock",
+                attribute: {ID: 0x0055, type: 0x21},
+                actionLookup: {
+                    triple_tap: 0,
+                    movement: 1,
+                    vibration: 2,
+                    orientation: 3,
+                    fall: 4,
+                },
+            }),
+            m.binary({
+                name: "contact",
+                cluster: "genOnOff",
+                attribute: "onOff",
+                valueOn: [false, 1],
+                valueOff: [true, 0],
+                description: "Door/window state (door/window mode only)",
+                access: "STATE",
+            }),
+            m.enumLookup({
+                name: "device_posture",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x01ee, type: 0x20},
+                lookup: {normal: 1, abnormal: 2},
+                description: "Mounting orientation check — 'abnormal' when the sensor is incorrectly installed or needs calibration",
+                access: "STATE",
+                entityCategory: "diagnostic",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
         ],
     },
     {
@@ -4843,6 +5011,36 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.switch.aeu003"],
+        model: "DS-K02D/DS-K02E",
+        vendor: "Aqara",
+        description: "Aqara Shutter Switch H2 EU",
+        meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                if (payload.position_topic && payload.set_position_topic) {
+                    payload.device_class = "shutter";
+                }
+            },
+        },
+        configure: configureAqaraH2EuShutterSwitch,
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiZigbeeOTA(),
+            m.deviceEndpoints({
+                endpoints: aqaraH2EuShutterSwitchEndpoints,
+                multiEndpointSkip: aqaraH2EuShutterSwitchMultiEndpointSkip,
+            }),
+            m.electricityMeter({cluster: "metering", power: false, energy: {divisor: 1000}}),
+            m.windowCovering({controls: ["lift"], coverInverted: true, configureReporting: true}),
+            lumiAction({
+                actionLookup: aqaraH2EuShutterSwitchActionLookup,
+                endpointNames: aqaraH2EuShutterSwitchEndpointNames,
+            }),
+            lumiMultiClick({description: "Multi-click mode for top wireless button", endpointName: "top_wireless_button"}),
+            lumiMultiClick({description: "Multi-click mode for bottom wireless button", endpointName: "bottom_wireless_button"}),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.switch.agl011"],
         model: "KD-R01D",
         vendor: "Aqara",
@@ -5362,6 +5560,7 @@ export const definitions: DefinitionWithExtend[] = [
                     minHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
                 },
             }),
+            w600ExternalTempSensor(),
             m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "calibrate",
                 lookup: {start: 1},
@@ -5587,7 +5786,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.lumiBattery({
                 voltageToPercentage: {min: 2850, max: 3000},
                 voltageAttribute: 0x0017, // Attribute: 23
-                //percentageAtrribute: 0x0018 // Attribute: 24 // TODO: Should confirm to be sure
+                //percentageAttribute: 0x0018 // Attribute: 24 // TODO: Should confirm to be sure
             }),
             lumi.lumiModernExtend.fp1ePresence(),
             lumi.lumiModernExtend.fp300PIRDetection(),

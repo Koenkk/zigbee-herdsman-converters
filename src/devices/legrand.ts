@@ -4,6 +4,7 @@ import * as exposes from "../lib/exposes";
 import {eLegrand, fzLegrand, legrandExtend, legrandOptions, readInitialBatteryState, tzLegrand} from "../lib/legrand";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
@@ -140,7 +141,11 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Legrand",
         description: "Netatmo wired shutter switch",
         ota: true,
-        extend: [legrandExtend.addLegrandDevicesCluster(), legrandExtend.addLegrandClosuresWindowCovering()],
+        extend: [
+            legrandExtend.addLegrandDevicesCluster(),
+            legrandExtend.addLegrandClosuresWindowCovering(),
+            tuya.clusters.addTuyaClosuresWindowCoveringCluster(),
+        ],
         fromZigbee: [fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(false), fzLegrand.command_cover],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(false)],
         exposes: (device, options) => {
@@ -206,7 +211,11 @@ export const definitions: DefinitionWithExtend[] = [
             },
         ],
         ota: true,
-        extend: [legrandExtend.addLegrandDevicesCluster(), legrandExtend.addLegrandClosuresWindowCovering()],
+        extend: [
+            legrandExtend.addLegrandDevicesCluster(),
+            legrandExtend.addLegrandClosuresWindowCovering(),
+            tuya.clusters.addTuyaClosuresWindowCoveringCluster(),
+        ],
         fromZigbee: [fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true), fzLegrand.command_cover],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(true)],
         exposes: (device, options) => {

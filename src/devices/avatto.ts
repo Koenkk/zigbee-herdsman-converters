@@ -233,14 +233,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [
                     49,
-                    "running_state",
-                    tuya.valueConverterBasic.lookup({
-                        heat: tuya.enum(1),
-                        idle: tuya.enum(0),
-                    }),
-                ],
-                [
-                    49,
                     "system_mode",
                     tuya.valueConverterBasic.lookup({
                         heat: tuya.enum(1),
@@ -259,6 +251,7 @@ export const definitions: DefinitionWithExtend[] = [
                         holiday: tuya.enum(5),
                     }),
                 ],
+                [3, "running_state", tuya.valueConverterBasic.lookup({idle: 1, heat: 0})],
                 [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [5, "local_temperature", tuya.valueConverter.divideBy10],
                 [6, "battery", tuya.valueConverter.raw],

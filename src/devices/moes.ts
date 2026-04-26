@@ -442,6 +442,21 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_upt8lzi0"]),
+        model: "ZS-SF-EUC-WH-MS",
+        vendor: "Moes",
+        description: "Star feather Zigbee curtain switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        options: [exposes.options.invert_cover()],
+        exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [2, "position", tuya.valueConverter.coverPosition],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_stvgmdjz", "_TZE200_ydkqbmpt", "_TZE200_z3u99qxt"]),
         model: "SFL02-Z-1",
         vendor: "Moes",
@@ -1364,7 +1379,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Heiman", "HS-720ES", "Carbon monoxide alarm", ["_TZE200_hr0tdd47"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vawy74yh", "_TZE284_vawy74yh"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vawy74yh", "_TZE204_vawy74yh", "_TZE284_vawy74yh"]),
         model: "ZSS-HM-SSD01",
         vendor: "Moes",
         description: "Smoke sensor",
@@ -1433,8 +1448,8 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await endpoint.write("genOnOff", {tuyaOperationMode: 1});
-            await endpoint.read("genOnOff", ["tuyaOperationMode"]);
+            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
             try {
                 await endpoint.read(0xe001, [0xd011]);
             } catch {

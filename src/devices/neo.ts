@@ -152,6 +152,8 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_nnhwcvbk",
             "_TZE204_z7a2jmyy",
             "_TZE284_z7a2jmyy",
+            "_TZE204_4fblxpma",
+            "_TZE284_4fblxpma",
         ]),
         model: "NAS-WV03B",
         vendor: "NEO",
@@ -167,7 +169,7 @@ export const definitions: DefinitionWithExtend[] = [
             te.status_sprinkler(),
             te.refresh(),
             te.countdown_min(),
-            te.on_with_countdown(),
+            ...(!device || !["_TZE204_4fblxpma", "_TZE284_4fblxpma"].includes(device.manufacturerName) ? [te.on_with_countdown()] : []), // missing dp
             te.countdown_left(),
             te.single_watering_duration(),
             te.flow_switch(),
@@ -180,7 +182,7 @@ export const definitions: DefinitionWithExtend[] = [
                       te.water_total(),
                   ]
                 : [
-                      te.quantitative_watering().withUnit("gal"),
+                      te.quantitative_watering().withUnit("gal"), // gallons by default
                       te.single_watering_amount().withUnit("gal"),
                       te.surplus_flow().withUnit("gal"),
                       te.water_current().withUnit("gal/min"),
@@ -304,7 +306,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rqcuwlsa"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rqcuwlsa", "_TZE284_awepdiwi"]),
         model: "NAS-STH02B2",
         vendor: "NEO",
         description: "Soil moisture, temperature, and ec",

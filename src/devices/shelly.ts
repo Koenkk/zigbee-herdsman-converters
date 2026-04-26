@@ -1129,10 +1129,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S4PL-00416EU",
         vendor: "Shelly",
         description: "Power strip 4 Gen4",
+        version: "0.0.1",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
-            m.electricityMeter({endpointNames: ["1", "2", "3", "4"]}),
+            m.electricityMeter({
+                endpointNames: ["1", "2", "3", "4"],
+                // Reduce reporting to prevent crashes
+                // https://github.com/Koenkk/zigbee2mqtt/issues/31183
+                acFrequency: {change: 125},
+                current: {change: 60},
+                voltage: {change: 625},
+                power: {change: 6},
+                energy: {change: 125000},
+            }),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["PowerstripUI"]),
@@ -1269,7 +1279,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: "Dimmer", manufacturerName: "Shelly"}],
+        fingerprint: [
+            {modelID: "Dimmer", manufacturerName: "Shelly"},
+            {modelID: "Dimmer US", manufacturerName: "Shelly"},
+        ],
         model: "S4DM-0A101WWL",
         vendor: "Shelly",
         description: "Dimmer Gen4",
@@ -1377,13 +1390,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "BLU RC Button 4 ZB", manufacturerName: "Shelly"}],
+        zigbeeModel: ["BLU RC Button 4 ZB", "BLU Wall Switch 4 ZB", "BLU Wall Switch 4 ZB DK"],
         model: "SBBT-104CUS",
         vendor: "Shelly",
         description: "BLU RC Button 4 ZB",
         whiteLabel: [
-            {vendor: "Shelly", model: "SBBT-004CEU", fingerprint: [{modelID: "SBBT-004CEU"}], description: "BLU Wall Switch 4 ZB"},
-            {vendor: "Shelly", model: "SBBT-104CEU", fingerprint: [{modelID: "SBBT-104CEU"}], description: "BLU Wall Switch 4 ZB DK"},
+            {vendor: "Shelly", model: "SBBT-004CEU", fingerprint: [{modelID: "BLU Wall Switch 4 ZB"}], description: "BLU Wall Switch 4 ZB"},
+            {vendor: "Shelly", model: "SBBT-104CEU", fingerprint: [{modelID: "BLU Wall Switch 4 ZB DK"}], description: "BLU Wall Switch 4 ZB DK"},
         ],
         fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events, fzLocal.four_buttons_scene_events],
         exposes: [
@@ -1517,5 +1530,81 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.identify(),
         ],
+    },
+    {
+        fingerprint: [{modelID: "Presence", manufacturerName: "Shelly"}],
+        model: "S4SN-0U61X",
+        vendor: "Shelly",
+        description: "Presence Gen4 Zigbee",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10}}),
+            m.occupancy({reporting: false, endpointNames: ["1"]}),
+            m.occupancy({reporting: false, endpointNames: ["2"]}),
+            m.occupancy({reporting: false, endpointNames: ["3"]}),
+            m.occupancy({reporting: false, endpointNames: ["4"]}),
+            m.occupancy({reporting: false, endpointNames: ["5"]}),
+            m.occupancy({reporting: false, endpointNames: ["6"]}),
+            m.occupancy({reporting: false, endpointNames: ["7"]}),
+            m.occupancy({reporting: false, endpointNames: ["8"]}),
+            m.occupancy({reporting: false, endpointNames: ["9"]}),
+            m.occupancy({reporting: false, endpointNames: ["10"]}),
+            m.deviceAddCustomCluster("shellyLightLevel", {
+                name: "shellyLightLevel",
+                ID: 0xfc21,
+                manufacturerCode: Zcl.ManufacturerCode.SHELLY,
+                attributes: {
+                    lightLevel: {name: "lightLevel", ID: 0x0000, type: Zcl.DataType.UINT8},
+                    darkThreshold: {name: "darkThreshold", ID: 0x0001, type: Zcl.DataType.UINT24},
+                    brightThreshold: {name: "brightThreshold", ID: 0x0002, type: Zcl.DataType.UINT24},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.enumLookup<"shellyLightLevel", ShellyLightLevel>({
+                name: "light_level",
+                cluster: "shellyLightLevel",
+                attribute: "lightLevel",
+                lookup: {dark: 0, twilight: 1, bright: 2},
+                description: "Coarse light level",
+                reporting: false,
+                access: "STATE_GET",
+            }),
+            m.numeric<"shellyLightLevel", ShellyLightLevel>({
+                name: "dark_threshold",
+                cluster: "shellyLightLevel",
+                attribute: "darkThreshold",
+                valueMin: 0,
+                valueMax: 65535,
+                reporting: false,
+                description: "Lux threshold below which light level is dark",
+                unit: "lx",
+                access: "ALL",
+            }),
+            m.numeric<"shellyLightLevel", ShellyLightLevel>({
+                name: "bright_threshold",
+                cluster: "shellyLightLevel",
+                attribute: "brightThreshold",
+                valueMin: 0,
+                valueMax: 65535,
+                reporting: false,
+                description: "Lux threshold above which light level is bright",
+                unit: "lx",
+                access: "ALL",
+            }),
+            m.identify(),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyWiFiSetup(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read<"shellyLightLevel", ShellyLightLevel>("shellyLightLevel", ["lightLevel", "darkThreshold", "brightThreshold"], {
+                manufacturerCode: Zcl.ManufacturerCode.SHELLY,
+            });
+            await endpoint.configureReporting<"shellyLightLevel", ShellyLightLevel>(
+                "shellyLightLevel",
+                [{attribute: "lightLevel", minimumReportInterval: 60, maximumReportInterval: 900, reportableChange: 0}],
+                {manufacturerCode: Zcl.ManufacturerCode.SHELLY},
+            );
+        },
     },
 ];
