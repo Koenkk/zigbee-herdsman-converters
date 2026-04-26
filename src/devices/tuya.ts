@@ -6566,6 +6566,7 @@ export const definitions: DefinitionWithExtend[] = [
         ]),
         model: "TS0002_basic",
         vendor: "Tuya",
+        version: "0.0.1",
         description: "2 gang switch module",
         whiteLabel: [
             {vendor: "OXT", model: "SWTZ22"},
