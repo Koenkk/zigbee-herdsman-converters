@@ -963,6 +963,15 @@ const danfossExtend = {
             },
         });
 
+        extend.toZigbee.push({
+            key: ["running_state"],
+            convertGet: async (entity, key, meta) => {
+                await entity.read<"hvacThermostat", DanfossHvacThermostat>("hvacThermostat", ["danfossHeatRequired"], {
+                    manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
+                });
+            },
+        });
+
         extend.configure.push(
             m.setupConfigureForReading<"hvacThermostat", undefined>("hvacThermostat", ["systemMode"]),
             m.setupConfigureForReading<"hvacUserInterfaceCfg", undefined>("hvacUserInterfaceCfg", ["keypadLockout"]),
