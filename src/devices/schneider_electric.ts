@@ -2805,7 +2805,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EKO07259",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
-        // meta: {thermostat: {dontMapPIHeatingDemand: true}},
         extend: [
             schneiderElectricExtend.thermostatWithPower({
                 localTemperature: {
