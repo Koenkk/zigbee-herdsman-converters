@@ -567,6 +567,51 @@ const schneiderElectricExtend = {
         });
         return extend;
     },
+    runningStateFromPower2: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            fromZigbee: [
+                {
+                    cluster: "seMetering",
+                    type: ["attributeReport", "readResponse"],
+                    convert: (model, msg, publish, options, meta) => {
+                        if ("instantaneousDemand" in msg.data) {
+                            const w = Math.max(0, Number(msg.data.instantaneousDemand));
+                            return {running_state: w > 10 ? "heat" : "idle"};
+                        }
+                    },
+                },
+            ],
+        };
+    },
+
+    runningStateFromPower: (): ModernExtend => {
+        const fromZigbee = [
+            {
+                cluster: "seMetering",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if ("instantaneousDemand" in msg.data) {
+                        const w = Math.max(0, Number(msg.data.instantaneousDemand));
+                        return {running_state: w > 10 ? "heat" : "idle"};
+                    }
+                },
+            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["running_state"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<"seMetering", undefined>("seMetering", ["instantaneousDemand"]);
+                },
+            },
+        ];
+        return {
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
     addHeatingCoolingOutputClusterServer: () =>
         m.deviceAddCustomCluster("heatingCoolingOutputClusterServer", {
             name: "heatingCoolingOutputClusterServer",
@@ -2807,7 +2852,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart thermostat",
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
         extend: [
-            schneiderElectricExtend.thermostatWithPower({
+            m.thermostat({
+                // schneiderElectricExtend.thermostatWithPower({
                 localTemperature: {
                     values: {
                         description: "The temperature measured by the selected sensor (see 'Local temperature source select', Ambient or External).",
@@ -2818,10 +2864,16 @@ export const definitions: DefinitionWithExtend[] = [
                     maxHeatSetpointLimit: {min: 4, max: 40, step: 0.5},
                     minHeatSetpointLimit: {min: 4, max: 40, step: 0.5},
                 },
+                runningState: {
+                    values: ["idle", "heat"],
+                    toZigbee: {skip: true},
+                    configure: {skip: true},
+                },
                 systemMode: {values: ["off", "heat"]},
                 piHeatingDemand: {values: true},
                 ctrlSeqeOfOper: {values: ["cooling_only", "heating_only"]},
             }),
+            schneiderElectricExtend.runningStateFromPower2(),
             m.electricityMeter({
                 cluster: "metering",
                 voltage: false,
