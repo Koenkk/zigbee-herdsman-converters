@@ -6658,7 +6658,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
         },
     },
-    
+
     {
         // TS0002 2 gang switch module with all available features. This is the default for TS0002 devices.
         model: "TS0002",
