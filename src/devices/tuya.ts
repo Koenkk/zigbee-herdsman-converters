@@ -22306,6 +22306,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CS-201Z",
         vendor: "COOLO",
         description: "Soil moisture sensor",
+        whiteLabel: [
+            {
+                fingerprint: [{modelID: "AY-303Z", manufacturerName: "AOYAN  "}],
+                model: "AY-303Z",
+                vendor: "AOYAN",
+                description: "Soil moisture sensor",
+            },
+        ],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.dry(),
