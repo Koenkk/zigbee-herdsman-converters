@@ -6631,6 +6631,34 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("RoomsAI", "37022463-2", "2 Gang switch with backlight", ["_TZ3000_ogpla3lh"]),
         ],
     },
+
+    {
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3210_6smingw0"]),
+        model: "TS0002_1_switch_1_socket_tz3210",
+        vendor: "Nova Digital",
+        description: "1 switch and 1 socket with backlight",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaMagicPacket(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ["l1", "l2"],
+                onOffCountdown: true,
+                indicatorMode: true,
+                backlightModeOffOn: true,
+            }),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    
     {
         // TS0002 2 gang switch module with all available features. This is the default for TS0002 devices.
         model: "TS0002",
