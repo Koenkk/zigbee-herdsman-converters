@@ -742,3 +742,17 @@ export function determineEndpoint(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta,
     // In case no endpoint is given, match the first endpoint which support the cluster.
     return device.endpoints.find((e) => e.supportsInputCluster(cluster)) ?? device.endpoints[0];
 }
+
+export function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: "input" | "output") {
+    if (!device.endpoints) {
+        throw new Error(`${device.ieeeAddr} ${device.endpoints}`);
+    }
+    const endpoints =
+        type === "input"
+            ? device.endpoints.filter((ep) => ep.getInputClusters().find((c) => (isNumber(cluster) ? c.ID === cluster : c.name === cluster)))
+            : device.endpoints.filter((ep) => ep.getOutputClusters().find((c) => (isNumber(cluster) ? c.ID === cluster : c.name === cluster)));
+    if (endpoints.length === 0) {
+        throw new Error(`Device ${device.ieeeAddr} has no ${type} cluster ${cluster}`);
+    }
+    return endpoints;
+}
