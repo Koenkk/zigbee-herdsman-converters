@@ -3208,7 +3208,6 @@ export interface ThermostatArgs {
     runningMode?: Omit<ValuesWithModernExtendConfiguration<constants.ThermostatRunningMode[]>, "fromZigbee">;
     fanMode?: constants.ThermostatFanMode[];
     piHeatingDemand?: Omit<ValuesWithModernExtendConfiguration<true | Access>, "fromZigbee"> & {dontMapPIHeatingDemand?: boolean};
-    // piHeatingDemand?: PiHeatingDemandArgs;
     temperatureSetpointHold?: true | Omit<ValuesWithModernExtendConfiguration<true>, "values" | "fromZigbee" | "toZigbee">;
     temperatureSetpointHoldDuration?: true;
     endpoint?: string;
