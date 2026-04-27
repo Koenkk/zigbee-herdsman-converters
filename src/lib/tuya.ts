@@ -913,6 +913,19 @@ export const valueConverter = {
             return 0;
         },
     },
+    fertility: valueConverterBasic.lookup({
+        normal: new Enum(0),
+        lower: new Enum(1),
+        low: new Enum(2),
+        middle: new Enum(3),
+        high: new Enum(4),
+        higher: new Enum(5),
+    }),
+    temperature_humidity_alarm: valueConverterBasic.lookup({
+        lower_alarm: new Enum(0),
+        upper_alarm: new Enum(1),
+        cancel: new Enum(2),
+    }),
     setLimit: {
         to: (v: number) => {
             if (!v) throw new Error("Limit cannot be unset, use factory_reset");

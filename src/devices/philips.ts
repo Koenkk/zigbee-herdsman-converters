@@ -1126,6 +1126,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["929003802201"],
+        model: "9290038022",
+        vendor: "Philips",
+        description: "Hue Impress outdoor wall light",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["1740193P0"],
         model: "1740193P0",
         vendor: "Philips",
@@ -4888,7 +4895,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}})],
     },
     {
-        zigbeeModel: ["929004610401", "929004610402", "929004610502", "929004610602", "929004610702", "929004610802"],
+        zigbeeModel: ["929004610401", "929004610402", "929004610403", "929004610502", "929004610602", "929004610702", "929004610802"],
         model: "929004610402",
         vendor: "Philips",
         description: "Hue White and Color Lightstrip Flux (3m)",

@@ -1,6 +1,7 @@
 import {Buffer} from "node:buffer";
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
 import * as modernExtend from "./modernExtend";
@@ -37,6 +38,7 @@ import {
     postfixWithEndpointName,
     precisionRound,
     printNumbersAsHexSequence,
+    replaceToZigbeeConvertersInArray,
     sleep,
     toNumber,
 } from "./utils";
@@ -3577,6 +3579,9 @@ export const lumiModernExtend = {
         } satisfies ModernExtend;
     },
     w600ExternalTempSensor: (): ModernExtend => createW600ExternalTempSensor(),
+    w600Thermostat: (): ModernExtend => createW600Thermostat(),
+    w600Schedule: (): ModernExtend => createW600Schedule(),
+    w600PresetTemperatureTable: (): ModernExtend => createW600PresetTemperatureTable(),
     lumiReadPositionOnReport: (type: "genAnalogOutput" | "genMultistateOutput" | "genBasic"): ModernExtend => {
         let converter: Fz.Converter<"genAnalogOutput" | "genMultistateOutput" | "genBasic", undefined, ["attributeReport"]>;
         if (type === "genAnalogOutput") {
@@ -3630,14 +3635,111 @@ export {lumiModernExtend as modernExtend};
 
 const W600_NS = "zhc:aqara_w600";
 const W600_LUMI_CLUSTER = "manuSpecificLumi";
+const W600_THERMOSTAT_CLUSTER = "hvacThermostat";
+const W600_ATTR_TEMP_SETPOINT_HOLD_DURATION = 0x0024;
+const W600_ATTR_SYSTEM_MODE = 0x0271;
+const W600_ATTR_SCHEDULE = 0x027d;
+const W600_ATTR_PRESET = 0x0311;
+const W600_ATTR_PRESET_TEMPERATURE_TABLE = 0x0317;
 const W600_ATTR_SENSOR_SOURCE = 0x0280;
 const W600_ATTR_SENSOR_BINDING = 0xfff2;
 const W600_EXTERNAL_TEMP_SENSOR = Buffer.from("00158d00019d1b98", "hex");
+const W600_PRESET_TABLE_STORE_KEY = "w600PresetTemperatureTable";
 const W600_SENSOR_BINDING_COUNTER_STORE_KEY = "w600SensorBindingCounter";
+const W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_UNTIL_STORE_KEY = "w600ManualCustomPresetSuppressionUntil";
+const W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_MS = 15_000;
 const W600_SENSOR_BINDING_MARKER = Buffer.from([0x00, 0x01, 0x00, 0x55]);
 const W600_EXTERNAL_TEMP_SENSOR_DESCRIPTOR = Buffer.from([
     0x15, 0x0a, 0x01, 0x00, 0x00, 0x01, 0x06, 0xe6, 0xb8, 0xa9, 0xe5, 0xba, 0xa6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x07, 0x65,
 ]);
+
+const W600_PRESET_ORDER = ["home", "away", "sleep", "vacation", "wind_down"] as const;
+type W600PresetName = (typeof W600_PRESET_ORDER)[number];
+type W600PresetOrNone = W600PresetName | "none";
+type W600PresetTemperatureTable = Record<W600PresetName, number>;
+
+interface W600PresetTemperatureDefinition {
+    preset: W600PresetName;
+    property: string;
+    label: string;
+    description: string;
+}
+
+const W600_PRESET_BY_ID = {
+    1: "home",
+    2: "away",
+    3: "sleep",
+    5: "vacation",
+    6: "wind_down",
+    255: "none",
+} as const;
+
+const W600_PRESET_ID_BY_NAME = {
+    home: 1,
+    away: 2,
+    sleep: 3,
+    vacation: 5,
+    wind_down: 6,
+} as const;
+
+const W600_PRESET_TEMPERATURE_DEFINITIONS: readonly W600PresetTemperatureDefinition[] = [
+    {preset: "home", property: "preset_home_temperature", label: "Home temperature", description: "Home preset temperature"},
+    {preset: "away", property: "preset_away_temperature", label: "Away temperature", description: "Away preset temperature"},
+    {preset: "sleep", property: "preset_sleep_temperature", label: "Sleep temperature", description: "Sleep preset temperature"},
+    {preset: "vacation", property: "preset_vacation_temperature", label: "Vacation temperature", description: "Vacation preset temperature"},
+    {preset: "wind_down", property: "preset_wind_down_temperature", label: "Wind down temperature", description: "Wind-down preset temperature"},
+] as const;
+
+const W600_PRESET_NAME_BY_PROPERTY = Object.fromEntries(
+    W600_PRESET_TEMPERATURE_DEFINITIONS.map((definition) => [definition.property, definition.preset]),
+) as Record<string, W600PresetName>;
+
+const W600_PROPERTY_BY_PRESET_NAME = Object.fromEntries(
+    W600_PRESET_TEMPERATURE_DEFINITIONS.map((definition) => [definition.preset, definition.property]),
+) as Record<W600PresetName, string>;
+
+function findW600ClimateExpose(extend: ModernExtend) {
+    return extend.exposes?.find((expose): expose is exposes.Climate => typeof expose !== "function" && expose.type === "climate");
+}
+
+function normalizeW600EnumKey(value: unknown) {
+    return typeof value === "string"
+        ? value
+              .trim()
+              .toLowerCase()
+              .replace(/[\s-]+/g, "_")
+        : undefined;
+}
+
+function parseW600EnumName<TLookup extends Record<string, unknown>>(value: unknown, lookup: TLookup, key: string): keyof TLookup & string {
+    const normalized = normalizeW600EnumKey(value);
+
+    if (normalized != null && Object.hasOwn(lookup, normalized)) {
+        return normalized as keyof TLookup & string;
+    }
+
+    throw new Error(`${key} must be one of: ${Object.keys(lookup).join(", ")}`);
+}
+
+function parseW600HalfDegreeTemperature(value: unknown, key: string, min: number, max: number) {
+    const numeric = Number(value);
+
+    if (!Number.isFinite(numeric)) {
+        throw new Error(`${key} must be a number`);
+    }
+
+    if (numeric < min || numeric > max) {
+        throw new Error(`${key} must be between ${min} and ${max}`);
+    }
+
+    const scaled = Math.round(numeric * 100);
+
+    if (scaled % 50 !== 0) {
+        throw new Error(`${key} must use 0.5 C steps`);
+    }
+
+    return scaled;
+}
 
 function getW600DeviceStoreKey(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
     if (typeof deviceOrEntity === "string") {
@@ -3694,12 +3796,114 @@ function parseW600ExternalTemperatureInput(value: unknown, key: string) {
     return Math.round(numeric * 100);
 }
 
-async function safeW600Read(endpoint: Zh.Endpoint, attributes: Array<string | number>) {
+function parseW600BinaryEnabled(value: unknown) {
+    if (value === 1 || value === true) {
+        return true;
+    }
+
+    if (value === 0 || value === false) {
+        return false;
+    }
+
+    if (typeof value === "string") {
+        const normalized = value.trim().toLowerCase();
+
+        if (normalized === "on" || normalized === "true") {
+            return true;
+        }
+
+        if (normalized === "off" || normalized === "false") {
+            return false;
+        }
+    }
+
+    return undefined;
+}
+
+function parseRequiredW600BinaryEnabled(value: unknown, key: string) {
+    const enabled = parseW600BinaryEnabled(value);
+
+    if (enabled == null) {
+        throw new Error(`${key} must be one of: ON, OFF`);
+    }
+
+    return enabled;
+}
+
+function parseW600ScheduleEnabled(value: unknown) {
+    return parseW600BinaryEnabled(value);
+}
+
+function parseW600TemperatureSetpointHold(value: unknown) {
+    if (typeof value === "boolean") {
+        return value;
+    }
+
+    if (value === 1 || value === "true") {
+        return true;
+    }
+
+    if (value === 0 || value === "false") {
+        return false;
+    }
+
+    return undefined;
+}
+
+function getW600OverrideActiveState(state: KeyValue | undefined) {
+    return parseW600TemperatureSetpointHold(state?.override_active) ?? parseW600TemperatureSetpointHold(state?.temperature_setpoint_hold);
+}
+
+function parseW600HeatingEnabled(value: unknown) {
+    if (value === "off") {
+        return false;
+    }
+
+    if (value === "heat" || value === "auto") {
+        return true;
+    }
+
+    return undefined;
+}
+
+function getRequestedW600ScheduleEnabled(meta: Tz.Meta) {
+    if (meta.message?.schedule != null) {
+        return parseRequiredW600BinaryEnabled(meta.message.schedule, "schedule");
+    }
+
+    const requestedSystemMode = normalizeW600EnumKey(meta.message?.system_mode);
+
+    if (requestedSystemMode === "auto") {
+        return true;
+    }
+
+    if (requestedSystemMode === "heat" || requestedSystemMode === "off") {
+        return false;
+    }
+
+    const scheduleEnabled = parseW600ScheduleEnabled(meta.state?.schedule);
+
+    if (scheduleEnabled != null) {
+        return scheduleEnabled;
+    }
+
+    if (meta.state?.system_mode === "auto") {
+        return true;
+    }
+
+    if (meta.state?.system_mode === "heat" || meta.state?.system_mode === "off") {
+        return false;
+    }
+
+    return undefined;
+}
+
+async function safeW600Read(endpoint: Zh.Endpoint, cluster: string | number, attributes: Array<string | number>, options?: KeyValue) {
     try {
-        await endpoint.read(W600_LUMI_CLUSTER, attributes as never, {manufacturerCode});
+        await endpoint.read(cluster, attributes as never, options);
     } catch (error) {
         const details = error instanceof Error ? error.message : String(error);
-        logger.debug(`Safe read failed for ${endpoint.deviceIeeeAddress} [${attributes.join(", ")}]: ${details}`, W600_NS);
+        logger.debug(`Safe read failed for ${endpoint.deviceIeeeAddress} on ${String(cluster)} [${attributes.join(", ")}]: ${details}`, W600_NS);
     }
 }
 
@@ -3761,6 +3965,114 @@ function buildW600ExternalTemperaturePayload(entity: Zh.Endpoint, centiDegrees: 
     temperatureBuffer.writeFloatBE(centiDegrees, 0);
 
     return buildW600SensorPayload(entity, 0x05, Buffer.concat([W600_EXTERNAL_TEMP_SENSOR, W600_SENSOR_BINDING_MARKER, temperatureBuffer]));
+}
+
+function deriveW600SystemMode(args: {heatingEnabled: boolean | undefined; scheduleEnabled: boolean | undefined}) {
+    if (args.heatingEnabled === false) {
+        return "off";
+    }
+
+    if (args.heatingEnabled === true && args.scheduleEnabled === true) {
+        return "auto";
+    }
+
+    if (args.heatingEnabled === true && args.scheduleEnabled === false) {
+        return "heat";
+    }
+
+    return undefined;
+}
+
+function buildW600ScheduleState(enabled: boolean) {
+    return {schedule: enabled ? "ON" : "OFF"};
+}
+
+function isW600ManualCustomPresetSuppressionActive(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
+    const suppressUntil = globalStore.getValue(getW600DeviceStoreKey(deviceOrEntity), W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_UNTIL_STORE_KEY, 0);
+    return typeof suppressUntil === "number" && suppressUntil > Date.now();
+}
+
+function startW600ManualCustomPresetSuppression(
+    deviceOrEntity: string | Zh.Device | Zh.Endpoint,
+    durationMs = W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_MS,
+) {
+    globalStore.putValue(getW600DeviceStoreKey(deviceOrEntity), W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_UNTIL_STORE_KEY, Date.now() + durationMs);
+}
+
+function clearW600ManualCustomPresetSuppression(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
+    globalStore.putValue(getW600DeviceStoreKey(deviceOrEntity), W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_UNTIL_STORE_KEY, 0);
+}
+
+function getCachedW600PresetTemperatureTable(entity: Zh.Device | Zh.Endpoint, meta: Tz.Meta | Fz.Meta) {
+    const storeKey = getW600DeviceStoreKey(entity);
+    const cached = globalStore.getValue(storeKey, W600_PRESET_TABLE_STORE_KEY);
+
+    if (cached && typeof cached === "object") {
+        return {...cached} as W600PresetTemperatureTable;
+    }
+
+    const table = {} as W600PresetTemperatureTable;
+
+    for (const {preset, property} of W600_PRESET_TEMPERATURE_DEFINITIONS) {
+        const stateValue = meta.state?.[property];
+
+        if (typeof stateValue !== "number" || !Number.isFinite(stateValue)) {
+            return undefined;
+        }
+
+        table[preset] = Math.round(stateValue * 100);
+    }
+
+    return table;
+}
+
+function decodeW600PresetTemperatureTable(buffer: Buffer) {
+    if (buffer.length < 1) {
+        return undefined;
+    }
+
+    const entryCount = buffer.readUInt8(0);
+    const table = {} as Partial<W600PresetTemperatureTable>;
+
+    for (let index = 0; index < entryCount; index++) {
+        const offset = 1 + index * 5;
+
+        if (offset + 5 > buffer.length) {
+            break;
+        }
+
+        const presetId = buffer.readUInt8(offset);
+        const presetName = W600_PRESET_BY_ID[presetId as keyof typeof W600_PRESET_BY_ID];
+
+        if (!presetName || presetName === "none") {
+            continue;
+        }
+
+        table[presetName] = buffer.readUInt16LE(offset + 3);
+    }
+
+    return Object.keys(table).length === 0 ? undefined : (table as W600PresetTemperatureTable);
+}
+
+function encodeW600PresetTemperatureTable(table: W600PresetTemperatureTable) {
+    const buffer = Buffer.alloc(1 + W600_PRESET_ORDER.length * 5);
+    buffer.writeUInt8(W600_PRESET_ORDER.length, 0);
+
+    W600_PRESET_ORDER.forEach((presetName, index) => {
+        const centiDegrees = table[presetName];
+
+        if (!Number.isInteger(centiDegrees)) {
+            throw new Error(`Missing cached value for ${presetName} preset temperature`);
+        }
+
+        const offset = 1 + index * 5;
+        buffer.writeUInt8(W600_PRESET_ID_BY_NAME[presetName], offset);
+        buffer.writeUInt8(0, offset + 1);
+        buffer.writeUInt8(0, offset + 2);
+        buffer.writeUInt16LE(centiDegrees, offset + 3);
+    });
+
+    return buffer;
 }
 
 function createW600ExternalTempSensor(): ModernExtend {
@@ -3880,7 +4192,452 @@ function createW600ExternalTempSensor(): ModernExtend {
         configure: [
             async (device) => {
                 const endpoint = device.getEndpoint(1);
-                await safeW600Read(endpoint, [W600_ATTR_SENSOR_SOURCE]);
+                await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SENSOR_SOURCE], {manufacturerCode});
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
+function createW600Thermostat(): ModernExtend {
+    const extend = modernExtend.thermostat({
+        setpoints: {
+            values: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
+        },
+        localTemperatureCalibration: {values: {min: -5, max: 5, step: 0.1}},
+        temperatureSetpointHoldDuration: true,
+        systemMode: {values: ["off", "heat", "auto"], configure: {skip: true}},
+    });
+
+    const climateExpose = findW600ClimateExpose(extend);
+    climateExpose?.withPreset([...W600_PRESET_ORDER], "Selected preset scene");
+    climateExpose?.setAccess("preset", ea.ALL);
+    const holdDurationExpose = extend.exposes?.find(
+        (expose): expose is exposes.Numeric =>
+            typeof expose !== "function" && expose.type === "numeric" && expose.property === "temperature_setpoint_hold_duration",
+    );
+    holdDurationExpose
+        ?.withLabel("Manual Override Duration")
+        .withUnit("min")
+        .withCategory("config")
+        .withDescription("Duration in minutes for the current manual override. 0 means until next schedule event, 65535 means indefinitely.");
+    extend.exposes?.push(
+        e.binary("override_active", ea.STATE, true, false).withLabel("Manual Override").withDescription("Temporary manual override active"),
+    );
+
+    const thermostatConverter = {
+        cluster: W600_THERMOSTAT_CLUSTER,
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny | undefined;
+
+            if (result && msg.data.tempSetpointHold !== undefined) {
+                const holdProperty = postfixWithEndpointName("temperature_setpoint_hold", msg, model, meta);
+                result.override_active = msg.data.tempSetpointHold === 1;
+                delete result[holdProperty];
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>;
+
+    const occupiedHeatingSetpointConverter = {
+        key: ["occupied_heating_setpoint"],
+        options: tz.thermostat_occupied_heating_setpoint.options,
+        convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
+            assertEndpoint(entity);
+            const result = await tz.thermostat_occupied_heating_setpoint.convertSet(entity, key, value, meta);
+            const resultState = result && "state" in result ? result.state : undefined;
+            const shouldUseHold = getRequestedW600ScheduleEnabled(meta) !== false;
+
+            if (shouldUseHold) {
+                await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 1});
+            }
+
+            startW600ManualCustomPresetSuppression(entity);
+
+            return {
+                state: {
+                    ...(resultState ?? {}),
+                    ...(shouldUseHold ? {system_mode: "auto", schedule: "ON", override_active: true} : {}),
+                    preset: "none",
+                },
+            };
+        },
+        convertGet: async (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => {
+            assertEndpoint(entity);
+            await tz.thermostat_occupied_heating_setpoint.convertGet?.(entity, key, meta);
+        },
+    } satisfies Tz.Converter;
+
+    const systemModeConverter = {
+        key: ["system_mode"],
+        convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
+            assertEndpoint(entity);
+            const normalized = parseW600EnumName(value, {off: 0, heat: 1, auto: 2}, key);
+
+            if (normalized === "off") {
+                clearW600ManualCustomPresetSuppression(entity);
+                await writeW600LumiAttribute(entity, W600_ATTR_SYSTEM_MODE, 0);
+                await writeW600LumiAttribute(entity, W600_ATTR_SCHEDULE, 0);
+                await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 0});
+                return {state: {system_mode: "off", schedule: "OFF", override_active: false}};
+            }
+
+            await writeW600LumiAttribute(entity, W600_ATTR_SYSTEM_MODE, 1);
+
+            if (normalized === "auto") {
+                clearW600ManualCustomPresetSuppression(entity);
+                await writeW600LumiAttribute(entity, W600_ATTR_SCHEDULE, 1);
+                await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 0});
+                return {state: {system_mode: "auto", schedule: "ON", override_active: false}};
+            }
+
+            clearW600ManualCustomPresetSuppression(entity);
+            await writeW600LumiAttribute(entity, W600_ATTR_SCHEDULE, 0);
+            await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 0});
+            return {state: {system_mode: "heat", schedule: "OFF", override_active: false}};
+        },
+        convertGet: async (entity: Zh.Endpoint | Zh.Group) => {
+            assertEndpoint(entity);
+            await readW600LumiAttribute(entity, W600_ATTR_SYSTEM_MODE);
+            await readW600LumiAttribute(entity, W600_ATTR_SCHEDULE);
+            await entity.read(W600_THERMOSTAT_CLUSTER, ["tempSetpointHold"]);
+        },
+    } satisfies Tz.Converter;
+
+    const presetConverter = {
+        key: ["preset"],
+        convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
+            assertEndpoint(entity);
+            const normalized = parseW600EnumName(value, {none: 0, ...W600_PRESET_ID_BY_NAME}, key) as W600PresetOrNone;
+            const scheduleEnabled = getRequestedW600ScheduleEnabled(meta) !== false;
+
+            if (normalized === "none") {
+                startW600ManualCustomPresetSuppression(entity);
+
+                if (scheduleEnabled) {
+                    await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 1});
+                    return {state: {system_mode: "auto", schedule: "ON", preset: "none", override_active: true}};
+                }
+
+                return {state: {preset: "none"}};
+            }
+
+            clearW600ManualCustomPresetSuppression(entity);
+            await writeW600LumiAttribute(entity, W600_ATTR_PRESET, W600_PRESET_ID_BY_NAME[normalized]);
+
+            if (scheduleEnabled) {
+                await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 1});
+                return {state: {system_mode: "auto", schedule: "ON", preset: normalized, override_active: true}};
+            }
+
+            return {state: {preset: normalized}};
+        },
+        convertGet: async (entity: Zh.Endpoint | Zh.Group) => {
+            assertEndpoint(entity);
+            await readW600LumiAttribute(entity, W600_ATTR_PRESET);
+        },
+    } satisfies Tz.Converter;
+
+    const holdDurationConverter = {
+        key: ["temperature_setpoint_hold_duration"],
+        convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown) => {
+            assertEndpoint(entity);
+            const duration = Number(value);
+
+            if (!Number.isInteger(duration) || duration < 0 || duration > 65535) {
+                throw new Error(`${key} must be an integer between 0 and 65535`);
+            }
+
+            await entity.write(
+                W600_THERMOSTAT_CLUSTER,
+                {[W600_ATTR_TEMP_SETPOINT_HOLD_DURATION]: {value: duration, type: Zcl.DataType.UINT16}},
+                {writeUndiv: true},
+            );
+            return {state: {temperature_setpoint_hold_duration: duration}};
+        },
+        convertGet: async (entity: Zh.Endpoint | Zh.Group) => {
+            assertEndpoint(entity);
+            await entity.read(W600_THERMOSTAT_CLUSTER, ["tempSetpointHoldDuration"]);
+        },
+    } satisfies Tz.Converter;
+
+    extend.toZigbee = replaceToZigbeeConvertersInArray(
+        extend.toZigbee ?? [],
+        [tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.thermostat_temperature_setpoint_hold_duration],
+        [occupiedHeatingSetpointConverter, systemModeConverter, holdDurationConverter],
+    );
+    extend.toZigbee ??= [];
+    extend.toZigbee.push(presetConverter);
+
+    extend.fromZigbee = (extend.fromZigbee ?? []).map((converter) => (converter === fz.thermostat ? thermostatConverter : converter));
+    extend.fromZigbee.push(
+        {
+            cluster: W600_THERMOSTAT_CLUSTER,
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const device = meta.device ?? msg.device;
+                const result: KeyValue = {};
+                const hold = msg.data.tempSetpointHold !== undefined ? msg.data.tempSetpointHold === 1 : getW600OverrideActiveState(meta.state);
+                const heatingEnabled = parseW600HeatingEnabled(meta.state?.system_mode);
+                const scheduleEnabled = parseW600ScheduleEnabled(meta.state?.schedule);
+
+                if (msg.data.tempSetpointHold === 0) {
+                    clearW600ManualCustomPresetSuppression(device);
+                }
+
+                if (msg.data.tempSetpointHold !== undefined) {
+                    result.override_active = hold;
+                    const systemMode = deriveW600SystemMode({heatingEnabled, scheduleEnabled});
+
+                    if (systemMode) {
+                        result.system_mode = systemMode;
+                    }
+                }
+
+                if (isW600ManualCustomPresetSuppressionActive(device) && (msg.data.occupiedHeatingSetpoint !== undefined || hold === true)) {
+                    result.preset = "none";
+                }
+
+                return Object.keys(result).length > 0 ? result : undefined;
+            },
+        } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+        {
+            cluster: W600_LUMI_CLUSTER,
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const device = meta.device ?? msg.device;
+                const result: KeyValue = {};
+                const heatingEnabled =
+                    msg.data[W600_ATTR_SYSTEM_MODE] !== undefined
+                        ? msg.data[W600_ATTR_SYSTEM_MODE] === 1
+                        : parseW600HeatingEnabled(meta.state?.system_mode);
+                const scheduleEnabled =
+                    msg.data[W600_ATTR_SCHEDULE] !== undefined ? msg.data[W600_ATTR_SCHEDULE] === 1 : parseW600ScheduleEnabled(meta.state?.schedule);
+
+                if (msg.data[W600_ATTR_SYSTEM_MODE] !== undefined || msg.data[W600_ATTR_SCHEDULE] !== undefined) {
+                    const systemMode = deriveW600SystemMode({heatingEnabled, scheduleEnabled});
+
+                    if (systemMode) {
+                        result.system_mode = systemMode;
+                    }
+
+                    if (heatingEnabled === false) {
+                        clearW600ManualCustomPresetSuppression(device);
+                        result.schedule = "OFF";
+                        result.override_active = false;
+
+                        if (parseW600ScheduleEnabled(meta.state?.schedule) !== false) {
+                            writeW600LumiAttribute(msg.endpoint, W600_ATTR_SCHEDULE, 0).catch((error) =>
+                                logger.warning(
+                                    `Failed to disable W600 schedule after heating was turned off for '${device.ieeeAddr}': ${error}`,
+                                    W600_NS,
+                                ),
+                            );
+                            msg.endpoint
+                                .write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 0})
+                                .catch((error) =>
+                                    logger.warning(
+                                        `Failed to clear W600 manual override after heating was turned off for '${device.ieeeAddr}': ${error}`,
+                                        W600_NS,
+                                    ),
+                                );
+                        }
+                    }
+                }
+
+                const presetValue = msg.data[W600_ATTR_PRESET];
+
+                if (typeof presetValue === "number" && Object.hasOwn(W600_PRESET_BY_ID, presetValue)) {
+                    if (presetValue === 255) {
+                        startW600ManualCustomPresetSuppression(device);
+                        result.preset = "none";
+                    } else if (isW600ManualCustomPresetSuppressionActive(device)) {
+                        result.preset = "none";
+                    } else {
+                        clearW600ManualCustomPresetSuppression(device);
+                        result.preset = W600_PRESET_BY_ID[presetValue as keyof typeof W600_PRESET_BY_ID];
+                    }
+                }
+
+                return Object.keys(result).length > 0 ? result : undefined;
+            },
+        } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+    );
+
+    extend.configure ??= [];
+    const configureOverrideActive = modernExtend.setupConfigureForReporting(W600_THERMOSTAT_CLUSTER, "tempSetpointHold", {
+        config: {min: "MIN", max: "1_HOUR", change: 0},
+        access: ea.STATE_GET,
+    });
+
+    if (configureOverrideActive) {
+        extend.configure.push(configureOverrideActive);
+    }
+
+    extend.configure.push(async (device) => {
+        const endpoint = device.getEndpoint(1);
+        await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SYSTEM_MODE, W600_ATTR_SCHEDULE, W600_ATTR_PRESET], {manufacturerCode});
+        await safeW600Read(endpoint, W600_THERMOSTAT_CLUSTER, ["tempSetpointHold"]);
+    });
+
+    return extend;
+}
+
+function createW600Schedule(): ModernExtend {
+    return {
+        fromZigbee: [
+            {
+                cluster: W600_LUMI_CLUSTER,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data[W600_ATTR_SCHEDULE] === undefined) {
+                        return;
+                    }
+
+                    const heatingEnabled =
+                        msg.data[W600_ATTR_SYSTEM_MODE] !== undefined
+                            ? msg.data[W600_ATTR_SYSTEM_MODE] === 1
+                            : parseW600HeatingEnabled(meta.state?.system_mode);
+
+                    if (heatingEnabled === false) {
+                        return buildW600ScheduleState(false);
+                    }
+
+                    return buildW600ScheduleState(msg.data[W600_ATTR_SCHEDULE] === 1);
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["schedule"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertEndpoint(entity);
+                    const enabled = parseRequiredW600BinaryEnabled(value, key);
+                    const heatingEnabled = parseW600HeatingEnabled(meta.state?.system_mode);
+
+                    if (enabled) {
+                        await writeW600LumiAttribute(entity, W600_ATTR_SCHEDULE, 1);
+
+                        const state: KeyValue = buildW600ScheduleState(true);
+                        const systemMode = deriveW600SystemMode({
+                            heatingEnabled,
+                            scheduleEnabled: true,
+                        });
+
+                        if (systemMode) {
+                            state.system_mode = systemMode;
+                        }
+
+                        return {state};
+                    }
+
+                    clearW600ManualCustomPresetSuppression(entity);
+                    await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 0});
+                    await writeW600LumiAttribute(entity, W600_ATTR_SCHEDULE, 0);
+
+                    const state: KeyValue = {...buildW600ScheduleState(false), override_active: false};
+                    const systemMode = deriveW600SystemMode({heatingEnabled, scheduleEnabled: false});
+
+                    if (systemMode) {
+                        state.system_mode = systemMode;
+                    }
+
+                    return {state};
+                },
+                convertGet: async (entity) => {
+                    assertEndpoint(entity);
+                    await readW600LumiAttribute(entity, W600_ATTR_SCHEDULE);
+                },
+            },
+        ],
+        configure: [
+            async (device) => {
+                const endpoint = device.getEndpoint(1);
+                await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SCHEDULE], {manufacturerCode});
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
+function createW600PresetTemperatureTable(): ModernExtend {
+    return {
+        exposes: W600_PRESET_TEMPERATURE_DEFINITIONS.map(({property, label, description}) =>
+            e
+                .numeric(property, ea.ALL)
+                .withLabel(label)
+                .withValueMin(5)
+                .withValueMax(30)
+                .withValueStep(0.5)
+                .withUnit("°C")
+                .withDescription(description)
+                .withCategory("config"),
+        ),
+        fromZigbee: [
+            {
+                cluster: W600_LUMI_CLUSTER,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const value = msg.data[W600_ATTR_PRESET_TEMPERATURE_TABLE];
+
+                    if (!Buffer.isBuffer(value) || value.length === 0) {
+                        return;
+                    }
+
+                    const table = decodeW600PresetTemperatureTable(value);
+
+                    if (!table) {
+                        return;
+                    }
+
+                    const device = meta.device ?? msg.device;
+                    globalStore.putValue(getW600DeviceStoreKey(device), W600_PRESET_TABLE_STORE_KEY, table);
+
+                    const result: KeyValue = {};
+
+                    for (const [presetName, centiDegrees] of Object.entries(table)) {
+                        result[W600_PROPERTY_BY_PRESET_NAME[presetName as W600PresetName]] = centiDegrees / 100;
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: W600_PRESET_TEMPERATURE_DEFINITIONS.map(({property}) => property),
+                convertSet: async (entity, key, value, meta) => {
+                    assertEndpoint(entity);
+                    const presetName = W600_PRESET_NAME_BY_PROPERTY[key];
+                    const table = getCachedW600PresetTemperatureTable(entity, meta);
+
+                    if (!table) {
+                        throw new Error("Preset temperature table is unknown. Read the preset temperature properties first.");
+                    }
+
+                    table[presetName] = parseW600HalfDegreeTemperature(value, key, 5, 30);
+                    await writeW600LumiAttribute(
+                        entity,
+                        W600_ATTR_PRESET_TEMPERATURE_TABLE,
+                        encodeW600PresetTemperatureTable(table),
+                        Zcl.DataType.OCTET_STR,
+                    );
+                    globalStore.putValue(getW600DeviceStoreKey(entity), W600_PRESET_TABLE_STORE_KEY, table);
+
+                    return {state: {[key]: table[presetName] / 100}};
+                },
+                convertGet: async (entity) => {
+                    assertEndpoint(entity);
+                    await readW600LumiAttribute(entity, W600_ATTR_PRESET_TEMPERATURE_TABLE);
+                },
+            },
+        ],
+        configure: [
+            async (device) => {
+                const endpoint = device.getEndpoint(1);
+                await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_PRESET_TEMPERATURE_TABLE], {manufacturerCode});
             },
         ],
         isModernExtend: true,
