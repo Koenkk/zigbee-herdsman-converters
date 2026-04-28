@@ -5644,7 +5644,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["OFF", 0],
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0273, type: 0x20},
-                description: "Enables/disables window detection on the device",
+                description: "Enable or disable open window detection. When enabled, the window_open is set to true if an open window is detected",
                 access: "ALL",
                 label: "Open window detection",
                 entityCategory: "config",
