@@ -63,6 +63,7 @@ const {
     w600PresetTemperatureTable,
     w600Schedule,
     w600Thermostat,
+    w600WeeklySchedule,
     lumiReadPositionOnReport,
 } = lumi.modernExtend;
 
@@ -5573,10 +5574,15 @@ export const definitions: DefinitionWithExtend[] = [
                 if (typeof payload.value_template === "string" && payload.value_template.includes("value_json.override_active")) {
                     payload.icon = "mdi:cursor-pointer";
                 }
+
+                if (typeof payload.value_template === "string" && payload.value_template.includes("value_json.schedule_upload_status")) {
+                    payload.icon = "mdi:upload-multiple";
+                }
             },
         },
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.customTimeResponse("2000_LOCAL"),
             w600Thermostat(),
             w600ExternalTempSensor(),
             m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
@@ -5653,6 +5659,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             w600PresetTemperatureTable(),
+            w600WeeklySchedule(),
             m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "position",
                 valueMin: 0,

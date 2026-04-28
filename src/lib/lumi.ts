@@ -3581,6 +3581,7 @@ export const lumiModernExtend = {
     w600ExternalTempSensor: (): ModernExtend => createW600ExternalTempSensor(),
     w600Thermostat: (): ModernExtend => createW600Thermostat(),
     w600Schedule: (): ModernExtend => createW600Schedule(),
+    w600WeeklySchedule: (): ModernExtend => createW600WeeklySchedule(),
     w600PresetTemperatureTable: (): ModernExtend => createW600PresetTemperatureTable(),
     lumiReadPositionOnReport: (type: "genAnalogOutput" | "genMultistateOutput" | "genBasic"): ModernExtend => {
         let converter: Fz.Converter<"genAnalogOutput" | "genMultistateOutput" | "genBasic", undefined, ["attributeReport"]>;
@@ -3647,7 +3648,12 @@ const W600_EXTERNAL_TEMP_SENSOR = Buffer.from("00158d00019d1b98", "hex");
 const W600_PRESET_TABLE_STORE_KEY = "w600PresetTemperatureTable";
 const W600_SENSOR_BINDING_COUNTER_STORE_KEY = "w600SensorBindingCounter";
 const W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_UNTIL_STORE_KEY = "w600ManualCustomPresetSuppressionUntil";
+const W600_WEEKLY_SCHEDULE_DRAFT_STORE_KEY = "w600WeeklyScheduleDraft";
+const W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY = "w600WeeklyScheduleOtaStage";
+const W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY = "w600WeeklyScheduleUploadState";
 const W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_MS = 15_000;
+const W600_WEEKLY_SCHEDULE_OTA_STAGE_TTL_MS = 5 * 60 * 1000;
+const W600_WEEKLY_SCHEDULE_UPLOAD_TIMEOUTS = new Map<string, NodeJS.Timeout>();
 const W600_SENSOR_BINDING_MARKER = Buffer.from([0x00, 0x01, 0x00, 0x55]);
 const W600_EXTERNAL_TEMP_SENSOR_DESCRIPTOR = Buffer.from([
     0x15, 0x0a, 0x01, 0x00, 0x00, 0x01, 0x06, 0xe6, 0xb8, 0xa9, 0xe5, 0xba, 0xa6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x07, 0x65,
@@ -3657,12 +3663,55 @@ const W600_PRESET_ORDER = ["home", "away", "sleep", "vacation", "wind_down"] as 
 type W600PresetName = (typeof W600_PRESET_ORDER)[number];
 type W600PresetOrNone = W600PresetName | "none";
 type W600PresetTemperatureTable = Record<W600PresetName, number>;
+type W600Publish = ((payload: KeyValue) => void) | undefined;
+type W600WeeklyScheduleUploadStatus = "idle" | "staged" | "in_progress" | "success" | "failed";
+type W600WeeklyScheduleOperation = "save_schedule" | "clear_schedule";
 
 interface W600PresetTemperatureDefinition {
     preset: W600PresetName;
     property: string;
     label: string;
     description: string;
+}
+
+interface W600WeeklyScheduleDayDefinition {
+    label: string;
+    mask: number;
+    property: string;
+}
+
+interface W600WeeklyScheduleTransition {
+    minutes: number;
+    preset: W600PresetName;
+}
+
+interface W600WeeklyScheduleRecord {
+    dayMask: number;
+    minutes: number;
+    presetId: number;
+}
+
+interface W600WeeklyScheduleNormalizedDraft {
+    draft: Record<string, string>;
+    records: W600WeeklyScheduleRecord[];
+}
+
+interface W600WeeklyScheduleUploadState {
+    status: W600WeeklyScheduleUploadStatus;
+    error: string;
+    operation: W600WeeklyScheduleOperation;
+    recordCount: number;
+    uploadId: string | undefined;
+    updatedAt: number;
+}
+
+interface W600WeeklyScheduleOtaStage {
+    createdAt: number;
+    lastActivityAt: number;
+    image: Buffer;
+    operation: W600WeeklyScheduleOperation;
+    recordCount: number;
+    uploadId: string;
 }
 
 const W600_PRESET_BY_ID = {
@@ -3697,6 +3746,24 @@ const W600_PRESET_NAME_BY_PROPERTY = Object.fromEntries(
 const W600_PROPERTY_BY_PRESET_NAME = Object.fromEntries(
     W600_PRESET_TEMPERATURE_DEFINITIONS.map((definition) => [definition.preset, definition.property]),
 ) as Record<W600PresetName, string>;
+
+const W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS: readonly W600WeeklyScheduleDayDefinition[] = [
+    {label: "Sunday", mask: 0x01, property: "weekly_schedule_sunday"},
+    {label: "Monday", mask: 0x02, property: "weekly_schedule_monday"},
+    {label: "Tuesday", mask: 0x04, property: "weekly_schedule_tuesday"},
+    {label: "Wednesday", mask: 0x08, property: "weekly_schedule_wednesday"},
+    {label: "Thursday", mask: 0x10, property: "weekly_schedule_thursday"},
+    {label: "Friday", mask: 0x20, property: "weekly_schedule_friday"},
+    {label: "Saturday", mask: 0x40, property: "weekly_schedule_saturday"},
+] as const;
+
+const W600_WEEKLY_SCHEDULE_DAY_PROPERTIES = W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS.map(({property}) => property);
+const W600_WEEKLY_SCHEDULE_HEADER_STRING = "ROUTERX-ENCRYPTEDO00";
+const W600_WEEKLY_SCHEDULE_IMAGE_TYPE = 0x1400;
+const W600_WEEKLY_SCHEDULE_FILE_VERSION = 0x00000100;
+const W600_WEEKLY_SCHEDULE_STACK_VERSION = 0x0002;
+const W600_WEEKLY_SCHEDULE_IMAGE_NOTIFY_QUERY_JITTER = 48;
+const W600_WEEKLY_SCHEDULE_UPLOAD_STATUSES = ["idle", "staged", "in_progress", "success", "failed"] as const;
 
 function findW600ClimateExpose(extend: ModernExtend) {
     return extend.exposes?.find((expose): expose is exposes.Climate => typeof expose !== "function" && expose.type === "climate");
@@ -4073,6 +4140,457 @@ function encodeW600PresetTemperatureTable(table: W600PresetTemperatureTable) {
     });
 
     return buffer;
+}
+
+function parseW600ScheduleTriggerValue(value: unknown, key: string) {
+    if (value === true || value === 1) {
+        return;
+    }
+
+    if (typeof value === "string") {
+        const normalized = normalizeW600EnumKey(value);
+
+        if (normalized && ["trigger", "press", "pressed", "start", "save", "clear", "true", "1"].includes(normalized)) {
+            return;
+        }
+    }
+
+    throw new Error(`${key} must be one of: trigger, press, start`);
+}
+
+function formatW600ScheduleTime(totalMinutes: number) {
+    const hours = Math.floor(totalMinutes / 60)
+        .toString()
+        .padStart(2, "0");
+    const minutes = (totalMinutes % 60).toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+}
+
+function formatW600ScheduleDayTransitions(transitions: W600WeeklyScheduleTransition[]) {
+    return transitions.map(({minutes, preset}) => `${formatW600ScheduleTime(minutes)}/${preset}`).join(", ");
+}
+
+function parseW600ScheduleDayTransitions(value: unknown, key: string): W600WeeklyScheduleTransition[] {
+    if (typeof value !== "string") {
+        throw new Error(`${key} must be a string`);
+    }
+
+    const compact = value.replace(/\s+/g, "");
+
+    if (compact === "") {
+        return [];
+    }
+
+    const parts = compact.split(",");
+
+    if (parts.some((part) => part.length === 0)) {
+        throw new Error(`${key} must use comma-delimited entries in the format HH:MM/preset`);
+    }
+
+    const transitions: W600WeeklyScheduleTransition[] = [];
+    const seenMinutes = new Set<number>();
+
+    for (const part of parts) {
+        const match = part.match(/^([0-9]|[01]\d|2[0-3]):([0-5]\d)\/(.+)$/);
+
+        if (!match) {
+            throw new Error(`${key} entries must use the format H:MM/preset or HH:MM/preset, for example 08:00/home`);
+        }
+
+        const minutes = Number.parseInt(match[1], 10) * 60 + Number.parseInt(match[2], 10);
+
+        if (seenMinutes.has(minutes)) {
+            throw new Error(`${key} cannot contain multiple entries for ${formatW600ScheduleTime(minutes)}`);
+        }
+
+        seenMinutes.add(minutes);
+        transitions.push({
+            minutes,
+            preset: parseW600EnumName(match[3], W600_PRESET_ID_BY_NAME, key) as W600PresetName,
+        });
+    }
+
+    transitions.sort((left, right) => left.minutes - right.minutes);
+    return transitions;
+}
+
+function createEmptyW600WeeklyScheduleDraft() {
+    return Object.fromEntries(W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS.map(({property}) => [property, ""])) as Record<string, string>;
+}
+
+function buildW600WeeklyScheduleStatePayload(draft: Record<string, string>) {
+    return Object.fromEntries(W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS.map(({property}) => [property, draft[property] === "" ? null : draft[property]]));
+}
+
+function buildW600WeeklyScheduleUploadStatePayload(uploadState: W600WeeklyScheduleUploadState) {
+    return {
+        schedule_upload_status: uploadState.status,
+    };
+}
+
+function normalizeW600WeeklyScheduleDraft(draft: Record<string, string | undefined>): W600WeeklyScheduleNormalizedDraft {
+    const normalizedDraft = createEmptyW600WeeklyScheduleDraft();
+    const records: W600WeeklyScheduleRecord[] = [];
+
+    for (const {mask, property} of W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS) {
+        const transitions = parseW600ScheduleDayTransitions(draft[property] ?? "", property);
+        normalizedDraft[property] = formatW600ScheduleDayTransitions(transitions);
+
+        for (const transition of transitions) {
+            records.push({dayMask: mask, minutes: transition.minutes, presetId: W600_PRESET_ID_BY_NAME[transition.preset]});
+        }
+    }
+
+    records.sort((left, right) => left.dayMask - right.dayMask || left.minutes - right.minutes || left.presetId - right.presetId);
+    return {draft: normalizedDraft, records};
+}
+
+function encodeW600WeeklyScheduleSch2(records: W600WeeklyScheduleRecord[]) {
+    if (records.length > 0xff) {
+        throw new Error("Weekly schedule contains too many entries");
+    }
+
+    const buffer = Buffer.alloc(5 + records.length * 12);
+    buffer.write("SCH2", 0, "ascii");
+    buffer.writeUInt8(records.length, 4);
+
+    records.forEach((record, index) => {
+        const offset = 5 + index * 12;
+        buffer.writeUInt8(record.dayMask, offset);
+        buffer.writeUInt16LE(record.minutes, offset + 1);
+        buffer.writeUInt8(0x01, offset + 3);
+        buffer.writeUInt8(record.presetId, offset + 4);
+    });
+
+    return buffer;
+}
+
+function buildW600WeeklyScheduleCrc32Table() {
+    const table = new Uint32Array(256);
+
+    for (let index = 0; index < 256; index++) {
+        let value = index;
+
+        for (let bit = 0; bit < 8; bit++) {
+            value = (value & 1) === 1 ? (value >>> 1) ^ 0xedb88320 : value >>> 1;
+        }
+
+        table[index] = value >>> 0;
+    }
+
+    return table;
+}
+
+const W600_WEEKLY_SCHEDULE_CRC32_TABLE = buildW600WeeklyScheduleCrc32Table();
+
+function computeW600WeeklyScheduleCrc32(buffer: Buffer) {
+    let crc = 0xffffffff;
+
+    for (const value of buffer) {
+        crc = W600_WEEKLY_SCHEDULE_CRC32_TABLE[(crc ^ value) & 0xff] ^ (crc >>> 8);
+    }
+
+    return (crc ^ 0xffffffff) >>> 0;
+}
+
+function buildW600WeeklyScheduleSubelement(sch2Payload: Buffer) {
+    const subelement = Buffer.alloc(35 + sch2Payload.length);
+    subelement.writeUInt32LE(0x014f, 0);
+    subelement.writeUInt32LE(sch2Payload.length + 21, 4);
+    subelement.writeUInt8(0x01, 22);
+    subelement.writeUInt8(0x04, 23);
+    subelement.writeUInt8(0x01, 24);
+    subelement.writeUInt8(0x04, 34);
+    sch2Payload.copy(subelement, 35);
+    subelement.writeUInt32LE(computeW600WeeklyScheduleCrc32(subelement), 10);
+    return subelement;
+}
+
+function buildW600WeeklyScheduleImage(records: W600WeeklyScheduleRecord[]) {
+    const sch2Payload = encodeW600WeeklyScheduleSch2(records);
+    const subelement = buildW600WeeklyScheduleSubelement(sch2Payload);
+    const header = Buffer.alloc(56);
+    const headerString = Buffer.alloc(32);
+    headerString.write(W600_WEEKLY_SCHEDULE_HEADER_STRING, 0, "ascii");
+    header.writeUInt32LE(0x0beef11e, 0);
+    header.writeUInt16LE(0x0100, 4);
+    header.writeUInt16LE(56, 6);
+    header.writeUInt16LE(0, 8);
+    header.writeUInt16LE(manufacturerCode, 10);
+    header.writeUInt16LE(W600_WEEKLY_SCHEDULE_IMAGE_TYPE, 12);
+    header.writeUInt32LE(W600_WEEKLY_SCHEDULE_FILE_VERSION, 14);
+    header.writeUInt16LE(W600_WEEKLY_SCHEDULE_STACK_VERSION, 18);
+    headerString.copy(header, 20);
+
+    const subelementHeader = Buffer.alloc(6);
+    subelementHeader.writeUInt16LE(0xf006, 0);
+    subelementHeader.writeUInt32LE(subelement.length, 2);
+
+    const image = Buffer.concat([header, subelementHeader, subelement]);
+    image.writeUInt32LE(image.length, 52);
+    return image;
+}
+
+function normalizeW600WeeklyScheduleUploadState(uploadState: Partial<W600WeeklyScheduleUploadState> | undefined): W600WeeklyScheduleUploadState {
+    const normalizedStatus = W600_WEEKLY_SCHEDULE_UPLOAD_STATUSES.includes(uploadState?.status as W600WeeklyScheduleUploadStatus)
+        ? (uploadState?.status as W600WeeklyScheduleUploadStatus)
+        : "idle";
+
+    return {
+        status: normalizedStatus,
+        error: typeof uploadState?.error === "string" ? uploadState.error : "",
+        operation: uploadState?.operation === "clear_schedule" ? "clear_schedule" : "save_schedule",
+        recordCount: Number.isInteger(uploadState?.recordCount) && (uploadState?.recordCount ?? 0) >= 0 ? (uploadState?.recordCount as number) : 0,
+        uploadId: typeof uploadState?.uploadId === "string" ? uploadState.uploadId : undefined,
+        updatedAt: typeof uploadState?.updatedAt === "number" ? uploadState.updatedAt : 0,
+    };
+}
+
+function getW600WeeklyScheduleUploadStatePayload(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
+    const uploadState = normalizeW600WeeklyScheduleUploadState(
+        globalStore.getValue(getW600DeviceStoreKey(deviceOrEntity), W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY),
+    );
+    return buildW600WeeklyScheduleUploadStatePayload(uploadState);
+}
+
+function updateW600WeeklyScheduleUploadState(
+    deviceOrEntity: string | Zh.Device | Zh.Endpoint,
+    partialState: Partial<W600WeeklyScheduleUploadState>,
+    publish?: W600Publish,
+) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const currentState = normalizeW600WeeklyScheduleUploadState(globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY));
+    const nextState = normalizeW600WeeklyScheduleUploadState({
+        ...currentState,
+        ...partialState,
+        updatedAt: Date.now(),
+    });
+
+    globalStore.putValue(storeKey, W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY, nextState);
+
+    const payload = buildW600WeeklyScheduleUploadStatePayload(nextState);
+
+    if (typeof publish === "function") {
+        publish(payload);
+    }
+
+    return {state: payload, uploadState: nextState};
+}
+
+function clearW600WeeklyScheduleUploadTimeout(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const timeout = W600_WEEKLY_SCHEDULE_UPLOAD_TIMEOUTS.get(storeKey);
+
+    if (timeout != null) {
+        clearTimeout(timeout);
+        W600_WEEKLY_SCHEDULE_UPLOAD_TIMEOUTS.delete(storeKey);
+    }
+}
+
+function describeW600WeeklyScheduleOperation(operation: W600WeeklyScheduleOperation) {
+    return operation === "clear_schedule" ? "clear schedule upload" : "save schedule upload";
+}
+
+function failW600WeeklyScheduleUpload(deviceOrEntity: string | Zh.Device | Zh.Endpoint, error: unknown, publish?: W600Publish) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const uploadState = normalizeW600WeeklyScheduleUploadState(globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY));
+    const message = typeof error === "string" && error.trim() !== "" ? error : "Unknown weekly schedule upload failure";
+
+    clearW600WeeklyScheduleUploadTimeout(storeKey);
+    globalStore.clearValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY);
+    logger.warning(`W600 ${describeW600WeeklyScheduleOperation(uploadState.operation)} failed for ${storeKey}: ${message}`, W600_NS);
+    return updateW600WeeklyScheduleUploadState(storeKey, {status: "failed", error: message}, publish);
+}
+
+function armW600WeeklyScheduleUploadTimeout(deviceOrEntity: string | Zh.Device | Zh.Endpoint, uploadId: string, publish?: W600Publish) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    clearW600WeeklyScheduleUploadTimeout(storeKey);
+
+    const timeout = setTimeout(() => {
+        const stage = globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY);
+
+        if (!stage || stage.uploadId !== uploadId) {
+            return;
+        }
+
+        failW600WeeklyScheduleUpload(storeKey, "Timed out waiting for the device to finish the weekly schedule OTA transfer", publish);
+    }, W600_WEEKLY_SCHEDULE_OTA_STAGE_TTL_MS);
+
+    timeout.unref?.();
+    W600_WEEKLY_SCHEDULE_UPLOAD_TIMEOUTS.set(storeKey, timeout);
+}
+
+function updateW600WeeklyScheduleOtaStage(deviceOrEntity: string | Zh.Device | Zh.Endpoint, partialStage: Partial<W600WeeklyScheduleOtaStage>) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const stage = globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY) as W600WeeklyScheduleOtaStage | undefined;
+
+    if (!stage || !Buffer.isBuffer(stage.image)) {
+        return undefined;
+    }
+
+    const nextStage: W600WeeklyScheduleOtaStage = {
+        ...stage,
+        ...partialStage,
+        lastActivityAt: Date.now(),
+    };
+
+    globalStore.putValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY, nextStage);
+    return nextStage;
+}
+
+function markW600WeeklyScheduleUploadStarted(deviceOrEntity: string | Zh.Device | Zh.Endpoint, publish?: W600Publish) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const currentState = normalizeW600WeeklyScheduleUploadState(globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY));
+    const stage = updateW600WeeklyScheduleOtaStage(storeKey, {});
+
+    if (!stage) {
+        return undefined;
+    }
+
+    const shouldPublish = currentState.status !== "in_progress" || currentState.uploadId !== stage.uploadId || currentState.error !== "";
+
+    if (shouldPublish) {
+        logger.info(
+            `W600 ${describeW600WeeklyScheduleOperation(stage.operation)} started for ${storeKey}; image size ${stage.image.length} bytes`,
+            W600_NS,
+        );
+    }
+
+    armW600WeeklyScheduleUploadTimeout(storeKey, stage.uploadId, publish);
+    return updateW600WeeklyScheduleUploadState(
+        storeKey,
+        {
+            status: "in_progress",
+            error: "",
+            operation: stage.operation,
+            recordCount: stage.recordCount,
+            uploadId: stage.uploadId,
+        },
+        shouldPublish ? publish : undefined,
+    );
+}
+
+function noteW600WeeklyScheduleUploadBlock(deviceOrEntity: string | Zh.Device | Zh.Endpoint, publish?: W600Publish) {
+    const stage = updateW600WeeklyScheduleOtaStage(deviceOrEntity, {});
+
+    if (!stage) {
+        return undefined;
+    }
+
+    armW600WeeklyScheduleUploadTimeout(deviceOrEntity, stage.uploadId, publish);
+    return stage;
+}
+
+function completeW600WeeklyScheduleUpload(deviceOrEntity: string | Zh.Device | Zh.Endpoint, publish?: W600Publish) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const stage = globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY) as Partial<W600WeeklyScheduleOtaStage> | undefined;
+    const operation = stage?.operation === "clear_schedule" ? "clear_schedule" : "save_schedule";
+
+    clearW600WeeklyScheduleUploadTimeout(storeKey);
+    globalStore.clearValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY);
+    logger.info(`W600 ${describeW600WeeklyScheduleOperation(operation)} completed for ${storeKey}`, W600_NS);
+    return updateW600WeeklyScheduleUploadState(storeKey, {status: "success", error: "", operation}, publish);
+}
+
+function getActiveW600WeeklyScheduleOtaStage(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const stage = globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY) as W600WeeklyScheduleOtaStage | undefined;
+
+    if (!stage || !Buffer.isBuffer(stage.image) || typeof stage.createdAt !== "number") {
+        return undefined;
+    }
+
+    const lastActivityAt = typeof stage.lastActivityAt === "number" ? stage.lastActivityAt : stage.createdAt;
+
+    if (Date.now() - lastActivityAt > W600_WEEKLY_SCHEDULE_OTA_STAGE_TTL_MS) {
+        failW600WeeklyScheduleUpload(storeKey, "Weekly schedule OTA stage expired before the transfer completed");
+        return undefined;
+    }
+
+    return stage;
+}
+
+function ensureNoActiveW600WeeklyScheduleUpload(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
+    const stage = getActiveW600WeeklyScheduleOtaStage(deviceOrEntity);
+
+    if (!stage) {
+        return;
+    }
+
+    const uploadState = normalizeW600WeeklyScheduleUploadState(
+        globalStore.getValue(getW600DeviceStoreKey(deviceOrEntity), W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY),
+    );
+    throw new Error(
+        `A weekly schedule upload is already active (${uploadState.status}) for ${describeW600WeeklyScheduleOperation(stage.operation)}. ` +
+            "Wait for it to finish before starting another save or clear.",
+    );
+}
+
+function getCachedW600WeeklyScheduleDraft(entity: string | Zh.Device | Zh.Endpoint, meta: Tz.Meta | Fz.Meta) {
+    const draft = createEmptyW600WeeklyScheduleDraft();
+    const storeKey = getW600DeviceStoreKey(entity);
+    const cached = globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_DRAFT_STORE_KEY) as Record<string, string> | undefined;
+
+    for (const {property} of W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS) {
+        if (typeof cached?.[property] === "string") {
+            draft[property] = cached[property];
+        } else if (typeof meta.state?.[property] === "string") {
+            draft[property] = meta.state[property] as string;
+        }
+    }
+
+    return draft;
+}
+
+function seedW600WeeklyScheduleDraftState(deviceOrEntity: string | Zh.Device | Zh.Endpoint, state: KeyValue) {
+    const draft = getCachedW600WeeklyScheduleDraft(deviceOrEntity, {state} as Fz.Meta);
+    Object.assign(state, buildW600WeeklyScheduleStatePayload(draft));
+}
+
+function stageW600WeeklyScheduleUpload(
+    entity: Zh.Device | Zh.Endpoint,
+    draft: Record<string, string>,
+    image: Buffer,
+    operation: W600WeeklyScheduleOperation,
+    recordCount: number,
+    publish?: W600Publish,
+) {
+    const storeKey = getW600DeviceStoreKey(entity);
+    const uploadId = `${Date.now().toString(36)}-${Math.random().toString(16).slice(2, 10)}`;
+
+    globalStore.putValue(storeKey, W600_WEEKLY_SCHEDULE_DRAFT_STORE_KEY, draft);
+    globalStore.putValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY, {
+        createdAt: Date.now(),
+        lastActivityAt: Date.now(),
+        image,
+        operation,
+        recordCount,
+        uploadId,
+    } satisfies W600WeeklyScheduleOtaStage);
+    armW600WeeklyScheduleUploadTimeout(storeKey, uploadId, publish);
+    return updateW600WeeklyScheduleUploadState(storeKey, {status: "staged", error: "", operation, recordCount, uploadId});
+}
+
+function getNumericW600OtaRequestField(data: KeyValue | undefined, key: string) {
+    const value = data?.[key];
+
+    if (value == null) {
+        return undefined;
+    }
+
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : undefined;
+}
+
+function matchesW600WeeklyScheduleOtaRequest(data: KeyValue | undefined, requireFileVersion = false) {
+    if (
+        getNumericW600OtaRequestField(data, "manufacturerCode") !== manufacturerCode ||
+        getNumericW600OtaRequestField(data, "imageType") !== W600_WEEKLY_SCHEDULE_IMAGE_TYPE
+    ) {
+        return false;
+    }
+
+    return !requireFileVersion || getNumericW600OtaRequestField(data, "fileVersion") === W600_WEEKLY_SCHEDULE_FILE_VERSION;
 }
 
 function createW600ExternalTempSensor(): ModernExtend {
@@ -4558,6 +5076,307 @@ function createW600Schedule(): ModernExtend {
                 await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SCHEDULE], {manufacturerCode});
             },
         ],
+        isModernExtend: true,
+    };
+}
+
+function createW600WeeklySchedule(): ModernExtend {
+    const dayDescription =
+        "Staged weekly schedule for this day. Use comma-delimited entries in the format HH:MM/preset, for example '08:00/home, 19:00/vacation'. Editing the text fields does not upload anything until Save schedule is triggered.";
+    const uploadStatusDescription = "Current state of the custom OTA transfer used to upload the weekly schedule to the thermostat.";
+    const onEvent: NonNullable<ModernExtend["onEvent"]> = [
+        (event) => {
+            const shouldSeedDraft =
+                event.type === "start" ||
+                event.type === "deviceJoined" ||
+                (event.type === "deviceInterview" && (event.data.status === "started" || event.data.status === "successful"));
+
+            if (!shouldSeedDraft) {
+                return;
+            }
+
+            seedW600WeeklyScheduleDraftState(event.data.device, event.data.state);
+
+            const uploadState = normalizeW600WeeklyScheduleUploadState(
+                globalStore.getValue(getW600DeviceStoreKey(event.data.device), W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY),
+            );
+
+            globalStore.putValue(getW600DeviceStoreKey(event.data.device), W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY, uploadState);
+            event.data.state.schedule_upload_status = uploadState.status;
+
+            if (event.type === "start") {
+                const endpoint = event.data.device.getEndpoint(1);
+                void safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SCHEDULE], {manufacturerCode});
+            }
+        },
+    ];
+
+    return {
+        exposes: [
+            ...W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS.map(({label, property}) =>
+                e.text(property, ea.STATE_SET).withLabel(`${label} schedule`).withDescription(dayDescription).withCategory("config"),
+            ),
+            e
+                .enum("schedule_upload_status", ea.STATE, [...W600_WEEKLY_SCHEDULE_UPLOAD_STATUSES])
+                .withLabel("Schedule upload status")
+                .withDescription(uploadStatusDescription)
+                .withCategory("diagnostic"),
+            e
+                .enum("save_schedule", ea.SET, ["trigger"])
+                .withLabel("Save schedule")
+                .withDescription("Upload the weekly schedule to the thermostat")
+                .withCategory("config"),
+            e
+                .enum("clear_schedule", ea.SET, ["trigger"])
+                .withLabel("Clear schedule")
+                .withDescription("Clear all weekly schedule inputs and upload an empty schedule to the thermostat")
+                .withCategory("config"),
+        ],
+        fromZigbee: [
+            {
+                cluster: W600_LUMI_CLUSTER,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data[W600_ATTR_SCHEDULE] === undefined) {
+                        return;
+                    }
+
+                    const device = meta.device ?? msg.device;
+                    return getW600WeeklyScheduleUploadStatePayload(device);
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+            {
+                cluster: "genOta",
+                type: ["commandQueryNextImageRequest"],
+                convert: async (model, msg, publish, options, meta) => {
+                    const device = meta.device ?? msg.device;
+                    const stage = getActiveW600WeeklyScheduleOtaStage(device);
+
+                    if (!stage) {
+                        return;
+                    }
+
+                    if (!matchesW600WeeklyScheduleOtaRequest(msg.data)) {
+                        await msg.endpoint.commandResponse(
+                            "genOta",
+                            "queryNextImageResponse",
+                            {status: Zcl.Status.NO_IMAGE_AVAILABLE},
+                            undefined,
+                            msg.meta.zclTransactionSequenceNumber,
+                        );
+                        return;
+                    }
+
+                    markW600WeeklyScheduleUploadStarted(device, publish);
+                    await msg.endpoint.commandResponse(
+                        "genOta",
+                        "queryNextImageResponse",
+                        {
+                            status: Zcl.Status.SUCCESS,
+                            manufacturerCode,
+                            imageType: W600_WEEKLY_SCHEDULE_IMAGE_TYPE,
+                            fileVersion: W600_WEEKLY_SCHEDULE_FILE_VERSION,
+                            imageSize: stage.image.length,
+                        },
+                        undefined,
+                        msg.meta.zclTransactionSequenceNumber,
+                    );
+                },
+            } satisfies Fz.Converter<"genOta", undefined, ["commandQueryNextImageRequest"]>,
+            {
+                cluster: "genOta",
+                type: ["commandImageBlockRequest"],
+                convert: async (model, msg, publish, options, meta) => {
+                    const device = meta.device ?? msg.device;
+                    const stage = getActiveW600WeeklyScheduleOtaStage(device);
+
+                    if (!stage) {
+                        return;
+                    }
+
+                    if (!matchesW600WeeklyScheduleOtaRequest(msg.data, true)) {
+                        await msg.endpoint.commandResponse(
+                            "genOta",
+                            "imageBlockResponse",
+                            {status: Zcl.Status.INVALID_IMAGE},
+                            undefined,
+                            msg.meta.zclTransactionSequenceNumber,
+                        );
+                        return;
+                    }
+
+                    markW600WeeklyScheduleUploadStarted(device, publish);
+                    const fileOffset = Number(msg.data.fileOffset);
+                    const maximumDataSize = Number(msg.data.maximumDataSize);
+
+                    if (
+                        !Number.isInteger(fileOffset) ||
+                        !Number.isInteger(maximumDataSize) ||
+                        fileOffset < 0 ||
+                        maximumDataSize <= 0 ||
+                        fileOffset >= stage.image.length
+                    ) {
+                        failW600WeeklyScheduleUpload(
+                            device,
+                            `Received invalid image block request (offset=${String(msg.data.fileOffset)}, maximumDataSize=${String(msg.data.maximumDataSize)})`,
+                            publish,
+                        );
+                        await msg.endpoint.commandResponse(
+                            "genOta",
+                            "imageBlockResponse",
+                            {status: Zcl.Status.ABORT},
+                            undefined,
+                            msg.meta.zclTransactionSequenceNumber,
+                        );
+                        return;
+                    }
+
+                    const chunk = stage.image.subarray(fileOffset, Math.min(stage.image.length, fileOffset + maximumDataSize));
+                    noteW600WeeklyScheduleUploadBlock(device, publish);
+                    await msg.endpoint.commandResponse(
+                        "genOta",
+                        "imageBlockResponse",
+                        {
+                            status: Zcl.Status.SUCCESS,
+                            manufacturerCode,
+                            imageType: W600_WEEKLY_SCHEDULE_IMAGE_TYPE,
+                            fileVersion: W600_WEEKLY_SCHEDULE_FILE_VERSION,
+                            fileOffset,
+                            dataSize: chunk.length,
+                            data: chunk,
+                        },
+                        undefined,
+                        msg.meta.zclTransactionSequenceNumber,
+                    );
+                },
+            } satisfies Fz.Converter<"genOta", undefined, ["commandImageBlockRequest"]>,
+            {
+                cluster: "genOta",
+                type: ["commandUpgradeEndRequest"],
+                convert: async (model, msg, publish, options, meta) => {
+                    const device = meta.device ?? msg.device;
+                    const stage = getActiveW600WeeklyScheduleOtaStage(device);
+
+                    if (!stage) {
+                        return;
+                    }
+
+                    if (!matchesW600WeeklyScheduleOtaRequest(msg.data, true)) {
+                        return;
+                    }
+
+                    const upgradeStatus = getNumericW600OtaRequestField(msg.data, "status");
+
+                    if (upgradeStatus != null && upgradeStatus !== 0) {
+                        failW600WeeklyScheduleUpload(device, `Device ended the OTA transfer with status ${String(msg.data.status)}`, publish);
+                        return;
+                    }
+
+                    await msg.endpoint.commandResponse(
+                        "genOta",
+                        "upgradeEndResponse",
+                        {
+                            manufacturerCode,
+                            imageType: W600_WEEKLY_SCHEDULE_IMAGE_TYPE,
+                            fileVersion: W600_WEEKLY_SCHEDULE_FILE_VERSION,
+                            currentTime: 0,
+                            upgradeTime: 0,
+                        },
+                        undefined,
+                        msg.meta.zclTransactionSequenceNumber,
+                    );
+                    completeW600WeeklyScheduleUpload(device, publish);
+                },
+            } satisfies Fz.Converter<"genOta", undefined, ["commandUpgradeEndRequest"]>,
+        ],
+        toZigbee: [
+            {
+                key: [...W600_WEEKLY_SCHEDULE_DAY_PROPERTIES],
+                convertSet: (entity, key, value, meta) => {
+                    assertEndpoint(entity);
+                    const draft = getCachedW600WeeklyScheduleDraft(entity, meta);
+                    const transitions = parseW600ScheduleDayTransitions(value, key);
+                    draft[key] = formatW600ScheduleDayTransitions(transitions);
+                    globalStore.putValue(getW600DeviceStoreKey(entity), W600_WEEKLY_SCHEDULE_DRAFT_STORE_KEY, draft);
+                    return {state: {[key]: draft[key] === "" ? null : draft[key]}};
+                },
+            },
+            {
+                key: ["save_schedule"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertEndpoint(entity);
+                    parseW600ScheduleTriggerValue(value, key);
+                    ensureNoActiveW600WeeklyScheduleUpload(entity);
+                    const draft = getCachedW600WeeklyScheduleDraft(entity, meta);
+
+                    for (const property of W600_WEEKLY_SCHEDULE_DAY_PROPERTIES) {
+                        if (meta.message?.[property] !== undefined) {
+                            draft[property] = meta.message[property] as string;
+                        }
+                    }
+
+                    const normalized = normalizeW600WeeklyScheduleDraft(draft);
+                    const image = buildW600WeeklyScheduleImage(normalized.records);
+                    const uploadState = stageW600WeeklyScheduleUpload(
+                        entity,
+                        normalized.draft,
+                        image,
+                        "save_schedule",
+                        normalized.records.length,
+                        meta.publish,
+                    );
+
+                    logger.info(
+                        `Staged W600 save schedule upload for ${getW600DeviceStoreKey(entity)} with ${normalized.records.length} entries (${image.length} bytes)`,
+                        W600_NS,
+                    );
+
+                    try {
+                        await entity.commandResponse(
+                            "genOta",
+                            "imageNotify",
+                            {payloadType: 0, queryJitter: W600_WEEKLY_SCHEDULE_IMAGE_NOTIFY_QUERY_JITTER},
+                            {sendPolicy: "immediate"},
+                        );
+                    } catch (error) {
+                        const details = error instanceof Error ? error.message : String(error);
+                        failW600WeeklyScheduleUpload(entity, `Failed to send imageNotify: ${details}`, meta.publish);
+                        throw error;
+                    }
+
+                    return {state: {...buildW600WeeklyScheduleStatePayload(normalized.draft), ...uploadState.state}};
+                },
+            },
+            {
+                key: ["clear_schedule"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertEndpoint(entity);
+                    parseW600ScheduleTriggerValue(value, key);
+                    ensureNoActiveW600WeeklyScheduleUpload(entity);
+                    const draft = createEmptyW600WeeklyScheduleDraft();
+                    const image = buildW600WeeklyScheduleImage([]);
+                    const uploadState = stageW600WeeklyScheduleUpload(entity, draft, image, "clear_schedule", 0, meta.publish);
+
+                    logger.info(`Staged W600 clear schedule upload for ${getW600DeviceStoreKey(entity)} (${image.length} bytes)`, W600_NS);
+
+                    try {
+                        await entity.commandResponse(
+                            "genOta",
+                            "imageNotify",
+                            {payloadType: 0, queryJitter: W600_WEEKLY_SCHEDULE_IMAGE_NOTIFY_QUERY_JITTER},
+                            {sendPolicy: "immediate"},
+                        );
+                    } catch (error) {
+                        const details = error instanceof Error ? error.message : String(error);
+                        failW600WeeklyScheduleUpload(entity, `Failed to send imageNotify: ${details}`, meta.publish);
+                        throw error;
+                    }
+
+                    return {state: {...buildW600WeeklyScheduleStatePayload(draft), ...uploadState.state}};
+                },
+            },
+        ],
+        onEvent,
         isModernExtend: true,
     };
 }

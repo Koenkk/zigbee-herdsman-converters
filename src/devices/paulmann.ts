@@ -243,7 +243,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "500.45",
         vendor: "Paulmann",
         description: "SmartHome Zigbee Pendulum Light Aptare",
-        extend: [m.light({color: {applyRedFix: true}})],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ["500.48"],
