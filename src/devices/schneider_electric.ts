@@ -567,7 +567,7 @@ const schneiderElectricExtend = {
         });
         return extend;
     },
-    runningStateFromPower2: (): ModernExtend => {
+    runningStateFromPower: (): ModernExtend => {
         return {
             isModernExtend: true,
             fromZigbee: [
@@ -582,34 +582,6 @@ const schneiderElectricExtend = {
                     },
                 },
             ],
-        };
-    },
-
-    runningStateFromPower: (): ModernExtend => {
-        const fromZigbee = [
-            {
-                cluster: "seMetering",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if ("instantaneousDemand" in msg.data) {
-                        const w = Math.max(0, Number(msg.data.instantaneousDemand));
-                        return {running_state: w > 10 ? "heat" : "idle"};
-                    }
-                },
-            } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
-        ];
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["running_state"],
-                convertGet: async (entity, key, meta) => {
-                    await entity.read<"seMetering", undefined>("seMetering", ["instantaneousDemand"]);
-                },
-            },
-        ];
-        return {
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
         };
     },
     addHeatingCoolingOutputClusterServer: () =>
@@ -841,7 +813,8 @@ const schneiderElectricExtend = {
             name: "fixed_load_demand",
             cluster: "seMetering",
             attribute: "fixedLoadDemand",
-            description: "This attribute specifies the demand of a switched load when it is energised",
+            description:
+                "Load in W when heating is on (between 0-3600 W). The thermostat reports this value as power (instantaneousDemand) when heating is on. The load has to be defined if the device should report running state ('heat' or 'idle').",
             entityCategory: "config",
             unit: "W",
             valueMin: 1,
@@ -2873,7 +2846,7 @@ export const definitions: DefinitionWithExtend[] = [
                 piHeatingDemand: {values: true},
                 ctrlSeqeOfOper: {values: ["cooling_only", "heating_only"]},
             }),
-            schneiderElectricExtend.runningStateFromPower2(),
+            schneiderElectricExtend.runningStateFromPower(),
             m.electricityMeter({
                 cluster: "metering",
                 voltage: false,
