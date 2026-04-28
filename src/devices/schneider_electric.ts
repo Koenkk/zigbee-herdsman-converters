@@ -2826,7 +2826,6 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
         extend: [
             m.thermostat({
-                // schneiderElectricExtend.thermostatWithPower({
                 localTemperature: {
                     values: {
                         description: "The temperature measured by the selected sensor (see 'Local temperature source select', Ambient or External).",
