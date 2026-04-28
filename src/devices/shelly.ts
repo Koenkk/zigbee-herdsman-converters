@@ -1008,6 +1008,63 @@ const fzLocal = {
             return {action: event};
         },
     } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
+
+    two_switch_inputs_events: {
+        cluster: "genOnOff",
+        type: ["commandOn", "commandOff", "commandToggle"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.type}`, {
+                "3_commandOn": "input_1_on",
+                "3_commandOff": "input_1_off",
+                "3_commandToggle": "input_1_toggle",
+                "4_commandOn": "input_2_on",
+                "4_commandOff": "input_2_off",
+                "4_commandToggle": "input_2_toggle",
+            });
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
+
+    two_switch_inputs_scene_events: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
+                "3_5": "input_1_toggle",
+                "4_5": "input_2_toggle",
+                "3_11": "input_1_hold",
+                "4_11": "input_2_hold",
+            });
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
+
+    switch_input_type: {
+        cluster: "genOnOffSwitchCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (!Object.hasOwn(msg.data, "switchType")) return {};
+            const epName = utils.getFromLookup(msg.endpoint.ID, {3: "sw1", 4: "sw2"});
+            if (!epName) return {};
+            return {[`switch_type_${epName}`]: utils.getFromLookup(msg.data.switchType as number, {0: "toggle", 1: "momentary"})};
+        },
+    } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["attributeReport", "readResponse"]>,
+};
+
+const tzLocal = {
+    switch_input_type: {
+        key: ["switch_type"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {toggle: 0, momentary: 1} as const;
+            const ep = determineEndpoint(entity, meta, "genOnOffSwitchCfg");
+            await ep.write("genOnOffSwitchCfg", {switchType: utils.getFromLookup(value as string, lookup)});
+            return {state: {[`switch_type_${meta.endpoint_name}`]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const ep = determineEndpoint(entity, meta, "genOnOffSwitchCfg");
+            await ep.read("genOnOffSwitchCfg", ["switchType"]);
+        },
+    } satisfies Tz.Converter,
 };
 
 // =============================================================================
@@ -1079,11 +1136,47 @@ export const definitions: DefinitionWithExtend[] = [
                     {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
                 ],
             },
+            {
+                type: "Router",
+                manufacturerName: "Shelly",
+                modelID: "2PM",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 514, inputClusters: [0, 3, 4, 5, 258], outputClusters: [25]},
+                    {ID: 3, inputClusters: [7], outputClusters: [3, 4, 5, 6]},
+                    {ID: 4, inputClusters: [7], outputClusters: [3, 4, 5, 6]},
+                    {ID: 5, inputClusters: [], outputClusters: [3, 4, 6, 8, 258]},
+                    {ID: 239, profileID: 49153, deviceID: 8193, inputClusters: [64513, 64514], outputClusters: []},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
         ],
         model: "S4SW-002P16EU-COVER",
         vendor: "Shelly",
         description: "2PM Gen4 (Cover mode)",
-        extend: [m.windowCovering({controls: ["lift", "tilt"]}), ...shellyModernExtend.shellyCustomClusters(), shellyModernExtend.shellyWiFiSetup()],
+        ota: true,
+        fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.switch_input_type],
+        exposes: [
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold", "input_2_on", "input_2_off", "input_2_toggle", "input_2_hold"]),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw2"),
+        ],
+        extend: [
+            m.deviceEndpoints({endpoints: {sw1: 3, sw2: 4}}),
+            m.windowCovering({controls: ["lift", "tilt"]}),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyWiFiSetup(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const epID of [3, 4]) {
+                const ep = device.getEndpoint(epID);
+                if (ep) {
+                    await ep.bind("genOnOff", coordinatorEndpoint);
+                    await ep.bind("genScenes", coordinatorEndpoint);
+                    await ep.read("genOnOffSwitchCfg", ["switchType"]);
+                }
+            }
+        },
     },
     {
         fingerprint: [
@@ -1098,18 +1191,50 @@ export const definitions: DefinitionWithExtend[] = [
                     {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
                 ],
             },
+            {
+                type: "Router",
+                manufacturerName: "Shelly",
+                modelID: "2PM",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 266, inputClusters: [0, 3, 4, 5, 6, 2820, 1794], outputClusters: [25]},
+                    {ID: 2, profileID: 260, deviceID: 266, inputClusters: [4, 5, 6, 2820, 1794], outputClusters: []},
+                    {ID: 3, inputClusters: [7], outputClusters: [3, 4, 5, 6]},
+                    {ID: 4, inputClusters: [7], outputClusters: [3, 4, 5, 6]},
+                    {ID: 5, inputClusters: [], outputClusters: [3, 4, 6, 8, 258]},
+                    {ID: 239, profileID: 49153, deviceID: 8193, inputClusters: [64513, 64514], outputClusters: []},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
         ],
         model: "S4SW-002P16EU-SWITCH",
         vendor: "Shelly",
         description: "2PM Gen4 (Switch mode)",
+        ota: true,
+        fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.switch_input_type],
+        exposes: [
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold", "input_2_on", "input_2_off", "input_2_toggle", "input_2_hold"]),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw2"),
+        ],
         extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, sw1: 3, sw2: 4}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["l1", "l2"]}),
             m.electricityMeter({producedEnergy: true, acFrequency: true, endpointNames: ["l1", "l2"]}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const epID of [3, 4]) {
+                const ep = device.getEndpoint(epID);
+                if (ep) {
+                    await ep.bind("genOnOff", coordinatorEndpoint);
+                    await ep.bind("genScenes", coordinatorEndpoint);
+                    await ep.read("genOnOffSwitchCfg", ["switchType"]);
+                }
+            }
+        },
     },
     {
         fingerprint: [{modelID: "Plug US", manufacturerName: "Shelly"}],
