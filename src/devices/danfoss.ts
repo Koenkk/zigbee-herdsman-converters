@@ -981,6 +981,16 @@ const danfossExtend = {
         );
         return extend;
     },
+    danfossTimeSyncOnAnnounce: (): ModernExtend => ({
+        isModernExtend: true,
+        onEvent: [
+            async (event) => {
+                if (event.type === "deviceAnnounce") {
+                    await setTime(event.data.device, "queue");
+                }
+            },
+        ],
+    }),
 };
 
 const tzLocal = {
@@ -1375,9 +1385,10 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossAdaptionRunSettings(),
             danfossExtend.danfossAdaptionRunControl(),
             danfossExtend.danfossRegulationSetpointOffset(),
+            danfossExtend.danfossTimeSyncOnAnnounce(),
             m.poll({
                 key: "danfossTime",
-                defaultIntervalSeconds: 60 * 60 * 24, // 24 hours
+                defaultIntervalSeconds: 60 * 60 * 24,
                 poll: async (device) => {
                     await setTime(device, "queue");
                 },
