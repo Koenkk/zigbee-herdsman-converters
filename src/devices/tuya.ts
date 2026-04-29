@@ -6695,6 +6695,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_uilitwsy",
             "_TZ3000_66fekqhh",
             "_TZ3000_ok0ggpk7",
+            "_TZ3210_ok0ggpk7",
             "_TZ3000_aknpkt02",
             "_TZ3000_nwidmc4n",
             "_TZ3000_pfc7i3kt",
@@ -6708,12 +6709,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.modernExtend.tuyaOnOff({
                 onOffCountdown: (m) => m !== "_TZ3000_pfc7i3kt",
-                powerOnBehavior2: (m) => m !== "_TZ3000_nwidmc4n",
+                powerOnBehavior2: (m) => m !== "_TZ3000_nwidmc4n" && m !== "_TZ3210_ok0ggpk7",
                 indicatorMode: (m) => m !== "_TZ3000_nwidmc4n" && m !== "_TZ3000_pfc7i3kt",
-                inchingSwitch: (m) => m !== "_TZ3000_pfc7i3kt",
+                inchingSwitch: (m) => m !== "_TZ3000_pfc7i3kt" && m !== "_TZ3210_ok0ggpk7",
                 backlightModeOffOn: (m) => m !== "_TZ3000_pfc7i3kt",
                 endpoints: ["l1", "l2", "l3"],
-                powerOutageMemory: (m) => m === "_TZ3000_nwidmc4n",
+                powerOutageMemory: (m) => m === "_TZ3000_nwidmc4n" || m === "_TZ3210_ok0ggpk7",
                 switchType: (m) => m === "_TZ3000_nwidmc4n" || m === "_TZ3000_pfc7i3kt",
             }),
         ],
@@ -6732,31 +6733,8 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("AVATTO", "ZBTS60-03", "3 gang switch module with backlight", ["_TZ3000_nwidmc4n"]),
             tuya.whitelabel("Tuya", "M10Z", "2 gang switch with 20A power socket", ["_TZ3000_lubfc1t5"]),
             tuya.whitelabel("Zemismart", "ZMO-606-S2", "Smart 2 gangs switch with outlet", ["_TZ3000_aknpkt02"]),
+            tuya.whitelabel("Nova Digital", "NTZB-02", "2 switches and 1 socket with backlight", ["_TZ3210_ok0ggpk7"]),
         ],
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3210_ok0ggpk7"]),
-        model: "TS0003_2_switch_1_socket_tz3210",
-        vendor: "Nova Digital",
-        description: "2 switches and 1 socket with backlight",
-        extend: [
-            tuya.modernExtend.tuyaBase(),
-            tuya.modernExtend.tuyaMagicPacket(),
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            tuya.modernExtend.tuyaOnOff({
-                endpoints: ["l1", "l2", "l3"],
-                onOffCountdown: true,
-                powerOutageMemory: true,
-                indicatorMode: true,
-                backlightModeOffOn: true,
-            }),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
-        },
     },
     {
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_fawk5xjv", "_TZ3000_bvij6kod", "_TZ3000_aracgljk"]),
