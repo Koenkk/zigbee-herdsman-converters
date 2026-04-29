@@ -331,7 +331,8 @@ const philipsModernExtend = {
                 const data: Philips2Data = {};
 
                 if (message.state !== undefined) {
-                    data.onOff = typeof message.state === "string" && message.state.toLowerCase() === "on";
+                    const targetState = message.state === "toggle" ? (meta.state.state === "ON" ? "off" : "on") : message.state;
+                    data.onOff = typeof targetState === "string" && targetState.toLowerCase() === "on";
                     newState.state = data.onOff ? "ON" : "OFF";
                 }
                 if (message.brightness != null) {
