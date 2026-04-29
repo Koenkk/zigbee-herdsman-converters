@@ -6566,7 +6566,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Aubess", "TMZ02", "2 gang switch", ["_TZ3000_lmlsduws"]),
             tuya.whitelabel("RSH", "TS0002_basic_2", "2 gang switch", ["_TZ3000_zbfya6h0"]),
             tuya.whitelabel("EKAZA", "EKAC-T3092Z", "2 gang switch", ["_TZ3000_hznzbl0x"]),
-            tuya.whitelabel("Nova Digital", "TS0002_1_switch_1_socket_tz3210", "1 switch and 1 socket with backlight", ["_TZ3210_6smingw0"]),
+            tuya.whitelabel("Nova Digital", "NTZB-01", "1 switch and 1 socket with backlight", ["_TZ3210_6smingw0"]),
         ],
         extend: [
             tuya.modernExtend.tuyaBase(),
