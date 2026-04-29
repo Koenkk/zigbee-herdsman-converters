@@ -6636,8 +6636,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
 
-
-
     {
         // TS0002 2 gang switch module with all available features. This is the default for TS0002 devices.
         model: "TS0002",
