@@ -17,10 +17,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff()],
     },
     {
-        zigbeeModel: ['Socket Dimmer'],
+        zigbeeModel: ["Socket Dimmer"],
         model: "ZCC-250",
-        vendor: 'KlikAanKlikUit',
-        description: 'Zigbee socket dimmer',
+        vendor: "KlikAanKlikUit",
+        description: "Zigbee socket dimmer",
         extend: [m.light()],
     },
 ];
