@@ -3,7 +3,6 @@ import type {TClusterCommandPayload} from "zigbee-herdsman/dist/zspec/zcl/defini
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
-import type {HeimanSpecificInfraRedRemoteCluster} from "../lib/heiman";
 import * as legacy from "../lib/legacy";
 import * as light from "../lib/light";
 import {logger} from "../lib/logger";
@@ -3357,66 +3356,6 @@ export const power_source: Tz.Converter = {
     key: ["power_source", "charging"],
     convertGet: async (entity, key, meta) => {
         await entity.read("genBasic", ["powerSource"]);
-    },
-};
-export const heiman_ir_remote: Tz.Converter = {
-    key: ["send_key", "create", "learn", "delete", "get_list"],
-    convertSet: async (entity, key, value, meta) => {
-        const options = {
-            // Don't send a manufacturerCode (otherwise set in herdsman):
-            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2827
-            // @ts-expect-error ignore
-            manufacturerCode: null,
-            ...utils.getOptions(meta.mapped, entity),
-        };
-        switch (key) {
-            case "send_key":
-                utils.assertObject(value);
-                await entity.command<"heimanSpecificInfraRedRemote", "sendKey", HeimanSpecificInfraRedRemoteCluster>(
-                    "heimanSpecificInfraRedRemote",
-                    "sendKey",
-                    {id: value.id, keyCode: value.key_code},
-                    options,
-                );
-                break;
-            case "create":
-                utils.assertObject(value);
-                await entity.command<"heimanSpecificInfraRedRemote", "createId", HeimanSpecificInfraRedRemoteCluster>(
-                    "heimanSpecificInfraRedRemote",
-                    "createId",
-                    {modelType: value.model_type},
-                    options,
-                );
-                break;
-            case "learn":
-                utils.assertObject(value);
-                await entity.command<"heimanSpecificInfraRedRemote", "studyKey", HeimanSpecificInfraRedRemoteCluster>(
-                    "heimanSpecificInfraRedRemote",
-                    "studyKey",
-                    {id: value.id, keyCode: value.key_code},
-                    options,
-                );
-                break;
-            case "delete":
-                utils.assertObject(value);
-                await entity.command<"heimanSpecificInfraRedRemote", "deleteKey", HeimanSpecificInfraRedRemoteCluster>(
-                    "heimanSpecificInfraRedRemote",
-                    "deleteKey",
-                    {id: value.id, keyCode: value.key_code},
-                    options,
-                );
-                break;
-            case "get_list":
-                await entity.command<"heimanSpecificInfraRedRemote", "getIdAndKeyCodeList", HeimanSpecificInfraRedRemoteCluster>(
-                    "heimanSpecificInfraRedRemote",
-                    "getIdAndKeyCodeList",
-                    {},
-                    options,
-                );
-                break;
-            default: // Unknown key
-                throw new Error(`Unhandled key ${key}`);
-        }
     },
 };
 export const scene_store: Tz.Converter = {
