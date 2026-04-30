@@ -2456,7 +2456,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "server_status",
                 lookup: {unconfigurated: 0, unconnected: 1, connected: 2, api_timeout: 3},
                 cluster: "heimanClusterSpecial",
-                attribute: "wifiCandidateStatus",
+                attribute: "serverStatus",
                 description: "server status",
                 access: "STATE_GET",
             }),
