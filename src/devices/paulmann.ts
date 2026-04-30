@@ -250,7 +250,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "500.48",
         vendor: "Paulmann",
         description: "SmartHome Zigbee YourLED dim/switch controller max. 60 W",
-        extend: [m.light({color: {applyRedFix: true}})],
+        extend: [m.light()],
     },
     {
         fingerprint: [{manufacturerName: "Paulmann Licht GmbH", modelID: "Dimmable"}],

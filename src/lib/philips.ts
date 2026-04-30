@@ -5,6 +5,7 @@ import * as reporting from "../lib/reporting";
 import * as libColor from "./color";
 import {ColorRGB, ColorXY} from "./color";
 import * as exposes from "./exposes";
+import * as light from "./light";
 import {logger} from "./logger";
 import * as modernExtend from "./modernExtend";
 import * as globalStore from "./store";
@@ -17,10 +18,17 @@ const ea = exposes.access;
 const e = exposes.presets;
 const eNumeric = exposes.Numeric;
 
+// Gradient color XY scaling constants per Bifrost spec.
+// MAX_X = 0.7347: maximum X inside the visible light spectrum / Wide Gamut red X.
+// MAX_Y = 0.8264: outer bound of the Wide Gamut Y axis.
+// NOTE: many older implementations incorrectly use 0.8431 for MAX_Y.
+const GRADIENT_COLORS_MAX_X = 0.7347;
+const GRADIENT_COLORS_MAX_Y = 0.8264;
+
 const encodeRGBToScaledGradient = (hex: string) => {
     const xy = ColorRGB.fromHex(hex).toXY();
-    const x = (xy.x * 4095) / 0.7347;
-    const y = (xy.y * 4095) / 0.8413;
+    const x = (xy.x * 4095) / GRADIENT_COLORS_MAX_X;
+    const y = (xy.y * 4095) / GRADIENT_COLORS_MAX_Y;
     const xx = Math.round(x).toString(16).padStart(3, "0");
     const yy = Math.round(y).toString(16).padStart(3, "0");
 
@@ -31,8 +39,8 @@ const decodeScaledGradientToRGB = (p: string) => {
     const x = p[3] + p[0] + p[1];
     const y = p[4] + p[5] + p[2];
 
-    const xx = Number(((Number.parseInt(x, 16) * 0.7347) / 4095).toFixed(4));
-    const yy = Number(((Number.parseInt(y, 16) * 0.8413) / 4095).toFixed(4));
+    const xx = Number(((Number.parseInt(x, 16) * GRADIENT_COLORS_MAX_X) / 4095).toFixed(4));
+    const yy = Number(((Number.parseInt(y, 16) * GRADIENT_COLORS_MAX_Y) / 4095).toFixed(4));
 
     return new ColorXY(xx, yy).toRGB().toHEX();
 };
@@ -51,10 +59,11 @@ export const knownEffects = {
     "0a80": "sparkle",
     "0b80": "opal",
     "0c80": "glisten",
-    "0d80": "underwater",
-    "0e80": "cosmos",
-    "0f80": "sunbeam",
-    "1080": "enchant",
+    "0d80": "sunset",
+    "0e80": "underwater",
+    "0f80": "cosmos",
+    "1080": "sunbeam",
+    "1180": "enchant",
 };
 
 interface PhilipsContact {
@@ -107,6 +116,61 @@ interface ManuSpecificPhilips2 {
     };
     commandResponses: never;
 }
+
+export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSpecificPhilips2, ["attributeReport", "readResponse"]> = {
+    cluster: "manuSpecificPhilips2",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        const retval: KeyValueAny = {};
+        if (msg.data.state !== undefined) {
+            // Publish the raw, unaltered state blob so advanced clients (e.g. Bifrost)
+            // can perform their own decoding without depending on z2m's interpretation.
+            retval["philips_raw"] = msg.data.state.toString("hex");
+
+            const decoded = DecodeManuSpecificPhilips2(msg.data.state);
+            logger.debug(`Decoded manuSpecificPhilips2 state: ${JSON.stringify(decoded)}`, NS);
+            if (decoded.onOff !== undefined) {
+                retval["state"] = decoded.onOff ? "ON" : "OFF";
+            }
+            if (decoded.brightness !== undefined) {
+                retval["brightness"] = decoded.brightness;
+            }
+            if (decoded.colorMirek !== undefined) {
+                retval["color_temp"] = decoded.colorMirek;
+                retval["color_mode"] = "color_temp";
+            }
+            if (decoded.colorXY !== undefined) {
+                retval["color"] = decoded.colorXY.toObject();
+                retval["color_mode"] = "xy";
+            }
+            if (decoded.fadeSpeed !== undefined) {
+                retval["transition"] = decoded.fadeSpeed;
+            }
+            if (decoded.effectType !== undefined) {
+                retval["effect"] = effectNames[decoded.effectType] ?? `unknown_0x${decoded.effectType.toString(16)}`;
+            }
+            if (decoded.effectSpeed !== undefined) {
+                retval["effect_speed"] = decoded.effectSpeed;
+            }
+            if (decoded.gradientColors !== undefined) {
+                // RGB hex for backward compat with z2m frontend and existing automations
+                retval["gradient"] = decoded.gradientColors.colors.map((c: ColorXY) => c.toRGB().toHEX());
+                // Lossless XY coordinates for clients that need device-independent color
+                retval["gradient_xy"] = decoded.gradientColors.colors.map((c: ColorXY) => c.toObject());
+                retval["gradient_style"] = gradientStyleNames[decoded.gradientColors.style] ?? "unknown";
+            }
+            if (decoded.gradientParams !== undefined) {
+                retval["gradient_scale"] = decoded.gradientParams.scale;
+                retval["gradient_offset"] = decoded.gradientParams.offset;
+            }
+        }
+
+        return retval;
+    },
+};
+
+// Keys for Philips2-specific features not handled by standard light converters.
+const philips2Keys = ["effect_speed", "gradient_scale", "gradient_offset", "gradient_style", "effect_color"];
 
 const philipsModernExtend = {
     addCustomClusterManuSpecificPhilipsContact: () =>
@@ -180,15 +244,354 @@ const philipsModernExtend = {
         args = {hueEffect: true, turnsOffAtBrightness1: true, ota: true, ...args};
         if (args.hueEffect || args.gradient) args.effect = false;
         if (args.color) args.color = {modes: ["xy", "hs"], enhancedHue: true, ...(isObject(args.color) ? args.color : {})};
+
         const result = modernExtend.light(args);
-        result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
+        const toZigbee = result.toZigbee;
+        result.toZigbee = [];
+
+        // Keys we intercept for Hue native control: core light attributes
+        // that can be sent atomically via the manuSpecificPhilips2 cluster.
+        // Command-only keys (brightness_move, hue_step, etc.) have no Philips2
+        // equivalent and are left to their standard converters in the array.
+        const nativeKeys = ["state", "brightness", "brightness_percent", "color", "color_temp", "color_temp_percent", "transition"];
+        const keys = [...nativeKeys, ...philips2Keys];
+        const philipsLightTz = {
+            key: keys,
+            convertSet: async (entity, key, value, meta) => {
+                // Resolve control mode: explicit option wins; otherwise default to standard converters.
+                const nativeControl = (meta.options as KeyValueAny).hue_native_control === true;
+
+                // Check if device supports the manuSpecificPhilips2 cluster.
+                // Wrapped in try-catch because supportsInputCluster may throw for
+                // custom clusters not in the cluster registry (e.g. in test mocks).
+                let hasPhilips2Cluster = false;
+                if (utils.isEndpoint(entity)) {
+                    try {
+                        hasPhilips2Cluster = entity.supportsInputCluster("manuSpecificPhilips2");
+                    } catch {
+                        hasPhilips2Cluster = false;
+                    }
+                }
+
+                // Delegate to standard converters if:
+                //   - Device doesn't support manuSpecificPhilips2 cluster (old bulbs), OR
+                //   - User hasn't opted into native Philips2 control (default)
+                // This mimics Z2M's own per-key dispatch so a single message routes
+                // each key to the appropriate converter.
+                const mustDelegate = (utils.isEndpoint(entity) && !hasPhilips2Cluster) || !nativeControl;
+
+                if (mustDelegate) {
+                    const used = new Set<Tz.Converter>();
+                    let mergedState: KeyValue = {};
+                    // Replicate Z2M's key ordering (publish.ts): when turning off,
+                    // state/brightness come first; otherwise they come last. This ensures
+                    // standard converters are called in the same sequence as without our
+                    // intercepting converter, so e.g. the light turns on before color is
+                    // set, and color is set before the light turns off.
+                    const messageEntries = Object.entries(meta.message);
+                    const stateValue = typeof meta.message.state === "string" ? (meta.message.state as string).toLowerCase() : undefined;
+                    const sorter = stateValue === "off" ? 1 : -1;
+                    messageEntries.sort((a) => (["state", "brightness", "brightness_percent"].includes(a[0]) ? sorter : sorter * -1));
+                    for (const [msgKey, msgValue] of messageEntries) {
+                        // Only delegate keys we claim. Command-only keys (brightness_move,
+                        // hue_step, etc.) are NOT in our key list — Z2M routes them to
+                        // their standard converters directly.
+                        if (!keys.includes(msgKey)) continue;
+                        // philips2Keys have no standard equivalent and are handled below.
+                        if (philips2Keys.includes(msgKey)) continue;
+                        for (const tz of toZigbee) {
+                            if (!used.has(tz) && tz.key.includes(msgKey) && tz.convertSet) {
+                                used.add(tz);
+                                const result = await tz.convertSet(entity, msgKey, msgValue, meta);
+                                if (result && "state" in result && result.state) {
+                                    mergedState = {...mergedState, ...result.state};
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    // In delegated mode, we still need to handle Philips2-specific keys (effect_color,
+                    // effect_speed, gradient_scale, etc.) below. But if the current call is for a
+                    // standard key and no Philips2-specific keys are in the message, we're done.
+                    const hasPhilips2Keys = Object.keys(meta.message).some((k) => philips2Keys.includes(k));
+                    if (!hasPhilips2Keys) {
+                        return Object.keys(mergedState).length > 0 ? {state: mergedState} : undefined;
+                    }
+                    // Fall through: continue below to handle Philips2-specific fields only.
+                }
+
+                // Native control mode (or handling Philips2-specific keys in delegate mode):
+                // build a Philips2 payload from the message. In delegate mode, we filter out
+                // standard keys since the standard converters already sent them.
+                const message = nativeControl
+                    ? meta.message
+                    : Object.fromEntries(Object.entries(meta.message).filter(([k]) => philips2Keys.includes(k)));
+                const newState: KeyValue = {};
+
+                const data: Philips2Data = {};
+
+                if (message.state !== undefined) {
+                    data.onOff = typeof message.state === "string" && message.state.toLowerCase() === "on";
+                    newState.state = data.onOff ? "ON" : "OFF";
+                }
+                if (message.brightness != null) {
+                    // Bifrost spec: brightness values 0 and 255 are INVALID, valid range 1..254
+                    data.brightness = clamp(Number(message.brightness), 1, 254);
+                } else if (message.brightness_percent != null) {
+                    data.brightness = clamp(utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255), 1, 254);
+                }
+                if (data.brightness !== undefined) {
+                    newState.brightness = data.brightness;
+                }
+                if (message.color != null) {
+                    const newColor = libColor.Color.fromConverterArg(message.color);
+                    if (newColor.isHSV()) {
+                        // Convert HSV → RGB → XY instead of silently dropping
+                        const xy = newColor.hsv.toRGB().gammaCorrected().toXY().rounded(4);
+                        data.colorXY = xy;
+                    } else {
+                        const xy = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY().rounded(4) : newColor.xy;
+                        data.colorXY = xy;
+                    }
+                    newState.color_mode = "xy";
+                    newState.color = data.colorXY.toObject();
+                }
+                if (message.color_temp != null || message.color_temp_percent != null) {
+                    const [colorTempMin, colorTempMax] = light.findColorTempRange(entity);
+                    const preset = {warmest: colorTempMax, warm: 454, neutral: 370, cool: 250, coolest: colorTempMin};
+
+                    let colorTemp = message.color_temp;
+                    if (message.color_temp_percent != null) {
+                        colorTemp = utils
+                            .mapNumberRange(
+                                Number(message.color_temp_percent),
+                                0,
+                                100,
+                                colorTempMin != null ? colorTempMin : 154,
+                                colorTempMax != null ? colorTempMax : 500,
+                            )
+                            .toString();
+                    }
+                    if (utils.isString(colorTemp) && colorTemp in preset) {
+                        data.colorMirek = utils.getFromLookup(colorTemp, preset);
+                    } else {
+                        data.colorMirek = Number(colorTemp);
+                    }
+                    newState.color_mode = "color_temp";
+                    newState.color_temp = data.colorMirek;
+                }
+
+                // Map transition time to Philips2 fadeSpeed
+                // Bifrost spec: 0 = instant, practical range ~2..8, >0x100 = very slow
+                if (message.transition != null) {
+                    data.fadeSpeed = Math.round(Number(message.transition));
+                }
+
+                // Effect speed: 0.0 = slowest, 1.0 = fastest (maps to 0..255 byte)
+                if (message.effect_speed != null) {
+                    data.effectSpeed = clamp(Number(message.effect_speed), 0, 1);
+                }
+
+                // Gradient scale/offset: fixed-point 5.3 format, exposed as float
+                if (message.gradient_scale != null) {
+                    if (data.gradientParams === undefined) {
+                        data.gradientParams = {scale: Number(message.gradient_scale), offset: 0};
+                    } else {
+                        data.gradientParams.scale = Number(message.gradient_scale);
+                    }
+                }
+                if (message.gradient_offset != null) {
+                    if (data.gradientParams === undefined) {
+                        data.gradientParams = {scale: 1.0, offset: Number(message.gradient_offset)};
+                    } else {
+                        data.gradientParams.offset = Number(message.gradient_offset);
+                    }
+                }
+
+                // Gradient style: stored in state for use with gradient color commands.
+                // When gradient colors are also being sent through this path, the style
+                // is applied directly to data.gradientColors.style.
+                if (message.gradient_style != null) {
+                    const styleLookup: Record<string, HueGradientStyle> = {
+                        linear: HueGradientStyle.Linear,
+                        scattered: HueGradientStyle.Scattered,
+                        mirrored: HueGradientStyle.Mirrored,
+                    };
+                    const style = styleLookup[String(message.gradient_style).toLowerCase()];
+                    if (style !== undefined) {
+                        if (data.gradientColors !== undefined) {
+                            data.gradientColors.style = style;
+                        }
+                        newState.gradient_style = message.gradient_style;
+                    }
+                }
+
+                // When color/color_temp changes without an explicit effect command,
+                // behavior depends on the effect_color_mode option:
+                // - "stop" (default, matches Hue app): color change stops the effect
+                // - "update": color change re-sends the active effect with the new color
+                if ((data.colorXY !== undefined || data.colorMirek !== undefined) && message.effect === undefined) {
+                    const effectColorMode = (meta.options as KeyValueAny).effect_color_mode ?? "stop";
+                    const activeEffect = meta.state?.effect as string | undefined;
+                    if (effectColorMode === "update" && activeEffect && activeEffect !== "none" && activeEffect in effectLookupAll) {
+                        // Re-send the active effect with the new color
+                        data.effectType = effectLookupAll[activeEffect];
+                        newState.effect = activeEffect;
+                    } else {
+                        // Hue app behavior: color change stops effect, clear stale state
+                        newState.effect = "none";
+                    }
+                }
+
+                // Handle effect_color: explicitly set the active effect's base color
+                // without stopping it. If no effect is active, just sets the color.
+                if (message.effect_color != null) {
+                    const newColor = libColor.Color.fromConverterArg(message.effect_color);
+                    if (newColor.isHSV()) {
+                        data.colorXY = newColor.hsv.toRGB().gammaCorrected().toXY().rounded(4);
+                    } else {
+                        data.colorXY = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY().rounded(4) : newColor.xy;
+                    }
+                    newState.color_mode = "xy";
+                    newState.color = data.colorXY.toObject();
+                    // Re-send the active effect with the new color
+                    const activeEffect = meta.state?.effect as string | undefined;
+                    if (activeEffect && activeEffect !== "none" && activeEffect in effectLookupAll) {
+                        data.effectType = effectLookupAll[activeEffect];
+                        newState.effect = activeEffect;
+                    }
+                }
+
+                // When re-sending an effect (via effect_color or "update" mode),
+                // the effect resets brightness on activation. To preserve the user's
+                // brightness, we send it as a separate command AFTER the effect.
+                // Extract brightness now and send it after the main payload.
+                let deferredBrightness: number | undefined;
+                if (data.effectType !== undefined && message.effect === undefined) {
+                    if (data.brightness !== undefined) {
+                        // User explicitly sent brightness alongside color — defer it
+                        deferredBrightness = data.brightness;
+                        delete data.brightness;
+                        // Keep newState.brightness so state updates correctly
+                    }
+                }
+
+                const encodedPayload = Buffer.from(EncodeManuSpecificPhilips2(data));
+                // An empty Philips2Data encodes as just 2 zero bytes (the flags header).
+                // Check length rather than all-zeros, since a valid payload could
+                // legitimately contain zero-valued fields.
+                if (encodedPayload.length <= 2) {
+                    logger.debug("No Philips2 fields to send, falling back to standard converters", NS);
+                    // Delegate to the standard converter that handles this key.
+                    // Z2M calls convertSet once per key, so exactly one converter matches.
+                    for (const tz of toZigbee) {
+                        if (tz.key.includes(key)) {
+                            return await tz.convertSet(entity, key, value, meta);
+                        }
+                    }
+                } else {
+                    logger.debug(`Sending manuSpecificPhilips2 payload: ${encodedPayload.toString("hex")}`, NS);
+                    const payload = {data: encodedPayload};
+                    await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
+
+                    // Send brightness as a separate command after effect activation,
+                    // since the effect resets brightness on start.
+                    if (deferredBrightness !== undefined) {
+                        const brightnessData: Philips2Data = {brightness: deferredBrightness};
+                        const brightnessPayload = Buffer.from(EncodeManuSpecificPhilips2(brightnessData));
+                        await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", {
+                            data: brightnessPayload,
+                        });
+                        newState.brightness = deferredBrightness;
+                    }
+
+                    // When an effect is active or being set, read state after a delay
+                    // to sync brightness (effects modulate it internally).
+                    if (data.effectType !== undefined) {
+                        setTimeout(async () => {
+                            try {
+                                await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
+                            } catch (_e) {
+                                // Best-effort sync
+                            }
+                        }, 1000);
+                    }
+
+                    // Merge syncColorState results into newState. syncColorState
+                    // returns only color-related keys (color, color_mode, color_temp),
+                    // so we spread it on top of newState to keep state, brightness,
+                    // effect, etc. intact.
+                    const colorState = libColor.syncColorState(newState, meta.state, entity, meta.options);
+                    return {state: {...newState, ...colorState}};
+                }
+            },
+            convertGet: async (entity, key, meta) => {
+                let hasPhilips2Cluster = false;
+                if (utils.isEndpoint(entity)) {
+                    try {
+                        hasPhilips2Cluster = entity.supportsInputCluster("manuSpecificPhilips2");
+                    } catch {
+                        hasPhilips2Cluster = false;
+                    }
+                }
+                if (utils.isEndpoint(entity) && !hasPhilips2Cluster) {
+                    for (const tz of toZigbee) {
+                        if (tz.key.includes(key) && tz.convertGet) {
+                            return await tz.convertGet(entity, key, meta);
+                        }
+                    }
+                    return;
+                }
+                try {
+                    await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
+                } catch (e) {
+                    logger.debug(`Reading manuSpecificPhilips2 state failed: ${e}`, NS);
+                }
+            },
+            options: [
+                new exposes.Binary("hue_native_control", ea.SET, true, false).withDescription(
+                    "Control this light using a Philips-specific protocol instead of standard Zigbee commands. " +
+                        "When enabled, on/off, brightness, color, and color temperature are combined into single atomic commands. " +
+                        "This is required to use the Effect color update mode. " +
+                        "When disabled (default), standard Zigbee commands are used, which preserves the usual behavior, " +
+                        "including simulating on/off transitions.",
+                ),
+                new exposes.Enum("effect_color_mode", ea.SET, ["stop", "update"]).withDescription(
+                    "Controls what happens when color is changed while an effect is active (requires Hue native control). " +
+                        "'stop' (default): color change stops the effect (Hue app behavior). " +
+                        "'update': color change re-sends the effect with the new color.",
+                ),
+            ],
+        } satisfies Tz.Converter;
+
+        // philipsLightTz claims all standard light keys. Inside convertSet, it delegates
+        // back to the original standard converters by default (opt-out), or sends via
+        // manuSpecificPhilips2 when the user enables the hue_native_control option.
+        // The original standard converters are captured in the `toZigbee` closure above.
+        // Standard converters for keys we DON'T claim. For converters that handle
+        // both claimed and unclaimed keys (e.g. light_onoff_brightness handles "state"
+        // which we claim AND "on_time" which we don't), we create wrappers with only
+        // the unclaimed keys so Z2M doesn't double-dispatch.
+        const unclaimed: Tz.Converter[] = [];
+        for (const tz of toZigbee) {
+            const unclaimedKeys = tz.key.filter((k: string) => !keys.includes(k));
+            if (unclaimedKeys.length === 0) continue; // We claim all keys of this converter
+            if (unclaimedKeys.length === tz.key.length) {
+                // No overlap — include as-is
+                unclaimed.push(tz);
+            } else {
+                // Partial overlap — wrap with only unclaimed keys
+                unclaimed.push({...tz, key: unclaimedKeys});
+            }
+        }
+        result.toZigbee = [philipsLightTz, philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error, ...unclaimed];
+
         if (args.hueEffect || args.gradient) {
             result.toZigbee.push(philipsTz.effect);
             const effects = ["blink", "breathe", "okay", "channel_change", "candle"];
             if (args.color) effects.push("fireplace", "colorloop");
             if (args.gradient) {
                 result.toZigbee.push(philipsTz.gradient_scene, philipsTz.gradient({reverse: true}));
-                result.fromZigbee.push(philipsFz.gradient);
                 effects.push("sunrise");
                 if (args.gradient !== true) {
                     effects.push(...args.gradient.extraEffects);
@@ -205,14 +608,85 @@ const philipsModernExtend = {
                         args.endpointNames,
                     ),
                 );
-                result.configure.push(async (device, coordinatorEndpoint, definition) => {
-                    for (const ep of device.endpoints.filter((ep) => ep.supportsInputCluster("manuSpecificPhilips2"))) {
+            }
+            // Bind manuSpecificPhilips2 and register the Fz converter for all
+            // hueEffect/gradient devices, not just gradient. This enables state
+            // reports for effects, brightness, color, etc. on non-gradient bulbs too.
+            result.fromZigbee.push(manuSpecificPhilips2Fz);
+            result.configure.push(async (device, coordinatorEndpoint, definition) => {
+                for (const ep of device.endpoints) {
+                    let supported = false;
+                    try {
+                        supported = ep.supportsInputCluster("manuSpecificPhilips2");
+                    } catch {
+                        // Custom cluster not in registry — skip
+                    }
+                    if (supported) {
                         await ep.bind("manuSpecificPhilips2", coordinatorEndpoint);
                     }
-                });
+                }
+            });
+            // All Hue-specific effects per Bifrost spec
+            effects.push("sunset", "sparkle", "opal", "glisten", "underwater", "cosmos", "sunbeam", "enchant");
+            effects.push("none", "finish_effect", "stop_effect", "stop_hue_effect");
+            result.exposes.push(...exposeEndpoints(e.enum("effect", ea.STATE_SET, effects), args.endpointNames));
+
+            // Expose effect_speed as a numeric 0..1 (0=slowest, 1=fastest)
+            result.exposes.push(
+                ...exposeEndpoints(
+                    new eNumeric("effect_speed", ea.STATE_SET)
+                        .withValueMin(0)
+                        .withValueMax(1)
+                        .withValueStep(0.01)
+                        .withDescription("Animation speed for the active effect (0=slowest, 1=fastest)"),
+                    args.endpointNames,
+                ),
+            );
+
+            // Expose effect_color: sets the base color of the active effect
+            // without stopping it. Accepts same formats as color (hex, xy, hs).
+            result.exposes.push(
+                ...exposeEndpoints(
+                    e
+                        .text("effect_color", ea.SET)
+                        .withDescription('Set the base color of the active effect without stopping it (hex e.g. #FF4400, or JSON {"x":0.6,"y":0.3})'),
+                    args.endpointNames,
+                ),
+            );
+
+            if (args.gradient) {
+                // Expose gradient style as an enum (per Bifrost spec: Linear, Scattered, Mirrored)
+                result.exposes.push(
+                    ...exposeEndpoints(
+                        e
+                            .enum("gradient_style", ea.ALL, ["linear", "scattered", "mirrored"])
+                            .withDescription(
+                                "Gradient rendering style: linear (smooth blend), scattered (color per segment), mirrored (symmetric from center)",
+                            ),
+                        args.endpointNames,
+                    ),
+                );
+
+                // Expose gradient scale and offset as numerics (fixed-point 5.3 format)
+                result.exposes.push(
+                    ...exposeEndpoints(
+                        new eNumeric("gradient_scale", ea.SET)
+                            .withValueMin(0)
+                            .withValueMax(31)
+                            .withValueStep(0.125)
+                            .withDescription("Gradient scale (0=auto fit, 1.0+=number of colors visible)"),
+                        args.endpointNames,
+                    ),
+                    ...exposeEndpoints(
+                        new eNumeric("gradient_offset", ea.SET)
+                            .withValueMin(0)
+                            .withValueMax(31)
+                            .withValueStep(0.125)
+                            .withDescription("Gradient color offset (0=start from first color)"),
+                        args.endpointNames,
+                    ),
+                );
             }
-            effects.push("finish_effect", "stop_effect", "stop_hue_effect");
-            result.exposes.push(...exposeEndpoints(e.enum("effect", ea.SET, effects), args.endpointNames));
         }
 
         const customCluster2 = philipsModernExtend.addManuSpecificPhilips2Cluster();
@@ -367,15 +841,43 @@ const philipsTz = {
     } satisfies Tz.Converter,
     gradient: (opts = {reverse: false}) => {
         return {
-            key: ["gradient"],
+            key: ["gradient", "gradient_style"],
             convertSet: async (entity, key, value, meta) => {
+                // Merge gradient_style from the message into opts if present
+                const mergedOpts: KeyValueAny = {...opts};
+                const {message} = meta;
+                if (message.gradient_style != null) {
+                    const styleLookup: Record<string, number> = {
+                        linear: HueGradientStyle.Linear,
+                        scattered: HueGradientStyle.Scattered,
+                        mirrored: HueGradientStyle.Mirrored,
+                    };
+                    const style = styleLookup[String(message.gradient_style).toLowerCase()];
+                    if (style !== undefined) {
+                        mergedOpts.style = style;
+                    }
+                }
+                // If only gradient_style was sent (no gradient colors), re-send current
+                // gradient from state with the new style
+                let colors = key === "gradient" ? value : message.gradient;
+                if (colors == null && meta.state?.gradient != null) {
+                    colors = meta.state.gradient;
+                }
+                if (colors == null || (Array.isArray(colors) && colors.length === 0)) {
+                    return; // Nothing to send
+                }
                 // @ts-expect-error ignore
-                const scene = encodeGradientColors(value, opts);
+                const scene = encodeGradientColors(colors, mergedOpts);
                 const payload = {data: Buffer.from(scene, "hex")};
                 await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
+                return {state: {gradient_style: message.gradient_style}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
+                try {
+                    await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
+                } catch (e) {
+                    logger.debug(`Reading manuSpecificPhilips2 state for gradient failed: ${e}`, NS);
+                }
             },
         } satisfies Tz.Converter;
     },
@@ -383,13 +885,72 @@ const philipsTz = {
         key: ["effect"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, "effect");
-            if (Object.keys(hueEffects).includes(value.toLowerCase())) {
+            const lower = value.toLowerCase();
+
+            // Stop commands — handle before the generic hueEffects branch,
+            // since stop_hue_effect is in the hueEffects map but not in effectLookupAll.
+            // All three stop variants also send the Hue stop command so they work
+            // regardless of whether the active effect is a ZCL or Hue effect.
+            if (lower === "none" || lower === "stop_hue_effect" || lower === "finish_effect" || lower === "stop_effect") {
+                // Stop Hue-specific effects via manuSpecificPhilips2
                 await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", {
-                    data: Buffer.from(utils.getFromLookup(value, hueEffects), "hex"),
+                    data: Buffer.from(hueEffects.stop_hue_effect, "hex"),
                 });
-            } else {
-                return await tz.effect.convertSet(entity, key, value, meta);
+                // Also send the ZCL effect stop for standard effects (blink, breathe, etc.)
+                if (lower === "finish_effect" || lower === "stop_effect") {
+                    try {
+                        await tz.effect.convertSet(entity, key, value, meta);
+                    } catch (_e) {
+                        // Ignore — device may not support ZCL identify cluster
+                    }
+                }
+                return {state: {effect: "none"}};
             }
+
+            if (lower in effectLookupAll) {
+                // Build payload dynamically so we can include optional color
+                const data: Philips2Data = {
+                    onOff: true,
+                    effectType: effectLookupAll[lower],
+                };
+
+                // If color is provided alongside effect, include it in the payload
+                const msg = meta.message as KeyValueAny;
+                if (msg.color !== undefined) {
+                    const newColor = libColor.Color.fromConverterArg(msg.color);
+                    if (newColor.isHSV()) {
+                        data.colorXY = newColor.hsv.toRGB().gammaCorrected().toXY().rounded(4);
+                    } else {
+                        data.colorXY = newColor.isRGB() ? newColor.rgb.gammaCorrected().toXY().rounded(4) : newColor.xy;
+                    }
+                }
+
+                // Include effect_speed if provided alongside effect
+                if (msg.effect_speed !== undefined) {
+                    data.effectSpeed = clamp(Number(msg.effect_speed), 0, 1);
+                }
+
+                const payload = {data: Buffer.from(EncodeManuSpecificPhilips2(data))};
+                await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
+                const state: KeyValueAny = {effect: lower};
+                if (data.effectSpeed !== undefined) state.effect_speed = data.effectSpeed;
+
+                // Effects modulate brightness internally (e.g. candle dims to 30-60%).
+                // Read state after a short delay so the Fz converter picks up the
+                // actual brightness the device settled on.
+                setTimeout(async () => {
+                    try {
+                        await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
+                    } catch (_e) {
+                        // Ignore read failures — best-effort sync
+                    }
+                }, 1000);
+
+                return {state};
+            }
+
+            // Standard ZCL effects (blink, breathe, okay, channel_change)
+            return await tz.effect.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
     hue_power_on_behavior: {
@@ -600,6 +1161,7 @@ export const hueEffects = {
     sparkle: "2100010a",
     opal: "2100010b",
     glisten: "2100010c",
+    sunset: "2100010d",
     underwater: "2100010e",
     cosmos: "2100010f",
     sunbeam: "21000110",
@@ -744,6 +1306,323 @@ const philipsFz = {
 };
 
 export {philipsFz as fz};
+
+const clamp = (x: number, low: number, high: number) => Math.min(Math.max(low, x), high);
+const scaleFloatToIntPow2 = (x: number, bits: number) => clamp(x, 0.0, 1.0) * (2 ** bits - 1);
+const scaleIntPow2ToFloat = (x: number, bits: number) => clamp(x, 0, 2 ** bits - 1) / (2 ** bits - 1);
+
+export enum HueEffectType {
+    NoEffect = 0x00,
+    Candle = 0x01,
+    Fireplace = 0x02,
+    Prism = 0x03,
+    Sunrise = 0x09,
+    Sparkle = 0x0a,
+    Opal = 0x0b,
+    Glisten = 0x0c,
+    Sunset = 0x0d,
+    Underwater = 0x0e,
+    Cosmos = 0x0f,
+    Sunbeam = 0x10,
+    Enchant = 0x11,
+}
+export enum HueGradientStyle {
+    Linear = 0x0,
+    Scattered = 0x2,
+    Mirrored = 0x4,
+}
+
+const gradientStyleNames: Record<number, string> = {
+    [HueGradientStyle.Linear]: "linear",
+    [HueGradientStyle.Scattered]: "scattered",
+    [HueGradientStyle.Mirrored]: "mirrored",
+};
+
+// Mapping from effect names to HueEffectType enum values.
+// Used by both the effect Tz converter and the philipsLightTz convertSet.
+const effectLookupAll: Record<string, HueEffectType> = {
+    candle: HueEffectType.Candle,
+    fireplace: HueEffectType.Fireplace,
+    colorloop: HueEffectType.Prism,
+    sunrise: HueEffectType.Sunrise,
+    sparkle: HueEffectType.Sparkle,
+    opal: HueEffectType.Opal,
+    glisten: HueEffectType.Glisten,
+    sunset: HueEffectType.Sunset,
+    underwater: HueEffectType.Underwater,
+    cosmos: HueEffectType.Cosmos,
+    sunbeam: HueEffectType.Sunbeam,
+    enchant: HueEffectType.Enchant,
+};
+
+// Inverse mapping: HueEffectType → name. Derived from effectLookupAll to stay in sync.
+const effectNames: Record<number, string> = {
+    [HueEffectType.NoEffect]: "none",
+    ...Object.fromEntries(Object.entries(effectLookupAll).map(([name, type]) => [type, name])),
+};
+
+export interface Philips2Data {
+    onOff?: boolean;
+    brightness?: number;
+    colorMirek?: number;
+    colorXY?: ColorXY;
+    fadeSpeed?: number;
+    effectType?: HueEffectType;
+    gradientParams?: {
+        scale: number;
+        offset: number;
+    };
+    effectSpeed?: number;
+    gradientColors?: {
+        style: HueGradientStyle;
+        colors: ColorXY[];
+    };
+}
+
+enum HueFlags {
+    OnOff = 0x0001,
+    Brightness = 0x0002,
+    ColorMirek = 0x0004,
+    ColorXY = 0x0008,
+    FadeSpeed = 0x0010,
+    EffectType = 0x0020,
+    GradientParams = 0x0040,
+    EffectSpeed = 0x0080,
+    GradientColors = 0x0100,
+    // Reserved for future use per Bifrost spec
+    Reserved9 = 0x0200,
+    ReservedA = 0x0400,
+    ReservedB = 0x0800,
+    ReservedC = 0x1000,
+    ReservedD = 0x2000,
+    ReservedE = 0x4000,
+    ReservedF = 0x8000,
+}
+
+interface HueTypeDetails<N extends keyof Philips2Data> {
+    name: N;
+    flag: HueFlags;
+    maxLength: number;
+    encode: (view: DataView, position: number, data: Philips2Data) => number;
+    decode: (view: DataView, position: number, data: Philips2Data) => number;
+}
+
+const ON_OFF_DETAILS: HueTypeDetails<"onOff"> = {
+    name: "onOff",
+    flag: HueFlags.OnOff,
+    maxLength: 1,
+    encode: (v, p, d) => {
+        v.setUint8(p, d.onOff ? 1 : 0);
+        return p + 1;
+    },
+    decode: (v, p, d) => {
+        d.onOff = !!v.getUint8(p);
+        return p + 1;
+    },
+};
+
+const BRIGHTNESS_DETAILS: HueTypeDetails<"brightness"> = {
+    name: "brightness",
+    flag: HueFlags.Brightness,
+    maxLength: 1,
+    encode: (v, p, d) => {
+        v.setUint8(p, clamp(d.brightness, 1, 254));
+        return p + 1;
+    },
+    decode: (v, p, d) => {
+        d.brightness = v.getUint8(p);
+        return p + 1;
+    },
+};
+
+const COLOR_MIREK_DETAILS: HueTypeDetails<"colorMirek"> = {
+    name: "colorMirek",
+    flag: HueFlags.ColorMirek,
+    maxLength: 2,
+    encode: (v, p, d) => {
+        v.setUint16(p, d.colorMirek, true);
+        return p + 2;
+    },
+    decode: (v, p, d) => {
+        d.colorMirek = v.getUint16(p, true);
+        return p + 2;
+    },
+};
+
+const COLOR_XY_DETAILS: HueTypeDetails<"colorXY"> = {
+    name: "colorXY",
+    flag: HueFlags.ColorXY,
+    maxLength: 4,
+    encode: (v, p, d) => {
+        v.setUint16(p, scaleFloatToIntPow2(d.colorXY.x, 16), true);
+        v.setUint16(p + 2, scaleFloatToIntPow2(d.colorXY.y, 16), true);
+        return p + 4;
+    },
+    decode: (v, p, d) => {
+        d.colorXY = ColorXY.fromObject({
+            x: scaleIntPow2ToFloat(v.getUint16(p, true), 16),
+            y: scaleIntPow2ToFloat(v.getUint16(p + 2, true), 16),
+        });
+        return p + 4;
+    },
+};
+
+const FADE_SPEED_DETAILS: HueTypeDetails<"fadeSpeed"> = {
+    name: "fadeSpeed",
+    flag: HueFlags.FadeSpeed,
+    maxLength: 2,
+    encode: (v, p, d) => {
+        v.setUint16(p, d.fadeSpeed, true);
+        return p + 2;
+    },
+    decode: (v, p, d) => {
+        d.fadeSpeed = v.getUint16(p, true);
+        return p + 2;
+    },
+};
+
+const EFFECT_TYPE_DETAILS: HueTypeDetails<"effectType"> = {
+    name: "effectType",
+    flag: HueFlags.EffectType,
+    maxLength: 1,
+    encode: (v, p, d) => {
+        v.setUint8(p, d.effectType);
+        return p + 1;
+    },
+    decode: (v, p, d) => {
+        d.effectType = v.getUint8(p);
+        return p + 1;
+    },
+};
+
+const GRADIENT_PARAMS_DETAILS: HueTypeDetails<"gradientParams"> = {
+    name: "gradientParams",
+    flag: HueFlags.GradientParams,
+    maxLength: 2,
+    encode: (v, p, d) => {
+        v.setUint8(p, Math.round(clamp(d.gradientParams.scale * 8, 0, 255)));
+        v.setUint8(p + 1, Math.round(clamp(d.gradientParams.offset * 8, 0, 255)));
+        return p + 2;
+    },
+    decode: (v, p, d) => {
+        d.gradientParams = {
+            scale: v.getUint8(p) / 8.0,
+            offset: v.getUint8(p + 1) / 8.0,
+        };
+        return p + 2;
+    },
+};
+
+const EFFECT_SPEED_DETAILS: HueTypeDetails<"effectSpeed"> = {
+    name: "effectSpeed",
+    flag: HueFlags.EffectSpeed,
+    maxLength: 1,
+    encode: (v, p, d) => {
+        v.setUint8(p, scaleFloatToIntPow2(d.effectSpeed, 8));
+        return p + 1;
+    },
+    decode: (v, p, d) => {
+        d.effectSpeed = scaleIntPow2ToFloat(v.getUint8(p), 8);
+        return p + 1;
+    },
+};
+
+// GRADIENT_COLORS_MAX_X and GRADIENT_COLORS_MAX_Y defined at top of file
+
+const GRADIENT_COLORS_DETAILS: HueTypeDetails<"gradientColors"> = {
+    name: "gradientColors",
+    flag: HueFlags.GradientColors,
+    // Max: 1 byte size + 4 bytes header + 9 colors * 3 bytes = 32 bytes
+    maxLength: 5 + 9 * 3,
+    encode: (v, p, d) => {
+        // Bifrost spec: max 9 colors; 10+ causes device to reject entire message
+        const colorCount = clamp(d.gradientColors.colors.length, 0, 9);
+        // Size byte: 4 bytes header (count + style + 2 reserved) + 3 bytes per color
+        v.setUint8(p, 4 + colorCount * 3);
+        v.setUint8(p + 1, colorCount << 4);
+        v.setUint8(p + 2, d.gradientColors.style);
+        v.setUint16(p + 3, 0, true);
+        d.gradientColors.colors.slice(0, colorCount).forEach(({x, y}, i) => {
+            const scaledX = scaleFloatToIntPow2(x / GRADIENT_COLORS_MAX_X, 12);
+            const scaledY = scaleFloatToIntPow2(y / GRADIENT_COLORS_MAX_Y, 12);
+            // Byte packing per Bifrost spec:
+            //   byte 0: x[7:0]
+            //   byte 1: y[3:0] << 4 | x[11:8]
+            //   byte 2: y[11:4]
+            v.setUint8(p + 5 + i * 3, scaledX & 0xff);
+            v.setUint8(p + 6 + i * 3, ((scaledY & 0xf) << 4) | ((scaledX & 0xf00) >> 8));
+            v.setUint8(p + 7 + i * 3, (scaledY >> 4) & 0xff);
+        });
+        // Header: 1 byte size + 4 bytes (count, style, 2 reserved) = 5 bytes + 3*N colors
+        return p + 5 + 3 * colorCount;
+    },
+    decode: (v, p, d) => {
+        const size = v.getUint8(p);
+        const colorCount = v.getUint8(p + 1) >> 4;
+        const rawStyle = v.getUint8(p + 2);
+        // Validate gradient style per Bifrost spec: Linear=0x00, Scattered=0x02, Mirrored=0x04
+        const validStyles = [HueGradientStyle.Linear, HueGradientStyle.Scattered, HueGradientStyle.Mirrored];
+        const style: HueGradientStyle = validStyles.includes(rawStyle) ? rawStyle : HueGradientStyle.Linear;
+        const colors: ColorXY[] = Array.from({length: colorCount}, (_, i) => {
+            const a = v.getUint8(p + 5 + i * 3);
+            const b = v.getUint8(p + 6 + i * 3);
+            const c = v.getUint8(p + 7 + i * 3);
+            return ColorXY.fromObject({
+                x: scaleIntPow2ToFloat(((b & 0xf) << 8) | a, 12) * GRADIENT_COLORS_MAX_X,
+                y: scaleIntPow2ToFloat((c << 4) | ((b & 0xf0) >> 4), 12) * GRADIENT_COLORS_MAX_Y,
+            });
+        });
+        d.gradientColors = {style, colors};
+        return p + size + 1;
+    },
+};
+
+// Ordered as they appear in the wire format per Bifrost spec.
+// IMPORTANT: the wire order does NOT match the flag bit order.
+// Specifically, GRADIENT_COLORS (flag 0x0100) appears BEFORE
+// EFFECT_SPEED (flag 0x0080) and GRADIENT_PARAMS (flag 0x0040)
+// in the actual byte stream. Both encode and decode MUST iterate
+// in this order, not in flag-bit order.
+// Reference: https://github.com/chrivers/bifrost/blob/master/doc/hue-zigbee-format.md
+const HUE_DATA_TYPES = [
+    ON_OFF_DETAILS,
+    BRIGHTNESS_DETAILS,
+    COLOR_MIREK_DETAILS,
+    COLOR_XY_DETAILS,
+    FADE_SPEED_DETAILS,
+    EFFECT_TYPE_DETAILS,
+    GRADIENT_COLORS_DETAILS,
+    EFFECT_SPEED_DETAILS,
+    GRADIENT_PARAMS_DETAILS,
+];
+
+export function DecodeManuSpecificPhilips2(data: Buffer) {
+    const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    const flags = view.getUint16(0, true);
+    const decoded: Philips2Data = {};
+    let position = 2;
+    HUE_DATA_TYPES.forEach((htd) => {
+        if (flags & htd.flag) {
+            position = htd.decode(view, position, decoded);
+        }
+    });
+    return decoded;
+}
+
+export function EncodeManuSpecificPhilips2(data: Philips2Data) {
+    const buffer = new ArrayBuffer(2 + HUE_DATA_TYPES.map((htd) => htd.maxLength).reduce((pv, cv) => pv + cv, 0));
+    const view = new DataView(buffer);
+    let position = 2;
+    let flags = 0;
+    HUE_DATA_TYPES.forEach((htd) => {
+        if (data[htd.name] !== undefined) {
+            flags |= htd.flag;
+            position = htd.encode(view, position, data);
+        }
+    });
+    view.setUint16(0, flags, true);
+    return buffer.slice(0, position);
+}
 
 // decoder for manuSpecificPhilips2.state
 export function decodeGradientColors(input: string, opts: KeyValue) {
@@ -949,9 +1828,17 @@ export function encodeGradientColors(value: string[], opts: KeyValueAny) {
     // Payload length
     const length = (1 + 3 * (value.length + 1)).toString(16).padStart(2, "0");
 
+    // Gradient style: Linear=0x00, Scattered=0x02, Mirrored=0x04
+    // Per Bifrost spec, only these three values are valid.
+    let style = 0x00; // Default: Linear
+    if (opts.style != null) {
+        style = opts.style;
+    }
+    const stylePayload = style.toString(16).padStart(2, "0");
+
     // 5001 - mode? set gradient?
     // 0400 - unknown
-    const scene = `50010400${length}${nColors}000000${colorsPayload}${segmentsPayload}${offsetPayload}`;
+    const scene = `50010400${length}${nColors}${stylePayload}0000${colorsPayload}${segmentsPayload}${offsetPayload}`;
 
     return scene;
 }

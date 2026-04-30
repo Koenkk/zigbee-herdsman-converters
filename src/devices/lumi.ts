@@ -60,6 +60,9 @@ const {
     lumiPreventLeave,
     lumiExternalSensor,
     w600ExternalTempSensor,
+    w600PresetTemperatureTable,
+    w600Schedule,
+    w600Thermostat,
     lumiReadPositionOnReport,
 } = lumi.modernExtend;
 
@@ -5546,20 +5549,35 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WT-A03E",
         vendor: "Aqara",
         description: "Radiator thermostat W600",
+        meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                if (payload.mode_command_topic?.endsWith("/system_mode")) {
+                    payload.mode_state_template =
+                        "{% if value_json is defined and value_json.system_mode is defined and value_json.system_mode in ['off', 'heat', 'auto'] %}" +
+                        "{{ value_json.system_mode }}" +
+                        "{% else %}off{% endif %}";
+                    payload.preset_mode_value_template =
+                        "{% if value_json is defined and value_json.preset is defined and value_json.preset in ['home', 'away', 'sleep', 'vacation', 'wind_down'] %}" +
+                        "{{ value_json.preset }}" +
+                        "{% else %}none{% endif %}";
+                    payload.temperature_state_template =
+                        "{% if value_json is defined and value_json.occupied_heating_setpoint is defined and value_json.occupied_heating_setpoint is not none %}" +
+                        "{{ value_json.occupied_heating_setpoint }}" +
+                        "{% else %}None{% endif %}";
+                    payload.current_temperature_template =
+                        "{% if value_json is defined and value_json.local_temperature is defined and value_json.local_temperature is not none %}" +
+                        "{{ value_json.local_temperature }}" +
+                        "{% else %}None{% endif %}";
+                }
+
+                if (typeof payload.value_template === "string" && payload.value_template.includes("value_json.override_active")) {
+                    payload.icon = "mdi:cursor-pointer";
+                }
+            },
+        },
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
-            m.thermostat({
-                setpoints: {
-                    values: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
-                },
-                localTemperatureCalibration: {values: {min: -5, max: 5, step: 0.1}},
-                temperatureSetpointHold: true,
-                temperatureSetpointHoldDuration: true,
-                setpointsLimit: {
-                    maxHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
-                    minHeatSetpointLimit: {min: 5, max: 30, step: 0.5},
-                },
-            }),
+            w600Thermostat(),
             w600ExternalTempSensor(),
             m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "calibrate",
@@ -5577,16 +5595,6 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x027b, type: Zcl.DataType.UINT8},
                 description: "State of calibrate",
                 access: "STATE_GET",
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
-            m.binary<"manuSpecificLumi", ManuSpecificLumi>({
-                name: "state",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
-                cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0271, type: 0x20},
-                description: "Enabling termostat",
-                access: "ALL",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary<"manuSpecificLumi", ManuSpecificLumi>({
@@ -5609,16 +5617,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.binary<"manuSpecificLumi", ManuSpecificLumi>({
-                name: "helper",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
-                cluster: "manuSpecificLumi",
-                attribute: {ID: 0x027d, type: 0x20},
-                description: "Schedule helper",
-                access: "ALL",
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
+            w600Schedule(),
             m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "window_detection",
                 valueOn: ["ON", 1],
@@ -5640,17 +5639,20 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
-                name: "away_preset_temperature",
-                valueMin: 0,
-                valueMax: 30,
+                name: "anti_freeze_temperature",
+                valueMin: 5,
+                valueMax: 15,
                 valueStep: 0.5,
                 scale: 100,
                 unit: "°C",
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0279, type: Zcl.DataType.UINT32},
-                description: "Away preset temperature",
+                description:
+                    "Minimum temperature limit for frost protection. Turns the thermostat on regardless of setpoint if the temperature drops below this.",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+            w600PresetTemperatureTable(),
             m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "position",
                 valueMin: 0,

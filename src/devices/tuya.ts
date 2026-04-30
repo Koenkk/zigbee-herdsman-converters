@@ -4075,36 +4075,24 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    101,
-                    "temperature_alarm",
-                    tuya.valueConverterBasic.lookup({
-                        lower_alarm: tuya.enum(0),
-                        upper_alarm: tuya.enum(1),
-                        cancel: tuya.enum(2),
-                    }),
-                ],
-                [
-                    102,
-                    "humidity_alarm",
-                    tuya.valueConverterBasic.lookup({
-                        lower_alarm: tuya.enum(0),
-                        upper_alarm: tuya.enum(1),
-                        cancel: tuya.enum(2),
-                    }),
-                ],
                 [3, "soil_moisture", tuya.valueConverter.raw],
                 [5, "temperature", tuya.valueConverter.divideBy10],
-                [110, "temperature_f", tuya.valueConverter.divideBy10],
-                [107, "temperature_sensitivity", tuya.valueConverter.divideBy10],
-                [108, "humidity_sensitivity", tuya.valueConverter.raw],
+                // [9, "temp_unit_convert", tuya.valueConverter.temperatureUnitEnum],
+                [14, "battery_state", tuya.valueConverter.batteryState],
+                [15, "battery", tuya.valueConverter.raw],
+                [101, "temperature_alarm", tuya.valueConverter.temperature_humidity_alarm],
+                [102, "humidity_alarm", tuya.valueConverter.temperature_humidity_alarm],
                 [103, "max_temperature_alarm", tuya.valueConverter.divideBy10],
                 [104, "min_temperature_alarm", tuya.valueConverter.divideBy10],
                 [105, "max_humidity_alarm", tuya.valueConverter.raw],
                 [106, "min_humidity_alarm", tuya.valueConverter.raw],
-                [109, "schedule_periodic", tuya.valueConverter.raw],
-                [15, "battery", tuya.valueConverter.raw],
-                [14, "battery_state", tuya.valueConverter.batteryState],
+                [107, "temperature_sensitivity", tuya.valueConverter.divideBy10],
+                [108, "humidity_sensitivity", tuya.valueConverter.raw],
+                [109, "schedule_periodic", tuya.valueConverter.raw], // detection_interval_time
+                [110, "temperature_f", tuya.valueConverter.divideBy10],
+                // [111, "temperature_sensitivity_f", tuya.valueConverter.divideBy10],
+                // [112, "max_temperature_alarm_f", tuya.valueConverter.divideBy10],
+                // [113, "min_temperature_alarm_f", tuya.valueConverter.divideBy10],
             ],
         },
     },
@@ -6566,6 +6554,7 @@ export const definitions: DefinitionWithExtend[] = [
         ]),
         model: "TS0002_basic",
         vendor: "Tuya",
+        version: "0.0.1",
         description: "2 gang switch module",
         whiteLabel: [
             {vendor: "OXT", model: "SWTZ22"},
@@ -6592,8 +6581,11 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+
+            for (const endpoint of [device.getEndpoint(1), device.getEndpoint(2)]) {
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+                await reporting.onOff(endpoint);
+            }
         },
     },
     {
@@ -6632,7 +6624,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
         },
         whiteLabel: [
-            tuya.whitelabel("AVATTO", "ZWSM16-2-Zigbee", "2 gang switch module", ["_TZ3000_mtnpt6ws"]),
+            tuya.whitelabel("AVATTO", "ZWSM16-2", "2 gang switch module", ["_TZ3000_mtnpt6ws"]),
             tuya.whitelabel("PSMART", "T442", "2 gang switch module", ["_TZ3000_mufwv0ry"]),
             tuya.whitelabel("Lonsonho", "X702A", "2 gang switch with backlight", ["_TZ3000_54hjn4vs", "_TZ3000_aa5t61rh"]),
             tuya.whitelabel("Homeetec", "37022463-1", "2 Gang switch with backlight", ["_TZ3000_in5qxhtt"]),
@@ -6681,7 +6673,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_h1ipgkwn", "_TZ3000_tas0zemd"]),
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_h1ipgkwn", "_TZ3000_tas0zemd", "_TZ3000_iwtv2jwo"]),
         model: "_TZ3000_h1ipgkwn",
         description: "2 channel USB switch",
         vendor: "Tuya",
@@ -6834,7 +6826,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
         },
         whiteLabel: [
-            tuya.whitelabel("AVATTO", "ZWSM16-3-Zigbee", "3 gang switch module", ["_TZ3000_hbic3ka3", "_TZ3000_iv4eq7eh"]),
+            tuya.whitelabel("AVATTO", "ZWSM16-3", "3 gang switch module", ["_TZ3000_hbic3ka3", "_TZ3000_iv4eq7eh"]),
             tuya.whitelabel("iHseno", "_TZ3000_mhhxxjrs", "3 gang switch module", ["_TZ3000_mhhxxjrs"]),
             tuya.whitelabel("Moes", "ZM4LT3", "3-gang switch module", ["_TZ3000_mzcp0of6"]),
         ],
@@ -6948,7 +6940,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: "OXT", model: "SWTZ21"},
             tuya.whitelabel("Moes", "ZM-104-M", "1 gang switch module", ["_TZ3000_veu2v775"]),
-            tuya.whitelabel("AVATTO", "ZWSM16-1-Zigbee", "1 gang switch module", ["_TZ3000_4rbqgcuv"]),
+            tuya.whitelabel("AVATTO", "ZWSM16-1", "1 gang switch module", ["_TZ3000_4rbqgcuv"]),
             tuya.whitelabel("AVATTO", "ZBTS60-01", "1 gang switch module with backlight", ["_TZ3000_xfxpoxe0"]),
             tuya.whitelabel("Moes", "ZM4LT1", "1-gang switch module", ["_TZ3000_afgzktgb"]),
             tuya.whitelabel("Nous", "B6Z", "1 gang switch", ["_TZ3000_qamj2vnn"]),
@@ -17964,7 +17956,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
         },
         whiteLabel: [
-            tuya.whitelabel("AVATTO", "ZWSM16-4-Zigbee", "4 gang switch module", ["_TZ3000_5ajpkyq6", "_TZ3000_3n2minvf"]),
+            tuya.whitelabel("AVATTO", "ZWSM16-4", "4 gang switch module", ["_TZ3000_5ajpkyq6", "_TZ3000_3n2minvf"]),
             tuya.whitelabel("Moes", "ZM4LT4", "4-gang switch module", ["_TZ3000_tyg4yiat"]),
             tuya.whitelabel("iHseno", "_TZ3000_knoj8lpk", "4 gang switch module", ["_TZ3000_knoj8lpk"]),
         ],
@@ -23295,6 +23287,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        // Incomplete. See _TZE200_mlglxwp3 datapoints here:
+        // https://github.com/Koenkk/zigbee-herdsman-converters/pull/12014
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_mlglxwp3"]),
         model: "TS0601_cover_12",
         vendor: "Tuya",
@@ -23320,6 +23314,35 @@ export const definitions: DefinitionWithExtend[] = [
                 [11, "situation_set", tuya.valueConverterBasic.lookup({fully_close: tuya.enum(0), fully_open: tuya.enum(1)})],
                 [12, "fault", tuya.valueConverter.raw],
                 [103, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_tgl8i2np"]),
+        model: "TS0601_cover_13",
+        vendor: "Tuya",
+        description: "Curtain motor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            e.enum("work_state", ea.STATE, ["opening", "closing"]).withDescription("Current work state"),
+            e.numeric("total_time", ea.STATE).withUnit("ms").withDescription("Total running time in milliseconds"),
+            e.enum("situation_set", ea.STATE_SET, ["fully_close", "fully_open"]).withDescription("Set fully open or fully close position"),
+            e.binary("auto_power", ea.STATE_SET, true, false),
+            e.text("fault", ea.STATE).withDescription("Fault details"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [3, "position", tuya.valueConverter.coverPosition],
+                [5, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [6, "auto_power", tuya.valueConverter.raw],
+                [7, "work_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
+                [10, "total_time", tuya.valueConverter.raw],
+                [11, "situation_set", tuya.valueConverterBasic.lookup({fully_close: tuya.enum(0), fully_open: tuya.enum(1)})],
+                [12, "fault", tuya.valueConverter.raw],
             ],
         },
     },

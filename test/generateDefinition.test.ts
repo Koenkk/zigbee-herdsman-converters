@@ -3,6 +3,7 @@ import {Zcl} from "zigbee-herdsman";
 import {findByDevice, generateExternalDefinitionSource} from "../src";
 import * as fz from "../src/converters/fromZigbee";
 import {repInterval} from "../src/lib/constants";
+import * as philips from "../src/lib/philips";
 import {type AssertDefinitionArgs, assertDefinition, mockDevice, reportingItem} from "./utils";
 
 const assertGeneratedDefinition = async (args: AssertDefinitionArgs & {externalDefinitionSource?: string}) => {
@@ -358,23 +359,32 @@ export default {
                 endpoints: [{inputClusters: ["genOnOff", "lightingColorCtrl"], outputClusters: [], attributes}],
             }),
             meta: {supportsEnhancedHue: true, supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
-            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior, philips.manuSpecificPhilips2Fz],
             toZigbee: [
                 "state",
                 "brightness",
                 "brightness_percent",
+                "color",
+                "color_temp",
+                "color_temp_percent",
+                "transition",
+                "effect_speed",
+                "gradient_scale",
+                "gradient_offset",
+                "gradient_style",
+                "effect_color",
+                "hue_power_on_behavior",
+                "hue_power_on_brightness",
+                "hue_power_on_color_temperature",
+                "hue_power_on_color",
                 "on_time",
                 "off_wait_time",
-                "transition",
                 "level_config",
                 "rate",
                 "brightness_move",
                 "brightness_move_onoff",
                 "brightness_step",
                 "brightness_step_onoff",
-                "color",
-                "color_temp",
-                "color_temp_percent",
                 "color_mode",
                 "color_options",
                 "colortemp_move",
@@ -386,13 +396,15 @@ export default {
                 "hue_step",
                 "saturation_step",
                 "power_on_behavior",
-                "hue_power_on_behavior",
-                "hue_power_on_brightness",
-                "hue_power_on_color_temperature",
-                "hue_power_on_color",
                 "effect",
             ],
-            exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)", "power_on_behavior"],
+            exposes: [
+                "effect",
+                "effect_color",
+                "effect_speed",
+                "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)",
+                "power_on_behavior",
+            ],
             bind: {},
             read: {
                 1: [
