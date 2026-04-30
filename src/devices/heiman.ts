@@ -2625,7 +2625,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "radar_delay_time",
                 cluster: "msOccupancySensing",
-                attribute: {ID: 0x0020, type: 0x21}, // IS THIS CORRECT the other "radar_delay_time" uses attribute pirOToUDelay (ID: 0x0010)
+                attribute: {ID: 0x0020, type: 0x21},
                 description: "Occupied to unoccupied delay",
                 valueMin: 60,
                 valueMax: 3600,
