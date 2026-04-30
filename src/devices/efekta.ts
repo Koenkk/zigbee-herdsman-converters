@@ -7750,7 +7750,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Netuya_CO2_Smart_Box", "Netuya_CO2_Smart_Box_PA"],
         model: "Netuya_CO2_Smart_Box",
-        vendor: "Efektalab",
+        vendor: "EFEKTA",
         description: "CO2 Smart Monitor, rgb indicator, alarm, can control the relay",
         ota: true,
         extend: [
