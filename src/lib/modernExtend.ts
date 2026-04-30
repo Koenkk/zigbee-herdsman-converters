@@ -1888,7 +1888,7 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
 
 // Uses Electrical Measurement and/or Gas Metering, but for simplicity was put here.
 type MultiplierDivisor = {multiplier?: number; divisor?: number};
-type MeterType = "electricity" | "gas"; // water, etc
+type MeterType = "electricity" | "gas" | "water";
 interface MeterArgs {
     type?: MeterType;
     cluster?: "both" | "metering" | "electrical";
@@ -1909,6 +1909,7 @@ interface MeterArgs {
     acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     powerFactor?: boolean;
     tariffs?: boolean;
+    energyWritable?: boolean;
     // biome-ignore lint/suspicious/noExplicitAny: generic
     fzElectricalMeasurement?: Fz.Converter<"haElectricalMeasurement", any, any>;
 }
@@ -1959,6 +1960,10 @@ function genericMeter(args: MeterArgs = {}) {
         electricity: {
             power: 0.005,
             energy: 0.1,
+        },
+        water: {
+            power: 0.01,
+            energy: 0.01,
         },
     };
 
@@ -2279,6 +2284,73 @@ function genericMeter(args: MeterArgs = {}) {
             tz.metering_extended_status,
         ];
         delete configureLookup.haElectricalMeasurement;
+    } else if (args.cluster === "metering" && args.type === "water") {
+        const access = args.energyWritable ? ea.ALL : ea.STATE_GET;
+        if (args.power !== false)
+            exposes.push(e.numeric("volume_flow_rate", ea.STATE_GET).withUnit("m³/h").withDescription("Instantaneous water flow in m³/h"));
+        if (args.energy !== false)
+            exposes.push(
+                e.numeric("water", access).withUnit("m³").withDescription("Total water consumption in m³").withValueMin(0).withValueMax(99999999),
+            );
+        if (args.energyWritable) {
+            exposes.push(e.numeric("divisor", ea.ALL).withDescription("Divisor for water meter").withValueMin(1).withValueMax(16777215));
+            exposes.push(e.numeric("multiplier", ea.ALL).withDescription("Multiplier for water meter").withValueMin(1).withValueMax(16777215));
+        }
+        fromZigbee = [args.fzMetering ?? fz.water_metering, fz.water_metering_divisor, fz.water_metering_multiplier];
+        toZigbee = [
+            {
+                key: ["water"],
+                convertGet: async (entity, key, meta) => {
+                    const ep = determineEndpoint(entity, meta, "seMetering");
+                    await ep.read("seMetering", ["currentSummDelivered"]);
+                },
+                convertSet: args.energyWritable
+                    ? async (entity, key, value, meta) => {
+                          assertNumber(value);
+                          await entity.write("seMetering", {currentSummDelivered: Math.round(value)});
+                          await entity.read("seMetering", ["currentSummDelivered"]);
+                          return {readAfterWriteTime: 250, state: {water: value}};
+                      }
+                    : undefined,
+            } satisfies Tz.Converter,
+            tz.metering_power,
+            tz.metering_status,
+            tz.metering_extended_status,
+        ];
+
+        if (args.energyWritable) {
+            toZigbee.push(
+                {
+                    key: ["divisor"],
+                    convertGet: async (entity, key, meta) => {
+                        await entity.read("seMetering", ["divisor"]);
+                    },
+                    convertSet: async (entity, key, value, meta) => {
+                        assertNumber(value, "divisor");
+                        const divisor = Math.round(value);
+                        await entity.write("seMetering", {divisor});
+                        globalStore.putValue(entity, "Divisor", divisor);
+                        await entity.read("seMetering", ["currentSummDelivered"]);
+                        return {readAfterWriteTime: 250, state: {divisor: value}};
+                    },
+                } satisfies Tz.Converter,
+                {
+                    key: ["multiplier"],
+                    convertGet: async (entity, key, meta) => {
+                        await entity.read("seMetering", ["multiplier"]);
+                    },
+                    convertSet: async (entity, key, value, meta) => {
+                        assertNumber(value, "multiplier");
+                        const multiplier = Math.round(value);
+                        await entity.write("seMetering", {multiplier});
+                        globalStore.putValue(entity, "Multiplier", multiplier);
+                        await entity.read("seMetering", ["currentSummDelivered"]);
+                        return {readAfterWriteTime: 250, state: {multiplier: value}};
+                    },
+                } satisfies Tz.Converter,
+            );
+        }
+        delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === "electrical") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
         if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
@@ -2403,6 +2475,23 @@ export function gasMeter(args: GasMeterArgs = {}): ModernExtend {
         status: true,
         extendedStatus: true,
         producedEnergy: false,
+        ...args,
+    });
+}
+
+// Uses Metering to measure volume of water consumed
+export interface WaterMeterArgs extends MeterArgs {
+    type?: "water";
+}
+export function waterMeter(args: WaterMeterArgs = {}): ModernExtend {
+    return genericMeter({
+        type: "water",
+        cluster: "metering",
+        configureReporting: true,
+        status: false,
+        extendedStatus: false,
+        producedEnergy: false,
+        power: false,
         ...args,
     });
 }
