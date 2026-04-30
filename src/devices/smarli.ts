@@ -31,12 +31,11 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "smarli.",
         description: "Zigbee curtain control module",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.deviceEndpoints({endpoints: {"3": 3}}),
             m.windowCovering({
                 controls: ["lift", "tilt"],
                 coverInverted: true,
                 configureReporting: true,
-                endpointNames: ["1"],
             }),
             m.electricityMeter({endpointNames: ["3"]}),
             m.enumLookup({

@@ -4,8 +4,10 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz} from "../lib/types";
+import * as stelpro from "./stelpro";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 const fzLocal = {
     power: {
@@ -34,7 +36,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "STLO-34",
         vendor: "Stello",
         description: "Hilo thermostat",
-        fromZigbee: [fz.stelpro_thermostat, fz.hvac_user_interface, fzLocal.power, fzLocal.energy],
+        extend: [stelpro.stelproExtend.addStelproHvacThermostatCluster()],
+        fromZigbee: [stelpro.fzLocal.stelpro_thermostat, fz.hvac_user_interface, fzLocal.power, fzLocal.energy],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -43,7 +46,8 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tz.stelpro_thermostat_outdoor_temperature,
+            tz.stelpro_peak_demand_event_icon,
+            stelpro.tzLocal.stelpro_thermostat_outdoor_temperature,
         ],
         exposes: [
             e.local_temperature(),
@@ -56,6 +60,18 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature()
                 .withSystemMode(["heat"])
                 .withRunningState(["idle", "heat"]),
+            e
+                .numeric("peak_demand_icon", ea.SET)
+                .withUnit("hours")
+                .withDescription("Set peak demand event icon for the specified number of hours")
+                .withValueMin(0)
+                .withValueMax(18),
+            e
+                .numeric("outdoor_temperature_display", ea.SET)
+                .withUnit("°C")
+                .withDescription("Outdoor temperature displayed on the thermostat")
+                .withValueMin(-32)
+                .withValueMax(199),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(25);
@@ -77,6 +93,15 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Stello",
         description: "Hilo water heater controller",
         extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({cluster: "metering"})],
+        toZigbee: [tz.stelpro_peak_demand_event_icon],
+        exposes: [
+            e
+                .numeric("peak_demand_icon", ea.SET)
+                .withUnit("hours")
+                .withDescription("Set peak demand event icon for the specified number of hours")
+                .withValueMin(0)
+                .withValueMax(18),
+        ],
         // Missing manufacturer specific FC02 cluster with attributes at
         // 0002: CCRDureeSalubre (min 1s, max 600s, min change 1)
         // 0004: CCRSalubre (min 1s, max 300s, min change 1)

@@ -42,11 +42,13 @@ export interface MqttRawPayload {
 
 const ClusterHueTouchlink: CustomClusters = {
     manuSpecificPhilipsPairing: {
+        name: "manuSpecificPhilipsPairing",
         ID: 0x1000,
         manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
         attributes: {},
         commands: {
             hueResetRequest: {
+                name: "hueResetRequest",
                 ID: 0,
                 parameters: [
                     {name: "extendedPanId", type: Zcl.DataType.IEEE_ADDR},
@@ -109,8 +111,6 @@ export const ACTIONS: Record<string, (controller: Controller, args: Record<strin
             clusterKey: "manuSpecificPhilipsPairing",
             interPan: true,
             zcl: {
-                frameType: Zcl.FrameType.SPECIFIC,
-                direction: Zcl.Direction.CLIENT_TO_SERVER,
                 disableDefaultResponse: true,
                 manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
                 tsn: 0,

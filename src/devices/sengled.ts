@@ -316,13 +316,14 @@ export const definitions: DefinitionWithExtend[] = [
             // https://github.com/Koenkk/zigbee-herdsman-converters/pull/8123
             m.electricityMeter({cluster: "metering", power: {min: 5}, energy: {min: 5}}),
             m.deviceAddCustomCluster("manuSpecificSengledMotionSensor", {
+                name: "manuSpecificSengledMotionSensor",
                 ID: 0xfc01,
                 manufacturerCode: Zcl.ManufacturerCode.SENGLED_CO_LTD,
                 attributes: {
-                    triggerCondition: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    enableAutoOnOff: {ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
-                    motionStatus: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    offDelay: {ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    triggerCondition: {name: "triggerCondition", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    enableAutoOnOff: {name: "enableAutoOnOff", ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
+                    motionStatus: {name: "motionStatus", ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    offDelay: {name: "offDelay", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
