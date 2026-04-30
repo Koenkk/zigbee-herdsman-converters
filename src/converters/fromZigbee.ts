@@ -956,8 +956,8 @@ export const water_metering: Fz.Converter<"seMetering", undefined, ["attributeRe
     convert: (model, msg, publish, options, meta) => {
         if (utils.hasAlreadyProcessedMessage(msg, model)) return;
         const payload: KeyValueAny = {};
-        let Divisor = (globalStore.getValue(msg.endpoint, "Divisor") ?? msg.endpoint.getClusterAttributeValue("seMetering", "divisor")) as number;
-        let Multiplier = (globalStore.getValue(msg.endpoint, "Multiplier") ??
+        const Divisor = (globalStore.getValue(msg.endpoint, "Divisor") ?? msg.endpoint.getClusterAttributeValue("seMetering", "divisor")) as number;
+        const Multiplier = (globalStore.getValue(msg.endpoint, "Multiplier") ??
             msg.endpoint.getClusterAttributeValue("seMetering", "multiplier")) as number;
         const factor = Multiplier && Divisor ? Multiplier / Divisor : null;
 
