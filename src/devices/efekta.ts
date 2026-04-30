@@ -3006,7 +3006,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.enumLookup({
-                name: "Range",
+                name: "range",
                 lookup: {"0-10 Bar": 10, "0-16 Bar": 16},
                 cluster: "msPressureMeasurement",
                 attribute: {ID: 0x0280, type: Zcl.DataType.UINT8},
@@ -3133,7 +3133,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.enumLookup({
-                name: "Range",
+                name: "range",
                 lookup: {"0-10 Bar": 10, "0-16 Bar": 16},
                 cluster: "msPressureMeasurement",
                 attribute: {ID: 0x0280, type: Zcl.DataType.UINT8},
@@ -3424,7 +3424,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.enumLookup({
-                name: "Range",
+                name: "range",
                 lookup: {"0-10 Bar": 10, "0-16 Bar": 16},
                 cluster: "msPressureMeasurement",
                 attribute: {ID: 0x0280, type: Zcl.DataType.UINT8},
@@ -3552,7 +3552,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 endpointName: "1",
-                name: "Range",
+                name: "range",
                 lookup: {"0-10 Bar": 10, "0-16 Bar": 16},
                 cluster: "msPressureMeasurement",
                 attribute: {ID: 0x0280, type: Zcl.DataType.UINT8},
@@ -3618,7 +3618,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 endpointName: "2",
-                name: "Range",
+                name: "range",
                 lookup: {"0-10 Bar": 10, "0-16 Bar": 16},
                 cluster: "msPressureMeasurement",
                 attribute: {ID: 0x0280, type: Zcl.DataType.UINT8},
@@ -3746,7 +3746,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 endpointName: "1",
-                name: "Range",
+                name: "range",
                 lookup: {"0-10 Bar": 10, "0-16 Bar": 16},
                 cluster: "msPressureMeasurement",
                 attribute: {ID: 0x0280, type: Zcl.DataType.UINT8},
@@ -3812,7 +3812,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 endpointName: "2",
-                name: "Range",
+                name: "range",
                 lookup: {"0-10 Bar": 10, "0-16 Bar": 16},
                 cluster: "msPressureMeasurement",
                 attribute: {ID: 0x0280, type: Zcl.DataType.UINT8},
@@ -3948,7 +3948,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 endpointName: "1",
-                name: "Range",
+                name: "range",
                 lookup: {"0-10 Bar": 10, "0-16 Bar": 16},
                 cluster: "msPressureMeasurement",
                 attribute: {ID: 0x0280, type: Zcl.DataType.UINT8},
@@ -4014,7 +4014,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 endpointName: "2",
-                name: "Range",
+                name: "range",
                 lookup: {"0-10 Bar": 10, "0-16 Bar": 16},
                 cluster: "msPressureMeasurement",
                 attribute: {ID: 0x0280, type: Zcl.DataType.UINT8},
@@ -6545,7 +6545,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: defaultReporting,
             }),
             m.numeric({
-                name: "eCO2",
+                name: "eco2",
                 unit: "ppm",
                 cluster: "genAnalogInput",
                 attribute: {ID: 0x0175, type: Zcl.DataType.SINGLE_PREC},
