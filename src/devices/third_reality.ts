@@ -707,6 +707,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "presentValue",
                 actionLookup: {release: 255, single: 1, double: 2, hold: 0},
             }),
+            m.identify(),
             m.battery(),
         ],
     },
