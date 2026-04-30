@@ -1505,9 +1505,9 @@ const fzLocal = {
                 };
                 result.battery_state = lookup[msg.data.batteryState];
             }
-            if (msg.data.tvocMeasuredValue) result.voc = msg.data.tvocMeasuredValue;
-            if (msg.data.aqiMeasuredValue) result.aqi = msg.data.aqiMeasuredValue;
-            if (msg.data.pm10measuredValue) result.pm10 = msg.data.pm10measuredValue;
+            if (msg.data.tvocMeasuredValue != null) result.voc = msg.data.tvocMeasuredValue;
+            if (msg.data.aqiMeasuredValue != null) result.aqi = msg.data.aqiMeasuredValue;
+            if (msg.data.pm10measuredValue != null) result.pm10 = msg.data.pm10measuredValue;
             return result;
         },
     } satisfies Fz.Converter<"heimanSpecificAirQuality", HeimanSpecificAirQualityCluster, ["attributeReport", "readResponse"]>,
