@@ -2801,7 +2801,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EKO07259",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
-        meta: {thermostat: {dontMapPIHeatingDemand: true}},
         extend: [
             m.thermostat({
                 localTemperature: {
@@ -2820,7 +2819,7 @@ export const definitions: DefinitionWithExtend[] = [
                     configure: {skip: true},
                 },
                 systemMode: {values: ["off", "heat"]},
-                piHeatingDemand: {values: true},
+                piHeatingDemand: {values: true, dontMapPIHeatingDemand: true},
                 ctrlSeqeOfOper: {values: ["cooling_only", "heating_only"]},
             }),
             schneiderElectricExtend.runningStateFromPower(),
