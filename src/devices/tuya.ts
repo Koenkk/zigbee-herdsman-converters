@@ -6839,7 +6839,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-    		zigbeeModel: ["ZG-301Z-3CH"],
+        zigbeeModel: ["ZG-301Z-3CH"],
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_pf7swkqp"]),
         model: "TS0003_switch_module_3",
         vendor: "Tuya",
@@ -6861,13 +6861,14 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
         },
-        whiteLabel: [tuya.whitelabel("RSH", "SB03-Zigbee", "3 gang switch module", ["_TZ3000_pf7swkqp"]),
-         {
+        whiteLabel: [
+            tuya.whitelabel("RSH", "SB03-Zigbee", "3 gang switch module", ["_TZ3000_pf7swkqp"]),
+            {
                 vendor: "HOBEIAN",
                 model: "ZG-301Z-3CH",
                 fingerprint: [{modelID: "ZG-301Z-3CH"}],
-         },
-         ],
+            },
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_ju82pu2b"]),
@@ -10576,7 +10577,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-         zigbeeModel: ["TS0013", "ZG-302Z3"],
+        zigbeeModel: ["TS0013", "ZG-302Z3"],
         model: "TS0013",
         vendor: "Tuya",
         description: "Smart light switch - 3 gang without neutral wire",
@@ -13115,7 +13116,7 @@ export const definitions: DefinitionWithExtend[] = [
                     {manufacturerName: "_TZE200_ehhrv2e3"},
                 ],
             },
-            tuya.whitelabel("KOJIMA", "KOJIMA-THS-ZG-LCD", "Temperature and humidity sensor", ["_TZE200_dikkika5","_TZE200_y8wkaq6w"]),
+            tuya.whitelabel("KOJIMA", "KOJIMA-THS-ZG-LCD", "Temperature and humidity sensor", ["_TZE200_dikkika5", "_TZE200_y8wkaq6w"]),
         ],
         meta: {
             tuyaDatapoints: [
