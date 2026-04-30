@@ -1487,7 +1487,7 @@ const fzLocal = {
         cluster: "msFormaldehyde",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.measuredValue) {
+            if (msg.data.measuredValue !== undefined && msg.data.measuredValue !== null) {
                 return {hcho: msg.data.measuredValue / 1000.0};
             }
         },
