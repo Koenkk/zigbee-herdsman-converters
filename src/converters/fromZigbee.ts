@@ -950,6 +950,62 @@ export const gas_metering: Fz.Converter<"seMetering", undefined, ["attributeRepo
         return payload;
     },
 };
+export const water_metering: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
+    cluster: "seMetering",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+        const payload: KeyValueAny = {};
+        let Divisor = (globalStore.getValue(msg.endpoint, "Divisor") ?? msg.endpoint.getClusterAttributeValue("seMetering", "divisor")) as number;
+        let Multiplier = (globalStore.getValue(msg.endpoint, "Multiplier") ??
+            msg.endpoint.getClusterAttributeValue("seMetering", "multiplier")) as number;
+        const factor = Multiplier && Divisor ? Multiplier / Divisor : null;
+
+        if (msg.data.instantaneousDemand !== undefined) {
+            const power = msg.data.instantaneousDemand;
+            const property = utils.postfixWithEndpointName("volume_flow_rate", msg, model, meta);
+            payload[property] = utils.precisionRound(power * (factor ?? 1), 2);
+        }
+
+        if (msg.data.currentSummDelivered !== undefined) {
+            const value = msg.data.currentSummDelivered;
+            const property = utils.postfixWithEndpointName("water", msg, model, meta);
+            payload[property] = utils.precisionRound(value * (factor ?? 1), 2);
+        }
+
+        if (msg.data.status !== undefined) {
+            const value = msg.data.status;
+            const property = utils.postfixWithEndpointName("status", msg, model, meta);
+            payload[property] = value;
+        }
+
+        if (msg.data.extendedStatus !== undefined) {
+            const value = msg.data.extendedStatus;
+            const property = utils.postfixWithEndpointName("extended_status", msg, model, meta);
+            payload[property] = value;
+        }
+
+        return payload;
+    },
+};
+export const water_metering_divisor: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
+    cluster: "seMetering",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        if (msg.data.divisor !== undefined) {
+            globalStore.putValue(msg.endpoint, "Divisor", msg.data.divisor);
+        }
+    },
+};
+export const water_metering_multiplier: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
+    cluster: "seMetering",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        if (msg.data.multiplier !== undefined) {
+            globalStore.putValue(msg.endpoint, "Multiplier", msg.data.multiplier);
+        }
+    },
+};
 export const on_off: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
