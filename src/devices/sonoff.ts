@@ -18,7 +18,7 @@ import {
     YEAR_2000_IN_UTC,
 } from "../lib/sonoff";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const {ewelinkAction, ewelinkBattery} = ewelinkModernExtend;
@@ -1288,35 +1288,6 @@ const sonoffExtend = {
 
         return payloadValue.slice(0, index);
     },
-    applyS60DefaultOverloadProtection: async (device: Zh.Device, powerMaxLimit: number, currentMaxLimit: number): Promise<void> => {
-        if (device.meta.s60DefaultOverloadProtectionApplied === true) {
-            return;
-        }
-
-        const endpoint = device.getEndpoint(1);
-        const payloadValue = sonoffExtend.buildOverloadProtectionPayload(
-            {
-                enable_max_voltage: "ENABLE",
-                enable_min_current: "ENABLE",
-                enable_min_power: "ENABLE",
-                enable_min_voltage: "ENABLE",
-                max_current: currentMaxLimit,
-                max_power: powerMaxLimit,
-                max_voltage: 277,
-                min_current: 0.1,
-                min_power: 0.1,
-                min_voltage: 165,
-            },
-            powerMaxLimit,
-            currentMaxLimit,
-        );
-
-        // The private payload always carries max current and power values as well.
-        await endpoint.write("customClusterEwelink", {[0x7003]: {value: payloadValue, type: 0x42}}, defaultResponseOptions);
-        await endpoint.read("customClusterEwelink", [0x7003], defaultResponseOptions);
-        device.meta.s60DefaultOverloadProtectionApplied = true;
-        device.save();
-    },
     overloadProtection: (powerMaxLimit: number, currentMaxLimit: number): ModernExtend => {
         const exposes = e
             .composite("overload_protection", "overload_protection", ea.ALL)
@@ -1527,20 +1498,6 @@ const sonoffExtend = {
             exposes: [exposes],
             toZigbee,
             fromZigbee,
-            isModernExtend: true,
-        };
-    },
-    s60OverloadProtection: (powerMaxLimit: number, currentMaxLimit: number): ModernExtend => {
-        const overloadProtection = sonoffExtend.overloadProtection(powerMaxLimit, currentMaxLimit);
-
-        return {
-            ...overloadProtection,
-            configure: [
-                ...(overloadProtection.configure ?? []),
-                async (device) => {
-                    await sonoffExtend.applyS60DefaultOverloadProtection(device, powerMaxLimit, currentMaxLimit);
-                },
-            ],
             isModernExtend: true,
         };
     },
@@ -4688,7 +4645,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
-            sonoffExtend.s60OverloadProtection(4000, 17),
+            sonoffExtend.overloadProtection(4000, 17),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -4815,7 +4772,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: [false, 0],
                 valueOn: [true, 1],
             }),
-            sonoffExtend.s60OverloadProtection(3250, 14),
+            sonoffExtend.overloadProtection(3250, 14),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {

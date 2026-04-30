@@ -4007,48 +4007,6 @@ export const ZB003X_occupancy: Fz.Converter<"ssIasZone", undefined, "commandStat
         return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
     },
 };
-export const idlock: Fz.Converter<"closuresDoorLock", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresDoorLock",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (0x4000 in msg.data) {
-            result.master_pin_mode = msg.data[0x4000] === 1;
-        }
-        if (0x4001 in msg.data) {
-            result.rfid_enable = msg.data[0x4001] === 1;
-        }
-        if (0x4003 in msg.data) {
-            const lookup: Record<number, string> = {
-                0: "deactivated",
-                1: "random_pin_1x_use",
-                5: "random_pin_1x_use",
-                6: "random_pin_24_hours",
-                9: "random_pin_24_hours",
-            };
-            result.service_mode = lookup[msg.data[0x4003] as number];
-        }
-        if (0x4004 in msg.data) {
-            const lookup: Record<number, string> = {0: "auto_off_away_off", 1: "auto_on_away_off", 2: "auto_off_away_on", 3: "auto_on_away_on"};
-            result.lock_mode = lookup[msg.data[0x4004] as number];
-        }
-        if (0x4005 in msg.data) {
-            result.relock_enabled = msg.data[0x4005] === 1;
-        }
-        return result;
-    },
-};
-export const idlock_fw: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBasic",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (0x5000 in msg.data) {
-            result.idlock_lock_fw = msg.data[0x5000];
-        }
-        return result;
-    },
-};
 export const schneider_temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msTemperatureMeasurement",
     type: ["attributeReport", "readResponse"],

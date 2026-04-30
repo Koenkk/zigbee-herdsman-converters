@@ -889,8 +889,10 @@ export const definitions: DefinitionWithExtend[] = [
             addSprutVocCluster(),
             addSprutNoiseCluster(),
             addSprutIrBlasterCluster(),
+            addSprutMsRelativeHumidityCluster(),
             addSprutMsOccupancySensingCluster(),
             addSprutMsTemperatureMeasurementCluster(),
+            addSprutMsCO2Cluster(),
             m.deviceAddCustomCluster("genBasic", {
                 name: "genBasic",
                 ID: 0,

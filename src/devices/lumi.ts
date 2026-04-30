@@ -60,6 +60,7 @@ const {
     lumiPreventLeave,
     lumiExternalSensor,
     w600ExternalTempSensor,
+    w600Heartbeat,
     w600PresetTemperatureTable,
     w600Schedule,
     w600Thermostat,
@@ -5578,11 +5579,16 @@ export const definitions: DefinitionWithExtend[] = [
                 if (typeof payload.value_template === "string" && payload.value_template.includes("value_json.schedule_upload_status")) {
                     payload.icon = "mdi:upload-multiple";
                 }
+
+                if (typeof payload.value_template === "string" && payload.value_template.includes("value_json.calibrated")) {
+                    payload.icon = "mdi:tune";
+                }
             },
         },
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             m.customTimeResponse("2000_LOCAL"),
+            w600Heartbeat(),
             w600Thermostat(),
             w600ExternalTempSensor(),
             m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
@@ -5590,8 +5596,10 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {start: 1},
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0270, type: Zcl.DataType.UINT8},
-                description: "Calibrates the valve",
-                access: "ALL",
+                description: "Start valve calibration",
+                access: "SET",
+                label: "Calibrate",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
@@ -5599,18 +5607,22 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {not_ready: 0, ready: 1, error: 2, in_progress: 3},
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x027b, type: Zcl.DataType.UINT8},
-                description: "State of calibrate",
+                description: "Valve calibration state",
                 access: "STATE_GET",
+                label: "Calibration status",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary<"manuSpecificLumi", ManuSpecificLumi>({
-                name: "valve_detection",
+                name: "temperature_control_abnormal_notification",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0274, type: 0x20},
-                description: "Determines if temperature control abnormalities should be detected",
+                description:
+                    "Enable or disable reporting of abnormal temperature control status. When enabled, the valve alarm is set to true if an abnormality is detected",
                 access: "ALL",
+                label: "Temperature control abnormal notification",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary<"manuSpecificLumi", ManuSpecificLumi>({
@@ -5619,8 +5631,10 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["OFF", 0],
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0330, type: 0x20},
-                description: "Display flip",
+                description: "Flip the display orientation",
                 access: "ALL",
+                label: "Display flip",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             w600Schedule(),
@@ -5630,8 +5644,10 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["OFF", 0],
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0273, type: 0x20},
-                description: "Enables/disables window detection on the device",
+                description: "Enable or disable open window detection. When enabled, the window_open is set to true if an open window is detected",
                 access: "ALL",
+                label: "Open window detection",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.binary<"manuSpecificLumi", ManuSpecificLumi>({
@@ -5640,8 +5656,10 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["UNLOCK", 0],
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0277, type: 0x20},
-                description: "Enables/disables physical input on the device",
+                description: "Lock or unlock the physical controls on the device",
                 access: "ALL",
+                label: "Child lock",
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
@@ -5671,6 +5689,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "manuSpecificLumi",
                 attribute: {ID: 0x0360, type: Zcl.DataType.SINGLE_PREC},
                 description: "Position of the valve, 100% is fully open",
+                label: "Valve position",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
             m.identify(),
