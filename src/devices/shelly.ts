@@ -694,7 +694,7 @@ const shellyModernExtend = {
                     const switchId = meta.endpoint_name === "sw1" ? 0 : 1;
                     const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
                     await rpcSend(ep, "Switch.SetConfig", {id: switchId, config: {in_mode: value}});
-                    return {state: {[`switch_mode_${meta.endpoint_name}`]: value}};
+                    return {state: {switch_mode: value}};
                 },
             });
         }
@@ -708,7 +708,7 @@ const shellyModernExtend = {
                 convertSet: async (entity, key, value, meta) => {
                     const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
                     await rpcSend(ep, "Switch.SetConfig", {id: 0, config: {in_mode: value}});
-                    return {state: {switch_mode_sw1: value}};
+                    return {state: {switch_mode: value}};
                 },
             });
         }
@@ -1144,7 +1144,7 @@ const tzLocal = {
             const lookup = {toggle: 0, momentary: 1} as const;
             const ep = determineEndpoint(entity, meta, "genOnOffSwitchCfg");
             await ep.write("genOnOffSwitchCfg", {switchType: utils.getFromLookup(value as string, lookup)});
-            return {state: {[`switch_type_${meta.endpoint_name}`]: value}};
+            return {state: {switch_type: value}};
         },
         convertGet: async (entity, key, meta) => {
             const ep = determineEndpoint(entity, meta, "genOnOffSwitchCfg");
