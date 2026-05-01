@@ -5,6 +5,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 import type {SonoffEwelink} from "./sonoff";
@@ -94,6 +95,7 @@ const ewelinkExtend = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: tuya.fingerprint("TS0207", ["_TZ3000_hgm6k8ku","_TZ3000_piuensvr","_TZ3000_mmzmkkd4"]),
         zigbeeModel: ["CK-BL702-ROUTER-01(7018)"],
         model: "CK-BL702-ROUTER-01(7018)",
         vendor: "eWeLink",
@@ -102,18 +104,8 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [],
         whiteLabel: [
-            {
-                model: "ZG-807Z",
-                vendor: "HOBEIAN",
-                description: "USB signal extender",
-                fingerprint: [{manufacturerName: "_TZ3000_piuensvr"}, {manufacturerName: "_TZ3000_hgm6k8ku"}],
-            },
-            {
-                model: "ZG-807ZL",
-                vendor: "HOBEIAN",
-                description: "USB signal extender",
-                fingerprint: [{manufacturerName: "_TZ3000_mmzmkkd4"}, {manufacturerName: "COOLO"}],
-            },
+            tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku","HOBEIAN"]),
+            tuya.whitelabel("COOLO", "ZG-807ZL", "USB signal repeater", ["_TZ3000_mmzmkkd4", "COOLO"]),
         ],
     },
     {
