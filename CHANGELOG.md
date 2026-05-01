@@ -1,5 +1,18 @@
 # Changelog
 
+## [26.42.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.41.0...v26.42.0) (2026-05-01)
+
+
+### Features
+
+* **add:** ZG-807ZL, ZG-301Z-2CH, ZG-301Z-3CH, ZG-IR01, ZG-301Z-MOTO ([#12077](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12077)) ([ca0eadf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ca0eadf0dafc64b8fc1a96c97a0b6ebffb86b297))
+
+
+### Bug Fixes
+
+* smarli.: update description of various devices ([#12073](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12073)) ([3c64c4a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c64c4a1ba1434c7a9538baa052c0096be2fd29f))
+* Support `toggle` command with native Hue control ([#12062](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12062)) ([0752bbd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0752bbd44f563a29640afac3fa99a97d8c0ecc69))
+
 ## [26.41.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.40.0...v26.41.0) (2026-04-30)
 
 
