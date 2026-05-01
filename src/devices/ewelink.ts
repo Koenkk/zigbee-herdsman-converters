@@ -95,7 +95,7 @@ const ewelinkExtend = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0207", ["_TZ3000_hgm6k8ku","_TZ3000_piuensvr","_TZ3000_mmzmkkd4"]),
+        fingerprint: tuya.fingerprint("TS0207", ["_TZ3000_hgm6k8ku", "_TZ3000_piuensvr", "_TZ3000_mmzmkkd4"]),
         zigbeeModel: ["CK-BL702-ROUTER-01(7018)"],
         model: "CK-BL702-ROUTER-01(7018)",
         vendor: "eWeLink",
@@ -104,7 +104,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [],
         whiteLabel: [
-            tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku","HOBEIAN"]),
+            tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku", "HOBEIAN"]),
             tuya.whitelabel("COOLO", "ZG-807ZL", "USB signal repeater", ["_TZ3000_mmzmkkd4", "COOLO"]),
         ],
     },
