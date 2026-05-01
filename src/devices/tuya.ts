@@ -3864,8 +3864,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryVoltage(endpoint);
         },
     },
-    { 
-     fingerprint: [
+    {
+        fingerprint: [
             ...tuya.fingerprint("TS0207", [
                 "_TZ3000_m0vaazab",
                 "_TZ3000_ufttklsz",
@@ -3898,7 +3898,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_trdx8uxs",
                 "_TZ3000_gdsvhfao",
             ]),
-                 ],
+        ],
         exposes: [],
     },
     {
@@ -26413,7 +26413,9 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("cur_calibration", ea.STATE_SET, ["start", "end"]).withDescription("Curtain calibration"),
             e.enum("control_back", ea.STATE_SET, ["forward", "back"]).withDescription("Set curtain control back"),
             e.numeric("tr_timecon", ea.STATE_SET).withValueMin(0).withValueMax(120).withValueStep(1).withUnit("s").withDescription("Quick Calibrate"),
-            e.enum("switch_type", ea.STATE_SET, ["flip_switch", "sync_switch", "button_switch"]).withDescription("Set curtain controller switch type"),
+            e
+                .enum("switch_type", ea.STATE_SET, ["flip_switch", "sync_switch", "button_switch"])
+                .withDescription("Set curtain controller switch type"),
             e.enum("indicator_mode", ea.STATE_SET, ["relay", "pos", "none"]).withDescription("Set Controller indicator mode"),
         ],
         meta: {
