@@ -3362,7 +3362,12 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         whiteLabel: [
             tuya.whitelabel("ClickSmart+", "CMA30036", "2 gang socket outlet", ["_TYZB01_hlla45kx"]),
-            tuya.whitelabel("Rylike", "RY-WS02Z", "2 gang socket outlet AU", ["_TZ3000_rgpqqmbj", "_TZ3000_8nyaanzb", "_TZ3000_iy2c3n6p"]),
+            tuya.whitelabel("Rylike", "RY-WS02Z", "2 gang socket outlet AU", [
+                "_TZ3000_rgpqqmbj",
+                "_TZ3000_8nyaanzb",
+                "_TZ3000_iy2c3n6p",
+                "_TZ3000_46vasa5h",
+            ]),
             tuya.whitelabel("Nova Digital", "NT-S2", "2 gang socket outlet BR", ["_TZ3000_sgb0xhwn", "_TZ3210_sgb0xhwn"]),
             tuya.whitelabel("Nova Digital", "QZ-S2Q", "2 gang socket outlet BR with non-switchable USB", ["_TZ3210_ph1joc22"]),
         ],
@@ -5907,6 +5912,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Haozee", model: "ESW-OZAA-EU"},
             {vendor: "Moes", model: "ZT-SY-EU-G-4S-WH-MS"},
             {vendor: "Nedis", model: "ZBWS40WT"},
+            {vendor: "Nous", model: "C1"},
             tuya.whitelabel("Moes", "ZT-SR-EU4", "Star Ring 4 Gang Scene Switch", ["_TZ3000_a4xycprs"]),
             tuya.whitelabel("Tuya", "TS0044_1", "Zigbee 4 button remote - 12 scene", ["_TZ3000_dziaict4", "_TZ3000_j61x9rxn"]),
             tuya.whitelabel("iHseno", "_TZ3000_mh9px7cq", "Zigbee 4 button remote - 12 scene", ["_TZ3000_mh9px7cq"]),
@@ -5916,11 +5922,11 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Moes", "XH-SY-04Z", "4 button portable remote control", ["_TZ3000_kfu8zapd"]),
             tuya.whitelabel("LoraTap", "SS6400ZB", "4 button portable remote control", ["_TZ3000_ee8nrt2l"]),
             tuya.whitelabel("Zemismart", "ZMR4_1", "4 button portable remote control (without dimmer)", ["_TZ3000_xwuveizv"]),
+            tuya.whitelabel("Tuya", "TS0044_2", "Wireless switch with 4 buttons", ["_TZ3000_zgyzgdua"]),
         ],
-        extend: [tuyaBase()],
+        extend: [tuyaBase(), m.battery({voltage: true, percentageReporting: false})],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         exposes: [
-            e.battery(),
             e.action([
                 "1_single",
                 "1_double",
@@ -5936,8 +5942,6 @@ export const definitions: DefinitionWithExtend[] = [
                 "4_hold",
             ]),
         ],
-        toZigbee: [],
-        configure: tuya.configureMagicPacket,
         /*
          * reporting.batteryPercentageRemaining removed as it was causing devices to fall of the network
          * every 1 hour, with light flashing when it happened, extremely short battery life, 2 presses for
@@ -5958,9 +5962,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS004F",
         vendor: "Tuya",
         description: "Wireless switch with 4 buttons",
-        extend: [tuya.modernExtend.tuyaBase()],
+        extend: [tuya.modernExtend.tuyaBase(), m.battery({voltage: true}), m.identify({isSleepy: true})],
         exposes: [
-            e.battery(),
             e
                 .enum("operation_mode", ea.ALL, ["command", "event"])
                 .withDescription('Operation mode: "command" - for group control, "event" - for clicks'),
@@ -5999,7 +6002,10 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_stop,
             fz.command_step_color_temperature,
         ],
-        whiteLabel: [tuya.whitelabel("Zemismart", "ZMR4", "Wireless switch with 4 buttons", ["_TZ3000_11pg3ima", "_TZ3000_et7afzxz"])],
+        whiteLabel: [
+            tuya.whitelabel("Zemismart", "ZMR4", "Wireless switch with 4 buttons", ["_TZ3000_11pg3ima", "_TZ3000_et7afzxz"]),
+            tuya.whitelabel("Moes", "TS004F_1", "Wireless switch with 4 buttons", ["_TZ3000_xabckq1v"]),
+        ],
         toZigbee: [tuya.tz.operation_mode],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -6011,8 +6017,6 @@ export const definitions: DefinitionWithExtend[] = [
             } catch {
                 /* do nothing */
             }
-            await endpoint.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
             for (const ep of [1, 2, 3, 4]) {
                 // Not all variants have all endpoints
                 // https://github.com/Koenkk/zigbee2mqtt/issues/15730#issuecomment-1364498358
@@ -6020,7 +6024,6 @@ export const definitions: DefinitionWithExtend[] = [
                     await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ["genOnOff"]);
                 }
             }
-            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
@@ -6552,6 +6555,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_fbjdkph9",
             "_TZ3000_zbfya6h0",
             "_TZ3000_hznzbl0x",
+            "_TZ3210_6smingw0",
         ]),
         model: "TS0002_basic",
         vendor: "Tuya",
@@ -6566,14 +6570,17 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Aubess", "TMZ02", "2 gang switch", ["_TZ3000_lmlsduws"]),
             tuya.whitelabel("RSH", "TS0002_basic_2", "2 gang switch", ["_TZ3000_zbfya6h0"]),
             tuya.whitelabel("EKAZA", "EKAC-T3092Z", "2 gang switch", ["_TZ3000_hznzbl0x"]),
+            tuya.whitelabel("Nova Digital", "NTZB-01", "1 switch and 1 socket with backlight", ["_TZ3210_6smingw0"]),
         ],
         extend: [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 switchType: true,
                 endpoints: ["l1", "l2"],
-                powerOutageMemory: true,
-                onOffCountdown: (m) => m === "_TZ3000_hznzbl0x",
+                powerOutageMemory: (m) => m !== "_TZ3210_6smingw0",
+                onOffCountdown: (m) => m === "_TZ3000_hznzbl0x" || m === "_TZ3210_6smingw0",
+                indicatorMode: (m) => m === "_TZ3210_6smingw0",
+                backlightModeOffOn: (m) => m === "_TZ3210_6smingw0",
             }),
         ],
         endpoint: (device) => {
@@ -6632,6 +6639,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("RoomsAI", "37022463-2", "2 Gang switch with backlight", ["_TZ3000_ogpla3lh"]),
         ],
     },
+
     {
         // TS0002 2 gang switch module with all available features. This is the default for TS0002 devices.
         model: "TS0002",
@@ -6696,6 +6704,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_uilitwsy",
             "_TZ3000_66fekqhh",
             "_TZ3000_ok0ggpk7",
+            "_TZ3210_ok0ggpk7",
             "_TZ3000_aknpkt02",
             "_TZ3000_nwidmc4n",
             "_TZ3000_pfc7i3kt",
@@ -6709,12 +6718,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.modernExtend.tuyaOnOff({
                 onOffCountdown: (m) => m !== "_TZ3000_pfc7i3kt",
-                powerOnBehavior2: (m) => m !== "_TZ3000_nwidmc4n",
+                powerOnBehavior2: (m) => m !== "_TZ3000_nwidmc4n" && m !== "_TZ3210_ok0ggpk7",
                 indicatorMode: (m) => m !== "_TZ3000_nwidmc4n" && m !== "_TZ3000_pfc7i3kt",
-                inchingSwitch: (m) => m !== "_TZ3000_pfc7i3kt",
+                inchingSwitch: (m) => m !== "_TZ3000_pfc7i3kt" && m !== "_TZ3210_ok0ggpk7",
                 backlightModeOffOn: (m) => m !== "_TZ3000_pfc7i3kt",
                 endpoints: ["l1", "l2", "l3"],
-                powerOutageMemory: (m) => m === "_TZ3000_nwidmc4n",
+                powerOutageMemory: (m) => m === "_TZ3000_nwidmc4n" || m === "_TZ3210_ok0ggpk7",
                 switchType: (m) => m === "_TZ3000_nwidmc4n" || m === "_TZ3000_pfc7i3kt",
             }),
         ],
@@ -6733,6 +6742,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("AVATTO", "ZBTS60-03", "3 gang switch module with backlight", ["_TZ3000_nwidmc4n"]),
             tuya.whitelabel("Tuya", "M10Z", "2 gang switch with 20A power socket", ["_TZ3000_lubfc1t5"]),
             tuya.whitelabel("Zemismart", "ZMO-606-S2", "Smart 2 gangs switch with outlet", ["_TZ3000_aknpkt02"]),
+            tuya.whitelabel("Nova Digital", "NTZB-02", "2 switches and 1 socket with backlight", ["_TZ3210_ok0ggpk7"]),
         ],
     },
     {
@@ -13090,7 +13100,17 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
         ],
         whiteLabel: [
-            tuya.whitelabel("HOBEIAN", "ZG-227Z", "Temperature and humidity sensor", ["_TZE200_a8sdabtg", "_TZE200_vs0skpuc", "_TZE200_ehhrv2e3"]),
+            {
+                model: "ZG-227Z",
+                vendor: "HOBEIAN",
+                description: "Temperature & humidity sensor",
+                fingerprint: [
+                    {modelID: "ZG-227Z"},
+                    {manufacturerName: "_TZE200_a8sdabtg"},
+                    {manufacturerName: "_TZE200_vs0skpuc"},
+                    {manufacturerName: "_TZE200_ehhrv2e3"},
+                ],
+            },
             tuya.whitelabel("KOJIMA", "KOJIMA-THS-ZG-LCD", "Temperature and humidity sensor", ["_TZE200_dikkika5"]),
         ],
         meta: {
@@ -15768,6 +15788,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_tdhnhhiy",
             "_TZE204_ad2jkxwh",
             "_TZE204_72bewjky",
+            "_TZE284_kow4ok3t",
         ]),
         model: "TS0601_switch_8",
         vendor: "ZYXH",

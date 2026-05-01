@@ -147,12 +147,15 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gw05grph", "_TZE284_chcnj5st"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gw05grph", "_TZE284_chcnj5st", "_TZE284_pislt0wa"]),
         model: "CZF02",
         vendor: "Lincukoo",
-        description: "Finger Robot",
+        description: "Finger Robot", //fingerbot
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        whiteLabel: [tuya.whitelabel("Sygonix", "SY-6811314", "Zigbee Smart button/switch Pusher", ["_TZE284_chcnj5st"])],
+        whiteLabel: [
+            tuya.whitelabel("Sygonix", "SY-6811314", "Zigbee Smart button/switch Pusher", ["_TZE284_chcnj5st"]),
+            tuya.whitelabel("Nous", "C2", "Button/switch pusher", ["_TZE284_pislt0wa"]),
+        ],
         exposes: [
             e.switch(),
             e.enum("mode", ea.STATE_SET, ["click", "long_press"]).withDescription("work mode of the finger robot"),
@@ -183,11 +186,11 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],
                 [2, "mode", tuya.valueConverterBasic.lookup({click: tuya.enum(0), long_press: tuya.enum(1)})],
-                [3, "click_sustain_time", tuya.valueConverter.divideBy10],
-                [5, "arm_down_percent", tuya.valueConverter.raw],
-                [6, "arm_up_percent", tuya.valueConverter.raw],
-                [101, "auto_adjustment", tuya.valueConverter.onOff],
-                [102, "set_switch_state", tuya.valueConverter.onOff],
+                [3, "click_sustain_time", tuya.valueConverter.divideBy10], // springback_time
+                [5, "arm_down_percent", tuya.valueConverter.raw], // initial_percent
+                [6, "arm_up_percent", tuya.valueConverter.raw], // end_percent
+                [101, "auto_adjustment", tuya.valueConverter.onOff], // auto
+                [102, "set_switch_state", tuya.valueConverter.onOff], // switching_display_status
                 [8, "battery", tuya.valueConverter.raw],
             ],
         },
@@ -383,10 +386,10 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aghfucwi", "_TZE284_2qx7sivb", "_TZE284_8sejxcue"]),
-        model: "V04-Z10T",
-        vendor: "Lincukoo",
-        description: "Smart vibration alarm sensor",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aghfucwi", "_TZE284_2qx7sivb", "_TZE284_8sejxcue", "_TZE284_7trh4ihp"]),
+        model: "TS0601_vibration_alarm_sensor",
+        vendor: "Tuya",
+        description: "Vibration alarm sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: (device) => {
             const exps: Expose[] = [
@@ -413,17 +416,19 @@ export const definitions: DefinitionWithExtend[] = [
 
         meta: {
             tuyaDatapoints: [
-                [1, "alarm_status", tuya.valueConverterBasic.lookup({normal: 0, alarm: 1})],
+                [1, "alarm_status", tuya.valueConverterBasic.lookup({normal: 0, alarm: 1})], // shake_state
                 [3, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
                 [4, "battery", tuya.valueConverter.raw],
                 [101, "sensitivity", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
-                [102, "disarm", tuya.valueConverterBasic.lookup({normal: tuya.enum(0)})],
-                [103, "silence_mode", tuya.valueConverter.onOff],
+                [102, "disarm", tuya.valueConverterBasic.lookup({normal: tuya.enum(0)})], // turn_off_the_current_alarm_sound
+                [103, "silence_mode", tuya.valueConverter.onOff], // mute_mode
             ],
         },
         whiteLabel: [
+            tuya.whitelabel("Lincukoo", "V04-Z10T", "Vibration alarm sensor", ["_TZE284_aghfucwi"]),
             tuya.whitelabel("Lincukoo", "V06-Z10T", "Mini vibration sensor", ["_TZE284_2qx7sivb"]),
-            tuya.whitelabel("Lincukoo", "V04-Z20T", "Vibration alarm sensor", ["_TZE284_8sejxcue"]),
+            {vendor: "Lincukoo", model: "V04-Z20T"},
+            {vendor: "Nous", model: "E14"},
         ],
     },
     {
