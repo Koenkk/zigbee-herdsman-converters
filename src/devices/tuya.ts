@@ -3864,8 +3864,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryVoltage(endpoint);
         },
     },
-    {
-        fingerprint: [
+    { 
+     fingerprint: [
             ...tuya.fingerprint("TS0207", [
                 "_TZ3000_m0vaazab",
                 "_TZ3000_ufttklsz",
@@ -3881,8 +3881,14 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_n0lphcok",
                 "_TZ3000_r80pzsb9",
                 "_TZ3000_sgpbz53b",
+                "_TZ3000_piuensvr",
+                "_TZ3000_hgm6k8ku",
+                "_TZ3000_mmzmkkd4"
+
             ]),
             ...tuya.fingerprint("TS0001", ["_TZ3000_n0lphcok", "_TZ3000_wn65ixz9", "_TZ3000_trdx8uxs", "_TZ3000_gdsvhfao"]),
+            ...tuya.fingerprint("CK-BL702-ROUTER-01(7018)", ["HOBEIAN","COOLO","_TZ3000_piuensvr","_TZ3000_hgm6k8ku","_TZ3000_mmzmkkd4",]),
+            
         ],
         model: "TS0207_repeater",
         vendor: "Tuya",
@@ -3896,6 +3902,8 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_trdx8uxs",
                 "_TZ3000_gdsvhfao",
             ]),
+            tuya.whitelabel("HOBEIAN", "ZG-807Z", "Zigbee signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku","HOBEIAN"]),
+            tuya.whitelabel("HOBEIAN", "ZG-807ZL", "Zigbee signal repeater",["_TZ3000_mmzmkkd4", "COOLO"]),
         ],
         exposes: [],
     },
@@ -26407,26 +26415,25 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Curtain Motor Controller",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.enum("curtain_control", ea.STATE_SET, ["open", "stop", "close"]).withDescription("Curtain control"),
-            e
-                .numeric("percent_control", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1)
-                .withUnit("%")
-                .withDescription("curtain percent_control"),
+            e.cover_position().setAccess("position", ea.STATE_SET),
             e.enum("cur_calibration", ea.STATE_SET, ["start", "end"]).withDescription("Curtain calibration"),
             e.enum("control_back", ea.STATE_SET, ["forward", "back"]).withDescription("Set curtain control back"),
             e.numeric("tr_timecon", ea.STATE_SET).withValueMin(0).withValueMax(120).withValueStep(1).withUnit("s").withDescription("Quick Calibrate"),
-            e
-                .enum("switch_type", ea.STATE_SET, ["flip_switch", "sync_switch", "button_switch"])
-                .withDescription("Set curtain controller switch type"),
+            e.enum("switch_type", ea.STATE_SET, ["flip_switch", "sync_switch", "button_switch"]).withDescription("Set curtain controller switch type"),
             e.enum("indicator_mode", ea.STATE_SET, ["relay", "pos", "none"]).withDescription("Set Controller indicator mode"),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "curtain_control", tuya.valueConverterBasic.lookup({open: tuya.enum(0), stop: tuya.enum(1), close: tuya.enum(2)})],
-                [2, "percent_control", tuya.valueConverter.raw],
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPosition],
                 [3, "cur_calibration", tuya.valueConverterBasic.lookup({start: tuya.enum(0), end: tuya.enum(1)})],
                 [8, "control_back", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
                 [10, "tr_timecon", tuya.valueConverter.raw],
