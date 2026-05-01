@@ -1420,7 +1420,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"heimanClusterSpecial", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"heimanClusterSpecial", HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
     heiman_ir_remote: {
         cluster: "heimanSpecificInfraRedRemote",
         type: ["commandStudyKeyRsp", "commandCreateIdRsp", "commandGetIdAndKeyCodeListRsp"],
