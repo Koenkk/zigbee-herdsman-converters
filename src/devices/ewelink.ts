@@ -102,6 +102,27 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         exposes: [],
+        whiteLabel: [
+                {
+                model: "ZG-807Z",
+                vendor: "HOBEIAN",
+                description: "USB signal extender",
+                fingerprint: [
+                    {manufacturerName: "_TZ3000_piuensvr"},
+                    {manufacturerName: "_TZ3000_hgm6k8ku"},
+                ],
+                },
+                {
+                model: "ZG-807ZL",
+                vendor: "HOBEIAN",
+                description: "USB signal extender",
+                fingerprint: [
+                    {manufacturerName: "_TZ3000_mmzmkkd4"},
+                    {manufacturerName: "COOLO"},
+                ],
+                },
+            ],
+ 
     },
     {
         zigbeeModel: ["CK-BL702-MSW-01(7010)", "CK-BL702-MSW-01(7011)-1"],

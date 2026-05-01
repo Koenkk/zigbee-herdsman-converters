@@ -3883,12 +3883,8 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_sgpbz53b",
                 "_TZ3000_piuensvr",
                 "_TZ3000_hgm6k8ku",
-                "_TZ3000_mmzmkkd4"
-
             ]),
             ...tuya.fingerprint("TS0001", ["_TZ3000_n0lphcok", "_TZ3000_wn65ixz9", "_TZ3000_trdx8uxs", "_TZ3000_gdsvhfao"]),
-            ...tuya.fingerprint("CK-BL702-ROUTER-01(7018)", ["HOBEIAN","COOLO","_TZ3000_piuensvr","_TZ3000_hgm6k8ku","_TZ3000_mmzmkkd4",]),
-            
         ],
         model: "TS0207_repeater",
         vendor: "Tuya",
@@ -3902,9 +3898,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_trdx8uxs",
                 "_TZ3000_gdsvhfao",
             ]),
-            tuya.whitelabel("HOBEIAN", "ZG-807Z", "Zigbee signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku","HOBEIAN"]),
-            tuya.whitelabel("HOBEIAN", "ZG-807ZL", "Zigbee signal repeater",["_TZ3000_mmzmkkd4", "COOLO"]),
-        ],
+                 ],
         exposes: [],
     },
     {
