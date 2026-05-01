@@ -5,7 +5,6 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 import type {SonoffEwelink} from "./sonoff";
