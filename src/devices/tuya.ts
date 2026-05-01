@@ -16017,7 +16017,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Nous", "A4Z", "2 gang outdoor plug", ["_TZ3000_rqbjepe8", "_TZ3000_uwkja6z1"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_cfnprab5", "_TZ3000_o005nuxx", "_TZ3000_gdyjfvgm", "_TZ3000_pl5v1yyy"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_cfnprab5", "_TZ3000_o005nuxx", "_TZ3000_gdyjfvgm", "_TZ3000_pl5v1yyy", "_TZ3000_djgzdba9"]),
         model: "TS011F_5",
         description: "Power strip 5 gang",
         vendor: "Tuya",
@@ -16041,6 +16041,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("UseeLink", "SM-0306E-2W", "4 gang switch, with USB", ["_TZ3000_cfnprab5"]),
             tuya.whitelabel("UseeLink", "SM-O301-AZ", "AU 4 plug 10A power board + USB", ["_TZ3000_o005nuxx"]),
+            tuya.whitelabel("Lotus", "Ref 2117", "4 gang plug + 4 USB", ["_TZ3000_djgzdba9"]),
         ],
     },
     {
