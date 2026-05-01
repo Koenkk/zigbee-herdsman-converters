@@ -377,6 +377,7 @@ const shellyModernExtend = {
 
         const featureDev = features.includes("Dev");
         const featurePowerstripUI = features.includes("PowerstripUI");
+        const featurePowerstripPowerOnBehavior = features.includes("PowerstripPowerOnBehavior");
         const featureTwoPMInputMode = features.includes("2PMInputMode");
         const featureOnePMInputMode = features.includes("1PMInputMode");
 
@@ -651,6 +652,35 @@ const shellyModernExtend = {
         if (featurePowerstripUI) {
             exposes.push(...exposesPowerstripUI);
             toZigbee.push(...toZigbeePowerstripUI);
+        }
+        if (featurePowerstripPowerOnBehavior) {
+            const powerOnBehaviorValues = ["off", "on", "previous", "match_input"];
+            for (const channel of [1, 2, 3, 4]) {
+                exposes.push(
+                    e
+                        .enum("power_on_behavior", ea.STATE_SET, powerOnBehaviorValues)
+                        .withDescription("Behavior of the socket after a power outage. 'previous' restores the last known state.")
+                        .withCategory("config")
+                        .withEndpoint(String(channel)),
+                );
+            }
+            toZigbee.push({
+                key: ["power_on_behavior"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value, key);
+                    utils.assertString(meta.endpoint_name, "endpoint_name");
+                    utils.assertEndpoint(entity);
+                    const switchId = Number(meta.endpoint_name) - 1;
+                    // shellyRPCCluster lives on a dedicated endpoint (239), but this expose is per-channel.
+                    // determineEndpoint() would return the per-channel endpoint when endpoint_name is set,
+                    // so we explicitly resolve the RPC endpoint via the device.
+                    const ep = entity.getDevice().getEndpoint(SHELLY_ENDPOINT_ID);
+                    if (!ep) throw new Error(`Shelly RPC endpoint ${SHELLY_ENDPOINT_ID} not found`);
+                    const shellyValue = value === "previous" ? "restore_last" : value;
+                    await rpcSend(ep, "Switch.SetConfig", {id: switchId, config: {initial_state: shellyValue}});
+                    return {state: {power_on_behavior: value}};
+                },
+            });
         }
         if (featureTwoPMInputMode) {
             const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
@@ -1366,7 +1396,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyRPCSetup(["PowerstripUI"]),
+            shellyModernExtend.shellyRPCSetup(["PowerstripUI", "PowerstripPowerOnBehavior"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
     },
