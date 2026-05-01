@@ -1411,11 +1411,20 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-101ZL"],
-        fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_ja5osu5g", "_TZ3000_kjfzuycl", "_TZ3000_egvb1p2g", "_TZ3000_kaflzta4", "_TZ3000_lrfvzq1e"]),
+        fingerprint: tuya.fingerprint("TS004F", [
+            "_TZ3000_ja5osu5g",
+            "_TZ3000_kjfzuycl",
+            "_TZ3000_egvb1p2g",
+            "_TZ3000_kaflzta4",
+            "_TZ3000_lrfvzq1e",
+            "_TZ3000_wc3gjyp3",
+        ]),
         model: "ERS-10TZBVB-AA",
         vendor: "Moes",
         description: "Smart button",
-        whiteLabel: [tuya.whitelabel("Loginovo", "ZG-101ZL", "Smart button", ["_TZ3000_ja5osu5g", "_TZ3000_lrfvzq1e", "_TZ3000_kaflzta4"])],
+        whiteLabel: [
+            tuya.whitelabel("Loginovo", "ZG-101ZL", "Smart button", ["_TZ3000_ja5osu5g", "_TZ3000_lrfvzq1e", "_TZ3000_kaflzta4", "_TZ3000_wc3gjyp3"]),
+        ],
         extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         fromZigbee: [
             fz.command_step,

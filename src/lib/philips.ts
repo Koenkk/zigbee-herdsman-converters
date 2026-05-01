@@ -330,9 +330,13 @@ const philipsModernExtend = {
 
                 const data: Philips2Data = {};
 
-                if (message.state !== undefined) {
-                    data.onOff = typeof message.state === "string" && message.state.toLowerCase() === "on";
-                    newState.state = data.onOff ? "ON" : "OFF";
+                if (message.state !== undefined && typeof message.state === "string") {
+                    const msgState = message.state.toLowerCase();
+                    if (["on", "off", "toggle"].includes(msgState) === true) {
+                        const targetState = msgState === "toggle" ? (meta.state.state === "ON" ? "off" : "on") : msgState;
+                        data.onOff = targetState === "on";
+                        newState.state = data.onOff ? "ON" : "OFF";
+                    }
                 }
                 if (message.brightness != null) {
                     // Bifrost spec: brightness values 0 and 255 are INVALID, valid range 1..254

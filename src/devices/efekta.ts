@@ -7750,7 +7750,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Netuya_CO2_Smart_Box", "Netuya_CO2_Smart_Box_PA"],
         model: "Netuya_CO2_Smart_Box",
-        vendor: "Efektalab",
+        vendor: "EFEKTA",
         description: "CO2 Smart Monitor, rgb indicator, alarm, can control the relay",
         ota: true,
         extend: [
@@ -7812,7 +7812,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                name: "alarm volume",
+                name: "alarm_volume",
                 valueMin: 0,
                 valueMax: 10,
                 cluster: "msCO2",
@@ -7821,7 +7821,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                name: "alarm level",
+                name: "alarm_level",
                 unit: "ppm",
                 valueMin: 400,
                 valueMax: 5000,
@@ -7831,7 +7831,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "calibration mode",
+                name: "calibration_mode",
                 valueOn: ["Auto", 1],
                 valueOff: ["Manual", 0],
                 cluster: "msCO2",

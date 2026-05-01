@@ -10,7 +10,7 @@ import * as utils from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
-interface CandeoRotaryRemoveControl {
+interface CandeoRotaryRemoteControl {
     attributes: never;
     commands: {
         rotaryRemoteControl: {
@@ -44,6 +44,35 @@ const rd1pKnobActionsMap: {[key: string]: string} = {
     commandStepWithOnOff: "rotating_",
     commandStop: "stopped_rotating",
 };
+const kineticRFButtonMultiPressActions: {[key: number]: string} = {
+    1: "single",
+    2: "double",
+    3: "triple",
+    4: "quadruple",
+    5: "quintuple",
+};
+const kineticRFButtonMultiPressTimeout = 1000;
+const kineticRFButtonMultiPressOptions = {
+    actions: () =>
+        e
+            .enum("actions", ea.SET, [
+                "single",
+                "single & double",
+                "single, double & triple",
+                "single, double, triple & quadruple",
+                "single, double, triple, quadruple & quintuple",
+            ])
+            .withDescription("Which press actions do you wish to detect (default: single)?"),
+    timeout: () =>
+        e
+            .numeric("timeout", ea.SET)
+            .withValueMin(500)
+            .withValueMax(1500)
+            .withUnit("ms")
+            .withDescription(
+                "Time in ms to delay sending of action since last event to allow for multi-press event detection (ignored if only single event is being detected).",
+            ),
+};
 
 interface CandeoOnOff {
     attributes: never;
@@ -70,6 +99,38 @@ const luxScale: m.ScaleFunction = (value: number, type: "from" | "to") => {
 };
 
 const fzLocal = {
+    kinetic_rf_button_multi_press: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        options: [kineticRFButtonMultiPressOptions.actions(), kineticRFButtonMultiPressOptions.timeout()],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (msg.data?.onOff === undefined) return;
+            const endpoint = msg.endpoint;
+            const actionsRaw = typeof options?.actions === "string" ? options.actions : undefined;
+            if (!actionsRaw || actionsRaw === "single") {
+                return {action: `button_${endpoint.ID}_single_pressed`};
+            }
+            let buttonClickCount = globalStore.getValue(endpoint, "button_click_count") as number | undefined;
+            buttonClickCount = buttonClickCount ? buttonClickCount + 1 : 1;
+            globalStore.putValue(endpoint, "button_click_count", buttonClickCount);
+            const existingTimer = globalStore.getValue(endpoint, "timer");
+            if (existingTimer) clearTimeout(existingTimer);
+            const timeout = typeof options?.timeout === "number" ? options.timeout : kineticRFButtonMultiPressTimeout;
+            const enabledActions = actionsRaw ? actionsRaw.split(/[, &]+/) : [];
+            const timer = setTimeout(() => {
+                const count = globalStore.getValue(endpoint, "button_click_count") as number | undefined;
+                if (kineticRFButtonMultiPressActions[count]) {
+                    const button_action = kineticRFButtonMultiPressActions[count];
+                    if (enabledActions.includes(button_action)) {
+                        publish({action: `button_${endpoint.ID}_${button_action}_pressed`});
+                    }
+                }
+                globalStore.putValue(endpoint, "button_click_count", 0);
+            }, timeout);
+            globalStore.putValue(endpoint, "timer", timer);
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     switch_type: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
@@ -171,7 +232,7 @@ const fzLocal = {
             }
             return;
         },
-    } satisfies Fz.Converter<"candeoRotaryRemoteControl", CandeoRotaryRemoveControl, ["commandRotaryRemoteControl"]>,
+    } satisfies Fz.Converter<"candeoRotaryRemoteControl", CandeoRotaryRemoteControl, ["commandRotaryRemoteControl"]>,
     rd1p_knob_rotation: {
         cluster: "genLevelCtrl",
         type: ["commandMoveWithOnOff", "commandStepWithOnOff", "commandStop"],
@@ -892,5 +953,20 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint2.bind("genOnOff", coordinatorEndpoint);
             await endpoint2.bind("genLevelCtrl", coordinatorEndpoint);
         },
+    },
+    {
+        fingerprint: [{modelID: "C-RFZB-HUB", manufacturerName: "Candeo"}],
+        model: "C-RFZB-HUB",
+        vendor: "Candeo",
+        description: "Kinetic RF to Zigbee gateway",
+        fromZigbee: [fzLocal.kinetic_rf_button_multi_press],
+        toZigbee: [],
+        exposes: [
+            e.action(
+                Array.from({length: 10}, (_, i) => i + 1).flatMap((btn) =>
+                    Object.values(kineticRFButtonMultiPressActions).map((state) => `button_${btn}_${state}_pressed`),
+                ),
+            ),
+        ],
     },
 ];

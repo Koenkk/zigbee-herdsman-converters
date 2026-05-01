@@ -981,6 +981,16 @@ const danfossExtend = {
         );
         return extend;
     },
+    danfossTimeSyncOnAnnounce: (): ModernExtend => ({
+        isModernExtend: true,
+        onEvent: [
+            async (event) => {
+                if (event.type === "deviceAnnounce") {
+                    await setTime(event.data.device, "queue");
+                }
+            },
+        ],
+    }),
 };
 
 const tzLocal = {
@@ -1086,15 +1096,6 @@ const tzLocal = {
     } satisfies Tz.Converter,
     danfoss_system_status_code: {
         key: ["system_status_code"],
-        convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value, key);
-            await entity.write<"haDiagnostic", DanfossHaDiagnostic>(
-                "haDiagnostic",
-                {danfossSystemStatusCode: value},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {system_status_code: value}};
-        },
         convertGet: async (entity, key, meta) => {
             await entity.read<"haDiagnostic", DanfossHaDiagnostic>("haDiagnostic", ["danfossSystemStatusCode"], {
                 manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
@@ -1310,7 +1311,14 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             if (msg.data.danfossSystemStatusCode !== undefined) {
-                result.system_status_code = msg.data.danfossSystemStatusCode;
+                const code = msg.data.danfossSystemStatusCode;
+                const errors: string[] = [];
+                for (const [bit, name] of Object.entries(constants.danfossAllySystemStatusCode)) {
+                    if (code & (1 << Number(bit))) {
+                        errors.push(name);
+                    }
+                }
+                result.system_status_code = errors.length > 0 ? errors.join(",") : "ok";
             }
             return result;
         },
@@ -1377,9 +1385,10 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossAdaptionRunSettings(),
             danfossExtend.danfossAdaptionRunControl(),
             danfossExtend.danfossRegulationSetpointOffset(),
+            danfossExtend.danfossTimeSyncOnAnnounce(),
             m.poll({
                 key: "danfossTime",
-                defaultIntervalSeconds: 60 * 60 * 24, // 24 hours
+                defaultIntervalSeconds: 60 * 60 * 24,
                 poll: async (device) => {
                     await setTime(device, "queue");
                 },
@@ -1387,8 +1396,8 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [
             e
-                .numeric("system_status_code", ea.STATE_GET)
-                .withDescription("Diagnostic status bitmap (bit 9 = time/clock lost).")
+                .text("system_status_code", ea.STATE_GET)
+                .withDescription("Diagnostic error codes (e.g. 'invalid_clock_information,low_battery'). 'ok' when no errors.")
                 .withCategory("diagnostic"),
         ],
         fromZigbee: [fz.thermostat_weekly_schedule, fzLocal.danfoss_system_status_code],
