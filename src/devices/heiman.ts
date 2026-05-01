@@ -1497,7 +1497,7 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
-            if (msg.data.batteryState) {
+            if (msg.data.batteryState !== undefined && msg.data.batteryState !== null) {
                 const lookup: KeyValueAny = {
                     0: "not_charging",
                     1: "charging",
