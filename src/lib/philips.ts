@@ -596,7 +596,6 @@ const philipsModernExtend = {
             if (args.color) effects.push("fireplace", "colorloop");
             if (args.gradient) {
                 result.toZigbee.push(philipsTz.gradient_scene, philipsTz.gradient({reverse: true}));
-                effects.push("sunrise");
                 if (args.gradient !== true) {
                     effects.push(...args.gradient.extraEffects);
                 }
@@ -631,7 +630,7 @@ const philipsModernExtend = {
                 }
             });
             // All Hue-specific effects per Bifrost spec
-            effects.push("sunset", "sparkle", "opal", "glisten", "underwater", "cosmos", "sunbeam", "enchant");
+            effects.push("sunset", "sunrise", "sparkle", "opal", "glisten", "underwater", "cosmos", "sunbeam", "enchant");
             effects.push("none", "finish_effect", "stop_effect", "stop_hue_effect");
             result.exposes.push(...exposeEndpoints(e.enum("effect", ea.STATE_SET, effects), args.endpointNames));
 
