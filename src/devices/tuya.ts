@@ -26457,7 +26457,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "1 gang touch panel switch with backlight and child lock",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
@@ -26481,7 +26480,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "2 gang switch and cover control touch panel with backlight and child lock",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
@@ -26531,7 +26529,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "3 gang touch panel switch with backlight and child lock",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.switch().withEndpoint("l1"),
@@ -26563,7 +26560,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Cover control touch panel with backlight and child lock",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
@@ -26605,7 +26601,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "6 gang touch panel switch with backlight and child lock",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.switch().withEndpoint("l1"),
@@ -26643,7 +26638,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "1 gang touch panel switch with backlight color modes, child lock, timer, and brightness",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
@@ -26699,7 +26693,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Touch panel switch with power monitoring and timer",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
@@ -26718,7 +26711,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [21, "current", tuya.valueConverter.divideBy1000],
                 [22, "power", tuya.valueConverter.divideBy10],
                 [23, "voltage", tuya.valueConverter.divideBy10],
-                [105, "duration", tuya.valueConverter.value],
+                [105, "duration", tuya.valueConverter.raw],
             ],
         },
     },
@@ -26729,7 +26722,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "2 gang touch panel switch with backlight and child lock",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.switch().withEndpoint("l1"),
