@@ -26696,12 +26696,11 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
-            e.numeric("countdown", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(86400).withDescription("Countdown to turn off"),
+            e.numeric("countdown", ea.STATE_SET).withUnit("m").withValueMin(0).withValueMax(120).withDescription("Countdown to turn off"),
             e.energy(),
             e.current(),
             e.power(),
             e.voltage(),
-            e.numeric("duration", ea.STATE_SET).withUnit("m").withValueStep(15).withValueMin(15).withValueMax(120).withDescription("Duration"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -26709,9 +26708,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [7, "countdown", tuya.valueConverter.countdown],
                 [20, "energy", tuya.valueConverter.divideBy100],
                 [21, "current", tuya.valueConverter.divideBy1000],
-                [22, "power", tuya.valueConverter.divideBy10],
-                [23, "voltage", tuya.valueConverter.divideBy10],
-                [105, "duration", tuya.valueConverter.raw],
+                [22, "power", tuya.valueConverter.raw],
+                [23, "voltage", tuya.valueConverter.raw],
             ],
         },
     },
