@@ -144,7 +144,7 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSp
                 retval["color_mode"] = "xy";
             }
             if (decoded.fadeSpeed !== undefined) {
-                retval["transition"] = decoded.fadeSpeed;
+                retval["transition"] = decoded.fadeSpeed / 10;
             }
             if (decoded.effectType !== undefined) {
                 retval["effect"] = effectNames[decoded.effectType] ?? `unknown_0x${decoded.effectType.toString(16)}`;
@@ -388,7 +388,7 @@ const philipsModernExtend = {
                 // Map transition time to Philips2 fadeSpeed
                 // Bifrost spec: 0 = instant, practical range ~2..8, >0x100 = very slow
                 if (message.transition != null) {
-                    data.fadeSpeed = Math.round(Number(message.transition));
+                    data.fadeSpeed = Math.round(Number(message.transition) * 10);
                 }
 
                 // Effect speed: 0.0 = slowest, 1.0 = fastest (maps to 0..255 byte)
