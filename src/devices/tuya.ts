@@ -26644,8 +26644,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.numeric("countdown", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(86400).withDescription("Countdown to turn off"),
             e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
-            e.enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan"]).withDescription("ON Color"),
             e.enum("off_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan"]).withDescription("OFF Color"),
+            e.enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan"]).withDescription("ON Color"),
             e.numeric("backlight_brightness", ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription("Backlight Brightness"),
             e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
         ],
@@ -26659,7 +26659,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "backlight_brightness", tuya.valueConverter.raw],
                 [
                     103,
-                    "on_color",
+                    "off_color",
                     tuya.valueConverterBasic.lookup({
                         red: tuya.enum(0),
                         blue: tuya.enum(1),
@@ -26672,7 +26672,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [
                     104,
-                    "off_color",
+                    "on_color",
                     tuya.valueConverterBasic.lookup({
                         red: tuya.enum(0),
                         blue: tuya.enum(1),
