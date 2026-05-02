@@ -716,7 +716,7 @@ const inovelliExtend = {
             exposes: [...staticExposes, dynamicExposes],
             configure,
             isModernExtend: true,
-        } as ModernExtend;
+        } satisfies ModernExtend;
     },
     light: ({splitValuesByEndpoint = false}: {splitValuesByEndpoint?: boolean} = {}) => {
         // biome-ignore lint/suspicious/noExplicitAny: matches DefinitionWithExtend.fromZigbee signature
@@ -747,7 +747,7 @@ const inovelliExtend = {
             exposes: [e.light_brightness()],
             configure,
             isModernExtend: true,
-        } as ModernExtend;
+        } satisfies ModernExtend;
     },
     fan: ({endpointId, splitValuesByEndpoint = false}: {endpointId: number; splitValuesByEndpoint?: boolean}) => {
         return {
@@ -762,7 +762,7 @@ const inovelliExtend = {
                 },
             ],
             isModernExtend: true,
-        } as ModernExtend;
+        } satisfies ModernExtend;
     },
     mmWave: () => {
         const configure: Configure[] = [
@@ -799,16 +799,14 @@ const inovelliExtend = {
             ],
             configure: configure,
             isModernExtend: true,
-        } as ModernExtend;
+        } satisfies ModernExtend;
     },
     energyReset: () => {
         return {
-            fromZigbee: [],
             toZigbee: [tzLocal.inovelli_energy_reset],
             exposes: [exposeEnergyReset()],
-            configure: [],
             isModernExtend: true,
-        } as ModernExtend;
+        } satisfies ModernExtend;
     },
 };
 
