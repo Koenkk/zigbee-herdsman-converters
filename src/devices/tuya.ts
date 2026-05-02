@@ -26696,7 +26696,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
-            e.numeric("countdown", ea.STATE_SET).withUnit("s").withDescription("Countdown to turn off"),
+            e.numeric("countdown", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(86400).withDescription("Countdown to turn off"),
             e.energy(),
             e.current(),
             e.power(),
