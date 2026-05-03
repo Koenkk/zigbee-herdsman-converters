@@ -20590,6 +20590,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Water level sensor",
         extend: [m.forcePowerSource({powerSource: "Mains (single phase)"}), tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        version: "0.0.1",
         exposes: [
             e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
             e.numeric("liquid_depth", ea.STATE).withUnit("cm").withDescription("Liquid depth"),
