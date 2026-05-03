@@ -25187,8 +25187,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             e
                 .numeric("presence_distance", ea.STATE_SET)
-                .withUnit("m")
-                .withDescription("Maximum detection distance")
+                .withDescription("Maximum detection distance (1=~2m, 2=~4m, 3=~6m)")
                 .withValueMin(1)
                 .withValueMax(3)
                 .withValueStep(1),
@@ -25210,21 +25209,37 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("s")
                 .withDescription("Time delay before reporting no presence")
                 .withValueMin(10)
-                .withValueMax(600)
-                .withValueStep(10),
+                .withValueMax(9600)
+                .withValueStep(1),
             e.binary("led_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable or disable LED indicator"),
+            e
+                .numeric("radar_threshold", ea.STATE_SET)
+                .withCategory("config")
+                .withDescription("Radar detection threshold, advanced calibration (factory default: 20)")
+                .withValueMin(5)
+                .withValueMax(255)
+                .withValueStep(1),
+            e
+                .numeric("pir_threshold", ea.STATE_SET)
+                .withCategory("config")
+                .withDescription("PIR detection threshold, advanced calibration (factory default: 20)")
+                .withValueMin(1)
+                .withValueMax(250)
+                .withValueStep(1),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "occupancy", tuya.valueConverter.trueFalse1],
-                [101, "presence_distance", tuya.valueConverter.raw],
-                [102, "presence_sensitivity", tuya.valueConverter.raw],
-                [103, "radar_switch", tuya.valueConverter.onOff],
-                [104, "pir_sensitivity", tuya.valueConverter.raw],
-                [105, "delay_time", tuya.valueConverter.raw],
+                [102, "presence_distance", tuya.valueConverter.raw],
+                [103, "presence_sensitivity", tuya.valueConverter.raw],
+                [104, "radar_switch", tuya.valueConverter.onOff],
+                [105, "pir_sensitivity", tuya.valueConverter.raw],
+                [106, "delay_time", tuya.valueConverter.raw],
                 [107, "led_switch", tuya.valueConverter.onOff],
                 [108, "illuminance", tuya.valueConverter.raw],
                 [109, "battery", tuya.valueConverter.raw],
+                [160, "pir_threshold", tuya.valueConverter.raw],
+                [164, "radar_threshold", tuya.valueConverter.raw],
             ],
         },
     },
