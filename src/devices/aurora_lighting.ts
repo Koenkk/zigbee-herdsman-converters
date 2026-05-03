@@ -106,7 +106,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AU-A1ZBSCRGBCX",
         vendor: "Aurora Lighting",
         description: "RGBW LED strip controller",
-        extend: [m.light({colorTemp: {range: [166, 400]}, color: true})],
+        extend: [m.light({colorTemp: {range: [166, 400]}, color: {modes: ["hs"]}})],
     },
     {
         zigbeeModel: ["TWGU10Bulb50AU"],

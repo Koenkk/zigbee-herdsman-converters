@@ -2,7 +2,7 @@ import {defineConfig} from "vitest/config";
 
 export default defineConfig({
     test: {
-        clearMocks: true,
+        restoreMocks: true,
         env: {
             VITEST_ZHC_TEST: "true",
         },
@@ -10,6 +10,7 @@ export default defineConfig({
             return false;
         },
         globalSetup: ["./test/vitest-setup.ts"],
+        setupFiles: ["./test/zh-setup.ts"],
         coverage: {
             enabled: false,
             provider: "v8",

@@ -1,4 +1,4 @@
-import type {KeyValueAny, KeyValueNumberString} from "./types";
+import type {KeyValue, KeyValueAny, KeyValueNumberString, ValuesOf} from "./types";
 
 export const OneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
 
@@ -16,23 +16,33 @@ export const repInterval = {
     SECONDS_5: 5,
 };
 
-export const thermostatControlSequenceOfOperations: KeyValueNumberString = {
+export type ThermostatControlSequenceOfOperation = ValuesOf<typeof thermostatControlSequenceOfOperations>;
+export const thermostatControlSequenceOfOperations = {
     0: "cooling_only",
     1: "cooling_with_reheat",
     2: "heating_only",
     3: "heating_with_reheat",
     4: "cooling_and_heating_4-pipes",
     5: "cooling_and_heating_4-pipes_with_reheat",
-};
+} as const satisfies KeyValueNumberString;
 
-export const thermostatProgrammingOperationModes: KeyValueNumberString = {
+export type ThermostatProgrammingOperationMode = ValuesOf<typeof thermostatProgrammingOperationModes>;
+export const thermostatProgrammingOperationModes = {
     0: "setpoint",
     1: "schedule",
     3: "schedule_with_preheat",
     4: "eco",
-};
+} as const satisfies KeyValueNumberString;
 
-export const thermostatSystemModes: KeyValueNumberString = {
+export type ThermostatSetpointChangeSource = ValuesOf<typeof thermostatSetpointChangeSource>;
+export const thermostatSetpointChangeSource = {
+    0: "manual",
+    1: "schedule",
+    2: "externally",
+} as const satisfies KeyValueNumberString;
+
+export type ThermostatSystemMode = ValuesOf<typeof thermostatSystemModes>;
+export const thermostatSystemModes = {
     0: "off",
     1: "auto",
     3: "cool",
@@ -42,7 +52,7 @@ export const thermostatSystemModes: KeyValueNumberString = {
     7: "fan_only",
     8: "dry",
     9: "sleep",
-};
+} as const satisfies KeyValueNumberString;
 
 export const acovaThermostatSystemModes: KeyValueNumberString = {
     0: "off",
@@ -51,13 +61,15 @@ export const acovaThermostatSystemModes: KeyValueNumberString = {
     4: "away_or_vacation",
 };
 
-export const thermostatRunningMode: KeyValueNumberString = {
+export type ThermostatRunningMode = ValuesOf<typeof thermostatRunningMode>;
+export const thermostatRunningMode = {
     0: "off",
     3: "cool",
     4: "heat",
-};
+} as const satisfies KeyValueNumberString;
 
-export const thermostatDayOfWeek: KeyValueNumberString = {
+export type ThermostatDayOfWeek = ValuesOf<typeof thermostatDayOfWeek>;
+export const thermostatDayOfWeek = {
     0: "sunday",
     1: "monday",
     2: "tuesday",
@@ -66,9 +78,10 @@ export const thermostatDayOfWeek: KeyValueNumberString = {
     5: "friday",
     6: "saturday",
     7: "away_or_vacation",
-};
+} as const satisfies KeyValueNumberString;
 
-export const thermostatRunningStates: KeyValueAny = {
+export type ThermostatRunningState = ValuesOf<typeof thermostatRunningStates>;
+export const thermostatRunningStates = {
     0: "idle",
     1: "heat",
     2: "cool",
@@ -90,22 +103,25 @@ export const thermostatRunningStates: KeyValueAny = {
     66: "cool",
     32768: "idle",
     32769: "heat",
-};
+} as const satisfies KeyValueAny;
 
-export const thermostatAcLouverPositions: KeyValueNumberString = {
+export type ThermostatAcLouverPosition = ValuesOf<typeof thermostatAcLouverPositions>;
+export const thermostatAcLouverPositions = {
     0: "fully_closed",
     1: "fully_closed",
     2: "fully_open",
     3: "quarter_open",
     4: "half_open",
     5: "three_quarters_open",
-};
+} as const satisfies KeyValueNumberString;
 
-export const thermostatScheduleMode: KeyValueNumberString = {
+export type ThermostatScheduleMode = ValuesOf<typeof thermostatScheduleMode>;
+export const thermostatScheduleMode = {
     0: "heat",
     1: "cool",
-};
+} as const satisfies KeyValueNumberString;
 
+export type ThermostatFanMode = keyof typeof fanMode;
 export const fanMode = {
     off: 0,
     low: 1,
@@ -114,7 +130,7 @@ export const fanMode = {
     on: 4,
     auto: 5,
     smart: 6,
-};
+} as const satisfies KeyValue;
 
 export const temperatureDisplayMode: KeyValueNumberString = {
     0: "celsius",
@@ -193,6 +209,20 @@ export const danfossSystemStatusCode: KeyValueNumberString = {
     16385: "pt1000_input_short_circuit",
     32769: "pt1000_input_open_circuit",
     258: "error_on_one_or_more_output",
+};
+
+export const danfossAllySystemStatusCode: KeyValueNumberString = {
+    0: "top_pcb_sensor_error",
+    1: "side_pcb_sensor_error",
+    2: "non_volatile_memory_error",
+    3: "unknown_hw_error",
+    5: "motor_error",
+    7: "invalid_internal_communication",
+    9: "invalid_clock_information",
+    11: "radio_communication_error",
+    12: "encoder_jammed",
+    13: "low_battery",
+    14: "critical_low_battery",
 };
 
 export const danfossHeatsupplyRequest: KeyValueNumberString = {

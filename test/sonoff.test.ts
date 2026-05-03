@@ -33,7 +33,8 @@ describe("Sonoff TRVZB", () => {
 
     describe("weekly schedule", () => {
         describe("fromZigbee", () => {
-            let fzConverter: Fz.Converter;
+            // biome-ignore lint/suspicious/noExplicitAny: generic
+            let fzConverter: Fz.Converter<any, any, any>;
             let meta: Fz.Meta;
 
             beforeEach(() => {
@@ -58,7 +59,8 @@ describe("Sonoff TRVZB", () => {
 
             describe.each(days)("when a commandGetWeeklyScheduleRsp message is received for $day", ({dayofweek, day}) => {
                 it("should set state", () => {
-                    const msg: Fz.Message = {
+                    // biome-ignore lint/suspicious/noExplicitAny: generic
+                    const msg: Fz.Message<any, any, any> = {
                         data: {
                             dayofweek: dayofweek,
                             transitions: [
@@ -94,7 +96,8 @@ describe("Sonoff TRVZB", () => {
                 let state2: State;
 
                 beforeEach(() => {
-                    const msg1: Fz.Message = {
+                    // biome-ignore lint/suspicious/noExplicitAny: generic
+                    const msg1: Fz.Message<any, any, any> = {
                         data: {
                             dayofweek: 0x01,
                             transitions: [
@@ -117,7 +120,8 @@ describe("Sonoff TRVZB", () => {
                         linkquality: 0,
                     };
 
-                    const msg2: Fz.Message = {
+                    // biome-ignore lint/suspicious/noExplicitAny: generic
+                    const msg2: Fz.Message<any, any, any> = {
                         data: {
                             dayofweek: 0x02,
                             transitions: [

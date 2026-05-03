@@ -946,7 +946,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "volume",
-                lookup: {voice: 1, high: 2, low: 2},
+                lookup: {voice: 1, high: 2, low: 3},
                 cluster: "genOnOff",
                 attribute: {ID: 0x9008, type: 0x20},
                 description: "Values observed are `1` (voice), `2` (high) or `3` (low).",

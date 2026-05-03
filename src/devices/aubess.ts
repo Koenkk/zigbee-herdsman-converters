@@ -12,6 +12,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZXZIR-02",
         vendor: "Aubess",
         description: "Universal smart IR remote control",
+        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), zosung.zosungExtend.addZosungIRControlCluster()],
         fromZigbee: [
             fzZosung.zosung_send_ir_code_00,
             fzZosung.zosung_send_ir_code_01,

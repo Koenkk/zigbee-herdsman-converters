@@ -73,11 +73,44 @@ interface HeimanPrivateCluster {
         indicatorLightLevelControlOf3: number;
         interconnectable: number;
         smokeUnit: number;
+        remoteSelfTest: number;
+        temperatureOffset: number;
         rebootedCount: number;
         rejoinedCount: number;
         reportedPackages: number;
+
+        // wifi classes
+        wifiSsid: string;
+        wifiPassword: string;
+        wifiSsidCandidate: string;
+        wifiPasswordCandidate: string;
+        pictureQuantity: number;
+        pictureQuality: number;
+        serverAddress: string;
+        serverAddressCandidae: string;
+        serverPort: number;
+        authToken: string;
+        zoneCaptureMode: number;
+        sensorArmed: number;
+        wifiStatus: number;
+        wifiCandidateStatus: number;
+        wifiRssi: number;
+        serverStatus: number;
+        serverCandidateStatus: number;
+        cameraReady: number;
+        flashLightBrightness: number;
+        cameraMode: number;
     };
-    commands: never;
+    commands: {
+        cameraActiveTrigger: {
+            id: number;
+            parameters: [];
+        };
+        cameraTestTrigger: {
+            id: number;
+            parameters: [];
+        };
+    };
     commandResponses: never;
 }
 
@@ -86,16 +119,17 @@ const iasWarningMode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic
 const heimanExtend = {
     heimanClusterRadar: () =>
         m.deviceAddCustomCluster("heimanClusterRadar", {
+            name: "heimanClusterRadar",
             ID: 0xfc8b,
             manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
             attributes: {
-                enableIndicator: {ID: 0xf001, type: Zcl.DataType.UINT8, write: true}, // 0: off, 1: enable
-                sensitivity: {ID: 0xf002, type: Zcl.DataType.UINT8, write: true},
-                enableSubRegionIsolation: {ID: 0xf006, type: Zcl.DataType.UINT8, write: true},
-                installationMethod: {ID: 0xf007, type: Zcl.DataType.UINT8, write: true},
-                cellMountedTable: {ID: 0xf008, type: Zcl.DataType.OCTET_STR, write: true}, // string
-                wallMountedTable: {ID: 0xf009, type: Zcl.DataType.OCTET_STR, write: true}, // string
-                subRegionIsolationTable: {ID: 0xf00a, type: Zcl.DataType.OCTET_STR, write: true}, // string
+                enableIndicator: {name: "enableIndicator", ID: 0xf001, type: Zcl.DataType.UINT8, write: true}, // 0: off, 1: enable
+                sensitivity: {name: "sensitivity", ID: 0xf002, type: Zcl.DataType.UINT8, write: true},
+                enableSubRegionIsolation: {name: "enableSubRegionIsolation", ID: 0xf006, type: Zcl.DataType.UINT8, write: true},
+                installationMethod: {name: "installationMethod", ID: 0xf007, type: Zcl.DataType.UINT8, write: true},
+                cellMountedTable: {name: "cellMountedTable", ID: 0xf008, type: Zcl.DataType.OCTET_STR, write: true}, // string
+                wallMountedTable: {name: "wallMountedTable", ID: 0xf009, type: Zcl.DataType.OCTET_STR, write: true}, // string
+                subRegionIsolationTable: {name: "subRegionIsolationTable", ID: 0xf00a, type: Zcl.DataType.OCTET_STR, write: true}, // string
             },
             commands: {},
             commandsResponse: {},
@@ -103,58 +137,96 @@ const heimanExtend = {
 
     heimanClusterSpecial: () =>
         m.deviceAddCustomCluster("heimanClusterSpecial", {
+            name: "heimanClusterSpecial",
             ID: 0xfc90,
             manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
             attributes: {
                 // Sensor 0x0000~0x0FFF
-                sensorPreheatingState: {ID: 0x0000, type: Zcl.DataType.ENUM8, write: true},
-                sensorSelfCheckState: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true},
-                sensorFaultState: {ID: 0x0002, type: Zcl.DataType.BITMAP16, write: true},
-                sensorPollutionLevel: {ID: 0x0003, type: Zcl.DataType.UINT8, write: true},
-                sensorSensitivityLevel: {ID: 0x0004, type: Zcl.DataType.ENUM8, write: true},
-                sensorPrealarmThreshold: {ID: 0x0005, type: Zcl.DataType.ENUM8, write: true},
-                sensorLifeState: {ID: 0x0006, type: Zcl.DataType.ENUM8, write: true},
-                sensorLifeTime: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true},
-                deviceMuteControl: {ID: 0x0008, type: Zcl.DataType.UINT8, write: true},
-                deviceMuteState: {ID: 0x0009, type: Zcl.DataType.BITMAP16, write: true},
-                deviceCascadeControlEnable: {ID: 0x000a, type: Zcl.DataType.BITMAP8, write: true},
-                deviceSoundToneType: {ID: 0x000b, type: Zcl.DataType.ENUM8, write: true},
-                deviceSoundControl: {ID: 0x000c, type: Zcl.DataType.ARRAY, write: true},
-                deviceBlinkControl: {ID: 0x000d, type: Zcl.DataType.ARRAY, write: true},
-                smokeAdValue: {ID: 0x000e, type: Zcl.DataType.UINT16, write: true},
-                smokeAlarmType: {ID: 0x000f, type: Zcl.DataType.ENUM8, write: true},
-                smokeWaterMistState: {ID: 0x0010, type: Zcl.DataType.ENUM8, write: true},
-                smokeSensorData: {ID: 0x0011, type: Zcl.DataType.ARRAY, write: true},
-                deviceCascadeState: {ID: 0x0012, type: Zcl.DataType.ENUM8, write: true},
-                sensorPrealarmState: {ID: 0x0013, type: Zcl.DataType.ENUM8, write: true},
-                smokeConcentrationLevel: {ID: 0x0016, type: Zcl.DataType.UINT8},
-                smokeChamberContaminationLevel: {ID: 0x0017, type: Zcl.DataType.UINT8},
-                smokeConcentationUnit: {ID: 0x0018, type: Zcl.DataType.UINT8},
+                sensorPreheatingState: {name: "sensorPreheatingState", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true},
+                sensorSelfCheckState: {name: "sensorSelfCheckState", ID: 0x0001, type: Zcl.DataType.ENUM8, write: true},
+                sensorFaultState: {name: "sensorFaultState", ID: 0x0002, type: Zcl.DataType.BITMAP16, write: true},
+                sensorPollutionLevel: {name: "sensorPollutionLevel", ID: 0x0003, type: Zcl.DataType.UINT8, write: true},
+                sensorSensitivityLevel: {name: "sensorSensitivityLevel", ID: 0x0004, type: Zcl.DataType.ENUM8, write: true},
+                sensorPrealarmThreshold: {name: "sensorPrealarmThreshold", ID: 0x0005, type: Zcl.DataType.ENUM8, write: true},
+                sensorLifeState: {name: "sensorLifeState", ID: 0x0006, type: Zcl.DataType.ENUM8, write: true},
+                sensorLifeTime: {name: "sensorLifeTime", ID: 0x0007, type: Zcl.DataType.UINT16, write: true},
+                deviceMuteControl: {name: "deviceMuteControl", ID: 0x0008, type: Zcl.DataType.UINT8, write: true},
+                deviceMuteState: {name: "deviceMuteState", ID: 0x0009, type: Zcl.DataType.BITMAP16, write: true},
+                deviceCascadeControlEnable: {name: "deviceCascadeControlEnable", ID: 0x000a, type: Zcl.DataType.BITMAP8, write: true},
+                deviceSoundToneType: {name: "deviceSoundToneType", ID: 0x000b, type: Zcl.DataType.ENUM8, write: true},
+                deviceSoundControl: {name: "deviceSoundControl", ID: 0x000c, type: Zcl.DataType.ARRAY, write: true},
+                deviceBlinkControl: {name: "deviceBlinkControl", ID: 0x000d, type: Zcl.DataType.ARRAY, write: true},
+                smokeAdValue: {name: "smokeAdValue", ID: 0x000e, type: Zcl.DataType.UINT16, write: true},
+                smokeAlarmType: {name: "smokeAlarmType", ID: 0x000f, type: Zcl.DataType.ENUM8, write: true},
+                smokeWaterMistState: {name: "smokeWaterMistState", ID: 0x0010, type: Zcl.DataType.ENUM8, write: true},
+                smokeSensorData: {name: "smokeSensorData", ID: 0x0011, type: Zcl.DataType.ARRAY, write: true},
+                deviceCascadeState: {name: "deviceCascadeState", ID: 0x0012, type: Zcl.DataType.ENUM8, write: true},
+                sensorPrealarmState: {name: "sensorPrealarmState", ID: 0x0013, type: Zcl.DataType.ENUM8, write: true},
+                smokeConcentrationLevel: {name: "smokeConcentrationLevel", ID: 0x0016, type: Zcl.DataType.UINT8},
+                smokeChamberContaminationLevel: {name: "smokeChamberContaminationLevel", ID: 0x0017, type: Zcl.DataType.UINT8},
+                smokeConcentationUnit: {name: "smokeConcentationUnit", ID: 0x0018, type: Zcl.DataType.UINT8},
 
                 // Light/Switch 0x1000~0x1FFF
-                indicatorLightControl: {ID: 0x1000, type: Zcl.DataType.BITMAP8, write: true},
-                indicatorLightNotDisturbStartTime: {ID: 0x1001, type: Zcl.DataType.UINT16, write: true},
-                indicatorLightNotDisturbEndTime: {ID: 0x1002, type: Zcl.DataType.UINT16, write: true},
-                indicatorLightNotDisturbEnable: {ID: 0x1003, type: Zcl.DataType.UINT8, write: true},
-                indicatorLightLevelControlOf1: {ID: 0x1004, type: Zcl.DataType.UINT8, write: true},
-                indicatorLightLevelControlOf2: {ID: 0x1005, type: Zcl.DataType.UINT8, write: true},
-                indicatorLightLevelControlOf3: {ID: 0x1006, type: Zcl.DataType.UINT8, write: true},
-                interconnectable: {ID: 0x1007, type: Zcl.DataType.UINT8, write: true},
-                smokeUnit: {ID: 0x1008, type: Zcl.DataType.UINT8},
-                rebootedCount: {ID: 0x1009, type: Zcl.DataType.UINT8},
-                rejoinedCount: {ID: 0x100a, type: Zcl.DataType.UINT8},
-                reportedPackages: {ID: 0x100b, type: Zcl.DataType.UINT8},
+                indicatorLightControl: {name: "indicatorLightControl", ID: 0x1000, type: Zcl.DataType.BITMAP8, write: true},
+                indicatorLightNotDisturbStartTime: {name: "indicatorLightNotDisturbStartTime", ID: 0x1001, type: Zcl.DataType.UINT16, write: true},
+                indicatorLightNotDisturbEndTime: {name: "indicatorLightNotDisturbEndTime", ID: 0x1002, type: Zcl.DataType.UINT16, write: true},
+                indicatorLightNotDisturbEnable: {name: "indicatorLightNotDisturbEnable", ID: 0x1003, type: Zcl.DataType.UINT8, write: true},
+                indicatorLightLevelControlOf1: {name: "indicatorLightLevelControlOf1", ID: 0x1004, type: Zcl.DataType.UINT8, write: true},
+                indicatorLightLevelControlOf2: {name: "indicatorLightLevelControlOf2", ID: 0x1005, type: Zcl.DataType.UINT8, write: true},
+                indicatorLightLevelControlOf3: {name: "indicatorLightLevelControlOf3", ID: 0x1006, type: Zcl.DataType.UINT8, write: true},
+                interconnectable: {name: "interconnectable", ID: 0x1007, type: Zcl.DataType.UINT8},
+                smokeUnit: {name: "smokeUnit", ID: 0x1008, type: Zcl.DataType.UINT8},
+                remoteSelfTest: {name: "remoteSelfTest", ID: 0x1009, type: Zcl.DataType.UINT8},
+                temperatureOffset: {name: "temperatureOffset", ID: 0x100d, type: Zcl.DataType.INT16},
+                rebootedCount: {name: "rebootedCount", ID: 0x0019, type: Zcl.DataType.UINT8},
+                rejoinedCount: {name: "rejoinedCount", ID: 0x001a, type: Zcl.DataType.UINT8},
+                reportedPackages: {name: "reportedPackages", ID: 0x001b, type: Zcl.DataType.UINT8},
+
+                // wifi classes
+                wifiSsid: {name: "wifiSsid", ID: 0x2000, type: Zcl.DataType.CHAR_STR},
+                wifiPassword: {name: "wifiPassword", ID: 0x2001, type: Zcl.DataType.CHAR_STR},
+                wifiSsidCandidate: {name: "wifiSsidCandidate", ID: 0x2002, type: Zcl.DataType.CHAR_STR},
+                wifiPasswordCandidate: {name: "wifiPasswordCandidate", ID: 0x2003, type: Zcl.DataType.CHAR_STR},
+                pictureQuantity: {name: "pictureQuantity", ID: 0x2004, type: Zcl.DataType.UINT8},
+                pictureQuality: {name: "pictureQuality", ID: 0x2005, type: Zcl.DataType.UINT8},
+                serverAddress: {name: "serverAddress", ID: 0x2006, type: Zcl.DataType.CHAR_STR},
+                serverAddressCandidae: {name: "serverAddressCandidae", ID: 0x2007, type: Zcl.DataType.CHAR_STR},
+                serverPort: {name: "serverPort", ID: 0x2008, type: Zcl.DataType.UINT8},
+                authToken: {name: "authToken", ID: 0x2009, type: Zcl.DataType.CHAR_STR},
+                zoneCaptureMode: {name: "zoneCaptureMode", ID: 0x200a, type: Zcl.DataType.UINT8},
+                sensorArmed: {name: "sensorArmed", ID: 0x200b, type: Zcl.DataType.UINT8},
+                wifiStatus: {name: "wifiStatus", ID: 0x200c, type: Zcl.DataType.UINT8},
+                wifiCandidateStatus: {name: "wifiCandidateStatus", ID: 0x200d, type: Zcl.DataType.UINT8},
+                wifiRssi: {name: "wifiRssi", ID: 0x200e, type: Zcl.DataType.INT8},
+                serverStatus: {name: "serverStatus", ID: 0x200f, type: Zcl.DataType.INT8},
+                serverCandidateStatus: {name: "serverCandidateStatus", ID: 0x2010, type: Zcl.DataType.INT8},
+                cameraReady: {name: "cameraReady", ID: 0x2013, type: Zcl.DataType.INT8},
+                flashLightBrightness: {name: "flashLightBrightness", ID: 0x2012, type: Zcl.DataType.INT8},
+                cameraMode: {name: "cameraMode", ID: 0x2014, type: Zcl.DataType.INT8},
             },
-            commands: {},
+            commands: {
+                cameraActiveTrigger: {
+                    ID: 0x01,
+                    name: "cameraActiveTrigger",
+                    parameters: [],
+                },
+                cameraTestTrigger: {
+                    ID: 0x02,
+                    name: "cameraTestTrigger",
+                    parameters: [],
+                },
+            },
             commandsResponse: {},
         }),
 
     heimanClusterIasZone: () =>
         m.deviceAddCustomCluster("ssIasZone", {
+            name: "ssIasZone",
             ID: Zcl.Clusters.ssIasZone.ID,
             attributes: {},
             commands: {
                 initiateTestMode: {
+                    name: "initiateTestMode",
                     ID: 0x02,
                     parameters: [
                         {name: "testModeDuration", type: Zcl.DataType.UINT8},
@@ -574,7 +646,7 @@ const heimanExtend = {
             {
                 key: ["ambient_light"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<typeof clusterName, RadarSensorHeimanZcl>(clusterName, ["measuredValue"], defaultResponseOptions);
+                    await entity.read(clusterName, ["measuredValue"], defaultResponseOptions);
                 },
             },
         ];
@@ -737,6 +809,7 @@ const heimanExtend = {
         const exposes = utils.exposeEndpoints(
             e.binary("interconnectable", ea.STATE_GET, true, false).withDescription("used for interconnection automation."),
         );
+
         const fromZigbee = [
             {
                 cluster: clusterName,
@@ -746,7 +819,7 @@ const heimanExtend = {
                         return;
                     }
 
-                    const state = !!msg.data["interconnectable"];
+                    const state = !!msg.data.interconnectable;
                     return {interconnectable: state};
                 },
             } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
@@ -876,6 +949,7 @@ const heimanExtend = {
                         strobeLevel: 0,
                     };
 
+                    values.duration = 600;
                     if (Array.isArray(meta.mapped)) throw new Error("Not supported for groups");
 
                     const info = (values.mode << 4) + ((values.strobe ? 1 : 0) << 2) + values.level;
@@ -940,6 +1014,148 @@ const heimanExtend = {
             isModernExtend: true,
         };
     },
+    heimanClusterSensorWifiExposure: (): ModernExtend => {
+        const clusterName = "heimanClusterSpecial" as const;
+
+        const attrIds: Record<string, number> = {
+            wifiSsid: 0x2000,
+            wifiPassword: 0x2001,
+            wifiSsidCandidate: 0x2002,
+            wifiPasswordCandidate: 0x2003,
+            serverUrl: 0x2006,
+            serverUrlCandidate: 0x2007,
+        };
+
+        const exposes = [
+            e.text("wifi_ssid", ea.ALL).withDescription("Current WiFi SSID"),
+            e.text("wifi_password", ea.ALL).withDescription("Current WiFi Password"),
+            e.text("wifi_ssid_candidate", ea.ALL).withDescription("Candidate WiFi SSID"),
+            e.text("wifi_password_candidate", ea.ALL).withDescription("Candidate WiFi Password"),
+            e.text("server_url", ea.ALL).withDescription("Current Server URL"),
+            e.text("server_url_candidate", ea.ALL).withDescription("Candidate WiFi Server URL"),
+        ];
+
+        const fromZigbee = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: Record<string, unknown> = {};
+                    const data = msg.data as Record<string, unknown>;
+
+                    if (data.wifiSsid !== undefined) result.wifi_ssid = data.wifiSsid;
+                    if (data.wifiPassword !== undefined) result.wifi_password = data.wifiPassword;
+                    if (data.wifiSsidCandidate !== undefined) result.wifi_ssid_candidate = data.wifiSsidCandidate;
+                    if (data.wifiPasswordCandidate !== undefined) result.wifi_password_candidate = data.wifiPasswordCandidate;
+                    if (data.serverUrl !== undefined) result.server_url = data.serverUrl;
+                    if (data.serverUrlCandidate !== undefined) result.server_url_candidate = data.serverUrlCandidate;
+
+                    return result;
+                },
+            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["wifi_ssid", "wifi_password", "wifi_ssid_candidate", "wifi_password_candidate", "server_url", "server_url_candidate"],
+                convertSet: async (entity, key, value, meta) => {
+                    const attrNameMap: Record<string, string> = {
+                        wifi_ssid: "wifiSsid",
+                        wifi_password: "wifiPassword",
+                        wifi_ssid_candidate: "wifiSsidCandidate",
+                        wifi_password_candidate: "wifiPasswordCandidate",
+                        server_url: "serverUrl",
+                        server_url_candidate: "serverUrlCandidate",
+                    };
+
+                    const attrName = attrNameMap[key];
+                    const attrId = attrIds[attrName];
+
+                    if (attrId !== undefined) {
+                        const payload = {
+                            [attrId]: {
+                                value: value,
+                                type: Zcl.DataType.CHAR_STR,
+                            },
+                        };
+                        await entity.write(clusterName, payload, defaultResponseOptions);
+                        // await entity.write<typeof clusterName, HeimanPrivateCluster>(clusterName, {[attrId]: value}, defaultResponseOptions);
+                    }
+                    return {state: {[key]: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    const attrNameMap: Record<string, string> = {
+                        wifi_ssid: "wifiSsid",
+                        wifi_password: "wifiPassword",
+                        wifi_ssid_candidate: "wifiSsidCandidate",
+                        wifi_password_candidate: "wifiPasswordCandidate",
+                        server_url: "serverUrl",
+                        server_url_candidate: "serverUrlCandidate",
+                    };
+
+                    const attrId = attrIds[attrNameMap[key]];
+                    if (attrId !== undefined) {
+                        await entity.read(clusterName, [attrId], defaultResponseOptions);
+                    }
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    heimanClusterSensorActiveTrigger: (): ModernExtend => {
+        const clusterName = "heimanClusterSpecial" as const;
+        const manufacturerCode = 0x120b;
+
+        const exposes = [e.enum("camera_active_trigger", ea.SET, ["active"]).withDescription("Trigger the camera to take a picture.")];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["camera_active_trigger"],
+                convertSet: async (entity, key, value, meta) => {
+                    // Command ID 0x01: CameraActiveTigger
+                    await entity.command(clusterName, 0x01, {}, {manufacturerCode});
+                    return {state: {[key]: value}};
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee: [],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    heimanClusterSensorTestTrigger: (): ModernExtend => {
+        const clusterName = "heimanClusterSpecial" as const;
+        const manufacturerCode = 0x120b;
+
+        const exposes = [e.enum("camera_test_trigger", ea.SET, ["test"]).withDescription("Trigger camera and wifi/server connection test.")];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["camera_test_trigger"],
+                convertSet: async (entity, key, value, meta) => {
+                    // Command ID 0x02: CameraTestTigger
+                    await entity.command(clusterName, 0x02, {}, {manufacturerCode});
+                    return {state: {[key]: value}};
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee: [],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
 };
 
 const fzLocal = {
@@ -962,11 +1178,32 @@ const fzLocal = {
                 1: "smoke_siren",
                 2: "co_siren",
             };
+            const serverStatusLookup: Record<number, string> = {
+                0: "unconfigurated",
+                1: "unconnected",
+                2: "connected",
+                3: "api1_timeout",
+            };
+            const wifiStatusLookup: Record<number, string> = {
+                0: "unconfigurated",
+                1: "unconnected",
+                2: "connected",
+                3: "connection_timeout",
+            };
+            const interconnectionStatusLookup: Record<number, string> = {
+                0: "inactive",
+                1: "smoke_active",
+                2: "co_active",
+                3: "heat_active",
+            };
 
             if (data.smokeConcentrationLevel !== undefined) {
                 const raw = Number.parseFloat(data.smokeConcentrationLevel as string) / 100;
                 // Check if valid, then force exactly 2 decimal places as a STRING
                 result.smoke_level = Number.isNaN(raw) ? "0.00" : raw.toFixed(2);
+            }
+            if (data.temperatureOffset !== undefined) {
+                result.temperature_offset = data.temperatureOffset;
             }
             if (data.deviceCascadeState !== undefined) {
                 result.siren_for_automation_only = smokeSirenLookup[data.deviceCascadeState as number];
@@ -976,6 +1213,21 @@ const fzLocal = {
             }
             if (data.smokeConcentationUnit !== undefined) {
                 result.smoke_unit = data.smokeConcentationUnit ? "%ft OBS" : "dB/m";
+            }
+            if (data.interconnectable !== undefined) {
+                result.link_available = interconnectionStatusLookup[data.interconnectable as number];
+            }
+            if (data.serverStatus !== undefined) {
+                result.server_status = serverStatusLookup[data.serverStatus as number];
+            }
+            if (data.serverCandidateStatus !== undefined) {
+                result.server_candidate_status = serverStatusLookup[data.serverCandidateStatus as number];
+            }
+            if (data.wifiStatus !== undefined) {
+                result.wifi_status = wifiStatusLookup[data.wifiStatus as number];
+            }
+            if (data.wifiCandidateStatus !== undefined) {
+                result.wifi_candidate_status = wifiStatusLookup[data.wifiCandidateStatus as number];
             }
             return result;
         },
@@ -996,7 +1248,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint1);
             await reporting.occupancy(endpoint1);
         },
-        extend: [m.illuminance()],
+        extend: [heimanExtend.heimanClusterLegacyIlluminanceExtend()],
     },
     {
         fingerprint: tuya.fingerprint("TS0212", ["_TYZB01_wpmo3ja3"]),
@@ -1015,7 +1267,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
-        zigbeeModel: ["PIRSensor-N", "PIRSensor-EM", "PIRSensor-EF-3.0", "PIR_TPV13"],
+        zigbeeModel: ["PIRSensor-N", "PIRSensor-N-3.0", "PIRSensor-EM", "PIRSensor-EF-3.0", "PIR_TPV13"],
         model: "HS3MS",
         vendor: "Heiman",
         description: "Smart motion sensor",
@@ -1075,7 +1327,7 @@ export const definitions: DefinitionWithExtend[] = [
             "SMOK_HV14",
             "SMOK_YDLV10N",
         ],
-        model: "HS1SA",
+        model: "HS1SA-E",
         vendor: "Heiman",
         description: "Smoke detector",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
@@ -1214,7 +1466,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ["WaterSensor-N", "WaterSensor-EM", "WaterSensor-N-3.0", "WaterSensor-EF-3.0", "WATER_TPV13"],
+        zigbeeModel: ["WaterSensor-N", "WaterSensor-EM", "WaterSensor-N-3.0", "WaterSensor-EF-3.0", "WATER_TPV13", "TY0207"],
         model: "HS1WL/HS3WL",
         vendor: "Heiman",
         description: "Water leakage sensor",
@@ -1378,7 +1630,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.humidity(), e.battery()],
     },
     {
-        zigbeeModel: ["E_Socket"],
+        zigbeeModel: ["E_Socket", "E8331510SSZB_C1"],
         model: "HS2ESK-E",
         vendor: "Heiman",
         description: "Smart in wall plug",
@@ -1414,7 +1666,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "SceneSwitch-EM-3.0", manufacturerName: "HEIMAN"}],
+        fingerprint: [
+            {modelID: "SceneSwitch-EM-3.0", manufacturerName: "HEIMAN"},
+            {modelID: "SceneSwitch-EF-3.0", manufacturerName: "HEIMAN"},
+        ],
         model: "HS2SS",
         vendor: "Heiman",
         description: "Smart scene switch",
@@ -1536,7 +1791,10 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.vibration(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        fingerprint: [{modelID: "HS2AQ-EM", manufacturerName: "HEIMAN"}],
+        fingerprint: [
+            {modelID: "HS2AQ-EM", manufacturerName: "HEIMAN"},
+            {modelID: "HS2AQ-EM-3.0", manufacturerName: "HEIMAN"},
+        ],
         model: "HS2AQ-EM",
         vendor: "Heiman",
         description: "Air quality monitor",
@@ -1642,7 +1900,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: "IRControl-EM", manufacturerName: "HEIMAN"}],
-        model: "HS2IRC",
+        model: "HS1IRC",
         vendor: "Heiman",
         description: "Smart IR Control",
         extend: [addCustomClusterHeimanSpecificInfraRedRemote()],
@@ -1656,7 +1914,20 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["HS2SW1L-EF-3.0", "HS2SW1L-EFR-3.0", "HS2SW1A-N"],
+        fingerprint: [{modelID: "IRControl2-EF-3.0", manufacturerName: "HEIMAN"}],
+        model: "HS2IRC",
+        vendor: "Heiman",
+        description: "Smart IR Control",
+        extend: [addCustomClusterHeimanSpecificInfraRedRemote()],
+        fromZigbee: [fz.heiman_ir_remote],
+        toZigbee: [tz.heiman_ir_remote],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["heimanSpecificInfraRedRemote"]);
+        },
+    },
+    {
+        zigbeeModel: ["HS2SW1L-EF-3.0", "HS2SW1L-EFR-3.0", "HS2SW1A-N", "HS6SW1A-W-EF-3.0", "HS5SW1A-W-EF-3.0"],
         fingerprint: [
             {modelID: "HS2SW1A-EF-3.0", manufacturerName: "HEIMAN"},
             {modelID: "HS2SW1A-EFR-3.0", manufacturerName: "HEIMAN"},
@@ -1675,7 +1946,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch(), e.device_temperature()],
     },
     {
-        zigbeeModel: ["HS2SW2L-EF-3.0", "HS2SW2L-EFR-3.0", "HS2SW2A-N"],
+        zigbeeModel: ["HS2SW2L-EF-3.0", "HS2SW2L-EFR-3.0", "HS2SW2A-N", "HS6SW2A-W-EF-3.0", "HS5SW2A-W-EF-3.0", "RT0102"],
         fingerprint: [
             {modelID: "HS2SW2A-EF-3.0", manufacturerName: "HEIMAN"},
             {modelID: "HS2SW2A-EFR-3.0", manufacturerName: "HEIMAN"},
@@ -1697,7 +1968,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch().withEndpoint("left"), e.switch().withEndpoint("right"), e.device_temperature()],
     },
     {
-        zigbeeModel: ["HS2SW3L-EF-3.0", "HS2SW3L-EFR-3.0", "HS2SW3A-N"],
+        zigbeeModel: ["HS2SW3L-EF-3.0", "HS2SW3L-EFR-3.0", "HS2SW3A-N", "HS6SW3A-W-EF-3.0", "HS5SW3A-W-EF-3.0"],
         fingerprint: [
             {modelID: "HS2SW3A-EF-3.0", manufacturerName: "HEIMAN"},
             {modelID: "HS2SW3A-EFR-3.0", manufacturerName: "HEIMAN"},
@@ -1718,6 +1989,44 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.deviceTemperature(device.getEndpoint(1));
         },
         exposes: [e.switch().withEndpoint("left"), e.switch().withEndpoint("center"), e.switch().withEndpoint("right"), e.device_temperature()],
+    },
+    {
+        zigbeeModel: ["RelayModule-EF-3.0"],
+        model: "HS1RM-EF",
+        vendor: "Heiman",
+        description: "Smart relay module - 2 gang with neutral wire",
+        exposes: [],
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.onOff({endpointNames: ["l1", "l2"]}),
+            m.deviceTemperature(),
+            m.identify(),
+            m.enumLookup({
+                name: "switch_actions",
+                endpointName: "l1",
+                lookup: {on_off: 0, off_on: 1, toggle: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions for switch 1",
+            }),
+            m.enumLookup({
+                name: "switch_actions",
+                endpointName: "l2",
+                lookup: {on_off: 0, off_on: 1, toggle: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions for switch 2",
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            await endpoint1.read("genOnOff", ["onOff", "startUpOnOff"]);
+            await endpoint2.read("genOnOff", ["onOff", "startUpOnOff"]);
+            await endpoint1.read("haDiagnostic", ["lastMessageLqi", "lastMessageRssi"]);
+        },
     },
     {
         zigbeeModel: ["TemperLight"],
@@ -1767,6 +2076,106 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
+        zigbeeModel: ["HS9MS-E"],
+        model: "HS9MS-E",
+        vendor: "Heiman",
+        description: "Smart motion sensor",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [],
+        exposes: [],
+        extend: [
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
+            m.battery(),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterSensorTestTrigger(),
+            heimanExtend.heimanClusterSensorActiveTrigger(),
+            heimanExtend.heimanClusterLegacyIlluminanceExtend(),
+            heimanExtend.heimanClusterSensorWifiExposure(),
+            m.numeric({
+                name: "picture_quantity",
+                unit: "",
+                scale: 1,
+                valueMin: 1,
+                valueMax: 20,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x2004, type: Zcl.DataType.UINT8},
+                description: "picture quantity",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "picture_quality",
+                unit: "",
+                scale: 1,
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x2005, type: Zcl.DataType.UINT8},
+                description: "picture quality",
+                access: "ALL",
+            }),
+            m.binary({
+                name: "sensor_armed",
+                valueOn: ["Armed", 1],
+                valueOff: ["Disarmed", 0],
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x200b, type: Zcl.DataType.UINT8},
+                description: "armed",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "wifi_status",
+                lookup: {unconfigurated: 0, unconnected: 1, connected: 2, connection_timeout: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x200c, type: Zcl.DataType.UINT8},
+                description: "wifi status",
+                access: "STATE_GET",
+            }),
+            m.enumLookup({
+                name: "wifi_candidate_status",
+                lookup: {unconfigurated: 0, unconnected: 1, connected: 2, connection_timeout: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x200d, type: Zcl.DataType.UINT8},
+                description: "wifi candidate status",
+                access: "STATE_GET",
+            }),
+            m.enumLookup({
+                name: "server_status",
+                lookup: {unconfigurated: 0, unconnected: 1, connected: 2, api_timeout: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x200f, type: Zcl.DataType.UINT8},
+                description: "server status",
+                access: "STATE_GET",
+            }),
+            m.enumLookup({
+                name: "server_candidate_status",
+                lookup: {unconfigurated: 0, unconnected: 1, connected: 2, api_timeout: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x2010, type: Zcl.DataType.UINT8},
+                description: "server candidate status",
+                access: "STATE_GET",
+            }),
+            m.enumLookup({
+                name: "camera_ready",
+                lookup: {unavailable: 0, low_power: 1, normal: 2, advanced: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x2013, type: Zcl.DataType.UINT8},
+                description: "wifi candidate status",
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "wifi_rssi",
+                unit: "",
+                scale: 1,
+                valueMin: -127,
+                valueMax: 127,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x200e, type: Zcl.DataType.INT8},
+                description: "wifi rssi",
+                access: "ALL",
+            }),
+        ],
+    },
+    {
         fingerprint: [{modelID: "DoorBell-EM", manufacturerName: "HEIMAN"}],
         model: "HS2DB",
         vendor: "Heiman",
@@ -1810,6 +2219,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.co2(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 0.00005}); // 50 ppm change
         },
         exposes: [e.co2(), e.battery(), e.humidity(), e.temperature()],
+        extend: [m.writeTimeDaily({endpointId: 1})],
     },
     {
         zigbeeModel: ["RouteLight-EF-3.0"],
@@ -1932,6 +2342,95 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => ({default: 1}),
     },
     {
+        zigbeeModel: ["HS8MIS-EF1-3.0"],
+        model: "HS8MIS-EF1-3.0",
+        vendor: "Heiman",
+        description: "PIR sensor",
+        extend: [
+            m.occupancy(),
+            heimanExtend.heimanClusterRadar(),
+            heimanExtend.heimanClusterRadarActiveIndicatorExtend(),
+            heimanExtend.heimanClusterLegacyIlluminanceExtend(),
+
+            m.numeric({
+                name: "radar_delay_time",
+                cluster: 0x0406,
+                attribute: {ID: 0x0010, type: 0x21},
+                description: "Occupied to unoccupied delay",
+                valueMin: 60,
+                valueMax: 3600,
+                access: "ALL",
+            }),
+
+            m.enumLookup({
+                name: "sensitivity",
+                lookup: {high: 0, medium: 1, low: 2},
+                cluster: "heimanClusterRadar",
+                attribute: {ID: 0xf002, type: Zcl.DataType.UINT8},
+                description: "sensitivity for PIR sensor",
+                access: "ALL",
+            }),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                "msOccupancySensing",
+                "msIlluminanceMeasurement",
+                "heimanClusterRadar",
+                "haDiagnostic",
+            ]);
+            await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
+            await endpoint.read("msOccupancySensing", ["ultrasonicOToUDelay"]);
+            await endpoint.read("heimanClusterRadar", [0xf001, 0xf002], {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD});
+        },
+        endpoint: (device) => ({default: 1}),
+    },
+    {
+        zigbeeModel: ["HS8MIS-86-EF1-3.0"],
+        model: "HS8MLS-EF1-3.0",
+        vendor: "Heiman",
+        description: "PIR sensor with night light",
+        extend: [
+            m.occupancy(),
+            m.onOff(),
+            heimanExtend.heimanClusterRadar(),
+            heimanExtend.heimanClusterRadarActiveIndicatorExtend(),
+            heimanExtend.heimanClusterLegacyIlluminanceExtend(),
+            m.numeric({
+                name: "radar_delay_time",
+                cluster: 0x0406,
+                attribute: {ID: 0x0010, type: 0x21},
+                description: "Occupied to unoccupied delay",
+                valueMin: 60,
+                valueMax: 3600,
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "sensitivity",
+                lookup: {high: 0, medium: 1, low: 2},
+                cluster: "heimanClusterRadar",
+                attribute: {ID: 0xf002, type: Zcl.DataType.UINT8},
+                description: "sensitivity for PIR sensor",
+                access: "ALL",
+            }),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, [
+                "msOccupancySensing",
+                "msIlluminanceMeasurement",
+                "heimanClusterRadar",
+                "haDiagnostic",
+            ]);
+            await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
+            await endpoint.read("msOccupancySensing", ["ultrasonicOToUDelay"]);
+            await endpoint.read("heimanClusterRadar", [0xf001, 0xf002], {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD});
+        },
+        endpoint: (device) => ({default: 1}),
+    },
+    {
         fingerprint: [{modelID: "HS2AQ-EF-3.0", manufacturerName: "HEIMAN"}],
         model: "HS2AQ-EF-3.0",
         vendor: "Heiman",
@@ -2038,8 +2537,8 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.temperature(), e.pm25(), e.hcho(), e.aqi(), e.pm10()],
     },
     {
-        zigbeeModel: ["HS1SA-EF-3.0"],
-        model: "HS1SA-E",
+        zigbeeModel: ["HS1SA-EF-3.0", "HS1SA-E-PLUS"],
+        model: "HS1SA-E-PLUS",
         vendor: "Heiman",
         description: "Smoke detector",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fzLocal.heimanClusterSpecialfz],
@@ -2049,9 +2548,13 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", 0xfc90]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
-            await endpoint.read("heimanClusterSpecial", [0x0002, 0x008, 0x009, 0x1004, 0x1007, 0x0016, 0x0017, 0x0018, 0x0019, 0x001a, 0x001b], {
-                manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
-            });
+            await endpoint.read(
+                "heimanClusterSpecial",
+                [0x0002, 0x008, 0x009, 0x1004, 0x1007, 0x0016, 0x0017, 0x0018, 0x0019, 0x001a, 0x001b, 0x100d],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
         },
         exposes: [],
         extend: [
@@ -2094,11 +2597,370 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             m.enumLookup({
+                name: "link_available",
+                lookup: {inactive: 0, smoke_active: 1, co_active: 2, heat_active: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x1007, type: Zcl.DataType.UINT8},
+                description: "used for interconnection automation.",
+                access: "STATE_GET",
+            }),
+            m.enumLookup({
                 name: "siren_for_automation_only",
                 lookup: {stop: 0, smoke_siren: 1, co_siren: 2},
                 cluster: "heimanClusterSpecial",
                 attribute: {ID: 0x0012, type: Zcl.DataType.ENUM8},
                 description: "siren effect",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "temperature_offset",
+                unit: "",
+                valueMin: -1500,
+                valueMax: 1500,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x100d, type: Zcl.DataType.INT16},
+                description: "used for temperature offset, unit: 0.01℃",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "reported_packages",
+                unit: "",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x001b, type: Zcl.DataType.UINT16},
+                description: "for diagnostic purpose, how many zigbee packages has the reported in a day.",
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "rejoin_count",
+                unit: "",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x001a, type: Zcl.DataType.UINT16},
+                description: "for diagnostic purpose, how many times has the product rejoined to zigbee network.",
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "reboot_count",
+                unit: "",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0019, type: Zcl.DataType.UINT16},
+                description: "for diagnostic purpose, how many times has the product rebooted.",
+                access: "STATE_GET",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["HM-722ESY-E-PLUS"],
+        model: "HM-722ESY-E Plus",
+        vendor: "Heiman",
+        description: "Co detector",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", 0xfc90]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("heimanClusterSpecial", [0x0002, 0x008, 0x009, 0x1004, 0x1007, 0x0016, 0x0017, 0x0018, 0x0019, 0x001a, 0x001b], {
+                manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+            });
+        },
+        exposes: [e.co()],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature(),
+            m.iasZoneAlarm({zoneType: "carbon_monoxide", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterSensorFaultState(),
+            heimanExtend.heimanClusterDeviceMuteState(),
+            heimanExtend.iasZoneInitiateTestMode(),
+            heimanExtend.heimanClusterSensorMutable(),
+            heimanExtend.heimanClusterIndicatorLight(),
+            heimanExtend.heimanClusterSensorInterconnectable(),
+            m.enumLookup({
+                name: "link_available",
+                lookup: {inactive: 0, smoke_active: 1, co_active: 2, heat_active: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x1007, type: Zcl.DataType.UINT8},
+                description: "used for interconnection automation.",
+                access: "STATE_GET",
+            }),
+            m.enumLookup({
+                name: "siren_for_automation_only",
+                lookup: {stop: 0, smoke_siren: 1, co_siren: 2},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0012, type: Zcl.DataType.ENUM8},
+                description: "siren effect",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "reported_packages",
+                unit: "",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x001b, type: Zcl.DataType.UINT16},
+                description: "for diagnostic purpose, how many zigbee packages has the reported in a day.",
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "rejoin_count",
+                unit: "",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x001a, type: Zcl.DataType.UINT16},
+                description: "for diagnostic purpose, how many times has the product rejoined to zigbee network.",
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "reboot_count",
+                unit: "",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0019, type: Zcl.DataType.UINT16},
+                description: "for diagnostic purpose, how many times has the product rebooted.",
+                access: "STATE_GET",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["HS1CA-E-PLUS"],
+        model: "HS1CA-E Plus",
+        vendor: "Heiman",
+        description: "Co detector",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", 0xfc90]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("heimanClusterSpecial", [0x0002, 0x008, 0x009, 0x1004, 0x1007, 0x0016, 0x0017, 0x0018, 0x0019, 0x001a, 0x001b], {
+                manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+            });
+        },
+        exposes: [e.co()],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature(),
+            m.iasZoneAlarm({zoneType: "carbon_monoxide", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterSensorFaultState(),
+            heimanExtend.heimanClusterDeviceMuteState(),
+            heimanExtend.iasZoneInitiateTestMode(),
+            heimanExtend.heimanClusterSensorMutable(),
+            heimanExtend.heimanClusterIndicatorLight(),
+            heimanExtend.heimanClusterSensorInterconnectable(),
+            m.enumLookup({
+                name: "siren_for_automation_only",
+                lookup: {stop: 0, smoke_siren: 1, co_siren: 2},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0012, type: Zcl.DataType.ENUM8},
+                description: "siren effect",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "link_available",
+                lookup: {inactive: 0, smoke_active: 1, co_active: 2, heat_active: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x1007, type: Zcl.DataType.UINT8},
+                description: "used for interconnection automation.",
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "reported_packages",
+                unit: "",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x001b, type: Zcl.DataType.UINT16},
+                description: "for diagnostic purpose, how many zigbee packages has the reported in a day.",
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "rejoin_count",
+                unit: "",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x001a, type: Zcl.DataType.UINT16},
+                description: "for diagnostic purpose, how many times has the product rejoined to zigbee network.",
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "reboot_count",
+                unit: "",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0019, type: Zcl.DataType.UINT16},
+                description: "for diagnostic purpose, how many times has the product rebooted.",
+                access: "STATE_GET",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["Smokesensor-EF2-3.0"],
+        model: "HS1SA-E Lover",
+        vendor: "Heiman",
+        description: "Smoke detector",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", 0xfc90]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("heimanClusterSpecial", [0x0002, 0x008, 0x009, 0x0019, 0x001a, 0x001b], {
+                manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+            });
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "battery_low", "test", "trouble"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.iasZoneInitiateTestMode(),
+            heimanExtend.iasWarningDeviceMute(),
+            m.enumLookup({
+                name: "siren_for_automation_only",
+                lookup: {stop: 0, smoke_siren: 1},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0012, type: Zcl.DataType.ENUM8},
+                description: "siren effect",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "reported_packages",
+                unit: "",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x001b, type: Zcl.DataType.UINT16},
+                description: "for diagnostic purpose, how many zigbee packages has the reported in a day.",
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "rejoin_count",
+                unit: "",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x001a, type: Zcl.DataType.UINT16},
+                description: "for diagnostic purpose, how many times has the product rejoined to zigbee network.",
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "reboot_count",
+                unit: "",
+                valueMin: 0,
+                valueMax: 60000,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0019, type: Zcl.DataType.UINT16},
+                description: "for diagnostic purpose, how many times has the product rebooted.",
+                access: "STATE_GET",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["HM-636THV-AC-M"],
+        model: "HM-636THV-AC-M",
+        vendor: "Heiman",
+        description: "Smoke detector",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", 0xfc90]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read(
+                "heimanClusterSpecial",
+                [0x0002, 0x008, 0x009, 0x1004, 0x1007, 0x0016, 0x0017, 0x0018, 0x0019, 0x001a, 0x001b, 0x100d],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+        },
+        exposes: [e.co()],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature(),
+            m.humidity(),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterSensorFaultState(),
+            heimanExtend.heimanClusterDeviceMuteState(),
+            heimanExtend.iasZoneInitiateTestMode(),
+            heimanExtend.heimanClusterSensorMutable(),
+            heimanExtend.heimanClusterIndicatorLight(),
+            heimanExtend.heimanClusterSensorInterconnectable(),
+            m.numeric({
+                name: "smoke_level",
+                unit: "",
+                scale: 0.1,
+                valueMin: 0,
+                valueMax: 20,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0016, type: Zcl.DataType.UINT8},
+                description: "smoke level",
+                access: "STATE_GET",
+            }),
+            m.enumLookup({
+                name: "smoke_unit",
+                lookup: {"dB/m": 0, "%ft OBS": 1},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0018, type: Zcl.DataType.ENUM8},
+                description: "smoke level unit",
+                access: "STATE_GET",
+            }),
+            m.enumLookup({
+                name: "chamber_contamination",
+                lookup: {normal: 0, light_contamination: 1, medium_contamination: 2, critical_contamination: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0017, type: Zcl.DataType.ENUM8},
+                description: "it indicates that how serious the smoke chamber get contaminated.",
+                access: "STATE_GET",
+            }),
+            m.enumLookup({
+                name: "link_available",
+                lookup: {inactive: 0, smoke_active: 1, co_active: 2, heat_active: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x1007, type: Zcl.DataType.UINT8},
+                description: "used for interconnection automation.",
+                access: "STATE_GET",
+            }),
+            m.enumLookup({
+                name: "siren_for_automation_only",
+                lookup: {stop: 0, smoke_siren: 1, co_siren: 2},
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x0012, type: Zcl.DataType.ENUM8},
+                description: "siren effect",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "temperature_offset",
+                unit: "",
+                valueMin: -1500,
+                valueMax: 1500,
+                cluster: "heimanClusterSpecial",
+                attribute: {ID: 0x100d, type: Zcl.DataType.INT16},
+                description: "used for temperature offset, unit: 0.01℃",
                 access: "ALL",
             }),
             m.numeric({

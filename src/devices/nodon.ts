@@ -232,7 +232,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FPS-4-1-00",
         vendor: "NodOn",
         description: "Electrical heating actuator",
-        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), m.temperature(), ...nodonPilotWire(true)],
+        extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), m.temperature(), m.humidity(), ...nodonPilotWire(true)],
         ota: true,
     },
     {

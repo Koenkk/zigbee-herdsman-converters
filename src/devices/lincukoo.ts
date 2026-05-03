@@ -111,7 +111,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_sndkanfr", "_TZE204_bjf8qum1"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_sndkanfr", "_TZE204_bjf8qum1", "_TZE284_sndkanfr"]),
         model: "SZLMR10",
         vendor: "Lincukoo",
         description: "Human Motion & Presence Sensor",
@@ -147,12 +147,15 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gw05grph", "_TZE284_chcnj5st"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gw05grph", "_TZE284_chcnj5st", "_TZE284_pislt0wa"]),
         model: "CZF02",
         vendor: "Lincukoo",
-        description: "Finger Robot",
+        description: "Finger Robot", //fingerbot
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        whiteLabel: [tuya.whitelabel("Sygonix", "SY-6811314", "Zigbee Smart button/switch Pusher", ["_TZE284_chcnj5st"])],
+        whiteLabel: [
+            tuya.whitelabel("Sygonix", "SY-6811314", "Zigbee Smart button/switch Pusher", ["_TZE284_chcnj5st"]),
+            tuya.whitelabel("Nous", "C2", "Button/switch pusher", ["_TZE284_pislt0wa"]),
+        ],
         exposes: [
             e.switch(),
             e.enum("mode", ea.STATE_SET, ["click", "long_press"]).withDescription("work mode of the finger robot"),
@@ -183,11 +186,11 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],
                 [2, "mode", tuya.valueConverterBasic.lookup({click: tuya.enum(0), long_press: tuya.enum(1)})],
-                [3, "click_sustain_time", tuya.valueConverter.divideBy10],
-                [5, "arm_down_percent", tuya.valueConverter.raw],
-                [6, "arm_up_percent", tuya.valueConverter.raw],
-                [101, "auto_adjustment", tuya.valueConverter.onOff],
-                [102, "set_switch_state", tuya.valueConverter.onOff],
+                [3, "click_sustain_time", tuya.valueConverter.divideBy10], // springback_time
+                [5, "arm_down_percent", tuya.valueConverter.raw], // initial_percent
+                [6, "arm_up_percent", tuya.valueConverter.raw], // end_percent
+                [101, "auto_adjustment", tuya.valueConverter.onOff], // auto
+                [102, "set_switch_state", tuya.valueConverter.onOff], // switching_display_status
                 [8, "battery", tuya.valueConverter.raw],
             ],
         },
@@ -383,10 +386,10 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aghfucwi", "_TZE284_2qx7sivb", "_TZE284_8sejxcue"]),
-        model: "V04-Z10T",
-        vendor: "Lincukoo",
-        description: "Smart vibration alarm sensor",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aghfucwi", "_TZE284_2qx7sivb", "_TZE284_8sejxcue", "_TZE284_7trh4ihp"]),
+        model: "TS0601_vibration_alarm_sensor",
+        vendor: "Tuya",
+        description: "Vibration alarm sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: (device) => {
             const exps: Expose[] = [
@@ -413,17 +416,19 @@ export const definitions: DefinitionWithExtend[] = [
 
         meta: {
             tuyaDatapoints: [
-                [1, "alarm_status", tuya.valueConverterBasic.lookup({normal: 0, alarm: 1})],
+                [1, "alarm_status", tuya.valueConverterBasic.lookup({normal: 0, alarm: 1})], // shake_state
                 [3, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
                 [4, "battery", tuya.valueConverter.raw],
                 [101, "sensitivity", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
-                [102, "disarm", tuya.valueConverterBasic.lookup({normal: tuya.enum(0)})],
-                [103, "silence_mode", tuya.valueConverter.onOff],
+                [102, "disarm", tuya.valueConverterBasic.lookup({normal: tuya.enum(0)})], // turn_off_the_current_alarm_sound
+                [103, "silence_mode", tuya.valueConverter.onOff], // mute_mode
             ],
         },
         whiteLabel: [
+            tuya.whitelabel("Lincukoo", "V04-Z10T", "Vibration alarm sensor", ["_TZE284_aghfucwi"]),
             tuya.whitelabel("Lincukoo", "V06-Z10T", "Mini vibration sensor", ["_TZE284_2qx7sivb"]),
-            tuya.whitelabel("Lincukoo", "V04-Z20T", "Vibration alarm sensor", ["_TZE284_8sejxcue"]),
+            {vendor: "Lincukoo", model: "V04-Z20T"},
+            {vendor: "Nous", model: "E14"},
         ],
     },
     {
@@ -770,6 +775,50 @@ export const definitions: DefinitionWithExtend[] = [
                         ringtone_27: tuya.enum(26),
                     }),
                 ],
+            ],
+        },
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zzm83zpz"]),
+        model: "R12LM-Z11T",
+        vendor: "Lincukoo",
+        description: "Human motion & presence sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.enum("scan_environment", ea.STATE_SET, ["start"]).withDescription("Set no one environment"),
+            e
+                .enum("scan_result", ea.STATE, ["normal", "scanning", "scan_success", "scan_failure", "scan_start"])
+                .withDescription("Environment scan result"),
+            e.enum("mode", ea.STATE_SET, ["radar_mode", "fusion_mode"]).withDescription("Device mode"),
+            e.presence(),
+            e.illuminance(),
+            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
+            e
+                .numeric("set_detection_distance", ea.STATE_SET)
+                .withValueMin(3)
+                .withValueMax(9)
+                .withValueStep(1.5)
+                .withUnit("m")
+                .withDescription("Detection distance"),
+            e.enum("battery_state", ea.STATE, ["low", "middle", "high", "USB"]).withDescription("Battery status"),
+            e.binary("switch_night_light", ea.STATE_SET, "ON", "OFF").withDescription("Night light switch"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse0],
+                [8, "scan_result", tuya.valueConverterBasic.lookup({normal: 0, scanning: 1, scan_success: 2, scan_failure: 3, scan_start: 4})],
+                [101, "illuminance", tuya.valueConverter.raw],
+                [102, "mode", tuya.valueConverterBasic.lookup({radar_mode: tuya.enum(0), fusion_mode: tuya.enum(1)})],
+                [103, "radar_switch", tuya.valueConverter.onOff],
+                [105, "scan_environment", tuya.valueConverterBasic.lookup({start: tuya.enum(0)})],
+                [106, "set_detection_distance", tuya.valueConverter.divideBy100],
+                [
+                    108,
+                    "battery_state",
+                    tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2), USB: tuya.enum(3)}),
+                ],
+                [109, "switch_night_light", tuya.valueConverter.onOff],
             ],
         },
     },

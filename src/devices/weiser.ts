@@ -8,6 +8,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Weiser",
         description: "SmartCode 10",
         extend: [m.lock({pinCodeCount: 30, readPinCodeOnProgrammingEvent: true}), m.battery()],
+        endpoint: (device) => {
+            return {default: 2};
+        },
     },
     {
         zigbeeModel: ["SMARTCODE_DEADBOLT_10T"],
@@ -15,5 +18,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Weiser",
         description: "SmartCode 10 Touch",
         extend: [m.lock({pinCodeCount: 30, readPinCodeOnProgrammingEvent: true}), m.battery()],
+        endpoint: (device) => {
+            return {default: 2};
+        },
     },
 ];

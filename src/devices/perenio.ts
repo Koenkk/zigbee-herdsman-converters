@@ -20,6 +20,7 @@ const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.CUSTOM_PEREN
 const perenioExtend = {
     addCustomClusterPerenio: () =>
         m.deviceAddCustomCluster("perenioSpecific", {
+            name: "perenioSpecific",
             ID: 64635,
             manufacturerCode: Zcl.ManufacturerCode.CUSTOM_PERENIO,
             attributes: {},
