@@ -625,8 +625,7 @@ const inovelliExtend = {
         supportsButtonTaps: boolean;
         splitValuesByEndpoint?: boolean;
     }) => {
-        // biome-ignore lint/suspicious/noExplicitAny: matches DefinitionWithExtend.fromZigbee signature
-        const fromZigbee: Fz.Converter<any, any, any>[] = [];
+        const fromZigbee: NonNullable<ModernExtend["fromZigbee"]> = [];
         const toZigbee: Tz.Converter[] = [];
         const staticExposes: Expose[] = [];
 
@@ -719,8 +718,7 @@ const inovelliExtend = {
         } satisfies ModernExtend;
     },
     light: ({splitValuesByEndpoint = false}: {splitValuesByEndpoint?: boolean} = {}) => {
-        // biome-ignore lint/suspicious/noExplicitAny: matches DefinitionWithExtend.fromZigbee signature
-        const fromZigbee: Fz.Converter<any, any, any>[] = [fzLocal.on_off_for_endpoint(1, "state"), fzLocal.brightness];
+        const fromZigbee: NonNullable<ModernExtend["fromZigbee"]> = [fzLocal.on_off_for_endpoint(1, "state"), fzLocal.brightness];
 
         if (!splitValuesByEndpoint) {
             fromZigbee.push(fz.level_config, fz.power_on_behavior);
