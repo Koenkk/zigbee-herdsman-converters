@@ -1,10 +1,19 @@
+import {Zcl} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface FuturehomeHaApplianceControl {
+    attributes: {
+        autoCharge: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const localValueConverters = {
     energyMonotonic: {
@@ -19,6 +28,72 @@ const localValueConverters = {
             meta.device.meta.energy = scaled;
             return scaled;
         },
+    },
+};
+
+const futurehomeExtend = {
+    chargerStatus: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            fromZigbee: [
+                {
+                    cluster: "haApplianceControl",
+                    type: ["commandSignalStateNotification", "commandSignalStateRsp"],
+                    convert(model, msg, publish, options, meta) {
+                        const status = msg?.data?.applianceStatus;
+                        if (status === undefined || status === null) return;
+                        let chargerStatus: "plugged_out" | "plugged_in" | "plugged_in_charging" | "plugged_in_paused" = "plugged_out";
+                        let charging = false;
+
+                        switch (status) {
+                            // case 0x01: // Off
+                            case 0x02: // StandBy → charging
+                                chargerStatus = "plugged_in_charging";
+                                charging = true;
+                                break;
+
+                            case 0x03: // Programmed (paused by user)
+                                chargerStatus = "plugged_in_paused";
+                                charging = false;
+                                break;
+
+                            case 0x04: // ProgrammedWaitingToStart
+                                chargerStatus = "plugged_in";
+                                charging = false;
+                                break;
+
+                            // case 0x08: // Failure
+                            default:
+                                chargerStatus = "plugged_out";
+                                charging = false;
+                        }
+                        return {charger_status: chargerStatus, charging};
+                    },
+                } satisfies Fz.Converter<"haApplianceControl", undefined, ["commandSignalStateNotification", "commandSignalStateRsp"]>,
+            ],
+            exposes: [
+                exposes
+                    .enum("charger_status", ea.STATE, ["plugged_out", "plugged_in", "plugged_in_charging", "plugged_in_paused"])
+                    .withDescription("Current EV charger state"),
+            ],
+        };
+    },
+    charging: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            fromZigbee: [],
+            toZigbee: [
+                {
+                    key: ["charging"],
+                    convertSet: async (entity, key, value, meta) => {
+                        const isStart = value === "Start";
+                        await entity.command("haApplianceControl", "executionOfCommand", {commandId: isStart ? 0x01 : 0x03});
+                        return {state: {charging: isStart ? "Start" : "Pause"}};
+                    },
+                } satisfies Tz.Converter,
+            ],
+            exposes: [exposes.binary("charging", ea.STATE_SET, "Start", "Pause").withDescription("Start or pause charging.")],
+        };
     },
 };
 
@@ -105,5 +180,62 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart puck",
         ota: true,
         extend: [m.light({configureReporting: true})],
+    },
+    {
+        zigbeeModel: ["Charge"],
+        model: "Charge",
+        vendor: "Futurehome",
+        description: "Futurehome Charge (EV Charger)",
+        extend: [
+            m.deviceAddCustomCluster("haApplianceControl", {
+                name: "haApplianceControl",
+                ID: Zcl.Clusters.haApplianceControl.ID,
+                attributes: {
+                    autoCharge: {
+                        name: "autoCharge",
+                        ID: 0xef0c,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
+                        write: true,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            futurehomeExtend.chargerStatus(),
+            futurehomeExtend.charging(),
+            m.binary({
+                name: "cable_locked",
+                cluster: "closuresDoorLock",
+                attribute: "operatingMode",
+                valueOff: ["UNLOCK", 0x00],
+                valueOn: ["LOCK", 0x02],
+                description: "Permanently lock cable when not charging.",
+            }),
+            m.numeric({
+                name: "current_limit",
+                cluster: "genAnalogOutput",
+                attribute: "maxPresentValue",
+                description: "Maximum charging current.",
+                unit: "A",
+                access: "ALL",
+                valueMin: 6,
+                valueMax: 32,
+                valueStep: 1,
+            }),
+            m.binary<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "auto_charge",
+                cluster: "haApplianceControl",
+                attribute: "autoCharge",
+                description: "Automatically start charging when a car is connected.",
+                valueOff: ["OFF", 0],
+                valueOn: ["ON", 1],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.electricityMeter({
+                power: {cluster: "electrical"},
+                threePhase: true,
+            }),
+        ],
     },
 ];
