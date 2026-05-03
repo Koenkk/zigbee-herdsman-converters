@@ -624,7 +624,7 @@ const inovelliExtend = {
         supportsLedEffects?: boolean;
         supportsButtonTaps: boolean;
         splitValuesByEndpoint?: boolean;
-    }) => {
+    }): ModernExtend => {
         const fromZigbee: NonNullable<ModernExtend["fromZigbee"]> = [];
         const toZigbee: Tz.Converter[] = [];
         const staticExposes: Expose[] = [];
@@ -715,9 +715,9 @@ const inovelliExtend = {
             exposes: [...staticExposes, dynamicExposes],
             configure,
             isModernExtend: true,
-        } satisfies ModernExtend;
+        };
     },
-    light: ({splitValuesByEndpoint = false}: {splitValuesByEndpoint?: boolean} = {}) => {
+    light: ({splitValuesByEndpoint = false}: {splitValuesByEndpoint?: boolean} = {}): ModernExtend => {
         const fromZigbee: NonNullable<ModernExtend["fromZigbee"]> = [fzLocal.on_off_for_endpoint(1, "state"), fzLocal.brightness];
 
         if (!splitValuesByEndpoint) {
@@ -745,9 +745,9 @@ const inovelliExtend = {
             exposes: [e.light_brightness()],
             configure,
             isModernExtend: true,
-        } satisfies ModernExtend;
+        };
     },
-    fan: ({endpointId, splitValuesByEndpoint = false}: {endpointId: number; splitValuesByEndpoint?: boolean}) => {
+    fan: ({endpointId, splitValuesByEndpoint = false}: {endpointId: number; splitValuesByEndpoint?: boolean}): ModernExtend => {
         return {
             fromZigbee: [fzLocal.fan_mode(endpointId), fzLocal.breeze_mode(endpointId), fzLocal.fan_state(endpointId)],
             toZigbee: [tzLocal.fan_mode(endpointId), tzLocal.breezeMode(endpointId), tzLocal.fan_state(endpointId)],
@@ -760,9 +760,9 @@ const inovelliExtend = {
                 },
             ],
             isModernExtend: true,
-        } satisfies ModernExtend;
+        };
     },
-    mmWave: () => {
+    mmWave: (): ModernExtend => {
         const configure: Configure[] = [
             async (device, coordinatorEndpoint, definition) => {
                 const endpoint = device.getEndpoint(1);
@@ -797,14 +797,14 @@ const inovelliExtend = {
             ],
             configure: configure,
             isModernExtend: true,
-        } satisfies ModernExtend;
+        };
     },
-    energyReset: () => {
+    energyReset: (): ModernExtend => {
         return {
             toZigbee: [tzLocal.inovelli_energy_reset],
             exposes: [exposeEnergyReset()],
             isModernExtend: true,
-        } satisfies ModernExtend;
+        };
     },
 };
 
