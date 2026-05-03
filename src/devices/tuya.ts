@@ -14612,7 +14612,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Homeetec", "37022714", "4 Gang switch with backlight", ["_TZE200_hewlydpz"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p6vz3wzt", "_TZE284_uqfph8ah", "_TZE284_waa352qv"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p6vz3wzt", "_TZE204_p6vz3wzt", "_TZE284_uqfph8ah", "_TZE284_waa352qv"]),
         model: "TS0601_cover_5",
         vendor: "Tuya",
         description: "Curtain/blind switch",
@@ -26455,9 +26455,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_1gang_switch",
         vendor: "Tuya",
         description: "1 gang touch panel switch with backlight and child lock",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
             e.power_on_behavior().withAccess(ea.STATE_SET),
@@ -26478,9 +26476,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_cover_switch_2",
         vendor: "Tuya",
         description: "2 gang switch and cover control touch panel with backlight and child lock",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.cover_position().setAccess("position", ea.STATE_SET),
             e.switch().withEndpoint("l1"),
@@ -26506,7 +26502,14 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [2, "position", tuya.valueConverter.coverPosition],
-                [3, "calibration", tuya.valueConverter.onOff],
+                [
+                    3,
+                    "calibration",
+                    tuya.valueConverterBasic.lookup({
+                        START: tuya.enum(0),
+                        END: tuya.enum(1),
+                    }),
+                ],
                 [7, "backlight_mode", tuya.valueConverter.onOff],
                 [
                     8,
@@ -26527,9 +26530,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_3gang_switch",
         vendor: "Tuya",
         description: "3 gang touch panel switch with backlight and child lock",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -26554,54 +26555,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_p6vz3wzt"}],
-        model: "TS0601_cover_switch",
-        vendor: "Tuya",
-        description: "Cover control touch panel with backlight and child lock",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
-            e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor Steering"),
-            e.binary("calibration", ea.STATE_SET, "ON", "OFF").withDescription("Calibration"),
-            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
-                    }),
-                ],
-                [2, "position", tuya.valueConverter.coverPosition],
-                [3, "calibration", tuya.valueConverter.onOff],
-                [7, "backlight_mode", tuya.valueConverter.onOff],
-                [
-                    8,
-                    "motor_steering",
-                    tuya.valueConverterBasic.lookup({
-                        FORWARD: tuya.enum(0),
-                        BACKWARD: tuya.enum(1),
-                    }),
-                ],
-                [103, "child_lock", tuya.valueConverter.onOff],
-            ],
-        },
-    },
-    {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_y8ficeai"}],
         model: "TS0601_6gang_switch",
         vendor: "Tuya",
         description: "6 gang touch panel switch with backlight and child lock",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -26636,9 +26594,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_multifunction_switch",
         vendor: "Tuya",
         description: "1 gang touch panel switch with backlight color modes, child lock, timer, and brightness",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
             e.power_on_behavior().withAccess(ea.STATE_SET),
@@ -26691,9 +26647,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_power_monitoring_switch",
         vendor: "Tuya",
         description: "Touch panel switch with power monitoring and timer",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
             e.numeric("countdown", ea.STATE_SET).withUnit("m").withValueMin(0).withValueMax(120).withDescription("Countdown to turn off"),
@@ -26718,9 +26672,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_2gang_switch",
         vendor: "Tuya",
         description: "2 gang touch panel switch with backlight and child lock",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
