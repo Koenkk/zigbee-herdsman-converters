@@ -26483,7 +26483,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("l2"),
             e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
             e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor Steering"),
-            e.binary("calibration", ea.STATE_SET, "ON", "OFF").withDescription("Calibration"),
+            e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
             e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
         ],
         endpoint: (device) => {
