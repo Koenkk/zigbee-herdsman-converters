@@ -25215,7 +25215,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("radar_threshold", ea.STATE_SET)
                 .withCategory("config")
-                .withDescription("Radar detection threshold, advanced calibration (factory default: 20)")
+                .withDescription("Radar detection threshold, advanced calibration (factory default: 15; manufacturer-recommended range: 10-15)")
                 .withValueMin(5)
                 .withValueMax(255)
                 .withValueStep(1),
