@@ -2930,13 +2930,11 @@ export const diyruz_rspm: Fz.Converter<"genOnOff", undefined, ["attributeReport"
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const K4003C_binary_input: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
+export const K4003C_binary_input: Fz.Converter<"genBinaryInput", undefined, "attributeReport"> = {
     cluster: "genBinaryInput",
-    type: ["attributeReport", "readResponse"],
+    type: "attributeReport",
     convert: (model, msg, publish, options, meta) => {
-        if (msg.data.presentValue === undefined) return;
-        const isOn = Boolean(msg.data.presentValue);
-        return {action: isOn ? "on" : "off", state: isOn ? "ON" : "OFF"};
+        return {action: msg.data.presentValue === 1 ? "off" : "on"};
     },
 };
 export const enocean_ptm215z: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
