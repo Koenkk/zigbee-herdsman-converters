@@ -73,7 +73,7 @@ const futurehomeExtend = {
             ],
             exposes: [
                 exposes
-                    .enum("charger_status", ea.STATE, ["plugged_out", "plugged_in", "plugged_in_charging", "plugged_in_paused"])
+                    .enum("charger_status", ea.STATE_GET, ["plugged_out", "plugged_in", "plugged_in_charging", "plugged_in_paused"])
                     .withDescription("Current EV charger state"),
             ],
         };
@@ -212,6 +212,17 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["LOCK", 0x02],
                 description: "Permanently lock cable when not charging.",
             }),
+            // lockState (2), actuatorEnabled (176), supportedOperatingModes (261)
+            m.numeric({
+                name: "actual_current",
+                cluster: "genAnalogOutput",
+                attribute: "presentValue",
+                description: "Actual charging current ??",
+                unit: "A",
+                access: "STATE",
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+            }),
+
             m.numeric({
                 name: "current_limit",
                 cluster: "genAnalogOutput",
@@ -222,7 +233,9 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 6,
                 valueMax: 32,
                 valueStep: 1,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
             }),
+            // genAnalogOutput: outOfService 0
             m.binary<"haApplianceControl", FuturehomeHaApplianceControl>({
                 name: "auto_charge",
                 cluster: "haApplianceControl",
@@ -232,8 +245,17 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
+            m.numeric<"haElectricalMeasurement", undefined>({
+                name: "power",
+                cluster: "haElectricalMeasurement",
+                attribute: "totalActivePower",
+                description: "Power",
+                unit: "W",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+            }),
             m.electricityMeter({
-                power: {cluster: "electrical"},
+                power: false,
                 threePhase: true,
             }),
         ],
