@@ -26694,4 +26694,21 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_fhv95pf1"}],
+        model: "TS0601_stairwell_switch",
+        vendor: "Tuya",
+        description: "1 gang stairwell switch with child lock",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().setAccess("state", ea.STATE_SET),
+            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [29, "child_lock", tuya.valueConverter.onOff],
+            ],
+        },
+    },
 ];
