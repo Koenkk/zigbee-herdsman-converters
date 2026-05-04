@@ -254,7 +254,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: {min: 5, max: "1_HOUR", change: 1},
             }),
             m.electricityMeter({
-                energy: {divisor: 1000000, multiplier: 1},
+                energy: {divisor: 1000, multiplier: 1},
                 power: false,
                 threePhase: true,
             }),
