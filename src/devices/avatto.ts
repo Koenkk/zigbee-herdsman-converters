@@ -176,7 +176,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xdtnpp1a"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xdtnpp1a", "_TZE284_xdtnpp1a"]),
         model: "TRV26",
         vendor: "AVATTO",
         description: "Thermostatic radiator valve",
@@ -233,14 +233,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [
                     49,
-                    "running_state",
-                    tuya.valueConverterBasic.lookup({
-                        heat: tuya.enum(1),
-                        idle: tuya.enum(0),
-                    }),
-                ],
-                [
-                    49,
                     "system_mode",
                     tuya.valueConverterBasic.lookup({
                         heat: tuya.enum(1),
@@ -259,6 +251,7 @@ export const definitions: DefinitionWithExtend[] = [
                         holiday: tuya.enum(5),
                     }),
                 ],
+                [3, "running_state", tuya.valueConverterBasic.lookup({idle: 1, heat: 0})],
                 [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [5, "local_temperature", tuya.valueConverter.divideBy10],
                 [6, "battery", tuya.valueConverter.raw],
@@ -382,7 +375,15 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_5cuocqty", "_TZE204_nqqylykc", "_TZE204_2cyb66xl", "_TZE204_tgdnh7pw", "_TZE284_nqqylykc"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE204_5cuocqty",
+            "_TZE204_nqqylykc",
+            "_TZE204_2cyb66xl",
+            "_TZE204_tgdnh7pw",
+            "_TZE284_nqqylykc",
+            "_TZE204_huu3td85",
+            "_TZE284_huu3td85",
+        ]),
         model: "ZDMS16-1",
         vendor: "AVATTO",
         description: "Zigbee Module 1 channel Dimmer",
@@ -406,7 +407,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_o9gyszw2", "_TZE204_jtbgusdc", "_TZE284_jtbgusdc"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_o9gyszw2", "_TZE204_jtbgusdc", "_TZE284_jtbgusdc", "_TZE204_fjms2pi9", "_TZE284_fjms2pi9"]),
         model: "ZDMS16-2",
         vendor: "AVATTO",
         description: "Zigbee Module 2 channels Dimmer",

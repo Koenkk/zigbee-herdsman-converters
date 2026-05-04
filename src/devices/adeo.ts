@@ -485,4 +485,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "ENKI LEXMAN motor for roller shutler",
         extend: [m.windowCovering({controls: ["lift"]})],
     },
+    {
+        zigbeeModel: ["ZBEK-37"],
+        model: "ZBEK-37",
+        vendor: "Adeo",
+        description: "ENKI LEXMAN Vizzini ENKI D40",
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
 ];
