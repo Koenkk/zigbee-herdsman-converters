@@ -26700,10 +26700,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "1 gang stairwell switch with child lock",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.switch().setAccess("state", ea.STATE_SET),
-            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
-        ],
+        exposes: [e.switch().setAccess("state", ea.STATE_SET), e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock")],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],
