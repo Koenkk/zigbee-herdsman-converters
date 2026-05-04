@@ -26637,7 +26637,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .composite("inching", "inching", ea.STATE_SET)
                 .withDescription("Inching (auto delay shut down) configuration")
                 .withFeature(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable inching"))
-                .withFeature(e.numeric("minutes", ea.STATE_SET).withUnit("m").withValueMin(0).withValueMax(1092).withDescription("Delay minutes"))
+                .withFeature(e.numeric("minutes", ea.STATE_SET).withUnit("m").withValueMin(0).withValueMax(1440).withDescription("Delay minutes"))
                 .withFeature(e.numeric("seconds", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(59).withDescription("Delay seconds")),
             e.enum("off_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan"]).withDescription("OFF Color"),
             e.enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan"]).withDescription("ON Color"),
