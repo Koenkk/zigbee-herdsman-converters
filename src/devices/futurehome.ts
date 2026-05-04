@@ -233,7 +233,6 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 6,
                 valueMax: 32,
                 valueStep: 1,
-                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
             }),
             // genAnalogOutput: outOfService 0
             m.binary<"haApplianceControl", FuturehomeHaApplianceControl>({
