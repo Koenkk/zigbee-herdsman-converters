@@ -389,6 +389,7 @@ export const definitions: DefinitionWithExtend[] = [
                 current: {divisor: 10},
                 threePhase: true,
                 energy: {divisor: 1000, multiplier: 1},
+                producedEnergy: {divisor: 1000, multiplier: 1},
                 fzMetering: develco.fz.metering_emizb132,
                 fzElectricalMeasurement: develco.fz.electrical_measurement_emizb132,
             }),
