@@ -26672,7 +26672,7 @@ export const definitions: DefinitionWithExtend[] = [
                             buf.writeUInt8(state === "ON" ? 1 : 0, 0);
                             buf.writeUInt16BE(time, 1);
 
-                            // CRITICAL: Return as a Base64 string so Z2M sends it as Tuya DataType.STRING (Type 3)
+                            // Return as a Base64 string so Z2M sends it as Tuya DataType.STRING (Type 3)
                             return buf.toString("base64");
                         },
                     },
