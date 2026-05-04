@@ -3564,7 +3564,8 @@ export const definitions: DefinitionWithExtend[] = [
                 e.getDevice().manufacturerName === "_TZB210_uoiqhjqe" ||
                 e.getDevice().manufacturerName === "_TZB210_417ikxay" ||
                 e.getDevice().manufacturerName === "_TZB210_qzsxaqqe" ||
-                e.getDevice().manufacturerName === "_TZB210_u3ri0968", // https://github.com/Koenkk/zigbee2mqtt/issues/31733
+                e.getDevice().manufacturerName === "_TZB210_u3ri0968" || // https://github.com/Koenkk/zigbee2mqtt/issues/31733
+                e.getDevice().manufacturerName === "_TZB210_rs0ufzwg", // https://github.com/Koenkk/zigbee2mqtt/issues/31872
         },
         toZigbee: [tzLocal.TS0505B_1_transitionFixesOnOffBrightness],
         configure: (device, coordinatorEndpoint) => {
