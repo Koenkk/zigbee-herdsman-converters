@@ -1,4 +1,4 @@
-import {TextDecoder, TextEncoder} from "node:util";
+ximport {TextDecoder, TextEncoder} from "node:util";
 import {Zcl} from "zigbee-herdsman";
 import {DataType} from "zigbee-herdsman/dist/zspec/zcl";
 import * as fz from "../converters/fromZigbee";
@@ -26451,15 +26451,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", [
-            "_TZE204_izy1g1mb", // ZIS-03
-            "_TZE204_f2rflfa6", // ZIS-04
-        ]),
-        model: "ZIS-03/ZIS-04",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_izy1g1mb", "_TZE204_f2rflfa6"]),
+        model: "ZIS-03", // _TZE204_izy1g1mb
         vendor: "Novato",
         description: "24 GHz radar human presence sensor with relay output",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
+        whiteLabel: [
+            tuya.whitelabel("Novato", "ZIS-04", "24 GHz radar human presence sensor with relay output", ["_TZE204_f2rflfa6"]),
+        ],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
