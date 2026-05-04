@@ -9,7 +9,7 @@ import * as light from "./light";
 import {logger} from "./logger";
 import * as modernExtend from "./modernExtend";
 import * as globalStore from "./store";
-import type {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "./types";
+import type {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "./types";
 import * as utils from "./utils";
 import {determineEndpoint, exposeEndpoints, hasAlreadyProcessedMessage, isObject, numberWithinRange} from "./utils";
 
