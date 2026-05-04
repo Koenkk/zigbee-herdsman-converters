@@ -261,24 +261,31 @@ const philipsModernExtend = {
                 // Resolve control mode: explicit option wins; otherwise default to standard converters.
                 const nativeControl = (meta.options as KeyValueAny).hue_native_control === true;
 
-                // Check if device supports the manuSpecificPhilips2 cluster.
+                // Check if entity supports the manuSpecificPhilips2 cluster.
+                // For groups, all members must support it — otherwise non-Hue members
+                // would silently ignore the manufacturer-specific command.
                 // Wrapped in try-catch because supportsInputCluster may throw for
                 // custom clusters not in the cluster registry (e.g. in test mocks).
+                const endpointSupportsPhilips2 = (ep: Zh.Endpoint): boolean => {
+                    try {
+                        return ep.supportsInputCluster("manuSpecificPhilips2");
+                    } catch {
+                        return false;
+                    }
+                };
                 let hasPhilips2Cluster = false;
                 if (utils.isEndpoint(entity)) {
-                    try {
-                        hasPhilips2Cluster = entity.supportsInputCluster("manuSpecificPhilips2");
-                    } catch {
-                        hasPhilips2Cluster = false;
-                    }
+                    hasPhilips2Cluster = endpointSupportsPhilips2(entity);
+                } else if (utils.isGroup(entity)) {
+                    hasPhilips2Cluster = entity.members.length > 0 && entity.members.every(endpointSupportsPhilips2);
                 }
 
                 // Delegate to standard converters if:
-                //   - Device doesn't support manuSpecificPhilips2 cluster (old bulbs), OR
+                //   - Entity doesn't support manuSpecificPhilips2 cluster (old bulbs, or mixed groups), OR
                 //   - User hasn't opted into native Philips2 control (default)
                 // This mimics Z2M's own per-key dispatch so a single message routes
                 // each key to the appropriate converter.
-                const mustDelegate = (utils.isEndpoint(entity) && !hasPhilips2Cluster) || !nativeControl;
+                const mustDelegate = !hasPhilips2Cluster || !nativeControl;
 
                 if (mustDelegate) {
                     const used = new Set<Tz.Converter>();
@@ -530,15 +537,20 @@ const philipsModernExtend = {
                 }
             },
             convertGet: async (entity, key, meta) => {
+                const endpointSupportsPhilips2 = (ep: Zh.Endpoint): boolean => {
+                    try {
+                        return ep.supportsInputCluster("manuSpecificPhilips2");
+                    } catch {
+                        return false;
+                    }
+                };
                 let hasPhilips2Cluster = false;
                 if (utils.isEndpoint(entity)) {
-                    try {
-                        hasPhilips2Cluster = entity.supportsInputCluster("manuSpecificPhilips2");
-                    } catch {
-                        hasPhilips2Cluster = false;
-                    }
+                    hasPhilips2Cluster = endpointSupportsPhilips2(entity);
+                } else if (utils.isGroup(entity)) {
+                    hasPhilips2Cluster = entity.members.length > 0 && entity.members.every(endpointSupportsPhilips2);
                 }
-                if (utils.isEndpoint(entity) && !hasPhilips2Cluster) {
+                if (!hasPhilips2Cluster) {
                     for (const tz of toZigbee) {
                         if (tz.key.includes(key) && tz.convertGet) {
                             return await tz.convertGet(entity, key, meta);
