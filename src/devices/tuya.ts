@@ -5710,6 +5710,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nedis", "ZBSC10WT", "Temperature and humidity sensor", ["_TZ3000_fie1dpkm"]),
             tuya.whitelabel("Tuya", "TH09Z", "Temperature and humidity sensor", ["_TZ3000_isw9u95y", "_TZ3000_yupc0pb7"]),
             tuya.whitelabel("Tuya", "ZTH05_1", "Temperature and humidity sensor", ["_TZ3000_bgsigers"]),
+            tuya.whitelabel("Tuya", "TS0201_2", "Temperature and humidity sensor", ["_TZ3000_yujem9ee"]),
         ],
     },
     {
