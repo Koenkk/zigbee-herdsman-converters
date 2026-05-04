@@ -26632,6 +26632,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().setAccess("state", ea.STATE_SET),
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.numeric("countdown", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(86400).withDescription("Countdown to turn off"),
+            e.enum("indicator_mode", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("Indicator status behavior"),
             e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
             e
                 .composite("inching", "inching", ea.STATE_SET)
@@ -26649,6 +26650,15 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state", tuya.valueConverter.onOff],
                 [7, "countdown", tuya.valueConverter.countdown],
                 [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [
+                    15,
+                    "indicator_mode",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        relay: tuya.enum(1),
+                        pos: tuya.enum(2),
+                    }),
+                ],
                 [16, "backlight_mode", tuya.valueConverter.onOff],
                 [
                     19,
