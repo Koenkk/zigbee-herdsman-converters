@@ -26655,14 +26655,14 @@ export const definitions: DefinitionWithExtend[] = [
                     "inching",
                     {
                         from: (value) => {
-                            const buf = typeof value === 'string' ? Buffer.from(value, 'base64') : Buffer.from(value);
+                            const buf = typeof value === "string" ? Buffer.from(value, "base64") : Buffer.from(value);
                             const state = buf.readUInt8(0) === 1 ? "ON" : "OFF";
                             const totalSeconds = buf.readUInt16BE(1);
-                            
+
                             // Break total seconds down into UI components
                             const minutes = Math.floor(totalSeconds / 60);
                             const seconds = totalSeconds % 60;
-                            
+
                             return {state, minutes, seconds};
                         },
                         to: (value, meta) => {
@@ -26670,16 +26670,16 @@ export const definitions: DefinitionWithExtend[] = [
                             const state = value.state !== undefined ? value.state : currentState.state;
                             const minutes = value.minutes !== undefined ? value.minutes : currentState.minutes;
                             const seconds = value.seconds !== undefined ? value.seconds : currentState.seconds;
-    
+
                             // Calculate total time and enforce a 1-second minimum safe bound
-                            let totalSeconds = Math.max(1, (minutes * 60) + seconds);
+                            let totalSeconds = Math.max(1, minutes * 60 + seconds);
                             if (totalSeconds > 65535) totalSeconds = 65535;
-    
+
                             const buf = Buffer.alloc(3);
                             buf.writeUInt8(state === "ON" ? 1 : 0, 0);
                             buf.writeUInt16BE(totalSeconds, 1);
-                            
-                            return buf.toString('base64');
+
+                            return buf.toString("base64");
                         },
                     },
                 ],
