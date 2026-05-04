@@ -26457,7 +26457,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "24 GHz radar human presence sensor with relay output",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
+        
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
@@ -26522,7 +26522,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "24 GHz radar human presence sensor with relay output and detection distance",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
+        
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
