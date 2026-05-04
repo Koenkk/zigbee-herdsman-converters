@@ -26633,10 +26633,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.numeric("countdown", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(86400).withDescription("Countdown to turn off"),
             e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
-            e.composite("inching", "inching", ea.STATE_SET)
+            e
+                .composite("inching", "inching", ea.STATE_SET)
                 .withDescription("Inching (auto delay shut down) configuration")
                 .withFeature(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable inching"))
-                .withFeature(e.numeric("time", ea.STATE_SET).withUnit("s").withValueMin(1).withValueMax(65535).withDescription("Delay time in seconds")),
+                .withFeature(
+                    e.numeric("time", ea.STATE_SET).withUnit("s").withValueMin(1).withValueMax(65535).withDescription("Delay time in seconds"),
+                ),
             e.enum("off_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan"]).withDescription("OFF Color"),
             e.enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan"]).withDescription("ON Color"),
             e.numeric("backlight_brightness", ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription("Backlight Brightness"),
@@ -26654,7 +26657,7 @@ export const definitions: DefinitionWithExtend[] = [
                     {
                         from: (value) => {
                             // Handle both STRING (base64) and RAW (byte array) incoming from the device
-                            const buf = typeof value === 'string' ? Buffer.from(value, 'base64') : Buffer.from(value);
+                            const buf = typeof value === "string" ? Buffer.from(value, "base64") : Buffer.from(value);
                             const state = buf.readUInt8(0) === 1 ? "ON" : "OFF";
                             const time = buf.readUInt16BE(1);
                             return {state, time};
@@ -26663,14 +26666,14 @@ export const definitions: DefinitionWithExtend[] = [
                             const currentState = meta.state.inching || {state: "OFF", time: 60};
                             const state = value.state !== undefined ? value.state : currentState.state;
                             const time = value.time !== undefined ? value.time : currentState.time;
-    
+
                             // Create the 3-byte payload
                             const buf = Buffer.alloc(3);
                             buf.writeUInt8(state === "ON" ? 1 : 0, 0);
                             buf.writeUInt16BE(time, 1);
-                            
+
                             // CRITICAL: Return as a Base64 string so Z2M sends it as Tuya DataType.STRING (Type 3)
-                            return buf.toString('base64');
+                            return buf.toString("base64");
                         },
                     },
                 ],
