@@ -1,4 +1,4 @@
-ximport {TextDecoder, TextEncoder} from "node:util";
+import {TextDecoder, TextEncoder} from "node:util";
 import {Zcl} from "zigbee-herdsman";
 import {DataType} from "zigbee-herdsman/dist/zspec/zcl";
 import * as fz from "../converters/fromZigbee";
@@ -26460,7 +26460,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await tuya.sendDataPointBool(endpoint, 107, true);
             await tuya.sendDataPointBool(endpoint, 108, true);
