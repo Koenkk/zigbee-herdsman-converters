@@ -426,7 +426,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 unit: "°C",
                 scale: 100,
-				valueStep: 0.5,
+                valueStep: 0.5,
             }),
             m.numeric({
                 name: "max_cool_setpoint_limit",
@@ -436,7 +436,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 unit: "°C",
                 scale: 100,
-				valueStep: 0.5,
+                valueStep: 0.5,
             }),
             m.numeric({
                 name: "min_heat_setpoint_limit",
@@ -446,7 +446,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 unit: "°C",
                 scale: 100,
-				valueStep: 0.5,
+                valueStep: 0.5,
             }),
             m.numeric({
                 name: "max_heat_setpoint_limit",
@@ -456,7 +456,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 unit: "°C",
                 scale: 100,
-				valueStep: 0.5,
+                valueStep: 0.5,
             }),
             m.numeric({
                 name: "outdoor_temperature",
