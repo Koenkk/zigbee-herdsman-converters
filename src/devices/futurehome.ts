@@ -187,6 +187,16 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Futurehome",
         description: "Futurehome Charge (EV Charger)",
         extend: [
+            // m.numeric({
+            //     "name":"analog_output_1",
+            //     "valueMax":2143289344,
+            //     "cluster":"genAnalogOutput",
+            //     "attribute":"presentValue",
+            //     "reporting":{"min":"MIN","max":"MAX","change":1},
+            //     "description":"Analog Output analog_output_1 on endpoint 1","access":"ALL"
+            // }),
+            // m.lock({"pinCodeCount":50}),
+            // m.electricityMeter(),
             m.deviceAddCustomCluster("haApplianceControl", {
                 name: "haApplianceControl",
                 ID: Zcl.Clusters.haApplianceControl.ID,
@@ -213,8 +223,11 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Permanently lock cable when not charging.",
             }),
             // lockState (2), actuatorEnabled (176), supportedOperatingModes (261)
+            // 'closuresDoorLock': {"lockState":2,"supportedOperatingModes":261,"actuatorEnabled":176}
+            // 'genMultistateValue': {"numberOfStates":8,"outOfService":0,"presentValue":5}
+            // 'genMultistateInput': {"numberOfStates":6,"outOfService":0,"presentValue":65}
             m.numeric({
-                name: "actual_current",
+                name: "charging_current",
                 cluster: "genAnalogOutput",
                 attribute: "presentValue",
                 description: "Actual charging current ??",
