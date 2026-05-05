@@ -26634,12 +26634,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("countdown", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(86400).withDescription("Countdown to turn off"),
             e.enum("indicator_mode", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("Indicator status behavior"),
             e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
-            e
-                .composite("inching", "inching", ea.STATE_SET)
-                .withDescription("Inching (auto delay shut down) configuration")
-                .withFeature(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable inching"))
-                .withFeature(e.numeric("minutes", ea.STATE_SET).withUnit("m").withValueMin(0).withValueMax(1440).withDescription("Delay minutes"))
-                .withFeature(e.numeric("seconds", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(59).withDescription("Delay seconds")),
             e.enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan"]).withDescription("ON Color"),
             e.enum("off_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan"]).withDescription("OFF Color"),
             e.numeric("backlight_brightness", ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription("Backlight Brightness"),
@@ -26660,41 +26654,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [16, "backlight_mode", tuya.valueConverter.onOff],
-                [
-                    19,
-                    "inching",
-                    {
-                        from: (value) => {
-                            const val = value as string | number[] | Uint8Array;
-                            const buf = typeof val === "string" ? Buffer.from(val, "base64") : Buffer.from(val);
-                            const state = buf.readUInt8(0) === 1 ? "ON" : "OFF";
-                            const totalSeconds = buf.readUInt16BE(1);
-
-                            const minutes = Math.floor(totalSeconds / 60);
-                            const seconds = totalSeconds % 60;
-
-                            return {state, minutes, seconds};
-                        },
-                        to: (value, meta) => {
-                            const val = value as {state?: string; minutes?: number; seconds?: number};
-                            const stateMeta = meta.state as {inching?: {state: string; minutes: number; seconds: number}};
-
-                            const currentState = stateMeta.inching || {state: "OFF", minutes: 1, seconds: 0};
-                            const state = val.state !== undefined ? val.state : currentState.state;
-                            const minutes = val.minutes !== undefined ? val.minutes : currentState.minutes;
-                            const seconds = val.seconds !== undefined ? val.seconds : currentState.seconds;
-
-                            let totalSeconds = Math.max(1, minutes * 60 + seconds);
-                            if (totalSeconds > 65535) totalSeconds = 65535;
-
-                            const buf = Buffer.alloc(3);
-                            buf.writeUInt8(state === "ON" ? 1 : 0, 0);
-                            buf.writeUInt16BE(totalSeconds, 1);
-
-                            return buf.toString("base64");
-                        },
-                    },
-                ],
+                [19, "inching", tuya.valueConverter.inchingSwitch2],
                 [101, "child_lock", tuya.valueConverter.onOff],
                 [102, "backlight_brightness", tuya.valueConverter.raw],
                 [
