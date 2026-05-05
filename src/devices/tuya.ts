@@ -22301,19 +22301,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-303Z"],
+        zigbeeModel: ["ZG-303Z", "AY-303Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_npj9bug3", "_TZE200_wrmhp6b3"]),
         model: "CS-201Z",
         vendor: "COOLO",
         description: "Soil moisture sensor",
-        whiteLabel: [
-            {
-                fingerprint: [{modelID: "AY-303Z", manufacturerName: "AOYAN  "}],
-                model: "AY-303Z",
-                vendor: "AOYAN",
-                description: "Soil moisture sensor",
-            },
-        ],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.dry(),
