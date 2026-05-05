@@ -22368,7 +22368,6 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-        
 
     {
         zigbeeModel: ["ZG-303Z"],
