@@ -33,6 +33,7 @@ interface Ts0049Countdown {
 
     commandResponses: never;
 }
+
 const storeLocal = {
     getPrivatePJ1203A: (device: Zh.Device) => {
         let priv = globalStore.getValue(device, "private_state");
@@ -478,7 +479,20 @@ const trv603ScheduleConverter = (dayNumber: number) => {
         },
     };
 };
-
+const soilMoistureSensorExposes = (withHumidity: boolean) => [
+    e.dry(),
+    e.temperature(),
+    ...(withHumidity ? [e.humidity()] : []),
+    e.soil_moisture(),
+    tuya.exposes.temperatureUnit(),
+    tuya.exposes.temperatureCalibration(),
+    ...(withHumidity ? [tuya.exposes.humidityCalibration()] : []),
+    tuya.exposes.soilCalibration(),
+    tuya.exposes.temperatureSampling(),
+    tuya.exposes.soilSampling(),
+    tuya.exposes.soilWarning(),
+    e.battery(),
+];
 // AR331 Pro (DP 106): holiday start/end as 9-byte LE: [prefix, ts_start_LE4, ts_end_LE4]
 const ar331ProHolidayTimeConverter = {
     from: (v: number[]) => {
@@ -22354,6 +22368,8 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+        
+
     {
         zigbeeModel: ["ZG-303Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_npj9bug3", "_TZE200_wrmhp6b3"]),
@@ -22361,20 +22377,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "COOLO",
         description: "Soil moisture sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.dry(),
-            e.temperature(),
-            e.humidity(),
-            e.soil_moisture(),
-            tuya.exposes.temperatureUnit(),
-            tuya.exposes.temperatureCalibration(),
-            tuya.exposes.humidityCalibration(),
-            tuya.exposes.soilCalibration(),
-            tuya.exposes.temperatureSampling(),
-            tuya.exposes.soilSampling(),
-            tuya.exposes.soilWarning(),
-            e.battery(),
-        ],
+        exposes: soilMoistureSensorExposes(true),
         meta: {
             tuyaDatapoints: [
                 [106, "dry", tuya.valueConverter.raw],
@@ -22398,18 +22401,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "AOYAN",
         description: "Soil moisture sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.dry(),
-            e.temperature(),
-            e.soil_moisture(),
-            tuya.exposes.temperatureUnit(),
-            tuya.exposes.temperatureCalibration(),
-            tuya.exposes.soilCalibration(),
-            tuya.exposes.temperatureSampling(),
-            tuya.exposes.soilSampling(),
-            tuya.exposes.soilWarning(),
-            e.battery(),
-        ],
+        exposes: soilMoistureSensorExposes(false),
         meta: {
             tuyaDatapoints: [
                 [106, "dry", tuya.valueConverter.raw],
