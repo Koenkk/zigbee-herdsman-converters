@@ -155,7 +155,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TB25",
         vendor: "Zemismart",
         description: "Smart light switch and socket - 2 gang with neutral wire",
-        extend: [tuya.modernExtend.tuyaOnOff({endpoints: ["left", "center", "right"]})],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({endpoints: ["left", "center", "right"]})],
         meta: {multiEndpoint: true},
         endpoint: () => {
             return {left: 1, center: 2, right: 3};
@@ -213,7 +213,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZIGBEE-B09-UK",
         vendor: "Zemismart",
         description: "Zigbee smart outlet universal socket with USB port",
-        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, endpoints: ["l1", "l2"]})],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, endpoints: ["l1", "l2"]})],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
@@ -408,6 +408,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.identify(),
+            tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true, endpoints: ["l1", "l2"]}),
         ],
     },
@@ -416,7 +417,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMO-606-20A",
         vendor: "Zemismart",
         description: "Smart 20A outlet",
-        extend: [m.identify(), tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true})],
+        extend: [
+            m.identify(),
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true}),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_sa2ueffe", "_TZE204_zuepxzck", "_TZE284_lnyz4a6v"]),
@@ -955,6 +960,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart light switch - 4 gang (US)",
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
+            tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 endpoints: ["l1", "l2", "l3", "l4"],
                 powerOnBehavior2: true,
