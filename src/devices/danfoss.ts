@@ -867,7 +867,7 @@ const danfossExtend = {
             attribute: "danfossAdaptionRunControl",
             description: "Adaptation run control: Initiate Adaptation Run or Cancel Adaptation Run",
             lookup: {
-                none: 0,
+                idle: 0,
                 initiate_adaptation: 1,
                 cancel_adaptation: 2,
             },
