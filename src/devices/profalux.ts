@@ -85,8 +85,9 @@ export const definitions: DefinitionWithExtend[] = [
             "MOT-C1Z10F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
             "MOT-C1Z20F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
             "MOT-C1Z30F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+            "MOT-C2Z10",
         ],
-        model: "MOT-C1ZxxC/F",
+        model: "MOT-CxZxxC/F",
         vendor: "Profalux",
         description: "Cover",
         extend: [profaluxExtend.addManuSpecificProfalux1Cluster()],
@@ -148,8 +149,8 @@ export const definitions: DefinitionWithExtend[] = [
         // Newer remotes. These expose a bunch of things but they are bound to
         // the cover and don't seem to communicate with the coordinator, so
         // nothing is likely to be doable in Z2M.
-        zigbeeModel: ["MAI-ZTP20F", "MAI-ZTP20C"],
-        model: "MAI-ZTP20",
+        zigbeeModel: ["MAI-ZTP20F", "MAI-ZTP20C", "MAI-ZTP22C"],
+        model: "MAI-ZTP2xC/F",
         vendor: "Profalux",
         description: "Cover remote",
         extend: [
