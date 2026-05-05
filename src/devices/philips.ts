@@ -5007,7 +5007,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
-        zigbeeModel: ["929004611002","929004611102"],
+        zigbeeModel: ["929004611002", "929004611102"],
         model: "929004611002",
         vendor: "Philips",
         description: "Hue Flux Outdoor strip light (6m)",
@@ -5018,7 +5018,6 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Hue Flux Outdoor strip light (10m)",
                 fingerprint: [{modelID: "929004611102"}],
             },
-
         ],
         extend: [
             philips.m.light({
@@ -5026,6 +5025,6 @@ export const definitions: DefinitionWithExtend[] = [
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
             }),
-        ],    
+        ],
     },
 ];
