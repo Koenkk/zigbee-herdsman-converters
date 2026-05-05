@@ -700,7 +700,7 @@ export const namronExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
                 },
                 displayAutoOff: {
-                    name: "boostTimeRemaining",
+                    name: "displayAutoOff",
                     ID: 0x8029,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
