@@ -1,6 +1,6 @@
-import * as exposes from '../lib/exposes';
-import * as tuya from '../lib/tuya';
-import type {DefinitionWithExtend} from '../lib/types';
+import * as exposes from "../lib/exposes";
+import * as tuya from "../lib/tuya";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -38,87 +38,83 @@ const ea = exposes.access;
 function localISOString(): string {
     const now = new Date();
     const off = -now.getTimezoneOffset();
-    const sign = off >= 0 ? '+' : '-';
-    const pad = (n: number) => String(Math.abs(n)).padStart(2, '0');
+    const sign = off >= 0 ? "+" : "-";
+    const pad = (n: number) => String(Math.abs(n)).padStart(2, "0");
     return new Date(now.getTime() - now.getTimezoneOffset() * 60000)
         .toISOString()
-        .replace('Z', `${sign}${pad(Math.floor(Math.abs(off) / 60))}:${pad(Math.abs(off) % 60)}`);
+        .replace("Z", `${sign}${pad(Math.floor(Math.abs(off) / 60))}:${pad(Math.abs(off) % 60)}`);
 }
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE200_rt5dklro']),
-        model: 'WKE502Z',
-        vendor: 'DAEWOO',
-        description: 'Smart Zigbee keypad with RFID badge reader',
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rt5dklro"]),
+        model: "WKE502Z",
+        vendor: "DAEWOO",
+        description: "Smart Zigbee keypad with RFID badge reader",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.action(['disarm', 'arm_away', 'arm_home', 'sos']),
-            e.numeric('arm_mode', ea.STATE)
-                .withDescription('Arm mode reported at startup only: 0=disarmed, 2=armed. NOT updated in real-time.'),
-            e.binary('armed', ea.STATE_SET, true, false)
-                .withDescription('Arm state — write true to manually confirm arm_away/arm_home to the keypad'),
-            e.binary('sos_alarm', ea.STATE, true, false)
-                .withDescription('SOS alarm active — set true by SOS keypress, cleared false by disarm'),
+            e.action(["disarm", "arm_away", "arm_home", "sos"]),
+            e.numeric("arm_mode", ea.STATE).withDescription("Arm mode reported at startup only: 0=disarmed, 2=armed. NOT updated in real-time."),
+            e
+                .binary("armed", ea.STATE_SET, true, false)
+                .withDescription("Arm state — write true to manually confirm arm_away/arm_home to the keypad"),
+            e.binary("sos_alarm", ea.STATE, true, false).withDescription("SOS alarm active — set true by SOS keypress, cleared false by disarm"),
             e.battery(),
             e.tamper(),
-            e.text('user_id', ea.STATE)
-                .withDescription('User ID (RFID badge slot or PIN index) that triggered the last action'),
-            e.text('user_last_seen', ea.STATE)
-                .withDescription('ISO timestamp of last user authentication — updates on every badge/code event'),
-            e.text('last_added_user_code', ea.STATE)
-                .withDescription('Last code entered by a user'),
-            e.text('admin_code', ea.STATE_SET)
-                .withDescription('Admin code (change with caution)'),
-            e.numeric('arm_delay_time', ea.STATE_SET)
-                .withValueMin(0).withValueMax(180).withUnit('s')
-                .withDescription('Delay before arming (0-180 s)'),
-            e.binary('beep_sound_enabled', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Enable keypad beep on key press'),
-            e.binary('arm_delay_beep_sound', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Beep during arm delay countdown'),
-            e.binary('quick_home_enabled', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Allow arm-home without entering a code'),
-            e.binary('quick_arm_enabled', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Allow arm-away without entering a code'),
-            e.binary('quick_disarm_enabled', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Allow disarm without entering a code'),
-            e.binary('quick_sos_enabled', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Allow SOS without entering a code'),
+            e.text("user_id", ea.STATE).withDescription("User ID (RFID badge slot or PIN index) that triggered the last action"),
+            e.text("user_last_seen", ea.STATE).withDescription("ISO timestamp of last user authentication — updates on every badge/code event"),
+            e.text("last_added_user_code", ea.STATE).withDescription("Last code entered by a user"),
+            e.text("admin_code", ea.STATE_SET).withDescription("Admin code (change with caution)"),
+            e
+                .numeric("arm_delay_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(180)
+                .withUnit("s")
+                .withDescription("Delay before arming (0-180 s)"),
+            e.binary("beep_sound_enabled", ea.STATE_SET, "ON", "OFF").withDescription("Enable keypad beep on key press"),
+            e.binary("arm_delay_beep_sound", ea.STATE_SET, "ON", "OFF").withDescription("Beep during arm delay countdown"),
+            e.binary("quick_home_enabled", ea.STATE_SET, "ON", "OFF").withDescription("Allow arm-home without entering a code"),
+            e.binary("quick_arm_enabled", ea.STATE_SET, "ON", "OFF").withDescription("Allow arm-away without entering a code"),
+            e.binary("quick_disarm_enabled", ea.STATE_SET, "ON", "OFF").withDescription("Allow disarm without entering a code"),
+            e.binary("quick_sos_enabled", ea.STATE_SET, "ON", "OFF").withDescription("Allow SOS without entering a code"),
         ],
         meta: {
             tuyaDatapoints: [
                 // dp:23 from: null key → Object.assign (armed state only, no action — avoids
                 // spurious 'arm' events when the hub ACK or SOS follow-up dp:23=true arrive)
-                [23, null,    {from: (v: boolean | number) => ({armed: v === true || v === 1})}],
+                [23, null, {from: (v: boolean | number) => ({armed: v === true || v === 1})}],
                 // dp:23 to: write armed=true/false → sends dp:23=1/0 (hub ACK for arm_away/arm_home)
-                [23, 'armed', {to: (v: boolean) => (v ? 1 : 0)}],
+                [23, "armed", {to: (v: boolean) => (v ? 1 : 0)}],
 
-                [3, 'battery', tuya.valueConverter.raw],
+                [3, "battery", tuya.valueConverter.raw],
 
-                [24, 'tamper', {
-                    from: (v: boolean | number) => v === true || v === 1,
-                    to:   (v: boolean) => (v ? 1 : 0),
-                }],
+                [
+                    24,
+                    "tamper",
+                    {
+                        from: (v: boolean | number) => v === true || v === 1,
+                        to: (v: boolean) => (v ? 1 : 0),
+                    },
+                ],
 
-                [25, 'arm_mode', tuya.valueConverter.raw],
+                [25, "arm_mode", tuya.valueConverter.raw],
 
                 // Action DPs: include user_last_seen so it always refreshes even when dp:112
                 // does not accompany the action frame (observed for arm_away / arm_home)
-                [26, null, {from: () => ({action: 'disarm',   sos_alarm: false, user_last_seen: localISOString()})}],
-                [27, null, {from: () => ({action: 'arm_away', armed: true,       user_last_seen: localISOString()})}],
-                [28, null, {from: () => ({action: 'arm_home', armed: true,       user_last_seen: localISOString()})}],
-                [29, null, {from: () => ({action: 'sos',      sos_alarm: true,   user_last_seen: localISOString()})}],
+                [26, null, {from: () => ({action: "disarm", sos_alarm: false, user_last_seen: localISOString()})}],
+                [27, null, {from: () => ({action: "arm_away", armed: true, user_last_seen: localISOString()})}],
+                [28, null, {from: () => ({action: "arm_home", armed: true, user_last_seen: localISOString()})}],
+                [29, null, {from: () => ({action: "sos", sos_alarm: true, user_last_seen: localISOString()})}],
 
-                [103, 'arm_delay_time',      tuya.valueConverter.raw],
-                [104, 'beep_sound_enabled',  tuya.valueConverter.onOff],
-                [105, 'quick_home_enabled',  {from: tuya.valueConverter.onOff.from, to: (v: string) => v === 'ON'}],
-                [106, 'quick_disarm_enabled',tuya.valueConverter.onOff],
-                [107, 'quick_arm_enabled',   tuya.valueConverter.onOff],
-                [108, 'admin_code',          tuya.valueConverter.raw],
-                [109, 'last_added_user_code',tuya.valueConverter.raw],
-                [110, 'quick_sos_enabled',   {from: tuya.valueConverter.onOff.from, to: (v: string) => v === 'ON'}],
-                [111, 'arm_delay_beep_sound',tuya.valueConverter.onOff],
+                [103, "arm_delay_time", tuya.valueConverter.raw],
+                [104, "beep_sound_enabled", tuya.valueConverter.onOff],
+                [105, "quick_home_enabled", {from: tuya.valueConverter.onOff.from, to: (v: string) => v === "ON"}],
+                [106, "quick_disarm_enabled", tuya.valueConverter.onOff],
+                [107, "quick_arm_enabled", tuya.valueConverter.onOff],
+                [108, "admin_code", tuya.valueConverter.raw],
+                [109, "last_added_user_code", tuya.valueConverter.raw],
+                [110, "quick_sos_enabled", {from: tuya.valueConverter.onOff.from, to: (v: string) => v === "ON"}],
+                [111, "arm_delay_beep_sound", tuya.valueConverter.onOff],
                 // dp:112: overrides user_last_seen with a fresher timestamp when user_id is present
                 [112, null, {from: (v: number) => ({user_id: String(v), user_last_seen: localISOString()})}],
                 [101, null, {from: () => undefined}], // hub mode echo — suppress "not defined" warning
@@ -127,22 +123,22 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             // Enable hub mode so arm_away (dp:27) and arm_home (dp:28) fire over Zigbee
-            await tuya.sendDataPointBool(device.getEndpoint(1), 101, true, 'dataRequest', 1);
+            await tuya.sendDataPointBool(device.getEndpoint(1), 101, true, "dataRequest", 1);
         },
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore — legacy three-parameter onEvent; modern single-event form lacks 'message' type
+        // @ts-expect-error — legacy three-parameter onEvent; modern single-event form lacks 'message' type
         onEvent: async (type: string, data: Record<string, unknown>, device: {getEndpoint: (n: number) => unknown}) => {
             const endpoint = (device as {getEndpoint: (n: number) => ReturnType<typeof device.getEndpoint>}).getEndpoint(1);
-            if (type === 'deviceAnnounce') {
+            if (type === "deviceAnnounce") {
                 // Re-enable hub mode after every power cycle
-                await tuya.sendDataPointBool(endpoint, 101, true, 'dataRequest', 1);
+                await tuya.sendDataPointBool(endpoint, 101, true, "dataRequest", 1);
             }
-            if (type === 'message') {
+            if (type === "message") {
                 const d = data as {cluster?: string; type?: string; data?: {dpValues?: {dp: number}[]}};
-                if (d.cluster === 'manuSpecificTuya' && d.type === 'commandDataReport') {
+                if (d.cluster === "manuSpecificTuya" && d.type === "commandDataReport") {
                     // ACK arm_away (dp:27) and arm_home (dp:28) so the keypad stops retrying
                     if (d.data?.dpValues?.some((dp) => dp.dp === 27 || dp.dp === 28)) {
-                        await tuya.sendDataPointBool(endpoint, 23, true, 'dataRequest', 1);
+                        await tuya.sendDataPointBool(endpoint, 23, true, "dataRequest", 1);
                     }
                 }
             }
