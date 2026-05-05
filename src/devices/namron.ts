@@ -130,6 +130,42 @@ const fzLocal = {
             return fz.thermostat.convert(model, msg, publish, options, meta); // as KeyValue;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    namronSimplifyRemote: {
+        cluster: "namronPrivateE004",
+        type: ["raw"],
+        convert(model, msg, publish, _options, meta) {
+            const bytes = parseNamronBytes(msg);
+            if (bytes.length === 0) return;
+
+            const btn = bytes.at(-2);
+            const raw = bytes.at(-1);
+            if (btn == null || raw == null) return;
+
+            const kind = NAMRON_SIMPLIFY_ACTIONS[raw as 0x00 | 0x01 | 0x02];
+            const base = `button_${simplify_col(btn)}_${simplify_sub(btn)}_`;
+
+            // Firmware sometimes sends empty action after hold: synthesize release
+            if (!kind) {
+                const lastHold = store.getValue(meta.device, HOLD_KEY_SIMPLIFY) as string | undefined;
+                if (lastHold?.endsWith("_hold")) {
+                    publish({action: lastHold.replace("_hold", "_release")});
+                    store.putValue(meta.device, HOLD_KEY_SIMPLIFY, null);
+                }
+                return;
+            }
+            if (kind === "hold") {
+                store.putValue(meta.device, HOLD_KEY_SIMPLIFY, `${base}hold`);
+                publish({action: `${base}hold`});
+                return;
+            }
+            if (kind === "release") {
+                publish({action: `${base}press`});
+                publish({action: `${base}release`});
+                return;
+            }
+            publish({action: `${base}press`});
+        },
+    } satisfies Fz.Converter<"namronPrivateE004", NamronPrivateE004, ["raw"]>,
 };
 // Namron Simplify 3-button remote (4512793 / 4512794)
 // -----------------------------------------------------------
@@ -180,47 +216,6 @@ function parseNamronBytes(msg: Fz.Message<"namronPrivateE004", NamronPrivateE004
 
     return [];
 }
-
-const fzNamronSimplifyRemote: Fz.Converter<"namronPrivateE004", NamronPrivateE004, ["raw"]> = {
-    cluster: "namronPrivateE004",
-    type: ["raw"],
-    convert(model, msg, publish, _options, meta) {
-        const bytes = parseNamronBytes(msg);
-        if (bytes.length === 0) return;
-
-        const btn = bytes.at(-2);
-        const raw = bytes.at(-1);
-        if (btn == null || raw == null) return;
-
-        const kind = NAMRON_SIMPLIFY_ACTIONS[raw as 0x00 | 0x01 | 0x02];
-        const base = `button_${simplify_col(btn)}_${simplify_sub(btn)}_`;
-
-        // Firmware sometimes sends empty action after hold: synthesize release
-        if (!kind) {
-            const lastHold = store.getValue(meta.device, HOLD_KEY_SIMPLIFY) as string | undefined;
-            if (lastHold?.endsWith("_hold")) {
-                publish({action: lastHold.replace("_hold", "_release")});
-                store.putValue(meta.device, HOLD_KEY_SIMPLIFY, null);
-            }
-            return;
-        }
-
-        if (kind === "hold") {
-            store.putValue(meta.device, HOLD_KEY_SIMPLIFY, `${base}hold`);
-            publish({action: `${base}hold`});
-            return;
-        }
-
-        if (kind === "release") {
-            publish({action: `${base}press`});
-            publish({action: `${base}release`});
-            return;
-        }
-
-        publish({action: `${base}press`});
-    },
-};
-
 // END SimplifyBryter
 const tzLocal = {
     namron_panelheater: {
@@ -883,7 +878,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512737/4512738",
         vendor: "Namron",
         description: "Touch thermostat",
-        fromZigbee: [fz.thermostat, fz.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
+        fromZigbee: [fz.thermostat, namron.fromZigbee.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
@@ -895,7 +890,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_running_state,
             tz.namron_thermostat_child_lock,
-            tz.namron_thermostat,
+            namron.toZigbee.namron_thermostat,
         ],
         exposes: [
             e.local_temperature(),
@@ -961,7 +956,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
         ],
         // Device does not asks for the time with binding, therefore we write the time every 24 hours
-        extend: [m.writeTimeDaily({endpointId: 1})],
+        extend: [m.writeTimeDaily({endpointId: 1}), namron.namronExtend.addNamronHvacThermostatCluster()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -1218,6 +1213,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "540139X",
         vendor: "Namron",
         description: "Panel heater 400/600/800/1000 W",
+        extend: [namron.namronExtend.addNamronHvacThermostatCluster()],
         ota: true,
         fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fzLocal.namron_panelheater, fz.namron_hvac_user_interface],
         toZigbee: [
@@ -1388,6 +1384,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "Zigbee thermostat for panel heater PRO (white 4512776 / black 4512777)",
         extend: [
+            namron.namronExtend.addNamronHvacThermostatCluster(),
             m.electricityMeter({cluster: "both", energy: {divisor: 10}, power: false, voltage: false, current: false, configureReporting: false}),
         ],
         fromZigbee: [fz.thermostat, fzLocal.namron_panelheater, fz.namron_hvac_user_interface, fz.electrical_measurement],
@@ -2001,6 +1998,7 @@ export const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         extend: [
+            namron.namronExtend.addNamronHvacThermostatCluster(),
             m.poll({
                 key: "time",
                 defaultIntervalSeconds: 60 * 60 * 24,
@@ -2106,7 +2104,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "Simplify 6-button remote with battery",
         extend: [m.battery(), namron.namronExtend.addCustomClusterNamronPrivateE004()],
-        fromZigbee: [fzNamronSimplifyRemote],
+        fromZigbee: [fzLocal.namronSimplifyRemote],
         toZigbee: [],
         exposes: [
             e.action([
