@@ -392,7 +392,7 @@ export const definitions: DefinitionWithExtend[] = [
             plugwiseExtend.applicationFaultCodeStatus(),
             plugwiseExtend.oemFaultCode(),
             m.temperature({
-                reporting: {min: "1_SECOND", max: 870, change: 0.1},
+                reporting: {min: "1_SECOND", max: 870, change: 10},
             }),
             m.thermostat({
                 setpoints: {
@@ -415,9 +415,7 @@ export const definitions: DefinitionWithExtend[] = [
                     configure: {reporting: {min: "1_SECOND", max: 870, change: 0}},
                 },
             }),
-            m.humidity({
-                reporting: {min: "10_SECONDS", max: 870, change: 3},
-            }),
+            m.humidity(),
             m.numeric({
                 name: "outdoor_temperature",
                 cluster: "hvacThermostat",
