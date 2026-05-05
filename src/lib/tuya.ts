@@ -184,6 +184,23 @@ interface Tuya4 {
     commandResponses: never;
 }
 
+export interface InchingInput {
+    state?: string;
+    minutes?: number;
+    seconds?: number;
+}
+
+export interface MetaState {
+    state: {
+        inching?: {
+            state: string;
+            minutes: number;
+            seconds: number;
+        };
+        [key: string]: any; // Allows for other unknown properties in the state object
+    };
+}
+
 export const dataTypes = {
     raw: 0, // [ bytes ]
     bool: 1, // [0/1]
@@ -373,6 +390,8 @@ export type ThermostatSchedule = KeyValue & {
         saturday: boolean;
     };
 };
+
+export type FromValue = string | number[] | Uint8Array;
 
 export function convertBufferToNumber(chunks: Buffer | number[]) {
     let value = 0;
@@ -2044,34 +2063,33 @@ export const valueConverter = {
         },
     },
     inchingSwitch2: {
-        to: (value, meta) => {
-            const val = value as {state?: string; minutes?: number; seconds?: number};
-            const stateMeta = meta.state as {inching?: {state: string; minutes: number; seconds: number}};
-
-            const currentState = stateMeta.inching || {state: "OFF", minutes: 1, seconds: 0};
-            const state = val.state !== undefined ? val.state : currentState.state;
-            const minutes = val.minutes !== undefined ? val.minutes : currentState.minutes;
-            const seconds = val.seconds !== undefined ? val.seconds : currentState.seconds;
-
+        to: (value: InchingInput, meta: MetaState) => {
+            // No need for 'as' casting anymore; TypeScript knows the shape of 'value' and 'meta'
+            const currentState = meta.state.inching || { state: "OFF", minutes: 1, seconds: 0 };
+            
+            const state = value.state !== undefined ? value.state : currentState.state;
+            const minutes = value.minutes !== undefined ? value.minutes : currentState.minutes;
+            const seconds = value.seconds !== undefined ? value.seconds : currentState.seconds;
+    
             let totalSeconds = Math.max(1, minutes * 60 + seconds);
             if (totalSeconds > 65535) totalSeconds = 65535;
-
+    
             const buf = Buffer.alloc(3);
             buf.writeUInt8(state === "ON" ? 1 : 0, 0);
             buf.writeUInt16BE(totalSeconds, 1);
-
+    
             return buf.toString("base64");
         },
-        from: (value) => {
-            const val = value as string | number[] | Uint8Array;
-            const buf = typeof val === "string" ? Buffer.from(val, "base64") : Buffer.from(val);
+        from: (value: FromValue) => {
+            // 'value' is already strongly typed, so we can use it directly
+            const buf = typeof value === "string" ? Buffer.from(value, "base64") : Buffer.from(value);
             const state = buf.readUInt8(0) === 1 ? "ON" : "OFF";
             const totalSeconds = buf.readUInt16BE(1);
-
+    
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
-
-            return {state, minutes, seconds};
+    
+            return { state, minutes, seconds };
         },
     },
 };
