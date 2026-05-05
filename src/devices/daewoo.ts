@@ -1,6 +1,6 @@
 import * as exposes from "../lib/exposes";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, OnEvent} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -25,13 +25,13 @@ const ea = exposes.access;
 //   DP 29        — sos action (unconditional)
 //   DP 101(bool) — hub mode flag
 //   DP 103       — arm delay time (0–180 s)
-//   DP 104       — beep on key press
-//   DP 105       — quick arm home
-//   DP 106       — quick disarm
-//   DP 107       — quick arm away
+//   DP 104       — beep on key press (volatile)
+//   DP 105       — quick arm home (volatile)
+//   DP 106       — quick disarm (volatile)
+//   DP 107       — quick arm away (volatile)
 //   DP 108       — admin code
 //   DP 109       — last added user code
-//   DP 110       — quick SOS
+//   DP 110       — quick SOS (volatile)
 //   DP 111       — arm delay beep
 //   DP 112 (u32) — user_id: RFID badge slot or PIN user index
 
@@ -45,6 +45,25 @@ function localISOString(): string {
         .replace("Z", `${sign}${pad(Math.floor(Math.abs(off) / 60))}:${pad(Math.abs(off) % 60)}`);
 }
 
+// ACK arm_away (dp:27) and arm_home (dp:28) with dp:23=true so the keypad stops retrying.
+// Code validation is done by the keypad hardware before sending these DPs.
+const fzAck = {
+    cluster: "manuSpecificTuya",
+    type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
+    convert: async (_model, msg, _publish, _options, meta) => {
+        if (msg.data.dpValues.some((d) => d.dp === 27 || d.dp === 28)) {
+            const endpoint = meta.device.getEndpoint(1);
+            if (endpoint) {
+                await tuya.sendDataPointBool(endpoint, 23, true, "dataRequest", 1);
+            }
+        }
+    },
+} satisfies Fz.Converter<
+    "manuSpecificTuya",
+    undefined,
+    ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
+>;
+
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rt5dklro"]),
@@ -52,6 +71,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "DAEWOO",
         description: "Smart Zigbee keypad with RFID badge reader",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        fromZigbee: [fzAck],
         exposes: [
             e.action(["disarm", "arm_away", "arm_home", "sos"]),
             e.numeric("arm_mode", ea.STATE).withDescription("Arm mode reported at startup only: 0=disarmed, 2=armed. NOT updated in real-time."),
@@ -122,26 +142,35 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            // Enable hub mode so arm_away (dp:27) and arm_home (dp:28) fire over Zigbee
-            await tuya.sendDataPointBool(device.getEndpoint(1), 101, true, "dataRequest", 1);
-        },
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error — legacy three-parameter onEvent; modern single-event form lacks 'message' type
-        onEvent: async (type: string, data: Record<string, unknown>, device: {getEndpoint: (n: number) => unknown}) => {
-            const endpoint = (device as {getEndpoint: (n: number) => ReturnType<typeof device.getEndpoint>}).getEndpoint(1);
-            if (type === "deviceAnnounce") {
-                // Re-enable hub mode after every power cycle
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                // Enable hub mode so arm_away (dp:27) and arm_home (dp:28) fire over Zigbee
                 await tuya.sendDataPointBool(endpoint, 101, true, "dataRequest", 1);
             }
-            if (type === "message") {
-                const d = data as {cluster?: string; type?: string; data?: {dpValues?: {dp: number}[]}};
-                if (d.cluster === "manuSpecificTuya" && d.type === "commandDataReport") {
-                    // ACK arm_away (dp:27) and arm_home (dp:28) so the keypad stops retrying
-                    if (d.data?.dpValues?.some((dp) => dp.dp === 27 || dp.dp === 28)) {
-                        await tuya.sendDataPointBool(endpoint, 23, true, "dataRequest", 1);
+        },
+        onEvent: (async (event) => {
+            if (event.type === "deviceAnnounce") {
+                const endpoint = event.data.device.getEndpoint(1);
+                if (endpoint) {
+                    // Re-enable hub mode after every power cycle
+                    await tuya.sendDataPointBool(endpoint, 101, true, "dataRequest", 1);
+                    // DP 104/105/106/107/110 are volatile: reset to firmware defaults on power cycle.
+                    // Restore from Z2M cached state so user settings survive reboots.
+                    const s = event.data.state;
+                    const volatileBoolDps: [number, string][] = [
+                        [104, "beep_sound_enabled"],
+                        [105, "quick_home_enabled"],
+                        [106, "quick_disarm_enabled"],
+                        [107, "quick_arm_enabled"],
+                        [110, "quick_sos_enabled"],
+                    ];
+                    for (const [dp, key] of volatileBoolDps) {
+                        if (s[key] !== undefined) {
+                            await tuya.sendDataPointBool(endpoint, dp, s[key] === "ON" || s[key] === true, "dataRequest", 1);
+                        }
                     }
                 }
             }
-        },
+        }) satisfies OnEvent.Handler,
     },
 ];
