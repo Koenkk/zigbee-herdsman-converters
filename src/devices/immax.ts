@@ -120,6 +120,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "NEO smart internal double socket",
         vendor: "Immax",
         extend: [
+            tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 electricalMeasurements: true,
                 powerOutageMemory: true,
