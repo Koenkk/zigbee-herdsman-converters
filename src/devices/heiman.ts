@@ -2621,7 +2621,6 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.heimanClusterRadarActiveIndicatorExtend(),
             heimanExtend.heimanClusterRadarSensitivityExtend(),
             heimanExtend.heimanClusterLegacyIlluminanceExtend(),
-            // heimanExtend.radarDelayTime(),
             m.numeric({
                 name: "radar_delay_time",
                 cluster: "msOccupancySensing",
