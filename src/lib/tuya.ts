@@ -2064,7 +2064,6 @@ export const valueConverter = {
     },
     inchingSwitch2: {
         to: (value: InchingInput, meta: MetaState) => {
-            // No need for 'as' casting anymore; TypeScript knows the shape of 'value' and 'meta'
             const currentState = meta.state.inching || {state: "OFF", minutes: 1, seconds: 0};
 
             const state = value.state !== undefined ? value.state : currentState.state;
@@ -2081,7 +2080,6 @@ export const valueConverter = {
             return buf.toString("base64");
         },
         from: (value: FromValue) => {
-            // 'value' is already strongly typed, so we can use it directly
             const buf = typeof value === "string" ? Buffer.from(value, "base64") : Buffer.from(value);
             const state = buf.readUInt8(0) === 1 ? "ON" : "OFF";
             const totalSeconds = buf.readUInt16BE(1);
