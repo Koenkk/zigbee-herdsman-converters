@@ -2152,6 +2152,7 @@ const fromZigbee = {
                 case dataPoints.connecteState:
                     return {state: value ? "ON" : "OFF"};
                 case dataPoints.connecteMode:
+                    // biome-ignore lint/nursery/useExhaustiveSwitchCases: legacy
                     switch (value) {
                         case 0: // manual
                             return {system_mode: "heat", away_mode: "OFF"};
