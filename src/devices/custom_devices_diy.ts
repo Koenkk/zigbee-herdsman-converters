@@ -322,6 +322,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "ZB-GW04", manufacturerName: "easyiot", applicationVersion: 200},
             {modelID: "ZB-GW04-1v1", manufacturerName: "easyiot", applicationVersion: 200},
             {modelID: "ZB-GW04-1v2", manufacturerName: "easyiot", applicationVersion: 200},
+            {modelID: "ZBM-MG24", manufacturerName: "Inswift", applicationVersion: 200},
             {modelID: "SkyConnect", manufacturerName: "NabuCasa", applicationVersion: 200},
             {modelID: "ZBT-2", manufacturerName: "NabuCasa", applicationVersion: 200},
             {modelID: "SLZB-06M", manufacturerName: "SMLIGHT", applicationVersion: 200},
