@@ -85,9 +85,8 @@ export const definitions: DefinitionWithExtend[] = [
             "MOT-C1Z10F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
             "MOT-C1Z20F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
             "MOT-C1Z30F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
-            "MOT-C2Z10",
         ],
-        model: "MOT-CxZxxC/F",
+        model: "MOT-C1ZxxC/F",
         vendor: "Profalux",
         description: "Cover",
         extend: [profaluxExtend.addManuSpecificProfalux1Cluster()],
@@ -119,6 +118,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {default: 2};
         },
+        whiteLabel: [{zigbeeModel: ["MOT-C2Z10"], model: "MOT-C2Z10", vendor: "Profalux"}],
     },
     {
         // Identify older covers based on their fingerprint. These do not
@@ -149,8 +149,8 @@ export const definitions: DefinitionWithExtend[] = [
         // Newer remotes. These expose a bunch of things but they are bound to
         // the cover and don't seem to communicate with the coordinator, so
         // nothing is likely to be doable in Z2M.
-        zigbeeModel: ["MAI-ZTP20F", "MAI-ZTP20C", "MAI-ZTP22C"],
-        model: "MAI-ZTP2xC/F",
+        zigbeeModel: ["MAI-ZTP20F", "MAI-ZTP20C"],
+        model: "MAI-ZTP20",
         vendor: "Profalux",
         description: "Cover remote",
         extend: [
@@ -159,6 +159,7 @@ export const definitions: DefinitionWithExtend[] = [
             // Poll battery voltage as reporting doesn't work
             mLocal.pollBatteryVoltage(),
         ],
+        whiteLabel: [{zigbeeModel: ["MAI-ZTP22C"], model: "MAI-ZTP22C", vendor: "Profalux"}],
     },
     {
         // Newer remotes. These expose a bunch of things but they are bound to
