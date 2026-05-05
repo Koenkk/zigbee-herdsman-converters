@@ -197,7 +197,7 @@ export interface MetaState {
             minutes: number;
             seconds: number;
         };
-        [key: string]: any; // Allows for other unknown properties in the state object
+        [key: string]: unknown;
     };
 }
 
