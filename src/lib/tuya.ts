@@ -489,6 +489,16 @@ export async function sendDataPointStringBuffer(entity: Zh.Group | Zh.Endpoint, 
 }
 
 const tuyaExposes = {
+    alarmTime: () =>
+        e
+            .numeric("alarm_time", ea.STATE_SET)
+            .withUnit("s")
+            .withValueMin(1)
+            .withValueMax(180)
+            .withValueStep(1)
+            .withDescription("Alarm time")
+            .withCategory("config"),
+    alarmMode: () => e.enum("alarm_mode", ea.STATE_SET, ["arm", "silent", "disarm"]).withDescription("Alarm work mode").withCategory("config"),
     lightType: () => e.enum("light_type", ea.STATE_SET, ["led", "incandescent", "halogen"]).withDescription("Type of light attached to the device"),
     lightBrightnessWithMinMax: () =>
         e
@@ -886,6 +896,7 @@ export const valueConverter = {
     lightMode: valueConverterBasic.lookup({normal: new Enum(0), on: new Enum(1), off: new Enum(2), flash: new Enum(3)}),
     raw: valueConverterBasic.raw(),
     fault: {from: (v: Bitmap) => !!v},
+    alarmMode: valueConverterBasic.lookup({arm: new Enum(0), silent: new Enum(1), disarm: new Enum(2)}),
     localTemperatureCalibration: {
         from: (value: number) => (value > 4000 ? value - 4096 : value),
         to: (value: number) => (value < 0 ? 4096 + value : value),

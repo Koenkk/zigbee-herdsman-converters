@@ -23,6 +23,8 @@ const {tuyaLight, tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup, 
 const e = exposes.presets;
 const ea = exposes.access;
 
+const te = tuya.exposes;
+
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -19083,12 +19085,16 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "occupancy", tuya.valueConverter.trueFalse0],
                 [4, "battery", tuya.valueConverter.raw],
                 [9, "pir_sensitivity", tuya.valueConverterBasic.lookup({high: 0, low: 1})],
+                [101, "alarm_time", tuya.valueConverter.raw],
+                [102, "alarm_mode", tuya.valueConverter.alarmMode],
             ],
         },
         exposes: [
             e.occupancy(),
-            e.battery(),
             e.enum("pir_sensitivity", ea.STATE_SET, ["high", "low"]).withDescription("PIR sensitivity (0=high, 1=low)"),
+            te.alarmTime(),
+            te.alarmMode(),
+            e.battery(),
         ],
     },
     {
