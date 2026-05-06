@@ -119,7 +119,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {default: 2};
         },
-        whiteLabel: [{model: "MOT-C2Z10", vendor: "Profalux"}],
+        whiteLabel: [{model: "MOT-C2Z10", vendor: "Profalux", fingerprint: [{modelID: "MOT-C2Z10"}]}],
     },
     {
         // Identify older covers based on their fingerprint. These do not
@@ -160,7 +160,7 @@ export const definitions: DefinitionWithExtend[] = [
             // Poll battery voltage as reporting doesn't work
             mLocal.pollBatteryVoltage(),
         ],
-        whiteLabel: [{model: "MAI-ZTP22C", vendor: "Profalux"}],
+        whiteLabel: [{model: "MAI-ZTP22C", vendor: "Profalux", fingerprint: [{modelID: "MAI-ZTP22C"}]}],
     },
     {
         // Newer remotes. These expose a bunch of things but they are bound to
