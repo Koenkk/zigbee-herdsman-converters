@@ -21910,6 +21910,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3002_pzao9ls1",
             "_TZ300A_vkflnsl0",
             "_TZ3002_eda6eitk",
+            "_TZ3000_hurauima",
         ]),
         model: "TS0726_4_gang_scene_switch",
         vendor: "Tuya",
