@@ -58,13 +58,13 @@ const fzLocal = {
                     result.display_brightnesss = data.operateDisplayBrightness;
                 }
             }
-            if (data.buttonVibrationLevel !== undefined) {
+            if (data.displayAutoOff !== undefined) {
                 // DisplayAutoOffActivation
                 if (isPro) {
-                    result.display_auto_off = data.buttonVibrationLevel === 1;
+                    result.display_auto_off = data.displayAutoOff === 1;
                 } else {
                     const lookup = {0: "deactivated", 1: "activated"};
-                    result.display_auto_off = utils.getFromLookup(data.buttonVibrationLevel, lookup);
+                    result.display_auto_off = utils.getFromLookup(data.displayAutoOff, lookup);
                 }
             }
             if (data.powerUpStatus !== undefined) {
@@ -91,9 +91,9 @@ const fzLocal = {
                     result.hysterersis = value;
                 }
             }
-            if (data.displayAutoOffEnable !== undefined) {
+            if (data.windowOpen !== undefined) {
                 // WindowOpen, 0: Window is not opened, 1: Window is opened
-                result.window_open = data.displayAutoOffEnable === 1;
+                result.window_open = data.windowOpen === 1;
             }
             // PRO-specific attributes
             if (data[0x2009] !== undefined) {
@@ -129,7 +129,7 @@ const fzLocal = {
             if (msg.data.runningMode !== undefined) msg.data.runningState = runningModeStateMap[msg.data.runningMode];
             return fz.thermostat.convert(model, msg, publish, options, meta); // as KeyValue;
         },
-    } satisfies Fz.Converter<"hvacThermostat", namron.NamronHvacThermostat, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     namronSimplifyRemote: {
         cluster: "namronPrivateE004",
         type: ["raw"],
@@ -250,11 +250,7 @@ const tzLocal = {
                     );
                     break;
                 case "display_auto_off":
-                    await entity.read<"hvacThermostat", namron.NamronHvacThermostat>(
-                        "hvacThermostat",
-                        ["buttonVibrationLevel"],
-                        sunricherManufacturer,
-                    );
+                    await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", ["displayAutoOff"], sunricherManufacturer);
                     break;
                 case "power_up_status":
                     await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", ["powerUpStatus"], sunricherManufacturer);
@@ -266,11 +262,7 @@ const tzLocal = {
                     await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", ["hysterersis"], sunricherManufacturer);
                     break;
                 case "window_open":
-                    await entity.read<"hvacThermostat", namron.NamronHvacThermostat>(
-                        "hvacThermostat",
-                        ["displayAutoOffEnable"],
-                        sunricherManufacturer,
-                    );
+                    await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", ["windowOpen"], sunricherManufacturer);
                     break;
 
                 default: // Unknown key
@@ -304,7 +296,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read<"hvacThermostat", namron.NamronHvacThermostat>(
                 "hvacThermostat",
-                ["windowOpenCheck2", "displayAutoOffEnable"],
+                ["windowOpenCheck2", "windowOpen"],
                 sunricherManufacturer,
             );
         },
@@ -318,7 +310,7 @@ const tzLocal = {
             return {state: {display_auto_off: enable}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", ["buttonVibrationLevel"], sunricherManufacturer);
+            await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", ["displayAutoOff"], sunricherManufacturer);
         },
     } satisfies Tz.Converter,
     namron_panelheater_pro_control_method: {
@@ -972,7 +964,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
         ],
         // Device does not asks for the time with binding, therefore we write the time every 24 hours
-        extend: [m.writeTimeDaily({endpointId: 1}), namron.namronExtend.addNamronHvacThermostatCluster()],
+        extend: [m.writeTimeDaily({endpointId: 1}), namron.namronExtend.addNamronHvacThermostat2Cluster()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -1004,11 +996,11 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
 
             // OperateDisplayLcdBrightnesss
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
-                        attribute: "operateDisplayBrightness",
+                        attribute: "lcdBrightness",
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -1017,7 +1009,7 @@ export const definitions: DefinitionWithExtend[] = [
                 sunricherManufacturer,
             );
             // ButtonVibrationLevel
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
@@ -1030,7 +1022,7 @@ export const definitions: DefinitionWithExtend[] = [
                 sunricherManufacturer,
             );
             // FloorSensorType
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
@@ -1043,7 +1035,7 @@ export const definitions: DefinitionWithExtend[] = [
                 sunricherManufacturer,
             );
             // ControlType
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
@@ -1056,7 +1048,7 @@ export const definitions: DefinitionWithExtend[] = [
                 sunricherManufacturer,
             );
             // PowerUpStatus
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
@@ -1069,7 +1061,7 @@ export const definitions: DefinitionWithExtend[] = [
                 sunricherManufacturer,
             );
             // FloorSensorCalibration
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
@@ -1082,7 +1074,7 @@ export const definitions: DefinitionWithExtend[] = [
                 sunricherManufacturer,
             );
             // DryTime
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
@@ -1095,7 +1087,7 @@ export const definitions: DefinitionWithExtend[] = [
                 sunricherManufacturer,
             );
             // ModeAfterDry
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
@@ -1108,7 +1100,7 @@ export const definitions: DefinitionWithExtend[] = [
                 sunricherManufacturer,
             );
             // TemperatureDisplay
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
@@ -1121,7 +1113,7 @@ export const definitions: DefinitionWithExtend[] = [
                 sunricherManufacturer,
             );
             // WindowOpenCheck
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
@@ -1135,7 +1127,7 @@ export const definitions: DefinitionWithExtend[] = [
             );
 
             // Hysterersis
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
@@ -1148,7 +1140,7 @@ export const definitions: DefinitionWithExtend[] = [
                 sunricherManufacturer,
             );
             // DisplayAutoOffEnable
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
@@ -1162,7 +1154,7 @@ export const definitions: DefinitionWithExtend[] = [
             );
 
             // AlarmAirTempOverValue
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
@@ -1175,7 +1167,7 @@ export const definitions: DefinitionWithExtend[] = [
                 sunricherManufacturer,
             );
             // Away Mode Set
-            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.configureReporting<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 [
                     {
@@ -1190,22 +1182,22 @@ export const definitions: DefinitionWithExtend[] = [
 
             // Trigger initial read
             await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint"]);
-            await endpoint.read<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.read<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
-                ["operateDisplayBrightness", "buttonVibrationLevel", "floorSensorType", "controlType"],
+                ["lcdBrightness", "buttonVibrationLevel", "floorSensorType", "controlType"],
                 sunricherManufacturer,
             );
-            await endpoint.read<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.read<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 ["powerUpStatus", "floorSensorCalibration", "dryTime", "modeAfterDry"],
                 sunricherManufacturer,
             );
-            await endpoint.read<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.read<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 ["temperatureDisplay", "windowOpenCheck2", "hysterersis", "displayAutoOffEnable"],
                 sunricherManufacturer,
             );
-            await endpoint.read<"hvacThermostat", namron.NamronHvacThermostat>(
+            await endpoint.read<"hvacThermostat", namron.NamronHvacThermostat2>(
                 "hvacThermostat",
                 ["alarmAirTempOverValue", "awayModeSet"],
                 sunricherManufacturer,
@@ -1342,7 +1334,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacThermostat",
                 [
                     {
-                        attribute: "buttonVibrationLevel",
+                        attribute: "displayAutoOff",
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -1394,7 +1386,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "hvacThermostat",
                 [
                     {
-                        attribute: "displayAutoOffEnable",
+                        attribute: "windowOpen",
                         minimumReportInterval: 0,
                         maximumReportInterval: constants.repInterval.HOUR,
                         reportableChange: null,
@@ -1407,7 +1399,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
             await endpoint.read<"hvacThermostat", namron.NamronHvacThermostat>(
                 "hvacThermostat",
-                ["operateDisplayBrightness", "buttonVibrationLevel", "powerUpStatus", "windowOpenCheck2", "hysterersis", "displayAutoOffEnable"],
+                ["operateDisplayBrightness", "displayAutoOff", "powerUpStatus", "windowOpenCheck2", "hysterersis", "windowOpen"],
                 sunricherManufacturer,
             );
 
@@ -1503,10 +1495,10 @@ export const definitions: DefinitionWithExtend[] = [
                     "hvacThermostat",
                     [
                         "operateDisplayBrightness",
-                        "buttonVibrationLevel",
+                        "displayAutoOff",
                         "windowOpenCheck2",
                         "hysterersis",
-                        "displayAutoOffEnable",
+                        "windowOpen",
                         0x100c,
                         0x2006,
                         0x2007,
@@ -2050,7 +2042,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "summerWinterSwitch",
                 "fault",
                 "displayActiveBacklight",
-                "displayAutoOff",
+                "displayAutoOff2",
                 "autoTime",
                 "boostTimeSet",
                 "boostTimeRemaining",

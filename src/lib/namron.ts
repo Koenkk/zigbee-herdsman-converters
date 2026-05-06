@@ -7,7 +7,7 @@ import type {Fz, KeyValue, KeyValueAny, Tz} from "./types";
 export interface NamronHvacThermostat {
     attributes: {
         operateDisplayBrightness: number;
-        buttonVibrationLevel: number;
+        displayAutoOff: number;
         floorSensorType: number;
         controlType: number;
         powerUpStatus: number;
@@ -17,7 +17,7 @@ export interface NamronHvacThermostat {
         temperatureDisplay: number;
         windowOpenCheck2: number;
         hysterersis: number;
-        displayAutoOffEnable: number;
+        windowOpen: number;
         alarmAirTempOverValue: number;
         awayModeSet: number;
         windowOpenCheck: boolean;
@@ -48,7 +48,28 @@ export interface NamronHvacThermostat {
         autoTime: boolean;
         boostTimeSet: number;
         boostTimeRemaining: number;
-        displayAutoOff: number;
+        displayAutoOff2: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export interface NamronHvacThermostat2 {
+    attributes: {
+        lcdBrightness: number;
+        buttonVibrationLevel: number;
+        floorSensorType: number;
+        controlType: number; // -> sensor
+        powerUpStatus: number;
+        floorSensorCalibration: number;
+        dryTime: number;
+        modeAfterDry: number;
+        temperatureDisplay: number;
+        windowOpenCheck2: number;
+        hysterersis: number;
+        displayAutoOffEnable: number;
+        alarmAirTempOverValue: number;
+        awayModeSet: number;
     };
     commands: never;
     commandResponses: never;
@@ -124,18 +145,15 @@ export const fromZigbee = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             const data = msg.data;
-            if (data.operateDisplayBrightness !== undefined) {
-                // Display brightness
+            if (data.lcdBrightness !== undefined) {
                 const lookup: KeyValueAny = {0: "low", 1: "mid", 2: "high"};
-                result.lcd_brightness = lookup[data.operateDisplayBrightness];
+                result.lcd_brightness = lookup[data.lcdBrightness];
             }
             if (data.buttonVibrationLevel !== undefined) {
-                // Button vibration level
                 const lookup: KeyValueAny = {0: "off", 1: "low", 2: "high"};
                 result.button_vibration_level = lookup[data.buttonVibrationLevel];
             }
             if (data.floorSensorType !== undefined) {
-                // Floor sensor type
                 const lookup: KeyValueAny = {1: "10k", 2: "15k", 3: "50k", 4: "100k", 5: "12k"};
                 result.floor_sensor_type = lookup[data.floorSensorType];
             }
@@ -145,52 +163,42 @@ export const fromZigbee = {
                 result.sensor = lookup[data.controlType];
             }
             if (data.powerUpStatus !== undefined) {
-                // PowerUpStatus
                 const lookup: KeyValueAny = {0: "default", 1: "last_status"};
                 result.powerup_status = lookup[data.powerUpStatus];
             }
             if (data.floorSensorCalibration !== undefined) {
-                // FloorSensorCalibration
                 result.floor_sensor_calibration = utils.precisionRound(data.floorSensorCalibration, 2) / 10;
             }
             if (data.dryTime !== undefined) {
-                // DryTime
                 result.dry_time = data.dryTime;
             }
             if (data.modeAfterDry !== undefined) {
-                // ModeAfterDry
                 const lookup: KeyValueAny = {0: "off", 1: "manual", 2: "auto", 3: "away"};
                 result.mode_after_dry = lookup[data.modeAfterDry];
             }
             if (data.temperatureDisplay !== undefined) {
-                // TemperatureDisplay
                 const lookup: KeyValueAny = {0: "room", 1: "floor"};
                 result.temperature_display = lookup[data.temperatureDisplay];
             }
             if (data.windowOpenCheck2 !== undefined) {
-                // WindowOpenCheck
                 result.window_open_check = data.windowOpenCheck2 / 2;
             }
             if (data.hysterersis !== undefined) {
-                // Hysterersis
                 result.hysterersis = utils.precisionRound(data.hysterersis, 2) / 10;
             }
             if (data.displayAutoOffEnable !== undefined) {
-                // DisplayAutoOffEnable
                 result.display_auto_off_enabled = data.displayAutoOffEnable ? "enabled" : "disabled";
             }
             if (data.alarmAirTempOverValue !== undefined) {
-                // AlarmAirTempOverValue
                 result.alarm_airtemp_overvalue = data.alarmAirTempOverValue;
             }
             if (data.awayModeSet !== undefined) {
-                // Away Mode Set
                 result.away_mode = data.awayModeSet ? "ON" : "OFF";
             }
 
             return result;
         },
-    } satisfies Fz.Converter<"hvacThermostat", NamronHvacThermostat, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"hvacThermostat", NamronHvacThermostat2, ["attributeReport", "readResponse"]>,
 };
 
 export const toZigbee = {
@@ -332,46 +340,46 @@ export const toZigbee = {
         convertGet: async (entity, key, meta) => {
             switch (key) {
                 case "lcd_brightness":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["operateDisplayBrightness"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["lcdBrightness"], sunricherManufacturer);
                     break;
                 case "button_vibration_level":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["buttonVibrationLevel"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["buttonVibrationLevel"], sunricherManufacturer);
                     break;
                 case "floor_sensor_type":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["floorSensorType"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["floorSensorType"], sunricherManufacturer);
                     break;
                 case "sensor":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["controlType"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["controlType"], sunricherManufacturer);
                     break;
                 case "powerup_status":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["powerUpStatus"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["powerUpStatus"], sunricherManufacturer);
                     break;
                 case "floor_sensor_calibration":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["floorSensorCalibration"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["floorSensorCalibration"], sunricherManufacturer);
                     break;
                 case "dry_time":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["dryTime"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["dryTime"], sunricherManufacturer);
                     break;
                 case "mode_after_dry":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["modeAfterDry"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["modeAfterDry"], sunricherManufacturer);
                     break;
                 case "temperature_display":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["temperatureDisplay"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["temperatureDisplay"], sunricherManufacturer);
                     break;
                 case "window_open_check":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["windowOpenCheck2"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["windowOpenCheck2"], sunricherManufacturer);
                     break;
                 case "hysterersis":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["hysterersis"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["hysterersis"], sunricherManufacturer);
                     break;
                 case "display_auto_off_enabled":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["displayAutoOffEnable"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["displayAutoOffEnable"], sunricherManufacturer);
                     break;
                 case "alarm_airtemp_overvalue":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["alarmAirTempOverValue"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["alarmAirTempOverValue"], sunricherManufacturer);
                     break;
                 case "away_mode":
-                    await entity.read<"hvacThermostat", NamronHvacThermostat>("hvacThermostat", ["awayModeSet"], sunricherManufacturer);
+                    await entity.read<"hvacThermostat", NamronHvacThermostat2>("hvacThermostat", ["awayModeSet"], sunricherManufacturer);
                     break;
 
                 default: // Unknown key
@@ -489,7 +497,7 @@ export const edgeThermostat = {
         modernExtend.enumLookup<"hvacThermostat", NamronHvacThermostat>({
             name: "display_auto_off",
             cluster: "hvacThermostat",
-            attribute: "displayAutoOff",
+            attribute: "displayAutoOff2",
             description: "Display auto off",
             lookup: {always_on: 0, auto_off_after_10s: 1, auto_off_after_30s: 2, auto_off_after_60s: 3},
             access: "ALL",
@@ -707,8 +715,8 @@ export const namronExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
                     write: true,
                 },
-                buttonVibrationLevel: {
-                    name: "buttonVibrationLevel",
+                displayAutoOff: {
+                    name: "displayAutoOff",
                     ID: 0x1001,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
@@ -777,8 +785,8 @@ export const namronExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
                     write: true,
                 },
-                displayAutoOffEnable: {
-                    name: "displayAutoOffEnable",
+                windowOpen: {
+                    name: "windowOpen",
                     ID: 0x100b,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
@@ -990,12 +998,119 @@ export const namronExtend = {
                     type: Zcl.DataType.UINT8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
                 },
-                displayAutoOff: {
-                    name: "displayAutoOff",
+                displayAutoOff2: {
+                    name: "displayAutoOff2",
                     ID: 0x8029,
                     type: Zcl.DataType.ENUM8,
                     write: true,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addNamronHvacThermostat2Cluster: () =>
+        modernExtend.deviceAddCustomCluster("hvacThermostat", {
+            name: "hvacThermostat",
+            ID: Zcl.Clusters.hvacThermostat.ID,
+            attributes: {
+                lcdBrightness: {
+                    name: "lcdBrightness",
+                    ID: 0x1000,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                buttonVibrationLevel: {
+                    name: "buttonVibrationLevel",
+                    ID: 0x1001,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                floorSensorType: {
+                    name: "floorSensorType",
+                    ID: 0x1002,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                controlType: {
+                    name: "controlType",
+                    ID: 0x1003,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                powerUpStatus: {
+                    name: "powerUpStatus",
+                    ID: 0x1004,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                floorSensorCalibration: {
+                    name: "floorSensorCalibration",
+                    ID: 0x1005,
+                    type: Zcl.DataType.INT8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                dryTime: {
+                    name: "dryTime",
+                    ID: 0x1006,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                modeAfterDry: {
+                    name: "modeAfterDry",
+                    ID: 0x1007,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                temperatureDisplay: {
+                    name: "temperatureDisplay",
+                    ID: 0x1008,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                windowOpenCheck2: {
+                    name: "windowOpenCheck2",
+                    ID: 0x1009,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                hysterersis: {
+                    name: "hysterersis",
+                    ID: 0x100a,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                displayAutoOffEnable: {
+                    name: "displayAutoOffEnable", // WindowOpen
+                    ID: 0x100b,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                alarmAirTempOverValue: {
+                    name: "alarmAirTempOverValue",
+                    ID: 0x2001,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                awayModeSet: {
+                    name: "awayModeSet",
+                    ID: 0x2002,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
             },
             commands: {},
