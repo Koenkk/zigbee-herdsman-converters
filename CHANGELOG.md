@@ -1,5 +1,29 @@
 # Changelog
 
+## [26.45.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.44.0...v26.45.0) (2026-05-06)
+
+
+### Features
+
+* **add:** C-ZB-DM204V2, C-ZB-SM30-2G ([#12123](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12123)) ([92a6f9f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/92a6f9f4cf26194903456ddd021e5999be090342))
+* **add:** WKE502Z ([#12113](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12113)) ([30b0dad](https://github.com/Koenkk/zigbee-herdsman-converters/commit/30b0dadaf46e1b9dd809faa790346480bcafebe8))
+* Excellux ZG-104PLV: expose `vibration_count` ([#12074](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12074)) ([ec138da](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ec138daf9e6033bce29ef3d33b6075692264650b))
+* Plugwise 170-01: expose max/min heat/cool setpoint limit ([#12115](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12115)) ([4863b7c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4863b7cc42c8d0cb793c2946e80f756886258eb7))
+* SONOFF MINI-ZBDIM: expose max brightnes threshold ([#12116](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12116)) ([310c4f4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/310c4f404182f2937b5b0692375b0043bd7eb83f))
+* Tuya TS0601_pir_solar: expose `alarm_time` and `alarm_mode` ([#12124](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12124)) ([030513a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/030513a30aec2b155ab8e094790a74e5472ef9da))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_hurauima` as Tuya TS0726_4_gang_scene_switch ([#12126](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12126)) ([2fa1abf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2fa1abf6bc404b61252168c8981f88c97e54ab3e))
+* **detect:** Detect `AY-302Z` as COOLO CS-201Z ([#12121](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12121)) ([e018db5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e018db571a1465f6899a23b3b07623f59d8626d2))
+* **ignore:** Fix Profalux whiteLabels (part 3) ([#12128](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12128)) ([6f6b009](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f6b009447068af33ecdf8dc709f85032e0e1228))
+* Move `_TZ3000_cziew6eu` to TS0726_3_gang_scene_switch ([#12125](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12125)) ([bb172a3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bb172a39ef7cc7bbe043855e61b097340492affd))
+* Novato ZIS-01P: add datapoints ([#12103](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12103)) ([30a628d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/30a628d92eeb2ff9dd1a90e82481f8ab46bc4bcf))
+* Plugwise 170-01: improve reporting configuration ([#12114](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12114)) ([db081d7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db081d73ea0e004eea33d220b5d3f64d6d1e00a0))
+* Tuya TS130F and Moes MS-108ZR: fix various attributes not updating https://github.com/Koenkk/zigbee2mqtt/issues/31851 ([70aa3a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/70aa3a6764fcbd0aaaf90a956a3133798a83c28b))
+* Tuya: fix UNSUPPORTED_CLUSTER when setting switch_type https://github.com/Koenkk/zigbee2mqtt/issues/31916 ([c758928](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c7589287d81d943416c5b04646cc7e594a802d2d))
+
 ## [26.44.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.43.0...v26.44.0) (2026-05-05)
 
 
