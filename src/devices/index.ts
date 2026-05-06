@@ -56,6 +56,7 @@ import {definitions as currentProductsCorp} from "./current_products_corp";
 import {definitions as customDevicesDiy} from "./custom_devices_diy";
 import {definitions as cwd} from "./cwd";
 import {definitions as cyLighting} from "./cy_lighting";
+import {definitions as daewoo} from "./daewoo";
 import {definitions as danalock} from "./danalock";
 import {definitions as danfoss} from "./danfoss";
 import {definitions as databyte} from "./databyte";
@@ -432,6 +433,7 @@ const definitions: DefinitionWithExtend[] = [
     ...cwd,
     ...cyLighting,
     ...danalock,
+    ...daewoo,
     ...danfoss,
     ...databyte,
     ...datek,
