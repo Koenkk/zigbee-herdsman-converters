@@ -47,7 +47,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ALCANTARA3",
         vendor: "Acova",
         description: "Alcantara 3 heater",
-        fromZigbee: [fz.thermostat, fz.hvac_user_interface],
+        fromZigbee: [fz.thermostat, fz.hvac_user_interface, fz.electrical_measurement],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_system_mode,
@@ -63,14 +63,16 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature()
                 .withSystemMode(["off", "heat", "auto"])
                 .withRunningState(["idle", "heat"]),
+            e.power_apparent(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat", "haElectricalMeasurement"]);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatRunningState(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
+            await reporting.apparentPower(endpoint);
         },
     },
     {
