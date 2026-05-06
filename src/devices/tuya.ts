@@ -22376,7 +22376,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.battery(),
             ];
 
-            if (device?.modelID !== "AY-302Z") {
+            if (device?.zh?.modelID !== "AY-302Z") {
                 exposes.splice(2, 0, e.humidity());
                 exposes.splice(6, 0, tuya.exposes.humidityCalibration());
             }
