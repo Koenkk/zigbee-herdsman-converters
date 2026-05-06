@@ -22356,26 +22356,33 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-303Z", "AY-303Z"],
+        zigbeeModel: ["ZG-303Z", "AY-303Z", "AY-302Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_npj9bug3", "_TZE200_wrmhp6b3"]),
         model: "CS-201Z",
         vendor: "COOLO",
         description: "Soil moisture sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.dry(),
-            e.temperature(),
-            e.humidity(),
-            e.soil_moisture(),
-            tuya.exposes.temperatureUnit(),
-            tuya.exposes.temperatureCalibration(),
-            tuya.exposes.humidityCalibration(),
-            tuya.exposes.soilCalibration(),
-            tuya.exposes.temperatureSampling(),
-            tuya.exposes.soilSampling(),
-            tuya.exposes.soilWarning(),
-            e.battery(),
-        ],
+        exposes: (device) => {
+            const exposes = [
+                e.dry(),
+                e.temperature(),
+                e.soil_moisture(),
+                tuya.exposes.temperatureUnit(),
+                tuya.exposes.temperatureCalibration(),
+                tuya.exposes.soilCalibration(),
+                tuya.exposes.temperatureSampling(),
+                tuya.exposes.soilSampling(),
+                tuya.exposes.soilWarning(),
+                e.battery(),
+            ];
+    
+            if (device?.zh?.modelID !== "AY-302Z") {
+                exposes.splice(2, 0, e.humidity());
+                exposes.splice(6, 0, tuya.exposes.humidityCalibration());
+            }
+    
+            return exposes;
+        },
         meta: {
             tuyaDatapoints: [
                 [106, "dry", tuya.valueConverter.raw],
