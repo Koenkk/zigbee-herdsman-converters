@@ -22375,12 +22375,14 @@ export const definitions: DefinitionWithExtend[] = [
                 tuya.exposes.soilWarning(),
                 e.battery(),
             ];
-
-            if (device?.zh?.modelID !== "AY-302Z") {
+        
+            const isAY302Z = device !== undefined && "modelID" in device && device.modelID === "AY-302Z";
+        
+            if (!isAY302Z) {
                 exposes.splice(2, 0, e.humidity());
                 exposes.splice(6, 0, tuya.exposes.humidityCalibration());
             }
-
+        
             return exposes;
         },
         meta: {
