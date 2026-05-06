@@ -732,7 +732,7 @@ export const namronExtend = {
                 floorSensorCalibration: {
                     name: "floorSensorCalibration",
                     ID: 0x1005,
-                    type: Zcl.DataType.ENUM8,
+                    type: Zcl.DataType.INT8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
                 },
                 dryTime: {
