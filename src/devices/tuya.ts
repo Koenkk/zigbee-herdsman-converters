@@ -26632,7 +26632,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().setAccess("state", ea.STATE_SET),
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.numeric("countdown", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(86400).withDescription("Countdown to turn off"),
-            e.enum("indicator_mode", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("Indicator status behavior"),
+            tuya.exposes.indicatorModeNoneRelayPos(),
             e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
             tuya.exposes.inchingSwitch2(),
             e.enum("on_color", ea.STATE_SET, ["red", "blue", "green", "white", "yellow", "magenta", "cyan"]).withDescription("ON Color"),
