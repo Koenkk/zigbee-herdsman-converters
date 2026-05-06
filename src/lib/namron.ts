@@ -27,6 +27,7 @@ export interface NamronHvacThermostat {
         sensorMode: number;
         displayActiveBacklight: number;
         fault: number;
+        backlightOnoff: boolean;
         timeSync: boolean;
         deviceTime: number;
         absMinHeatSetpointLimitF: number;
@@ -704,84 +705,98 @@ export const namronExtend = {
                     ID: 0x1000,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 buttonVibrationLevel: {
                     name: "buttonVibrationLevel",
                     ID: 0x1001,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 floorSensorType: {
                     name: "floorSensorType",
                     ID: 0x1002,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 controlType: {
                     name: "controlType",
                     ID: 0x1003,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 powerUpStatus: {
                     name: "powerUpStatus",
                     ID: 0x1004,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 floorSensorCalibration: {
                     name: "floorSensorCalibration",
                     ID: 0x1005,
                     type: Zcl.DataType.INT8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 dryTime: {
                     name: "dryTime",
                     ID: 0x1006,
                     type: Zcl.DataType.UINT8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 modeAfterDry: {
                     name: "modeAfterDry",
                     ID: 0x1007,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 temperatureDisplay: {
                     name: "temperatureDisplay",
                     ID: 0x1008,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 windowOpenCheck2: {
                     name: "windowOpenCheck2",
                     ID: 0x1009,
                     type: Zcl.DataType.UINT8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 hysterersis: {
                     name: "hysterersis",
                     ID: 0x100a,
                     type: Zcl.DataType.UINT8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 displayAutoOffEnable: {
                     name: "displayAutoOffEnable",
                     ID: 0x100b,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 alarmAirTempOverValue: {
                     name: "alarmAirTempOverValue",
                     ID: 0x2001,
                     type: Zcl.DataType.UINT8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 awayModeSet: {
                     name: "awayModeSet",
                     ID: 0x2002,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
                 },
                 windowOpenCheck: {
                     name: "windowOpenCheck",
@@ -827,6 +842,13 @@ export const namronExtend = {
                     name: "fault",
                     ID: 0x8006,
                     type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                },
+                backlightOnoff: {
+                    name: "backlightOnoff",
+                    ID: 0x8009,
+                    type: Zcl.DataType.BOOLEAN,
+                    write: true,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
                 },
                 timeSync: {
@@ -972,6 +994,7 @@ export const namronExtend = {
                     name: "displayAutoOff",
                     ID: 0x8029,
                     type: Zcl.DataType.ENUM8,
+                    write: true,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
                 },
             },
