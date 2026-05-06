@@ -1559,6 +1559,7 @@ export const command_step_color_temperature: Fz.Converter<"lightingColorCtrl", u
         const payload: KeyValueAny = {
             action: postfixWithEndpointName(`color_temperature_step_${direction}`, msg, model, meta),
             action_step_size: msg.data.stepsize,
+            action_color_temperature_delta: direction === "up" ? msg.data.stepsize : -1 * msg.data.stepsize,
         };
 
         if (msg.data.transtime !== undefined) {
