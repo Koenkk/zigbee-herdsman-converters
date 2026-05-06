@@ -14,7 +14,7 @@ import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
-import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from "../lib/utils";
+import {addActionGroup, hasAlreadyProcessedMessage, isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 import * as zosung from "../lib/zosung";
 
 const NS = "zhc:tuya";
@@ -22376,9 +22376,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.battery(),
             ];
 
-            const isAY302Z = device !== undefined && "modelID" in device && device.modelID === "AY-302Z";
-
-            if (!isAY302Z) {
+            if (!isDummyDevice(device) && device.modelID !== "AY-302Z") {
                 exposes.splice(2, 0, e.humidity());
                 exposes.splice(6, 0, tuya.exposes.humidityCalibration());
             }
