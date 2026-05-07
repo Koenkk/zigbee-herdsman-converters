@@ -102,7 +102,9 @@ export const definitions: DefinitionWithExtend[] = [
             e.power().withAccess(ea.STATE_GET),
             e
                 .enum("device_mode", ea.ALL, ["switch", "auto"])
-                .withDescription("Factory default is 'auto' - set to 'switch' for predictable operation. switch: normal on/off mode, momentary push-buttons on C1/C2 toggle the relay cleanly. auto: produces erratic behavior (auto mode appears to be a leftover from reusing code from Legrand 412171)"),
+                .withDescription(
+                    "Factory default is 'auto' - set to 'switch' for predictable operation. switch: normal on/off mode, momentary push-buttons on C1/C2 toggle the relay cleanly. auto: produces erratic behavior (auto mode appears to be a leftover from reusing code from Legrand 412171)",
+                ),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
