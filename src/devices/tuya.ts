@@ -1618,40 +1618,44 @@ const fzLocal = {
     } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataReport", "commandDataResponse"]>,
 };
 
-const fzLocalNovatoZrm: Fz.Converter<'genOnOff'> = {
-    cluster: 'genOnOff',
-    type: ['attributeReport', 'readResponse'],
+const fzLocalNovatoZrm: Fz.Converter<"genOnOff"> = {
+    cluster: "genOnOff",
+    type: ["attributeReport", "readResponse"],
     convert(model, msg, publish, options, meta) {
         const result: KeyValueAny = {};
         if (msg.data[0x8001] !== undefined) {
-            result['switch_type'] = ({0: 'kickback', 1: 'seesa_toggle', 2: 'seesaw_sync'} as {[k: number]: string})[msg.data[0x8001] as number];
+            result["switch_type"] = ({0: "kickback", 1: "seesa_toggle", 2: "seesaw_sync"} as {[k: number]: string})[msg.data[0x8001] as number];
         }
         if (msg.data[0x8002] !== undefined) {
-            result['power_on_behavior'] = ({0: 'off', 1: 'on', 2: 'memory'} as {[k: number]: string})[msg.data[0x8002] as number];
+            result["power_on_behavior"] = ({0: "off", 1: "on", 2: "memory"} as {[k: number]: string})[msg.data[0x8002] as number];
         }
         return result;
     },
 };
 const tzLocalNovatoSwitchType: Tz.Converter = {
-    key: ['switch_type'],
+    key: ["switch_type"],
     async convertSet(entity, key, value, meta) {
         const val = ({kickback: 0, seesa_toggle: 1, seesaw_sync: 2} as {[k: string]: number})[value as string];
-        await meta.device.getEndpoint(1).write('genOnOff', {0x8001: {value: val, type: DataType.ENUM8}}, {manufacturerCode: 0x1141, disableDefaultResponse: true});
+        await meta.device
+            .getEndpoint(1)
+            .write("genOnOff", {32769: {value: val, type: DataType.ENUM8}}, {manufacturerCode: 0x1141, disableDefaultResponse: true});
         return {state: {[key]: value}};
     },
     async convertGet(entity, key, meta) {
-        await meta.device.getEndpoint(1).read('genOnOff', [0x8001], {manufacturerCode: 0x1141});
+        await meta.device.getEndpoint(1).read("genOnOff", [0x8001], {manufacturerCode: 0x1141});
     },
 };
 const tzLocalNovatoPowerOnBehavior: Tz.Converter = {
-    key: ['power_on_behavior'],
+    key: ["power_on_behavior"],
     async convertSet(entity, key, value, meta) {
         const val = ({off: 0, on: 1, memory: 2} as {[k: string]: number})[value as string];
-        await meta.device.getEndpoint(1).write('genOnOff', {0x8002: {value: val, type: DataType.ENUM8}}, {manufacturerCode: 0x1141, disableDefaultResponse: true});
+        await meta.device
+            .getEndpoint(1)
+            .write("genOnOff", {32770: {value: val, type: DataType.ENUM8}}, {manufacturerCode: 0x1141, disableDefaultResponse: true});
         return {state: {[key]: value}};
     },
     async convertGet(entity, key, meta) {
-        await meta.device.getEndpoint(1).read('genOnOff', [0x8002], {manufacturerCode: 0x1141});
+        await meta.device.getEndpoint(1).read("genOnOff", [0x8002], {manufacturerCode: 0x1141});
     },
 };
 export const definitions: DefinitionWithExtend[] = [
@@ -26887,34 +26891,40 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS000F', ['_TZ3218_n0jsuogs']),
-        model: 'ZRM01',
-        vendor: 'Novato',
-        description: 'Smart relay 1 channel',
+        fingerprint: tuya.fingerprint("TS000F", ["_TZ3218_n0jsuogs"]),
+        model: "ZRM01",
+        vendor: "Novato",
+        description: "Smart relay 1 channel",
         fromZigbee: [fz.on_off, fzLocalNovatoZrm],
         toZigbee: [tz.on_off, tzLocalNovatoSwitchType, tzLocalNovatoPowerOnBehavior],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint);
             try {
-                await endpoint.read('genOnOff', [0x8001, 0x8002], {manufacturerCode: 0x1141});
-            } catch (_e) {/* ignore */}
+                await endpoint.read("genOnOff", [0x8001, 0x8002], {manufacturerCode: 0x1141});
+            } catch (_e) {
+                /* ignore */
+            }
         },
         exposes: [
             e.switch(),
-            e.enum('power_on_behavior', ea.ALL, ['off', 'on', 'memory'])
-                .withDescription('Power on behaviour: off=always off, on=always on, memory=restore last state'),
-            e.enum('switch_type', ea.ALL, ['kickback', 'seesa_toggle', 'seesaw_sync'])
-                .withDescription('External switch type: kickback=momentary, seesa_toggle=maintained toggle, seesaw_sync=synchronized to switch position'),
+            e
+                .enum("power_on_behavior", ea.ALL, ["off", "on", "memory"])
+                .withDescription("Power on behaviour: off=always off, on=always on, memory=restore last state"),
+            e
+                .enum("switch_type", ea.ALL, ["kickback", "seesa_toggle", "seesaw_sync"])
+                .withDescription(
+                    "External switch type: kickback=momentary, seesa_toggle=maintained toggle, seesaw_sync=synchronized to switch position",
+                ),
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS000F', ['_TZ3218_sgbsg6mr']),
-        model: 'ZRM02',
-        vendor: 'Novato',
-        description: 'Smart relay 2 channel',
+        fingerprint: tuya.fingerprint("TS000F", ["_TZ3218_sgbsg6mr"]),
+        model: "ZRM02",
+        vendor: "Novato",
+        description: "Smart relay 2 channel",
         fromZigbee: [fz.on_off, fzLocalNovatoZrm],
         toZigbee: [tz.on_off, tzLocalNovatoSwitchType, tzLocalNovatoPowerOnBehavior],
         endpoint: (device) => ({l1: 1, l2: 2}),
@@ -26924,21 +26934,27 @@ export const definitions: DefinitionWithExtend[] = [
             for (const ep of [1, 2]) {
                 const endpoint = device.getEndpoint(ep);
                 if (endpoint) {
-                    await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
                     await reporting.onOff(endpoint);
                 }
             }
             try {
-                await device.getEndpoint(1).read('genOnOff', [0x8001, 0x8002], {manufacturerCode: 0x1141});
-            } catch (_e) {/* ignore */}
+                await device.getEndpoint(1).read("genOnOff", [0x8001, 0x8002], {manufacturerCode: 0x1141});
+            } catch (_e) {
+                /* ignore */
+            }
         },
         exposes: [
-            e.switch().withEndpoint('l1'),
-            e.switch().withEndpoint('l2'),
-            e.enum('power_on_behavior', ea.ALL, ['off', 'on', 'memory'])
-                .withDescription('Power on behaviour (both channels): off=always off, on=always on, memory=restore last state'),
-            e.enum('switch_type', ea.ALL, ['kickback', 'seesa_toggle', 'seesaw_sync'])
-                .withDescription('External switch type (both channels): kickback=momentary, seesa_toggle=maintained toggle, seesaw_sync=synchronized to switch position'),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e
+                .enum("power_on_behavior", ea.ALL, ["off", "on", "memory"])
+                .withDescription("Power on behaviour (both channels): off=always off, on=always on, memory=restore last state"),
+            e
+                .enum("switch_type", ea.ALL, ["kickback", "seesa_toggle", "seesaw_sync"])
+                .withDescription(
+                    "External switch type (both channels): kickback=momentary, seesa_toggle=maintained toggle, seesaw_sync=synchronized to switch position",
+                ),
         ],
     },
 ];
