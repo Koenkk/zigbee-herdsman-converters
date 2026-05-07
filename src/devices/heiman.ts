@@ -2016,7 +2016,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointName: "l1",
                 lookup: {toggle: 0, momentary: 1},
                 cluster: "genOnOffSwitchCfg",
-                attribute: "switch_type",
+                attribute: "switchType",
                 description: "Switch input type for l1",
             }),
             m.enumLookup({
@@ -2024,7 +2024,7 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointName: "l2",
                 lookup: {toggle: 0, momentary: 1},
                 cluster: "genOnOffSwitchCfg",
-                attribute: "switch_type",
+                attribute: "switchType",
                 description: "Switch input type for l2",
             }),
             m.enumLookup({
