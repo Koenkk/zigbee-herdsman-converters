@@ -13045,6 +13045,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3290_8xzb2ghn",
             "_TZ3290_s6ezpa3j",
             "_TZ3290_yac64inudpovoaba",
+            "_TZ3290_acv1iuslxi3shaaj",
         ]),
         model: "ZS06",
         vendor: "Tuya",
@@ -13067,6 +13068,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Zemismart", "ZM-18-USB", "Universal smart IR remote control", ["_TZ3290_uc8lwbi2"]),
             tuya.whitelabel("Zemismart", "ZXMIR-02", "Universal smart IR remote control", ["_TZ3290_8xzb2ghn"]),
             tuya.whitelabel("Ekaza", "EKAT-T304Z", "Universal smart IR remote control", ["_TZ3290_s6ezpa3j"]),
+            tuya.whitelabel("Aubess", "ZXZIR-02", "Universal smart IR remote control", ["_TZ3290_acv1iuslxi3shaaj"]),
         ],
     },
     {
