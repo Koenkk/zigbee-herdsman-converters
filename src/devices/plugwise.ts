@@ -387,7 +387,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "170-01",
         vendor: "Plugwise",
         description: "Emma Wired Pro / Emma Wireless",
-        version: "0.0.1",
+        version: "0.0.2",
         extend: [
             plugwiseExtend.plugwiseHvacThermostatCluster(),
             plugwiseExtend.applicationFaultCodeStatus(),
