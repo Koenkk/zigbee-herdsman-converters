@@ -13035,7 +13035,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        // This models are without battery. Add battery variants to WMUN ZS05.
+        // These models are without battery. Add battery variants to WMUN ZS05.
         zigbeeModel: ["TS1201"],
         model: "ZS06",
         vendor: "Tuya",
