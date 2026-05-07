@@ -1238,7 +1238,7 @@ const fzLocal = {
             if (data.rebootedCount !== undefined) {
                 result.reboot_count = data.rebootedCount;
             }
-            
+
             return result;
         },
     } satisfies Fz.Converter<"heimanClusterSpecial", undefined, ["attributeReport", "readResponse"]>,
