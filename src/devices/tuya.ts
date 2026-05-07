@@ -26898,7 +26898,6 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.on_off, fzLocalNovatoZrm],
         toZigbee: [tz.on_off, tzLocalNovatoSwitchType, tzLocalNovatoPowerOnBehavior],
         configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint);
@@ -26930,7 +26929,6 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => ({l1: 1, l2: 2}),
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
             for (const ep of [1, 2]) {
                 const endpoint = device.getEndpoint(ep);
                 if (endpoint) {
