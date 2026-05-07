@@ -146,7 +146,7 @@ export const danfossAdaptionRunStatus: KeyValueNumberString = {
 };
 
 export const danfossAdaptionRunControl: KeyValueNumberString = {
-    0: "none",
+    0: "idle",
     1: "initiate_adaptation",
     2: "cancel_adaptation",
 };
@@ -209,6 +209,20 @@ export const danfossSystemStatusCode: KeyValueNumberString = {
     16385: "pt1000_input_short_circuit",
     32769: "pt1000_input_open_circuit",
     258: "error_on_one_or_more_output",
+};
+
+export const danfossAllySystemStatusCode: KeyValueNumberString = {
+    0: "top_pcb_sensor_error",
+    1: "side_pcb_sensor_error",
+    2: "non_volatile_memory_error",
+    3: "unknown_hw_error",
+    5: "motor_error",
+    7: "invalid_internal_communication",
+    9: "invalid_clock_information",
+    11: "radio_communication_error",
+    12: "encoder_jammed",
+    13: "low_battery",
+    14: "critical_low_battery",
 };
 
 export const danfossHeatsupplyRequest: KeyValueNumberString = {

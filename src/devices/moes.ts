@@ -860,6 +860,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Zigbee 3.0 dual USB wireless socket plug",
         extend: [
+            tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 powerOutageMemory: true,
                 indicatorMode: true,
@@ -884,7 +885,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MS-104Z",
         description: "Smart light switch module (1 gang)",
         vendor: "Moes",
-        extend: [tuya.modernExtend.tuyaOnOff()],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
@@ -902,7 +903,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MS-104BZ",
         description: "Smart light switch module (2 gang)",
         vendor: "Moes",
-        extend: [tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2"]})],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2"]})],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2};
@@ -1353,7 +1354,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZS-EUB_1gang",
         vendor: "Moes",
         description: "Wall light switch (1 gang)",
-        extend: [tuya.modernExtend.tuyaOnOff({backlightModeOffNormalInverted: true})],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({backlightModeOffNormalInverted: true})],
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
             device.powerSource = "Mains (single phase)";
@@ -1411,11 +1412,20 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-101ZL"],
-        fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_ja5osu5g", "_TZ3000_kjfzuycl", "_TZ3000_egvb1p2g", "_TZ3000_kaflzta4", "_TZ3000_lrfvzq1e"]),
+        fingerprint: tuya.fingerprint("TS004F", [
+            "_TZ3000_ja5osu5g",
+            "_TZ3000_kjfzuycl",
+            "_TZ3000_egvb1p2g",
+            "_TZ3000_kaflzta4",
+            "_TZ3000_lrfvzq1e",
+            "_TZ3000_wc3gjyp3",
+        ]),
         model: "ERS-10TZBVB-AA",
         vendor: "Moes",
         description: "Smart button",
-        whiteLabel: [tuya.whitelabel("Loginovo", "ZG-101ZL", "Smart button", ["_TZ3000_ja5osu5g", "_TZ3000_lrfvzq1e", "_TZ3000_kaflzta4"])],
+        whiteLabel: [
+            tuya.whitelabel("Loginovo", "ZG-101ZL", "Smart button", ["_TZ3000_ja5osu5g", "_TZ3000_lrfvzq1e", "_TZ3000_kaflzta4", "_TZ3000_wc3gjyp3"]),
+        ],
         extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         fromZigbee: [
             fz.command_step,
@@ -1510,7 +1520,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Smart switch (light + sence)",
         extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.tuyaBase(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.modernExtend.tuyaOnOff({
                 endpoints: ["l1", "l2", "l3"],
