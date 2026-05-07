@@ -15,9 +15,7 @@ function conditionalPressure() {
     // Check whether any endpoint on the device has the msPressureMeasurement input cluster
     function deviceHasPressureCluster(device) {
         if (!device || device.isDummyDevice) return true; // docs generation: show it
-        return device.endpoints?.some((ep) =>
-            ep.supportsInputCluster("msPressureMeasurement"),
-        );
+        return device.endpoints?.some((ep) => ep.supportsInputCluster("msPressureMeasurement"));
     }
 
     return {
