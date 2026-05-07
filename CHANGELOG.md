@@ -1,5 +1,21 @@
 # Changelog
 
+## [26.46.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.45.0...v26.46.0) (2026-05-07)
+
+
+### Features
+
+* Shelly 1 Gen 4: support switch_mode and switch_type ([#12096](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12096)) ([0e4614c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0e4614c650060758c6602c5872a5af42c22aaf91))
+* Tuya ERS-10TZBVK-AA: expose `action_brightness_delta` and `action_color_temperature_delta` ([#12127](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12127)) ([13a00d4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/13a00d439f47aa2cdca0d127afb5f2b0ea73278f))
+* Tuya TS0601_multifunction_switch: add inching, indicator mode, fix dp in timer device ([#12105](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12105)) ([21f208f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/21f208f1b3a72eddaf39ec28563d3d6a3f9ba790))
+
+
+### Bug Fixes
+
+* Heiman HS1RM: add switch type and fix diagnostic issue ([#12135](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12135)) ([7387db7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7387db712daa2555cd828880561663c0fa8bd27f))
+* **ignore:** Remove duplicate battery fz for Tuya remotes ([#12136](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12136)) ([d04caf9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d04caf9d42f4594caef842bb4313268b5ae56292))
+* Plugwise 170-01: add entity category to min/max heat/cool setpoint limits ([#12137](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12137)) ([c8ce8d4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c8ce8d46fb9340d54d06f09b858241223d7bd112))
+
 ## [26.45.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.44.0...v26.45.0) (2026-05-06)
 
 
