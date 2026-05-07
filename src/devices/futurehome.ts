@@ -106,16 +106,13 @@ const futurehomeExtend = {
                 {
                     key: ["charging"],
                     convertSet: async (entity, key, value, meta) => {
-                        // const isStart = value === "Start";
                         const lookup: KeyValueAny = {Start: "0x01", Stop: "0x02", Pause: "0x03"};
-                        //             result.mode_after_dry = lookup[data[0x1007] as number];
                         await entity.command("haApplianceControl", "executionOfCommand", {commandId: lookup[value as keyof typeof lookup]});
                         return {state: {charging: value}};
                     },
                 } satisfies Tz.Converter,
             ],
             exposes: [exposes.enum("charging", ea.STATE_SET, ["Start", "Pause", "Stop"]).withDescription("Start or pause charging.")],
-            // .enum("dimmer_mode", ea.ALL, ["auto", "rc", "rl", "rl_led"])
         };
     },
 };
