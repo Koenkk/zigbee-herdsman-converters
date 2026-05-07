@@ -5,37 +5,44 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {Configure, Definition, DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, ModernExtend, Zh} from "../lib/types";
+import type {Configure, Definition, DefinitionExposesFunction, DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, ModernExtend, Zh} from "../lib/types";
 
 const e = exposes.presets;
 
-function conditionalPressure() {
+function conditionalPressure(): ModernExtend {
     const base = m.pressure();
 
     // Check whether any endpoint on the device has the msPressureMeasurement input cluster
-    function deviceHasPressureCluster(device) {
-        if (!device || device.isDummyDevice) return true; // docs generation: show it
-        return device.endpoints?.some((ep) =>
+    function deviceHasPressureCluster(device: Zh.Device | DummyDevice): boolean {
+        if ("isDummyDevice" in device && device.isDummyDevice) return true; // docs generation: show it
+        return (device as Zh.Device).endpoints?.some((ep: Zh.Endpoint) =>
             ep.supportsInputCluster("msPressureMeasurement"),
         );
     }
 
+    const exposeFn: DefinitionExposesFunction = (device: Zh.Device | DummyDevice, options: KeyValue): Expose[] => {
+        if (deviceHasPressureCluster(device)) {
+            // Resolve the original exposes from m.pressure()
+            const result: Expose[] = [];
+            for (const item of base.exposes ?? []) {
+                if (typeof item === "function") {
+                    result.push(...item(device, options));
+                } else {
+                    result.push(item);
+                }
+            }
+            return result;
+        }
+        return [];
+    };
+
     return {
         ...base,
         // Replace static exposes with a dynamic function that checks the cluster
-        exposes: [
-            (device, options) => {
-                if (deviceHasPressureCluster(device)) {
-                    // Return the original static exposes from m.pressure()
-                    return base.exposes ?? [];
-                }
-                return [];
-            },
-        ],
+        exposes: [exposeFn],
         // Wrap each configure so it only runs when the cluster is present
-        configure: (base.configure ?? []).map((configureFn) => {
-            if (!configureFn) return configureFn;
-            return async (device, coordinatorEndpoint, definition) => {
+        configure: (base.configure ?? []).map((configureFn): Configure => {
+            return async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => {
                 if (deviceHasPressureCluster(device)) {
                     await configureFn(device, coordinatorEndpoint, definition);
                 }
