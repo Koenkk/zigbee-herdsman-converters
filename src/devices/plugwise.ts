@@ -428,6 +428,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.5,
                 valueMin: 0,
                 valueMax: 30,
+                entityCategory: "config",
             }),
             m.numeric({
                 name: "max_cool_setpoint_limit",
@@ -440,6 +441,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.5,
                 valueMin: 0,
                 valueMax: 30,
+                entityCategory: "config",
             }),
             m.numeric({
                 name: "min_heat_setpoint_limit",
@@ -452,6 +454,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.5,
                 valueMin: 0,
                 valueMax: 30,
+                entityCategory: "config",
             }),
             m.numeric({
                 name: "max_heat_setpoint_limit",
@@ -464,6 +467,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.5,
                 valueMin: 0,
                 valueMax: 30,
+                entityCategory: "config",
             }),
             m.numeric({
                 name: "outdoor_temperature",
