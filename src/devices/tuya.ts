@@ -26900,7 +26900,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.onOff(endpoint);
             try {
                 await endpoint.read('genOnOff', [0x8001, 0x8002], {manufacturerCode: 0x1141});
-            } catch (e) {/* ignore */}
+            } catch (_e) {/* ignore */}
         },
         exposes: [
             e.switch(),
@@ -26930,7 +26930,7 @@ export const definitions: DefinitionWithExtend[] = [
             }
             try {
                 await device.getEndpoint(1).read('genOnOff', [0x8001, 0x8002], {manufacturerCode: 0x1141});
-            } catch (e) {/* ignore */}
+            } catch (_e) {/* ignore */}
         },
         exposes: [
             e.switch().withEndpoint('l1'),
