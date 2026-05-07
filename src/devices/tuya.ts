@@ -5931,7 +5931,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "TS0044_2", "Wireless switch with 4 buttons", ["_TZ3000_zgyzgdua"]),
         ],
         extend: [tuyaBase(), m.battery({voltage: true, percentageReporting: false})],
-        fromZigbee: [tuya.fz.on_off_action, fz.battery],
+        fromZigbee: [tuya.fz.on_off_action],
         exposes: [
             e.action([
                 "1_single",
@@ -5998,7 +5998,6 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
         ],
         fromZigbee: [
-            fz.battery,
             tuya.fz.on_off_action,
             tuya.fz.operation_mode,
             fz.command_on,
