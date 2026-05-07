@@ -1,5 +1,7 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as globalStore from "../lib/store";
@@ -416,6 +418,45 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: [{modelID: "C-ZB-DM204V2", manufacturerName: "Candeo"}],
+        model: "C-ZB-DM204V2",
+        vendor: "Candeo",
+        description: "Zigbee micro smart dimmer",
+        extend: [
+            m.light({
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+            }),
+            m.electricityMeter({
+                power: {min: 10, max: 600, change: 50},
+                voltage: {min: 10, max: 600, change: 500},
+                current: {min: 10, max: 600, change: 500},
+                energy: {min: 10, max: 1800, change: 360000},
+            }),
+        ],
+        fromZigbee: [fzLocal.switch_type],
+        toZigbee: [tzLocal.switch_type],
+        exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
+            await endpoint1.read("genOnOff", ["startUpOnOff"]);
+            await endpoint1.write("genLevelCtrl", {17: {value: 0xff, type: 0x20}});
+            await endpoint1.read("genLevelCtrl", ["onLevel"]);
+            await endpoint1.write("genLevelCtrl", {16: {value: 0x0a, type: 0x21}});
+            await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
+            await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
+            await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
+            await endpoint1.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: switchTypeValueLookup["momentary"], type: switchTypeDataType}},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
+            );
+            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
+        },
+    },
+    {
         zigbeeModel: ["C202"],
         fingerprint: [
             {modelID: "Candeo Zigbee Dimmer", softwareBuildID: "1.04", dateCode: "20230828"},
@@ -599,6 +640,38 @@ export const definitions: DefinitionWithExtend[] = [
             );
             await endpoint11.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-SM30-2G", manufacturerName: "Candeo"}],
+        model: "C-ZB-SM30-2G",
+        vendor: "Candeo",
+        description: "Smart 2 gang switch module",
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {l1: 1, l2: 2, e3: 3},
+                multiEndpointSkip: ["power", "current", "voltage", "energy"],
+            }),
+            m.onOff({
+                powerOnBehavior: false,
+                endpointNames: ["l1", "l2"],
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10},
+                voltage: {min: 5, max: 600, change: 500},
+                current: {min: 5, max: 900, change: 10},
+                energy: {min: 5, max: 1800, change: 50},
+            }),
+        ],
+        exposes: [
+            e.power_on_behavior(["off", "on", "previous"]).withEndpoint("l1"),
+            e.power_on_behavior(["off", "on", "previous"]).withEndpoint("l2"),
+        ],
+        fromZigbee: [fz.power_on_behavior],
+        toZigbee: [tz.power_on_behavior],
+        configure: async (device, coordinatorEndpoint) => {
+            await m.setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "startUpOnOff", min: "MIN", max: "MAX", change: 1}], false);
+        },
+        meta: {},
     },
     {
         fingerprint: [{modelID: "C-RFZB-SM1"}],
