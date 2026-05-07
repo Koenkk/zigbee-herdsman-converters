@@ -2,7 +2,7 @@ import {Zcl} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -42,27 +42,47 @@ const futurehomeExtend = {
                     convert(model, msg, publish, options, meta) {
                         const status = msg?.data?.applianceStatus;
                         if (status === undefined || status === null) return;
-                        let chargerStatus: "plugged_out" | "plugged_in" | "plugged_in_charging" | "plugged_in_paused" = "plugged_out";
+                        let chargerStatus:
+                            | "plugged_out"
+                            | "1X: Off"
+                            | "4: plugged_in"
+                            | "2: plugged_in_charging"
+                            | "3: plugged_in_paused"
+                            | "5X: running"
+                            | "8X: failure" = "plugged_out";
                         let charging = false;
 
                         switch (status) {
-                            // case 0x01: // Off
+                            case 0x01: // Off
+                                chargerStatus = "1X: Off";
+                                charging = false;
+                                break;
+
                             case 0x02: // StandBy → charging
-                                chargerStatus = "plugged_in_charging";
+                                chargerStatus = "2: plugged_in_charging";
                                 charging = true;
                                 break;
 
                             case 0x03: // Programmed (paused by user)
-                                chargerStatus = "plugged_in_paused";
+                                chargerStatus = "3: plugged_in_paused";
                                 charging = false;
                                 break;
 
                             case 0x04: // ProgrammedWaitingToStart
-                                chargerStatus = "plugged_in";
+                                chargerStatus = "4: plugged_in";
                                 charging = false;
                                 break;
 
-                            // case 0x08: // Failure
+                            case 0x05: // Running
+                                chargerStatus = "5X: running";
+                                charging = false;
+                                break;
+
+                            case 0x08: // Failure
+                                chargerStatus = "8X: failure";
+                                charging = false;
+                                break;
+
                             default:
                                 chargerStatus = "plugged_out";
                                 charging = false;
@@ -86,13 +106,16 @@ const futurehomeExtend = {
                 {
                     key: ["charging"],
                     convertSet: async (entity, key, value, meta) => {
-                        const isStart = value === "Start";
-                        await entity.command("haApplianceControl", "executionOfCommand", {commandId: isStart ? 0x01 : 0x03});
-                        return {state: {charging: isStart ? "Start" : "Pause"}};
+                        // const isStart = value === "Start";
+                        const lookup: KeyValueAny = {Start: "0x01", Stop: "0x02", Pause: "0x03"};
+                        //             result.mode_after_dry = lookup[data[0x1007] as number];
+                        await entity.command("haApplianceControl", "executionOfCommand", {commandId: lookup[value as keyof typeof lookup]});
+                        return {state: {charging: value}};
                     },
                 } satisfies Tz.Converter,
             ],
-            exposes: [exposes.binary("charging", ea.STATE_SET, "Start", "Pause").withDescription("Start or pause charging.")],
+            exposes: [exposes.enum("charging", ea.STATE_SET, ["Start", "Pause", "Stop"]).withDescription("Start or pause charging.")],
+            // .enum("dimmer_mode", ea.ALL, ["auto", "rc", "rl", "rl_led"])
         };
     },
 };
