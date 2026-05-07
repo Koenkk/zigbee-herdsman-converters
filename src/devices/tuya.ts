@@ -19934,23 +19934,41 @@ export const definitions: DefinitionWithExtend[] = [
             e.current(),
             e.voltage(),
             e.energy(),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
             e.numeric("temperature", ea.STATE).withUnit("°C").withDescription("Current temperature"),
             e.numeric("leakage", ea.STATE).withUnit("mA").withDescription("Current leakage"),
+            e.text("fault", ea.STATE).withDescription("Fault"),
+            e.numeric("reclosing_allowed_times", ea.STATE_SET).withValueMin(0).withValueMax(30).withDescription("Reclosing tries"),
+            e.binary("reclosing_enable", ea.STATE_SET, "ON", "OFF").withLabel("Auto reclosing"),
+            e.numeric("timer", ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit("s"),
+            e.binary('clear_energy', ea.STATE_SET, 'ON', 'OFF').withLabel('Clear energy'),
+            e.text("status", ea.STATE).withDescription("Status"),
         ],
         meta: {
             tuyaDatapoints: [
-                [16, "state", tuya.valueConverter.onOff],
                 [1, "energy", tuya.valueConverter.divideBy100], // Total forward energy
                 [6, null, tuya.valueConverter.phaseVariant2], // Phase A voltage and current
-                // [9, 'fault', tuya.valueConverter.raw], // no expose
+                [
+                    9,
+                    "fault",
+                    tuya.valueConverterBasic.lookup({
+                        clear: 0,
+                        overcurrent: 1,
+                        alarm: 2,
+                        overvoltage: 4,
+                        leak: 8,
+                        overtemperature: 16,
+                    }),
+                ],
                 // [11, 'switch_prepayment', tuya.valueConverter.raw], // no expose
-                // [12, 'clear_energy', tuya.valueConverter.raw], // no expose
+                [12, 'clear_energy', tuya.valueConverter.raw],
                 // [14, 'charge_energy', tuya.valueConverter.raw], // no expose
                 [15, "leakage", tuya.valueConverter.raw],
-                // [102, 'reclosing_allowed_times', tuya.valueConverter.raw], // no expose
+                [16, "state", tuya.valueConverter.onOff],
+                [102, 'reclosing_allowed_times', tuya.valueConverter.raw],
                 [103, "temperature", tuya.valueConverter.raw],
-                // [104, 'reclosing_enable', tuya.valueConverter.raw], // no expose
-                // [105, 'timer', tuya.valueConverter.raw], // no expose
+                [104, 'reclosing_enable', tuya.valueConverter.onOff], 
+                [105, 'timer', tuya.valueConverter.raw],
                 // [106, 'cycle_schedule', tuya.valueConverter.raw], // no expose
                 // [107, 'reclose_recover_seconds', tuya.valueConverter.raw], // no expose
                 // [108, 'random_timing', tuya.valueConverter.raw], // no expose
@@ -19958,8 +19976,15 @@ export const definitions: DefinitionWithExtend[] = [
                 // [119, 'power_on_delay_power_on_time', tuya.valueConverter.raw], // no expose
                 // [124, 'overcurrent_event_threshold_time', tuya.valueConverter.raw], // no expose
                 // [125, 'time_threshold_of_lost_flow_event', tuya.valueConverter.raw], // no expose
-                // [127, 'status', tuya.valueConverter.raw], // no expose
-                // [134, 'relay_status_for_power_on', tuya.valueConverter.raw], // no expose
+                [
+                    127,
+                    "status",
+                    tuya.valueConverterBasic.lookup({
+                        standby: 0,
+                        active: 1,
+                    }),
+                ],
+                [134, 'power_on_behavior', tuya.valueConverter.powerOnBehaviorEnum]
             ],
         },
     },
