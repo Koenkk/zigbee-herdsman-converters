@@ -9,6 +9,42 @@ import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
 
 const e = exposes.presets;
 
+function conditionalPressure() {
+    const base = m.pressure();
+
+    // Check whether any endpoint on the device has the msPressureMeasurement input cluster
+    function deviceHasPressureCluster(device) {
+        if (!device || device.isDummyDevice) return true; // docs generation: show it
+        return device.endpoints?.some((ep) =>
+            ep.supportsInputCluster("msPressureMeasurement"),
+        );
+    }
+
+    return {
+        ...base,
+        // Replace static exposes with a dynamic function that checks the cluster
+        exposes: [
+            (device, options) => {
+                if (deviceHasPressureCluster(device)) {
+                    // Return the original static exposes from m.pressure()
+                    return base.exposes ?? [];
+                }
+                return [];
+            },
+        ],
+        // Wrap each configure so it only runs when the cluster is present
+        configure: (base.configure ?? []).map((configureFn) => {
+            if (!configureFn) return configureFn;
+            return async (device, coordinatorEndpoint, definition) => {
+                if (deviceHasPressureCluster(device)) {
+                    await configureFn(device, coordinatorEndpoint, definition);
+                }
+            };
+        }),
+        isModernExtend: true,
+    };
+}
+
 interface ThirdAcceleration {
     attributes: {
         coolDownTime: number;
@@ -1405,7 +1441,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RAP0149BZ"],
         model: "3RAP0149BZ",
         vendor: "Third Reality",
-        description: "Smart air pressure sensor",
+        description: "Smart Filter Sensor",
         extend: [
             m.battery(),
             m.numeric({
@@ -1416,7 +1452,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Measure dirty level",
                 access: "STATE_GET",
             }),
-            m.pressure(),
+            conditionalPressure(),
         ],
         ota: true,
     },
