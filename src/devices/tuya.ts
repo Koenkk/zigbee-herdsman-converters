@@ -1624,10 +1624,10 @@ const fzLocalNovatoZrm: Fz.Converter<'genOnOff'> = {
     convert(model, msg, publish, options, meta) {
         const result: KeyValueAny = {};
         if (msg.data[0x8001] !== undefined) {
-            result['switch_type'] = ({0: 'kickback', 1: 'seesa_toggle', 2: 'seesaw_sync'} as {[k: number]: string})[msg.data[0x8001]];
+            result['switch_type'] = ({0: 'kickback', 1: 'seesa_toggle', 2: 'seesaw_sync'} as {[k: number]: string})[msg.data[0x8001] as number];
         }
         if (msg.data[0x8002] !== undefined) {
-            result['power_on_behavior'] = ({0: 'off', 1: 'on', 2: 'memory'} as {[k: number]: string})[msg.data[0x8002]];
+            result['power_on_behavior'] = ({0: 'off', 1: 'on', 2: 'memory'} as {[k: number]: string})[msg.data[0x8002] as number];
         }
         return result;
     },
