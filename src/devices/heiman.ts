@@ -178,9 +178,9 @@ const heimanExtend = {
                 smokeUnit: {name: "smokeUnit", ID: 0x1008, type: Zcl.DataType.UINT8},
                 remoteSelfTest: {name: "remoteSelfTest", ID: 0x1009, type: Zcl.DataType.UINT8},
                 temperatureOffset: {name: "temperatureOffset", ID: 0x100d, type: Zcl.DataType.INT16},
-                rebootedCount: {name: "rebootedCount", ID: 0x0019, type: Zcl.DataType.UINT8},
-                rejoinedCount: {name: "rejoinedCount", ID: 0x001a, type: Zcl.DataType.UINT8},
-                reportedPackages: {name: "reportedPackages", ID: 0x001b, type: Zcl.DataType.UINT8},
+                rebootedCount: {name: "rebootedCount", ID: 0x0019, type: Zcl.DataType.UINT16},
+                rejoinedCount: {name: "rejoinedCount", ID: 0x001a, type: Zcl.DataType.UINT16},
+                reportedPackages: {name: "reportedPackages", ID: 0x001b, type: Zcl.DataType.UINT16},
 
                 // wifi classes
                 wifiSsid: {name: "wifiSsid", ID: 0x2000, type: Zcl.DataType.CHAR_STR},
@@ -1229,6 +1229,16 @@ const fzLocal = {
             if (data.wifiCandidateStatus !== undefined) {
                 result.wifi_candidate_status = wifiStatusLookup[data.wifiCandidateStatus as number];
             }
+            if (data.reportedPackages !== undefined) {
+                result.reported_packages = data.reportedPackages;
+            }
+            if (data.rejoinedCount !== undefined) {
+                result.rejoin_count = data.rejoinedCount;
+            }
+            if (data.rebootedCount !== undefined) {
+                result.reboot_count = data.rebootedCount;
+            }
+            
             return result;
         },
     } satisfies Fz.Converter<"heimanClusterSpecial", undefined, ["attributeReport", "readResponse"]>,
