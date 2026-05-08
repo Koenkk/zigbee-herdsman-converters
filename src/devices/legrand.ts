@@ -31,10 +31,10 @@ export const definitions: DefinitionWithExtend[] = [
                     // The 067755 has one endpoint but uses different group IDs per button.
                     // Verified group-to-button mapping on physical device (buttons labeled 1-4).
                     const groupMap: {[key: number]: string} = {
-                        0xffed: "button_1",
-                        0xffec: "button_2",
-                        0xffeb: "button_3",
-                        0xffea: "button_4",
+                        65517: "button_1",
+                        65516: "button_2",
+                        65515: "button_3",
+                        65514: "button_4",
                     };
                     const groupId: number = msg.data.groupid;
                     const action = groupMap[groupId] ?? `recall_group_${groupId}`;
