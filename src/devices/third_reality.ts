@@ -5,7 +5,6 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as utils from "../lib/utils";
 import type {
     Configure,
     Definition,
@@ -18,6 +17,7 @@ import type {
     ModernExtend,
     Zh,
 } from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 
