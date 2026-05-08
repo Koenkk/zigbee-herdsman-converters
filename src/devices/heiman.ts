@@ -3055,4 +3055,28 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
     },
+    {
+        zigbeeModel: ["HS8OS-N-3.0", "HS8OS-EM-3.0", "HS8OS-EF-3.0", "HS8OS-EF1-3.0", "HS8OS-EF2-3.0"],
+        model: "HS8OS",
+        vendor: "HEIMAN",
+        description: "Ceiling embedded occupancy sensor",
+        extend: [
+            m.illuminance(),
+            m.occupancy({ultrasonicConfig: ["otu_delay"]}),
+            m.identify(),
+            m.numeric({
+                name: "illuminance_threshold",
+                cluster: "msIlluminanceMeasurement",
+                attribute: {ID: 0xf000, type: Zcl.DataType.INT16},
+                description: "Controls illuminance threshold for sending commands",
+                valueMin: 0,
+                valueMax: 1000,
+                unit: "lx",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
+            }),
+        ],
+        ota: true,
+    },
 ];
