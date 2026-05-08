@@ -709,7 +709,9 @@ const danfossExtend = {
             exposes: [
                 e
                     .text("trigger_time", ea.ALL)
-                    .withDescription("Exercise trigger time. Format: 'HH:MM' (e.g., '14:30'). Send 'undefined' to disable.")
+                    .withDescription(
+                        "Exercise trigger time. Format: 'HH:MM' (e.g., '14:30'). Send 'undefined' to disable. Note: during DST, the valve may exercise earlier than configured due to a firmware limitation (the TRV uses standard time instead of wall-clock time)",
+                    )
                     .withCategory("config"),
             ],
             fromZigbee: [
