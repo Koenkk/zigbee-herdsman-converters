@@ -26863,4 +26863,31 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_tdf2m4ch"]),
+        model: "TS0726_4_gang_scene_switch",
+        vendor: "Tuya",
+        description: "4 gang switch with scene and backlight",
+        fromZigbee: [fzLocal.TS0726_action],
+        exposes: [e.action(["scene_1", "scene_2", "scene_3", "scene_4"])],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                switchMode: true,
+                powerOnBehavior2: true,
+                indicatorModeNoneRelayPos: true,
+                endpoints: ["l1", "l2", "l3", "l4"],
+            }),
+        ],
+        endpoint: (device) => ({l1: 1, l2: 2, l3: 3, l4: 4}),
+        meta: {
+            multiEndpoint: true,
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ep of [1, 2, 3, 4]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ["genOnOff"]);
+            }
+        },
+    }
 ];
