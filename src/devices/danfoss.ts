@@ -1401,7 +1401,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .withCategory("diagnostic"),
         ],
         fromZigbee: [fz.thermostat_weekly_schedule, fzLocal.danfoss_system_status_code],
-        toZigbee: [tz.thermostat_clear_weekly_schedule, tzLocal.danfoss_system_status_code, tzLocal.danfoss_preheat_command],
+        toZigbee: [
+            tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule,
+            tzLocal.danfoss_system_status_code,
+            tzLocal.danfoss_preheat_command,
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
