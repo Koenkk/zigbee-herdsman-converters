@@ -20,14 +20,35 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Legrand",
         description: "Wireless and batteryless 4 scenes control",
         ota: true,
-        meta: {multiEndpoint: true, battery: {voltageToPercentage: {min: 2500, max: 3000}}, publishDuplicateTransaction: true},
-        fromZigbee: [fz.identify, fz.battery, fz.command_recall],
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}, publishDuplicateTransaction: true},
+        fromZigbee: [
+            fz.identify,
+            fz.battery,
+            {
+                cluster: "genScenes",
+                type: ["commandRecall"],
+                convert: (model, msg, publish, options, meta) => {
+                    // The 067755 has one endpoint but uses different group IDs per button.
+                    // Verified group-to-button mapping on physical device (buttons labeled 1-4).
+                    const groupMap: {[key: number]: string} = {
+                        0xffed: "button_1",
+                        0xffec: "button_2",
+                        0xffeb: "button_3",
+                        0xffea: "button_4",
+                    };
+                    const groupId: number = msg.data.groupid;
+                    const action = groupMap[groupId] ?? `recall_group_${groupId}`;
+                    return {action, action_group: groupId};
+                },
+            },
+        ],
         toZigbee: [],
-        exposes: [e.battery(), e.action(["identify", "recall_1_1"])],
+        exposes: [e.battery(), e.action(["button_1", "button_2", "button_3", "button_4"])],
         onEvent: readInitialBatteryState,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genOnOff", "genLevelCtrl"]);
+            // Device only has genPowerCfg and genPollCtrl — genOnOff/genLevelCtrl cause INVALID_EP errors.
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genPollCtrl"]);
         },
     },
     {
