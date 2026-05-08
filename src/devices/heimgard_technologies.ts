@@ -158,6 +158,6 @@ export const definitions: DefinitionWithExtend[] = [
     vendor: 'Heimgard Technologies',
     description: 'Wireless Switch 4 Chanel',
     extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2}}), m.battery(), m.commandsOnOff({"endpointNames":["1","2"]}), m.commandsLevelCtrl({"endpointNames":["1","2"]}), m.commandsColorCtrl({"endpointNames":["1","2"]})],
-};
+},
 
 ];
