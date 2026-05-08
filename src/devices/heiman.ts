@@ -2330,46 +2330,6 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => ({default: 1}),
     },
     {
-        zigbeeModel: ["HS8OS-EF1-3.0"],
-        model: "HS8OS-EF1-3.0",
-        vendor: "Heiman",
-        description: "Human presence sensor",
-        extend: [
-            m.occupancy(),
-            heimanExtend.heimanClusterRadar(),
-            heimanExtend.heimanClusterRadarActiveIndicatorExtend(),
-            heimanExtend.heimanClusterRadarSensitivityExtend(),
-            heimanExtend.heimanClusterLegacyIlluminanceExtend(),
-
-            m.numeric({
-                name: "radar_delay_time",
-                cluster: 0x0406,
-                attribute: {ID: 0x0020, type: 0x21},
-                description: "Occupied to unoccupied delay",
-                valueMin: 60,
-                valueMax: 3600,
-                access: "ALL",
-            }),
-        ],
-        fromZigbee: [],
-        toZigbee: [],
-        ota: true,
-        exposes: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, [
-                "msOccupancySensing",
-                "msIlluminanceMeasurement",
-                "heimanClusterRadar",
-                "haDiagnostic",
-            ]);
-            await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
-            await endpoint.read("msOccupancySensing", ["ultrasonicOToUDelay"]);
-            await endpoint.read("heimanClusterRadar", [0xf001, 0xf002], {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD});
-        },
-        endpoint: (device) => ({default: 1}),
-    },
-    {
         zigbeeModel: ["HS8MIS-EF1-3.0"],
         model: "HS8MIS-EF1-3.0",
         vendor: "Heiman",
@@ -3052,6 +3012,30 @@ export const definitions: DefinitionWithExtend[] = [
                 .removeFeature("strobe_level")
                 .removeFeature("mode")
                 .withFeature(e.enum("mode", ea.SET, ["stop", "burglar", "fire", "emergency"]).withDescription("Mode of the warning(sound effect)")),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["HS8OS-N-3.0", "HS8OS-EM-3.0", "HS8OS-EF-3.0", "HS8OS-EF1-3.0", "HS8OS-EF2-3.0"],
+        model: "HS8OS",
+        vendor: "HEIMAN",
+        description: "Ceiling embedded occupancy sensor",
+        extend: [
+            m.illuminance(),
+            m.occupancy({ultrasonicConfig: ["otu_delay"]}),
+            m.identify(),
+            m.numeric({
+                name: "illuminance_threshold",
+                cluster: "msIlluminanceMeasurement",
+                attribute: {ID: 0xf000, type: Zcl.DataType.INT16},
+                description: "Controls illuminance threshold for sending commands",
+                valueMin: 0,
+                valueMax: 1000,
+                unit: "lx",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
+            }),
         ],
         ota: true,
     },
