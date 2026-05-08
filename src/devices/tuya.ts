@@ -14504,7 +14504,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaOnOff({powerOutageMemory: true}),
             m.enumLookup({
                 name: "switch_type",
-                lookup: {toggle: 0, state: 1, momentary: 2},
+                lookup: {momentary: 0, toggle: 1, state: 2},
                 cluster: "genOnOff",
                 attribute: {ID: 0x8001, type: DataType.ENUM8},
                 zigbeeCommandOptions: {manufacturerCode: 0x1141},
@@ -26884,7 +26884,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaOnOff({powerOutageMemory: true}),
             m.enumLookup({
                 name: "switch_type",
-                lookup: {toggle: 0, state: 1, momentary: 2},
+                lookup: {momentary: 0, toggle: 1, state: 2},
                 cluster: "genOnOff",
                 attribute: {ID: 0x8001, type: DataType.ENUM8},
                 zigbeeCommandOptions: {manufacturerCode: 0x1141},
@@ -26904,7 +26904,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, endpoints: ["l1", "l2"]}),
             m.enumLookup({
                 name: "switch_type",
-                lookup: {toggle: 0, state: 1, momentary: 2},
+                lookup: {momentary: 0, toggle: 1, state: 2},
                 cluster: "genOnOff",
                 attribute: {ID: 0x8001, type: DataType.ENUM8},
                 zigbeeCommandOptions: {manufacturerCode: 0x1141},
