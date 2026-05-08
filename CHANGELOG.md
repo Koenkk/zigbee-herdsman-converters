@@ -1,5 +1,28 @@
 # Changelog
 
+## [26.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.46.0...v26.47.0) (2026-05-08)
+
+
+### Features
+
+* **add:** ZRM01, ZRM02 ([#12139](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12139)) ([31f758b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/31f758bdaf869df2626890915ce31c5cffcab6fe))
+
+
+### Bug Fixes
+
+* Allow whiteLabels of whiteLabels ([#12132](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12132)) ([8929d72](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8929d728b20b285eb3b2906a992986405bcaad94))
+* Danfoss Ally: fix weekly schedule not settable ([#12147](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12147)) ([f0dcbfd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f0dcbfd65ea86bbe71923bd3d3d82bbc53dd7b0e))
+* **detect:** Detect `_TZ3040_o4mkahkc` as Tuya ZP01 ([#12148](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12148)) ([7dfbfbd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7dfbfbd987b3c70bd83a55bbbdda1a4e54ed8964))
+* **detect:** Detect `_TZ3210_cyuyd5az` as Tuya TS110E_1gang_1 ([#12143](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12143)) ([3115ded](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3115ded0e149438d6d26ce3405b0dfc513c31244))
+* Move Heiman‑specific converters to local and leverage cluster definitions ([#12076](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12076)) ([f819833](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f819833295e4ab0cbc582c6e012a0192f2afd415))
+* Namron thermostat: refactor converters to use typed cluster definitions ([#12117](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12117)) ([437e0e2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/437e0e226a5bdacd30cf81ce3f4b7f772a274445))
+* Plugwise 170-01: fix humidity reporting ([#12146](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12146)) ([7c3840f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7c3840f9b33eb1ad0b0b79d8c36f10b0ee006475))
+* Third Reality 3RAP0149BZ: make pressure conditional ([#12133](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12133)) ([e4d6c7f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e4d6c7f911814c6fd20045c0216330f7f1d5e381))
+* Tuya TS0505B_2: fix control https://github.com/Koenkk/zigbee2mqtt/issues/31905 ([c8a25b3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c8a25b3bdb1fee2368a2a823a1ec31030ef0e89a))
+* Tuya TS0601_din_4: expose more features ([#12142](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12142)) ([11145ca](https://github.com/Koenkk/zigbee-herdsman-converters/commit/11145ca6f3e740ffe2f8c132454b3f123cf28521))
+* Tuya TS1201: fix detection ([#12144](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12144)) ([8fa2f5c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8fa2f5c57ff39274920fccd7523763468b9edd4a))
+* Tuya: fix DND description ([#12150](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12150)) ([9d34f69](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9d34f6972fdc6a98ef041dd8d8e9be597b017a97))
+
 ## [26.46.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.45.0...v26.46.0) (2026-05-07)
 
 
