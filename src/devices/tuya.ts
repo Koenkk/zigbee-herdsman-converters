@@ -14499,7 +14499,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QS-Zigbee-SEC01-DC",
         vendor: "Tuya",
         description: "Mini 1 Gang Zigbee Switch Module",
-        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({switchType: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true}),
+            m.enumLookup({
+                name: "switch_type",
+                lookup: {toggle: 0, state: 1, momentary: 2},
+                cluster: "genOnOff",
+                attribute: {ID: 0x8001, type: DataType.ENUM8},
+                zigbeeCommandOptions: {manufacturerCode: 0x1141},
+                description: "External switch type",
+            }),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
             device.powerSource = "Mains (single phase)";
@@ -26870,22 +26881,14 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart relay 1 channel",
         extend: [
             tuya.modernExtend.tuyaBase(),
-            m.onOff({powerOnBehavior: false}),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true}),
             m.enumLookup({
                 name: "switch_type",
-                lookup: {kickback: 0, seesa_toggle: 1, seesaw_sync: 2},
+                lookup: {toggle: 0, state: 1, momentary: 2},
                 cluster: "genOnOff",
                 attribute: {ID: 0x8001, type: DataType.ENUM8},
                 zigbeeCommandOptions: {manufacturerCode: 0x1141},
                 description: "External switch type",
-            }),
-            m.enumLookup({
-                name: "power_on_behavior",
-                lookup: {off: 0, on: 1, memory: 2},
-                cluster: "genOnOff",
-                attribute: {ID: 0x8002, type: DataType.ENUM8},
-                zigbeeCommandOptions: {manufacturerCode: 0x1141},
-                description: "Power on behaviour",
             }),
         ],
     },
@@ -26898,23 +26901,14 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         extend: [
             tuya.modernExtend.tuyaBase(),
-            m.onOff({endpointNames: ["l1", "l2"], powerOnBehavior: false}),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, endpoints: ["l1", "l2"]}),
             m.enumLookup({
                 name: "switch_type",
-                lookup: {kickback: 0, seesa_toggle: 1, seesaw_sync: 2},
+                lookup: {toggle: 0, state: 1, momentary: 2},
                 cluster: "genOnOff",
                 attribute: {ID: 0x8001, type: DataType.ENUM8},
                 zigbeeCommandOptions: {manufacturerCode: 0x1141},
                 description: "External switch type (shared between channels)",
-                endpointName: "l1",
-            }),
-            m.enumLookup({
-                name: "power_on_behavior",
-                lookup: {off: 0, on: 1, memory: 2},
-                cluster: "genOnOff",
-                attribute: {ID: 0x8002, type: DataType.ENUM8},
-                zigbeeCommandOptions: {manufacturerCode: 0x1141},
-                description: "Power on behaviour (shared between channels)",
                 endpointName: "l1",
             }),
         ],
