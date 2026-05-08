@@ -3766,7 +3766,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "809WZT", "Motion sensor", ["_TZ3040_bb6xaihh"]),
             tuya.whitelabel("Niceboy", "ORBIS Motion Sensor", "Motion sensor", ["_TZ3000_qomxlryd"]),
             tuya.whitelabel("Luminea", "ZX-5311", "Motion sensor", ["_TZ3000_jmrgyl7o"]),
-            tuya.whitelabel("Tuya", "ZP01", "Motion sensor", ["_TZ3000_lf56vpxj"]),
+            tuya.whitelabel("Tuya", "ZP01", "Motion sensor", ["_TZ3000_lf56vpxj", "_TZ3040_o4mkahkc"]),
             tuya.whitelabel("Tuya", "HW500A", "Motion sensor", ["_TZ3000_bsvqrxru"]),
             tuya.whitelabel("Nedis", "ZBSM10WT", "Motion sensor", ["_TZ3000_nss8amz9"]),
         ],
