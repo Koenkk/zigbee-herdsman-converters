@@ -184,6 +184,23 @@ interface Tuya4 {
     commandResponses: never;
 }
 
+export interface InchingInput {
+    state?: string;
+    minutes?: number;
+    seconds?: number;
+}
+
+export interface MetaState {
+    state: {
+        inching?: {
+            state: string;
+            minutes: number;
+            seconds: number;
+        };
+        [key: string]: unknown;
+    };
+}
+
 export const dataTypes = {
     raw: 0, // [ bytes ]
     bool: 1, // [0/1]
@@ -373,6 +390,8 @@ export type ThermostatSchedule = KeyValue & {
         saturday: boolean;
     };
 };
+
+export type FromValue = string | number[] | Uint8Array;
 
 export function convertBufferToNumber(chunks: Buffer | number[]) {
     let value = 0;
@@ -730,6 +749,13 @@ const tuyaExposes = {
         }
         return x;
     },
+    inchingSwitch2: () =>
+        e
+            .composite("inching", "inching", ea.STATE_SET)
+            .withDescription("Inching (auto delay shut down) configuration")
+            .withFeature(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable inching"))
+            .withFeature(e.numeric("minutes", ea.STATE_SET).withUnit("m").withValueMin(0).withValueMax(1440).withDescription("Delay minutes"))
+            .withFeature(e.numeric("seconds", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(59).withDescription("Delay seconds")),
 };
 
 export {tuyaExposes as exposes};
@@ -2045,6 +2071,34 @@ export const valueConverter = {
             const s = hex.trim();
             if ((s.length & 1) !== 0) return "";
             return Buffer.from(s, "hex").swap16().toString("utf16le").trim();
+        },
+    },
+    inchingSwitch2: {
+        to: (value: InchingInput, meta: MetaState) => {
+            const currentState = meta.state.inching || {state: "OFF", minutes: 1, seconds: 0};
+
+            const state = value.state !== undefined ? value.state : currentState.state;
+            const minutes = value.minutes !== undefined ? value.minutes : currentState.minutes;
+            const seconds = value.seconds !== undefined ? value.seconds : currentState.seconds;
+
+            let totalSeconds = Math.max(1, minutes * 60 + seconds);
+            if (totalSeconds > 65535) totalSeconds = 65535;
+
+            const buf = Buffer.alloc(3);
+            buf.writeUInt8(state === "ON" ? 1 : 0, 0);
+            buf.writeUInt16BE(totalSeconds, 1);
+
+            return buf.toString("base64");
+        },
+        from: (value: FromValue) => {
+            const buf = typeof value === "string" ? Buffer.from(value, "base64") : Buffer.from(value);
+            const state = buf.readUInt8(0) === 1 ? "ON" : "OFF";
+            const totalSeconds = buf.readUInt16BE(1);
+
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+
+            return {state, minutes, seconds};
         },
     },
 };
