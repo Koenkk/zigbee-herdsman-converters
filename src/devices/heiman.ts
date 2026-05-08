@@ -178,9 +178,9 @@ const heimanExtend = {
                 smokeUnit: {name: "smokeUnit", ID: 0x1008, type: Zcl.DataType.UINT8},
                 remoteSelfTest: {name: "remoteSelfTest", ID: 0x1009, type: Zcl.DataType.UINT8},
                 temperatureOffset: {name: "temperatureOffset", ID: 0x100d, type: Zcl.DataType.INT16},
-                rebootedCount: {name: "rebootedCount", ID: 0x0019, type: Zcl.DataType.UINT8},
-                rejoinedCount: {name: "rejoinedCount", ID: 0x001a, type: Zcl.DataType.UINT8},
-                reportedPackages: {name: "reportedPackages", ID: 0x001b, type: Zcl.DataType.UINT8},
+                rebootedCount: {name: "rebootedCount", ID: 0x0019, type: Zcl.DataType.UINT16},
+                rejoinedCount: {name: "rejoinedCount", ID: 0x001a, type: Zcl.DataType.UINT16},
+                reportedPackages: {name: "reportedPackages", ID: 0x001b, type: Zcl.DataType.UINT16},
 
                 // wifi classes
                 wifiSsid: {name: "wifiSsid", ID: 0x2000, type: Zcl.DataType.CHAR_STR},
@@ -1229,6 +1229,16 @@ const fzLocal = {
             if (data.wifiCandidateStatus !== undefined) {
                 result.wifi_candidate_status = wifiStatusLookup[data.wifiCandidateStatus as number];
             }
+            if (data.reportedPackages !== undefined) {
+                result.reported_packages = data.reportedPackages;
+            }
+            if (data.rejoinedCount !== undefined) {
+                result.rejoin_count = data.rejoinedCount;
+            }
+            if (data.rebootedCount !== undefined) {
+                result.reboot_count = data.rebootedCount;
+            }
+
             return result;
         },
     } satisfies Fz.Converter<"heimanClusterSpecial", undefined, ["attributeReport", "readResponse"]>,
@@ -2002,6 +2012,22 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceTemperature(),
             m.identify(),
             m.enumLookup({
+                name: "switch_type",
+                endpointName: "l1",
+                lookup: {toggle: 0, momentary: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchType",
+                description: "Switch input type for l1",
+            }),
+            m.enumLookup({
+                name: "switch_type",
+                endpointName: "l2",
+                lookup: {toggle: 0, momentary: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchType",
+                description: "Switch input type for l2",
+            }),
+            m.enumLookup({
                 name: "switch_actions",
                 endpointName: "l1",
                 lookup: {on_off: 0, off_on: 1, toggle: 2},
@@ -2025,6 +2051,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
             await endpoint1.read("genOnOff", ["onOff", "startUpOnOff"]);
             await endpoint2.read("genOnOff", ["onOff", "startUpOnOff"]);
+            await endpoint1.read("genOnOffSwitchCfg", ["switchType", "switchActions"]);
+            await endpoint2.read("genOnOffSwitchCfg", ["switchType", "switchActions"]);
             await endpoint1.read("haDiagnostic", ["lastMessageLqi", "lastMessageRssi"]);
         },
     },
