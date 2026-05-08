@@ -5,6 +5,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import * as utils from "../lib/utils";
 import type {
     Configure,
     Definition,
@@ -25,8 +26,8 @@ function conditionalPressure(): ModernExtend {
 
     // Check whether any endpoint on the device has the msPressureMeasurement input cluster
     function deviceHasPressureCluster(device: Zh.Device | DummyDevice): boolean {
-        if ("isDummyDevice" in device && device.isDummyDevice) return true; // docs generation: show it
-        return (device as Zh.Device).endpoints?.some((ep: Zh.Endpoint) => ep.supportsInputCluster("msPressureMeasurement"));
+        if (utils.isDummyDevice(device)) return true; // docs generation: show it
+        return device.endpoints?.some((ep: Zh.Endpoint) => ep.supportsInputCluster("msPressureMeasurement"));
     }
 
     const exposeFn: DefinitionExposesFunction = (device: Zh.Device | DummyDevice, options: KeyValue): Expose[] => {
