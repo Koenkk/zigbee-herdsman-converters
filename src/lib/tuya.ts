@@ -695,7 +695,7 @@ const tuyaExposes = {
     doNotDisturb: () =>
         e
             .binary("do_not_disturb", ea.STATE_SET, true, false)
-            .withDescription("Do not disturb mode, when enabled this function will keep the light OFF after a power outage")
+            .withDescription("Controls state after power outage: false = on, true = restore previous state")
             .withCategory("config"),
     colorPowerOnBehavior: () =>
         e

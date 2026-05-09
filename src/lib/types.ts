@@ -70,7 +70,7 @@ export interface Fingerprint {
 }
 export type WhiteLabel =
     | {vendor?: string; model: string; description?: string; fingerprint: Fingerprint[]}
-    | {vendor?: string; model: string; description?: string};
+    | {vendor?: string; model: string; description?: string; whiteLabelOf?: string};
 
 export interface MockProperty {
     property: string;

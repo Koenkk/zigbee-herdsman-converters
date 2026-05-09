@@ -3586,9 +3586,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lidl", "14149505L/14149506L_2", "Livarno Lux light bar RGB+CCT (black/white)", ["_TZ3210_iystcadi"]),
             tuya.whitelabel("Tuya", "TS0505B_2_2", "Zigbee GU10/E14 5W smart bulb", ["_TZ3210_it1u8ahz"]),
         ],
-        extend: [tuyaLight({colorTemp: {range: [143, 500]}, color: true})],
-        toZigbee: [tz.on_off, tzLocal.led_control],
+        toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
         fromZigbee: [fz.on_off, tuya.fz.led_controller, fz.brightness],
+        exposes: [e.light_brightness_colortemp_colorhs([143, 500]).removeFeature("color_temp_startup"), tuya.exposes.doNotDisturb()],
         meta: {
             applyRedFix: true, // https://github.com/Koenkk/zigbee-herdsman-converters/issues/11467
         },
@@ -3766,7 +3766,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "809WZT", "Motion sensor", ["_TZ3040_bb6xaihh"]),
             tuya.whitelabel("Niceboy", "ORBIS Motion Sensor", "Motion sensor", ["_TZ3000_qomxlryd"]),
             tuya.whitelabel("Luminea", "ZX-5311", "Motion sensor", ["_TZ3000_jmrgyl7o"]),
-            tuya.whitelabel("Tuya", "ZP01", "Motion sensor", ["_TZ3000_lf56vpxj"]),
+            tuya.whitelabel("Tuya", "ZP01", "Motion sensor", ["_TZ3000_lf56vpxj", "_TZ3040_o4mkahkc"]),
             tuya.whitelabel("Tuya", "HW500A", "Motion sensor", ["_TZ3000_bsvqrxru"]),
             tuya.whitelabel("Nedis", "ZBSM10WT", "Motion sensor", ["_TZ3000_nss8amz9"]),
         ],
@@ -5918,7 +5918,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Haozee", model: "ESW-OZAA-EU"},
             {vendor: "Moes", model: "ZT-SY-EU-G-4S-WH-MS"},
             {vendor: "Nedis", model: "ZBWS40WT"},
-            {vendor: "Nous", model: "C1"},
+            {vendor: "Nous", model: "C1", whiteLabelOf: "TS0044_2"},
             tuya.whitelabel("Moes", "ZT-SR-EU4", "Star Ring 4 Gang Scene Switch", ["_TZ3000_a4xycprs"]),
             tuya.whitelabel("Tuya", "TS0044_1", "Zigbee 4 button remote - 12 scene", ["_TZ3000_dziaict4", "_TZ3000_j61x9rxn"]),
             tuya.whitelabel("iHseno", "_TZ3000_mh9px7cq", "Zigbee 4 button remote - 12 scene", ["_TZ3000_mh9px7cq"]),
@@ -13035,17 +13035,8 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS1201", [
-            "_TZ3290_7v1k4vufotpowp9z",
-            "_TZ3290_rlkmy85q4pzoxobl",
-            "_TZ3290_jxvzqatwgsaqzx1u",
-            "_TZ3290_lypnqvlem5eq1ree",
-            "_TZ3290_uc8lwbi2",
-            "_TZ3290_nba3knpsarkawgnt",
-            "_TZ3290_8xzb2ghn",
-            "_TZ3290_s6ezpa3j",
-            "_TZ3290_yac64inudpovoaba",
-        ]),
+        // These models are without battery. Add battery variants to WMUN ZS05.
+        zigbeeModel: ["TS1201"],
         model: "ZS06",
         vendor: "Tuya",
         description: "Universal smart IR remote control",
@@ -13067,6 +13058,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Zemismart", "ZM-18-USB", "Universal smart IR remote control", ["_TZ3290_uc8lwbi2"]),
             tuya.whitelabel("Zemismart", "ZXMIR-02", "Universal smart IR remote control", ["_TZ3290_8xzb2ghn"]),
             tuya.whitelabel("Ekaza", "EKAT-T304Z", "Universal smart IR remote control", ["_TZ3290_s6ezpa3j"]),
+            tuya.whitelabel("Aubess", "ZXZIR-02", "Universal smart IR remote control", ["_TZ3290_acv1iuslxi3shaaj"]),
         ],
     },
     {
@@ -13798,7 +13790,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS110E", ["_TZ3210_zxbtub8r"]),
+        fingerprint: tuya.fingerprint("TS110E", ["_TZ3210_zxbtub8r", "_TZ3210_cyuyd5az"]),
         model: "TS110E_1gang_1",
         vendor: "Tuya",
         description: "1 channel dimmer",
@@ -14499,7 +14491,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QS-Zigbee-SEC01-DC",
         vendor: "Tuya",
         description: "Mini 1 Gang Zigbee Switch Module",
-        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({switchType: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true}),
+            m.enumLookup({
+                name: "switch_type",
+                lookup: {momentary: 0, toggle: 1, state: 2},
+                cluster: "genOnOff",
+                attribute: {ID: 0x8001, type: DataType.ENUM8},
+                zigbeeCommandOptions: {manufacturerCode: 0x1141},
+                description: "External switch type",
+            }),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
             device.powerSource = "Mains (single phase)";
@@ -19934,23 +19937,41 @@ export const definitions: DefinitionWithExtend[] = [
             e.current(),
             e.voltage(),
             e.energy(),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
             e.numeric("temperature", ea.STATE).withUnit("°C").withDescription("Current temperature"),
             e.numeric("leakage", ea.STATE).withUnit("mA").withDescription("Current leakage"),
+            e.text("fault", ea.STATE).withDescription("Fault"),
+            e.numeric("reclosing_allowed_times", ea.STATE_SET).withValueMin(0).withValueMax(30).withDescription("Reclosing tries"),
+            e.binary("reclosing_enable", ea.STATE_SET, "ON", "OFF").withLabel("Auto reclosing"),
+            e.numeric("timer", ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit("s"),
+            e.binary("clear_energy", ea.STATE_SET, "ON", "OFF").withLabel("Clear energy"),
+            e.text("status", ea.STATE).withDescription("Status"),
         ],
         meta: {
             tuyaDatapoints: [
-                [16, "state", tuya.valueConverter.onOff],
                 [1, "energy", tuya.valueConverter.divideBy100], // Total forward energy
                 [6, null, tuya.valueConverter.phaseVariant2], // Phase A voltage and current
-                // [9, 'fault', tuya.valueConverter.raw], // no expose
+                [
+                    9,
+                    "fault",
+                    tuya.valueConverterBasic.lookup({
+                        clear: 0,
+                        overcurrent: 1,
+                        alarm: 2,
+                        overvoltage: 4,
+                        leak: 8,
+                        overtemperature: 16,
+                    }),
+                ],
                 // [11, 'switch_prepayment', tuya.valueConverter.raw], // no expose
-                // [12, 'clear_energy', tuya.valueConverter.raw], // no expose
+                [12, "clear_energy", tuya.valueConverter.raw],
                 // [14, 'charge_energy', tuya.valueConverter.raw], // no expose
                 [15, "leakage", tuya.valueConverter.raw],
-                // [102, 'reclosing_allowed_times', tuya.valueConverter.raw], // no expose
+                [16, "state", tuya.valueConverter.onOff],
+                [102, "reclosing_allowed_times", tuya.valueConverter.raw],
                 [103, "temperature", tuya.valueConverter.raw],
-                // [104, 'reclosing_enable', tuya.valueConverter.raw], // no expose
-                // [105, 'timer', tuya.valueConverter.raw], // no expose
+                [104, "reclosing_enable", tuya.valueConverter.onOff],
+                [105, "timer", tuya.valueConverter.raw],
                 // [106, 'cycle_schedule', tuya.valueConverter.raw], // no expose
                 // [107, 'reclose_recover_seconds', tuya.valueConverter.raw], // no expose
                 // [108, 'random_timing', tuya.valueConverter.raw], // no expose
@@ -19958,8 +19979,15 @@ export const definitions: DefinitionWithExtend[] = [
                 // [119, 'power_on_delay_power_on_time', tuya.valueConverter.raw], // no expose
                 // [124, 'overcurrent_event_threshold_time', tuya.valueConverter.raw], // no expose
                 // [125, 'time_threshold_of_lost_flow_event', tuya.valueConverter.raw], // no expose
-                // [127, 'status', tuya.valueConverter.raw], // no expose
-                // [134, 'relay_status_for_power_on', tuya.valueConverter.raw], // no expose
+                [
+                    127,
+                    "status",
+                    tuya.valueConverterBasic.lookup({
+                        standby: 0,
+                        active: 1,
+                    }),
+                ],
+                [134, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
             ],
         },
     },
@@ -26862,5 +26890,44 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS000F", ["_TZ3218_n0jsuogs"]),
+        model: "ZRM01",
+        vendor: "Novato",
+        description: "Smart relay 1 channel",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true}),
+            m.enumLookup({
+                name: "switch_type",
+                lookup: {momentary: 0, toggle: 1, state: 2},
+                cluster: "genOnOff",
+                attribute: {ID: 0x8001, type: DataType.ENUM8},
+                zigbeeCommandOptions: {manufacturerCode: 0x1141},
+                description: "External switch type",
+            }),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS000F", ["_TZ3218_sgbsg6mr"]),
+        model: "ZRM02",
+        vendor: "Novato",
+        description: "Smart relay 2 channel",
+        endpoint: (device) => ({l1: 1, l2: 2}),
+        meta: {multiEndpoint: true},
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, endpoints: ["l1", "l2"]}),
+            m.enumLookup({
+                name: "switch_type",
+                lookup: {momentary: 0, toggle: 1, state: 2},
+                cluster: "genOnOff",
+                attribute: {ID: 0x8001, type: DataType.ENUM8},
+                zigbeeCommandOptions: {manufacturerCode: 0x1141},
+                description: "External switch type (shared between channels)",
+                endpointName: "l1",
+            }),
+        ],
     },
 ];

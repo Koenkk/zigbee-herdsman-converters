@@ -3,7 +3,6 @@ import type {TClusterCommandPayload} from "zigbee-herdsman/dist/zspec/zcl/defini
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
-import type {HeimanSpecificInfraRedRemoteCluster} from "../lib/heiman";
 import * as legacy from "../lib/legacy";
 import * as light from "../lib/light";
 import {logger} from "../lib/logger";
@@ -14,7 +13,6 @@ import {determineEndpoint} from "../lib/utils";
 
 const NS = "zhc:tz";
 const manufacturerOptions = {
-    sunricher: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD},
     lumi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECHOLOGY_LTD_SHENZHEN, disableDefaultResponse: true},
     eurotronic: {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS},
     hue: {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V},
@@ -2636,129 +2634,6 @@ export const ZMCSW032D_cover_position: Tz.Converter = {
         await entity.read("closuresWindowCovering", [isPosition ? "currentPositionLiftPercentage" : "currentPositionTiltPercentage"]);
     },
 };
-export const namron_thermostat: Tz.Converter = {
-    key: [
-        "lcd_brightness",
-        "button_vibration_level",
-        "floor_sensor_type",
-        "sensor",
-        "powerup_status",
-        "floor_sensor_calibration",
-        "dry_time",
-        "mode_after_dry",
-        "temperature_display",
-        "window_open_check",
-        "hysterersis",
-        "display_auto_off_enabled",
-        "alarm_airtemp_overvalue",
-        "away_mode",
-    ],
-    convertSet: async (entity, key, value, meta) => {
-        if (key === "lcd_brightness") {
-            const lookup = {low: 0, mid: 1, high: 2};
-            const payload = {4096: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        } else if (key === "button_vibration_level") {
-            const lookup = {off: 0, low: 1, high: 2};
-            const payload = {4097: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        } else if (key === "floor_sensor_type") {
-            const lookup = {"10k": 1, "15k": 2, "50k": 3, "100k": 4, "12k": 5};
-            const payload = {4098: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        } else if (key === "sensor") {
-            const lookup = {air: 0, floor: 1, both: 2};
-            const payload = {4099: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        } else if (key === "powerup_status") {
-            const lookup = {default: 0, last_status: 1};
-            const payload = {4100: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        } else if (key === "floor_sensor_calibration") {
-            utils.assertNumber(value);
-            const payload = {4101: {value: Math.round(value * 10), type: 0x28}}; // INT8S
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        } else if (key === "dry_time") {
-            const payload = {4102: {value: value, type: 0x20}}; // INT8U
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        } else if (key === "mode_after_dry") {
-            const lookup = {off: 0, manual: 1, auto: 2, away: 3};
-            const payload = {4103: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        } else if (key === "temperature_display") {
-            const lookup = {room: 0, floor: 1};
-            const payload = {4104: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        } else if (key === "window_open_check") {
-            utils.assertNumber(value);
-            const payload = {4105: {value: value * 2, type: 0x20}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        } else if (key === "hysterersis") {
-            utils.assertNumber(value);
-            const payload = {4106: {value: value * 10, type: 0x20}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        } else if (key === "display_auto_off_enabled") {
-            const lookup = {disabled: 0, enabled: 1};
-            const payload = {4107: {value: utils.getFromLookup(value, lookup), type: Zcl.DataType.ENUM8}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        } else if (key === "alarm_airtemp_overvalue") {
-            const payload = {8193: {value: value, type: 0x20}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        } else if (key === "away_mode") {
-            const payload = {8194: {value: Number(value === "ON"), type: 0x30}};
-            await entity.write("hvacThermostat", payload, manufacturerOptions.sunricher);
-        }
-    },
-    convertGet: async (entity, key, meta) => {
-        switch (key) {
-            case "lcd_brightness":
-                await entity.read("hvacThermostat", [0x1000], manufacturerOptions.sunricher);
-                break;
-            case "button_vibration_level":
-                await entity.read("hvacThermostat", [0x1001], manufacturerOptions.sunricher);
-                break;
-            case "floor_sensor_type":
-                await entity.read("hvacThermostat", [0x1002], manufacturerOptions.sunricher);
-                break;
-            case "sensor":
-                await entity.read("hvacThermostat", [0x1003], manufacturerOptions.sunricher);
-                break;
-            case "powerup_status":
-                await entity.read("hvacThermostat", [0x1004], manufacturerOptions.sunricher);
-                break;
-            case "floor_sensor_calibration":
-                await entity.read("hvacThermostat", [0x1005], manufacturerOptions.sunricher);
-                break;
-            case "dry_time":
-                await entity.read("hvacThermostat", [0x1006], manufacturerOptions.sunricher);
-                break;
-            case "mode_after_dry":
-                await entity.read("hvacThermostat", [0x1007], manufacturerOptions.sunricher);
-                break;
-            case "temperature_display":
-                await entity.read("hvacThermostat", [0x1008], manufacturerOptions.sunricher);
-                break;
-            case "window_open_check":
-                await entity.read("hvacThermostat", [0x1009], manufacturerOptions.sunricher);
-                break;
-            case "hysterersis":
-                await entity.read("hvacThermostat", [0x100a], manufacturerOptions.sunricher);
-                break;
-            case "display_auto_off_enabled":
-                await entity.read("hvacThermostat", [0x100b], manufacturerOptions.sunricher);
-                break;
-            case "alarm_airtemp_overvalue":
-                await entity.read("hvacThermostat", [0x2001], manufacturerOptions.sunricher);
-                break;
-            case "away_mode":
-                await entity.read("hvacThermostat", [0x2002], manufacturerOptions.sunricher);
-                break;
-
-            default: // Unknown key
-                throw new Error(`Unhandled key toZigbee.namron_thermostat.convertGet ${key}`);
-        }
-    },
-};
 export const namron_thermostat_child_lock: Tz.Converter = {
     key: ["child_lock"],
     convertSet: async (entity, key, value, meta) => {
@@ -3357,66 +3232,6 @@ export const power_source: Tz.Converter = {
     key: ["power_source", "charging"],
     convertGet: async (entity, key, meta) => {
         await entity.read("genBasic", ["powerSource"]);
-    },
-};
-export const heiman_ir_remote: Tz.Converter = {
-    key: ["send_key", "create", "learn", "delete", "get_list"],
-    convertSet: async (entity, key, value, meta) => {
-        const options = {
-            // Don't send a manufacturerCode (otherwise set in herdsman):
-            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/2827
-            // @ts-expect-error ignore
-            manufacturerCode: null,
-            ...utils.getOptions(meta.mapped, entity),
-        };
-        switch (key) {
-            case "send_key":
-                utils.assertObject(value);
-                await entity.command<"heimanSpecificInfraRedRemote", "sendKey", HeimanSpecificInfraRedRemoteCluster>(
-                    "heimanSpecificInfraRedRemote",
-                    "sendKey",
-                    {id: value.id, keyCode: value.key_code},
-                    options,
-                );
-                break;
-            case "create":
-                utils.assertObject(value);
-                await entity.command<"heimanSpecificInfraRedRemote", "createId", HeimanSpecificInfraRedRemoteCluster>(
-                    "heimanSpecificInfraRedRemote",
-                    "createId",
-                    {modelType: value.model_type},
-                    options,
-                );
-                break;
-            case "learn":
-                utils.assertObject(value);
-                await entity.command<"heimanSpecificInfraRedRemote", "studyKey", HeimanSpecificInfraRedRemoteCluster>(
-                    "heimanSpecificInfraRedRemote",
-                    "studyKey",
-                    {id: value.id, keyCode: value.key_code},
-                    options,
-                );
-                break;
-            case "delete":
-                utils.assertObject(value);
-                await entity.command<"heimanSpecificInfraRedRemote", "deleteKey", HeimanSpecificInfraRedRemoteCluster>(
-                    "heimanSpecificInfraRedRemote",
-                    "deleteKey",
-                    {id: value.id, keyCode: value.key_code},
-                    options,
-                );
-                break;
-            case "get_list":
-                await entity.command<"heimanSpecificInfraRedRemote", "getIdAndKeyCodeList", HeimanSpecificInfraRedRemoteCluster>(
-                    "heimanSpecificInfraRedRemote",
-                    "getIdAndKeyCodeList",
-                    {},
-                    options,
-                );
-                break;
-            default: // Unknown key
-                throw new Error(`Unhandled key ${key}`);
-        }
     },
 };
 export const scene_store: Tz.Converter = {

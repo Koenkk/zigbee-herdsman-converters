@@ -2,7 +2,6 @@ import assert from "node:assert";
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
-import type {HeimanSpecificAirQualityCluster, HeimanSpecificInfraRedRemoteCluster, HeimanSpecificScenesCluster} from "../lib/heiman";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
 import type {Fz, KeyValue, KeyValueAny, KeyValueNumberString} from "../lib/types";
@@ -1975,79 +1974,6 @@ export const power_source: Fz.Converter<"genBasic", undefined, ["attributeReport
 // #endregion
 
 // #region Non-generic converters
-export const namron_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        const data = msg.data;
-        if (data[0x1000] !== undefined) {
-            // Display brightness
-            const lookup: KeyValueAny = {0: "low", 1: "mid", 2: "high"};
-            result.lcd_brightness = lookup[data[0x1000] as number];
-        }
-        if (data[0x1001] !== undefined) {
-            // Button vibration level
-            const lookup: KeyValueAny = {0: "off", 1: "low", 2: "high"};
-            result.button_vibration_level = lookup[data[0x1001] as number];
-        }
-        if (data[0x1002] !== undefined) {
-            // Floor sensor type
-            const lookup: KeyValueAny = {1: "10k", 2: "15k", 3: "50k", 4: "100k", 5: "12k"};
-            result.floor_sensor_type = lookup[data[0x1002] as number];
-        }
-        if (data[0x1003] !== undefined) {
-            // Sensor
-            const lookup: KeyValueAny = {0: "air", 1: "floor", 2: "both"};
-            result.sensor = lookup[data[0x1003] as number];
-        }
-        if (data[0x1004] !== undefined) {
-            // PowerUpStatus
-            const lookup: KeyValueAny = {0: "default", 1: "last_status"};
-            result.powerup_status = lookup[data[0x1004] as number];
-        }
-        if (data[0x1005] !== undefined) {
-            // FloorSensorCalibration
-            result.floor_sensor_calibration = precisionRound(data[0x1005] as number, 2) / 10;
-        }
-        if (data[0x1006] !== undefined) {
-            // DryTime
-            result.dry_time = data[0x1006];
-        }
-        if (data[0x1007] !== undefined) {
-            // ModeAfterDry
-            const lookup: KeyValueAny = {0: "off", 1: "manual", 2: "auto", 3: "away"};
-            result.mode_after_dry = lookup[data[0x1007] as number];
-        }
-        if (data[0x1008] !== undefined) {
-            // TemperatureDisplay
-            const lookup: KeyValueAny = {0: "room", 1: "floor"};
-            result.temperature_display = lookup[data[0x1008] as number];
-        }
-        if (data[0x1009] !== undefined) {
-            // WindowOpenCheck
-            result.window_open_check = (data[0x1009] as number) / 2;
-        }
-        if (data[0x100a] !== undefined) {
-            // Hysterersis
-            result.hysterersis = precisionRound(data[0x100a] as number, 2) / 10;
-        }
-        if (data[0x100b] !== undefined) {
-            // DisplayAutoOffEnable
-            result.display_auto_off_enabled = data[0x100b] ? "enabled" : "disabled";
-        }
-        if (data[0x2001] !== undefined) {
-            // AlarmAirTempOverValue
-            result.alarm_airtemp_overvalue = data[0x2001];
-        }
-        if (data[0x2002] !== undefined) {
-            // Away Mode Set
-            result.away_mode = data[0x2002] ? "ON" : "OFF";
-        }
-
-        return result;
-    },
-};
 export const namron_hvac_user_interface: Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "hvacUserInterfaceCfg",
     type: ["attributeReport", "readResponse"],
@@ -2651,68 +2577,6 @@ export const plaid_battery: Fz.Converter<"genPowerCfg", undefined, ["readRespons
         return payload;
     },
 };
-export const heiman_ir_remote: Fz.Converter<
-    "heimanSpecificInfraRedRemote",
-    HeimanSpecificInfraRedRemoteCluster,
-    ["commandStudyKeyRsp", "commandCreateIdRsp", "commandGetIdAndKeyCodeListRsp"]
-> = {
-    cluster: "heimanSpecificInfraRedRemote",
-    type: ["commandStudyKeyRsp", "commandCreateIdRsp", "commandGetIdAndKeyCodeListRsp"],
-    convert: (model, msg, publish, options, meta) => {
-        // TODO: split converter for each cmd?
-        switch (msg.type) {
-            case "commandStudyKeyRsp":
-                assert("keyCode" in msg.data);
-                return {
-                    action: "learn",
-                    action_result: msg.data.result === 1 ? "success" : "error",
-                    action_key_code: msg.data.keyCode,
-                    action_id: msg.data.result === 1 ? msg.data.id : undefined,
-                };
-            case "commandCreateIdRsp":
-                assert("id" in msg.data);
-                assert("modelType" in msg.data);
-                return {
-                    action: "create",
-                    action_result: msg.data.id === 0xff ? "error" : "success",
-                    action_model_type: msg.data.modelType,
-                    action_id: msg.data.id !== 0xff ? msg.data.id : undefined,
-                };
-            case "commandGetIdAndKeyCodeListRsp": {
-                assert("packetNumber" in msg.data);
-                // See cluster.js with data format description
-                if (msg.data.packetNumber === 1) {
-                    // start to collect and merge list
-                    // so, we use store instance for temp storage during merging
-                    globalStore.putValue(msg.endpoint, "db", []);
-                }
-                const buffer = msg.data.learnedDevicesList;
-                for (let i = 0; i < msg.data.packetLength; ) {
-                    const modelDescription: KeyValueAny = {
-                        id: buffer[i],
-                        model_type: buffer[i + 1],
-                        key_codes: [],
-                    };
-                    const numberOfKeys = buffer[i + 2];
-                    for (let j = i + 3; j < i + 3 + numberOfKeys; j++) {
-                        modelDescription.key_codes.push(buffer[j]);
-                    }
-                    i = i + 3 + numberOfKeys;
-                    globalStore.getValue(msg.endpoint, "db").push(modelDescription);
-                }
-                if (msg.data.packetNumber === msg.data.packetsTotal) {
-                    // last packet, all data collected, can publish
-                    const result: KeyValueAny = {
-                        devices: globalStore.getValue(msg.endpoint, "db"),
-                    };
-                    globalStore.clearValue(msg.endpoint, "db");
-                    return result;
-                }
-                break;
-            }
-        }
-    },
-};
 export const meazon_meter: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "seMetering",
     type: ["attributeReport", "readResponse"],
@@ -3311,34 +3175,6 @@ export const U02I007C01_water_leak: Fz.Converter<"ssIasZone", undefined, "comman
         };
     },
 };
-export const heiman_hcho: Fz.Converter<"msFormaldehyde", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "msFormaldehyde",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data.measuredValue) {
-            return {hcho: msg.data.measuredValue / 1000.0};
-        }
-    },
-};
-export const heiman_air_quality: Fz.Converter<"heimanSpecificAirQuality", HeimanSpecificAirQualityCluster, ["attributeReport", "readResponse"]> = {
-    cluster: "heimanSpecificAirQuality",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.batteryState) {
-            const lookup: KeyValueAny = {
-                0: "not_charging",
-                1: "charging",
-                2: "charged",
-            };
-            result.battery_state = lookup[msg.data.batteryState];
-        }
-        if (msg.data.tvocMeasuredValue) result.voc = msg.data.tvocMeasuredValue;
-        if (msg.data.aqiMeasuredValue) result.aqi = msg.data.aqiMeasuredValue;
-        if (msg.data.pm10measuredValue) result.pm10 = msg.data.pm10measuredValue;
-        return result;
-    },
-};
 export const scenes_recall_scene_65024: Fz.Converter<65024, undefined, ["raw"]> = {
     cluster: 65024,
     type: ["raw"],
@@ -3506,24 +3342,6 @@ export const STS_PRS_251_presence: Fz.Converter<"genBinaryInput", undefined, ["a
         globalStore.putValue(msg.endpoint, "timer", timer);
 
         return {presence: true};
-    },
-};
-export const heiman_scenes: Fz.Converter<
-    "heimanSpecificScenes",
-    HeimanSpecificScenesCluster,
-    ["commandAtHome", "commandGoOut", "commandCinema", "commandRepast", "commandSleep"]
-> = {
-    cluster: "heimanSpecificScenes",
-    type: ["commandAtHome", "commandGoOut", "commandCinema", "commandRepast", "commandSleep"],
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {
-            commandCinema: "cinema",
-            commandAtHome: "at_home",
-            commandSleep: "sleep",
-            commandGoOut: "go_out",
-            commandRepast: "repast",
-        };
-        if (lookup[msg.type] !== undefined) return {action: lookup[msg.type]};
     },
 };
 export const javis_lock_report: Fz.Converter<"genBasic", undefined, "attributeReport"> = {
@@ -4021,23 +3839,6 @@ export const rc_110_level_to_scene: Fz.Converter<"genLevelCtrl", undefined, ["co
     convert: (model, msg, publish, options, meta) => {
         const scenes: KeyValueAny = {2: "1", 52: "2", 102: "3", 153: "4", 194: "5", 254: "6"};
         return {action: `scene_${scenes[msg.data.level]}`};
-    },
-};
-export const heiman_doorbell_button: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-        const lookup: KeyValueAny = {
-            32768: "pressed",
-            32772: "pressed",
-        };
-        const zoneStatus = msg.data.zonestatus;
-        return {
-            action: lookup[zoneStatus],
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-        };
     },
 };
 export const sihas_people_cnt: Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]> = {
