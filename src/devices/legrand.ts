@@ -5,10 +5,27 @@ import {eLegrand, fzLegrand, legrandExtend, legrandOptions, readInitialBatterySt
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const fzLocal = {
+      command_recall_by_groupid: {
+          cluster: "genScenes",
+          type: ["commandRecall"],
+          convert: (model, msg, publish, options, meta) => {
+              const groupMap: {[key: number]: string} = {
+                  65517: "button_1", 
+                  65516: "button_2",
+                  65515: "button_3",
+                  65514: "button_4",
+              };  
+              const groupId: number = msg.data.groupid;
+              const action = groupMap[groupId] ?? `recall_group_${groupId}`;
+              return {action, action_group: groupId};
+          },  
+      } satisfies Fz.Converter,
+  };  
 
 export const definitions: DefinitionWithExtend[] = [
     {
