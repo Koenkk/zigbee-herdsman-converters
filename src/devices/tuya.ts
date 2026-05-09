@@ -9921,6 +9921,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch(),
+            te.circuitBreakerFault(),
             e.ac_frequency(),
             e.energy(),
             e.power(),
@@ -9944,8 +9945,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [109, "energy_reactive", tuya.valueConverter.divideBy100], // reactive energy in VArh
                 [110, "power_reactive", tuya.valueConverter.raw], // reactive power
                 [111, "power_factor", tuya.valueConverter.divideBy10],
+                [9, "fault", tuya.valueConverter.circuitBreakerFault],
                 // Ignored for now; we don't know what the values mean
-                [9, null, null], // Fault - we don't know the possible values here
                 [17, null, null], // Alarm set1 - value seems garbage "AAAAAAAAAAAAAABkAAEOAACqAAAAAAAKAAAAAAAA"
                 [18, null, null], // 18 - Alarm set2 - value seems garbage "AAUAZAAFAB4APAAAAAAAAAA="
             ],
@@ -9967,28 +9968,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             tuya.exposes.switch(),
             e.energy(),
-            e
-                .enum("fault", ea.STATE, [
-                    "clear",
-                    "short_circuit_alarm",
-                    "surge_alarm",
-                    "overload_alarm",
-                    "leakagecurr_alarm",
-                    "temp_dif_fault",
-                    "fire_alarm",
-                    "high_power_alarm",
-                    "self_test_alarm",
-                    "ov_cr",
-                    "unbalance_alarm",
-                    "ov_vol",
-                    "undervoltage_alarm",
-                    "miss_phase_alarm",
-                    "outage_alarm",
-                    "magnetism_alarm",
-                    "credit_alarm",
-                    "no_balance_alarm",
-                ])
-                .withDescription("Fault status of the device (clear = nothing)"),
+            te.circuitBreakerFault(),
             tuya.exposes.voltageWithPhase("a"),
             tuya.exposes.powerWithPhase("a"),
             tuya.exposes.currentWithPhase("a"),
@@ -10034,30 +10014,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100],
                 [6, null, tuya.valueConverter.phaseVariant2WithPhase("a")],
-                [
-                    9,
-                    "fault",
-                    tuya.valueConverterBasic.lookup({
-                        clear: 0,
-                        short_circuit_alarm: 1,
-                        surge_alarm: 2,
-                        overload_alarm: 4,
-                        leakagecurr_alarm: 8,
-                        temp_dif_fault: 16,
-                        fire_alarm: 32,
-                        high_power_alarm: 64,
-                        self_test_alarm: 128,
-                        ov_cr: 256,
-                        unbalance_alarm: 512,
-                        ov_vol: 1024,
-                        undervoltage_alarm: 2048,
-                        miss_phase_alarm: 4096,
-                        outage_alarm: 8192,
-                        magnetism_alarm: 16384,
-                        credit_alarm: 32768,
-                        no_balance_alarm: 65536,
-                    }),
-                ],
+                [9, "fault", tuya.valueConverter.circuitBreakerFault],
                 [16, "state", tuya.valueConverter.onOff],
                 [17, null, tuya.valueConverter.threshold_2],
                 [17, "high_temperature_threshold", tuya.valueConverter.threshold_2],
@@ -10090,28 +10047,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             tuya.exposes.switch(),
             e.energy(),
-            e
-                .enum("fault", ea.STATE, [
-                    "clear",
-                    "short_circuit_alarm",
-                    "surge_alarm",
-                    "overload_alarm",
-                    "leakagecurr_alarm",
-                    "temp_dif_fault",
-                    "fire_alarm",
-                    "high_power_alarm",
-                    "self_test_alarm",
-                    "ov_cr",
-                    "unbalance_alarm",
-                    "ov_vol",
-                    "undervoltage_alarm",
-                    "miss_phase_alarm",
-                    "outage_alarm",
-                    "magnetism_alarm",
-                    "credit_alarm",
-                    "no_balance_alarm",
-                ])
-                .withDescription("Fault status of the device (clear = nothing)"),
+            te.circuitBreakerFault(),
             tuya.exposes.voltageWithPhase("a"),
             tuya.exposes.voltageWithPhase("b"),
             tuya.exposes.voltageWithPhase("c"),
@@ -10193,30 +10129,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [6, null, tuya.valueConverter.phaseVariant2WithPhase("a")],
                 [7, null, tuya.valueConverter.phaseVariant2WithPhase("b")],
                 [8, null, tuya.valueConverter.phaseVariant2WithPhase("c")],
-                [
-                    9,
-                    "fault",
-                    tuya.valueConverterBasic.lookup({
-                        clear: 0,
-                        short_circuit_alarm: 1,
-                        surge_alarm: 2,
-                        overload_alarm: 4,
-                        leakagecurr_alarm: 8,
-                        temp_dif_fault: 16,
-                        fire_alarm: 32,
-                        high_power_alarm: 64,
-                        self_test_alarm: 128,
-                        ov_cr: 256,
-                        unbalance_alarm: 512,
-                        ov_vol: 1024,
-                        undervoltage_alarm: 2048,
-                        miss_phase_alarm: 4096,
-                        outage_alarm: 8192,
-                        magnetism_alarm: 16384,
-                        credit_alarm: 32768,
-                        no_balance_alarm: 65536,
-                    }),
-                ],
+                [9, "fault", tuya.valueConverter.circuitBreakerFault],
                 [16, "state", tuya.valueConverter.onOff],
                 [17, null, tuya.valueConverter.threshold_2],
                 [17, "overload_breaker", tuya.valueConverter.threshold_2],
@@ -19941,7 +19854,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.numeric("temperature", ea.STATE).withUnit("°C").withDescription("Current temperature"),
             e.numeric("leakage", ea.STATE).withUnit("mA").withDescription("Current leakage"),
-            e.text("fault", ea.STATE).withDescription("Fault"),
+            te.circuitBreakerFault(),
             e.numeric("reclosing_allowed_times", ea.STATE_SET).withValueMin(0).withValueMax(30).withDescription("Reclosing tries"),
             e.binary("reclosing_enable", ea.STATE_SET, "ON", "OFF").withLabel("Auto reclosing"),
             e.numeric("timer", ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit("s"),
@@ -19952,18 +19865,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100], // Total forward energy
                 [6, null, tuya.valueConverter.phaseVariant2], // Phase A voltage and current
-                [
-                    9,
-                    "fault",
-                    tuya.valueConverterBasic.lookup({
-                        clear: 0,
-                        overcurrent: 1,
-                        alarm: 2,
-                        overvoltage: 4,
-                        leak: 8,
-                        overtemperature: 16,
-                    }),
-                ],
+                [9, "fault", tuya.valueConverter.circuitBreakerFault],
                 // [11, 'switch_prepayment', tuya.valueConverter.raw], // no expose
                 [12, "clear_energy", tuya.valueConverter.raw],
                 // [14, 'charge_energy', tuya.valueConverter.raw], // no expose
@@ -23851,7 +23753,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("over_current_threshold", ea.STATE_SET).withUnit("A").withValueMin(1).withValueMax(63),
             e.numeric("leakage_threshold", ea.STATE_SET).withUnit("mA").withValueMin(10).withValueMax(100),
             e.numeric("temp_threshold", ea.STATE_SET).withUnit("°C").withValueMin(40).withValueMax(150),
-            e.numeric("fault_code", ea.STATE).withDescription("0 = OK"),
+            te.circuitBreakerFault(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -23867,7 +23769,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [43, "under_voltage_threshold", tuya.valueConverter.raw],
                 [44, "over_current_threshold", tuya.valueConverter.raw],
                 [45, "temp_threshold", tuya.valueConverter.raw],
-                [9, "fault_code", tuya.valueConverter.raw],
+                [9, "fault", tuya.valueConverter.circuitBreakerFault],
             ],
         },
     },
