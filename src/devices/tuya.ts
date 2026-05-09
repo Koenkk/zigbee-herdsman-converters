@@ -7104,7 +7104,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE204_odlldrxx",
                 "_TZE204_wzre8hu2",
                 "_TZE200_odlldrxx",
-                "_TZE200_m6lwazh9",
+                "_TZE200_m6lwazh9", // incomplete, see https://github.com/Koenkk/zigbee2mqtt/issues/31774
                 "_TZE204_zuq5xxib",
                 "_TZE200_swlgvdlh",
             ]),
@@ -9402,6 +9402,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Girier", "JR-ZPM01", "Smart Plug", ["_TZ3000_ww6drja5"]),
             tuya.whitelabel("Nous", "A7Z", "Smart Zigbee Socket", ["_TZ3210_rwmitwj4", "_TZ3008_reatplte"]),
             tuya.whitelabel("Zbeacon", "TS011F_plug_1_1", "Smart plug (with power monitoring)", ["Zbeacon"]),
+            tuya.whitelabel("AOYAN", "TS011F_AOYAN", "Smart plug with power monitoring", ["AOYAN  "]),
             tuya.whitelabel("NEO", "NAS-WR01B", "Smart plug (with electrical measurements)", ["_TZ3000_gjnozsaz"]),
             tuya.whitelabel("GreenSun", "HSC-ZW-EU", "Outdoor Smart Plug (with power monitoring)", ["_TZ3000_cicwjqth"]),
             tuya.whitelabel("Nous", "A10Z", "Smart Zigbee Socket", ["_TZ3210_jlf1nepw"]),
@@ -22403,6 +22404,20 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "COOLO",
         description: "Soil moisture sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        whiteLabel: [
+            {
+                model: "AY-303Z",
+                vendor: "AOYAN",
+                description: "Soil moisture sensor",
+                fingerprint: [{modelID: "AY-303Z", manufacturerName: "AOYAN  "}],
+            },
+            {
+                model: "AY-302Z",
+                vendor: "AOYAN",
+                description: "Soil moisture sensor",
+                fingerprint: [{modelID: "AY-302Z", manufacturerName: "AOYAN  "}],
+            },
+        ],
         exposes: (device) => {
             const exposes = [
                 e.dry(),

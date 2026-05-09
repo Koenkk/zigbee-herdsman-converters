@@ -102,7 +102,9 @@ export const definitions: DefinitionWithExtend[] = [
             e.power().withAccess(ea.STATE_GET),
             e
                 .enum("device_mode", ea.ALL, ["switch", "auto"])
-                .withDescription("switch: allow on/off, auto will use wired action via C1/C2 on teleruptor with buttons"),
+                .withDescription(
+                    "Switch: normal on/off mode, momentary push-buttons on C1/C2 toggle the relay cleanly (recommended). auto: produces erratic behavior.",
+                ),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

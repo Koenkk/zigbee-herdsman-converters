@@ -1,5 +1,21 @@
 # Changelog
 
+## [26.48.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.47.0...v26.48.0) (2026-05-09)
+
+
+### Features
+
+* **add:** HC-BPW4-1 ([#12154](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12154)) ([e0ea7d2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e0ea7d2615cf76bf0b47a08af31bd5964d27082e))
+* **add:** TS011F_AOYAN ([#12158](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12158)) ([dc8b953](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dc8b953c80e4771b9e3c9bfdf0b6bc6ee7a9f925))
+* Woolley BSD29/BSD59: expose power on behaviour ([#12162](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12162)) ([43069bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/43069bb722d6d7154ad66fb8514fc5fc4db9ec2a))
+
+
+### Bug Fixes
+
+* Added whiteLabel entries for AOYAN AY-302Z and AY-303Z ([#12157](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12157)) ([2c12d04](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2c12d044e3a0779c5007659ca6617c7e205248ea))
+* **ignore:** Sort some Tuya datapoints ([#12160](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12160)) ([3e52faf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3e52faff71453462f4615bda4b63b902bdadf4c6))
+* Legrand 412170: clarify device_mode description & warn of  factory default ([#12141](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12141)) ([5f75c97](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5f75c97a25860143e385fbd7d42fc7ac573fd0d1))
+
 ## [26.47.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.46.0...v26.47.0) (2026-05-08)
 
 
