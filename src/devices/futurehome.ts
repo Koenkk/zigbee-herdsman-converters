@@ -242,15 +242,14 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["LOCK", 0x02],
                 description: "Permanently lock cable when not charging.",
             }),
-            // lockState (2), actuatorEnabled (176), supportedOperatingModes (261)
             // 'closuresDoorLock': {"lockState":2,"supportedOperatingModes":261,"actuatorEnabled":176}
             // 'genMultistateValue': {"numberOfStates":8,"outOfService":0,"presentValue":5}
             // 'genMultistateInput': {"numberOfStates":6,"outOfService":0,"presentValue":65}
             m.numeric({
-                name: "charging_current",
+                name: "setpoint_charging_current",
                 cluster: "genAnalogOutput",
                 attribute: "presentValue",
-                description: "Actual charging current ??",
+                description: "Setpoint charging current (as defined by charger) ??",
                 unit: "A",
                 access: "STATE",
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
