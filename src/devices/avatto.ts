@@ -232,14 +232,6 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [
-                    49,
-                    "system_mode",
-                    tuya.valueConverterBasic.lookup({
-                        heat: tuya.enum(1),
-                        off: tuya.enum(0),
-                    }),
-                ],
-                [
                     2,
                     "preset",
                     tuya.valueConverterBasic.lookup({
@@ -261,21 +253,29 @@ export const definitions: DefinitionWithExtend[] = [
                 [14, "window_detection", tuya.valueConverter.raw],
                 [16, "open_window_temperature", tuya.valueConverter.divideBy10],
                 [17, "open_window_time", tuya.valueConverter.raw],
-                [19, "factory_reset", tuya.valueConverter.onOff],
-                [21, "holiday_temperature", tuya.valueConverter.raw],
-                [24, "comfort_temperature", tuya.valueConverter.divideBy10],
-                [25, "eco_temperature", tuya.valueConverter.divideBy10],
                 [17, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
                 [18, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [19, "factory_reset", tuya.valueConverter.onOff],
                 [19, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
                 [20, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [21, "holiday_temperature", tuya.valueConverter.raw],
                 [21, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
                 [22, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
                 [23, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [24, "comfort_temperature", tuya.valueConverter.divideBy10],
+                [25, "eco_temperature", tuya.valueConverter.divideBy10],
                 [35, "error_status", tuya.valueConverter.raw],
                 [36, "frost_protection", tuya.valueConverter.onOff],
                 [39, "scale_protection", tuya.valueConverter.raw],
                 [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [
+                    49,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        heat: tuya.enum(1),
+                        off: tuya.enum(0),
+                    }),
+                ],
                 [101, "uptime", tuya.valueConverter.divideBy10],
                 [102, "descale_countdown", tuya.valueConverter.divideBy10],
             ],
