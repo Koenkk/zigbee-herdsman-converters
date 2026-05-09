@@ -184,6 +184,23 @@ interface Tuya4 {
     commandResponses: never;
 }
 
+export interface InchingInput {
+    state?: string;
+    minutes?: number;
+    seconds?: number;
+}
+
+export interface MetaState {
+    state: {
+        inching?: {
+            state: string;
+            minutes: number;
+            seconds: number;
+        };
+        [key: string]: unknown;
+    };
+}
+
 export const dataTypes = {
     raw: 0, // [ bytes ]
     bool: 1, // [0/1]
@@ -374,6 +391,8 @@ export type ThermostatSchedule = KeyValue & {
     };
 };
 
+export type FromValue = string | number[] | Uint8Array;
+
 export function convertBufferToNumber(chunks: Buffer | number[]) {
     let value = 0;
     for (let i = 0; i < chunks.length; i++) {
@@ -489,6 +508,16 @@ export async function sendDataPointStringBuffer(entity: Zh.Group | Zh.Endpoint, 
 }
 
 const tuyaExposes = {
+    alarmTime: () =>
+        e
+            .numeric("alarm_time", ea.STATE_SET)
+            .withUnit("s")
+            .withValueMin(1)
+            .withValueMax(180)
+            .withValueStep(1)
+            .withDescription("Alarm time")
+            .withCategory("config"),
+    alarmMode: () => e.enum("alarm_mode", ea.STATE_SET, ["arm", "silent", "disarm"]).withDescription("Alarm work mode").withCategory("config"),
     lightType: () => e.enum("light_type", ea.STATE_SET, ["led", "incandescent", "halogen"]).withDescription("Type of light attached to the device"),
     lightBrightnessWithMinMax: () =>
         e
@@ -666,7 +695,7 @@ const tuyaExposes = {
     doNotDisturb: () =>
         e
             .binary("do_not_disturb", ea.STATE_SET, true, false)
-            .withDescription("Do not disturb mode, when enabled this function will keep the light OFF after a power outage")
+            .withDescription("Controls state after power outage: false = on, true = restore previous state")
             .withCategory("config"),
     colorPowerOnBehavior: () =>
         e
@@ -720,6 +749,13 @@ const tuyaExposes = {
         }
         return x;
     },
+    inchingSwitch2: () =>
+        e
+            .composite("inching", "inching", ea.STATE_SET)
+            .withDescription("Inching (auto delay shut down) configuration")
+            .withFeature(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable inching"))
+            .withFeature(e.numeric("minutes", ea.STATE_SET).withUnit("m").withValueMin(0).withValueMax(1440).withDescription("Delay minutes"))
+            .withFeature(e.numeric("seconds", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(59).withDescription("Delay seconds")),
 };
 
 export {tuyaExposes as exposes};
@@ -886,6 +922,7 @@ export const valueConverter = {
     lightMode: valueConverterBasic.lookup({normal: new Enum(0), on: new Enum(1), off: new Enum(2), flash: new Enum(3)}),
     raw: valueConverterBasic.raw(),
     fault: {from: (v: Bitmap) => !!v},
+    alarmMode: valueConverterBasic.lookup({arm: new Enum(0), silent: new Enum(1), disarm: new Enum(2)}),
     localTemperatureCalibration: {
         from: (value: number) => (value > 4000 ? value - 4096 : value),
         to: (value: number) => (value < 0 ? 4096 + value : value),
@@ -2034,6 +2071,34 @@ export const valueConverter = {
             const s = hex.trim();
             if ((s.length & 1) !== 0) return "";
             return Buffer.from(s, "hex").swap16().toString("utf16le").trim();
+        },
+    },
+    inchingSwitch2: {
+        to: (value: InchingInput, meta: MetaState) => {
+            const currentState = meta.state.inching || {state: "OFF", minutes: 1, seconds: 0};
+
+            const state = value.state !== undefined ? value.state : currentState.state;
+            const minutes = value.minutes !== undefined ? value.minutes : currentState.minutes;
+            const seconds = value.seconds !== undefined ? value.seconds : currentState.seconds;
+
+            let totalSeconds = Math.max(1, minutes * 60 + seconds);
+            if (totalSeconds > 65535) totalSeconds = 65535;
+
+            const buf = Buffer.alloc(3);
+            buf.writeUInt8(state === "ON" ? 1 : 0, 0);
+            buf.writeUInt16BE(totalSeconds, 1);
+
+            return buf.toString("base64");
+        },
+        from: (value: FromValue) => {
+            const buf = typeof value === "string" ? Buffer.from(value, "base64") : Buffer.from(value);
+            const state = buf.readUInt8(0) === 1 ? "ON" : "OFF";
+            const totalSeconds = buf.readUInt16BE(1);
+
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+
+            return {state, minutes, seconds};
         },
     },
 };
@@ -3708,6 +3773,10 @@ const tuyaModernExtend = {
         const tuyaLightingColorCtrl = tuyaClusters.addTuyaLightingColorCtrlCluster();
         result.onEvent = [...(tuyaLightingColorCtrl.onEvent ?? []), ...(result.onEvent ?? [])];
         result.configure = [...(tuyaLightingColorCtrl.configure ?? []), ...(result.configure ?? [])];
+
+        const customCluster3 = tuyaClusters.addManuSpecificTuya3Cluster();
+        result.onEvent = [...(customCluster3.onEvent ?? []), ...(result.onEvent ?? [])];
+        result.configure = [...(customCluster3.configure ?? []), ...(result.configure ?? [])];
 
         result.configure.push(configureSetPowerSourceWhenUnknown("Mains (single phase)"));
 
