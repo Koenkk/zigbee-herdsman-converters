@@ -3584,6 +3584,7 @@ export const lumiModernExtend = {
     w600Schedule: (): ModernExtend => createW600Schedule(),
     w600WeeklySchedule: (): ModernExtend => createW600WeeklySchedule(),
     w600PresetTemperatureTable: (): ModernExtend => createW600PresetTemperatureTable(),
+    w600ValvePosition: (): ModernExtend => createW600ValvePosition(),
     lumiReadPositionOnReport: (type: "genAnalogOutput" | "genMultistateOutput" | "genBasic"): ModernExtend => {
         let converter: Fz.Converter<"genAnalogOutput" | "genMultistateOutput" | "genBasic", undefined, ["attributeReport"]>;
         if (type === "genAnalogOutput") {
@@ -3646,6 +3647,7 @@ const W600_ATTR_PRESET_TEMPERATURE_TABLE = 0x0317;
 const W600_ATTR_SENSOR_SOURCE = 0x0280;
 const W600_ATTR_SENSOR_BINDING = 0xfff2;
 const W600_ATTR_HEARTBEAT = 0x00f7;
+const W600_ATTR_VALVE_POSITION = 0x0360;
 const W600_EXTERNAL_TEMP_SENSOR = Buffer.from("00158d00019d1b98", "hex");
 const W600_PRESET_TABLE_STORE_KEY = "w600PresetTemperatureTable";
 const W600_SENSOR_BINDING_COUNTER_STORE_KEY = "w600SensorBindingCounter";
@@ -4172,6 +4174,22 @@ function deriveW600SystemMode(args: {heatingEnabled: boolean | undefined; schedu
 
     if (args.heatingEnabled === true && args.scheduleEnabled === false) {
         return "heat";
+    }
+
+    return undefined;
+}
+
+function deriveW600RunningStateFromValvePosition(position: unknown) {
+    if (typeof position !== "number" || !Number.isFinite(position)) {
+        return undefined;
+    }
+
+    if (position > 0) {
+        return "heat";
+    }
+
+    if (position === 0) {
+        return "idle";
     }
 
     return undefined;
@@ -4852,6 +4870,7 @@ function createW600Thermostat(): ModernExtend {
         localTemperatureCalibration: {values: {min: -5, max: 5, step: 0.1}},
         temperatureSetpointHoldDuration: true,
         systemMode: {values: ["off", "heat", "auto"], configure: {skip: true}},
+        runningState: {values: ["idle", "heat"], toZigbee: {skip: true}, configure: {skip: true}},
     });
 
     const climateExpose = findW600ClimateExpose(extend);
@@ -4926,7 +4945,7 @@ function createW600Thermostat(): ModernExtend {
                 await writeW600LumiAttribute(entity, W600_ATTR_SYSTEM_MODE, 0);
                 await writeW600LumiAttribute(entity, W600_ATTR_SCHEDULE, 0);
                 await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 0});
-                return {state: {system_mode: "off", schedule: "OFF", override_active: false}};
+                return {state: {system_mode: "off", schedule: "OFF", override_active: false, running_state: "idle"}};
             }
 
             await writeW600LumiAttribute(entity, W600_ATTR_SYSTEM_MODE, 1);
@@ -5008,13 +5027,21 @@ function createW600Thermostat(): ModernExtend {
         },
     } satisfies Tz.Converter;
 
+    const runningStateConverter = {
+        key: ["running_state"],
+        convertGet: async (entity: Zh.Endpoint | Zh.Group) => {
+            assertEndpoint(entity);
+            await readW600LumiAttribute(entity, W600_ATTR_VALVE_POSITION);
+        },
+    } satisfies Tz.Converter;
+
     extend.toZigbee = replaceToZigbeeConvertersInArray(
         extend.toZigbee ?? [],
         [tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.thermostat_temperature_setpoint_hold_duration],
         [occupiedHeatingSetpointConverter, systemModeConverter, holdDurationConverter],
     );
     extend.toZigbee ??= [];
-    extend.toZigbee.push(presetConverter);
+    extend.toZigbee.push(presetConverter, runningStateConverter);
 
     extend.fromZigbee = (extend.fromZigbee ?? []).map((converter) => (converter === fz.thermostat ? thermostatConverter : converter));
     extend.fromZigbee.push(
@@ -5060,6 +5087,11 @@ function createW600Thermostat(): ModernExtend {
                         : parseW600HeatingEnabled(meta.state?.system_mode);
                 const scheduleEnabled =
                     msg.data[W600_ATTR_SCHEDULE] !== undefined ? msg.data[W600_ATTR_SCHEDULE] === 1 : parseW600ScheduleEnabled(meta.state?.schedule);
+                const runningState = deriveW600RunningStateFromValvePosition(msg.data[W600_ATTR_VALVE_POSITION]);
+
+                if (runningState) {
+                    result.running_state = runningState;
+                }
 
                 if (msg.data[W600_ATTR_SYSTEM_MODE] !== undefined || msg.data[W600_ATTR_SCHEDULE] !== undefined) {
                     const systemMode = deriveW600SystemMode({heatingEnabled, scheduleEnabled});
@@ -5072,6 +5104,7 @@ function createW600Thermostat(): ModernExtend {
                         clearW600ManualCustomPresetSuppression(device);
                         result.schedule = "OFF";
                         result.override_active = false;
+                        result.running_state = "idle";
 
                         if (parseW600ScheduleEnabled(meta.state?.schedule) !== false) {
                             writeW600LumiAttribute(msg.endpoint, W600_ATTR_SCHEDULE, 0).catch((error) =>
@@ -5128,6 +5161,23 @@ function createW600Thermostat(): ModernExtend {
     });
 
     return extend;
+}
+
+function createW600ValvePosition(): ModernExtend {
+    return modernExtend.numeric<"manuSpecificLumi", ManuSpecificLumi>({
+        name: "position",
+        valueMin: 0,
+        valueMax: 100,
+        scale: 1,
+        precision: 2,
+        unit: "%",
+        access: "STATE_GET",
+        cluster: W600_LUMI_CLUSTER,
+        attribute: {ID: W600_ATTR_VALVE_POSITION, type: Zcl.DataType.SINGLE_PREC},
+        description: "Position of the valve, 100% is fully open",
+        label: "Valve position",
+        zigbeeCommandOptions: {manufacturerCode},
+    });
 }
 
 function createW600Schedule(): ModernExtend {
