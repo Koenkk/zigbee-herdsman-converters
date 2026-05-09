@@ -756,27 +756,29 @@ const tuyaExposes = {
             .withFeature(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable inching"))
             .withFeature(e.numeric("minutes", ea.STATE_SET).withUnit("m").withValueMin(0).withValueMax(1440).withDescription("Delay minutes"))
             .withFeature(e.numeric("seconds", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(59).withDescription("Delay seconds")),
-    dlqFault: () => e.enum("fault", ea.STATE, [
-                    "clear",
-                    "short_circuit_alarm",
-                    "surge_alarm",
-                    "overload_alarm",
-                    "leakagecurr_alarm",
-                    "temp_dif_fault",
-                    "fire_alarm",
-                    "high_power_alarm",
-                    "self_test_alarm",
-                    "ov_cr",
-                    "unbalance_alarm",
-                    "ov_vol",
-                    "undervoltage_alarm",
-                    "miss_phase_alarm",
-                    "outage_alarm",
-                    "magnetism_alarm",
-                    "credit_alarm",
-                    "no_balance_alarm",
-                ])
-                .withDescription("Fault status of the circuit breaker (clear = nothing)"),
+    dlqFault: () =>
+        e
+            .enum("fault", ea.STATE, [
+                "clear",
+                "short_circuit_alarm",
+                "surge_alarm",
+                "overload_alarm",
+                "leakagecurr_alarm",
+                "temp_dif_fault",
+                "fire_alarm",
+                "high_power_alarm",
+                "self_test_alarm",
+                "ov_cr",
+                "unbalance_alarm",
+                "ov_vol",
+                "undervoltage_alarm",
+                "miss_phase_alarm",
+                "outage_alarm",
+                "magnetism_alarm",
+                "credit_alarm",
+                "no_balance_alarm",
+            ])
+            .withDescription("Fault status of the circuit breaker (clear = nothing)"),
 };
 
 export {tuyaExposes as exposes};
@@ -2143,11 +2145,9 @@ export const valueConverter = {
                 magnetism_alarm: 16384,
                 credit_alarm: 32768,
                 no_balance_alarm: 65536,
-            });            
+            });
         },
-
-        
-    },    
+    },
 };
 
 const tuyaTz = {

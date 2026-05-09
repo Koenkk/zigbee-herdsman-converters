@@ -9921,7 +9921,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch(),
-tuya.exposes.dlqFault(),
+            tuya.exposes.dlqFault(),
             e.ac_frequency(),
             e.energy(),
             e.power(),
@@ -19855,7 +19855,6 @@ tuya.exposes.dlqFault(),
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.numeric("temperature", ea.STATE).withUnit("°C").withDescription("Current temperature"),
             e.numeric("leakage", ea.STATE).withUnit("mA").withDescription("Current leakage"),
-            e.text("fault", ea.STATE).withDescription("Fault"),
             e.numeric("reclosing_allowed_times", ea.STATE_SET).withValueMin(0).withValueMax(30).withDescription("Reclosing tries"),
             e.binary("reclosing_enable", ea.STATE_SET, "ON", "OFF").withLabel("Auto reclosing"),
             e.numeric("timer", ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit("s"),
@@ -19867,10 +19866,10 @@ tuya.exposes.dlqFault(),
                 [1, "energy", tuya.valueConverter.divideBy100], // Total forward energy
                 [6, null, tuya.valueConverter.phaseVariant2], // Phase A voltage and current
                 [9, "fault", tuya.valueConverter.dlqFault],
-                [11, 'switch_prepayment', tuya.valueConverter.raw], // not tested yet
+                [11, "switch_prepayment", tuya.valueConverter.raw], // not tested yet
                 [12, "clear_energy", tuya.valueConverter.raw], // not tested yet
-                [13, 'balance_energy', tuya.valueConverter.divideBy100], // not tested yet
-                [14, 'charge_energy', tuya.valueConverter.divideBy100], // not tested yet
+                [13, "balance_energy", tuya.valueConverter.divideBy100], // not tested yet
+                [14, "charge_energy", tuya.valueConverter.divideBy100], // not tested yet
                 [15, "leakage", tuya.valueConverter.raw],
                 [16, "state", tuya.valueConverter.onOff],
                 [102, "reclosing_allowed_times", tuya.valueConverter.raw],
@@ -21965,7 +21964,7 @@ tuya.exposes.dlqFault(),
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch(),
-tuya.exposes.dlqFault(),
+            tuya.exposes.dlqFault(),
             e.numeric("power", ea.STATE).withDescription("power").withUnit("W").withDescription("Instantaneous measured power"),
             e.numeric("current", ea.STATE).withDescription("current").withUnit("A").withDescription("Instantaneous measured electrical current"),
             e.numeric("voltage", ea.STATE).withDescription("voltage").withUnit("V").withDescription("Measured electrical potential value"),
