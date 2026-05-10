@@ -316,6 +316,101 @@ describe("Inovelli toZigbee converters", () => {
             const result = await converter.convertSet(endpoint, "nonExistentKey", 42, meta);
             expect(result).toBeUndefined();
         });
+
+        // Regression test for https://github.com/Koenkk/zigbee-herdsman-converters/issues/11698
+        it("convertSet should write all matching keys from meta.message in one batched payload", async () => {
+            const {device, definition} = await setupVZM31();
+            const converter = findTzConverter(definition, "defaultLevelLocal");
+            const endpoint = device.getEndpoint(1);
+            const meta = buildMeta(device, {
+                mapped: definition,
+                message: {defaultLevelLocal: 100, defaultLevelRemote: 100},
+            });
+
+            const result = await converter.convertSet(endpoint, "defaultLevelLocal", 100, meta);
+
+            expect(endpoint.write).toHaveBeenCalledTimes(1);
+            expect(endpoint.write).toHaveBeenCalledWith(
+                "manuSpecificInovelli",
+                {
+                    13: {value: 100, type: expect.any(Number)},
+                    14: {value: 100, type: expect.any(Number)},
+                },
+                {manufacturerCode: 0x122f},
+            );
+            expect(result).toStrictEqual({state: {defaultLevelLocal: 100, defaultLevelRemote: 100}});
+        });
+
+        it("convertSet should batch keys regardless of the order they appear in meta.message", async () => {
+            const {device, definition} = await setupVZM31();
+            const converter = findTzConverter(definition, "defaultLevelLocal");
+            const endpoint = device.getEndpoint(1);
+            const meta = buildMeta(device, {
+                mapped: definition,
+                message: {defaultLevelRemote: 50, defaultLevelLocal: 50},
+            });
+
+            const result = await converter.convertSet(endpoint, "defaultLevelRemote", 50, meta);
+
+            expect(endpoint.write).toHaveBeenCalledTimes(1);
+            expect(endpoint.write).toHaveBeenCalledWith(
+                "manuSpecificInovelli",
+                {
+                    13: {value: 50, type: expect.any(Number)},
+                    14: {value: 50, type: expect.any(Number)},
+                },
+                {manufacturerCode: 0x122f},
+            );
+            expect(result).toStrictEqual({state: {defaultLevelRemote: 50, defaultLevelLocal: 50}});
+        });
+
+        it("convertSet should ignore unknown and read-only keys when batching", async () => {
+            const {device, definition} = await setupVZM31();
+            const converter = findTzConverter(definition, "defaultLevelLocal");
+            const endpoint = device.getEndpoint(1);
+            const meta = buildMeta(device, {
+                mapped: definition,
+                message: {
+                    defaultLevelLocal: 75,
+                    nonExistentKey: 42,
+                    // internalTemperature is a read-only attribute on the same cluster
+                    internalTemperature: 99,
+                },
+            });
+
+            const result = await converter.convertSet(endpoint, "defaultLevelLocal", 75, meta);
+
+            expect(endpoint.write).toHaveBeenCalledTimes(1);
+            expect(endpoint.write).toHaveBeenCalledWith(
+                "manuSpecificInovelli",
+                {13: {value: 75, type: expect.any(Number)}},
+                {manufacturerCode: 0x122f},
+            );
+            expect(result).toStrictEqual({state: {defaultLevelLocal: 75}});
+        });
+
+        it("convertSet should map enum values when batched alongside numeric values", async () => {
+            const {device, definition} = await setupVZM31();
+            const converter = findTzConverter(definition, "switchType");
+            const endpoint = device.getEndpoint(1);
+            const meta = buildMeta(device, {
+                mapped: definition,
+                message: {switchType: "3-Way Dumb Switch", dimmingSpeedUpRemote: 50},
+            });
+
+            const result = await converter.convertSet(endpoint, "switchType", "3-Way Dumb Switch", meta);
+
+            expect(endpoint.write).toHaveBeenCalledTimes(1);
+            expect(endpoint.write).toHaveBeenCalledWith(
+                "manuSpecificInovelli",
+                {
+                    1: {value: 50, type: expect.any(Number)},
+                    22: {value: 1, type: expect.any(Number)},
+                },
+                {manufacturerCode: 0x122f},
+            );
+            expect(result).toStrictEqual({state: {switchType: "3-Way Dumb Switch", dimmingSpeedUpRemote: 50}});
+        });
     });
 
     describe("VZM36 endpoint resolution", () => {
@@ -331,6 +426,37 @@ describe("Inovelli toZigbee converters", () => {
 
             expect(ep2.write).toHaveBeenCalledWith("manuSpecificInovelli", {1: {value: 25, type: expect.any(Number)}}, {manufacturerCode: 0x122f});
             expect(ep1.write).not.toHaveBeenCalled();
+        });
+
+        it("convertSet should bucket combined _1 / _2 keys to their respective endpoints", async () => {
+            const {device, definition} = await setupVZM36();
+            const converter = findTzConverter(definition, "defaultLevelRemote_1");
+            const ep1 = device.getEndpoint(1);
+            const ep2 = device.getEndpoint(2);
+            const meta = buildMeta(device, {
+                mapped: definition,
+                message: {
+                    // biome-ignore lint/style/useNamingConvention: matches device attribute key format
+                    defaultLevelRemote_1: 80,
+                    // biome-ignore lint/style/useNamingConvention: matches device attribute key format
+                    defaultLevelRemote_2: 40,
+                },
+            });
+
+            const result = await converter.convertSet(ep1, "defaultLevelRemote_1", 80, meta);
+
+            expect(ep1.write).toHaveBeenCalledTimes(1);
+            expect(ep1.write).toHaveBeenCalledWith("manuSpecificInovelli", {14: {value: 80, type: expect.any(Number)}}, {manufacturerCode: 0x122f});
+            expect(ep2.write).toHaveBeenCalledTimes(1);
+            expect(ep2.write).toHaveBeenCalledWith("manuSpecificInovelli", {14: {value: 40, type: expect.any(Number)}}, {manufacturerCode: 0x122f});
+            expect(result).toStrictEqual({
+                state: {
+                    // biome-ignore lint/style/useNamingConvention: matches device attribute key format
+                    defaultLevelRemote_1: 80,
+                    // biome-ignore lint/style/useNamingConvention: matches device attribute key format
+                    defaultLevelRemote_2: 40,
+                },
+            });
         });
 
         it("convertGet with suffixed key should read from the correct endpoint", async () => {
