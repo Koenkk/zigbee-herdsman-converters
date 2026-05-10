@@ -6026,4 +6026,53 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.lumiZigbeeOTA(),
         ],
     },
+    {
+        zigbeeModel: ["aqara.toilet.acn002", "lumi.sen_gas.hrcn01"], // The reason for adding lumi.sen_gas.hrcn01 is that the model number reported by a toilet is exactly this
+        model: "ACN002",
+        vendor: "Aqara",
+        description: "Smart Toilet T1",
+        fromZigbee: [lumi.fromZigbee.lumi_toilet],
+        toZigbee: [lumi.toZigbee.lumi_toilet],
+        exposes: [
+            e.binary("lid_switch", ea.STATE_SET, "OPEN", "CLOSE").withDescription("Lid status"),
+            e.binary("seat_switch", ea.STATE_SET, "OPEN", "CLOSE").withDescription("Seat status"),
+            e.binary("night_light", ea.STATE_SET, "ON", "OFF").withDescription("Night light"),
+            e
+                .enum("seat_temp", ea.STATE_SET, ["Off", "Temp_31C", "Temp_33C", "Temp_35C", "Temp_37C", "Temp_39C"])
+                .withDescription("Seat heating temperature"),
+            e
+                .enum("cleaning_mode", ea.STATE_SET, ["Stop", "Rear", "Rear_Moving", "Female", "Female_Moving", "Child"])
+                .withDescription("Cleaning mode"),
+            e
+                .enum("water_temp", ea.STATE_SET, ["Off", "Temp_31C", "Temp_33C", "Temp_35C", "Temp_37C", "Temp_39C"])
+                .withDescription("Cleaning water temperature"),
+            e
+                .enum("water_pressure", ea.STATE_SET, ["Weak", "Slightly_Weak", "Middle", "Slightly_Strong", "Strong"])
+                .withDescription("Water pressure"),
+            e
+                .enum("nozzle_position", ea.STATE_SET, ["Back", "Slightly_Back", "Middle", "Slightly_Front", "Front"])
+                .withDescription("Nozzle position"),
+            e
+                .enum("dryer_temp", ea.STATE_SET, ["Off", "Normal", "Low", "Mid_Low", "Middle", "Mid_High", "High"])
+                .withDescription("Dryer wind temperature"),
+            e.enum("nozzle_clean", ea.STATE_SET, ["Off", "Auto", "Manual"]).withDescription("Nozzle self-cleaning"),
+            e.binary("occupancy_status", ea.STATE, true, false).withDescription("Occupancy status"),
+            e.enum("stop_button", ea.SET, ["STOP"]).withDescription("Stop operation"),
+            e.enum("flush_big", ea.SET, ["FLUSH"]).withDescription("Full flush"),
+            e.enum("flush_small", ea.SET, ["FLUSH"]).withDescription("Small flush"),
+            e.enum("foam_shield", ea.SET, ["RELEASE"]).withDescription("Release splash-proof foam"),
+            e.binary("pre_mist_switch", ea.STATE_SET, "ON", "OFF").withDescription("Pre-mist when sitting").withCategory("config"),
+            e.binary("auto_foam_on_sit", ea.STATE_SET, "ON", "OFF").withDescription("Automatic foam when sitting").withCategory("config"),
+            e.binary("auto_foam_on_leave", ea.STATE_SET, "ON", "OFF").withDescription("Automatic foam when leaving").withCategory("config"),
+            e.binary("child_seat_mode", ea.STATE_SET, "ON", "OFF").withDescription("Child seat mode").withCategory("config"),
+            e.binary("foot_sensor_switch", ea.STATE_SET, "ON", "OFF").withDescription("Foot sensor").withCategory("config"),
+            e.binary("auto_flush_after_leave", ea.STATE_SET, "ON", "OFF").withDescription("Auto flush after leaving").withCategory("config"),
+            e.binary("beeper_switch", ea.STATE_SET, "ON", "OFF").withDescription("Beeper sound").withCategory("config"),
+        ],
+        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), m.forcePowerSource({powerSource: "Mains (single phase)"})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0xfff1], {manufacturerCode: manufacturerCode});
+        },
+    },
 ];

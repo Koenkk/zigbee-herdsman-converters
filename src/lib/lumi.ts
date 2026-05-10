@@ -7216,6 +7216,98 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
+
+    lumi_toilet: {
+        cluster: "manuSpecificLumi",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            Object.entries(msg.data).forEach(([key, value]) => {
+                switch (Number.parseInt(key, 10)) {
+                    case 0xfff1: {
+                        // @ts-expect-error ignore
+                        if (value.length < 8) {
+                            logger.debug(`Cannot handle ${value}, frame too small`, "zhc:lumi:toilet");
+                            return;
+                        }
+                        // @ts-expect-error ignore
+                        const attr = value.slice(3, 7);
+                        // @ts-expect-error ignore
+                        const len = value.slice(7, 8).readUInt8();
+                        // @ts-expect-error ignore
+                        const val = value.slice(8, 8 + len);
+                        switch (attr.readInt32BE()) {
+                            case 0x04030055:
+                                result.lid_switch = val.readUInt8() === 1 ? "OPEN" : "CLOSE";
+                                break;
+                            case 0x04040055:
+                                result.seat_switch = val.readUInt8() === 1 ? "OPEN" : "CLOSE";
+                                break;
+                            case 0x04200055:
+                                result.night_light = val.readUInt8() === 1 ? "ON" : "OFF";
+                                break;
+                            case 0x0e2f0055:
+                                result.seat_temp = ["Off", "Temp_31C", "Temp_33C", "Temp_35C", "Temp_37C", "Temp_39C"][val.readUInt32BE()];
+                                break;
+                            case 0x0e300055:
+                                result.cleaning_mode = ["Stop", "Rear", "Rear_Moving", "Female", "Female_Moving", "Child"][val.readUInt32BE()];
+                                break;
+                            case 0x0e340055:
+                                result.nozzle_position = ["Back", "Slightly_Back", "Middle", "Slightly_Front", "Front"][val.readUInt32BE()];
+                                break;
+                            case 0x0e330055:
+                                result.water_pressure = ["Weak", "Slightly_Weak", "Middle", "Slightly_Strong", "Strong"][val.readUInt32BE()];
+                                break;
+                            case 0x0e320055:
+                                result.water_temp = ["Off", "Temp_31C", "Temp_33C", "Temp_35C", "Temp_37C", "Temp_39C"][val.readUInt32BE()];
+                                break;
+                            case 0x0e350055:
+                                result.dryer_temp = ["Off", "Normal", "Low", "Mid_Low", "Middle", "Mid_High", "High"][val.readUInt32BE()];
+                                break;
+                            case 0x0e270055:
+                                result.nozzle_clean = ["Off", "Auto", "Manual"][val.readUInt32BE()];
+                                break;
+                            case 0x03010055:
+                                result.occupancy_status = val.readUInt8() === 1;
+                                break;
+                            case 0x041a0055:
+                                result.foot_sensor_switch = val.readUInt8() === 1 ? "ON" : "OFF";
+                                break;
+                            case 0x041f0055:
+                                result.auto_flush_after_leave = val.readUInt8() === 0 ? "ON" : "OFF";
+                                break;
+                            case 0x04220055:
+                                result.beeper_switch = val.readUInt8() === 0 ? "ON" : "OFF";
+                                break;
+                            case 0x04240055:
+                                result.child_seat_mode = val.readUInt8() === 1 ? "ON" : "OFF";
+                                break;
+                            case 0x04250055:
+                                result.pre_mist_switch = val.readUInt8() === 1 ? "ON" : "OFF";
+                                break;
+                            case 0x04420055:
+                                result.auto_foam_on_sit = val.readUInt8() === 1 ? "ON" : "OFF";
+                                break;
+                            case 0x04430055:
+                                result.auto_foam_on_leave = val.readUInt8() === 1 ? "ON" : "OFF";
+                                break;
+                            default:
+                                logger.debug(`Unknown attribute ${attr} = ${val}`, "zhc:lumi:toilet");
+                        }
+                        break;
+                    }
+                    case 0x00ff:
+                    case 0x0007:
+                    case 0x00f7:
+                        logger.debug(`Unhandled key ${key} = ${value}`, "zhc:lumi:toilet");
+                        break;
+                    default:
+                        logger.debug(`Unknown key ${key} = ${value}`, "zhc:lumi:toilet");
+                }
+            });
+            return result;
+        },
+    } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
 };
 
 export const toZigbee = {
@@ -9245,6 +9337,130 @@ export const toZigbee = {
             logger.info(`Aqara W100: thermostat_mode set to ${value}`, NS);
             const defaults = w100EnsureDefaults(meta);
             return {state: {...defaults, thermostat_mode: value}};
+        },
+    } satisfies Tz.Converter,
+
+    lumi_toilet: {
+        key: [
+            "lid_switch",
+            "seat_switch",
+            "night_light",
+            "seat_temp",
+            "cleaning_mode",
+            "nozzle_position",
+            "water_pressure",
+            "water_temp",
+            "dryer_temp",
+            "nozzle_clean",
+            "stop_button",
+            "flush_big",
+            "flush_small",
+            "foam_shield",
+            "foot_sensor_switch",
+            "auto_flush_after_leave",
+            "beeper_switch",
+            "child_seat_mode",
+            "pre_mist_switch",
+            "auto_foam_on_sit",
+            "auto_foam_on_leave",
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            const sendAttr = async (attrCode: number, value: number, length: number) => {
+                // @ts-expect-error ignore
+                entity.sendSeq = ((entity.sendSeq || 0) + 1) % 256;
+                // @ts-expect-error ignore
+                const val = Buffer.from([0x00, 0x02, entity.sendSeq, 0, 0, 0, 0, 0]);
+                // @ts-expect-error ignore
+                entity.sendSeq += 1;
+                val.writeInt32BE(attrCode, 3);
+                val.writeUInt8(length, 7);
+                let v = Buffer.alloc(length);
+                switch (length) {
+                    case 1:
+                        v.writeUInt8(value);
+                        break;
+                    case 2:
+                        v.writeUInt16BE(value);
+                        break;
+                    case 4:
+                        v.writeUInt32BE(value);
+                        break;
+                    default:
+                        // @ts-expect-error ignore
+                        v = value;
+                }
+                await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
+                    "manuSpecificLumi",
+                    {65521: {value: Buffer.concat([val, v]), type: 0x41}},
+                    {manufacturerCode: manufacturerCode},
+                );
+            };
+            switch (key) {
+                case "lid_switch":
+                    await sendAttr(0x04030055, getFromLookup(value, {CLOSE: 0, OPEN: 1}), 1);
+                    break;
+                case "seat_switch":
+                    await sendAttr(0x04040055, getFromLookup(value, {CLOSE: 0, OPEN: 1}), 1);
+                    break;
+                case "night_light":
+                    await sendAttr(0x04200055, getFromLookup(value, {OFF: 0, ON: 1}), 1);
+                    break;
+                case "seat_temp":
+                    await sendAttr(0x0e2f0055, getFromLookup(value, {off: 0, temp_31c: 1, temp_33c: 2, temp_35c: 3, temp_37c: 4, temp_39c: 5}), 4);
+                    break;
+                case "cleaning_mode":
+                    await sendAttr(0x0e300055, getFromLookup(value, {stop: 0, rear: 1, rear_moving: 2, female: 3, female_moving: 4, child: 5}), 4);
+                    break;
+                case "nozzle_position":
+                    await sendAttr(0x0e340055, getFromLookup(value, {back: 0, slightly_back: 1, middle: 2, slightly_front: 3, front: 4}), 4);
+                    break;
+                case "water_pressure":
+                    await sendAttr(0x0e330055, getFromLookup(value, {weak: 0, slightly_weak: 1, middle: 2, slightly_strong: 3, strong: 4}), 4);
+                    break;
+                case "water_temp":
+                    await sendAttr(0x0e320055, getFromLookup(value, {off: 0, temp_31c: 1, temp_33c: 2, temp_35c: 3, temp_37c: 4, temp_39c: 5}), 4);
+                    break;
+                case "dryer_temp":
+                    await sendAttr(0x0e350055, getFromLookup(value, {off: 0, normal: 1, low: 2, mid_low: 3, middle: 4, mid_high: 5, high: 6}), 4);
+                    break;
+                case "nozzle_clean":
+                    await sendAttr(0x0e270055, getFromLookup(value, {off: 0, auto: 1, manual: 2}), 4);
+                    break;
+                case "stop_button":
+                    await sendAttr(0x04010055, 1, 1);
+                    break;
+                case "flush_big":
+                    await sendAttr(0x04070055, 1, 1);
+                    break;
+                case "flush_small":
+                    await sendAttr(0x04020055, 1, 1);
+                    break;
+                case "foam_shield":
+                    await sendAttr(0x04190055, 0, 1);
+                    break;
+                case "foot_sensor_switch":
+                    await sendAttr(0x041a0055, getFromLookup(value, {OFF: 0, ON: 1}), 1);
+                    break;
+                case "auto_flush_after_leave":
+                    await sendAttr(0x041f0055, getFromLookup(value, {ON: 0, OFF: 1}), 1);
+                    break;
+                case "beeper_switch":
+                    await sendAttr(0x04220055, getFromLookup(value, {ON: 0, OFF: 1}), 1);
+                    break;
+                case "child_seat_mode":
+                    await sendAttr(0x04240055, getFromLookup(value, {OFF: 0, ON: 1}), 1);
+                    break;
+                case "pre_mist_switch":
+                    await sendAttr(0x04250055, getFromLookup(value, {OFF: 0, ON: 1}), 1);
+                    break;
+                case "auto_foam_on_sit":
+                    await sendAttr(0x04420055, getFromLookup(value, {OFF: 0, ON: 1}), 1);
+                    break;
+                case "auto_foam_on_leave":
+                    await sendAttr(0x04430055, getFromLookup(value, {OFF: 0, ON: 1}), 1);
+                    break;
+            }
+            return {state: {[key]: value}};
         },
     } satisfies Tz.Converter,
 };
