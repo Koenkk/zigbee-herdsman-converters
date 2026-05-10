@@ -22414,84 +22414,65 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZE21C_dohbhb5k"]),
+        fingerprint: tuya.fingerprint("TS0001", ["_TZE21C_dohbhb5k", "_TZE21C_i2ij4rb3"]),
         model: "TYONOFFTS",
         vendor: "Scimagic",
         description: "Smart switch with temperature sensor",
-        extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
-            tuya.modernExtend.dpOnOff({
-                dp: 0x02,
-            }),
-            tuya.modernExtend.dpTemperature({dp: 0x1b}),
-            tuya.modernExtend.dpNumeric({
-                dp: 0x1e,
-                name: "temperature_calibration",
-                type: tuya.dataTypes.number,
-                valueMin: -10,
-                valueMax: 10,
-                valueStep: 0.5,
-                unit: "°C",
-                scale: 2,
-                description: "Temperature calibration",
-            }),
-            tuya.modernExtend.dpNumeric({
-                dp: 0x1d,
-                name: "temperature_range",
-                type: tuya.dataTypes.number,
-                valueMin: 1,
-                valueMax: 10,
-                valueStep: 0.1,
-                unit: "°C",
-                scale: 10,
-                description: "Keep the temperature in a range",
-            }),
-            tuya.modernExtend.dpBinary({
-                name: "auto_work",
-                dp: 0x09,
-                type: tuya.dataTypes.bool,
-                valueOn: ["ON", true],
-                valueOff: ["OFF", false],
-                description: "Auto work mode",
-            }),
-            tuya.modernExtend.dpNumeric({
-                dp: 0x16,
-                name: "temperature_target",
-                type: tuya.dataTypes.number,
-                valueMin: -100,
-                valueMax: 100,
-                valueStep: 0.5,
-                unit: "°C",
-                scale: 10,
-                description: "Temperature target",
-            }),
-            tuya.modernExtend.dpEnumLookup({
-                dp: 0x08,
-                name: "mode",
-                type: tuya.dataTypes.enum,
-                lookup: {Heating: 0, Cooling: 2},
-                description: "Work mode",
-            }),
-            tuya.modernExtend.dpBinary({
-                name: "delay",
-                dp: 0x38,
-                type: tuya.dataTypes.bool,
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
-                description: "Switch delay time mode",
-            }),
-            tuya.modernExtend.dpNumeric({
-                dp: 0x37,
-                name: "delay_time",
-                type: tuya.dataTypes.number,
-                valueMin: 0,
-                valueMax: 10,
-                valueStep: 1,
-                unit: "minute",
-                scale: 1,
-                description: "Switch delay time",
-            }),
-        ],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: (device, options) => {
+            const exps: Expose[] = [e.switch(), e.temperature()];
+            if (device?.manufacturerName === "_TZE21C_i2ij4rb3") {
+                exps.push(e.humidity());
+            }
+            exps.push(
+                e
+                    .numeric("temperature_calibration", ea.STATE_SET)
+                    .withValueMin(-10)
+                    .withValueMax(10)
+                    .withValueStep(0.5)
+                    .withUnit("°C")
+                    .withDescription("Temperature calibration"),
+                e
+                    .numeric("temperature_range", ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(10)
+                    .withValueStep(0.1)
+                    .withUnit("°C")
+                    .withDescription("Keep the temperature in a range"),
+                e.binary("auto_work", ea.STATE_SET, "ON", "OFF").withDescription("Auto work mode"),
+                e
+                    .numeric("temperature_target", ea.STATE_SET)
+                    .withValueMin(-100)
+                    .withValueMax(100)
+                    .withValueStep(0.5)
+                    .withUnit("°C")
+                    .withDescription("Temperature target"),
+                e.enum("mode", ea.STATE_SET, ["Heating", "Cooling"]).withDescription("Work mode"),
+                e.binary("delay", ea.STATE_SET, "ON", "OFF").withDescription("Switch delay time mode"),
+                e
+                    .numeric("delay_time", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(10)
+                    .withValueStep(1)
+                    .withUnit("minute")
+                    .withDescription("Switch delay time"),
+            );
+            return exps;
+        },
+        meta: {
+            tuyaDatapoints: [
+                [0x02, "state", tuya.valueConverter.onOff],
+                [0x1b, "temperature", tuya.valueConverter.divideBy10],
+                [0x2e, "humidity", tuya.valueConverter.raw],
+                [0x1e, "temperature_calibration", tuya.valueConverter.divideBy2],
+                [0x1d, "temperature_range", tuya.valueConverter.divideBy10],
+                [0x09, "auto_work", tuya.valueConverter.onOff],
+                [0x16, "temperature_target", tuya.valueConverter.divideBy10],
+                [0x08, "mode", tuya.valueConverterBasic.lookup({Heating: 0, Cooling: 2})],
+                [0x38, "delay", tuya.valueConverter.onOff],
+                [0x37, "delay_time", tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5ys44kzo"]),
