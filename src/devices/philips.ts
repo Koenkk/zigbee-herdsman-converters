@@ -1322,10 +1322,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["LWB006", "LWB014", "LWB019"],
+        zigbeeModel: ["LWB006", "LWB010", "LWB014", "LWB019", "LWF001", "LWF002", "LWW001"],
         model: "9290011370",
         vendor: "Philips",
-        description: "Hue white A60 bulb E27/B22",
+        description: "Hue white A60 bulb",
+        whiteLabel: [
+            {model: "9290011370A"},
+            {model: "9290011370B"},
+            {model: "9290011371"},
+            {model: "9290011371A"},
+            {model: "9290011371B"},
+            {model: "8718696449691"},
+        ],
         extend: [philips.m.light()],
     },
     {
@@ -1467,13 +1475,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Flourish white and color ambiance pendant light",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
-        zigbeeModel: ["LWB010"],
-        model: "8718696449691",
-        vendor: "Philips",
-        description: "Hue White A60 Single bulb E27/B22",
-        extend: [philips.m.light()],
     },
     {
         zigbeeModel: ["LWG001"],
@@ -2291,13 +2292,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue white ambiance suspension Amaze with Bluetooth",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        zigbeeModel: ["LWF001", "LWF002", "LWW001"],
-        model: "9290011370B",
-        vendor: "Philips",
-        description: "Hue white A60 bulb E27",
-        extend: [philips.m.light()],
     },
     {
         zigbeeModel: ["LWB015"],
