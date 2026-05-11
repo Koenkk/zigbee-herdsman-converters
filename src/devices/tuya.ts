@@ -1051,6 +1051,36 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    // ZT08 (_TZE284_hodyryli) — LCD weather station with clock.
+    // The MCU expects mcuSyncTime in raw Unix seconds (8 bytes: UTC + local),
+    // followed by a DP 17 write ~500 ms later that commits the new time to the LCD.
+    // Without the DP 17 commit the MCU silently ignores the sync and the clock stays at 00:xx.
+    // See: https://github.com/Koenkk/zigbee2mqtt/issues/29627
+    zt08ClockSync: {
+        cluster: "manuSpecificTuya",
+        type: ["commandMcuSyncTime"],
+        convert: (model, msg, publish, options, meta) => {
+            void (async () => {
+                try {
+                    const ep = msg.endpoint;
+                    const now = new Date();
+                    const utcTime = Math.round(now.getTime() / 1000);
+                    const localTime = utcTime - now.getTimezoneOffset() * 60;
+                    const be4 = (n: number) => [(n >>> 24) & 0xff, (n >>> 16) & 0xff, (n >>> 8) & 0xff, n & 0xff];
+                    const payload = [...be4(utcTime), ...be4(localTime)];
+                    await ep.command("manuSpecificTuya", "mcuSyncTime", {payloadSize: 8, payload}, {disableDefaultResponse: true});
+                    await new Promise((r) => setTimeout(r, 500));
+                    try {
+                        await tuya.sendDataPointBool(ep, 17, false);
+                    } catch {
+                        /* DP 17 may not exist on no-clock siblings; safe to ignore */
+                    }
+                } catch {
+                    /* time sync best-effort */
+                }
+            })();
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandMcuSyncTime"]>,
     TLSR82xxAction: {
         cluster: "genOnOff",
         type: ["attributeReport", "readResponse"],
@@ -8292,16 +8322,25 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hodyryli"]),
-        model: "ZY-ZTH03PRO",
-        vendor: "Tuya",
-        description: "Temperature & humidity sensor with external probe",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [e.temperature(), e.humidity(), tuya.exposes.batteryState(), exposes.numeric("external_temperature", ea.STATE).withUnit("°C")],
+        model: "ZT08",
+        vendor: "TuYa",
+        description: "Weather station with clock, internal/external temperature and humidity",
+        fromZigbee: [tuya.fz.datapoints, fzLocal.zt08ClockSync],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.temperature(),
+            e.humidity(),
+            exposes.numeric("external_temperature", ea.STATE).withUnit("°C").withDescription("External probe temperature"),
+            tuya.exposes.batteryState(),
+            e.enum("time_format", ea.STATE, ["12h", "24h"]).withDescription("Clock time format on LCD"),
+        ],
         meta: {
             tuyaDatapoints: [
                 [1, "temperature", tuya.valueConverter.divideBy10],
                 [2, "humidity", tuya.valueConverter.raw],
                 [3, "battery_state", tuya.valueConverter.batteryState],
+                [17, "time_format", tuya.valueConverter.onOff],
                 [38, "external_temperature", tuya.valueConverter.divideBy10],
             ],
         },
