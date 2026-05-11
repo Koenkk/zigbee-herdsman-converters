@@ -1,12 +1,12 @@
-import * as m from "../lib/modernExtend";
-import type {Definition} from "../lib/types";
+import {DefinitionWithExtend} from '../lib/types';
+import * as m from '../lib/modernExtend';
 
-const definitions: Definition[] = [
+const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["ZLL-DimmableLight"],
-        model: "LC201060",
-        vendor: "Megaman",
-        description: "LED Candle 6W 2700K (Dimmbar)",
+        zigbeeModel: ['ZLL-DimmableLight'],
+        model: 'LC201060',
+        vendor: 'Megaman',
+        description: 'LED Candle 6W 2700K (Dimmbar)',
         extend: [m.light()],
     },
 ];
