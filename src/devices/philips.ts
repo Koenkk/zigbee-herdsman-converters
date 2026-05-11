@@ -2824,6 +2824,7 @@ export const definitions: DefinitionWithExtend[] = [
             const options = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V, disableDefaultResponse: true};
             await endpoint.write("genBasic", {52: {value: 0, type: 48}}, options);
         },
+        ota: true,
     },
     {
         zigbeeModel: ["RWL020", "RWL021"],

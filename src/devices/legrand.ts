@@ -5,10 +5,28 @@ import {eLegrand, fzLegrand, legrandExtend, legrandOptions, readInitialBatterySt
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const fzLocal = {
+    command_recall_by_groupid: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            const groupMap: {[key: number]: string} = {
+                65517: "button_1",
+                65516: "button_2",
+                65515: "button_3",
+                65514: "button_4",
+            };
+            const groupId: number = msg.data.groupid;
+            const action = groupMap[groupId] ?? `recall_group_${groupId}`;
+            return {action, action_group: groupId};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -20,14 +38,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Legrand",
         description: "Wireless and batteryless 4 scenes control",
         ota: true,
-        meta: {multiEndpoint: true, battery: {voltageToPercentage: {min: 2500, max: 3000}}, publishDuplicateTransaction: true},
-        fromZigbee: [fz.identify, fz.battery, fz.command_recall],
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}, publishDuplicateTransaction: true},
+        fromZigbee: [fz.identify, fz.battery, fzLocal.command_recall_by_groupid],
         toZigbee: [],
-        exposes: [e.battery(), e.action(["identify", "recall_1_1"])],
+        exposes: [e.battery(), e.action(["identify", "button_1", "button_2", "button_3", "button_4"])],
         onEvent: readInitialBatteryState,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genOnOff", "genLevelCtrl"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genPollCtrl"]);
         },
     },
     {
