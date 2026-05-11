@@ -1,20 +1,26 @@
-import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['Socket Switch'],
-        model: 'ZCC-3500',
-        vendor: 'KlikAanKlikUit',
-        description: 'Zigbee socket switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        zigbeeModel: ["Socket Switch"],
+        model: "ZCC-3500",
+        vendor: "KlikAanKlikUit",
+        description: "Zigbee socket switch",
+        extend: [m.onOff()],
+    },
+    {
+        fingerprint: [{modelID: "Built-in Switch", manufacturerName: "KlikAanKlikUit"}],
+        model: "ZCM-1800",
+        vendor: "KlikAanKlikUit",
+        description: "Zigbee switch module",
+        extend: [m.onOff()],
+    },
+    {
+        zigbeeModel: ["Socket Dimmer"],
+        model: "ZCC-250",
+        vendor: "KlikAanKlikUit",
+        description: "Zigbee socket dimmer",
+        extend: [m.light()],
     },
 ];
-
-module.exports = definitions;

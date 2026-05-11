@@ -1,101 +1,308 @@
-import * as exposes from './exposes';
-import * as globalStore from './store';
-import {Fz, Tz, Zh} from './types';
+import {Zcl} from "zigbee-herdsman";
+import * as m from "../lib/modernExtend";
+import * as exposes from "./exposes";
+import {logger} from "./logger";
+import * as globalStore from "./store";
+import type {Fz, Tz, Zh} from "./types";
+
+const NS = "zhc:zosung";
 const ea = exposes.access;
 const e = exposes.presets;
 
+interface ZosungIrTransmit {
+    attributes: never;
+    commands: {
+        zosungSendIRCode00: {
+            seq: number;
+            length: number;
+            unk1: number;
+            unk2: number;
+            unk3: number;
+            cmd: number;
+            unk4: number;
+        };
+        zosungSendIRCode01: {
+            zero: number;
+            seq: number;
+            length: number;
+            unk1: number;
+            unk2: number;
+            unk3: number;
+            cmd: number;
+            unk4: number;
+        };
+        zosungSendIRCode02: {
+            seq: number;
+            position: number;
+            maxlen: number;
+        };
+        zosungSendIRCode03: {
+            zero: number;
+            seq: number;
+            position: number;
+            msgpart: Buffer;
+            msgpartcrc: number;
+        };
+        zosungSendIRCode04: {
+            zero0: number;
+            seq: number;
+            zero1: number;
+        };
+        zosungSendIRCode05: {
+            seq: number;
+            zero: number;
+        };
+    };
+    commandResponses: {
+        zosungSendIRCode03Resp: {
+            zero: number;
+            seq: number;
+            position: number;
+            msgpart: Buffer;
+            msgpartcrc: number;
+        };
+        zosungSendIRCode05Resp: {
+            seq: number;
+            zero: number;
+        };
+    };
+}
+
+interface ZosungIrControl {
+    attributes: never;
+    commands: {
+        zosungControlIRCommand00: {
+            data: Buffer;
+        };
+    };
+    commandResponses: never;
+}
+
+export const zosungExtend = {
+    addZosungIRTransmitCluster: () =>
+        m.deviceAddCustomCluster("zosungIRTransmit", {
+            name: "zosungIRTransmit",
+            ID: 0xed00,
+            attributes: {},
+            commands: {
+                zosungSendIRCode00: {
+                    name: "zosungSendIRCode00",
+                    ID: 0x00,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "length", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "unk1", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "unk2", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "unk3", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "cmd", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "unk4", type: Zcl.DataType.UINT16, max: 0xffff},
+                    ],
+                },
+                zosungSendIRCode01: {
+                    name: "zosungSendIRCode01",
+                    ID: 0x01,
+                    parameters: [
+                        {name: "zero", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "length", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "unk1", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "unk2", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "unk3", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "cmd", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "unk4", type: Zcl.DataType.UINT16, max: 0xffff},
+                    ],
+                },
+                zosungSendIRCode02: {
+                    name: "zosungSendIRCode02",
+                    ID: 0x02,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "position", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "maxlen", type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },
+                zosungSendIRCode03: {
+                    name: "zosungSendIRCode03",
+                    ID: 0x03,
+                    parameters: [
+                        {name: "zero", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "position", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "msgpart", type: Zcl.DataType.OCTET_STR},
+                        {name: "msgpartcrc", type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },
+                zosungSendIRCode04: {
+                    name: "zosungSendIRCode04",
+                    ID: 0x04,
+                    parameters: [
+                        {name: "zero0", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "zero1", type: Zcl.DataType.UINT16, max: 0xffff},
+                    ],
+                },
+                zosungSendIRCode05: {
+                    name: "zosungSendIRCode05",
+                    ID: 0x05,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "zero", type: Zcl.DataType.UINT16, max: 0xffff},
+                    ],
+                },
+            },
+            commandsResponse: {
+                zosungSendIRCode03Resp: {
+                    name: "zosungSendIRCode03Resp",
+                    ID: 0x03,
+                    parameters: [
+                        {name: "zero", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "position", type: Zcl.DataType.UINT32, max: 0xffffffff},
+                        {name: "msgpart", type: Zcl.DataType.OCTET_STR},
+                        {name: "msgpartcrc", type: Zcl.DataType.UINT8, max: 0xff},
+                    ],
+                },
+                zosungSendIRCode05Resp: {
+                    name: "zosungSendIRCode05Resp",
+                    ID: 0x05,
+                    parameters: [
+                        {name: "seq", type: Zcl.DataType.UINT16, max: 0xffff},
+                        {name: "zero", type: Zcl.DataType.UINT16, max: 0xffff},
+                    ],
+                },
+            },
+        }),
+    addZosungIRControlCluster: () =>
+        m.deviceAddCustomCluster("zosungIRControl", {
+            name: "zosungIRControl",
+            ID: 0xe004,
+            attributes: {},
+            commands: {
+                zosungControlIRCommand00: {
+                    name: "zosungControlIRCommand00",
+                    ID: 0x00,
+                    parameters: [
+                        // JSON string with a command.
+                        {name: "data", type: Zcl.BuffaloZclDataType.BUFFER},
+                    ],
+                },
+            },
+            commandsResponse: {},
+        }),
+};
+
 function nextSeq(entity: Zh.Endpoint | Zh.Group) {
-    return (globalStore.getValue(entity, 'seq', -1) + 1) % 0x10000;
+    return (globalStore.getValue(entity, "seq", -1) + 1) % 0x10000;
 }
 
 function messagesGet(entity: Zh.Endpoint | Zh.Group, seq: number) {
-    const info = globalStore.getValue(entity, 'irMessageInfo');
-    const expected = (info&&info.seq) || 0;
-    if (expected!==seq) {
+    const info = globalStore.getValue(entity, "irMessageInfo");
+    const expected = info?.seq || 0;
+    if (expected !== seq) {
         throw new Error(`Unexpected sequence value (expected: ${expected} current: ${seq}).`);
     }
-    return info.data;
+    if (info) {
+        return info.data;
+    }
+    logger.debug("Ignoring, no message send yet", NS);
 }
+
 function messagesSet(entity: Zh.Endpoint | Zh.Group, seq: number, data: unknown) {
-    globalStore.putValue(entity, 'irMessageInfo', {seq: seq, data: data});
+    globalStore.putValue(entity, "irMessageInfo", {seq: seq, data: data});
 }
 
 function messagesClear(entity: Zh.Endpoint | Zh.Group, seq: number) {
-    const info = globalStore.getValue(entity, 'irMessageInfo');
-    const expected = (info&&info.seq) || 0;
-    if (expected!==seq) {
+    const info = globalStore.getValue(entity, "irMessageInfo");
+    const expected = info?.seq || 0;
+    if (expected !== seq) {
         throw new Error(`Unexpected sequence value (expected: ${expected} current: ${seq}).`);
     }
-    globalStore.clearValue(entity, 'irMessageInfo');
+    globalStore.clearValue(entity, "irMessageInfo");
 }
 
-function calcArrayCrc(values: number[]) {
-    return Array.from(values.values()).reduce((a, b)=>a+b, 0)%0x100;
+function calcArrayCrc(values: Buffer) {
+    return Array.from(values).reduce((a, b) => a + b, 0) % 0x100;
 }
 
 function calcStringCrc(str: string) {
-    return str.split('').map((x)=>x.charCodeAt(0)).reduce((a, b)=>a+b, 0)%0x100;
+    return (
+        str
+            .split("")
+            .map((x) => x.charCodeAt(0))
+            .reduce((a, b) => a + b, 0) % 0x100
+    );
 }
-
 
 export const fzZosung = {
     zosung_send_ir_code_01: {
-        cluster: 'zosungIRTransmit',
-        type: ['commandZosungSendIRCode01'],
+        cluster: "zosungIRTransmit",
+        type: ["commandZosungSendIRCode01"],
         convert: (model, msg, publish, options, meta) => {
-            meta.logger.debug(`"IR-Message-Code01" received (msg:${JSON.stringify(msg.data)})`);
+            logger.debug(`"IR-Message-Code01" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
             const irMsg = messagesGet(msg.endpoint, seq);
-            meta.logger.debug(`IRCode to send: ${JSON.stringify(irMsg)} (seq:${seq})`);
+            if (irMsg) {
+                logger.debug(`IRCode to send: ${JSON.stringify(irMsg)} (seq:${seq})`, NS);
+            }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter<"zosungIRTransmit", ZosungIrTransmit, ["commandZosungSendIRCode01"]>,
     zosung_send_ir_code_02: {
-        cluster: 'zosungIRTransmit',
-        type: ['commandZosungSendIRCode02'],
+        cluster: "zosungIRTransmit",
+        type: ["commandZosungSendIRCode02"],
         convert: async (model, msg, publish, options, meta) => {
-            meta.logger.debug(`"IR-Message-Code02" received (msg:${JSON.stringify(msg.data)})`);
+            logger.debug(`"IR-Message-Code02" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
             const position = msg.data.position;
             const irMsg = messagesGet(msg.endpoint, seq);
-            const part = irMsg.substring(position, position+0x32);
-            const sum = calcStringCrc(part);
-            await msg.endpoint.command('zosungIRTransmit', 'zosungSendIRCode03',
-                {
-                    zero: 0,
-                    seq: seq,
-                    position: position,
-                    msgpart: Buffer.from(part),
-                    msgpartcrc: sum,
-                },
-                {disableDefaultResponse: true});
-            meta.logger.debug(`Sent IRCode part: ${part} (sum: ${sum}, seq:${seq})`);
+            if (irMsg) {
+                const part = irMsg.substring(position, position + 0x32);
+                const sum = calcStringCrc(part);
+                await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode03", ZosungIrTransmit>(
+                    "zosungIRTransmit",
+                    "zosungSendIRCode03",
+                    {
+                        zero: 0,
+                        seq: seq,
+                        position: position,
+                        msgpart: Buffer.from(part),
+                        msgpartcrc: sum,
+                    },
+                    {disableDefaultResponse: true},
+                );
+                logger.debug(`Sent IRCode part: ${part} (sum: ${sum}, seq:${seq})`, NS);
+            }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter<"zosungIRTransmit", ZosungIrTransmit, ["commandZosungSendIRCode02"]>,
     zosung_send_ir_code_04: {
-        cluster: 'zosungIRTransmit',
-        type: ['commandZosungSendIRCode04'],
+        cluster: "zosungIRTransmit",
+        type: ["commandZosungSendIRCode04"],
         convert: async (model, msg, publish, options, meta) => {
-            meta.logger.debug(`"IR-Message-Code04" received (msg:${JSON.stringify(msg.data)})`);
+            logger.debug(`"IR-Message-Code04" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
-            await msg.endpoint.command('zosungIRTransmit', 'zosungSendIRCode05',
+            await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode05", ZosungIrTransmit>(
+                "zosungIRTransmit",
+                "zosungSendIRCode05",
                 {
                     seq: seq,
                     zero: 0,
                 },
-                {disableDefaultResponse: true});
+                {disableDefaultResponse: true},
+            );
             messagesClear(msg.endpoint, seq);
-            meta.logger.debug(`IRCode has been successfully sent. (seq:${seq})`);
+            logger.debug(`IRCode has been successfully sent. (seq:${seq})`, NS);
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter<"zosungIRTransmit", ZosungIrTransmit, ["commandZosungSendIRCode04"]>,
     zosung_send_ir_code_00: {
-        cluster: 'zosungIRTransmit',
-        type: ['commandZosungSendIRCode00'],
+        cluster: "zosungIRTransmit",
+        type: ["commandZosungSendIRCode00"],
         convert: async (model, msg, publish, options, meta) => {
-            meta.logger.debug(`"IR-Message-Code00" received (msg:${JSON.stringify(msg.data)})`);
+            logger.debug(`"IR-Message-Code00" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
             const length = msg.data.length;
             messagesSet(msg.endpoint, seq, {position: 0, buf: Buffer.alloc(length)});
-            await msg.endpoint.command('zosungIRTransmit', 'zosungSendIRCode01',
+            await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode01", ZosungIrTransmit>(
+                "zosungIRTransmit",
+                "zosungSendIRCode01",
                 {
                     zero: 0,
                     seq: seq,
@@ -106,102 +313,121 @@ export const fzZosung = {
                     cmd: msg.data.cmd,
                     unk4: msg.data.unk4,
                 },
-                {disableDefaultResponse: true});
-            meta.logger.debug(`"IR-Message-Code00" response sent.`);
-            await msg.endpoint.command('zosungIRTransmit', 'zosungSendIRCode02',
+                {disableDefaultResponse: true},
+            );
+            logger.debug(`"IR-Message-Code00" response sent.`, NS);
+            await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode02", ZosungIrTransmit>(
+                "zosungIRTransmit",
+                "zosungSendIRCode02",
                 {
                     seq: msg.data.seq,
                     position: 0,
                     maxlen: 0x38,
                 },
-                {disableDefaultResponse: true});
-            meta.logger.debug(`"IR-Message-Code00" transfer started.`);
+                {disableDefaultResponse: true},
+            );
+            logger.debug(`"IR-Message-Code00" transfer started.`, NS);
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter<"zosungIRTransmit", ZosungIrTransmit, ["commandZosungSendIRCode00"]>,
     zosung_send_ir_code_03: {
-        cluster: 'zosungIRTransmit',
-        type: ['zosungSendIRCode03Resp'],
+        cluster: "zosungIRTransmit",
+        type: ["commandZosungSendIRCode03Resp"],
         convert: async (model, msg, publish, options, meta) => {
-            meta.logger.debug(`"IR-Message-Code03" received (msg:${JSON.stringify(msg.data)})`);
+            logger.debug(`"IR-Message-Code03" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
             const rcv = messagesGet(msg.endpoint, seq);
-            if (rcv.position==msg.data.position) {
-                const rcvMsgPart = msg.data.msgpart;
-                const sum = calcArrayCrc(rcvMsgPart);
-                const expectedPartCrc = msg.data.msgpartcrc;
-                if (sum==expectedPartCrc) {
-                    const position = rcvMsgPart.copy(rcv.buf, rcv.position);
-                    rcv.position += position;
-                    if (rcv.position<rcv.buf.length) {
-                        await msg.endpoint.command('zosungIRTransmit', 'zosungSendIRCode02',
-                            {
-                                seq: seq,
-                                position: rcv.position,
-                                maxlen: 0x38,
-                            },
-                            {disableDefaultResponse: true});
+            if (rcv) {
+                if (rcv.position === msg.data.position) {
+                    const rcvMsgPart = msg.data.msgpart;
+                    const sum = calcArrayCrc(rcvMsgPart);
+                    const expectedPartCrc = msg.data.msgpartcrc;
+                    if (sum === expectedPartCrc) {
+                        const position = rcvMsgPart.copy(rcv.buf, rcv.position);
+                        rcv.position += position;
+                        if (rcv.position < rcv.buf.length) {
+                            await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode02", ZosungIrTransmit>(
+                                "zosungIRTransmit",
+                                "zosungSendIRCode02",
+                                {
+                                    seq: seq,
+                                    position: rcv.position,
+                                    maxlen: 0x38,
+                                },
+                                {disableDefaultResponse: true},
+                            );
+                        } else {
+                            await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode04", ZosungIrTransmit>(
+                                "zosungIRTransmit",
+                                "zosungSendIRCode04",
+                                {
+                                    zero0: 0,
+                                    seq: seq,
+                                    zero1: 0,
+                                },
+                                {disableDefaultResponse: true},
+                            );
+                        }
+                        logger.debug(`${rcvMsgPart.length} bytes received.`, NS);
                     } else {
-                        await msg.endpoint.command('zosungIRTransmit', 'zosungSendIRCode04',
-                            {
-                                zero0: 0,
-                                seq: seq,
-                                zero1: 0,
-                            },
-                            {disableDefaultResponse: true});
+                        logger.error(`Invalid msg part CRC: ${sum} expecting: ${expectedPartCrc}.`, NS);
                     }
-                    meta.logger.debug(`${rcvMsgPart.length} bytes received.`);
                 } else {
-                    meta.logger.error(`Invalid msg part CRC: ${sum} expecting: ${expectedPartCrc}.`);
+                    logger.error(`Unexpected IR code position: ${JSON.stringify(msg.data)}, expecting: ${rcv.position}.`, NS);
                 }
-            } else {
-                meta.logger.error(`Unexpected IR code position: ${JSON.stringify(msg.data)}, expecting: ${rcv.position}.`);
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter<"zosungIRTransmit", ZosungIrTransmit, ["commandZosungSendIRCode03Resp"]>,
     zosung_send_ir_code_05: {
-        cluster: 'zosungIRTransmit',
-        type: ['zosungSendIRCode05Resp'],
+        cluster: "zosungIRTransmit",
+        type: ["commandZosungSendIRCode05Resp"],
         convert: async (model, msg, publish, options, meta) => {
-            meta.logger.debug(`"IR-Message-Code05" received (msg:${JSON.stringify(msg.data)})`);
+            logger.debug(`"IR-Message-Code05" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
             const rcv = messagesGet(msg.endpoint, seq);
-            const learnedIRCode = rcv.buf.toString('base64');
-            meta.logger.debug(`Received: ${learnedIRCode}`);
-            messagesClear(msg.endpoint, seq);
-            await msg.endpoint.command('zosungIRControl', 'zosungControlIRCommand00',
-                {
-                    data: Buffer.from(JSON.stringify({'study': 1})),
-                },
-                {disableDefaultResponse: true});
-            return {
-                learned_ir_code: learnedIRCode,
-            };
+            if (rcv) {
+                const learnedIRCode = rcv.buf.toString("base64");
+                logger.debug(`Received: ${learnedIRCode}`, NS);
+                messagesClear(msg.endpoint, seq);
+                await msg.endpoint.command<"zosungIRControl", "zosungControlIRCommand00", ZosungIrControl>(
+                    "zosungIRControl",
+                    "zosungControlIRCommand00",
+                    {
+                        data: Buffer.from(JSON.stringify({study: 1})),
+                    },
+                    {disableDefaultResponse: true},
+                );
+                return {
+                    learned_ir_code: learnedIRCode,
+                };
+            }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter<"zosungIRTransmit", ZosungIrTransmit, ["commandZosungSendIRCode05Resp"]>,
 };
 
 export const tzZosung = {
     zosung_ir_code_to_send: {
-        key: ['ir_code_to_send'],
+        key: ["ir_code_to_send"],
         convertSet: async (entity, key, value, meta) => {
             if (!value) {
-                meta.logger.error(`There is no IR code to send`);
+                logger.error("There is no IR code to send", NS);
                 return;
             }
             const irMsg = JSON.stringify({
-                'key_num': 1,
-                'delay': 300,
-                'key1': {
-                    'num': 1,
-                    'freq': 38000,
-                    'type': 1,
-                    'key_code': value,
+                key_num: 1,
+                delay: 300,
+                key1: {
+                    num: 1,
+                    freq: 38000,
+                    type: 1,
+                    key_code: value,
                 },
             });
-            meta.logger.debug(`Sending IR code: ${JSON.stringify(value)}`);
+            logger.debug(`Sending IR code: ${JSON.stringify(value)}`, NS);
             const seq = nextSeq(entity);
             messagesSet(entity, seq, irMsg);
-            await entity.command('zosungIRTransmit', 'zosungSendIRCode00',
+            await entity.command<"zosungIRTransmit", "zosungSendIRCode00", ZosungIrTransmit>(
+                "zosungIRTransmit",
+                "zosungSendIRCode00",
                 {
                     seq: seq,
                     length: irMsg.length,
@@ -211,31 +437,30 @@ export const tzZosung = {
                     cmd: 0x02,
                     unk4: 0x0000,
                 },
-                {disableDefaultResponse: true});
-            meta.logger.debug(`Sending IR code initiated.`);
+                {disableDefaultResponse: true},
+            );
+            logger.debug("Sending IR code initiated.", NS);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
     zosung_learn_ir_code: {
-        key: ['learn_ir_code'],
+        key: ["learn_ir_code"],
         convertSet: async (entity, key, value, meta) => {
-            meta.logger.debug(`Starting IR Code Learning...`);
-            await entity.command('zosungIRControl', 'zosungControlIRCommand00',
+            logger.debug("Starting IR Code Learning...", NS);
+            await entity.command<"zosungIRControl", "zosungControlIRCommand00", ZosungIrControl>(
+                "zosungIRControl",
+                "zosungControlIRCommand00",
                 {
-                    data: Buffer.from(JSON.stringify({'study': 0})),
+                    data: Buffer.from(JSON.stringify({study: 0})),
                 },
-                {disableDefaultResponse: true});
-            meta.logger.debug(`IR Code Learning started.`);
+                {disableDefaultResponse: true},
+            );
+            logger.debug("IR Code Learning started.", NS);
         },
-    } as Tz.Converter,
+    } satisfies Tz.Converter,
 };
-
 
 export const presetsZosung = {
-    learn_ir_code: () => e.switch_().withState('learn_ir_code', false, 'Turn on to learn new IR code', ea.SET),
-    learned_ir_code: () => e.text('learned_ir_code', ea.STATE).withDescription('The IR code learned by device'),
-    ir_code_to_send: () => e.text('ir_code_to_send', ea.SET).withDescription('The IR code to send by device'),
+    learn_ir_code: () => e.binary("learn_ir_code", ea.SET, "ON", "OFF").withDescription("Turn on to learn new IR code"),
+    learned_ir_code: () => e.text("learned_ir_code", ea.STATE).withDescription("The IR code learned by device"),
+    ir_code_to_send: () => e.text("ir_code_to_send", ea.SET).withDescription("The IR code to send by device"),
 };
-
-exports.fzZosung = fzZosung;
-exports.tzZosung = tzZosung;
-exports.presetsZosung = presetsZosung;

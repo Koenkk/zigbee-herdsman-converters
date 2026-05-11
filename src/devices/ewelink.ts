@@ -1,187 +1,458 @@
-import {Definition, Fz} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {Zcl} from "zigbee-herdsman";
+import * as fz from "../converters/fromZigbee";
+import {modernExtend as ewelinkModernExtend} from "../lib/ewelink";
+import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import * as tuya from "../lib/tuya";
+import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
+import type {SonoffEwelink} from "./sonoff";
+
 const e = exposes.presets;
+const ea = exposes.access;
+
+const NS = "zhc:ewelink";
+
+interface EwelinkSiren {
+    attributes: {
+        alarmSoundMode: number;
+        alarmSoundLevel: number;
+        alarmSoundTime: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     WS01_rain: {
-        cluster: 'ssIasZone',
-        type: 'commandStatusChangeNotification',
+        cluster: "ssIasZone",
+        type: "commandStatusChangeNotification",
         convert: (model, msg, publish, options, meta) => {
             const zoneStatus = msg.data.zonestatus;
-            if (msg.endpoint.ID != 1) return;
+            if (msg.endpoint.ID !== 1) return;
             return {rain: (zoneStatus & 1) > 0};
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+    ewelink_siren_alarm: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.onOff !== undefined) {
+                return {alarm: msg.data.onOff === 1};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
-const definitions: Definition[] = [
-    {
-        zigbeeModel: ['SA-003-Zigbee'],
-        model: 'SA-003-Zigbee',
-        vendor: 'eWeLink',
-        description: 'Zigbee smart plug',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
+const tzLocal = {
+    ewelink_siren_alarm: {
+        key: ["alarm"],
+        convertSet: async (entity, key, value, meta) => {
+            const alarm = value === true || value === "ON";
+            await entity.command("genOnOff", alarm ? "on" : "off", {}, utils.getOptions(meta.mapped, entity));
+            return {state: {alarm}};
         },
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOff", ["onOff"]);
+        },
+    } satisfies Tz.Converter,
+};
+
+const ewelinkExtend = {
+    addCustomClusterSiren: (): ModernExtend => {
+        return m.deviceAddCustomCluster("customEwelinkSiren", {
+            name: "customEwelinkSiren",
+            ID: 0xfc11,
+            attributes: {
+                alarmSoundMode: {name: "alarmSoundMode", ID: 0x2021, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                alarmSoundLevel: {name: "alarmSoundLevel", ID: 0x2022, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                alarmSoundTime: {name: "alarmSoundTime", ID: 0x2023, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        });
+    },
+    sirenAlarm: (): ModernExtend => {
+        const exposes = [e.binary("alarm", ea.ALL, true, false).withDescription("Turn the siren alarm on or off")];
+        const fromZigbee = [fzLocal.ewelink_siren_alarm];
+        const toZigbee = [tzLocal.ewelink_siren_alarm];
+        const configure: Exclude<ModernExtend["configure"], undefined> = [
+            async (device, coordinatorEndpoint) => {
+                try {
+                    await m.setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "onOff", min: "MIN", max: "MAX", change: 1}]);
+                } catch (error) {
+                    logger.warning(`eWeLink siren genOnOff bind/reporting failed, continuing without reporting: ${error}`, NS);
+                }
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
+};
+
+export const definitions: DefinitionWithExtend[] = [
+    {
+        fingerprint: tuya.fingerprint("TS0207", ["_TZ3000_hgm6k8ku", "_TZ3000_piuensvr", "_TZ3000_mmzmkkd4"]),
+        zigbeeModel: ["CK-BL702-ROUTER-01(7018)"],
+        model: "CK-BL702-ROUTER-01(7018)",
+        vendor: "eWeLink",
+        description: "USB router",
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        exposes: [],
+        whiteLabel: [
+            tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku", "HOBEIAN"]),
+            tuya.whitelabel("COOLO", "ZG-807ZL", "USB signal repeater", ["_TZ3000_mmzmkkd4", "COOLO"]),
+        ],
+    },
+    {
+        zigbeeModel: ["CK-BL702-MSW-01(7010)", "CK-BL702-MSW-01(7011)-1"],
+        model: "CK-BL702-MSW-01(7010)",
+        vendor: "eWeLink",
+        description: "CMARS Zigbee smart plug",
+        extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse()],
+        whiteLabel: [
+            {
+                vendor: "Mumubiz",
+                model: "CZV20",
+                description: "Zigbee smart water valve",
+                fingerprint: [{modelID: "CK-BL702-MSW-01(7010)"}],
+            },
+        ],
+    },
+    {
+        zigbeeModel: ["SA-003-Zigbee"],
+        model: "SA-003-Zigbee",
+        vendor: "eWeLink",
+        description: "Zigbee smart plug",
+        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false}), m.skipDefaultResponse()],
+        configure: async (device, coordinatorEndpoint) => {
+            try {
+                await device.getEndpoint(1).bind("genOnOff", coordinatorEndpoint);
+            } catch {
+                // This might fail because there are some repeaters which advertise to support genOnOff but don't support it.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/19865
+                logger.debug("Failed to bind genOnOff for SA-003-Zigbee", NS);
+            }
         },
     },
     {
-        zigbeeModel: ['SA-030-1'],
-        model: 'SA-030-1',
-        vendor: 'eWeLink',
-        description: 'Zigbee 3.0 smart plug 13A (3120W)(UK version)',
-        extend: extend.switch(),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        zigbeeModel: ["SA-030-1"],
+        model: "SA-030-1",
+        vendor: "eWeLink",
+        description: "Zigbee 3.0 smart plug 13A (3120W)(UK version)",
+        extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse()],
     },
     {
-        zigbeeModel: ['SWITCH-ZR02'],
-        model: 'SWITCH-ZR02',
-        vendor: 'eWeLink',
-        description: 'Zigbee smart switch',
-        extend: extend.switch(),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        zigbeeModel: ["SWITCH-ZR02"],
+        model: "SWITCH-ZR02",
+        vendor: "eWeLink",
+        description: "Zigbee smart switch",
+        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true}), m.skipDefaultResponse()],
     },
     {
-        zigbeeModel: ['SWITCH-ZR03-1'],
-        model: 'SWITCH-ZR03-1',
-        vendor: 'eWeLink',
-        description: 'Zigbee smart switch',
-        extend: extend.switch(),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-        },
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        zigbeeModel: ["SWITCH-ZR03-1"],
+        model: "SWITCH-ZR03-1",
+        vendor: "eWeLink",
+        description: "Zigbee smart switch",
+        extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse()],
     },
     {
-        zigbeeModel: ['ZB-SW01'],
-        model: 'ZB-SW01',
-        vendor: 'eWeLink',
-        description: 'Smart light switch - 1 gang',
-        extend: extend.switch({disablePowerOnBehavior: true}),
-        fromZigbee: [fz.on_off_skip_duplicate_transaction],
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        zigbeeModel: ["ZB-SW01"],
+        model: "ZB-SW01",
+        vendor: "eWeLink",
+        description: "Smart light switch - 1 gang",
+        extend: [m.onOff({powerOnBehavior: false, skipDuplicateTransaction: true, configureReporting: false}), m.skipDefaultResponse()],
     },
     {
-        zigbeeModel: ['ZB-SW02', 'E220-KR2N0Z0-HA', 'SWITCH-ZR03-2'],
-        model: 'ZB-SW02',
-        vendor: 'eWeLink',
-        description: 'Smart light switch/2 gang relay',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('right')],
-        endpoint: (device) => {
-            return {'left': 1, 'right': 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-        },
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        zigbeeModel: ["ZB-SW02", "E220-KR2N0Z0-HA", "SWITCH-ZR03-2"],
+        model: "ZB-SW02",
+        vendor: "eWeLink",
+        description: "Smart light switch/2 gang relay",
+        extend: [
+            m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
+            m.onOff({endpointNames: ["left", "right"], configureReporting: false}),
+            m.skipDefaultResponse(),
+        ],
     },
     {
-        zigbeeModel: ['ZB-SW03'],
-        model: 'ZB-SW03',
-        vendor: 'eWeLink',
-        description: 'Smart light switch - 3 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('left'), e.switch().withEndpoint('center'), e.switch().withEndpoint('right')],
-        endpoint: (device) => {
-            return {'left': 1, 'center': 2, 'right': 3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-        },
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        zigbeeModel: ["ZB-SW03"],
+        model: "ZB-SW03",
+        vendor: "eWeLink",
+        description: "Smart light switch - 3 gang",
+        extend: [
+            m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
+            m.onOff({endpointNames: ["left", "center", "right"], configureReporting: false}),
+            m.skipDefaultResponse(),
+        ],
     },
     {
-        zigbeeModel: ['ZB-SW04'],
-        model: 'ZB-SW04',
-        vendor: 'eWeLink',
-        description: 'Smart light switch - 4 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-        },
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        zigbeeModel: ["ZB-SW04"],
+        model: "ZB-SW04",
+        vendor: "eWeLink",
+        description: "Smart light switch - 4 gang",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
+            m.onOff({endpointNames: ["l1", "l2", "l3", "l4"], configureReporting: false}),
+            m.skipDefaultResponse(),
+        ],
     },
     {
-        zigbeeModel: ['ZB-SW05'],
-        model: 'ZB-SW05',
-        vendor: 'eWeLink',
-        description: 'Smart light switch - 5 gang',
-        extend: extend.switch(),
-        exposes: [e.switch().withEndpoint('l1'), e.switch().withEndpoint('l2'),
-            e.switch().withEndpoint('l3'), e.switch().withEndpoint('l4'), e.switch().withEndpoint('l5')],
-        endpoint: (device) => {
-            return {'l1': 1, 'l2': 2, 'l3': 3, 'l4': 4, 'l5': 5};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ['genOnOff']);
-            await reporting.bind(device.getEndpoint(5), coordinatorEndpoint, ['genOnOff']);
-        },
-        onEvent: async (type, data, device) => {
-            device.skipDefaultResponse = true;
-        },
+        zigbeeModel: ["ZB-SW05"],
+        model: "ZB-SW05",
+        vendor: "eWeLink",
+        description: "Smart light switch - 5 gang",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}),
+            m.onOff({endpointNames: ["l1", "l2", "l3", "l4", "l5"], configureReporting: false}),
+            m.skipDefaultResponse(),
+        ],
     },
     {
-        zigbeeModel: ['WS01'],
-        model: 'WS01',
-        vendor: 'eWeLink',
-        description: 'Rainfall sensor',
+        zigbeeModel: ["WS01"],
+        model: "WS01",
+        vendor: "eWeLink",
+        description: "Rainfall sensor",
         fromZigbee: [fzLocal.WS01_rain],
         toZigbee: [],
         exposes: [e.rain()],
     },
-];
+    {
+        zigbeeModel: ["SNZB-05", "CK-TLSR8656-SS5-01(7019)"],
+        model: "SNZB-05",
+        vendor: "eWeLink",
+        description: "Zigbee water sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]})],
+        whiteLabel: [
+            {
+                vendor: "eWeLink",
+                model: "CK-TLSR8656-SS5-01(7019)",
+                fingerprint: [
+                    {
+                        type: "EndDevice",
+                        manufacturerName: "eWeLink",
+                        modelID: "CK-TLSR8656-SS5-01(7019)",
+                    },
+                ],
+            },
+        ],
+    },
+    {
+        zigbeeModel: ["NAS-AB03B3"],
+        model: "NAS-AB03B3",
+        vendor: "eWeLink",
+        description: "Indoor sound and light alarm",
+        extend: [
+            ewelinkExtend.addCustomClusterSiren(),
+            ewelinkExtend.sirenAlarm(),
+            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["battery_low"]}),
+            m.battery({percentage: true, percentageReporting: true, percentageReportingConfig: {min: 3600, max: 7200, change: 2}}),
+            m.numeric<"customEwelinkSiren", EwelinkSiren>({
+                name: "alarm_duration",
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundTime",
+                entityCategory: "config",
+                description: "Duration in seconds of the alarm",
+                valueMin: 1,
+                valueMax: 1800,
+                unit: "s",
+            }),
+            m.numeric<"customEwelinkSiren", EwelinkSiren>({
+                name: "volume",
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundLevel",
+                entityCategory: "config",
+                description: "Indoor siren volume level",
+                valueMin: 0x00,
+                valueMax: 0x0f,
+                access: "ALL",
+            }),
+            m.enumLookup<"customEwelinkSiren", EwelinkSiren>({
+                name: "melody",
+                lookup: {1: 0x00, 2: 0x01, 3: 0x02, 4: 0x03, 5: 0x04, 6: 0x05, 7: 0x06, 8: 0x07, 9: 0x08, 10: 0x09, 11: 0x0a},
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundMode",
+                entityCategory: "config",
+                description: "Alarm melody",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["NAS-AB06B3"],
+        model: "NAS-AB06B3",
+        vendor: "eWeLink",
+        description: "Outdoor sound and light alarm",
+        extend: [
+            ewelinkExtend.addCustomClusterSiren(),
+            ewelinkExtend.sirenAlarm(),
+            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["battery_low"]}),
+            m.battery({percentage: true, percentageReporting: true, percentageReportingConfig: {min: 3600, max: 7200, change: 2}}),
+            m.numeric<"customEwelinkSiren", EwelinkSiren>({
+                name: "alarm_duration",
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundTime",
+                entityCategory: "config",
+                description: "Duration in seconds of the alarm",
+                valueMin: 1,
+                valueMax: 1800,
+                unit: "s",
+            }),
+            m.enumLookup<"customEwelinkSiren", EwelinkSiren>({
+                name: "volume",
+                lookup: {high: 0x03, medium: 0x02, low: 0x01},
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundLevel",
+                entityCategory: "config",
+                description: "Outdoor siren volume",
+            }),
+            m.enumLookup<"customEwelinkSiren", EwelinkSiren>({
+                name: "melody",
+                lookup: {1: 0x00, 2: 0x01, 3: 0x02},
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundMode",
+                entityCategory: "config",
+                description: "Alarm melody",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["CK-MG22-JLDJ-01(7015)", "CK-MG22-Z310EE07DOOYA-01(7015)", "MYDY25Z-1", "Grandekor Smart Curtain Grandekor"],
+        model: "CK-MG22-JLDJ-01(7015)",
+        vendor: "eWeLink",
+        whiteLabel: [
+            {fingerprint: [{modelID: "CK-MG22-Z310EE07DOOYA-01(7015)"}], vendor: "eWeLink", model: "CK-MG22-Z310EE07DOOYA-01(7015)"},
+            {fingerprint: [{modelID: "MYDY25Z-1"}], vendor: "eWeLink", model: "MYDY25Z-1"},
+            {fingerprint: [{modelID: "Grandekor Smart Curtain Grandekor"}], vendor: "eWeLink", model: "Grandekor Smart Curtain Grandekor"},
+        ],
+        description: "Dooya Curtain",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xef00,
+                attributes: {},
+                commands: {
+                    protocolData: {
+                        name: "protocolData",
+                        ID: 0,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
+                commandsResponse: {},
+            }),
+            m.forcePowerSource({powerSource: "Battery"}),
+            ewelinkModernExtend.ewelinkBattery(),
+            m.windowCovering({
+                controls: ["lift"],
+                configureReporting: false,
+                coverMode: false,
+                coverInverted: true,
+            }),
+            ewelinkModernExtend.ewelinkMotorReverse(),
+            ewelinkModernExtend.ewelinkMotorMode("customClusterEwelink", "protocolData"),
+            ewelinkModernExtend.ewelinkMotorClbByPosition("customClusterEwelink", "protocolData"),
+            ewelinkModernExtend.ewelinkReportMotorInfo("customClusterEwelink"),
+            ewelinkModernExtend.ewelinkMotorSpeed("customClusterEwelink", "protocolData", 0x00, 0x0e),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const windowCoveringAttributes = [{attribute: "currentPositionLiftPercentage" as const, min: 0, max: 3600, change: 10}];
+            await m.setupAttributes(device, coordinatorEndpoint, "closuresWindowCovering", windowCoveringAttributes);
+        },
+        onEvent: async (event) => {
+            if (event.type === "deviceInterview") {
+                const endpoint = event.data.device.getEndpoint(1);
+                // Query the maximum level supported for speed adjustment.
+                await endpoint.command<"customClusterEwelink", "protocolData", SonoffEwelink>("customClusterEwelink", "protocolData", {
+                    data: [0x02, 0x0e, 0x00],
+                });
+            }
+        },
+        ota: true,
+    },
+    {
+        zigbeeModel: ["MYRX25Z-1"],
+        model: "MYRX25Z-1",
+        vendor: "eWeLink",
+        description: "Reax Curtain",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xef00,
+                attributes: {},
+                commands: {
+                    protocolData: {
+                        name: "protocolData",
+                        ID: 0,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
+                commandsResponse: {},
+            }),
+            m.forcePowerSource({powerSource: "Battery"}),
+            ewelinkModernExtend.ewelinkBattery(),
+            m.windowCovering({
+                controls: ["lift"],
+                configureReporting: false,
+                coverMode: false,
+                coverInverted: true,
+            }),
+            ewelinkModernExtend.ewelinkMotorMode("customClusterEwelink", "protocolData"),
+            ewelinkModernExtend.ewelinkMotorClbByPosition("customClusterEwelink", "protocolData"),
+            ewelinkModernExtend.ewelinkReportMotorInfo("customClusterEwelink"),
+            ewelinkModernExtend.ewelinkMotorSpeed("customClusterEwelink", "protocolData", 0x01, 0x03),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["customClusterEwelink"]);
 
-module.exports = definitions;
+            const windowCoveringAttributes = [{attribute: "currentPositionLiftPercentage" as const, min: 0, max: 3600, change: 10}];
+            await m.setupAttributes(device, coordinatorEndpoint, "closuresWindowCovering", windowCoveringAttributes);
+        },
+        ota: true,
+    },
+    {
+        zigbeeModel: ["AM25B-1-25-ES-E-Z", "ZM25-EAZ", "AM25C-1-25-ES-E-Z"],
+        model: "AM25B-1-25-ES-E-Z",
+        vendor: "eWeLink",
+        whiteLabel: [
+            {fingerprint: [{modelID: "ZM25-EAZ"}], vendor: "eWeLink", model: "ZM25-EAZ"},
+            {fingerprint: [{modelID: "AM25C-1-25-ES-E-Z"}], vendor: "eWeLink", model: "AM25C-1-25-ES-E-Z"},
+        ],
+        description: "AK Curtain",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xef00,
+                attributes: {},
+                commands: {
+                    protocolData: {
+                        name: "protocolData",
+                        ID: 0,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
+                commandsResponse: {},
+            }),
+            m.forcePowerSource({powerSource: "Battery"}),
+            ewelinkModernExtend.ewelinkBattery(),
+            m.windowCovering({
+                controls: ["lift"],
+                configureReporting: false,
+                coverMode: false,
+                coverInverted: true,
+            }),
+            ewelinkModernExtend.ewelinkMotorReverse(),
+            ewelinkModernExtend.ewelinkMotorMode("customClusterEwelink", "protocolData"),
+            ewelinkModernExtend.ewelinkMotorClbByPosition("customClusterEwelink", "protocolData"),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const windowCoveringAttributes = [{attribute: "currentPositionLiftPercentage" as const, min: 0, max: 3600, change: 10}];
+            await m.setupAttributes(device, coordinatorEndpoint, "closuresWindowCovering", windowCoveringAttributes);
+        },
+        ota: true,
+    },
+];

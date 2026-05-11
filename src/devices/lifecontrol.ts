@@ -1,96 +1,113 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as globalStore from '../lib/store';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import type {Configure, DefinitionWithExtend, Expose, Fz, ModernExtend} from "../lib/types";
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
-    {
-        zigbeeModel: ['Leak_Sensor'],
-        model: 'MCLH-07',
-        vendor: 'LifeControl',
-        description: 'Water leak switch',
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
-        exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
-    },
-    {
-        zigbeeModel: ['Door_Sensor'],
-        model: 'MCLH-04',
-        vendor: 'LifeControl',
-        description: 'Door sensor',
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
-        toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
-        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
-    },
-    {
-        zigbeeModel: ['vivi ZLight'],
-        model: 'MCLH-02',
-        vendor: 'LifeControl',
-        description: 'RGB LED lamp',
-        extend: extend.light_onoff_brightness_colortemp_color(),
-    },
-    {
-        zigbeeModel: ['RICI01'],
-        model: 'MCLH-03',
-        vendor: 'LifeControl',
-        description: 'Power plug',
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
-        toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
-        onEvent: async (type, data, device) => {
+function airQuality(): ModernExtend {
+    const exposes: Expose[] = [e.temperature(), e.humidity(), e.voc().withUnit("ppb"), e.eco2()];
+
+    const fromZigbee = [
+        {
+            cluster: "msTemperatureMeasurement",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const temperature = (msg.data.measuredValue < -1000 ? (-(msg.data.measuredValue + 32767) * 5) / 3 : msg.data.measuredValue) / 100.0;
+                const humidity = msg.data.minMeasuredValue / 100.0;
+                const eco2 = msg.data.maxMeasuredValue;
+                const voc = msg.data.tolerance;
+                return {temperature, humidity, eco2, voc};
+            },
+        } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
+    ];
+
+    return {exposes, fromZigbee, isModernExtend: true};
+}
+
+function electricityMeterPoll(): ModernExtend {
+    const configure: Configure[] = [
+        m.setupConfigureForBinding("haElectricalMeasurement", "input"),
+        m.setupConfigureForReading("haElectricalMeasurement", [
+            "acVoltageMultiplier",
+            "acVoltageDivisor",
+            "acCurrentMultiplier",
+            "acCurrentDivisor",
+            "acPowerMultiplier",
+            "acPowerDivisor",
+        ]),
+        m.setupConfigureForReading("seMetering", ["multiplier", "divisor"]),
+        m.setupConfigureForReporting("seMetering", "currentSummDelivered", {
+            config: {min: "5_SECONDS", max: "1_HOUR", change: 257},
+            access: exposes.access.STATE_GET,
+        }),
+    ];
+
+    const poll = m.poll({
+        key: "measurement",
+        defaultIntervalSeconds: 60,
+        option: exposes.options.measurement_poll_interval(),
+        poll: async (device) => {
             // This device doesn't support reporting correctly.
             // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1270
             const endpoint = device.getEndpoint(1);
-            if (type === 'stop') {
-                clearInterval(globalStore.getValue(device, 'interval'));
-                globalStore.clearValue(device, 'interval');
-            } else if (!globalStore.hasValue(device, 'interval')) {
-                const interval = setInterval(async () => {
-                    try {
-                        await endpoint.read('haElectricalMeasurement', ['rmsVoltage', 'rmsCurrent', 'activePower']);
-                        await endpoint.read('seMetering', ['currentSummDelivered', 'multiplier', 'divisor']);
-                    } catch (error) {
-                        // Do nothing
-                    }
-                }, 10*1000); // Every 10 seconds
-                globalStore.putValue(device, 'interval', interval);
-            }
+            await endpoint.read("haElectricalMeasurement", ["rmsVoltage", "rmsCurrent", "activePower"]);
+            await endpoint.read("seMetering", ["currentSummDelivered", "multiplier", "divisor"]);
         },
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy()],
+    });
+
+    return {configure, onEvent: poll.onEvent, options: poll.options, isModernExtend: true};
+}
+
+export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["Leak_Sensor"],
+        model: "MCLH-07",
+        vendor: "LifeControl",
+        description: "Water leakage sensor",
+        extend: [
+            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
+            m.battery({dontDividePercentage: true, percentageReporting: false}),
+        ],
     },
     {
-        zigbeeModel: ['Motion_Sensor'],
-        model: 'MCLH-05',
-        vendor: 'LifeControl',
-        description: 'Motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
-        toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+        zigbeeModel: ["Door_Sensor"],
+        model: "MCLH-04",
+        vendor: "LifeControl",
+        description: "Open and close sensor",
+        extend: [
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
+            m.battery({dontDividePercentage: true, percentageReporting: false}),
+        ],
     },
     {
-        zigbeeModel: ['VOC_Sensor'],
-        model: 'MCLH-08',
-        vendor: 'LifeControl',
-        description: 'Air sensor',
-        fromZigbee: [fz.lifecontrolVoc, fz.battery],
-        toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
-        exposes: [e.temperature(), e.humidity(), e.voc().withUnit('ppb'), e.eco2(), e.battery()],
+        zigbeeModel: ["vivi ZLight"],
+        model: "MCLH-02",
+        vendor: "LifeControl",
+        description: "Smart light bulb",
+        extend: [m.light({colorTemp: {range: [167, 333]}, color: true})],
+    },
+    {
+        zigbeeModel: ["RICI01"],
+        model: "MCLH-03",
+        vendor: "LifeControl",
+        description: "Smart socket",
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({configureReporting: false}), electricityMeterPoll()],
+    },
+    {
+        zigbeeModel: ["Motion_Sensor"],
+        model: "MCLH-05",
+        vendor: "LifeControl",
+        description: "Motion sensor",
+        extend: [
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
+            m.battery({dontDividePercentage: true, percentageReporting: false}),
+        ],
+    },
+    {
+        zigbeeModel: ["VOC_Sensor"],
+        model: "MCLH-08",
+        vendor: "LifeControl",
+        description: "Air quality sensor",
+        extend: [airQuality(), m.battery({dontDividePercentage: true, percentageReporting: false})],
     },
 ];
-
-module.exports = definitions;

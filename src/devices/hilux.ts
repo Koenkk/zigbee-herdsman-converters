@@ -1,14 +1,19 @@
-import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['Hilux DZ8'],
-        model: 'DZ8',
-        vendor: 'Hilux',
-        description: 'Spot 7W',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370], disablePowerOnBehavior: true}),
+        zigbeeModel: ["Hilux DZ8"],
+        model: "DZ8",
+        vendor: "Hilux",
+        description: "Spot 7W",
+        extend: [m.light({colorTemp: {range: [153, 370]}, powerOnBehavior: false})],
+    },
+    {
+        fingerprint: [{modelID: "Dimmer-Switch-ZB3.0", manufacturerName: "Hilux"}],
+        model: "D160-ZG",
+        vendor: "Hilux",
+        description: "Zigbee LED dimmer smart switch",
+        extend: [m.light({configureReporting: true})],
     },
 ];
-
-module.exports = definitions;

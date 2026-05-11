@@ -1,14 +1,12 @@
-import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['CS-Z-CZ-2402'],
-        model: 'CS-Z-CZ-2402',
-        vendor: 'DNAKE',
-        description: 'Smart socket',
-        extend: extend.switch(),
+        zigbeeModel: ["CS-Z-CZ-2402"],
+        model: "CS-Z-CZ-2402",
+        vendor: "DNAKE",
+        description: "Smart socket",
+        extend: [m.onOff()],
     },
 ];
-
-module.exports = definitions;

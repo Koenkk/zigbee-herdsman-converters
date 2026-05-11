@@ -1,23 +1,12 @@
-import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['Bouffalolab'],
-        model: 'RMC002',
-        vendor: 'Bouffalolab',
-        description: 'US plug smart socket',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-            // Reports itself as unknown which is not correct
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        zigbeeModel: ["Bouffalolab"],
+        model: "RMC002",
+        vendor: "Bouffalolab",
+        description: "US plug smart socket",
+        extend: [m.onOff(), m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
 ];
-
-module.exports = definitions;

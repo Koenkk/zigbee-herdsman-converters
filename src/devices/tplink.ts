@@ -1,45 +1,43 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
-import * as reporting from '../lib/reporting';
+import * as fz from "../converters/fromZigbee";
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend} from "../lib/types";
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['MS100'],
-        model: 'MS100',
-        vendor: 'TP-Link',
-        description: 'Smart motion sensor',
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.illuminance],
+        zigbeeModel: ["MS100"],
+        model: "MS100",
+        vendor: "TP-Link",
+        description: "Smart motion sensor",
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery(), e.illuminance(), e.illuminance_lux()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
             await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['msIlluminanceMeasurement']);
-            await reporting.illuminance(endpoint2);
-            device.powerSource = 'Battery';
+            device.powerSource = "Battery";
             device.save();
         },
+        extend: [m.illuminance()],
     },
     {
-        zigbeeModel: ['CS100'],
-        model: 'CS100',
-        vendor: 'TP-Link',
-        description: 'Contact sensor',
+        zigbeeModel: ["CS100"],
+        model: "CS100",
+        vendor: "TP-Link",
+        description: "Contact sensor",
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.battery()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
             await reporting.batteryPercentageRemaining(endpoint);
-            device.powerSource = 'Battery';
+            device.powerSource = "Battery";
             device.save();
         },
     },
 ];
-
-module.exports = definitions;

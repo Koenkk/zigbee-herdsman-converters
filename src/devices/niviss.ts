@@ -1,14 +1,12 @@
-import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['NIV-ZC-OFD'],
-        model: 'PS-ZIGBEE-SMART-CONTROLER-1CH-DIMMABLE',
-        vendor: 'Niviss',
-        description: 'Zigbee smart controller',
-        extend: extend.light_onoff_brightness(),
+        zigbeeModel: ["NIV-ZC-OFD"],
+        model: "PS-ZIGBEE-SMART-CONTROLER-1CH-DIMMABLE",
+        vendor: "Niviss",
+        description: "Zigbee smart controller",
+        extend: [m.light()],
     },
 ];
-
-module.exports = definitions;

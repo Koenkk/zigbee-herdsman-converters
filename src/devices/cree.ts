@@ -1,14 +1,12 @@
-import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['Connected A-19 60W Equivalent ', 'Connected A-19 60W Equivalent   '],
-        model: 'B00TN589ZG',
-        vendor: 'CREE',
-        description: 'Connected bulb',
-        extend: extend.light_onoff_brightness(),
+        zigbeeModel: ["Connected A-19 60W Equivalent ", "Connected A-19 60W Equivalent   "],
+        model: "B00TN589ZG",
+        vendor: "CREE",
+        description: "Connected bulb",
+        extend: [m.light()],
     },
 ];
-
-module.exports = definitions;

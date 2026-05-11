@@ -1,14 +1,12 @@
-import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['A11'],
-        model: 'ZC05M',
-        vendor: 'GIDEALED',
-        description: 'Smart Zigbee RGB LED strip controller',
-        extend: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, colorTempRange: [153, 370]}),
+        zigbeeModel: ["A11"],
+        model: "ZC05M",
+        vendor: "GIDEALED",
+        description: "Smart Zigbee RGB LED strip controller",
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"]}})],
     },
 ];
-
-module.exports = definitions;

@@ -1,0 +1,5 @@
+# .git-blame-ignore-revs
+# fix: Migrate from eslint/prettier to Biome (#8859)
+009890b0d5cce8ff27ac1f2770ec31543e96b185
+# fix: Implement prettier (#7702)
+607a13e9a112abbf1a8d34fcabee8f82a07f80a8

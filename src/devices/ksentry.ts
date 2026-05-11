@@ -1,20 +1,12 @@
-import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['Lamp_01'],
-        model: 'KS-SM001',
-        vendor: 'Ksentry Electronics',
-        description: 'Zigbee on/off controller',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(11);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        zigbeeModel: ["Lamp_01"],
+        model: "KS-SM001",
+        vendor: "Ksentry Electronics",
+        description: "Zigbee on/off controller",
+        extend: [m.onOff({powerOnBehavior: false})],
     },
 ];
-
-module.exports = definitions;

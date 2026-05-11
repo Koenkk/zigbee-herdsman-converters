@@ -1,20 +1,12 @@
-import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['SRB01', 'SRB01A'],
-        model: 'SRB01',
-        vendor: 'Evvr',
-        description: 'In-wall relay switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        zigbeeModel: ["SRB01", "SRB01A"],
+        model: "SRB01",
+        vendor: "Evvr",
+        description: "In-wall relay switch",
+        extend: [m.onOff()],
     },
 ];
-
-module.exports = definitions;

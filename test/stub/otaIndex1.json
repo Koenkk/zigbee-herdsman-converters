@@ -1,0 +1,38 @@
+[
+    {
+        "fileName": "10039874-1.0-TRADFRI-motion-sensor-2-2.0.022.ota.ota.signed",
+        "fileVersion": 537011747,
+        "fileSize": 186814,
+        "originalUrl": "http://fw.ota.homesmart.ikea.net/global/GW1.0/01.21.031/bin/10039874-1.0-TRADFRI-motion-sensor-2-2.0.022.ota.ota.signed",
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/IKEA/10039874-1.0-TRADFRI-motion-sensor-2-2.0.022.ota.ota.signed",
+        "imageType": 4552,
+        "manufacturerCode": 4476,
+        "sha512": "a0e82ae8bab520f7528c01479523d08ebd980fad823040e00ab418a37143dea94a868728b2d428369bdf363eca934ce3345bab752d680167443f0c30f4e3bed8",
+        "otaHeaderString": "EBL tradfri_motion_sensor_2\u0000\u0000\u0000\u0000\u0000",
+        "releaseNotes": "https://ww8.ikea.com/ikeahomesmart/releasenotes/releasenotes.html"
+    },
+    {
+        "fileName": "VZM31-SN_2.15-Production.ota",
+        "fileVersion": 16908815,
+        "fileSize": 306782,
+        "originalUrl": "https://github.com/InovelliUSA/Firmware/raw/main/Blue-Series/Zigbee/VZM31-SN-2-1-Switch/Production/2.15/VZM31-SN_2.15-Production.ota",
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/Inovelli/VZM31-SN_2.15-Production.ota",
+        "imageType": 257,
+        "manufacturerCode": 4655,
+        "sha512": "0c0973c9ad5f627b9cd1cfea8c6d4b0e57958378b4ca21b97d9552fa0183eecbb3c3971cf4f965e39c8b974aa3e91653c9ef7a55abe4ae478a67dccc6417b26a",
+        "otaHeaderString": "EBL VM_SWITCH\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+    },
+    {
+        "fileName": "ZigUSB_C6.ota",
+        "fileVersion": 320,
+        "fileSize": 696046,
+        "originalUrl": "https://github.com/xyzroe/ZigUSB_C6/releases/download/320/ZigUSB_C6.ota",
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images1/xyzroe/ZigUSB_C6.ota",
+        "imageType": 4113,
+        "manufacturerCode": 13379,
+        "sha512": "c27300cc7bda403e82a2c320833e6a89072cbd0b24b8d9b10f714ac723334123a6e762781fc6df7f798acf49f28cfd42ddf1288b09486eed7d50aae67a288112",
+        "otaHeaderString": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "modelId": "ZigUSB_C6",
+        "releaseNotes": "https://github.com/xyzroe/ZigUSB_C6/releases/tag/320"
+    }
+]

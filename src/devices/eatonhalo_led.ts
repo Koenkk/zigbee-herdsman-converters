@@ -1,14 +1,12 @@
-import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['Halo_RL5601'],
-        model: 'RL460WHZHA69', // The 4" CAN variant presents as 5/6" zigbeeModel.
-        vendor: 'Eaton/Halo LED',
-        description: 'Wireless Controlled LED retrofit downlight',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [200, 370]}),
+        zigbeeModel: ["Halo_RL5601"],
+        model: "RL460WHZHA69", // The 4" CAN variant presents as 5/6" zigbeeModel.
+        vendor: "Eaton/Halo LED",
+        description: "Wireless Controlled LED retrofit downlight",
+        extend: [m.light({colorTemp: {range: [200, 370]}})],
     },
 ];
-
-module.exports = definitions;

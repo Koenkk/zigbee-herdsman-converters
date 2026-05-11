@@ -1,14 +1,12 @@
-import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['NL08-0800'],
-        model: 'NL08-0800',
-        vendor: 'Nanoleaf',
-        description: 'Smart Ivy Bulb E27',
-        extend: extend.light_onoff_brightness(),
+        zigbeeModel: ["NL08-0800"],
+        model: "NL08-0800",
+        vendor: "Nanoleaf",
+        description: "Smart Ivy Bulb E27",
+        extend: [m.light()],
     },
 ];
-
-module.exports = definitions;

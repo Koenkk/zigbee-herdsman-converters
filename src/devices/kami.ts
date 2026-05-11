@@ -1,18 +1,17 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
+import * as fz from "../converters/fromZigbee";
+import * as exposes from "../lib/exposes";
+import type {DefinitionWithExtend} from "../lib/types";
+
 const e = exposes.presets;
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['Z3ContactSensor'],
-        model: 'N20',
-        vendor: 'KAMI',
-        description: 'Contact sensor or motion sensor',
+        zigbeeModel: ["Z3ContactSensor"],
+        model: "N20",
+        vendor: "KAMI",
+        description: "Contact sensor or motion sensor",
         fromZigbee: [fz.KAMI_contact, fz.KAMI_occupancy],
         toZigbee: [],
-        exposes: [e.contact(), e.action(['motion'])],
+        exposes: [e.contact(), e.action(["motion"])],
     },
 ];
-
-module.exports = definitions;

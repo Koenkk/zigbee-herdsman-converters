@@ -1,21 +1,19 @@
-import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['Dimmer_us'],
-        model: 'B07CVL9SZF',
-        vendor: 'Quotra',
-        description: 'Dimmer',
-        extend: extend.light_onoff_brightness(),
+        zigbeeModel: ["Dimmer_us"],
+        model: "B07CVL9SZF",
+        vendor: "Quotra",
+        description: "Dimmer",
+        extend: [m.light()],
     },
     {
-        zigbeeModel: ['QV-RGBCCT'],
-        model: 'B07JHL6DRV',
-        vendor: 'Quotra',
-        description: 'RGB WW LED strip',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [150, 500]}),
+        zigbeeModel: ["QV-RGBCCT"],
+        model: "B07JHL6DRV",
+        vendor: "Quotra",
+        description: "RGB WW LED strip",
+        extend: [m.light({colorTemp: {range: [150, 500]}, color: true, powerOnBehavior: false})],
     },
 ];
-
-module.exports = definitions;

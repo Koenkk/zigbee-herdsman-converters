@@ -1,21 +1,19 @@
-import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['AL8TC13W-AP'],
-        model: 'AL8TC13W-AP',
-        vendor: 'Alchemy',
-        description: 'Downlight with tuneable white',
-        extend: extend.light_onoff_brightness_colortemp({colorTempRange: [153, 370]}),
+        zigbeeModel: ["AL8TC13W-AP"],
+        model: "AL8TC13W-AP",
+        vendor: "Alchemy",
+        description: "Downlight with tuneable white",
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
-        zigbeeModel: ['AL8RGB13W-AP'],
-        model: 'AL8RGB13W-AP',
-        vendor: 'Alchemy',
-        description: 'Downlight RGBW',
-        extend: extend.light_onoff_brightness_colortemp_color({colorTempRange: [153, 370]}),
+        zigbeeModel: ["AL8RGB13W-AP"],
+        model: "AL8RGB13W-AP",
+        vendor: "Alchemy",
+        description: "Downlight RGBW",
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
 ];
-
-module.exports = definitions;

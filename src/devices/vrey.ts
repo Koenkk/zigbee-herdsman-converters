@@ -1,21 +1,13 @@
-import {Definition} from '../lib/types';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import * as tuya from "../lib/tuya";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {modelID: 'TS0001', manufacturerName: '_TYZB01_reyozfcg'},
-            {modelID: 'TS0001', manufacturerName: '_TYZB01_4vgantdz'},
-        ],
-        model: 'VR-X701U',
-        vendor: 'Vrey',
-        description: '1 gang switch',
-        extend: extend.switch(),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ['genOnOff']);
-        },
+        fingerprint: tuya.fingerprint("TS0001", ["_TYZB01_reyozfcg", "_TYZB01_4vgantdz"]),
+        model: "VR-X701U",
+        vendor: "Vrey",
+        description: "1 gang switch",
+        extend: [m.onOff()],
     },
 ];
-
-module.exports = definitions;

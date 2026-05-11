@@ -1,23 +1,12 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-const e = exposes.presets;
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['ZPLUG'],
-        model: 'ZPLUG_Boost',
-        vendor: 'CLEODE',
-        description: 'ZPlug boost',
-        extend: extend.switch(),
-        exposes: [e.switch(), e.power()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-        },
+        zigbeeModel: ["ZPLUG"],
+        model: "ZPLUG_Boost",
+        vendor: "CLEODE",
+        description: "ZPlug boost",
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
     },
 ];
-
-module.exports = definitions;

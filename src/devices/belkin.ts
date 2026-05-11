@@ -1,14 +1,12 @@
-import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['MZ100'],
-        model: 'F7C033',
-        vendor: 'Belkin',
-        description: 'WeMo smart LED bulb',
-        extend: extend.light_onoff_brightness(),
+        zigbeeModel: ["MZ100"],
+        model: "F7C033",
+        vendor: "Belkin",
+        description: "WeMo smart LED bulb",
+        extend: [m.light()],
     },
 ];
-
-module.exports = definitions;

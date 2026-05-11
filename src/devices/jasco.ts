@@ -1,58 +1,28 @@
-import {Definition} from '../lib/types';
-import fz from '../converters/fromZigbee';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
-import * as exposes from '../lib/exposes';
-const e = exposes.presets;
+import * as fz from "../converters/fromZigbee";
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['35938'],
-        model: 'ZB3102',
-        vendor: 'Jasco Products',
-        description: 'Zigbee plug-in smart dimmer',
-        extend: extend.light_onoff_brightness({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness().configure(device, coordinatorEndpoint, logger);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff']);
-            await reporting.onOff(endpoint);
-        },
+        zigbeeModel: ["35938"],
+        model: "ZB3102",
+        vendor: "Jasco Products",
+        description: "Zigbee plug-in smart dimmer",
+        extend: [m.light({configureReporting: true})],
     },
     {
-        zigbeeModel: ['43132'],
-        model: '43132',
-        vendor: 'Jasco',
-        description: 'Zigbee smart outlet',
-        extend: extend.switch(),
-        fromZigbee: [...extend.switch().fromZigbee, fz.metering],
-        exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
+        zigbeeModel: ["43132"],
+        model: "43132",
+        vendor: "Jasco",
+        description: "Zigbee smart outlet",
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
     },
     {
-        zigbeeModel: ['43095'],
-        model: '43095',
-        vendor: 'Jasco Products',
-        description: 'Zigbee smart plug-in switch with energy metering',
-        fromZigbee: [fz.command_on_state, fz.command_off_state, fz.metering],
-        extend: extend.switch(),
-        exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint1);
-            await reporting.instantaneousDemand(endpoint1);
-            await reporting.readMeteringMultiplierDivisor(endpoint1);
-        },
+        zigbeeModel: ["43095"],
+        model: "43095",
+        vendor: "Jasco Products",
+        description: "Zigbee smart plug-in switch with energy metering",
+        fromZigbee: [fz.command_on_state, fz.command_off_state],
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
     },
 ];
-
-module.exports = definitions;

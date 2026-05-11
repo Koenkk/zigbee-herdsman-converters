@@ -1,19 +1,12 @@
-import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['Zigbee CCT Downlight'],
-        model: '53170161',
-        vendor: 'Commercial Electric',
-        description: 'Matte White Recessed Retrofit Smart Led Downlight - 4 Inch',
-        extend: extend.light_onoff_brightness_colortemp({noConfigure: true}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            await extend.light_onoff_brightness_colortemp().configure(device, coordinatorEndpoint, logger);
-            device.powerSource = 'Mains (single phase)';
-            device.save();
-        },
+        zigbeeModel: ["Zigbee CCT Downlight"],
+        model: "53170161",
+        vendor: "Commercial Electric",
+        description: "Matte White Recessed Retrofit Smart Led Downlight - 4 Inch",
+        extend: [m.light({colorTemp: {range: undefined}}), m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
 ];
-
-module.exports = definitions;

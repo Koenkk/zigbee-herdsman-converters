@@ -1,12 +1,529 @@
-import {Definition, Fz, KeyValue} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
-import tz from '../converters/toZigbee';
-import * as constants from '../lib/constants';
-import * as reporting from '../lib/reporting';
+import {Zcl} from "zigbee-herdsman";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
+
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface OwonClearMetering {
+    attributes: never;
+    commands: {
+        owonClearMeasurementData: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
+interface OwonAcControl {
+    attributes: Record<string, never>;
+    commands: {
+        oneKeyPairingRequest: {oneKeyPairingStart: number}; // 0x00 end, 0x01 start
+        writePairingCode: {pairingCode: number};
+        readPairingCodeRequest: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
+interface OwonFallDetection {
+    attributes: {
+        status: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        breathing_rate: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        location_x: number;
+        // biome-ignore lint/style/useNamingConvention: TODO
+        location_y: number;
+        bedUpperLeftX: number;
+        bedUpperLeftY: number;
+        bedLowerRightX: number;
+        bedLowerRightY: number;
+        doorCenterX: number;
+        doorCenterY: number;
+        leftFallDetectionRange: number;
+        rightFallDetectionRange: number;
+        frontFallDetectionRange: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface OwonSeMetering {
+    attributes: {
+        owonL1PhasePower?: number;
+        owonL2PhasePower?: number;
+        owonL3PhasePower?: number;
+        owonL1PhaseReactivePower?: number;
+        owonL2PhaseReactivePower?: number;
+        owonL3PhaseReactivePower?: number;
+        owonReactivePowerSum?: number;
+        owonL1PhaseVoltage?: number;
+        owonL2PhaseVoltage?: number;
+        owonL3PhaseVoltage?: number;
+        owonL1PhaseCurrent?: number;
+        owonL2PhaseCurrent?: number;
+        owonL3PhaseCurrent?: number;
+        owonCurrentSum?: number;
+        owonLeakageCurrent?: number;
+        owonL1Energy?: number;
+        owonL2Energy?: number;
+        owonL3Energy?: number;
+        owonL1ReactiveEnergy?: number;
+        owonL2ReactiveEnergy?: number;
+        owonL3ReactiveEnergy?: number;
+        owonReactiveEnergySum?: number;
+        owonL1PowerFactor?: number;
+        owonL2PowerFactor?: number;
+        owonL3PowerFactor?: number;
+        owonFrequency?: number;
+        owonReportMap?: number;
+        owonLastHistoricalRecordTime?: number;
+        owonOldestHistoricalRecordTime?: number;
+        owonMinimumReportCycle?: number;
+        owonMaximumReportCycle?: number;
+        owonSentHistoricalRecordState?: number;
+        owonAccumulativeEnergyThreshold?: number;
+        owonReportMode?: number;
+        owonPercentChangeInPower?: number;
+    };
+    commands: {
+        owonGetHistoryRecord: Record<string, never>;
+        owonStopSendingHistoricalRecord: Record<string, never>;
+    };
+    commandResponses: {
+        owonGetHistoryRecordRsp: Record<string, never>;
+    };
+}
+
+const owonExtend = {
+    addOwonClearMeteringCluster: () =>
+        m.deviceAddCustomCluster("owonClearMetering", {
+            name: "owonClearMetering",
+            ID: 0xffe0,
+            manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+            attributes: {},
+            commands: {
+                owonClearMeasurementData: {name: "owonClearMeasurementData", ID: 0x00, parameters: []},
+            },
+            commandsResponse: {},
+        }),
+    addManuSpecificOwonAcCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificOwonAc", {
+            name: "manuSpecificOwonAc",
+            ID: 0xffac,
+            manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+            attributes: {},
+            commands: {
+                oneKeyPairingRequest: {
+                    name: "oneKeyPairingRequest",
+                    ID: 0x52,
+                    parameters: [
+                        {name: "oneKeyPairingStart", type: Zcl.DataType.UINT8}, // 0x00 end, 0x01 start
+                    ],
+                },
+                writePairingCode: {
+                    name: "writePairingCode",
+                    ID: 0x20,
+                    parameters: [{name: "pairingCode", type: Zcl.DataType.UINT16}],
+                },
+                readPairingCodeRequest: {
+                    name: "readPairingCodeRequest",
+                    ID: 0x00,
+                    parameters: [],
+                },
+            },
+            commandsResponse: {
+                oneKeyPairingResponse: {
+                    name: "oneKeyPairingResponse",
+                    ID: 0x52,
+                    parameters: [{name: "receiveStatus", type: Zcl.DataType.UINT8}],
+                },
+                oneKeyPairingResultUpdate: {
+                    name: "oneKeyPairingResultUpdate",
+                    ID: 0x80,
+                    parameters: [],
+                },
+                readPairingCodeResponse: {
+                    name: "readPairingCodeResponse",
+                    ID: 0x00,
+                    parameters: [{name: "pairingCode", type: Zcl.DataType.UINT16}],
+                },
+            },
+        }),
+    addFallDetectionOwonCluster: () =>
+        m.deviceAddCustomCluster("fallDetectionOwon", {
+            name: "fallDetectionOwon",
+            ID: 0xfd00,
+            manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+            attributes: {
+                status: {name: "status", ID: 0x0000, type: Zcl.DataType.ENUM8},
+                breathing_rate: {name: "breathing_rate", ID: 0x0002, type: Zcl.DataType.UINT8},
+                location_x: {name: "location_x", ID: 0x0003, type: Zcl.DataType.INT16},
+                location_y: {name: "location_y", ID: 0x0004, type: Zcl.DataType.INT16},
+                bedUpperLeftX: {name: "bedUpperLeftX", ID: 0x0100, type: Zcl.DataType.INT16},
+                bedUpperLeftY: {name: "bedUpperLeftY", ID: 0x0101, type: Zcl.DataType.INT16},
+                bedLowerRightX: {name: "bedLowerRightX", ID: 0x0102, type: Zcl.DataType.INT16},
+                bedLowerRightY: {name: "bedLowerRightY", ID: 0x0103, type: Zcl.DataType.INT16},
+                doorCenterX: {name: "doorCenterX", ID: 0x0108, type: Zcl.DataType.INT16},
+                doorCenterY: {name: "doorCenterY", ID: 0x0109, type: Zcl.DataType.INT16},
+                leftFallDetectionRange: {name: "leftFallDetectionRange", ID: 0x010c, type: Zcl.DataType.UINT16},
+                rightFallDetectionRange: {name: "rightFallDetectionRange", ID: 0x010d, type: Zcl.DataType.UINT16},
+                frontFallDetectionRange: {name: "frontFallDetectionRange", ID: 0x010e, type: Zcl.DataType.UINT16},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addOwonSeMeteringCluster: () =>
+        m.deviceAddCustomCluster("seMetering", {
+            name: "seMetering",
+            ID: Zcl.Clusters.seMetering.ID,
+            attributes: {
+                owonL1PhasePower: {
+                    name: "owonL1PhasePower",
+                    ID: 0x2000,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonL2PhasePower: {
+                    name: "owonL2PhasePower",
+                    ID: 0x2001,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonL3PhasePower: {
+                    name: "owonL3PhasePower",
+                    ID: 0x2002,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonL1PhaseReactivePower: {
+                    name: "owonL1PhaseReactivePower",
+                    ID: 0x2100,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonL2PhaseReactivePower: {
+                    name: "owonL2PhaseReactivePower",
+                    ID: 0x2101,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonL3PhaseReactivePower: {
+                    name: "owonL3PhaseReactivePower",
+                    ID: 0x2102,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonReactivePowerSum: {
+                    name: "owonReactivePowerSum",
+                    ID: 0x2103,
+                    type: Zcl.DataType.INT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -8388608,
+                    max: 8388607,
+                },
+                owonL1PhaseVoltage: {
+                    name: "owonL1PhaseVoltage",
+                    ID: 0x3000,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonL2PhaseVoltage: {
+                    name: "owonL2PhaseVoltage",
+                    ID: 0x3001,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonL3PhaseVoltage: {
+                    name: "owonL3PhaseVoltage",
+                    ID: 0x3002,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonL1PhaseCurrent: {
+                    name: "owonL1PhaseCurrent",
+                    ID: 0x3100,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonL2PhaseCurrent: {
+                    name: "owonL2PhaseCurrent",
+                    ID: 0x3101,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonL3PhaseCurrent: {
+                    name: "owonL3PhaseCurrent",
+                    ID: 0x3102,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonCurrentSum: {
+                    name: "owonCurrentSum",
+                    ID: 0x3103,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonLeakageCurrent: {
+                    name: "owonLeakageCurrent",
+                    ID: 0x3104,
+                    type: Zcl.DataType.UINT24,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffff,
+                },
+                owonL1Energy: {
+                    name: "owonL1Energy",
+                    ID: 0x4000,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonL2Energy: {
+                    name: "owonL2Energy",
+                    ID: 0x4001,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonL3Energy: {
+                    name: "owonL3Energy",
+                    ID: 0x4002,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonL1ReactiveEnergy: {
+                    name: "owonL1ReactiveEnergy",
+                    ID: 0x4100,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonL2ReactiveEnergy: {
+                    name: "owonL2ReactiveEnergy",
+                    ID: 0x4101,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonL3ReactiveEnergy: {
+                    name: "owonL3ReactiveEnergy",
+                    ID: 0x4102,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonReactiveEnergySum: {
+                    name: "owonReactiveEnergySum",
+                    ID: 0x4103,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                owonL1PowerFactor: {
+                    name: "owonL1PowerFactor",
+                    ID: 0x4104,
+                    type: Zcl.DataType.INT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -128,
+                    max: 127,
+                },
+                owonL2PowerFactor: {
+                    name: "owonL2PowerFactor",
+                    ID: 0x4105,
+                    type: Zcl.DataType.INT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -128,
+                    max: 127,
+                },
+                owonL3PowerFactor: {
+                    name: "owonL3PowerFactor",
+                    ID: 0x4106,
+                    type: Zcl.DataType.INT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    min: -128,
+                    max: 127,
+                },
+                owonFrequency: {
+                    name: "owonFrequency",
+                    ID: 0x5005,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xff,
+                },
+                owonReportMap: {
+                    name: "owonReportMap",
+                    ID: 0x1000,
+                    type: Zcl.DataType.BITMAP8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                },
+                owonLastHistoricalRecordTime: {
+                    name: "owonLastHistoricalRecordTime",
+                    ID: 0x5000,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffff,
+                },
+                owonOldestHistoricalRecordTime: {
+                    name: "owonOldestHistoricalRecordTime",
+                    ID: 0x5001,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffff,
+                },
+                owonMinimumReportCycle: {
+                    name: "owonMinimumReportCycle",
+                    ID: 0x5002,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffff,
+                },
+                owonMaximumReportCycle: {
+                    name: "owonMaximumReportCycle",
+                    ID: 0x5003,
+                    type: Zcl.DataType.UINT32,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xffffffff,
+                },
+                owonSentHistoricalRecordState: {
+                    name: "owonSentHistoricalRecordState",
+                    ID: 0x5004,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xff,
+                },
+                owonAccumulativeEnergyThreshold: {
+                    name: "owonAccumulativeEnergyThreshold",
+                    ID: 0x5006,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xff,
+                },
+                owonReportMode: {
+                    name: "owonReportMode",
+                    ID: 0x5007,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xff,
+                },
+                owonPercentChangeInPower: {
+                    name: "owonPercentChangeInPower",
+                    ID: 0x5008,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC,
+                    write: true,
+                    max: 0xff,
+                },
+            },
+            commands: {
+                owonGetHistoryRecord: {name: "owonGetHistoryRecord", ID: 0x20, parameters: []},
+                owonStopSendingHistoricalRecord: {name: "owonStopSendingHistoricalRecord", ID: 0x21, parameters: []},
+            },
+            commandsResponse: {
+                owonGetHistoryRecordRsp: {name: "owonGetHistoryRecordRsp", ID: 0x20, parameters: []},
+            },
+        }),
+};
+
+const owonExtendChecks = {
+    parseOneKeyPairingInput: (input: unknown) => {
+        const action = String(input).toLowerCase().trim();
+
+        let startParam: number;
+        if (action === "start" || action === "on" || action === "true") {
+            startParam = 0x01;
+        } else if (action === "end" || action === "off" || action === "false") {
+            startParam = 0x00;
+        } else {
+            throw new Error(`Invalid value for one_key_pairing: expected "start"/"on"/"true" or "end"/"off"/"false", got "${input}"`);
+        }
+
+        return {
+            payload: {
+                oneKeyPairingStart: startParam,
+            },
+        };
+    },
+
+    parsePairingCodeInput: (input: unknown) => {
+        if (input === undefined || input === null) {
+            throw new Error("pairing_code is required");
+        }
+
+        const codeStr = typeof input === "number" ? Math.trunc(input).toString() : String(input).trim();
+
+        if (!/^\d+$/.test(codeStr)) {
+            throw new Error(`Invalid pairing_code "${codeStr}", must be decimal number`);
+        }
+
+        const codeNum = Number(codeStr);
+
+        if (codeNum < 0 || codeNum > 65535) {
+            throw new Error(`Invalid pairing_code "${codeStr}", must be between 0 and 65535`);
+        }
+
+        return {
+            payload: {
+                pairingCode: codeNum,
+            },
+        };
+    },
+};
 
 const fzLocal = {
     temperature: {
@@ -17,195 +534,424 @@ const fzLocal = {
                 return fz.temperature.convert(model, msg, publish, options, meta);
             }
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     PC321_metering: {
-        cluster: 'seMetering',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "seMetering",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
+            const factor = 0.001;
             const payload: KeyValue = {};
-            if (msg.data.hasOwnProperty('owonL1Energy')) {
-                payload.energy_l1 = msg.data['owonL1Energy'][1] / 1000.0;
+            if (msg.data.owonL1Energy !== undefined) {
+                const value = msg.data.owonL1Energy;
+                payload.energy_l1 = value * factor;
             }
-            if (msg.data.hasOwnProperty('owonL2Energy')) {
-                payload.energy_l2 = msg.data['owonL2Energy'][1] / 1000.0;
+            if (msg.data.owonL2Energy !== undefined) {
+                const value = msg.data.owonL2Energy;
+                payload.energy_l2 = value * factor;
             }
-            if (msg.data.hasOwnProperty('owonL3Energy')) {
-                payload.energy_l3 = msg.data['owonL3Energy'][1] / 1000.0;
+            if (msg.data.owonL3Energy !== undefined) {
+                const value = msg.data.owonL3Energy;
+                payload.energy_l3 = value * factor;
             }
-            if (msg.data.hasOwnProperty('owonL1ReactiveEnergy')) {
-                payload.reactive_energy_l1 = msg.data['owonL1ReactiveEnergy'][1] / 1000.0;
+            if (msg.data.owonL1ReactiveEnergy !== undefined) {
+                const value = msg.data.owonL1ReactiveEnergy;
+                payload.reactive_energy_l1 = value * factor;
             }
-            if (msg.data.hasOwnProperty('owonL2ReactiveEnergy')) {
-                payload.reactive_energy_l2 = msg.data['owonL2ReactiveEnergy'][1] / 1000.0;
+            if (msg.data.owonL2ReactiveEnergy !== undefined) {
+                const value = msg.data.owonL2ReactiveEnergy;
+                payload.reactive_energy_l2 = value * factor;
             }
-            if (msg.data.hasOwnProperty('owonL3ReactiveEnergy')) {
-                payload.reactive_energy_l3 = msg.data['owonL3ReactiveEnergy'][1] / 1000.0;
+            if (msg.data.owonL3ReactiveEnergy !== undefined) {
+                const value = msg.data.owonL3ReactiveEnergy;
+                payload.reactive_energy_l3 = value / 1000;
             }
-            if (msg.data.hasOwnProperty('owonL1PhasePower')) {
-                payload.power_l1 = msg.data['owonL1PhasePower'];
+            if (msg.data.owonL1PhasePower !== undefined) {
+                payload.power_l1 = msg.data.owonL1PhasePower;
             }
-            if (msg.data.hasOwnProperty('owonL2PhasePower')) {
-                payload.power_l2 = msg.data['owonL2PhasePower'];
+            if (msg.data.owonL2PhasePower !== undefined) {
+                payload.power_l2 = msg.data.owonL2PhasePower;
             }
-            if (msg.data.hasOwnProperty('owonL3PhasePower')) {
-                payload.power_l3 = msg.data['owonL3PhasePower'];
+            if (msg.data.owonL3PhasePower !== undefined) {
+                payload.power_l3 = msg.data.owonL3PhasePower;
             }
-            if (msg.data.hasOwnProperty('owonL1PhaseReactivePower')) {
-                payload.reactive_power_l1 = msg.data['owonL1PhaseReactivePower'];
+            if (msg.data.owonL1PhaseReactivePower !== undefined) {
+                payload.reactive_power_l1 = msg.data.owonL1PhaseReactivePower;
             }
-            if (msg.data.hasOwnProperty('owonL2PhaseReactivePower')) {
-                payload.reactive_power_l2 = msg.data['owonL2PhaseReactivePower'];
+            if (msg.data.owonL2PhaseReactivePower !== undefined) {
+                payload.reactive_power_l2 = msg.data.owonL2PhaseReactivePower;
             }
-            if (msg.data.hasOwnProperty('owonL3PhaseReactivePower')) {
-                payload.reactive_power_l3 = msg.data['owonL3PhaseReactivePower'];
+            if (msg.data.owonL3PhaseReactivePower !== undefined) {
+                payload.reactive_power_l3 = msg.data.owonL3PhaseReactivePower;
             }
-            if (msg.data.hasOwnProperty('owonL1PhaseVoltage')) {
-                payload.voltage_l1 = msg.data['owonL1PhaseVoltage'] / 10.0;
+            if (msg.data.owonL1PhaseVoltage !== undefined) {
+                payload.voltage_l1 = msg.data.owonL1PhaseVoltage / 10.0;
             }
-            if (msg.data.hasOwnProperty('owonL2PhaseVoltage')) {
-                payload.voltage_l2 = msg.data['owonL2PhaseVoltage'] / 10.0;
+            if (msg.data.owonL2PhaseVoltage !== undefined) {
+                payload.voltage_l2 = msg.data.owonL2PhaseVoltage / 10.0;
             }
-            if (msg.data.hasOwnProperty('owonL3PhaseVoltage')) {
-                payload.voltage_l3 = msg.data['owonL3PhaseVoltage'] / 10.0;
+            if (msg.data.owonL3PhaseVoltage !== undefined) {
+                payload.voltage_l3 = msg.data.owonL3PhaseVoltage / 10.0;
             }
-            if (msg.data.hasOwnProperty('owonL1PhaseCurrent')) {
-                payload.current_l1 = msg.data['owonL1PhaseCurrent'] / 1000.0;
+            if (msg.data.owonL1PhaseCurrent !== undefined) {
+                payload.current_l1 = msg.data.owonL1PhaseCurrent * factor;
             }
-            if (msg.data.hasOwnProperty('owonL2PhaseCurrent')) {
-                payload.current_l2 = msg.data['owonL2PhaseCurrent'] / 1000.0;
+            if (msg.data.owonL2PhaseCurrent !== undefined) {
+                payload.current_l2 = msg.data.owonL2PhaseCurrent * factor;
             }
-            if (msg.data.hasOwnProperty('owonL3PhaseCurrent')) {
-                payload.current_l3 = msg.data['owonL3PhaseCurrent'] / 1000.0;
+            if (msg.data.owonL3PhaseCurrent !== undefined) {
+                payload.current_l3 = msg.data.owonL3PhaseCurrent * factor;
             }
-            if (msg.data.hasOwnProperty('owonFrequency')) {
-                payload.frequency = msg.data['owonFrequency'];
+            if (msg.data.owonFrequency !== undefined) {
+                payload.frequency = msg.data.owonFrequency;
             }
-            if (msg.data.hasOwnProperty('owonReactiveEnergySum')) {
-                payload.reactive_energy_sum = msg.data['owonReactiveEnergySum'];
+            // Issue #20719 summation manufacturer attributes are not well parsed
+            if (msg.data.owonReactivePowerSum !== undefined || msg.data["8451"] !== undefined) {
+                // 0x2103 -> 8451
+                const value = msg.data.owonReactiveEnergySum || msg.data["8451"];
+                payload.power_reactive = value;
             }
+            if (msg.data.owonCurrentSum !== undefined || msg.data["12547"] !== undefined) {
+                // 0x3103 -> 12547
+                const data = msg.data.owonCurrentSum || (msg.data["12547"] as number) * factor;
+                payload.current = data;
+            }
+            if (msg.data.owonReactiveEnergySum !== undefined || msg.data["16643"] !== undefined) {
+                // 0x4103 -> 16643
+                const value = msg.data.owonReactiveEnergySum || (msg.data["16643"] as number);
+                payload.reactive_energy = value * factor;
+            }
+            if (msg.data.owonL1PowerFactor !== undefined) {
+                payload.power_factor_l1 = msg.data.owonL1PowerFactor / 100;
+            }
+            if (msg.data.owonL2PowerFactor !== undefined) {
+                payload.power_factor_l2 = msg.data.owonL2PowerFactor / 100;
+            }
+            if (msg.data.owonL3PowerFactor !== undefined) {
+                payload.power_factor_l3 = msg.data.owonL3PowerFactor / 100;
+            }
+
             return payload;
         },
-    } as Fz.Converter,
+    } satisfies Fz.Converter<"seMetering", OwonSeMetering, ["attributeReport", "readResponse"]>,
+
+    owonFds315: {
+        cluster: "fallDetectionOwon",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: Record<string, unknown> = {};
+            const data = msg.data;
+            const status_mapping: Record<number, string> = {
+                0: "unoccupied",
+                1: "occupied",
+                2: "sitting",
+                3: "on_the_bed",
+                4: "low_posture",
+                5: "falling",
+            };
+
+            if (data.status !== undefined) {
+                const code = data.status;
+                result.status = status_mapping[code] || `Unknown (${code})`;
+            }
+            if (data.breathing_rate !== undefined) result.breathing_rate = data.breathing_rate;
+            if (data.location_x !== undefined) result.location_x = data.location_x;
+            if (data.location_y !== undefined) result.location_y = data.location_y;
+
+            const keys = [
+                "bedUpperLeftX",
+                "bedUpperLeftY",
+                "bedLowerRightX",
+                "bedLowerRightY",
+                "doorCenterX",
+                "doorCenterY",
+                "leftFallDetectionRange",
+                "rightFallDetectionRange",
+                "frontFallDetectionRange",
+            ] as const;
+            const values = keys.map((k) => (data[k] !== undefined ? data[k] : null));
+
+            if (!values.includes(null)) {
+                result.fall_detection_settings = values.join(",");
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter<"fallDetectionOwon", OwonFallDetection, ["attributeReport", "readResponse"]>,
+
+    owonAcOneKeyPairingResponse: {
+        cluster: "manuSpecificOwonAc",
+        type: ["commandOneKeyPairingResponse", "commandOneKeyPairingResultUpdate"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.meta?.manufacturerCode !== Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC) {
+                return {};
+            }
+
+            const payload: KeyValue = {};
+
+            if (msg.type === "commandOneKeyPairingResponse") {
+                const status = msg.data?.receiveStatus;
+                if (status !== undefined) {
+                    payload.one_key_pairing_status = status === 0x00 ? "SUCCESS" : "FAILURE";
+                }
+            }
+
+            if (msg.type === "commandOneKeyPairingResultUpdate") {
+                let buffer: Buffer | undefined;
+
+                if (Buffer.isBuffer(msg.meta?.rawData)) {
+                    buffer = msg.meta.rawData;
+                }
+
+                if (!buffer || buffer.length < 6) {
+                    payload.one_key_pairing_result = {
+                        count: 0,
+                        codes_found: [],
+                    };
+                    return payload;
+                }
+
+                const payloadOffset = 5;
+                const count = buffer.readUInt8(payloadOffset);
+                const codes: number[] = [];
+
+                let offset = payloadOffset + 1;
+                for (let i = 0; i < count; i++) {
+                    if (offset + 1 >= buffer.length) break;
+                    codes.push(buffer.readUInt16LE(offset));
+                    offset += 2;
+                }
+
+                payload.one_key_pairing_result = {
+                    count,
+                    codes_found: codes,
+                };
+            }
+
+            return payload;
+        },
+        // biome-ignore lint/suspicious/noExplicitAny: third-party converter signature requires any
+    } satisfies Fz.Converter<"manuSpecificOwonAc", OwonAcControl, any>,
+
+    owonAcReadPairingCodeResponse: {
+        cluster: "manuSpecificOwonAc",
+        type: ["commandReadPairingCodeResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data?.pairingCode !== undefined) {
+                const code = msg.data.pairingCode;
+                const displayCode = code === 0xffff ? null : code;
+
+                return {
+                    pairing_code_current: displayCode,
+                };
+            }
+
+            return {};
+        },
+        // biome-ignore lint/suspicious/noExplicitAny: third-party converter signature requires any
+    } satisfies Fz.Converter<"manuSpecificOwonAc", OwonAcControl, any>,
 };
 
-const definitions: Definition[] = [
-    {
-        zigbeeModel: ['WSP402'],
-        model: 'WSP402',
-        vendor: 'OWON',
-        description: 'Smart plug',
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2}); // divider 1000: 2W
-            await reporting.currentSummDelivered(endpoint, {min: 5, max: constants.repInterval.MINUTES_5,
-                change: [10, 10]}); // divider 1000: 0,01kWh
+const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    PC321_clearMetering: {
+        key: ["clear_metering"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command<"owonClearMetering", "owonClearMeasurementData", OwonClearMetering>(
+                "owonClearMetering",
+                "owonClearMeasurementData",
+                {},
+                {disableDefaultResponse: true},
+            );
         },
-    },
-    {
-        zigbeeModel: ['WSP403-E'],
-        model: 'WSP403',
-        vendor: 'OWON',
-        whiteLabel: [{vendor: 'Oz Smart Things', model: 'WSP403'}],
-        description: 'Smart plug',
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2}); // divider 1000: 2W
-            await reporting.currentSummDelivered(endpoint, {min: 5, max: constants.repInterval.MINUTES_5,
-                change: [10, 10]}); // divider 1000: 0,01kWh
+    } satisfies Tz.Converter,
 
-            // At least some white label devices, like the Oz Smart Things device, don't report a power source so we need to force it
-            device.powerSource = 'Mains (single phase)';
-            device.save();
+    owonFds315SetFallSettings: {
+        key: ["fall_detection_settings"],
+        convertSet: async (entity, key, value, meta) => {
+            const mapping: Record<number, {id: number; type: number}> = {
+                0: {id: 0x0100, type: 0x29},
+                1: {id: 0x0101, type: 0x29},
+                2: {id: 0x0102, type: 0x29},
+                3: {id: 0x0103, type: 0x29},
+                4: {id: 0x0108, type: 0x29},
+                5: {id: 0x0109, type: 0x29},
+                6: {id: 0x010c, type: 0x21},
+                7: {id: 0x010d, type: 0x21},
+                8: {id: 0x010e, type: 0x21},
+            };
+
+            const strValue = String(value);
+            const values = strValue?.split(",").map(Number);
+            if (values.length !== 9) throw new Error("Incorrect number of values.");
+
+            const payload: Record<number, {value: number; type: number}> = {};
+            values.forEach((val, idx) => {
+                const {id, type} = mapping[idx];
+                payload[id] = {value: val, type};
+            });
+
+            await entity.write<"fallDetectionOwon", OwonFallDetection>("fallDetectionOwon", payload, {manufacturerCode: 0x113c});
+            return {state: {fall_detection_settings: value}};
         },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"fallDetectionOwon", OwonFallDetection>(
+                "fallDetectionOwon",
+                [
+                    "bedUpperLeftX",
+                    "bedUpperLeftY",
+                    "bedLowerRightX",
+                    "bedLowerRightY",
+                    "doorCenterX",
+                    "doorCenterY",
+                    "leftFallDetectionRange",
+                    "rightFallDetectionRange",
+                    "frontFallDetectionRange",
+                ],
+                {manufacturerCode: 0x113c},
+            );
+        },
+    } satisfies Tz.Converter,
+
+    owonAcOneKeyPairing: {
+        key: ["one_key_pairing"],
+        convertSet: async (entity, key, value, meta) => {
+            meta.state.one_key_pairing_status = null;
+            meta.state.one_key_pairing_result = null;
+            const commandWrapper = owonExtendChecks.parseOneKeyPairingInput(value);
+
+            await entity.command<"manuSpecificOwonAc", "oneKeyPairingRequest", OwonAcControl>(
+                "manuSpecificOwonAc",
+                "oneKeyPairingRequest",
+                commandWrapper.payload,
+                {disableDefaultResponse: true},
+            );
+        },
+    } satisfies Tz.Converter,
+
+    owonAcWritePairingCode: {
+        key: ["pairing_code"],
+        convertSet: async (entity, key, value, meta) => {
+            const commandWrapper = owonExtendChecks.parsePairingCodeInput(value);
+
+            meta.state.pairing_code = String(value);
+
+            await entity.command<"manuSpecificOwonAc", "writePairingCode", OwonAcControl>(
+                "manuSpecificOwonAc",
+                "writePairingCode",
+                commandWrapper.payload,
+                {disableDefaultResponse: true},
+            );
+        },
+    } satisfies Tz.Converter,
+
+    owonAcReadPairingCode: {
+        key: ["pairing_code_current"],
+        convertGet: async (entity, key, meta) => {
+            await entity.command<"manuSpecificOwonAc", "readPairingCodeRequest", OwonAcControl>(
+                "manuSpecificOwonAc",
+                "readPairingCodeRequest",
+                {},
+                {disableDefaultResponse: true},
+            );
+        },
+    } satisfies Tz.Converter,
+};
+
+export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["WSP402"],
+        model: "WSP402",
+        vendor: "OWON",
+        description: "Smart plug",
+        extend: [
+            m.onOff({powerOnBehavior: false}),
+            m.electricityMeter({
+                cluster: "metering",
+            }),
+
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+        ],
     },
     {
-        zigbeeModel: ['WSP404'],
-        model: 'WSP404',
-        vendor: 'OWON',
-        description: 'Smart plug',
-        fromZigbee: [fz.on_off, fz.metering],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint, {min: 5, max: constants.repInterval.MINUTES_5, change: 2}); // divider 1000: 2W
-            await reporting.currentSummDelivered(endpoint, {min: 5, max: constants.repInterval.MINUTES_5,
-                change: [10, 10]}); // divider 1000: 0,01kWh
-        },
+        zigbeeModel: ["WSP403-E"],
+        model: "WSP403",
+        vendor: "OWON",
+        whiteLabel: [{vendor: "Oz Smart Things", model: "WSP403"}],
+        description: "Smart plug",
+        extend: [
+            m.onOff({powerOnBehavior: false}),
+            m.electricityMeter({
+                cluster: "metering",
+            }),
+
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+        ],
     },
     {
-        zigbeeModel: ['CB432'],
-        model: 'CB432',
-        vendor: 'OWON',
-        description: '32A/63A power circuit breaker',
-        fromZigbee: [fz.on_off, fz.metering, fz.electrical_measurement],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.energy()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.instantaneousDemand(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
+        zigbeeModel: ["WSP404"],
+        model: "WSP404",
+        vendor: "OWON",
+        description: "Smart plug",
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
     },
     {
-        zigbeeModel: ['PIR313-E', 'PIR313'],
-        model: 'PIR313-E',
-        vendor: 'OWON',
-        description: 'Motion sensor',
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity,
-            fz.occupancy_timeout, fz.illuminance],
+        zigbeeModel: ["CB432"],
+        model: "CB432",
+        vendor: "OWON",
+        description: "32A/63A power circuit breaker",
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
+    },
+    {
+        zigbeeModel: ["PIR313-E", "PIR313"],
+        model: "PIR313-E",
+        vendor: "OWON",
+        description: "Motion sensor",
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
-        exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.illuminance(), e.illuminance_lux().withUnit('lx'),
-            e.temperature(), e.humidity()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.temperature(), e.humidity()],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
-            if (device.modelID == 'PIR313') {
-                await reporting.bind(endpoint2, coordinatorEndpoint, ['msIlluminanceMeasurement']);
-                await reporting.bind(endpoint3, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
+            if (device.modelID === "PIR313") {
+                await reporting.bind(endpoint3, coordinatorEndpoint, ["msTemperatureMeasurement", "msRelativeHumidity"]);
             } else {
-                await reporting.bind(endpoint3, coordinatorEndpoint, ['msIlluminanceMeasurement']);
-                await reporting.bind(endpoint2, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
+                await reporting.bind(endpoint2, coordinatorEndpoint, ["msTemperatureMeasurement", "msRelativeHumidity"]);
             }
-            device.powerSource = 'Battery';
+            device.powerSource = "Battery";
             device.save();
         },
+        extend: [m.illuminance()],
     },
     {
-        zigbeeModel: ['AC201'],
-        model: 'AC201',
-        vendor: 'OWON',
-        description: 'HVAC controller/IR blaster',
+        zigbeeModel: ["AC201"],
+        model: "AC201",
+        vendor: "OWON",
+        description: "HVAC controller/IR blaster",
         fromZigbee: [fz.fan, fz.thermostat],
-        toZigbee: [tz.fan_mode, tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_ac_louver_position, tz.thermostat_local_temperature],
-        exposes: [e.climate().withSystemMode(['off', 'heat', 'cool', 'auto', 'dry', 'fan_only'])
-            .withSetpoint('occupied_heating_setpoint', 8, 30, 1).withSetpoint('occupied_cooling_setpoint', 8, 30, 1)
-            .withAcLouverPosition(['fully_open', 'fully_closed', 'half_open', 'quarter_open', 'three_quarters_open'])
-            .withLocalTemperature(), e.fan().withModes(['low', 'medium', 'high', 'on', 'auto'])],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        toZigbee: [
+            tz.fan_mode,
+            tz.thermostat_system_mode,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_ac_louver_position,
+            tz.thermostat_local_temperature,
+        ],
+        exposes: [
+            e
+                .climate()
+                .withSystemMode(["off", "heat", "cool", "auto", "dry", "fan_only"])
+                .withSetpoint("occupied_heating_setpoint", 8, 30, 1)
+                .withSetpoint("occupied_cooling_setpoint", 8, 30, 1)
+                .withAcLouverPosition(["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"])
+                .withLocalTemperature(),
+            e.fan().withState("fan_state").withModes(["low", "medium", "high", "on", "auto"]),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacFanCtrl']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacFanCtrl"]);
             await reporting.fanMode(endpoint);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatTemperature(endpoint, {min: 60, max: 600, change: 0.1});
@@ -214,111 +960,203 @@ const definitions: Definition[] = [
         },
     },
     {
-        zigbeeModel: ['THS317'],
-        model: 'THS317',
-        vendor: 'OWON',
-        description: 'Temperature and humidity sensor',
+        zigbeeModel: ["AC221"],
+        model: "AC221",
+        vendor: "OWON",
+        description: "AC controller / IR blaster",
+        extend: [owonExtend.addManuSpecificOwonAcCluster()],
+        fromZigbee: [fz.fan, fz.thermostat, fzLocal.owonAcOneKeyPairingResponse, fzLocal.owonAcReadPairingCodeResponse],
+        toZigbee: [
+            tz.fan_mode,
+            tz.thermostat_system_mode,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_ac_louver_position,
+            tz.thermostat_local_temperature,
+            tzLocal.owonAcOneKeyPairing,
+            tzLocal.owonAcWritePairingCode,
+            tzLocal.owonAcReadPairingCode,
+        ],
+
+        exposes: [
+            // --- One Key Pairing Exposes ---
+            e.enum("one_key_pairing", ea.SET, ["start", "end"]),
+            e.text("one_key_pairing_status", ea.STATE).withDescription("Status of the last one key pairing request command."),
+            e.text("one_key_pairing_result", ea.STATE).withDescription("Final result of one key pairing process (JSON string, device reported)."),
+            e
+                .numeric("pairing_code_current", ea.STATE_GET)
+                .withDescription("Currently set pairing code on the device (null if invalid)")
+                .withUnit("")
+                .withValueMin(0)
+                .withValueMax(65535),
+            e.text("pairing_code", ea.SET).withDescription("Manually write pairing code to device  (decimal digits only, e.g. 123456)."),
+            e
+                .climate()
+                .withSystemMode(["off", "heat", "cool", "auto", "dry", "fan_only"])
+                .withSetpoint("occupied_heating_setpoint", 8, 30, 1)
+                .withSetpoint("occupied_cooling_setpoint", 8, 30, 1)
+                .withLocalTemperature(),
+            e.fan().withModes(["low", "medium", "high", "on", "auto"]),
+        ],
+
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["genBasic", "genIdentify", "genTime", "hvacThermostat", "hvacFanCtrl"];
+
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+
+            await reporting.thermostatTemperature(endpoint, {min: 60, max: 600, change: 0.1});
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+
+            await reporting.fanMode(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ["THS317"],
+        model: "THS317",
+        vendor: "OWON",
+        description: "Temperature and humidity sensor",
         fromZigbee: [fz.temperature, fz.humidity, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "msRelativeHumidity", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.humidity(endpoint);
             await reporting.batteryVoltage(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            device.powerSource = 'Battery';
+            device.powerSource = "Battery";
             device.save();
         },
     },
     {
-        zigbeeModel: ['THS317-ET'],
-        model: 'THS317-ET',
-        vendor: 'OWON',
-        description: 'Temperature sensor',
+        zigbeeModel: ["THS317-ET"],
+        model: "THS317-ET",
+        vendor: "OWON",
+        description: "Temperature sensor",
         fromZigbee: [fzLocal.temperature, fz.battery],
         toZigbee: [],
-        exposes: [e.battery(), e.temperature()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        exposes: [e.battery(), e.battery_voltage(), e.temperature()],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3) || device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            device.powerSource = 'Battery';
+            device.powerSource = "Battery";
             device.save();
         },
     },
     {
-        zigbeeModel: ['PC321'],
-        model: 'PC321',
-        vendor: 'OWON',
-        description: '3-Phase clamp power meter',
+        zigbeeModel: ["PC321"],
+        model: "PC321",
+        vendor: "OWON",
+        description: "3-Phase clamp power meter",
+        extend: [owonExtend.addOwonClearMeteringCluster(), owonExtend.addOwonSeMeteringCluster()],
         fromZigbee: [fz.metering, fzLocal.PC321_metering],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        toZigbee: [tzLocal.PC321_clearMetering],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['seMetering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering"]);
             await reporting.readMeteringMultiplierDivisor(endpoint);
-            if (device.powerSource === 'Unknown') {
-                device.powerSource = 'Mains (single phase)';
+            if (device.powerSource === "Unknown") {
+                device.powerSource = "Mains (single phase)";
                 device.save();
             }
         },
         meta: {publishDuplicateTransaction: true},
-        exposes: [e.energy(),
-            e.numeric('voltage_l1', ea.STATE).withUnit('V').withDescription('Phase 1 voltage'),
-            e.numeric('voltage_l2', ea.STATE).withUnit('V').withDescription('Phase 2 voltage'),
-            e.numeric('voltage_l3', ea.STATE).withUnit('V').withDescription('Phase 3 voltage'),
-            e.numeric('current_l1', ea.STATE).withUnit('A').withDescription('Phase 1 current'),
-            e.numeric('current_l2', ea.STATE).withUnit('A').withDescription('Phase 2 current'),
-            e.numeric('current_l3', ea.STATE).withUnit('A').withDescription('Phase 3 current'),
-            e.numeric('energy_l1', ea.STATE).withUnit('kWh').withDescription('Phase 1 energy'),
-            e.numeric('energy_l2', ea.STATE).withUnit('kWh').withDescription('Phase 2 energy'),
-            e.numeric('energy_l3', ea.STATE).withUnit('kWh').withDescription('Phase 3 energy'),
-            e.numeric('reactive_energy_l1', ea.STATE).withUnit('kVArh').withDescription('Phase 1 reactive energy'),
-            e.numeric('reactive_energy_l2', ea.STATE).withUnit('kVArh').withDescription('Phase 2 reactive energy'),
-            e.numeric('reactive_energy_l3', ea.STATE).withUnit('kVArh').withDescription('Phase 3 reactive energy'),
-            e.numeric('power_l1', ea.STATE).withUnit('W').withDescription('Phase 1 power'),
-            e.numeric('power_l2', ea.STATE).withUnit('W').withDescription('Phase 2 power'),
-            e.numeric('power_l3', ea.STATE).withUnit('W').withDescription('Phase 3 power'),
-            e.numeric('reactive_power_l1', ea.STATE).withUnit('VAr').withDescription('Phase 1 reactive power'),
-            e.numeric('reactive_power_l2', ea.STATE).withUnit('VAr').withDescription('Phase 2 reactive power'),
-            e.numeric('reactive_power_l3', ea.STATE).withUnit('VAr').withDescription('Phase 3 reactive power'),
+        exposes: [
+            e.current(),
+            e.power(),
+            e.power_reactive(),
+            e.energy(),
+            e.numeric("reactive_energy", ea.STATE).withUnit("kVArh").withDescription("Reactive energy for all phase"),
+            e.numeric("voltage_l1", ea.STATE).withUnit("V").withDescription("Phase 1 voltage"),
+            e.numeric("voltage_l2", ea.STATE).withUnit("V").withDescription("Phase 2 voltage"),
+            e.numeric("voltage_l3", ea.STATE).withUnit("V").withDescription("Phase 3 voltage"),
+            e.numeric("current_l1", ea.STATE).withUnit("A").withDescription("Phase 1 current"),
+            e.numeric("current_l2", ea.STATE).withUnit("A").withDescription("Phase 2 current"),
+            e.numeric("current_l3", ea.STATE).withUnit("A").withDescription("Phase 3 current"),
+            e.numeric("energy_l1", ea.STATE).withUnit("kWh").withDescription("Phase 1 energy"),
+            e.numeric("energy_l2", ea.STATE).withUnit("kWh").withDescription("Phase 2 energy"),
+            e.numeric("energy_l3", ea.STATE).withUnit("kWh").withDescription("Phase 3 energy"),
+            e.numeric("reactive_energy_l1", ea.STATE).withUnit("kVArh").withDescription("Phase 1 reactive energy"),
+            e.numeric("reactive_energy_l2", ea.STATE).withUnit("kVArh").withDescription("Phase 2 reactive energy"),
+            e.numeric("reactive_energy_l3", ea.STATE).withUnit("kVArh").withDescription("Phase 3 reactive energy"),
+            e.numeric("power_l1", ea.STATE).withUnit("W").withDescription("Phase 1 power"),
+            e.numeric("power_l2", ea.STATE).withUnit("W").withDescription("Phase 2 power"),
+            e.numeric("power_l3", ea.STATE).withUnit("W").withDescription("Phase 3 power"),
+            e.numeric("reactive_power_l1", ea.STATE).withUnit("VAr").withDescription("Phase 1 reactive power"),
+            e.numeric("reactive_power_l2", ea.STATE).withUnit("VAr").withDescription("Phase 2 reactive power"),
+            e.numeric("reactive_power_l3", ea.STATE).withUnit("VAr").withDescription("Phase 3 reactive power"),
+            e.numeric("power_factor_l1", ea.STATE).withUnit("%").withDescription("Phase 1 power factor"),
+            e.numeric("power_factor_l2", ea.STATE).withUnit("%").withDescription("Phase 2 power factor"),
+            e.numeric("power_factor_l3", ea.STATE).withUnit("%").withDescription("Phase 3 power factor"),
+            e.enum("clear_metering", ea.SET, ["clear"]).withDescription("Clear measurement data"),
         ],
     },
     {
-        zigbeeModel: ['PCT504', 'PCT504-E'],
-        model: 'PCT504',
-        vendor: 'OWON',
-        description: 'HVAC fan coil',
-        fromZigbee: [fz.fan, fz.thermostat, fz.humidity, fz.occupancy, legacy.fz.hvac_user_interface],
-        toZigbee: [tz.fan_mode,
-            tz.thermostat_occupied_heating_setpoint, tz.thermostat_unoccupied_heating_setpoint,
-            tz.thermostat_occupied_cooling_setpoint, tz.thermostat_unoccupied_cooling_setpoint,
-            tz.thermostat_min_heat_setpoint_limit, tz.thermostat_max_heat_setpoint_limit,
-            tz.thermostat_min_cool_setpoint_limit, tz.thermostat_max_cool_setpoint_limit,
+        zigbeeModel: ["PCT504", "PCT504-E"],
+        model: "PCT504",
+        vendor: "OWON",
+        description: "HVAC fan coil",
+        fromZigbee: [fz.fan, fz.thermostat, fz.humidity, fz.occupancy, fz.hvac_user_interface],
+        toZigbee: [
+            tz.fan_mode,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_unoccupied_heating_setpoint,
+            tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_unoccupied_cooling_setpoint,
+            tz.thermostat_min_heat_setpoint_limit,
+            tz.thermostat_max_heat_setpoint_limit,
+            tz.thermostat_min_cool_setpoint_limit,
+            tz.thermostat_max_cool_setpoint_limit,
             tz.thermostat_local_temperature,
             tz.thermostat_keypad_lockout,
-            tz.thermostat_system_mode, tz.thermostat_running_mode, tz.thermostat_running_state, tz.thermostat_programming_operation_mode],
-        exposes: [e.humidity(), e.occupancy(),
-            e.climate().withSystemMode(['off', 'heat', 'cool', 'fan_only', 'sleep']).withLocalTemperature()
-                .withRunningMode(['off', 'heat', 'cool'])
-                .withRunningState(['idle', 'heat', 'cool', 'fan_only'])
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5).withSetpoint('unoccupied_heating_setpoint', 5, 30, 0.5)
-                .withSetpoint('occupied_cooling_setpoint', 7, 35, 0.5).withSetpoint('unoccupied_cooling_setpoint', 7, 35, 0.5),
-            e.fan().withModes(['low', 'medium', 'high', 'on', 'auto']),
-            e.programming_operation_mode(['setpoint', 'eco']), e.keypad_lockout(),
-            e.max_heat_setpoint_limit(5, 30, 0.5), e.min_heat_setpoint_limit(5, 30, 0.5),
-            e.max_cool_setpoint_limit(7, 35, 0.5), e.min_cool_setpoint_limit(7, 35, 0.5)],
-        configure: async (device, coordinatorEndpoint, logger) => {
+            tz.thermostat_system_mode,
+            tz.thermostat_running_mode,
+            tz.thermostat_running_state,
+            tz.thermostat_programming_operation_mode,
+        ],
+        exposes: [
+            e.humidity(),
+            e.occupancy(),
+            e
+                .climate()
+                .withSystemMode(["off", "heat", "cool", "fan_only", "sleep"])
+                .withLocalTemperature()
+                .withRunningMode(["off", "heat", "cool"])
+                .withRunningState(["idle", "heat", "cool", "fan_only"])
+                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
+                .withSetpoint("unoccupied_heating_setpoint", 5, 30, 0.5)
+                .withSetpoint("occupied_cooling_setpoint", 7, 35, 0.5)
+                .withSetpoint("unoccupied_cooling_setpoint", 7, 35, 0.5),
+            e.fan().withState("fan_state").withModes(["low", "medium", "high", "on", "auto"]),
+            e.programming_operation_mode(["setpoint", "eco"]),
+            e.keypad_lockout(),
+            e.max_heat_setpoint_limit(5, 30, 0.5),
+            e.min_heat_setpoint_limit(5, 30, 0.5),
+            e.max_cool_setpoint_limit(7, 35, 0.5),
+            e.min_cool_setpoint_limit(7, 35, 0.5),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['genBasic', 'genIdentify', 'genGroups', 'hvacThermostat', 'hvacUserInterfaceCfg', 'hvacFanCtrl',
-                'msTemperatureMeasurement', 'msOccupancySensing'];
+            const binds = [
+                "genBasic",
+                "genIdentify",
+                "genGroups",
+                "hvacThermostat",
+                "hvacUserInterfaceCfg",
+                "hvacFanCtrl",
+                "msTemperatureMeasurement",
+                "msOccupancySensing",
+            ];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.fanMode(endpoint);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['hvacThermostat']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
             await reporting.thermostatTemperature(endpoint, {min: 60, max: 600, change: 0.1});
@@ -328,32 +1166,170 @@ const definitions: Definition[] = [
             await reporting.humidity(endpoint, {min: 60, max: 600, change: 1});
             await reporting.thermostatKeypadLockMode(endpoint);
 
-            await endpoint.read('hvacThermostat', ['systemMode', 'runningMode', 'runningState',
-                'occupiedHeatingSetpoint', 'unoccupiedHeatingSetpoint',
-                'occupiedCoolingSetpoint', 'unoccupiedCoolingSetpoint', 'localTemp']);
-            await endpoint.read('msRelativeHumidity', ['measuredValue']);
+            await endpoint.read("hvacThermostat", [
+                "systemMode",
+                "runningMode",
+                "runningState",
+                "occupiedHeatingSetpoint",
+                "unoccupiedHeatingSetpoint",
+                "occupiedCoolingSetpoint",
+                "unoccupiedCoolingSetpoint",
+                "localTemp",
+            ]);
+            await endpoint.read("msRelativeHumidity", ["measuredValue"]);
 
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ['msOccupancySensing']);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["msOccupancySensing"]);
             await reporting.occupancy(endpoint2, {min: 1, max: 600, change: 1});
-            await endpoint2.read('msOccupancySensing', ['occupancy']);
+            await endpoint2.read("msOccupancySensing", ["occupancy"]);
         },
     },
     {
-        zigbeeModel: ['PIR323-PTH'],
-        model: 'PIR323-PTH',
-        vendor: 'OWON',
-        description: 'Multi-sensor',
-        fromZigbee: [fz.battery, fz.ignore_basic_report, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
+        zigbeeModel: ["PCT512"],
+        model: "PCT512",
+        vendor: "OWON",
+        description: "Thermostat",
+        fromZigbee: [fz.thermostat],
+        toZigbee: [
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_min_heat_setpoint_limit,
+            tz.thermostat_max_heat_setpoint_limit,
+            tz.thermostat_local_temperature,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+        ],
+        extend: [m.occupancy(), m.humidity()],
+        exposes: [
+            e
+                .climate()
+                .withSystemMode(["off", "heat"])
+                .withLocalTemperature()
+                .withRunningState(["heat", "idle"])
+                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const binds = ["genBasic", "genIdentify", "genGroups", "genScenes", "genOnOff", "hvacThermostat", "msRelativeHumidity"];
+
+            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 0, max: 3600, change: 10});
+            await reporting.thermostatTemperature(endpoint, {min: 0, max: 3600, change: 10});
+            await reporting.humidity(endpoint, {min: 0, max: 3600, change: 10});
+            await reporting.thermostatSystemMode(endpoint, {min: 0, max: 3600});
+            await reporting.thermostatRunningState(endpoint);
+            await endpoint.read("hvacThermostat", ["systemMode", "runningState", "occupiedHeatingSetpoint", "localTemp"]);
+            await endpoint.read("msRelativeHumidity", ["measuredValue"]);
+        },
+    },
+    {
+        zigbeeModel: ["PIR323-PTH"],
+        model: "PIR323-PTH",
+        vendor: "OWON",
+        description: "Multi-sensor",
+        fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.temperature(), e.humidity()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'msRelativeHumidity']);
-            device.powerSource = 'Battery';
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "msRelativeHumidity"]);
+            device.powerSource = "Battery";
             device.save();
         },
     },
+    {
+        zigbeeModel: ["SLC603"],
+        model: "SLC603",
+        vendor: "OWON",
+        description: "Zigbee remote dimmer",
+        fromZigbee: [fz.battery, fz.command_toggle, fz.command_step, fz.command_step_color_temperature],
+        toZigbee: [],
+        exposes: [
+            e.battery(),
+            e.battery_low(),
+            e.action(["toggle", "brightness_step_up", "brightness_step_down", "color_temperature_step_up", "color_temperature_step_down"]),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            device.powerSource = "Battery";
+            device.save();
+        },
+    },
+    {
+        zigbeeModel: ["PIR313-P"],
+        model: "PIR313-P",
+        vendor: "OWON",
+        description: "Motion sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
+    },
+    {
+        zigbeeModel: ["DWS312"],
+        model: "DWS312",
+        vendor: "OWON",
+        description: "Door/window sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
+    },
+    {
+        zigbeeModel: ["SPM915"],
+        model: "SPM915",
+        vendor: "OWON",
+        description: "Sleeping pad monitor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
+    },
+    {
+        zigbeeModel: ["FDS315", "FDS315-AH"],
+        model: "FDS315",
+        vendor: "OWON",
+        description: "Fall Detection Sensor",
+        extend: [owonExtend.addFallDetectionOwonCluster()],
+        fromZigbee: [fz.identify, fzLocal.owonFds315],
+        toZigbee: [tzLocal.owonFds315SetFallSettings],
+        exposes: [
+            e.enum("status", ea.STATE, ["unoccupied", "occupied", "sitting", "on_the_bed", "low_posture", "falling"]),
+            e.numeric("breathing_rate", ea.STATE).withUnit("breaths/min").withDescription("Breathing rate."),
+            e.numeric("location_x", ea.STATE).withUnit("cm").withDescription("X coordinate of human activity."),
+            e.numeric("location_y", ea.STATE).withUnit("cm").withDescription("Y coordinate of human activity."),
+            e
+                .text("fall_detection_settings", ea.ALL)
+                .withDescription(
+                    "Comma-separated values for bed, door and fall detection settings: bedUpperLeftX, bedUpperLeftY, bedLowerRightX, bedLowerRightY, doorCenterX, doorCenterY, leftFallDetectionRange, rightFallDetectionRange, frontFallDetectionRange. Put -21931 for disabled bed and door.",
+                ),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.bind("ssIasZone", coordinatorEndpoint);
+            await endpoint.bind("genBasic", coordinatorEndpoint);
+            await endpoint.bind("fallDetectionOwon", coordinatorEndpoint);
+        },
+    },
+    {
+        zigbeeModel: ["SLC631"],
+        model: "SLC631",
+        vendor: "OWON",
+        description: "Smart plug with doorbell press indicator",
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {
+                    l1: 1,
+                    l2: 2,
+                    l3: 3,
+                },
+            }),
+            m.onOff({endpointNames: ["l1", "l2", "l3"], powerOnBehavior: false}),
+            m.iasZoneAlarm({
+                zoneType: "contact",
+                zoneAttributes: ["alarm_2"],
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const ep2 = device.getEndpoint(2);
+            if (ep2) {
+                await reporting.bind(ep2, coordinatorEndpoint, ["ssIasZone"]);
+                await ep2.write("ssIasZone", {
+                    16: {value: coordinatorEndpoint.deviceIeeeAddress, type: 0xf0},
+                });
+            }
+        },
+    },
 ];
-
-module.exports = definitions;

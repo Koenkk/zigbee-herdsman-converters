@@ -1,14 +1,12 @@
-import {Definition} from '../lib/types';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['HK-DIM-SW'],
-        model: 'DMZ250',
-        vendor: 'Wisdom',
-        description: 'Zigbee led dimmer 5-250 Watt',
-        extend: extend.light_onoff_brightness(),
+        zigbeeModel: ["HK-DIM-SW"],
+        model: "DMZ250",
+        vendor: "Wisdom",
+        description: "Zigbee led dimmer 5-250 Watt",
+        extend: [m.light()],
     },
 ];
-
-module.exports = definitions;

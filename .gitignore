@@ -4,13 +4,18 @@ node_modules/
 .idea
 .DS_Store
 .remote-sync.json
-.eslintrc.js
-.vscode
 tmp
 # Eclipse project files
 .project
 .settings/
-/index.*
+/index*
 /converters/
 /devices/
 /lib/
+tsconfig.tsbuildinfo
+coverage/
+.jest-tmp/
+dist/
+.pnpm-store/
+models-index.json
+/.devcontainer

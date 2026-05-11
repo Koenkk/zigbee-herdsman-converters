@@ -1,39 +1,105 @@
-import extend from './extend';
-import tz from '../converters/toZigbee';
-import {Extend} from './types';
+import {Zcl} from "zigbee-herdsman";
+import type {Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
+import * as m from "./modernExtend";
+
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
+
+interface OsramCluster {
+    attributes: never;
+    commands: {
+        // biome-ignore lint/complexity/noBannedTypes: empty payload
+        saveStartupParams: {};
+        // biome-ignore lint/complexity/noBannedTypes: empty payload
+        resetStartupParams: {};
+    };
+    commandResponses: never;
+}
 
 const ledvanceExtend = {
-    light_onoff_brightness: (options: Extend.options_light_onoff_brightness={}) => {
-        options = {disablePowerOnBehavior: true, ...options};
-        return {
-            ...extend.light_onoff_brightness(options),
-            toZigbee: extend.light_onoff_brightness(options).toZigbee.concat([tz.ledvance_commands]),
-        };
-    },
-    light_onoff_brightness_colortemp: (options: Extend.options_light_onoff_brightness_colortemp={}) => {
-        options = {disablePowerOnBehavior: true, ...options};
-        return {
-            ...extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, ...options}),
-            toZigbee: extend.light_onoff_brightness_colortemp({disableColorTempStartup: true, ...options})
-                .toZigbee.concat([tz.ledvance_commands]),
-        };
-    },
-    light_onoff_brightness_color: (options: Extend.options_light_onoff_brightness_color={}) => {
-        options = {disablePowerOnBehavior: true, ...options};
-        return {
-            ...extend.light_onoff_brightness_color({supportsHueAndSaturation: true, ...options}),
-            toZigbee: extend.light_onoff_brightness_color({supportsHueAndSaturation: true, ...options}).toZigbee.concat([tz.ledvance_commands]),
-        };
-    },
-    light_onoff_brightness_colortemp_color: (options: Extend.options_light_onoff_brightness_colortemp_color={}) => {
-        options = {disablePowerOnBehavior: true, ...options};
-        return {
-            ...extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, disableColorTempStartup: true, ...options}),
-            toZigbee: extend.light_onoff_brightness_colortemp_color({supportsHueAndSaturation: true, disableColorTempStartup: true, ...options})
-                .toZigbee.concat([tz.ledvance_commands]),
-        };
-    },
+    addmanuSpecificOsramCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificOsram", {
+            name: "manuSpecificOsram",
+            ID: 0xfc0f,
+            attributes: {},
+            commands: {
+                saveStartupParams: {name: "saveStartupParams", ID: 0x01, parameters: []},
+                resetStartupParams: {name: "resetStartupParams", ID: 0x02, parameters: []},
+            },
+            commandsResponse: {
+                saveStartupParamsRsp: {name: "saveStartupParamsRsp", ID: 0x00, parameters: []},
+            },
+        }),
 };
 
-export {ledvanceExtend as extend};
-exports.extend = ledvanceExtend;
+export const ledvanceFz = {
+    pbc_level_to_action: {
+        cluster: "genLevelCtrl",
+        type: ["commandMoveWithOnOff", "commandStopWithOnOff", "commandMove", "commandStop", "commandMoveToLevelWithOnOff"],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const lookup: KeyValue = {
+                commandMoveWithOnOff: "hold",
+                commandMove: "hold",
+                commandStopWithOnOff: "release",
+                commandStop: "release",
+                commandMoveToLevelWithOnOff: "toggle",
+            };
+            return {[utils.postfixWithEndpointName("action", msg, model, meta)]: lookup[msg.type]};
+        },
+    } satisfies Fz.Converter<
+        "genLevelCtrl",
+        undefined,
+        ["commandMoveWithOnOff", "commandStopWithOnOff", "commandMove", "commandStop", "commandMoveToLevelWithOnOff"]
+    >,
+};
+
+export const ledvanceTz = {
+    ledvance_commands: {
+        /* deprecated osram_*/
+        key: ["set_transition", "remember_state", "osram_set_transition", "osram_remember_state"],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === "osram_set_transition" || key === "set_transition") {
+                if (value) {
+                    utils.assertNumber(value, key);
+                    const transition = value > 1 ? Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 10 : 1;
+                    const payload = {18: {value: transition, type: 0x21}, 19: {value: transition, type: 0x21}};
+                    await entity.write("genLevelCtrl", payload);
+                }
+            } else if (key === "osram_remember_state" || key === "remember_state") {
+                if (value === true) {
+                    await entity.command<"manuSpecificOsram", "saveStartupParams", OsramCluster>(
+                        "manuSpecificOsram",
+                        "saveStartupParams",
+                        {},
+                        manufacturerOptions,
+                    );
+                } else if (value === false) {
+                    await entity.command<"manuSpecificOsram", "resetStartupParams", OsramCluster>(
+                        "manuSpecificOsram",
+                        "resetStartupParams",
+                        {},
+                        manufacturerOptions,
+                    );
+                }
+            }
+        },
+    } satisfies Tz.Converter,
+};
+
+export function ledvanceOnOff(args?: m.OnOffArgs) {
+    args = {ota: true, configureReporting: true, ...args};
+    return m.onOff(args);
+}
+
+export function ledvanceLight(args?: m.LightArgs): ModernExtend {
+    args = {powerOnBehavior: false, ota: true, ...args};
+    if (args.colorTemp) args.colorTemp.startup = false;
+    if (args.color) args.color = {modes: ["xy", "hs"], ...(utils.isObject(args.color) ? args.color : {})};
+    const extend = m.light(args);
+    const customCluster = ledvanceExtend.addmanuSpecificOsramCluster();
+    extend.onEvent = [...(customCluster.onEvent ?? []), ...(extend.onEvent ?? [])];
+    extend.configure = [...(customCluster.configure ?? []), ...(extend.configure ?? [])];
+    extend.toZigbee.push(ledvanceTz.ledvance_commands);
+    return extend;
+}

@@ -1,119 +1,238 @@
-import {Definition} from '../lib/types';
-import * as exposes from '../lib/exposes';
-import fz from '../converters/fromZigbee';
-import * as legacy from '../lib/legacy';
-import tz from '../converters/toZigbee';
-import * as constants from '../lib/constants';
-import * as reporting from '../lib/reporting';
-import extend from '../lib/extend';
+import {Zcl} from "zigbee-herdsman";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as constants from "../lib/constants";
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import * as globalStore from "../lib/store";
+import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
+import {centraliteExtend, fzLocal as fzCentralite, type ManuSpecificCentraliteHumidity} from "./centralite";
+
 const e = exposes.presets;
 const ea = exposes.access;
 
-const definitions: Definition[] = [
+interface SamsungAccelerometer {
+    attributes: {
+        motionThresholdMultiplier: number;
+        motionThreshold: number;
+        acceleration: number;
+        xAxis: number;
+        yAxis: number;
+        zAxis: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SmartThingsArrivalSensor {
+    attributes: never;
+    commands: never;
+    commandResponses: {
+        arrivalSensorNotify: Record<string, never>;
+    };
+}
+
+export const smartthingsExtend = {
+    addManuSpecificSamsungAccelerometerCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificSamsungAccelerometer", {
+            name: "manuSpecificSamsungAccelerometer",
+            ID: 0xfc02,
+            manufacturerCode: Zcl.ManufacturerCode.SMARTTHINGS_INC,
+            attributes: {
+                motionThresholdMultiplier: {name: "motionThresholdMultiplier", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                motionThreshold: {name: "motionThreshold", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                acceleration: {name: "acceleration", ID: 0x0010, type: Zcl.DataType.BITMAP8, write: true, max: 0xff},
+                xAxis: {name: "xAxis", ID: 0x0012, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                yAxis: {name: "yAxis", ID: 0x0013, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                zAxis: {name: "zAxis", ID: 0x0014, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addManuSpecificSmartThingsArrivalSensorCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificSmartThingsArrivalSensor", {
+            name: "manuSpecificSmartThingsArrivalSensor",
+            ID: 0xfc05,
+            manufacturerCode: Zcl.ManufacturerCode.SMARTTHINGS_INC,
+            attributes: {},
+            commands: {},
+            commandsResponse: {
+                arrivalSensorNotify: {name: "arrivalSensorNotify", ID: 0x01, parameters: []},
+            },
+        }),
+};
+
+export const fzLocal = {
+    acceleration: {
+        cluster: "manuSpecificSamsungAccelerometer",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValue = {};
+            if (msg.data.acceleration !== undefined) payload.moving = msg.data.acceleration === 1;
+
+            // https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy#L222
+            /*
+                    The axes reported by the sensor are mapped differently in the SmartThings DTH.
+                    Preserving that functionality here.
+                    xyzResults.x = z
+                    xyzResults.y = y
+                    xyzResults.z = -x
+                */
+            if (msg.data.zAxis !== undefined) payload.x_axis = msg.data.zAxis;
+            if (msg.data.yAxis !== undefined) payload.y_axis = msg.data.yAxis;
+            if (msg.data.xAxis !== undefined) payload.z_axis = -msg.data.xAxis;
+
+            return payload;
+        },
+    } satisfies Fz.Converter<"manuSpecificSamsungAccelerometer", SamsungAccelerometer, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    PGC410EU_presence: {
+        cluster: "manuSpecificSmartThingsArrivalSensor",
+        type: "commandArrivalSensorNotify",
+        options: [exposes.options.presence_timeout()],
+        convert: (model, msg, publish, options, meta) => {
+            const useOptionsTimeout = options?.presence_timeout != null;
+            const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
+            // Stop existing timer because motion is detected and set a new one.
+            clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
+
+            const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+            globalStore.putValue(msg.endpoint, "timer", timer);
+            return {presence: true};
+        },
+    } satisfies Fz.Converter<"manuSpecificSmartThingsArrivalSensor", SmartThingsArrivalSensor, "commandArrivalSensorNotify">,
+};
+
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['PGC313'],
-        model: 'STSS-MULT-001',
-        vendor: 'SmartThings',
-        description: 'Multipurpose sensor',
+        zigbeeModel: ["PGC313"],
+        model: "STSS-MULT-001",
+        vendor: "SmartThings",
+        description: "Multipurpose sensor",
         fromZigbee: [fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.contact(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['PGC314'],
-        model: 'STSS-IRM-001',
-        vendor: 'SmartThings',
-        description: 'Motion sensor (2013 model)',
+        zigbeeModel: ["PGC314"],
+        model: "STSS-IRM-001",
+        vendor: "SmartThings",
+        description: "Motion sensor (2013 model)",
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
         exposes: [e.occupancy(), e.battery_low(), e.tamper()],
     },
     {
-        zigbeeModel: ['tagv4'],
-        model: 'STS-PRS-251',
-        vendor: 'SmartThings',
-        description: 'Arrival sensor',
-        fromZigbee: [fz.STS_PRS_251_presence, fz.battery, legacy.fz.STS_PRS_251_beeping],
-        exposes: [e.battery(), e.presence(), e.action(['beeping']),
-            e.enum('beep', ea.SET, ['2', '5', '10', '15', '30']).withDescription('Trigger beep for x seconds')],
+        zigbeeModel: ["tagv4"],
+        model: "STS-PRS-251",
+        vendor: "SmartThings",
+        description: "Arrival sensor",
+        fromZigbee: [fz.STS_PRS_251_presence, fz.battery, fz.identify],
+        exposes: [
+            e.battery(),
+            e.presence(),
+            e.action(["identify"]),
+            e.enum("beep", ea.SET, ["2", "5", "10", "15", "30"]).withDescription("Trigger beep for x seconds"),
+        ],
         toZigbee: [tz.STS_PRS_251_beep],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'genBinaryInput']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genBinaryInput"]);
             await reporting.batteryVoltage(endpoint);
             await reporting.presentValue(endpoint);
         },
     },
     {
-        zigbeeModel: ['PGC410EU', 'PGC410'],
-        model: 'STSS-PRES-001',
-        vendor: 'SmartThings',
-        description: 'Presence sensor',
-        fromZigbee: [fz.PGC410EU_presence, fz.battery],
+        zigbeeModel: ["PGC410EU", "PGC410"],
+        model: "STSS-PRES-001",
+        vendor: "SmartThings",
+        description: "Presence sensor",
+        extend: [smartthingsExtend.addManuSpecificSmartThingsArrivalSensorCluster()],
+        fromZigbee: [fzLocal.PGC410EU_presence, fz.battery],
         exposes: [e.battery(), e.presence()],
         toZigbee: [],
     },
     {
-        zigbeeModel: ['3325-S'],
-        model: '3325-S',
-        vendor: 'SmartThings',
-        description: 'Motion sensor (2015 model)',
+        zigbeeModel: ["3325-S"],
+        model: "3325-S",
+        vendor: "SmartThings",
+        description: "Motion sensor (2015 model)",
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: "3V_2100"}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.temperature(), e.occupancy(), e.battery(), e.tamper()],
     },
     {
-        zigbeeModel: ['3321-S'],
-        model: '3321-S',
-        vendor: 'SmartThings',
-        description: 'Multi Sensor (2015 model)',
-        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1_report, fz.ias_contact_alarm_1, fz.battery, fz.smartthings_acceleration],
+        zigbeeModel: ["3321-S"],
+        model: "3321-S",
+        vendor: "SmartThings",
+        description: "Multi Sensor (2015 model)",
+        extend: [smartthingsExtend.addManuSpecificSamsungAccelerometerCluster()],
+        fromZigbee: [fz.temperature, fz.ias_contact_alarm_1_report, fz.ias_contact_alarm_1, fz.battery, fzLocal.acceleration],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2100'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: "3V_2100"}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x104E};
-            await reporting.bind(endpoint, coordinatorEndpoint,
-                ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
+            const options = {manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC};
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg", "manuSpecificSamsungAccelerometer"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            const payloadA = reporting.payload('acceleration', 10, constants.repInterval.MINUTE, 1);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadA, options);
-            const payloadX = reporting.payload('x_axis', 10, constants.repInterval.MINUTE, 1);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadX, options);
-            const payloadY = reporting.payload('y_axis', 10, constants.repInterval.MINUTE, 1);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadY, options);
-            const payloadZ = reporting.payload('z_axis', 10, constants.repInterval.MINUTE, 1);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadZ, options);
+            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "acceleration",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
+            await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
+            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "xAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
+            await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadX, options);
+            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "yAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
+            await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadY, options);
+            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "zAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
+            await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadZ, options);
             // Has Unknown power source, force it.
-            device.powerSource = 'Battery';
+            device.powerSource = "Battery";
             device.save();
         },
-        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
-            e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],
     },
     {
-        zigbeeModel: ['3200-Sgb'],
-        model: 'F-APP-UK-V2',
-        vendor: 'SmartThings',
-        description: 'Zigbee Outlet UK with power meter',
+        zigbeeModel: ["3200-Sgb"],
+        model: "F-APP-UK-V2",
+        vendor: "SmartThings",
+        description: "Zigbee Outlet UK with power meter",
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement"]);
             await reporting.onOff(endpoint);
             // Does not support reading of acVoltageMultiplier/acVoltageDivisor
-            await endpoint.read('haElectricalMeasurement', ['acCurrentMultiplier', 'acCurrentDivisor']);
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
+            await endpoint.read("haElectricalMeasurement", ["acCurrentMultiplier", "acCurrentDivisor"]);
+            await endpoint.read("haElectricalMeasurement", ["acPowerMultiplier", "acPowerDivisor"]);
             // Limit updates to 3V and max 600s (10m)
             await reporting.rmsVoltage(endpoint, {max: 600, change: 3});
             // Limit updates to 0.01A and max 600s (10m)
@@ -124,33 +243,24 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
-        zigbeeModel: ['ZB-ONOFFPlug-D0005'],
-        model: 'GP-WOU019BBDWG',
-        vendor: 'SmartThings',
-        description: 'Outlet with power meter',
-        extend: extend.switch({fromZigbee: [fz.electrical_measurement, fz.metering], exposes: [e.power(), e.energy()]}),
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement', 'seMetering']);
-            await reporting.onOff(endpoint);
-            // This plug only actively reports power. The voltage and current values are always 0, so we can ignore them.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/5198
-            await endpoint.read('haElectricalMeasurement', ['acPowerMultiplier', 'acPowerDivisor']);
-            await reporting.activePower(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-        },
+        zigbeeModel: ["ZB-ONOFFPlug-D0005"],
+        model: "GP-WOU019BBDWG",
+        vendor: "SmartThings",
+        description: "Outlet with power meter",
+        // This plug only actively reports power. The voltage and current values are always 0, so we can ignore them.
+        // https://github.com/Koenkk/zigbee2mqtt/issues/5198
+        extend: [m.onOff(), m.electricityMeter({current: false, voltage: false})],
     },
     {
-        zigbeeModel: ['outlet'],
-        model: 'IM6001-OTP05',
-        vendor: 'SmartThings',
-        description: 'Outlet',
+        zigbeeModel: ["outlet"],
+        model: "IM6001-OTP05",
+        vendor: "SmartThings",
+        description: "Outlet",
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement"]);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
@@ -160,20 +270,22 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
-        zigbeeModel: ['outletv4'],
-        model: 'STS-OUT-US-2',
-        vendor: 'SmartThings',
-        description: 'Zigbee smart plug with power meter',
+        zigbeeModel: ["outletv4"],
+        model: "STS-OUT-US-2",
+        vendor: "SmartThings",
+        description: "Zigbee smart plug with power meter",
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'haElectricalMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement"]);
             await reporting.onOff(endpoint);
             try {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/11706
                 await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            } catch (error) {/* Fails for some*/}
+            } catch {
+                /* Fails for some*/
+            }
             await reporting.activePower(endpoint);
             await reporting.rmsCurrent(endpoint);
             await reporting.rmsVoltage(endpoint, {change: 10});
@@ -181,319 +293,345 @@ const definitions: Definition[] = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
     },
     {
-        zigbeeModel: ['motion'],
-        model: 'IM6001-MTP01',
-        vendor: 'SmartThings',
-        description: 'Motion sensor (2018 model)',
+        zigbeeModel: ["motion"],
+        model: "IM6001-MTP01",
+        vendor: "SmartThings",
+        description: "Motion sensor (2018 model)",
         fromZigbee: [fz.temperature, fz.ignore_iaszone_report, fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['motionv5'],
-        model: 'STS-IRM-251',
-        vendor: 'SmartThings',
-        description: 'Motion sensor (2017 model)',
+        zigbeeModel: ["motionv5"],
+        model: "STS-IRM-251",
+        vendor: "SmartThings",
+        description: "Motion sensor (2017 model)",
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            device.powerSource = 'Battery';
+            device.powerSource = "Battery";
             device.save();
         },
         exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['motionv4'],
-        model: 'STS-IRM-250',
-        vendor: 'SmartThings',
-        description: 'Motion sensor (2016 model)',
+        zigbeeModel: ["motionv4"],
+        model: "STS-IRM-250",
+        vendor: "SmartThings",
+        description: "Motion sensor (2016 model)",
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.ias_occupancy_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: "3V_1500_2800"}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
             // Has Unknown power source, force it.
-            device.powerSource = 'Battery';
+            device.powerSource = "Battery";
             device.save();
         },
         exposes: [e.temperature(), e.occupancy(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['3305-S', '3305'],
-        model: '3305-S',
-        vendor: 'SmartThings',
-        description: 'Motion sensor (2014 model)',
+        zigbeeModel: ["3305-S", "3305"],
+        model: "3305-S",
+        vendor: "SmartThings",
+        description: "Motion sensor (2014 model)",
         fromZigbee: [fz.temperature, fz.ias_occupancy_alarm_2, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.temperature(), e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['3300-S'],
-        model: '3300-S',
-        vendor: 'SmartThings',
-        description: 'Door sensor',
+        zigbeeModel: ["3300-S"],
+        model: "3300-S",
+        vendor: "SmartThings",
+        description: "Door sensor",
         fromZigbee: [fz.temperature, fz.ias_contact_alarm_1_report, fz.ias_contact_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['multiv4'],
-        model: 'F-MLT-US-2',
-        vendor: 'SmartThings',
-        description: 'Multipurpose sensor (2016 model)',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1, fz.smartthings_acceleration],
+        zigbeeModel: ["multiv4"],
+        model: "F-MLT-US-2",
+        vendor: "SmartThings",
+        description: "Multipurpose sensor (2016 model)",
+        extend: [smartthingsExtend.addManuSpecificSamsungAccelerometerCluster()],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1, fzLocal.acceleration],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_1500_2800'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: "3V_1500_2800"}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x110A};
-            await reporting.bind(endpoint, coordinatorEndpoint,
-                ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
-            await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x01, type: 0x20}}, options);
-            await endpoint.write('manuSpecificSamsungAccelerometer', {0x0002: {value: 0x0276, type: 0x21}}, options);
+            const options = {manufacturerCode: Zcl.ManufacturerCode.SMARTTHINGS_INC};
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg", "manuSpecificSamsungAccelerometer"]);
+            await endpoint.write("manuSpecificSamsungAccelerometer", {0: {value: 0x01, type: 0x20}}, options);
+            await endpoint.write("manuSpecificSamsungAccelerometer", {2: {value: 0x0276, type: 0x21}}, options);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
-            const payloadA = reporting.payload('acceleration', 10, constants.repInterval.MINUTE, 1);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadA, options);
-            const payloadX = reporting.payload('x_axis', 10, constants.repInterval.MINUTE, 1);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadX, options);
-            const payloadY = reporting.payload('y_axis', 10, constants.repInterval.MINUTE, 1);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadY, options);
-            const payloadZ = reporting.payload('z_axis', 10, constants.repInterval.MINUTE, 1);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadZ, options);
+            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "acceleration",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
+            await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
+            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "xAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
+            await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadX, options);
+            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "yAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
+            await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadY, options);
+            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "zAxis",
+                10,
+                constants.repInterval.MINUTE,
+                1,
+            );
+            await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadZ, options);
             // Has Unknown power source, force it.
-            device.powerSource = 'Battery';
+            device.powerSource = "Battery";
             device.save();
         },
-        exposes: [
-            e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
-            e.moving(), e.x_axis(), e.y_axis(), e.z_axis(),
-        ],
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],
     },
     {
-        zigbeeModel: ['multi'],
-        model: 'IM6001-MPP01',
-        vendor: 'SmartThings',
-        description: 'Multipurpose sensor (2018 model)',
-        fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1, fz.smartthings_acceleration],
+        zigbeeModel: ["multi"],
+        model: "IM6001-MPP01",
+        vendor: "SmartThings",
+        description: "Multipurpose sensor (2018 model)",
+        extend: [smartthingsExtend.addManuSpecificSamsungAccelerometerCluster()],
+        fromZigbee: [fz.temperature, fz.battery, fz.ias_contact_alarm_1, fzLocal.acceleration],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const options = {manufacturerCode: 0x1241};
-            await reporting.bind(endpoint, coordinatorEndpoint,
-                ['msTemperatureMeasurement', 'genPowerCfg', 'manuSpecificSamsungAccelerometer']);
-            await endpoint.write('manuSpecificSamsungAccelerometer', {0x0000: {value: 0x14, type: 0x20}}, options);
+            const options = {manufacturerCode: Zcl.ManufacturerCode.SAMJIN_CO_LTD};
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg", "manuSpecificSamsungAccelerometer"]);
+            await endpoint.write("manuSpecificSamsungAccelerometer", {0: {value: 0x14, type: 0x20}}, options);
+            await endpoint.write("genPollCtrl", {checkinInterval: 14400});
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            const payloadA = reporting.payload('acceleration', 10, constants.repInterval.HOUR, 5);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadA, options);
-            const payloadX = reporting.payload('x_axis', 10, constants.repInterval.HOUR, 5);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadX, options);
-            const payloadY = reporting.payload('y_axis', 10, constants.repInterval.HOUR, 5);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadY, options);
-            const payloadZ = reporting.payload('z_axis', 10, constants.repInterval.HOUR, 5);
-            await endpoint.configureReporting('manuSpecificSamsungAccelerometer', payloadZ, options);
+            const payloadA = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>(
+                "acceleration",
+                10,
+                constants.repInterval.HOUR,
+                5,
+            );
+            await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadA, options);
+            const payloadX = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>("xAxis", 10, constants.repInterval.HOUR, 5);
+            await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadX, options);
+            const payloadY = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>("yAxis", 10, constants.repInterval.HOUR, 5);
+            await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadY, options);
+            const payloadZ = reporting.payload<"manuSpecificSamsungAccelerometer", SamsungAccelerometer>("zAxis", 10, constants.repInterval.HOUR, 5);
+            await endpoint.configureReporting("manuSpecificSamsungAccelerometer", payloadZ, options);
         },
-        exposes: [
-            e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(),
-            e.moving(), e.x_axis(), e.y_axis(), e.z_axis(),
-        ],
+        exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper(), e.battery(), e.moving(), e.x_axis(), e.y_axis(), e.z_axis()],
     },
     {
-        zigbeeModel: ['3310-S'],
-        model: '3310-S',
-        vendor: 'SmartThings',
-        description: 'Temperature and humidity sensor',
-        fromZigbee: [fz.temperature, fz._3310_humidity, fz.battery],
+        zigbeeModel: ["3310-S"],
+        model: "3310-S",
+        vendor: "SmartThings",
+        description: "Temperature and humidity sensor",
+        extend: [centraliteExtend.addManuSpecificCentraliteHumidityCluster()],
+        fromZigbee: [fz.temperature, fzCentralite.d3310_humidity, fz.battery],
         exposes: [e.temperature(), e.humidity(), e.battery()],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['msTemperatureMeasurement', 'manuSpecificCentraliteHumidity', 'genPowerCfg'];
+            const binds = ["msTemperatureMeasurement", "manuSpecificCentraliteHumidity", "genPowerCfg"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.temperature(endpoint);
 
-            const payload = [{
-                attribute: 'measuredValue',
-                minimumReportInterval: 10,
-                maximumReportInterval: constants.repInterval.HOUR,
-                reportableChange: 10,
-            }];
-            await endpoint.configureReporting('manuSpecificCentraliteHumidity', payload, {manufacturerCode: 0x104E});
+            const payload = [
+                {
+                    attribute: "measuredValue" as const,
+                    minimumReportInterval: 10,
+                    maximumReportInterval: constants.repInterval.HOUR,
+                    reportableChange: 10,
+                },
+            ];
+            await endpoint.configureReporting<"manuSpecificCentraliteHumidity", ManuSpecificCentraliteHumidity>(
+                "manuSpecificCentraliteHumidity",
+                payload,
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.CENTRALITE_SYSTEMS_INC,
+                },
+            );
 
             await reporting.batteryVoltage(endpoint);
         },
     },
     {
-        zigbeeModel: ['3315-S'],
-        model: '3315-S',
-        vendor: 'SmartThings',
-        description: 'Water sensor',
+        zigbeeModel: ["3315-S"],
+        model: "3315-S",
+        vendor: "SmartThings",
+        description: "Water sensor",
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['3315-Seu'],
-        model: 'WTR-UK-V2',
-        vendor: 'SmartThings',
-        description: 'Water leak sensor (2015 model)',
+        zigbeeModel: ["3315-Seu"],
+        model: "WTR-UK-V2",
+        vendor: "SmartThings",
+        description: "Water leak sensor (2015 model)",
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['water'],
-        model: 'IM6001-WLP01',
-        vendor: 'SmartThings',
-        description: 'Water leak sensor (2018 model)',
+        zigbeeModel: ["water"],
+        model: "IM6001-WLP01",
+        vendor: "SmartThings",
+        description: "Water leak sensor (2018 model)",
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery, fz.ias_water_leak_alarm_1_report],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
         },
-        exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
+        exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.voltage()],
     },
     {
-        zigbeeModel: ['moisturev4'],
-        model: 'STS-WTR-250',
-        vendor: 'SmartThings',
-        description: 'Water leak sensor (2016 model)',
+        zigbeeModel: ["moisturev4"],
+        model: "STS-WTR-250",
+        vendor: "SmartThings",
+        description: "Water leak sensor (2016 model)",
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery, fz.temperature],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg', 'msTemperatureMeasurement']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "msTemperatureMeasurement"]);
             await reporting.batteryVoltage(endpoint);
             await reporting.temperature(endpoint);
-            device.powerSource = 'Battery';
+            device.powerSource = "Battery";
             device.save();
         },
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.temperature()],
     },
     {
-        zigbeeModel: ['3315-G'],
-        model: '3315-G',
-        vendor: 'SmartThings',
-        description: 'Water sensor',
+        zigbeeModel: ["3315-G"],
+        model: "3315-G",
+        vendor: "SmartThings",
+        description: "Water sensor",
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ['F-ADT-WTR-1'],
-        model: 'F-ADT-WTR-1',
-        vendor: 'SmartThings',
-        description: 'ADT water leak detector',
+        zigbeeModel: ["F-ADT-WTR-1"],
+        model: "F-ADT-WTR-1",
+        vendor: "SmartThings",
+        description: "ADT water leak detector",
         fromZigbee: [fz.temperature, fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: '3V_2500'}},
-        configure: async (device, coordinatorEndpoint, logger) => {
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
         exposes: [e.temperature(), e.water_leak(), e.battery_low(), e.battery()],
     },
     {
-        zigbeeModel: ['button'],
-        model: 'IM6001-BTP01',
-        vendor: 'SmartThings',
-        description: 'Button',
-        fromZigbee: [fz.command_status_change_notification_action, legacy.fz.st_button_state, fz.battery, fz.temperature,
-            fz.ignore_iaszone_attreport],
-        exposes: [e.action(['off', 'single', 'double', 'hold']), e.battery(), e.temperature()],
+        zigbeeModel: ["button"],
+        model: "IM6001-BTP01",
+        vendor: "SmartThings",
+        description: "Button",
+        fromZigbee: [fz.command_status_change_notification_action, fz.battery, fz.temperature, fz.ignore_iaszone_attreport],
+        exposes: [e.action(["off", "single", "double", "hold"]), e.battery(), e.temperature()],
         toZigbee: [],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['msTemperatureMeasurement', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
     },
     {
-        zigbeeModel: ['Z-SRN12N', 'SZ-SRN12N'],
-        model: 'SZ-SRN12N',
-        vendor: 'SmartThings',
-        description: 'Smart siren',
+        zigbeeModel: ["Z-SRN12N", "SZ-SRN12N"],
+        model: "SZ-SRN12N",
+        vendor: "SmartThings",
+        description: "Smart siren",
         fromZigbee: [],
         toZigbee: [tz.warning],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
         },
         exposes: [e.warning()],
     },
     {
-        zigbeeModel: ['zbt-dimlight-gls0006'],
-        model: 'GP-LBU019BBAWU',
-        vendor: 'SmartThings',
-        description: 'Smart bulb',
-        extend: extend.light_onoff_brightness(),
+        zigbeeModel: ["zbt-dimlight-gls0006"],
+        model: "GP-LBU019BBAWU",
+        vendor: "SmartThings",
+        description: "Smart bulb",
+        extend: [m.light()],
     },
     {
-        zigbeeModel: ['ZBT-DIMLight-GLS0044'],
-        model: '7ZA-A806ST-Q1R',
-        vendor: 'SmartThings',
-        description: 'Smart bulb',
-        extend: extend.light_onoff_brightness(),
+        zigbeeModel: ["ZBT-DIMLight-GLS0044"],
+        model: "7ZA-A806ST-Q1R",
+        vendor: "SmartThings",
+        description: "Smart bulb",
+        extend: [m.light()],
     },
 ];
-
-module.exports = definitions;

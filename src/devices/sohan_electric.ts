@@ -1,16 +1,14 @@
-import {Definition} from '../lib/types';
-import fz from '../converters/fromZigbee';
-import extend from '../lib/extend';
+import * as m from "../lib/modernExtend";
+import * as tuya from "../lib/tuya";
+import type {DefinitionWithExtend} from "../lib/types";
 
-const definitions: Definition[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: 'TS0001', manufacturerName: '_TZ3000_bezfthwc'}],
-        model: 'RDCBC/Z',
-        vendor: 'SOHAN Electric',
-        description: 'DIN circuit breaker (1 pole / 2 poles)',
-        extend: extend.switch(),
-        fromZigbee: [fz.on_off, fz.ignore_basic_report, fz.ignore_time_read],
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_bezfthwc"]),
+        model: "RDCBC/Z",
+        vendor: "SOHAN Electric",
+        description: "DIN circuit breaker (1 pole / 2 poles)",
+        extend: [m.onOff()],
+        fromZigbee: [],
     },
 ];
-
-module.exports = definitions;
