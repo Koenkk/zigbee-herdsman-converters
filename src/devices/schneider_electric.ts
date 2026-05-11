@@ -1666,12 +1666,12 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result = fz.lighting_ballast_configuration.convert(model, msg, publish, options, meta) as KeyValueAny;
             const lookup: Record<number, string> = {1: "RC", 2: "RL"};
-            if (result && msg.data[0xe000] !== undefined) {
-                result.dimmer_mode = lookup[msg.data[0xe000] as number];
+            if (result && msg.data.wiserControlMode !== undefined) {
+                result.dimmer_mode = lookup[msg.data.wiserControlMode];
             }
             return result;
         },
-    } satisfies Fz.Converter<"lightingBallastCfg", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"lightingBallastCfg", SchneiderLightingBallastCfg, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
