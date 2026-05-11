@@ -1496,7 +1496,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Flood Gen 4",
         extend: [
             m.battery(),
-            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
+            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low", "trouble"]}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],

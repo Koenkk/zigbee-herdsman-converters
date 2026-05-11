@@ -3824,15 +3824,6 @@ export const ZB003X_occupancy: Fz.Converter<"ssIasZone", undefined, "commandStat
         return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
     },
 };
-export const schneider_temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "msTemperatureMeasurement",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const temperature = msg.data.measuredValue / 100.0;
-        const property = postfixWithEndpointName("local_temperature", msg, model, meta);
-        return {[property]: temperature};
-    },
-};
 export const rc_110_level_to_scene: Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevel", "commandMoveToLevelWithOnOff"]> = {
     cluster: "genLevelCtrl",
     type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff"],
@@ -4329,18 +4320,6 @@ export const ZM35HQ_attr: Fz.Converter<"ssIasZone", undefined, ["attributeReport
         if (data && data["61441"] !== undefined) {
             const keeptimelookup: Record<number, number> = {0: 30, 1: 60, 2: 120};
             result.keep_time = keeptimelookup[data["61441"] as number];
-        }
-        return result;
-    },
-};
-export const schneider_lighting_ballast_configuration: Fz.Converter<"lightingBallastCfg", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "lightingBallastCfg",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = lighting_ballast_configuration.convert(model, msg, publish, options, meta) as KeyValueAny;
-        const lookup: Record<number, string> = {1: "RC", 2: "RL"};
-        if (result && msg.data[0xe000] !== undefined) {
-            result.dimmer_mode = lookup[msg.data[0xe000] as number];
         }
         return result;
     },

@@ -756,6 +756,7 @@ const tuyaExposes = {
             .withFeature(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable inching"))
             .withFeature(e.numeric("minutes", ea.STATE_SET).withUnit("m").withValueMin(0).withValueMax(1440).withDescription("Delay minutes"))
             .withFeature(e.numeric("seconds", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(59).withDescription("Delay seconds")),
+    circuitBreakerFault: () => e.text("fault", ea.STATE).withDescription("Fault status of the circuit breaker (clear = nothing)"),
 };
 
 export {tuyaExposes as exposes};
@@ -2099,6 +2100,36 @@ export const valueConverter = {
             const seconds = totalSeconds % 60;
 
             return {state, minutes, seconds};
+        },
+    },
+    circuitBreakerFault: {
+        from: (value: number) => {
+            // value is a bitmap where each bit represents a fault flag
+            if (!value || value === 0) return "clear";
+            const mapping: [number, string][] = [
+                [1, "short_circuit_alarm"],
+                [2, "surge_alarm"],
+                [4, "overload_alarm"],
+                [8, "leakagecurr_alarm"],
+                [16, "temp_dif_fault"],
+                [32, "fire_alarm"],
+                [64, "high_power_alarm"],
+                [128, "self_test_alarm"],
+                [256, "ov_cr"],
+                [512, "unbalance_alarm"],
+                [1024, "ov_vol"],
+                [2048, "undervoltage_alarm"],
+                [4096, "miss_phase_alarm"],
+                [8192, "outage_alarm"],
+                [16384, "magnetism_alarm"],
+                [32768, "credit_alarm"],
+                [65536, "no_balance_alarm"],
+            ];
+            const flags: string[] = [];
+            for (const [bit, name] of mapping) {
+                if ((value & bit) === bit) flags.push(name);
+            }
+            return flags.length ? flags.join(",") : "clear";
         },
     },
 };

@@ -491,7 +491,7 @@ const danfossExtend = {
         }),
     danfossThermostatOrientation: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
         m.binary<"hvacThermostat", DanfossHvacThermostat>({
-            name: "thermostat_vertical_orientation",
+            name: "thermostat_orientation",
             cluster: "hvacThermostat",
             attribute: "danfossThermostatOrientation",
             description: "Thermostat Orientation. This is important for the PID in how it assesses temperature.",
