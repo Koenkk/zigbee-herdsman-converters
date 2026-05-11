@@ -2969,61 +2969,6 @@ export const tint_scene: Tz.Converter = {
         await entity.write("genBasic", {16389: {value, type: 0x20}}, manufacturerOptions.tint);
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const bticino_4027C_cover_state: Tz.Converter = {
-    key: ["state"],
-    options: [exposes.options.invert_cover()],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value);
-        const invert = !(utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false)
-            ? !meta.options.invert_cover
-            : meta.options.invert_cover);
-        const lookup = invert
-            ? {open: "upOpen" as const, close: "downClose" as const, stop: "stop" as const, on: "upOpen" as const, off: "downClose" as const}
-            : {open: "downClose" as const, close: "upOpen" as const, stop: "stop" as const, on: "downClose" as const, off: "upOpen" as const};
-
-        value = value.toLowerCase();
-        utils.validateValue(value, Object.keys(lookup));
-
-        let position = 50;
-        if (value === "open") {
-            position = 100;
-        } else if (value === "close") {
-            position = 0;
-        }
-        await entity.command("closuresWindowCovering", utils.getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
-        return {state: {position}};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const bticino_4027C_cover_position: Tz.Converter = {
-    key: ["position"],
-    options: [exposes.options.invert_cover(), exposes.options.no_position_support()],
-    convertSet: async (entity, key, value, meta) => {
-        const invert = !(utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false)
-            ? !meta.options.invert_cover
-            : meta.options.invert_cover);
-        utils.assertNumber(value, key);
-        let newPosition = value;
-        if (meta.options.no_position_support) {
-            newPosition = value >= 50 ? 100 : 0;
-        }
-        const position = newPosition;
-        if (invert) {
-            newPosition = 100 - newPosition;
-        }
-        await entity.command(
-            "closuresWindowCovering",
-            "goToLiftPercentage",
-            {percentageliftvalue: newPosition},
-            utils.getOptions(meta.mapped, entity),
-        );
-        return {state: {position: position}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("closuresWindowCovering", ["currentPositionLiftPercentage"]);
-    },
-};
 export const legrand_power_alarm: Tz.Converter = {
     key: ["power_alarm"],
     convertSet: async (entity, key, value, meta) => {
