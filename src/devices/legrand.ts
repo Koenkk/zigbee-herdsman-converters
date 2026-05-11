@@ -25,7 +25,7 @@ const fzLocal = {
             const action = groupMap[groupId] ?? `recall_group_${groupId}`;
             return {action, action_group: groupId};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
