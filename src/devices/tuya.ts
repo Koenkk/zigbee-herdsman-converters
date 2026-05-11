@@ -11001,7 +11001,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_sal078g8", "_TZ3002_sfh0jtz0"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_sal078g8", "_TZ3002_sfh0jtz0", "_TZ3000_cumqn2av", "_TZ300A_fhbcipep"]),
         model: "TS0726_switch_4g_2s",
         vendor: "Tuya",
         description: "COSWALL smart switch (4 gang + 2 scene)",
