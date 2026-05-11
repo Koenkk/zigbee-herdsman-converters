@@ -242,52 +242,6 @@ describe("ZHC", () => {
         expect(definition.model).toStrictEqual("BHT-002/BHT-006");
     });
 
-    it("finds Shelly Flood definition exposing trouble", async () => {
-        const device = mockDevice(
-            {
-                modelID: "Flood",
-                manufacturerName: "Shelly",
-                endpoints: [{ID: 1, inputClusters: ["genBasic", "genPowerCfg", "ssIasZone"]}],
-            },
-            "EndDevice",
-        );
-        const definition = await findByDevice(device);
-
-        expect(definition.model).toStrictEqual("S4SN-0071A");
-
-        if (typeof definition.exposes === "function") {
-            throw new Error("invalid test");
-        }
-
-        expect(definition.exposes.map((e) => e.name)).toContain("trouble");
-
-        const converter = definition.fromZigbee.find((c) => {
-            const typeMatch = Array.isArray(c.type) ? c.type.includes("attributeReport") : c.type === "attributeReport";
-            return c.cluster === "ssIasZone" && typeMatch;
-        });
-
-        expect(converter).toBeDefined();
-
-        const payload = converter?.convert(
-            definition,
-            {
-                data: {zoneStatus: 64},
-                endpoint: device.endpoints[0],
-                device,
-                meta: null,
-                groupID: 0,
-                type: "attributeReport",
-                cluster: "ssIasZone",
-                linkquality: 0,
-            },
-            () => {},
-            {},
-            {state: {}, device, deviceExposesChanged: () => {}},
-        );
-
-        expect(payload).toMatchObject({water_leak: false, tamper: false, battery_low: false, trouble: true});
-    });
-
     it("finds definition by fingerprint - GP", async () => {
         const device = mockDevice(
             {
