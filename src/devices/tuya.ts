@@ -6331,6 +6331,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_1adss9de",
             "_TZ3000_x8mbwtsz",
             "_TZ3000_iktiy8ue",
+            "_TZ3000_zojh9vz7",
         ]),
         model: "TS0001_power",
         description: "Switch with power monitoring",
@@ -12518,7 +12519,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Tuya", "FS-05R", "Mini dimmable switch 1 channel", ["_TZ3000_mgusv51k"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0052", ["_TZ3000_zjtxnoft", "_TZ3000_kvwrdf47"]),
+        fingerprint: tuya.fingerprint("TS0052", ["_TZ3000_zjtxnoft", "_TZ3000_kvwrdf47", "_TZ3000_sfibawtr"]),
         model: "TS0052_2",
         vendor: "Tuya",
         description: "Zigbee dimmer module 2 channel",
