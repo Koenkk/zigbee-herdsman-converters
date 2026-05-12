@@ -2738,7 +2738,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "The measured CO level",
                 access: "STATE_GET",
                 scale: 0.000001,
-                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 0.000010},
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 0.00001},
             }),
             m.numeric({
                 name: "reported_packages",
@@ -2828,7 +2828,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "The measured CO level",
                 access: "STATE_GET",
                 scale: 0.000001,
-                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 0.000010},
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 0.00001},
             }),
             m.numeric({
                 name: "reported_packages",
@@ -2972,7 +2972,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "The measured CO level",
                 access: "STATE_GET",
                 scale: 0.000001,
-                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 0.000010},
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 0.00001},
             }),
             m.numeric({
                 name: "smoke_level",
