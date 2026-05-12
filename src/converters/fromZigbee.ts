@@ -396,7 +396,7 @@ export const lock_pin_code_response: Fz.Converter<"closuresDoorLock", undefined,
         const result: KeyValueAny = {users: {}};
         result.users[userId] = {status: status};
         if (options?.expose_pin && data.pincodevalue) {
-            result.users[userId].pin_code = data.pincodevalue;
+            result.users[userId].pin_code = data.pincodevalue.toString();
         }
         return result;
     },
