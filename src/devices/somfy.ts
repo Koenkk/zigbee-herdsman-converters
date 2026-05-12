@@ -77,7 +77,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["Ysia 1 Zigbee Europe"],
+        zigbeeModel: ["Ysia 1 Zigbee Europe", "Ysia 1 HP Zigbee"],
         model: "1871157",
         vendor: "SOMFY",
         description: "Ysia 1 channel blinds remote",

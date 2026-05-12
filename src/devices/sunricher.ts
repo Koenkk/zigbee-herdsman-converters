@@ -7,6 +7,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import {setupConfigureForBinding} from "../lib/modernExtend";
+import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as sunricher from "../lib/sunricher";
@@ -2071,7 +2072,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9092A",
         vendor: "Sunricher",
         description: "Touch thermostat",
-        fromZigbee: [fz.thermostat, fz.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
+        fromZigbee: [fz.thermostat, namron.fromZigbee.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
@@ -2082,7 +2083,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_system_mode,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_running_state,
-            tz.namron_thermostat,
+            namron.toZigbee.namron_thermostat,
             tz.namron_thermostat_child_lock,
         ],
         exposes: [
@@ -2146,7 +2147,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45."),
         ],
         // Device does not ask for the time with binding, therefore we write the time every 24 hours
-        extend: [m.writeTimeDaily({endpointId: 1})],
+        extend: [m.writeTimeDaily({endpointId: 1}), namron.namronExtend.addNamronHvacThermostatCluster()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -2428,7 +2429,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9095B",
         vendor: "Sunricher",
         description: "Touch thermostat",
-        fromZigbee: [fz.thermostat, fz.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface, fzLocal.ZG9095B],
+        fromZigbee: [
+            fz.thermostat,
+            namron.fromZigbee.namron_thermostat,
+            fz.metering,
+            fz.electrical_measurement,
+            fz.namron_hvac_user_interface,
+            fzLocal.ZG9095B,
+        ],
         toZigbee: [
             tzLocal.ZG9095B.temperature_display,
             tzLocal.ZG9095B.sensor,
@@ -2443,7 +2451,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_system_mode,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_running_state,
-            tz.namron_thermostat,
+            namron.toZigbee.namron_thermostat,
             tz.namron_thermostat_child_lock,
             tz.fan_mode,
             tzLocal.ZG9095B.min_setpoint_deadband,
@@ -2494,7 +2502,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
         ],
         // Device does not ask for the time with binding, therefore we write the time every 24 hours
-        extend: [m.writeTimeDaily({endpointId: 1})],
+        extend: [m.writeTimeDaily({endpointId: 1}), namron.namronExtend.addNamronHvacThermostatCluster()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["genBasic", "genIdentify", "hvacThermostat", "seMetering", "genTime", "hvacUserInterfaceCfg"];

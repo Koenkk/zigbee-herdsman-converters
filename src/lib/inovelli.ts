@@ -2340,29 +2340,43 @@ const tzLocal = {
         ({
             key: Object.keys(attributes).filter((a) => !attributes[a].readOnly),
             convertSet: async (entity, key, value, meta) => {
-                const {entityToUse} = resolveEndpointAndKey(entity, key, meta);
+                // Walk meta.message rather than just `key`: Z2M dispatches this converter once per SET payload,
+                // so writing only `key` silently drops every other Inovelli key (issue #11698). Bucket by the
+                // resolved endpoint so VZM36 _1/_2 suffixed keys still route correctly.
+                const buckets = new Map<Zh.Endpoint | Zh.Group, {payload: {[id: number]: {value: unknown; type: number}}; state: KeyValue}>();
 
-                if (!(key in attributes)) {
+                for (const [msgKey, msgValue] of Object.entries(meta.message)) {
+                    const attribute = attributes[msgKey];
+                    if (!attribute || attribute.readOnly) {
+                        continue;
+                    }
+
+                    const {entityToUse} = resolveEndpointAndKey(entity, msgKey, meta);
+                    const valueMap = resolveValueMap(attribute, model);
+                    const writeValue = attribute.displayType === "enum" ? valueMap?.[msgValue as string] : msgValue;
+
+                    let bucket = buckets.get(entityToUse);
+                    if (!bucket) {
+                        bucket = {payload: {}, state: {}};
+                        buckets.set(entityToUse, bucket);
+                    }
+                    bucket.payload[attribute.id] = {value: writeValue, type: attribute.dataType};
+                    bucket.state[msgKey] = msgValue;
+                }
+
+                if (buckets.size === 0) {
                     return;
                 }
 
-                const valueMap = resolveValueMap(attributes[key], model);
-                const payload = {
-                    [attributes[key].id]: {
-                        value: attributes[key].displayType === "enum" ? valueMap?.[value as string] : value,
-                        type: attributes[key].dataType,
-                    },
-                };
+                const combinedState: KeyValue = {};
+                for (const [entityToUse, bucket] of buckets) {
+                    await entityToUse.write(cluster, bucket.payload, {
+                        manufacturerCode: INOVELLI,
+                    });
+                    Object.assign(combinedState, bucket.state);
+                }
 
-                await entityToUse.write(cluster, payload, {
-                    manufacturerCode: INOVELLI,
-                });
-
-                return {
-                    state: {
-                        [key]: value,
-                    },
-                };
+                return {state: combinedState};
             },
             convertGet: async (entity, key, meta) => {
                 const {entityToUse, keyToUse} = resolveEndpointAndKey(entity, key, meta);
