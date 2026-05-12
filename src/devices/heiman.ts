@@ -2361,7 +2361,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "haDiagnostic"]);
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
             await endpoint1.read("genOnOff", ["onOff", "startUpOnOff"]);
             await endpoint2.read("genOnOff", ["onOff", "startUpOnOff"]);
