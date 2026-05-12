@@ -121,6 +121,7 @@ import {definitions as gumax} from "./gumax";
 import {definitions as halemeier} from "./halemeier";
 import {definitions as haloSmartLabs} from "./halo_smart_labs";
 import {definitions as hamptonBay} from "./hampton_bay";
+import {definitions as handshakeFinland} from "./handshake_finland";
 import {definitions as heatit} from "./heatit";
 import {definitions as heiman} from "./heiman";
 import {definitions as heimgardTechnologies} from "./heimgard_technologies";
@@ -496,6 +497,7 @@ const definitions: DefinitionWithExtend[] = [
     ...halemeier,
     ...haloSmartLabs,
     ...hamptonBay,
+    ...handshakeFinland,
     ...heatit,
     ...heiman,
     ...heimgardTechnologies,
