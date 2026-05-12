@@ -200,6 +200,7 @@ import {definitions as makegood} from "./makegood";
 import {definitions as matcallBv} from "./matcall_bv";
 import {definitions as mazda} from "./mazda";
 import {definitions as meazon} from "./meazon";
+import {definitions as megaman} from "./megaman";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
 import {definitions as micromatic} from "./micromatic";
@@ -573,6 +574,7 @@ const definitions: DefinitionWithExtend[] = [
     ...matcallBv,
     ...mazda,
     ...meazon,
+    ...megaman,
     ...mercator,
     ...miboxer,
     ...micromatic,
