@@ -1174,7 +1174,7 @@ const heimanExtend = {
         m.numeric({
             name: "radar_delay_time",
             cluster: "msOccupancySensing",
-            attribute: "pirOToUDelay",
+            attribute: "ultrasonicOToUDelay",
             description: "Occupied to unoccupied delay",
             valueMin: 60,
             valueMax: 3600,
