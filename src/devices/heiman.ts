@@ -1174,7 +1174,7 @@ const heimanExtend = {
         m.numeric({
             name: "radar_delay_time",
             cluster: "msOccupancySensing",
-            attribute: "pirOToUDelay",
+            attribute: "ultrasonicOToUDelay",
             description: "Occupied to unoccupied delay",
             valueMin: 60,
             valueMax: 3600,
@@ -2330,16 +2330,18 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointName: "l1",
                 lookup: {toggle: 0, momentary: 1},
                 cluster: "genOnOffSwitchCfg",
-                attribute: "switchType",
+                attribute: {ID: 0x0000, type: 0x30},
                 description: "Switch input type for l1",
+                access: "ALL",
             }),
             m.enumLookup({
                 name: "switch_type",
                 endpointName: "l2",
                 lookup: {toggle: 0, momentary: 1},
                 cluster: "genOnOffSwitchCfg",
-                attribute: "switchType",
+                attribute: {ID: 0x0000, type: 0x30},
                 description: "Switch input type for l2",
+                access: "ALL",
             }),
             m.enumLookup({
                 name: "switch_actions",
@@ -2361,7 +2363,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "haDiagnostic"]);
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
             await endpoint1.read("genOnOff", ["onOff", "startUpOnOff"]);
             await endpoint2.read("genOnOff", ["onOff", "startUpOnOff"]);
@@ -2936,12 +2938,24 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             );
         },
-        exposes: [e.co()],
+        exposes: [],
         extend: [
             m.battery(),
             m.identify(),
             m.temperature(),
             m.iasZoneAlarm({zoneType: "carbon_monoxide", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            m.numeric({
+                name: "co",
+                unit: "ppm",
+                valueMin: 0,
+                valueMax: 900,
+                cluster: "msCarbonMonoxide",
+                attribute: "measuredValue",
+                description: "The measured CO level",
+                access: "STATE_GET",
+                scale: 0.000001,
+                reporting: {min: "1_SECOND", max: "4_HOURS", change: 0.00001},
+            }),
             heimanExtend.heimanClusterSpecial(),
             heimanExtend.heimanClusterSensorFaultState(),
             heimanExtend.heimanClusterDeviceMuteState(),
@@ -2958,7 +2972,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["HS1CA-E-PLUS"],
+        zigbeeModel: ["HS1CA-E PLUS"],
         model: "HS1CA-E Plus",
         vendor: "Heiman",
         description: "Co detector",
@@ -2989,12 +3003,24 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             );
         },
-        exposes: [e.co()],
+        exposes: [],
         extend: [
             m.battery(),
             m.identify(),
             m.temperature(),
             m.iasZoneAlarm({zoneType: "carbon_monoxide", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            m.numeric({
+                name: "co",
+                unit: "ppm",
+                valueMin: 0,
+                valueMax: 900,
+                cluster: "msCarbonMonoxide",
+                attribute: "measuredValue",
+                description: "The measured CO level",
+                access: "STATE_GET",
+                scale: 0.000001,
+                reporting: {min: "1_SECOND", max: "4_HOURS", change: 0.00001},
+            }),
             heimanExtend.heimanClusterSpecial(),
             heimanExtend.heimanClusterSensorFaultState(),
             heimanExtend.heimanClusterDeviceMuteState(),
@@ -3080,13 +3106,25 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             );
         },
-        exposes: [e.co()],
+        exposes: [],
         extend: [
             m.battery(),
             m.identify(),
             m.temperature(),
             m.humidity(),
             m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            m.numeric({
+                name: "co",
+                unit: "ppm",
+                valueMin: 0,
+                valueMax: 900,
+                cluster: "msCarbonMonoxide",
+                attribute: "measuredValue",
+                description: "The measured CO level",
+                access: "STATE_GET",
+                scale: 0.000001,
+                reporting: {min: "1_SECOND", max: "4_HOURS", change: 0.00001},
+            }),
             heimanExtend.heimanClusterSpecial(),
             heimanExtend.heimanClusterSensorFaultState(),
             heimanExtend.heimanClusterDeviceMuteState(),
