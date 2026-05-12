@@ -2047,7 +2047,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "haDiagnostic"]);
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
             await endpoint1.read("genOnOff", ["onOff", "startUpOnOff"]);
             await endpoint2.read("genOnOff", ["onOff", "startUpOnOff"]);
@@ -2699,7 +2699,7 @@ export const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
             });
         },
-        exposes: [e.co()],
+        exposes: [],
         extend: [
             m.battery(),
             m.identify(),
@@ -2727,6 +2727,18 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0012, type: Zcl.DataType.ENUM8},
                 description: "siren effect",
                 access: "ALL",
+            }),
+            m.numeric({
+                name: "co",
+                unit: "ppm",
+                valueMin: 0,
+                valueMax: 900,
+                cluster: "msCarbonMonoxide",
+                attribute: "measuredValue",
+                description: "The measured CO level",
+                access: "STATE_GET",
+                scale: 0.000001,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 0.000010},
             }),
             m.numeric({
                 name: "reported_packages",
@@ -2762,7 +2774,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["HS1CA-E-PLUS"],
+        zigbeeModel: ["HS1CA-E PLUS"],
         model: "HS1CA-E Plus",
         vendor: "Heiman",
         description: "Co detector",
@@ -2777,7 +2789,7 @@ export const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
             });
         },
-        exposes: [e.co()],
+        exposes: [],
         extend: [
             m.battery(),
             m.identify(),
@@ -2805,6 +2817,18 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x1007, type: Zcl.DataType.UINT8},
                 description: "used for interconnection automation.",
                 access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "co",
+                unit: "ppm",
+                valueMin: 0,
+                valueMax: 900,
+                cluster: "msCarbonMonoxide",
+                attribute: "measuredValue",
+                description: "The measured CO level",
+                access: "STATE_GET",
+                scale: 0.000001,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 0.000010},
             }),
             m.numeric({
                 name: "reported_packages",
@@ -2924,7 +2948,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             );
         },
-        exposes: [e.co()],
+        exposes: [],
         extend: [
             m.battery(),
             m.identify(),
@@ -2939,11 +2963,23 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.heimanClusterIndicatorLight(),
             heimanExtend.heimanClusterSensorInterconnectable(),
             m.numeric({
+                name: "co",
+                unit: "ppm",
+                valueMin: 0,
+                valueMax: 900,
+                cluster: "msCarbonMonoxide",
+                attribute: "measuredValue",
+                description: "The measured CO level",
+                access: "STATE_GET",
+                scale: 0.000001,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 0.000010},
+            }),
+            m.numeric({
                 name: "smoke_level",
                 unit: "",
                 scale: 0.1,
                 valueMin: 0,
-                valueMax: 20,
+                valueMax: 255,
                 cluster: "heimanClusterSpecial",
                 attribute: {ID: 0x0016, type: Zcl.DataType.UINT8},
                 description: "smoke level",
