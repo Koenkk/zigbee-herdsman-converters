@@ -805,7 +805,11 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {default: 2};
         },
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            develcoModernExtend.addCustomDevelcoSeMeteringCluster(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering"]);
