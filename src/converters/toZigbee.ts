@@ -2245,14 +2245,6 @@ export const humidity: Tz.Converter = {
 
 // #region Non-generic converters
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZigUP_lock: Tz.Converter = {
-    key: ["led"],
-    convertSet: async (entity, key, value, meta) => {
-        const lookup = {off: "lockDoor" as const, on: "unlockDoor" as const, toggle: "toggleDoor" as const};
-        await entity.command("closuresDoorLock", utils.getFromLookup(value, lookup), {pincodevalue: Buffer.alloc(0)});
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const LS21001_alert_behaviour: Tz.Converter = {
     key: ["alert_behaviour"],
     convertSet: async (entity, key, value, meta) => {
