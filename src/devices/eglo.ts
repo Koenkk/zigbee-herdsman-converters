@@ -28,21 +28,21 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-    zigbeeModel: ["EBF-RGB-ZMB-CLB"],
-    model: "901471",
-    vendor: "EGLO",
-    description: "ROVITO-Z ceiling light",
-    extend: [
-        m.deviceEndpoints({endpoints: {1: 1, 3: 3}}),
-        m.light({
-            colorTemp: {range: [153, 370]},
-            color: {modes: ["xy", "hs"], enhancedHue: true},
-        }),
-        m.commandsOnOff(),
-        m.commandsLevelCtrl(),
-        m.commandsColorCtrl(),
-    ],
-},
+        zigbeeModel: ["EBF-RGB-ZMB-CLB"],
+        model: "901471",
+        vendor: "EGLO",
+        description: "ROVITO-Z ceiling light",
+        extend: [
+            m.deviceEndpoints({endpoints: {1: 1, 3: 3}}),
+            m.light({
+                colorTemp: {range: [153, 370]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+            }),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+            m.commandsColorCtrl(),
+        ],
+    },
     {
         zigbeeModel: ["ESMLFzm_w6_TW"],
         model: "12242",
