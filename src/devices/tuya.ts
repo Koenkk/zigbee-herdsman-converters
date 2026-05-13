@@ -7138,7 +7138,6 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE204_odlldrxx",
                 "_TZE204_wzre8hu2",
                 "_TZE200_odlldrxx",
-                "_TZE200_m6lwazh9", // incomplete, see https://github.com/Koenkk/zigbee2mqtt/issues/31774
                 "_TZE204_zuq5xxib",
                 "_TZE200_swlgvdlh",
             ]),
@@ -7180,7 +7179,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("HUARUI", "CMD900LE", "Lithium battery intelligent curtain opening and closing motor", ["_TZE200_zxxfv8wi"]),
             tuya.whitelabel("Novato", "WPK", "Smart curtain track", ["_TZE204_lh3arisb"]),
             tuya.whitelabel("Zemismart", "ZMS1-TYZ", "Smart curtain track", ["_TZE204_zuq5xxib"]),
-            tuya.whitelabel("Trublockout", "TB25-DC-10/25Z", "Zigbee + RG roller blind motor", ["_TZE200_m6lwazh9"]),
             tuya.whitelabel("RINNconnect", "RINN WSCMQ20", "Curtain Controller", ["_TZE200_swlgvdlh"]),
             tuya.whitelabel("RINNconnect", "RINN WSER40", "Roller Controller", ["_TZE200_pk0sfzvr"]),
         ],
@@ -26872,5 +26870,103 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointName: "l1",
             }),
         ],
+    },
+    {
+        zigbeeModel: [
+            "lwazh9\u0000",
+            "lwazh9",
+        ],
+        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_m6lwazh9"])],
+        model: "TS0601_cover_14",
+        vendor: "Tuya",
+        description: "Curtain motor/roller blind motor/window pusher/tubular motor",
+        whiteLabel: [
+            {vendor: "Zemismart", model: "ZM25AZ01"},
+            {vendor: "Trublockout", model: "TB25-DC-10/25Z"},
+        ],
+        fromZigbee: [legacy.fromZigbee.tuya_cover],
+        toZigbee: [legacy.toZigbee.tuya_cover_control, legacy.toZigbee.tuya_cover_options],
+        exposes: [
+            e.battery(),
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
+            e.enum("border", ea.STATE_SET, ["up", "down", "remove_top_bottom"]).withDescription("Set the top/bottom limit (calibration)"),
+            e
+                .numeric("favorite_position", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withUnit("%")
+                .withDescription("Save/recall the favorite (my) position"),
+            e
+                .numeric("motor_speed", ea.SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription("Motor speed regulation (write-only; not confirmed as a reported status)"),
+            e.binary("click_control", ea.SET, true, false).withDescription("Trigger a single motor step"),
+            e.enum("work_state", ea.STATE, ["stopped", "opening", "closing"]).withDescription("Motor work state reported by the device"),
+            e.numeric("status_debug", ea.STATE).withDescription("Raw DP 103 value for debugging"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                // DP 1 – Control: open / stop / close
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                // DP 2 – Set target position (0 = open, 100 = closed)
+                [2, "position", tuya.valueConverter.coverPosition],
+                // DP 3 – Current position reported by the motor (updates during movement)
+                [3, "position", tuya.valueConverter.coverPosition],
+                // DP 5 – Reverse direction (datatype 1 = boolean, not enum)
+                [5, "reverse_direction", tuya.valueConverterBasic.lookup({forward: false, back: true})],
+                // DP 13 – Battery percentage
+                [13, "battery", tuya.valueConverter.raw],
+                // DP 16 – Top/bottom limit calibration
+                [
+                    16,
+                    "border",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                        remove_top_bottom: tuya.enum(2),
+                    }),
+                ],
+                // DP 19 – Favorite / "My" position
+                [19, "favorite_position", tuya.valueConverter.raw],
+                // DP 103 – Work state: 0 = stopped, 4 = opening, 8 = closing (null key spreads both props into result)
+                // Also emits state: "opening"/"closing" so HA's cover entity reflects the moving state.
+                // When stopped, state is left alone so DP 1's OPEN/CLOSE/STOP value remains.
+                [
+                    103,
+                    null,
+                    {
+                        from: (v: number) => {
+                            switch (v) {
+                                case 4: {
+                                    return {workstate: "opening", status_debug: v};
+                                }
+                                case 8: {
+                                    return {workstate: "closing", status_debug: v};
+                                }
+                                default: {
+                                    // We return "stopped" for 0, but we're also returning "stopped" for unknown values.
+                                    // Status debug will hold the true value.
+                                    return {workstate: "stopped", status_debug: v};
+                                }
+                            }
+                        },
+                    },
+                ],
+                // DP 107 – Click/step control (trigger, sends bool true/false)
+                [107, "click_control", tuya.valueConverter.raw],
+                // DP 111 – Motor speed regulation
+                [111, "motor_speed", tuya.valueConverter.raw],
+            ],
+        },
     },
 ];
