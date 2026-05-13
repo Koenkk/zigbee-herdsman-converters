@@ -1,5 +1,21 @@
 # Changelog
 
+## [26.51.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.50.0...v26.51.0) (2026-05-13)
+
+
+### Features
+
+* **add:** 901471 ([#12200](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12200)) ([fbaacfb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fbaacfb0c31a48eb23cf958d0a727f2d59168049))
+* **add:** ZT-YK01, ZT-YK02, ZT-YK03 ([#12194](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12194)) ([a5304bc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a5304bc519c461b32a56a64e84f7d58dec619c45))
+
+
+### Bug Fixes
+
+* Datek: move converters to datek.ts  ([#12202](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12202)) ([3c6720d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c6720d951a73ac7aea2033bb85de8711ff1737d))
+* **detect:** Detect `_TZ3210_4ux0ondb` as BSEED TS011F_plug_1_2 https://github.com/Koenkk/zigbee2mqtt/issues/31991 ([106736e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/106736edbf065475e8ee6f76ffb7e7d27249e01e))
+* **detect:** Detect various VIZO VZ-22XS devices ([#12198](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12198)) ([97fc9e8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/97fc9e81617d225a36f590b51e9ed0dd646fca98))
+* Nous D5Z: fix integration ([#12203](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12203)) ([96804e9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/96804e9b15646ca18f0f4764bd3cecd4e6869783))
+
 ## [26.50.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.49.0...v26.50.0) (2026-05-12)
 
 

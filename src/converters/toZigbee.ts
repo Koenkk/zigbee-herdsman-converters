@@ -3395,20 +3395,6 @@ export const sihas_set_people: Tz.Converter = {
         await endpoint.read("genAnalogInput", ["presentValue"]);
     },
 };
-export const led_on_motion: Tz.Converter = {
-    key: ["led_on_motion"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write(
-            "ssIasZone",
-            {16384: {value: value === true ? 1 : 0, type: 0x10}},
-            {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS},
-        );
-        return {state: {led_on_motion: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("ssIasZone", [0x4000], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
-    },
-};
 // #endregion
 
 // #region Ignore converters
