@@ -1022,16 +1022,8 @@ const tuyaExposes = {
             .withValueStep(1)
             .withDescription("Unknown (Default 0s)")
             .withCategory("config"),
-    liquidLevelPercent: () =>
-        e
-            .numeric("liquid_level_percent", ea.STATE)
-            .withUnit("%")
-            .withDescription("Liquid level ratio"),
-    liquidDepth: () =>
-        e
-            .numeric("liquid_depth", ea.STATE)
-            .withUnit("cm")
-            .withDescription("Liquid depth"),
+    liquidLevelPercent: () => e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
+    liquidDepth: () => e.numeric("liquid_depth", ea.STATE).withUnit("cm").withDescription("Liquid depth"),
     liquidDepthMax: () =>
         e
             .numeric("liquid_depth_max", ea.STATE_SET)
@@ -1063,11 +1055,8 @@ const tuyaExposes = {
             .withDescription("Liquid maximum percentage")
             .withValueMin(0)
             .withValueMax(100)
-            .withValueStep(1),       
-    liquidState: () =>
-        e
-            .enum("liquid_state", ea.STATE, ["low", "normal", "high"])
-            .withDescription("Liquid level status"),         
+            .withValueStep(1),
+    liquidState: () => e.enum("liquid_state", ea.STATE, ["low", "normal", "high"]).withDescription("Liquid level status"),
 };
 
 export {tuyaExposes as exposes};
