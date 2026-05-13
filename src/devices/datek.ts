@@ -325,16 +325,14 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.occupancy(endpoint);
             await reporting.temperature(endpoint);
-            const payload = [
-                {
-                    attribute: {ID: 0x4000, type: 0x10},
-                },
-            ];
-            // @ts-expect-error ignore
-            await endpoint.configureReporting("ssIasZone", payload, options);
+            await endpoint.configureReporting<"ssIasZone", DatekSsIasZone>(
+                "ssIasZone",
+                reporting.payload<"ssIasZone", DatekSsIasZone>("ledOnMotion", 0, repInterval.HOUR, 0),
+                options,
+            );
             await endpoint.read("ssIasZone", ["iasCieAddr", "zoneState", "zoneId"]);
             await endpoint.read("msOccupancySensing", ["pirOToUDelay"]);
-            await endpoint.read("ssIasZone", [0x4000], options);
+            await endpoint.read<"ssIasZone", DatekSsIasZone>("ssIasZone", ["ledOnMotion"], options);
         },
         exposes: [
             e.temperature(),
