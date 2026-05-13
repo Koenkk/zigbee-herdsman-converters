@@ -60,6 +60,22 @@ export interface SunricherRemote {
     commandResponses: never;
 }
 
+const SRZGP2801K45C_LOOKUP: Record<number, string> = {
+    33: "press_on",
+    32: "press_off",
+    55: "press_high",
+    56: "press_low",
+    53: "hold_high",
+    54: "hold_low",
+    52: "high_low_release",
+    99: "cw_ww_release",
+    98: "cw_dec_ww_inc",
+    100: "ww_inc_cw_dec",
+    65: "r_g_b",
+    66: "b_g_r",
+    64: "rgb_release",
+};
+
 const fzLocal = {
     SRZGP2801K45C: {
         cluster: "greenPower",
@@ -67,23 +83,9 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-            if (commandID === 224) return;
-            const lookup = {
-                33: "press_on",
-                32: "press_off",
-                55: "press_high",
-                56: "press_low",
-                53: "hold_high",
-                54: "hold_low",
-                52: "high_low_release",
-                99: "cw_ww_release",
-                98: "cw_dec_ww_inc",
-                100: "ww_inc_cw_dec",
-                65: "r_g_b",
-                66: "b_g_r",
-                64: "rgb_release",
-            };
-            return {action: utils.getFromLookup(commandID, lookup)};
+            if (commandID >= 0xe0) return; // Skip op commands
+
+            return {action: utils.getFromLookup(commandID, SRZGP2801K45C_LOOKUP)};
         },
     } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
     ZG9095B: {
