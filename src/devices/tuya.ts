@@ -5863,6 +5863,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "MINI-ZSB", "Smart button", ["_TZ3000_qgwcxxws"]),
             tuya.whitelabel("Nous", "LZ4", "Wireless switch button", ["_TZ3000_6km7djcm"]),
             tuya.whitelabel("Marmitek", "Push_LE", "Smart switch", ["_TZ3000_4upl1fcj"]),
+            tuya.whitelabel("Moes", "ZT-YK01", "Wireless switch with 1 button", ["_TZ3000_filhl5b7"]),
         ],
         exposes: [e.battery(), e.action(["single", "double", "hold"])],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
@@ -5906,6 +5907,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Lonsonho", model: "TS0042"},
             {vendor: "ClickSmart+", model: "CSPGM2075PW"},
             tuya.whitelabel("Marmitek", "Push_LO", "Smart switch", ["_TZ3000_dfgbtub0"]),
+            tuya.whitelabel("Moes", "ZT-YK02", "Wireless switch with 2 buttons", ["_TZ3000_cllghx1k"]),
         ],
         extend: [tuyaBase()],
         exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold", "2_single", "2_double", "2_hold"])],
@@ -5928,6 +5930,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Smart9", model: "S9TSZGB"},
             {vendor: "Lonsonho", model: "TS0043"},
             {vendor: "LoraTap", model: "SS600ZB"},
+            tuya.whitelabel("Moes", "ZT-YK03", "Wireless switch with 3 buttons", ["_TZ3000_1kmurvlx"]),
         ],
         extend: [tuyaBase()],
         exposes: [e.battery(), e.action(["1_single", "1_double", "1_hold", "2_single", "2_double", "2_hold", "3_single", "3_double", "3_hold"])],
@@ -9426,6 +9429,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("BSEED", "TS011F_plug_1_2", "Wall-mounted electrical EU/FR/UK socket with power monitoring", [
                 "_TZ3000_4ux0ondb",
                 "_TZ3000_b28wrpvx",
+                "_TZ3210_4ux0ondb",
                 "_TZ3000_2uollq9d",
                 "_TZ3210_2uollq9d",
                 "_TZ3210_zifx0xoj",
@@ -9964,7 +9968,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch(),
-            te.circuitBreakerFault(),
+            te.circuitBreakerFaults(),
             e.ac_frequency(),
             e.energy(),
             e.power(),
@@ -9988,7 +9992,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [109, "energy_reactive", tuya.valueConverter.divideBy100], // reactive energy in VArh
                 [110, "power_reactive", tuya.valueConverter.raw], // reactive power
                 [111, "power_factor", tuya.valueConverter.divideBy10],
-                [9, "fault", tuya.valueConverter.circuitBreakerFault],
+                [9, "faults", tuya.valueConverter.circuitBreakerFaults],
                 // Ignored for now; we don't know what the values mean
                 [17, null, null], // Alarm set1 - value seems garbage "AAAAAAAAAAAAAABkAAEOAACqAAAAAAAKAAAAAAAA"
                 [18, null, null], // 18 - Alarm set2 - value seems garbage "AAUAZAAFAB4APAAAAAAAAAA="
@@ -10011,7 +10015,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             tuya.exposes.switch(),
             e.energy(),
-            te.circuitBreakerFault(),
+            te.circuitBreakerFaults(),
             tuya.exposes.voltageWithPhase("a"),
             tuya.exposes.powerWithPhase("a"),
             tuya.exposes.currentWithPhase("a"),
@@ -10057,7 +10061,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100],
                 [6, null, tuya.valueConverter.phaseVariant2WithPhase("a")],
-                [9, "fault", tuya.valueConverter.circuitBreakerFault],
+                [9, "faults", tuya.valueConverter.circuitBreakerFaults],
                 [16, "state", tuya.valueConverter.onOff],
                 [17, null, tuya.valueConverter.threshold_2],
                 [17, "high_temperature_threshold", tuya.valueConverter.threshold_2],
@@ -10090,7 +10094,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             tuya.exposes.switch(),
             e.energy(),
-            te.circuitBreakerFault(),
+            te.circuitBreakerFaults(),
             tuya.exposes.voltageWithPhase("a"),
             tuya.exposes.voltageWithPhase("b"),
             tuya.exposes.voltageWithPhase("c"),
@@ -10172,7 +10176,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [6, null, tuya.valueConverter.phaseVariant2WithPhase("a")],
                 [7, null, tuya.valueConverter.phaseVariant2WithPhase("b")],
                 [8, null, tuya.valueConverter.phaseVariant2WithPhase("c")],
-                [9, "fault", tuya.valueConverter.circuitBreakerFault],
+                [9, "faults", tuya.valueConverter.circuitBreakerFaults],
                 [16, "state", tuya.valueConverter.onOff],
                 [17, null, tuya.valueConverter.threshold_2],
                 [17, "overload_breaker", tuya.valueConverter.threshold_2],
@@ -10642,7 +10646,9 @@ export const definitions: DefinitionWithExtend[] = [
         },
         whiteLabel: [
             {vendor: "TUYATEC", model: "GDKES-04TZXD"},
-            {vendor: "Vizo", model: "VZ-222S"},
+            tuya.whitelabel("Vizo", "VZ-221S", "Smart light switch - 1 gang without neutral wire", ["_TZ3210_qjvi92wz"]),
+            tuya.whitelabel("Vizo", "VZ-222S", "Smart light switch - 2 gang without neutral wire", ["_TZ3210_w3hl6rao"]),
+            tuya.whitelabel("Vizo", "VZ-223S", "Smart light switch - 3 gang without neutral wire", ["_TZ3210_z4hgsevd"]),
             {vendor: "MakeGood", model: "MG-ZG04W/B/G"},
             {vendor: "Mercator Ikuü", model: "SSW04"},
         ],
@@ -14796,22 +14802,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100],
                 [2, "produced_energy", tuya.valueConverter.divideBy100],
-                [
-                    6,
-                    null,
-                    {
-                        from: (v: Buffer) => {
-                            return {
-                                voltage: v.readUint16BE(0) / 10,
-                                current: ((v.readUint8(2) << 16) + (v.readUint8(3) << 8) + v.readUint8(4)) / 1000,
-                                power: (v.readUint8(5) << 16) + (v.readUint8(6) << 8) + v.readUint8(7),
-                            };
-                        },
-                    },
-                ],
-                [6, "voltage", tuya.valueConverter.raw],
-                [6, "current", tuya.valueConverter.raw],
-                [6, "power", tuya.valueConverter.raw],
+                [6, null, tuya.valueConverter.phaseVariant4],
                 // [9,'',tuya.valueConverter.raw] // Unknown / datatype=5 (bitmap)
             ],
         },
@@ -18143,7 +18134,7 @@ export const definitions: DefinitionWithExtend[] = [
             ];
             if (!device || device.manufacturerName === "_TZE284_432zhuwe" || device.manufacturerName === "_TZE204_432zhuwe") {
                 exps.push(
-                    e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
+                    te.leakageCurrent(),
                     e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
                     e
                         .numeric("over_current_threshold", ea.STATE_SET)
@@ -18172,7 +18163,7 @@ export const definitions: DefinitionWithExtend[] = [
                 );
             } else if (device.manufacturerName === "_TZE284_tuhfx7tf" || device.manufacturerName === "_TZE204_tuhfx7tf") {
                 exps.push(
-                    e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Current leakage"),
+                    te.leakageCurrent(),
                     e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
                     e
                         .numeric("over_current_threshold", ea.STATE_SET)
@@ -19897,7 +19888,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_on_behavior().withAccess(ea.STATE_SET),
             e.numeric("temperature", ea.STATE).withUnit("°C").withDescription("Current temperature"),
             e.numeric("leakage", ea.STATE).withUnit("mA").withDescription("Current leakage"),
-            te.circuitBreakerFault(),
+            te.circuitBreakerFaults(),
             e.numeric("reclosing_allowed_times", ea.STATE_SET).withValueMin(0).withValueMax(30).withDescription("Reclosing tries"),
             e.binary("reclosing_enable", ea.STATE_SET, "ON", "OFF").withLabel("Auto reclosing"),
             e.numeric("timer", ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit("s"),
@@ -19908,7 +19899,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100], // Total forward energy
                 [6, null, tuya.valueConverter.phaseVariant2], // Phase A voltage and current
-                [9, "fault", tuya.valueConverter.circuitBreakerFault],
+                [9, "faults", tuya.valueConverter.circuitBreakerFaults],
                 // [11, 'switch_prepayment', tuya.valueConverter.raw], // no expose
                 [12, "clear_energy", tuya.valueConverter.raw],
                 // [14, 'charge_energy', tuya.valueConverter.raw], // no expose
@@ -23772,13 +23763,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.power(),
             e.energy(),
             e.temperature(),
-            e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Real-time leakage current (DP 53)"),
+            te.leakageCurrent(),
             e.numeric("over_voltage_threshold", ea.STATE_SET).withUnit("V").withValueMin(220).withValueMax(265),
             e.numeric("under_voltage_threshold", ea.STATE_SET).withUnit("V").withValueMin(76).withValueMax(240),
             e.numeric("over_current_threshold", ea.STATE_SET).withUnit("A").withValueMin(1).withValueMax(63),
             e.numeric("leakage_threshold", ea.STATE_SET).withUnit("mA").withValueMin(10).withValueMax(100),
             e.numeric("temp_threshold", ea.STATE_SET).withUnit("°C").withValueMin(40).withValueMax(150),
-            te.circuitBreakerFault(),
+            te.circuitBreakerFaults(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -23794,7 +23785,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [43, "under_voltage_threshold", tuya.valueConverter.raw],
                 [44, "over_current_threshold", tuya.valueConverter.raw],
                 [45, "temp_threshold", tuya.valueConverter.raw],
-                [9, "fault", tuya.valueConverter.circuitBreakerFault],
+                [9, "faults", tuya.valueConverter.circuitBreakerFaults],
             ],
         },
     },

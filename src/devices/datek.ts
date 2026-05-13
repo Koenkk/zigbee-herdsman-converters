@@ -33,6 +33,14 @@ interface DatekClosuresDoorLock {
     commandResponses: never;
 }
 
+interface DatekSsIasZone {
+    attributes: {
+        ledOnMotion: boolean;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const datekExtend = {
     datekGenBasicCluster: () =>
         m.deviceAddCustomCluster("genBasic", {
@@ -56,6 +64,16 @@ const datekExtend = {
                 lockMode: {name: "lockMode", ID: 0x4004, type: Zcl.DataType.UINT8, write: true},
                 relockEnabled: {name: "relockEnabled", ID: 0x4005, type: Zcl.DataType.BOOLEAN, write: true},
                 audioVolume: {name: "audioVolume", ID: 0x4006, type: Zcl.DataType.UINT8, write: true, min: 0x00, max: 0x05},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    datekSsIasZoneCluster: () =>
+        m.deviceAddCustomCluster("ssIasZone", {
+            name: "ssIasZone",
+            ID: Zcl.Clusters.ssIasZone.ID,
+            attributes: {
+                ledOnMotion: {name: "ledOnMotion", ID: 0x4000, type: Zcl.DataType.BOOLEAN, write: true},
             },
             commands: {},
             commandsResponse: {},
@@ -145,6 +163,20 @@ const tzLocal = {
             });
         },
     } satisfies Tz.Converter,
+    led_on_motion: {
+        key: ["led_on_motion"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write<"ssIasZone", DatekSsIasZone>(
+                "ssIasZone",
+                {ledOnMotion: value === true},
+                {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS},
+            );
+            return {state: {led_on_motion: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"ssIasZone", DatekSsIasZone>("ssIasZone", ["ledOnMotion"], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -191,6 +223,30 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"genBasic", DatekGenBasic, ["attributeReport", "readResponse"]>,
+    metering_datek: {
+        cluster: "seMetering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.metering.convert(model, msg, publish, options, meta) as KeyValueAny;
+            // Filter incorrect 0 energy values reported by the device:
+            // https://github.com/Koenkk/zigbee2mqtt/issues/7852
+            if (result && result.energy === 0) {
+                delete result.energy;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+    led_on_motion: {
+        cluster: "ssIasZone",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if ("ledOnMotion" in msg.data) {
+                result.led_on_motion = msg.data.ledOnMotion === true;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"ssIasZone", DatekSsIasZone, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -225,7 +281,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.electricityMeter({
                 cluster: "metering",
-                fzMetering: fz.metering_datek,
+                fzMetering: fzLocal.metering_datek,
                 producedEnergy: true,
             }),
             m.electricityMeter({
@@ -259,9 +315,9 @@ export const definitions: DefinitionWithExtend[] = [
             fz.ias_enroll,
             fz.ias_occupancy_alarm_1,
             fz.ias_occupancy_alarm_1_report,
-            fz.led_on_motion,
+            fzLocal.led_on_motion,
         ],
-        toZigbee: [tz.occupancy_timeout, tz.led_on_motion],
+        toZigbee: [tz.occupancy_timeout, tzLocal.led_on_motion],
         configure: async (device, coordinatorEndpoint) => {
             const options = {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS};
             const endpoint = device.getEndpoint(1);
@@ -269,16 +325,14 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.occupancy(endpoint);
             await reporting.temperature(endpoint);
-            const payload = [
-                {
-                    attribute: {ID: 0x4000, type: 0x10},
-                },
-            ];
-            // @ts-expect-error ignore
-            await endpoint.configureReporting("ssIasZone", payload, options);
+            await endpoint.configureReporting<"ssIasZone", DatekSsIasZone>(
+                "ssIasZone",
+                reporting.payload<"ssIasZone", DatekSsIasZone>("ledOnMotion", 0, repInterval.HOUR, 0),
+                options,
+            );
             await endpoint.read("ssIasZone", ["iasCieAddr", "zoneState", "zoneId"]);
             await endpoint.read("msOccupancySensing", ["pirOToUDelay"]);
-            await endpoint.read("ssIasZone", [0x4000], options);
+            await endpoint.read<"ssIasZone", DatekSsIasZone>("ssIasZone", ["ledOnMotion"], options);
         },
         exposes: [
             e.temperature(),
@@ -287,7 +341,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_on_motion", ea.ALL, true, false).withDescription("Enable/disable LED on motion"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [m.illuminance()],
+        extend: [m.illuminance(), datekExtend.datekSsIasZoneCluster()],
     },
     {
         zigbeeModel: ["ID Lock 150", "ID Lock 202"],
