@@ -54,14 +54,14 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["Sonesse 28 WF Li-Ion Zebra"],
         model: "Sonesse 28 WF Li-Ion Zebra",
         vendor: "SOMFY",
-        description: "Automatically generated definition",
+        description: "Somfy Zebra shades",
         extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
     },
     {
         zigbeeModel: ["Sonesse 28 WF Zebra"],
         model: "Sonesse 28 WF Zebra",
         vendor: "SOMFY",
-        description: "Automatically generated definition",
+        description: "Somfy Zebra shades",
         extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
     },
 
