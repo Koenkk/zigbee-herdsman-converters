@@ -2455,7 +2455,7 @@ export const enocean_ptm216z: Fz.Converter<"greenPower", undefined, ["commandNot
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
         if (commandID >= 0xe0) return; // Skip op commands
 
-        const ID = `${commandID}_${"raw" in msg.data.commandFrame ? msg.data.commandFrame.raw[0] : ""}`;
+        const ID = `${commandID}_${"raw" in msg.data.commandFrame ? (msg.data.commandFrame.raw[0] ?? "") : ""}`;
 
         if (ENOCEAN_PTM216Z_LOOKUP[ID] === undefined) {
             logger.error(`PTM 216Z: missing command '${ID}'`, NS);
