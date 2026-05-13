@@ -1971,6 +1971,15 @@ export const power_source: Fz.Converter<"genBasic", undefined, ["attributeReport
         return payload;
     },
 };
+export const hw_version: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
+    cluster: "genBasic",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        const result: KeyValueAny = {};
+        if (msg.data.hwVersion !== undefined) result.hw_version = msg.data.hwVersion;
+        return result;
+    },
+};
 // #endregion
 
 // #region Non-generic converters
@@ -3604,26 +3613,6 @@ export const command_stop_move_raw: Fz.Converter<"lightingColorCtrl", undefined,
         return payload;
     },
 };
-export const led_on_motion: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "ssIasZone",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (0x4000 in msg.data) {
-            result.led_on_motion = msg.data[0x4000] === 1;
-        }
-        return result;
-    },
-};
-export const hw_version: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBasic",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.hwVersion !== undefined) result.hw_version = msg.data.hwVersion;
-        return result;
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const SNZB02_temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msTemperatureMeasurement",
@@ -3862,19 +3851,6 @@ export const command_arm_with_transaction: Fz.Converter<"ssIasAce", undefined, "
         if (!payload) return;
         payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
         return payload;
-    },
-};
-export const metering_datek: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "seMetering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = metering.convert(model, msg, publish, options, meta) as KeyValueAny;
-        // Filter incorrect 0 energy values reported by the device:
-        // https://github.com/Koenkk/zigbee2mqtt/issues/7852
-        if (result && result.energy === 0) {
-            delete result.energy;
-        }
-        return result;
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
