@@ -10642,7 +10642,9 @@ export const definitions: DefinitionWithExtend[] = [
         },
         whiteLabel: [
             {vendor: "TUYATEC", model: "GDKES-04TZXD"},
-            {vendor: "Vizo", model: "VZ-222S"},
+            tuya.whitelabel("Vizo", "VZ-221S", "Smart light switch - 1 gang without neutral wire", ["_TZ3210_qjvi92wz"]),
+            tuya.whitelabel("Vizo", "VZ-222S", "Smart light switch - 2 gang without neutral wire", ["_TZ3210_w3hl6rao"]),
+            tuya.whitelabel("Vizo", "VZ-223S", "Smart light switch - 3 gang without neutral wire", ["_TZ3210_z4hgsevd"]),
             {vendor: "MakeGood", model: "MG-ZG04W/B/G"},
             {vendor: "Mercator Ikuü", model: "SSW04"},
         ],
