@@ -190,7 +190,7 @@ export interface InchingInput {
     seconds?: number;
 }
 
-export interface MetaState {
+export interface InchingMetaState {
     state: {
         inching?: {
             state: string;
@@ -200,6 +200,83 @@ export interface MetaState {
         [key: string]: unknown;
     };
 }
+
+export interface AlarmSet1Input {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    leakage_current_alarm?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    leakage_current_threshold?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    device_temperature_alarm?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    device_temperature_threshold?: number;
+}
+
+export interface AlarmSet1MetaState extends Tz.Meta {
+    state: {
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+        alarm_set_1?: AlarmSet1Input;
+        [key: string]: unknown;
+    };
+}
+
+export interface AlarmSet2Input {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    over_current_alarm?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    over_current_threshold?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    over_voltage_alarm?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    over_voltage_threshold?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    under_voltage_alarm?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    under_voltage_threshold?: number;
+}
+
+export interface AlarmSet2MetaState extends Tz.Meta {
+    state: {
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+        alarm_set_2?: AlarmSet2Input;
+        [key: string]: unknown;
+    };
+}
+
+export interface AlarmSet3Input {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    lost_flow_alarm?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    lost_flow_threshold?: number;
+}
+
+export interface AlarmSet3MetaState {
+    state: {
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+        alarm_set_3?: AlarmSet3Input;
+        [key: string]: unknown;
+    };
+}
+
+export const circuitBreakerFaultList = [
+    "short_circuit",
+    "surge",
+    "overload",
+    "leakage_current",
+    "temperature",
+    "fire",
+    "high_power",
+    "self_test",
+    "over_current",
+    "unbalance",
+    "over_voltage",
+    "under_voltage",
+    "miss_phase",
+    "outage",
+    "magnetism",
+    "credit",
+    "no_balance",
+];
 
 export const dataTypes = {
     raw: 0, // [ bytes ]
@@ -536,7 +613,7 @@ const tuyaExposes = {
             .withValueMax(43200)
             .withValueStep(1)
             .withUnit("s")
-            .withDescription("Countdown to turn device off after a certain time"),
+            .withDescription("Toggle the device after a set duration (one time action)"),
     countdown_min: () =>
         e
             .numeric("countdown", ea.STATE_SET)
@@ -544,7 +621,7 @@ const tuyaExposes = {
             .withValueMax(240)
             .withValueStep(1)
             .withUnit("min")
-            .withDescription("Turn off the sprinkler after set duration (one time)"),
+            .withDescription("Turn off the sprinkler after set duration (one time action)"),
     on_with_countdown: () =>
         e
             .numeric("on_with_countdown", ea.STATE_SET)
@@ -752,11 +829,199 @@ const tuyaExposes = {
     inchingSwitch2: () =>
         e
             .composite("inching", "inching", ea.STATE_SET)
-            .withDescription("Inching (auto delay shut down) configuration")
-            .withFeature(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable inching"))
-            .withFeature(e.numeric("minutes", ea.STATE_SET).withUnit("m").withValueMin(0).withValueMax(1440).withDescription("Delay minutes"))
-            .withFeature(e.numeric("seconds", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(59).withDescription("Delay seconds")),
-    circuitBreakerFault: () => e.text("fault", ea.STATE).withDescription("Fault status of the circuit breaker (clear = nothing)"),
+            .withDescription("Inching configuration")
+            .withFeature(
+                e
+                    .binary("state", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Whenever the device is switched ON, switch it OFF automatically after the configured delay"),
+            )
+            .withFeature(
+                e
+                    .numeric("minutes", ea.STATE_SET)
+                    .withUnit("m")
+                    .withValueMin(0)
+                    .withValueMax(1440)
+                    .withDescription("Minutes component of the delay duration"),
+            )
+            .withFeature(
+                e
+                    .numeric("seconds", ea.STATE_SET)
+                    .withUnit("s")
+                    .withValueMin(0)
+                    .withValueMax(59)
+                    .withDescription("Seconds component of the delay duration"),
+            )
+            .withCategory("config"),
+    circuitBreakerFaults: () =>
+        e
+            .list("faults", ea.STATE, e.enum("fault", ea.STATE, circuitBreakerFaultList))
+            .withDescription("List of current faults")
+            .withCategory("diagnostic"),
+    circuitBreakerStatus: () =>
+        e.enum("status", ea.STATE, ["off", "consumption", "production"]).withDescription("Current operating status").withCategory("diagnostic"),
+    leakageCurrent: () =>
+        e
+            .numeric("leakage_current", ea.STATE)
+            .withUnit("mA")
+            .withDescription("Measured current difference between live and neutral wires")
+            .withCategory("diagnostic"),
+    reclosing: () =>
+        e
+            .binary("reclosing", ea.STATE_SET, "ON", "OFF")
+            .withCategory("config")
+            .withDescription("Automatically attempt switching ON the circuit after it was turned OFF by a detected fault"),
+    reclosing_delay: () =>
+        e
+            .numeric("reclosing_delay", ea.STATE_SET)
+            .withUnit("s")
+            .withValueMin(1)
+            .withValueMax(99)
+            .withValueStep(1)
+            .withCategory("config")
+            .withDescription("Time to wait after the fault is cleared, before attempting reclose"),
+    reclosing_count: () =>
+        e
+            .numeric("reclosing_count", ea.STATE_SET)
+            .withValueMin(0)
+            .withValueMax(30)
+            .withValueStep(1)
+            .withCategory("config")
+            .withDescription("Number of allowed reclosing attempts per fault"),
+    energyPrepayment: () =>
+        e
+            .binary("prepayment", ea.STATE_SET, "ON", "OFF")
+            .withDescription("Automatically switch OFF the circuit when the energy balance reaches zero")
+            .withCategory("config"),
+    energyBalance: () =>
+        e
+            .numeric("energy_balance", ea.STATE)
+            .withUnit("kWh")
+            .withDescription("Amount of energy allowed for consumption (Decreases when Prepayment is enabled)")
+            .withCategory("diagnostic"),
+    energyBalanceAdd: () =>
+        e
+            .numeric("energy_balance_add", ea.STATE_SET)
+            .withUnit("kWh")
+            .withValueMin(0)
+            .withValueMax(999999)
+            .withValueStep(0.01)
+            .withDescription("Add an amount of energy to the balance")
+            .withCategory("config"),
+    energyBalanceReset: () =>
+        e.enum("energy_balance_reset", ea.STATE_SET, ["RESET"]).withDescription("Set the energy balance to zero").withCategory("config"),
+    leakageCurrentAndTemperatureAlarm: () =>
+        e
+            .composite("alarm_set_1", "alarm_set_1", ea.STATE_SET)
+            .withDescription("Leakage current and temperature alarms configuration")
+            .withFeature(
+                e
+                    .binary("leakage_current_alarm", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Automatically switch OFF the circuit when the leakage current is above the limit (Default ON)"),
+            )
+            .withFeature(
+                e
+                    .numeric("leakage_current_threshold", ea.STATE_SET)
+                    .withUnit("mA")
+                    .withValueMin(1)
+                    .withValueMax(99)
+                    .withValueStep(1)
+                    .withDescription("Leakage current limit (Default 50mA)"),
+            )
+            .withFeature(
+                e
+                    .binary("device_temperature_alarm", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Automatically switch OFF the circuit when the measured temperature exceeds the limit (Default ON)"),
+            )
+            .withFeature(
+                e
+                    .numeric("device_temperature_threshold", ea.STATE_SET)
+                    .withUnit("°C")
+                    .withValueMin(10)
+                    .withValueMax(85)
+                    .withValueStep(1)
+                    .withDescription("Temperature limit (Default 80°C)"),
+            )
+            .withCategory("config"),
+    currentAndVoltageAlarm: () =>
+        e
+            .composite("alarm_set_2", "alarm_set_2", ea.STATE_SET)
+            .withDescription("Current and voltage alarms configuration")
+            .withFeature(
+                e
+                    .binary("over_current_alarm", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Automatically switch OFF the circuit when the circuit draws more current than the limit (Default ON)"),
+            )
+            .withFeature(
+                e
+                    .numeric("over_current_threshold", ea.STATE_SET)
+                    .withUnit("A")
+                    .withValueMin(1.0)
+                    .withValueMax(80.0)
+                    .withValueStep(0.1)
+                    .withDescription("Current upper limit (Default 63A)"),
+            )
+            .withFeature(
+                e
+                    .binary("over_voltage_alarm", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Automatically switch OFF the circuit when the voltage is above the limit (Default ON)"),
+            )
+            .withFeature(
+                e
+                    .numeric("over_voltage_threshold", ea.STATE_SET)
+                    .withUnit("V")
+                    .withValueMin(120)
+                    .withValueMax(300)
+                    .withValueStep(1)
+                    .withDescription("Voltage upper limit (Default 275V)"),
+            )
+            .withFeature(
+                e
+                    .binary("under_voltage_alarm", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Automatically switch OFF the circuit when the voltage is below the limit (Default ON)"),
+            )
+            .withFeature(
+                e
+                    .numeric("under_voltage_threshold", ea.STATE_SET)
+                    .withUnit("V")
+                    .withValueMin(80)
+                    .withValueMax(210)
+                    .withValueStep(1)
+                    .withDescription("Voltage lower limit (Default 175V)"),
+            )
+            .withCategory("config"),
+    overCurrentThresholdTime: () =>
+        e
+            .numeric("over_current_threshold_time", ea.STATE_SET)
+            .withUnit("s")
+            .withValueMin(0)
+            .withValueMax(999)
+            .withValueStep(1)
+            .withDescription("Time overcurrent is allowed before the circuit is switched OFF (Default 0s)")
+            .withCategory("config"),
+    lostFlowAlarm: () =>
+        e
+            .composite("alarm_set_3", "alarm_set_3", ea.STATE_SET)
+            .withDescription("Lost flow alarm configuration")
+            .withFeature(e.binary("lost_flow_alarm", ea.STATE_SET, "ON", "OFF").withDescription("Unknown"))
+            .withFeature(
+                e
+                    .numeric("lost_flow_threshold", ea.STATE_SET)
+                    .withUnit("A")
+                    .withValueMin(1.0)
+                    .withValueMax(100.0)
+                    .withValueStep(0.1)
+                    .withDescription("Unknown"),
+            )
+            .withCategory("config"),
+    lostFlowThresholdTime: () =>
+        e
+            .numeric("lost_flow_threshold_time", ea.STATE_SET)
+            .withUnit("s")
+            .withValueMin(0)
+            .withValueMax(999)
+            .withValueStep(1)
+            .withDescription("Unknown (Default 0s)")
+            .withCategory("config"),
 };
 
 export {tuyaExposes as exposes};
@@ -1044,6 +1309,32 @@ export const valueConverter = {
             };
         },
     },
+    phaseVariant4: {
+        from: (v: Buffer) => {
+            return {
+                voltage: v.readUint16BE(0) / 10,
+                current: ((v.readUint8(2) << 16) + (v.readUint8(3) << 8) + v.readUint8(4)) / 1000,
+                power: (v.readUint8(5) << 16) + (v.readUint8(6) << 8) + v.readUint8(7),
+            };
+        },
+    },
+    onOffWithZeros: {
+        to: (v: string) => {
+            if (v === "OFF") return false;
+            if (v === "ON") return true;
+        },
+        from: (v: boolean, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
+            let result = "ON";
+            if (!v) {
+                // device is slow to report, we can assume zero values when off
+                publish({status: "off", current: 0, power: 0});
+                result = "OFF";
+            }
+            // setting/changing the state resets the countdown, but device doesn't report it
+            if (meta.state.state !== result) publish({countdown: 0});
+            return result;
+        },
+    },
     power: {
         from: (v: number) => {
             // Support negative readings
@@ -1228,6 +1519,142 @@ export const valueConverter = {
                 i += 4;
             }
             return result;
+        },
+    },
+    threshold_4: {
+        // alarm_set_1
+        from: (v: Buffer) => {
+            const onOffLookup: Record<number, "OFF" | "ON"> = {0: "OFF", 1: "ON"};
+
+            let lca: string;
+            let lct: number;
+            let dta: string;
+            let dtt: number;
+
+            for (let i = 0; i < v.length; i += 4) {
+                if (v[i] === 4) {
+                    lca = onOffLookup[v[i + 1]];
+                    lct = v.readUInt16BE(i + 2);
+                }
+                if (v[i] === 5) {
+                    dta = onOffLookup[v[i + 1]];
+                    dtt = v.readUInt16BE(i + 2);
+                }
+            }
+
+            return {
+                leakage_current_alarm: lca,
+                leakage_current_threshold: lct,
+                device_temperature_alarm: dta,
+                device_temperature_threshold: dtt,
+            };
+        },
+        to: (v: AlarmSet1Input, meta: AlarmSet1MetaState) => {
+            const currentState = meta.state.alarm_set_1 || {
+                leakage_current_alarm: "ON",
+                leakage_current_threshold: 50,
+                device_temperature_alarm: "ON",
+                device_temperature_threshold: 80,
+            };
+
+            const onOffLookup = {OFF: 0, ON: 1};
+            const buf = Buffer.alloc(8);
+            buf.writeUInt8(4, 0);
+            buf.writeUInt8(utils.getFromLookup(v.leakage_current_alarm || currentState.leakage_current_alarm, onOffLookup), 1);
+            buf.writeUInt16BE(v.leakage_current_threshold || currentState.leakage_current_threshold, 2);
+            buf.writeUInt8(5, 4);
+            buf.writeUInt8(utils.getFromLookup(v.device_temperature_alarm || currentState.device_temperature_alarm, onOffLookup), 5);
+            buf.writeUInt16BE(v.device_temperature_threshold || currentState.device_temperature_threshold, 6);
+            return Array.from(buf);
+        },
+    },
+    threshold_5: {
+        // alarm_set_2
+        from: (v: Buffer) => {
+            const onOffLookup: Record<number, "OFF" | "ON"> = {0: "OFF", 1: "ON"};
+
+            let oca: string;
+            let oct: number;
+            let ova: string;
+            let ovt: number;
+            let uva: string;
+            let uvt: number;
+
+            for (let i = 0; i < v.length; i += 4) {
+                if (v[i] === 1) {
+                    oca = onOffLookup[v[i + 1]];
+                    oct = v.readUInt16BE(i + 2) / 10;
+                }
+                if (v[i] === 3) {
+                    ova = onOffLookup[v[i + 1]];
+                    ovt = v.readUInt16BE(i + 2);
+                }
+                if (v[i] === 4) {
+                    uva = onOffLookup[v[i + 1]];
+                    uvt = v.readUInt16BE(i + 2);
+                }
+            }
+
+            return {
+                over_current_alarm: oca,
+                over_current_threshold: oct,
+                over_voltage_alarm: ova,
+                over_voltage_threshold: ovt,
+                under_voltage_alarm: uva,
+                under_voltage_threshold: uvt,
+            };
+        },
+        to: (v: AlarmSet2Input, meta: AlarmSet2MetaState) => {
+            const currentState = meta.state.alarm_set_2 || {
+                over_current_alarm: "ON",
+                over_current_threshold: 63,
+                over_voltage_alarm: "ON",
+                over_voltage_threshold: 275,
+                under_voltage_alarm: "ON",
+                under_voltage_threshold: 175,
+            };
+
+            const onOffLookup = {OFF: 0, ON: 1};
+            const buf = Buffer.alloc(12);
+            buf.writeUInt8(1, 0);
+            buf.writeUInt8(utils.getFromLookup(v.over_current_alarm || currentState.over_current_alarm, onOffLookup), 1);
+            buf.writeUInt16BE((v.over_current_threshold || currentState.over_current_threshold) * 10, 2);
+            buf.writeUInt8(3, 4);
+            buf.writeUInt8(utils.getFromLookup(v.over_voltage_alarm || currentState.over_voltage_alarm, onOffLookup), 5);
+            buf.writeUInt16BE(v.over_voltage_threshold || currentState.over_voltage_threshold, 6);
+            buf.writeUInt8(4, 8);
+            buf.writeUInt8(utils.getFromLookup(v.under_voltage_alarm || currentState.under_voltage_alarm, onOffLookup), 9);
+            buf.writeUInt16BE(v.under_voltage_threshold || currentState.under_voltage_threshold, 10);
+            return Array.from(buf);
+        },
+    },
+    threshold_6: {
+        // alarm_set_3
+        from: (v: Buffer) => {
+            const onOffLookup: Record<number, "OFF" | "ON"> = {0: "OFF", 1: "ON"};
+
+            let lfa: string;
+            let lft: number;
+
+            if (v[0] === 3) {
+                lfa = onOffLookup[v[1]];
+                lft = v.readUInt16BE(2) / 10;
+            }
+
+            return {lost_flow_alarm: lfa, lost_flow_threshold: lft};
+        },
+        to: (v: AlarmSet3Input, meta: AlarmSet3MetaState) => {
+            const currentState = meta.state.alarm_set_3 || {
+                lost_flow_alarm: "ON",
+                lost_flow_threshold: 63, // unknown what this is and what was default
+            };
+
+            const onOffLookup = {OFF: 0, ON: 1};
+            const buf = Buffer.alloc(4);
+            buf.writeUInt8(3, 0);
+            buf.writeUInt8(utils.getFromLookup(v.lost_flow_alarm || currentState.lost_flow_alarm, onOffLookup), 1);
+            buf.writeUInt16BE((v.lost_flow_threshold || currentState.lost_flow_threshold) * 10, 2);
+            return Array.from(buf);
         },
     },
     selfTestResult: valueConverterBasic.lookup({checking: 0, success: 1, failure: 2, others: 3}),
@@ -2075,7 +2502,7 @@ export const valueConverter = {
         },
     },
     inchingSwitch2: {
-        to: (value: InchingInput, meta: MetaState) => {
+        to: (value: InchingInput, meta: InchingMetaState) => {
             const currentState = meta.state.inching || {state: "OFF", minutes: 1, seconds: 0};
 
             const state = value.state !== undefined ? value.state : currentState.state;
@@ -2102,34 +2529,56 @@ export const valueConverter = {
             return {state, minutes, seconds};
         },
     },
-    circuitBreakerFault: {
+    circuitBreakerFaults: {
         from: (value: number) => {
             // value is a bitmap where each bit represents a fault flag
-            if (!value || value === 0) return "clear";
-            const mapping: [number, string][] = [
-                [1, "short_circuit_alarm"],
-                [2, "surge_alarm"],
-                [4, "overload_alarm"],
-                [8, "leakagecurr_alarm"],
-                [16, "temp_dif_fault"],
-                [32, "fire_alarm"],
-                [64, "high_power_alarm"],
-                [128, "self_test_alarm"],
-                [256, "ov_cr"],
-                [512, "unbalance_alarm"],
-                [1024, "ov_vol"],
-                [2048, "undervoltage_alarm"],
-                [4096, "miss_phase_alarm"],
-                [8192, "outage_alarm"],
-                [16384, "magnetism_alarm"],
-                [32768, "credit_alarm"],
-                [65536, "no_balance_alarm"],
-            ];
-            const flags: string[] = [];
-            for (const [bit, name] of mapping) {
-                if ((value & bit) === bit) flags.push(name);
+            const faults: string[] = [];
+            for (let i = 0; i < circuitBreakerFaultList.length; i++) {
+                const bit = 1 << i;
+                if ((value & bit) === bit) {
+                    faults.push(circuitBreakerFaultList[i]);
+                }
             }
-            return flags.length ? flags.join(",") : "clear";
+            return faults;
+        },
+    },
+    energyBalanceReset: {
+        to: (v: string) => {
+            return v === "RESET";
+        },
+        from: (v: boolean) => {
+            return "idle";
+        },
+    },
+    energyBalanceAdd: {
+        to: (v: number) => {
+            return v * 100;
+        },
+        from: (v: number) => {
+            return 0;
+        },
+    },
+    circuitBreakerStatus: valueConverterBasic.lookup({off: new Enum(0), consumption: new Enum(1), production: new Enum(2)}), // only 0-1 is confirmed
+    cycleSchedule: {
+        // https://developer.tuya.com/en/docs/iot/cycle_timing?id=Kb4vhzu0ryfwm
+        // Configure device with schedules of alternating on/off cycles.
+        // Between start and end (time of day), on selected days, repeat:
+        // ON for onDuration, then OFF for offDuration.
+        from: (v: string) => {
+            const buf = Buffer.from(v, "base64");
+            const schedules = [];
+            for (let offset = 10; offset + 9 < buf.length; offset += 10) {
+                schedules.push({
+                    enabled: buf.readUInt8(offset) === 1,
+                    daysMask: buf.readUInt8(offset + 1),
+                    startTime: buf.readUInt16BE(offset + 2),
+                    endTime: buf.readUInt16BE(offset + 4),
+                    onDuration: buf.readUInt16BE(offset + 6),
+                    offDuration: buf.readUInt16BE(offset + 8),
+                    // unit is minutes
+                });
+            }
+            return schedules;
         },
     },
 };
