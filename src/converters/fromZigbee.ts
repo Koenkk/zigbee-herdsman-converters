@@ -3911,50 +3911,6 @@ export const SP600_power: Fz.Converter<"seMetering", undefined, ["attributeRepor
         return metering.convert(model, msg, publish, options, meta);
     },
 };
-export const eurotronic_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
-        if (result) {
-            if (typeof msg.data[0x4003] === "number") {
-                result.current_heating_setpoint = precisionRound(msg.data[0x4003], 2) / 100;
-            }
-            if (typeof msg.data[0x4008] === "number") {
-                result.child_lock = (msg.data[0x4008] & 0x80) !== 0 ? "LOCK" : "UNLOCK";
-                result.mirror_display = (msg.data[0x4008] & 0x02) !== 0 ? "ON" : "OFF";
-                // This seems broken... We need to write 0x20 to turn it off and 0x10 to set
-                // it to auto mode. However, when it reports the flag, it will report 0x10
-                //  when it's off, and nothing at all when it's in auto mode
-                // the new Comet valve reports the off status on bit 5
-                // if either bit 4 or 5 is set, off mode is active
-                if ((msg.data[0x4008] & 0x30) !== 0) {
-                    // reports auto -> setting to force_off
-                    result.system_mode = constants.thermostatSystemModes[0];
-                } else if ((msg.data[0x4008] & 0x04) !== 0) {
-                    // always_on
-                    result.system_mode = constants.thermostatSystemModes[4];
-                } else {
-                    // auto
-                    result.system_mode = constants.thermostatSystemModes[1];
-                }
-            }
-            if (typeof msg.data[0x4002] === "number") {
-                result.error_status = msg.data[0x4002];
-            }
-            if (typeof msg.data[0x4000] === "number") {
-                result.trv_mode = msg.data[0x4000];
-            }
-            if (typeof msg.data[0x4001] === "number") {
-                result.valve_position = msg.data[0x4001];
-            }
-            if (msg.data.pIHeatingDemand !== undefined) {
-                result.running_state = msg.data.pIHeatingDemand >= 10 ? "heat" : "idle";
-            }
-        }
-        return result;
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ZM35HQ_attr: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasZone",
