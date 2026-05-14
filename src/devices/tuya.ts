@@ -12059,7 +12059,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lu01t0zl", "_TZE200_vrfecyku", "_TZE200_ypprdwsl", "_TZE200_jkbljri7", "_TZE204_bvfld3xc"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lu01t0zl", "_TZE200_vrfecyku", "_TZE200_ypprdwsl", "_TZE200_jkbljri7"]),
         model: "MIR-HE200-TY",
         vendor: "Tuya",
         description: "Human presence sensor with fall function",
@@ -12107,8 +12107,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "presence", tuya.valueConverter.trueFalse1],
                 [2, "radar_sensitivity", tuya.valueConverter.raw],
                 [102, "occupancy", tuya.valueConverter.trueFalse1],
-                // For _TZE204_bvfld3xc
-                // https://github.com/Koenkk/zigbee2mqtt/issues/31767
                 [12, "illuminance", tuya.valueConverter.raw],
                 [103, "illuminance", tuya.valueConverter.raw],
                 [105, "tumble_switch", tuya.valueConverter.plus1],
@@ -12140,13 +12138,80 @@ export const definitions: DefinitionWithExtend[] = [
                 [117, "static_dwell_alarm", tuya.valueConverter.raw],
                 [118, "fall_sensitivity", tuya.valueConverter.raw],
                 // Below are ignored
-                [101, null, null], // reset_flag_code
                 [104, null, null], // detection_flag_code
                 [107, null, null], // radar_check_end_code
                 [108, null, null], // radar_check_start_code
                 [109, null, null], // hw_version_code
                 [110, null, null], // sw_version_code
                 [111, null, null], // radar_id_code
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bvfld3xc"]),
+        model: "ZY-ZHPS01-24G",
+        vendor: "Tuya",
+        description: "24GHz mmWave human presence sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e.numeric("dis_current", ea.STATE).withUnit("cm").withDescription("Current detection distance"),
+            e.numeric("presence_delay", ea.STATE_SET).withUnit("s").withValueMin(1).withValueMax(600).withDescription("Presence delay"),
+            e.numeric("movesensitivity", ea.STATE_SET).withValueMin(0).withValueMax(10).withDescription("Move sensitivity"),
+            e.numeric("breathsensitivity", ea.STATE_SET).withValueMin(0).withValueMax(10).withDescription("Breath sensitivity"),
+            e
+                .numeric("movedistance_max", ea.STATE_SET)
+                .withUnit("cm")
+                .withValueMin(0)
+                .withValueMax(600)
+                .withDescription("Move detection max distance"),
+            e
+                .numeric("movedistance_min", ea.STATE_SET)
+                .withUnit("cm")
+                .withValueMin(0)
+                .withValueMax(600)
+                .withDescription("Move detection min distance"),
+            e
+                .numeric("breathdistance_max", ea.STATE_SET)
+                .withUnit("cm")
+                .withValueMin(0)
+                .withValueMax(600)
+                .withDescription("Breath detection max distance"),
+            e
+                .numeric("breathdistance_min", ea.STATE_SET)
+                .withUnit("cm")
+                .withValueMin(0)
+                .withValueMax(600)
+                .withDescription("Breath detection min distance"),
+            e.enum("self_learning", ea.STATE_SET, ["start", "stop"]).withDescription("Self learning mode"),
+            e.binary("restore_factory_setting", ea.STATE_SET, true, false).withDescription("Factory reset"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    101,
+                    "presence",
+                    {
+                        from: (v: Buffer | number) => {
+                            if (Buffer.isBuffer(v)) return v[0] !== 0;
+                            return v !== 0;
+                        },
+                    },
+                ],
+                [12, "illuminance", tuya.valueConverter.raw],
+                [102, "dis_current", tuya.valueConverter.raw],
+                [103, "presence_delay", tuya.valueConverter.raw],
+                [105, "movesensitivity", tuya.valueConverter.raw],
+                [107, "breathsensitivity", tuya.valueConverter.raw],
+                [109, "movedistance_max", tuya.valueConverter.raw],
+                [110, "movedistance_min", tuya.valueConverter.raw],
+                [111, "breathdistance_max", tuya.valueConverter.raw],
+                [112, "breathdistance_min", tuya.valueConverter.raw],
+                [116, "self_learning", tuya.valueConverterBasic.lookup({start: tuya.enum(0), stop: tuya.enum(1)})],
+                [117, "restore_factory_setting", tuya.valueConverter.raw],
             ],
         },
     },
