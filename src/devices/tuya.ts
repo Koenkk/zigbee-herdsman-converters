@@ -26864,4 +26864,59 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gnpflcoq"]),
+        model: "TZE284_gnpflcoq",
+        vendor: "Tuya",
+        description: "10G mmWave 4-in-1 sensor (presence, temperature, humidity, illuminance)",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence(),
+            e.battery(),
+            e.temperature(),
+            e.humidity(),
+            e.illuminance(),
+            e.numeric("radar_sensitivity", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withDescription("Radar sensitivity"),
+            e.enum("pir_sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("PIR sensitivity"),
+            e.numeric("pir_delay", ea.STATE_SET)
+                .withValueMin(10)
+                .withValueMax(180)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("PIR delay before reporting absence"),
+            e.numeric("detection_range", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("m")
+                .withDescription("Detection range"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                // Confirmed on appVersion 80. DP1 is inverted: 0 = present, 1 = absent.
+                [1, "presence", tuya.valueConverter.trueFalse0],
+                [4, "battery", tuya.valueConverter.raw],
+                [7, "temperature", tuya.valueConverter.divideBy10],
+                [8, "humidity", tuya.valueConverter.raw],
+                [11, "illuminance", tuya.valueConverter.raw],
+                // These settings are write-only on the tested firmware.
+                [2, "radar_sensitivity", tuya.valueConverter.raw],
+                [
+                    9,
+                    "pir_sensitivity",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        middle: tuya.enum(1),
+                        high: tuya.enum(2),
+                    }),
+                ],
+                [12, "pir_delay", tuya.valueConverter.raw],
+                [13, "detection_range", tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
