@@ -3853,21 +3853,6 @@ export const command_arm_with_transaction: Fz.Converter<"ssIasAce", undefined, "
         return payload;
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const EKO09738_metering: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
-    /**
-     * Elko EKO09738 and EKO09716 reports power in mW, scale to W
-     */
-    cluster: "seMetering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = metering.convert(model, msg, publish, options, meta) as KeyValueAny;
-        if (result && result.power !== undefined) {
-            result.power /= 1000;
-        }
-        return result;
-    },
-};
 export const command_on_presence: Fz.Converter<"genOnOff", undefined, "commandOn"> = {
     cluster: "genOnOff",
     type: "commandOn",

@@ -1672,6 +1672,19 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"lightingBallastCfg", SchneiderLightingBallastCfg, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    EKO09738_metering: {
+        // Elko EKO09738 and EKO09716 reports power in mW, scale to W
+        cluster: "seMetering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.metering.convert(model, msg, publish, options, meta) as KeyValueAny;
+            if (result && result.power !== undefined) {
+                result.power /= 1000;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -2714,7 +2727,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EKO09738",
         vendor: "Schneider Electric",
         description: "Zigbee smart socket with power meter",
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fzLocal.EKO09738_metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [
             e.switch(),
@@ -2739,7 +2752,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EKO09716",
         vendor: "Schneider Electric",
         description: "Zigbee smart socket with power meter",
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fzLocal.EKO09738_metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [
             e.switch(),
@@ -2764,7 +2777,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "545D6115",
         vendor: "Schneider Electric",
         description: "LK FUGA wiser wireless socket outlet",
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.EKO09738_metering, fz.power_on_behavior],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fzLocal.EKO09738_metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         extend: [schneiderElectricExtend.addSchneiderFanSwitchConfigurationCluster(), socketIndicatorMode()],
         exposes: [
