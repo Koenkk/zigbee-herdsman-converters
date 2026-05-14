@@ -1,11 +1,26 @@
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const jxuanExtend = {
+    addJxuanGenOnOffCluster: () =>
+        m.deviceAddCustomCluster("genOnOff", {
+            name: "genOnOff",
+            ID: Zcl.Clusters.genOnOff.ID,
+            attributes: {
+                powerOutageMemory: {name: "powerOutageMemory", ID: 0x2000, type: Zcl.DataType.UINT8},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+};
 
 const tzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -51,6 +66,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPZ01",
         vendor: "J.XUAN",
         description: "plug",
+        extend: [jxuanExtend.addJxuanGenOnOffCluster()],
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         exposes: [e.switch(), e.power(), e.power_outage_memory().withAccess(ea.STATE_SET)],
         toZigbee: [tz.on_off, tzLocal.SPZ01_power_outage_memory],
