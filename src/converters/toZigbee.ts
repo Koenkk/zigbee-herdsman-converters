@@ -2253,19 +2253,6 @@ export const ZigUP_lock: Tz.Converter = {
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const LS21001_alert_behaviour: Tz.Converter = {
-    key: ["alert_behaviour"],
-    convertSet: async (entity, key, value, meta) => {
-        const lookup = {siren_led: 3, siren: 2, led: 1, nothing: 0};
-        await entity.write(
-            "genBasic",
-            {16394: {value: utils.getFromLookup(value, lookup), type: 32}},
-            {manufacturerCode: Zcl.ManufacturerCode.LEEDARSON_LIGHTING_CO_LTD, disableDefaultResponse: true},
-        );
-        return {state: {alert_behaviour: value}};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const STS_PRS_251_beep: Tz.Converter = {
     key: ["beep"],
     convertSet: async (entity, key, value, meta) => {
