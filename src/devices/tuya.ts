@@ -12186,6 +12186,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(600)
                 .withDescription("Breath detection min distance"),
+            e.text("notice", ea.STATE).withDescription("Notice"),
+            e.text("move_noise", ea.STATE).withDescription("Move noise (raw)"),
+            e.text("move_threshold", ea.STATE).withDescription("Move threshold (raw)"),
+            e.text("breath_noise", ea.STATE).withDescription("Breath noise (raw)"),
+            e.text("breath_threshold", ea.STATE).withDescription("Breath threshold (raw)"),
             e.enum("self_learning", ea.STATE_SET, ["start", "stop"]).withDescription("Self learning mode"),
             e.binary("restore_factory_setting", ea.STATE_SET, true, false).withDescription("Factory reset"),
         ],
@@ -12210,6 +12215,11 @@ export const definitions: DefinitionWithExtend[] = [
                 [110, "movedistance_min", tuya.valueConverter.raw],
                 [111, "breathdistance_max", tuya.valueConverter.raw],
                 [112, "breathdistance_min", tuya.valueConverter.raw],
+                [113, "notice", tuya.valueConverterBasic.lookup({"01": tuya.enum(1)})],
+                [118, "move_noise", tuya.valueConverter.raw],
+                [119, "move_threshold", tuya.valueConverter.raw],
+                [120, "breath_noise", tuya.valueConverter.raw],
+                [121, "breath_threshold", tuya.valueConverter.raw],
                 [116, "self_learning", tuya.valueConverterBasic.lookup({start: tuya.enum(0), stop: tuya.enum(1)})],
                 [117, "restore_factory_setting", tuya.valueConverter.raw],
             ],
