@@ -2272,14 +2272,6 @@ export const STS_PRS_251_beep: Tz.Converter = {
         await entity.command("genIdentify", "identify", {identifytime: value as number}, utils.getOptions(meta.mapped, entity));
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SPZ01_power_outage_memory: Tz.Converter = {
-    key: ["power_outage_memory"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("genOnOff", {8192: {value: value ? 0x01 : 0x00, type: 0x20}});
-        return {state: {power_outage_memory: value}};
-    },
-};
 export const tuya_relay_din_led_indicator: Tz.Converter = {
     key: ["indicator_mode"],
     convertSet: async (entity, key, value, meta) => {

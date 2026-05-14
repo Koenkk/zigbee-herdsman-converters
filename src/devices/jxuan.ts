@@ -2,10 +2,21 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    SPZ01_power_outage_memory: {
+        key: ["power_outage_memory"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("genOnOff", {8192: {value: value ? 0x01 : 0x00, type: 0x20}});
+            return {state: {power_outage_memory: value}};
+        },
+    } satisfies Tz.Converter,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -42,7 +53,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "plug",
         fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
         exposes: [e.switch(), e.power(), e.power_outage_memory().withAccess(ea.STATE_SET)],
-        toZigbee: [tz.on_off, tz.SPZ01_power_outage_memory],
+        toZigbee: [tz.on_off, tzLocal.SPZ01_power_outage_memory],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement"]);
