@@ -26876,19 +26876,17 @@ export const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.humidity(),
             e.illuminance(),
-            e.numeric("radar_sensitivity", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(10)
-                .withValueStep(1)
-                .withDescription("Radar sensitivity"),
+            e.numeric("radar_sensitivity", ea.STATE_SET).withValueMin(0).withValueMax(10).withValueStep(1).withDescription("Radar sensitivity"),
             e.enum("pir_sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("PIR sensitivity"),
-            e.numeric("pir_delay", ea.STATE_SET)
+            e
+                .numeric("pir_delay", ea.STATE_SET)
                 .withValueMin(10)
                 .withValueMax(180)
                 .withValueStep(1)
                 .withUnit("s")
                 .withDescription("PIR delay before reporting absence"),
-            e.numeric("detection_range", ea.STATE_SET)
+            e
+                .numeric("detection_range", ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(10)
                 .withValueStep(1)
