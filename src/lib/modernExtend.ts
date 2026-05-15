@@ -1152,7 +1152,7 @@ export function pm25(args: Partial<NumericArgs<"pm25Measurement">> = {}): Modern
 
 export interface LightArgs {
     effect?: boolean;
-    powerOnBehavior?: boolean;
+    powerOnBehavior?: boolean | {behaviors?: ("off" | "on" | "toggle" | "previous")[]};
     colorTemp?: {startup?: boolean; range: Range};
     color?: boolean | {modes?: ("xy" | "hs")[]; applyRedFix?: boolean; enhancedHue?: boolean; moveToLevelWithOnOffDisable?: boolean};
     turnsOffAtBrightness1?: boolean;
@@ -1260,7 +1260,10 @@ export function light(args: LightArgs = {}): ModernExtend {
     }
 
     if (powerOnBehavior) {
-        exposes.push(...exposeEndpoints(e.power_on_behavior(["off", "on", "toggle", "previous"]), endpointNames));
+        const behaviors = isObject(powerOnBehavior)
+            ? powerOnBehavior.behaviors || ["off", "on", "toggle", "previous"]
+            : ["off", "on", "toggle", "previous"];
+        exposes.push(...exposeEndpoints(e.power_on_behavior(behaviors), endpointNames));
         fromZigbee.push(fz.power_on_behavior);
         toZigbee.push(tz.power_on_behavior);
     }
