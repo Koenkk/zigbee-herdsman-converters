@@ -2041,36 +2041,6 @@ export const DTB190502A1: Fz.Converter<"genOnOff", undefined, ["attributeReport"
         };
     },
 };
-export const ZigUP: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {
-            "0": "timer",
-            "1": "key",
-            "2": "dig-in",
-        };
-
-        let ds18b20Id = null;
-        let ds18b20Value = null;
-        if (msg.data["41368"]) {
-            ds18b20Id = (msg.data["41368"] as string).split(":")[0];
-            ds18b20Value = precisionRound(Number.parseFloat((msg.data["41368"] as string).split(":")[1]), 2);
-        }
-
-        return {
-            state: msg.data.onOff === 1 ? "ON" : "OFF",
-            cpu_temperature: precisionRound(msg.data["41361"] as number, 2),
-            external_temperature: precisionRound(msg.data["41362"] as number, 1),
-            external_humidity: precisionRound(msg.data["41363"] as number, 1),
-            s0_counts: msg.data["41364"],
-            adc_volt: precisionRound(msg.data["41365"] as number, 3),
-            dig_input: msg.data["41366"],
-            reason: lookup[msg.data["41367"] as number],
-            [`${ds18b20Id}`]: ds18b20Value,
-        };
-    },
-};
 export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasWd",
     type: ["attributeReport", "readResponse"],
