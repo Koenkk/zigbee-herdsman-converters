@@ -20727,8 +20727,8 @@ export const definitions: DefinitionWithExtend[] = [
                     if (meta.state.timer_1 === undefined && result.timer_1 === undefined) {
                         result.timer_1 = result.timer_2 = 5;
                         const endpoint = meta.device.getEndpoint(1);
-                        tuya.sendDataPointValue(endpoint, 13, result.timer_1).catch(() => {});
-                        tuya.sendDataPointValue(endpoint, 14, result.timer_2).catch(() => {});
+                        tuya.sendDataPointValue(endpoint, 13, result.timer_1 as number).catch(() => {});
+                        tuya.sendDataPointValue(endpoint, 14, result.timer_2 as number).catch(() => {});
                         endpoint.command("manuSpecificTuya", "dataQuery", {}).catch(() => {});
                     }
                     if ((result.state_1 === "Closed" || meta.state.state_1 === "Closed") && meta.state.countdown_1 !== 0) result.countdown_1 = 0;
