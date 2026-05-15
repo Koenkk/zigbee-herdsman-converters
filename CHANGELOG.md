@@ -1,5 +1,37 @@
 # Changelog
 
+## [26.51.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.50.0...v26.51.0) (2026-05-13)
+
+
+### Features
+
+* **add:** 901471 ([#12200](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12200)) ([fbaacfb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fbaacfb0c31a48eb23cf958d0a727f2d59168049))
+* **add:** ZT-YK01, ZT-YK02, ZT-YK03 ([#12194](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12194)) ([a5304bc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a5304bc519c461b32a56a64e84f7d58dec619c45))
+
+
+### Bug Fixes
+
+* Datek: move converters to datek.ts  ([#12202](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12202)) ([3c6720d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c6720d951a73ac7aea2033bb85de8711ff1737d))
+* **detect:** Detect `_TZ3210_4ux0ondb` as BSEED TS011F_plug_1_2 https://github.com/Koenkk/zigbee2mqtt/issues/31991 ([106736e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/106736edbf065475e8ee6f76ffb7e7d27249e01e))
+* **detect:** Detect various VIZO VZ-22XS devices ([#12198](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12198)) ([97fc9e8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/97fc9e81617d225a36f590b51e9ed0dd646fca98))
+* Nous D5Z: fix integration ([#12203](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12203)) ([96804e9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/96804e9b15646ca18f0f4764bd3cecd4e6869783))
+
+## [26.50.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.49.0...v26.50.0) (2026-05-12)
+
+
+### Features
+
+* **add:** 2619839 ([#12181](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12181)) ([bd85a26](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bd85a2631f45f4d0e9c593b4db13900d6ce5dcee))
+* **add:** LC201060 ([#12185](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12185)) ([6158b00](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6158b0036efef59960f465a8d4516d38562ffccb))
+
+
+### Bug Fixes
+
+* Convert pin code to string ([#12195](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12195)) ([c7a6aeb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c7a6aeb7869c2314dfa51051c85f9b0e97becfde))
+* Develco ZHEMI101: fix `develcoPulseConfiguration` not writable https://github.com/Koenkk/zigbee2mqtt/issues/31978 ([a349bc9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a349bc9166121e3dce0e9c6c017df9549b6f5977))
+* Heiman: changed the name of HS1CA-E PLUS and measured CO ([#12190](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12190)) ([d30c59c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d30c59c7e3fb9defe94b1d16296c0c9da9c66336))
+* Livolo: Refactor converters, move to local definition ([#12192](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12192)) ([727e94f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/727e94f16d293f894586ef9e677625b074dc5d27))
+
 ## [26.49.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.48.0...v26.49.0) (2026-05-11)
 
 

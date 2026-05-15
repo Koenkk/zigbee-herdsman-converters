@@ -396,7 +396,7 @@ export const lock_pin_code_response: Fz.Converter<"closuresDoorLock", undefined,
         const result: KeyValueAny = {users: {}};
         result.users[userId] = {status: status};
         if (options?.expose_pin && data.pincodevalue) {
-            result.users[userId].pin_code = data.pincodevalue;
+            result.users[userId].pin_code = data.pincodevalue.toString();
         }
         return result;
     },
@@ -1971,6 +1971,15 @@ export const power_source: Fz.Converter<"genBasic", undefined, ["attributeReport
         return payload;
     },
 };
+export const hw_version: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
+    cluster: "genBasic",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        const result: KeyValueAny = {};
+        if (msg.data.hwVersion !== undefined) result.hw_version = msg.data.hwVersion;
+        return result;
+    },
+};
 // #endregion
 
 // #region Non-generic converters
@@ -2092,221 +2101,6 @@ export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "attributeRepor
         return {action: `${clickMapping[msg.data["1"]]}`};
     },
 };
-export const livolo_switch_state: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const status = msg.data.onOff;
-        return {
-            state_left: status & 1 ? "ON" : "OFF",
-            state_right: status & 2 ? "ON" : "OFF",
-        };
-    },
-};
-export const livolo_socket_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
-    cluster: "genPowerCfg",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const stateHeader = Buffer.from([122, 209]);
-        if (msg.data.indexOf(stateHeader) === 0) {
-            const status = msg.data[14];
-            return {state: status & 1 ? "ON" : "OFF"};
-        }
-    },
-};
-export const livolo_new_switch_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
-    cluster: "genPowerCfg",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const stateHeader = Buffer.from([122, 209]);
-        if (msg.data.indexOf(stateHeader) === 0) {
-            const status = msg.data[14];
-            return {state: status & 1 ? "ON" : "OFF"};
-        }
-    },
-};
-export const livolo_new_switch_state_2gang: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
-    cluster: "genPowerCfg",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const stateHeader = Buffer.from([122, 209]);
-        if (msg.data.indexOf(stateHeader) === 0) {
-            if (msg.data[10] === 7) {
-                const status = msg.data[14];
-                return {
-                    state_left: status & 1 ? "ON" : "OFF",
-                    state_right: status & 2 ? "ON" : "OFF",
-                };
-            }
-        }
-    },
-};
-export const livolo_new_switch_state_4gang: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
-    cluster: "genPowerCfg",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const stateHeader = Buffer.from([122, 209]);
-        if (msg.data.indexOf(stateHeader) === 0) {
-            if (msg.data[10] === 7) {
-                const status = msg.data[14];
-                return {
-                    state_left: status & 1 ? "ON" : "OFF",
-                    state_right: status & 2 ? "ON" : "OFF",
-                    state_bottom_left: status & 4 ? "ON" : "OFF",
-                    state_bottom_right: status & 8 ? "ON" : "OFF",
-                };
-            }
-            if (msg.data[10] === 13) {
-                const status = msg.data[13];
-                return {
-                    state_left: status & 1 ? "ON" : "OFF",
-                    state_right: status & 2 ? "ON" : "OFF",
-                    state_bottom_left: status & 4 ? "ON" : "OFF",
-                    state_bottom_right: status & 8 ? "ON" : "OFF",
-                };
-            }
-        }
-    },
-};
-export const livolo_curtain_switch_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
-    cluster: "genPowerCfg",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const stateHeader = Buffer.from([122, 209]);
-        if (msg.data.indexOf(stateHeader) === 0) {
-            if (msg.data[10] === 5 || msg.data[10] === 2) {
-                const status = msg.data[14];
-                return {
-                    state_left: status === 1 ? "ON" : "OFF",
-                    state_right: status === 0 ? "ON" : "OFF",
-                };
-            }
-        }
-    },
-};
-export const livolo_dimmer_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
-    cluster: "genPowerCfg",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const stateHeader = Buffer.from([122, 209]);
-        if (msg.data.indexOf(stateHeader) === 0) {
-            if (msg.data[10] === 7) {
-                const status = msg.data[14];
-                return {state: status & 1 ? "ON" : "OFF"};
-            }
-            if (msg.data[10] === 13) {
-                const status = msg.data[13];
-                return {state: status & 1 ? "ON" : "OFF"};
-            }
-            if (msg.data[10] === 5) {
-                // TODO: Unknown dp, assumed value type
-                const value = msg.data[14] * 10;
-                return {
-                    brightness: mapNumberRange(value, 0, 1000, 0, 255),
-                    brightness_percent: mapNumberRange(value, 0, 1000, 0, 100),
-                    level: value,
-                };
-            }
-        }
-    },
-};
-export const livolo_cover_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
-    cluster: "genPowerCfg",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const dp = msg.data[10];
-        const defaults = {motor_direction: "FORWARD", motor_speed: 40};
-        if (msg.data[0] === 0x7a && msg.data[1] === 0xd1) {
-            const reportType = msg.data[12];
-            switch (dp) {
-                case 0x0c:
-                case 0x0f:
-                    if (reportType === 0x04) {
-                        // Position report
-                        const position = 100 - msg.data[13];
-                        const state = position > 0 ? "OPEN" : "CLOSE";
-                        const moving = dp === 0x0f;
-                        return {...defaults, ...meta.state, position, state, moving};
-                    }
-                    if (reportType === 0x12) {
-                        // Speed report
-                        const motorSpeed = msg.data[13];
-                        return {...defaults, ...meta.state, motor_speed: motorSpeed};
-                    }
-                    if (reportType === 0x13) {
-                        // Direction report
-                        const direction = msg.data[13];
-                        if (direction < 0x80) {
-                            return {...defaults, ...meta.state, motor_direction: "FORWARD"};
-                        }
-                        return {...defaults, ...meta.state, motor_direction: "REVERSE"};
-                    }
-                    break;
-                case 0x02:
-                case 0x03:
-                    // Ignore special commands used only when pairing, as these will rather be handled by `onEvent`
-                    return null;
-                case 0x08:
-                    // Ignore general command acknowledgements, as they provide no useful information.
-                    return null;
-                default:
-                    // Unknown dps
-                    logger.debug(`Unhandled DP ${dp} for ${meta.device.manufacturerName}: ${msg.data.toString("hex")}`, NS);
-            }
-        }
-    },
-};
-export const livolo_hygrometer_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
-    cluster: "genPowerCfg",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const dp = msg.data[10];
-        switch (dp) {
-            case 14:
-                return {
-                    temperature: Number(msg.data[13]),
-                };
-            case 12:
-                return {
-                    humidity: Number(msg.data[13]),
-                };
-        }
-    },
-};
-export const livolo_illuminance_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
-    cluster: "genPowerCfg",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const dp = msg.data[12];
-        const noiseLookup: KeyValueAny = {1: "silent", 2: "normal", 3: "lively", 4: "noisy"};
-        switch (dp) {
-            case 13:
-                return {
-                    illuminance: Number(msg.data[13]),
-                };
-            case 14:
-                return {
-                    noise_detected: msg.data[13] > 2,
-                    noise_level: noiseLookup[msg.data[13]],
-                };
-        }
-    },
-};
-export const livolo_pir_state: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
-    cluster: "genPowerCfg",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const stateHeader = Buffer.from([122, 209]);
-        if (msg.data.indexOf(stateHeader) === 0) {
-            if (msg.data[10] === 7) {
-                const status = msg.data[14];
-                return {
-                    occupancy: !!(status & 1),
-                };
-            }
-        }
-    },
-};
 export const easycode_action: Fz.Converter<"closuresDoorLock", undefined, "raw"> = {
     cluster: "closuresDoorLock",
     type: "raw",
@@ -2333,114 +2127,6 @@ export const easycodetouch_action: Fz.Converter<"closuresDoorLock", undefined, "
             return {action: value};
         }
         logger.warning(`Unknown lock status with source ${msg.data[3]} and event code ${msg.data[4]}`, NS);
-    },
-};
-export const livolo_switch_state_raw: Fz.Converter<"genPowerCfg", undefined, ["raw"]> = {
-    cluster: "genPowerCfg",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        /*
-            header                ieee address            info data
-            new socket
-            [124,210,21,216,128,  199,147,3,24,0,75,18,0,  19,7,0]       after interview
-            [122,209,             199,147,3,24,0,75,18,0,  7,1,6,1,0,11] off
-            [122,209,             199,147,3,24,0,75,18,0,  7,1,6,1,1,11] on
-
-            new switch
-            [124,210,21,216,128,  228,41,3,24,0,75,18,0,  19,1,0]       after interview
-            [122,209,             228,41,3,24,0,75,18,0,  7,1,0,1,0,11] off
-            [122,209,             228,41,3,24,0,75,18,0,  7,1,0,1,1,11] on
-
-            old switch
-            [124,210,21,216,128,  170, 10,2,24,0,75,18,0,  17,0,1] after interview
-            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,0] left: 0, right: 0
-            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,1] left: 1, right: 0
-            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,2] left: 0, right: 1
-            [124,210,21,216,0,     18, 15,5,24,0,75,18,0,  34,0,3] left: 1, right: 1
-
-            curtain switch
-            [124,210,21,216,128,  110,74,116,33,0,75,18,0,  19,5,0]        after interview
-            [122,209,             110,74,116,33,0,75,18,0,  5,1,5,0,2,11]  left: 0, right: 0  (off)
-            [122,209,             110,74,116,33,0,75,18,0,  5,1,5,0,1,11]  left: 1, right: 0  (left on)
-            [122,209,             110,74,116,33,0,75,18,0,  5,1,5,0,0,11]  left: 0, right: 1  (right on)
-
-            pir sensor
-            [124,210,21,216,128,  225,52,225,34,0,75,18,0,  19,13,0]       after interview
-            [122,209,             245,94,225,34,0,75,18,0,  7,1,7,1,1,11]  occupancy: true
-            [122,209,             245,94,225,34,0,75,18,0,  7,1,7,1,0,11]  occupancy: false
-
-            hygrometer
-            [122,209,             191,22,3,24,0,75,18,0, 14,1,8,21,14,11]  temperature: 21 degrees Celsius
-            [122,209,             191,22,3,24,0,75,18,0, 12,1,9,73,12,11]  humidity: 73%
-
-            illuminance
-            [124,210,21,216,128,  221,0,115,33,0,75,18,0,  19,12,0]          after interview
-            [122,209,             221,0,115,33,0,75,18,0,  12,1,14,4,12,11]  noise: 4 (noisy)
-            [122,209,             221,0,115,33,0,75,18,0,  12,1,14,3,12,11]  noise: 3 (lively)
-            [122,209,             221,0,115,33,0,75,18,0,  12,1,14,2,12,11]  noise: 2 (normal)
-            [122,209,             221,0,115,33,0,75,18,0,  12,1,14,1,12,11]  noise: 1 (silent)
-            [122,209,             221,0,115,33,0,75,18,0,  12,1,13,20,12,11] lux: 20
-            [122,209,             221,0,115,33,0,75,18,0,  2,0,12,199,1,11]  ??
-            */
-        const malformedHeader = Buffer.from([0x7c, 0xd2, 0x15, 0xd8, 0x00]);
-        const infoHeader = Buffer.from([0x7c, 0xd2, 0x15, 0xd8, 0x80]);
-        // status of old devices
-        if (msg.data.indexOf(malformedHeader) === 0) {
-            const status = msg.data[15];
-            return {
-                state_left: status & 1 ? "ON" : "OFF",
-                state_right: status & 2 ? "ON" : "OFF",
-            };
-        }
-        // info about device
-        if (msg.data.indexOf(infoHeader) === 0) {
-            if (msg.data.includes(Buffer.from([19, 7, 0]), 13)) {
-                // new socket, hack
-                meta.device.modelID = "TI0001-socket";
-                meta.device.save();
-            }
-            // No need to detect this switches, will be done by universal procedure
-            /* if (msg.data.includes(Buffer.from([19, 1, 0]), 13)) {
-                    // new switch, hack
-                    meta.device.modelID = 'TI0001-switch';
-                    meta.device.save();
-                }
-                if (msg.data.includes(Buffer.from([19, 2, 0]), 13)) {
-                    // new switch, hack
-                    meta.device.modelID = 'TI0001-switch-2gang';
-                    meta.device.save();
-                }*/
-            if (msg.data.includes(Buffer.from([19, 5, 0]), 13)) {
-                logger.debug("Detected Livolo Curtain Switch", NS);
-                // curtain switch, hack
-                meta.device.modelID = "TI0001-curtain-switch";
-                meta.device.save();
-            }
-            if (msg.data.includes(Buffer.from([19, 20, 0]), 13)) {
-                // new dimmer, hack
-                meta.device.modelID = "TI0001-dimmer";
-                meta.device.save();
-            }
-            if (msg.data.includes(Buffer.from([19, 21, 0]), 13)) {
-                meta.device.modelID = "TI0001-cover";
-                meta.device.save();
-            }
-            if (msg.data.includes(Buffer.from([19, 13, 0]), 13)) {
-                logger.debug("Detected Livolo Pir Sensor", NS);
-                meta.device.modelID = "TI0001-pir";
-                meta.device.save();
-            }
-            if (msg.data.includes(Buffer.from([19, 15, 0]), 13)) {
-                logger.debug("Detected Livolo Digital Hygrometer", NS);
-                meta.device.modelID = "TI0001-hygrometer";
-                meta.device.save();
-            }
-            if (msg.data.includes(Buffer.from([19, 12, 0]), 13)) {
-                logger.debug("Detected Livolo Digital Illuminance and Sound Sensor", NS);
-                meta.device.modelID = "TI0001-illuminance";
-                meta.device.save();
-            }
-        }
     },
 };
 export const ptvo_switch_uart: Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]> = {
@@ -2539,29 +2225,6 @@ export const ptvo_switch_analog_input: Fz.Converter<"genAnalogInput", undefined,
         return payload;
     },
 };
-export const keypad20states: Fz.Converter<"genOnOff", undefined, ["readResponse", "attributeReport"]> = {
-    cluster: "genOnOff",
-    type: ["readResponse", "attributeReport"],
-    convert: (model, msg, publish, options, meta) => {
-        const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-        const state = msg.data.onOff === 1;
-        if (button) {
-            return {[button]: state};
-        }
-    },
-};
-export const keypad20_battery: Fz.Converter<"genPowerCfg", undefined, ["readResponse", "attributeReport"]> = {
-    cluster: "genPowerCfg",
-    type: ["readResponse", "attributeReport"],
-    convert: (model, msg, publish, options, meta) => {
-        const voltage = msg.data.mainsVoltage / 10;
-        return {
-            battery: batteryVoltageToPercentage(voltage, "3V_2100"),
-            voltage: voltage, // @deprecated
-            // voltage: voltage / 1000.0,
-        };
-    },
-};
 export const plaid_battery: Fz.Converter<"genPowerCfg", undefined, ["readResponse", "attributeReport"]> = {
     cluster: "genPowerCfg",
     type: ["readResponse", "attributeReport"],
@@ -2577,76 +2240,6 @@ export const plaid_battery: Fz.Converter<"genPowerCfg", undefined, ["readRespons
         return payload;
     },
 };
-export const meazon_meter: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "seMetering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        // typo on property name to stick with zcl definition
-        if (msg.data.inletTempreature !== undefined) {
-            result.inlet_temperature = precisionRound(msg.data.inletTempreature, 2);
-            result.inletTemperature = result.inlet_temperature; // deprecated
-        }
-
-        if (msg.data.status !== undefined) {
-            result.status = precisionRound(msg.data.status, 2);
-        }
-
-        if (msg.data["8192"] !== undefined) {
-            result.line_frequency = precisionRound(Number.parseFloat(msg.data["8192"] as string) / 100.0, 2);
-            result.linefrequency = result.line_frequency; // deprecated
-        }
-
-        if (msg.data["8193"] !== undefined) {
-            result.power = precisionRound(msg.data["8193"] as number, 2);
-        }
-
-        if (msg.data["8196"] !== undefined) {
-            result.voltage = precisionRound(msg.data["8196"] as number, 2);
-        }
-
-        if (msg.data["8213"] !== undefined) {
-            result.voltage = precisionRound(msg.data["8213"] as number, 2);
-        }
-
-        if (msg.data["8199"] !== undefined) {
-            result.current = precisionRound(msg.data["8199"] as number, 2);
-        }
-
-        if (msg.data["8216"] !== undefined) {
-            result.current = precisionRound(msg.data["8216"] as number, 2);
-        }
-
-        if (msg.data["8202"] !== undefined) {
-            result.reactive_power = precisionRound(msg.data["8202"] as number, 2);
-            result.reactivepower = result.reactive_power; // deprecated
-        }
-
-        if (msg.data["12288"] !== undefined) {
-            result.energy_consumed = precisionRound(msg.data["12288"] as number, 2); // deprecated
-            result.energyconsumed = result.energy_consumed; // deprecated
-            result.energy = result.energy_consumed;
-        }
-
-        if (msg.data["12291"] !== undefined) {
-            result.energy_produced = precisionRound(msg.data["12291"] as number, 2);
-            result.energyproduced = result.energy_produced; // deprecated
-        }
-
-        if (msg.data["12294"] !== undefined) {
-            result.reactive_summation = precisionRound(msg.data["12294"] as number, 2);
-            result.reactivesummation = result.reactive_summation; // deprecated
-        }
-
-        if (msg.data["16408"] !== undefined) {
-            result.measure_serial = precisionRound(msg.data["16408"] as number, 2);
-            result.measureserial = result.measure_serial; // deprecated
-        }
-
-        return result;
-    },
-};
-
 export const orvibo_raw_1: Fz.Converter<23, undefined, "raw"> = {
     cluster: 23,
     type: "raw",
@@ -2771,27 +2364,6 @@ export const ewelink_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "
     convert: (model, msg, publish, options, meta) => {
         const lookup: KeyValueAny = {commandToggle: "single", commandOn: "double", commandOff: "long"};
         return {action: lookup[msg.type]};
-    },
-};
-export const diyruz_contact: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        return {contact: msg.data.onOff !== 0};
-    },
-};
-export const diyruz_rspm: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const power = precisionRound(msg.data["41364"] as number, 2);
-        return {
-            state: msg.data.onOff === 1 ? "ON" : "OFF",
-            cpu_temperature: precisionRound(msg.data["41361"] as number, 2),
-            power: power,
-            current: precisionRound(power / 230, 2),
-            action: msg.data["41367"] === 1 ? "hold" : "release",
-        };
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -2934,17 +2506,6 @@ export const enocean_ptm216z: Fz.Converter<"greenPower", undefined, ["commandNot
 //         };
 //     },
 // };
-export const diyruz_freepad_clicks: Fz.Converter<"genMultistateInput", undefined, ["readResponse", "attributeReport"]> = {
-    cluster: "genMultistateInput",
-    type: ["readResponse", "attributeReport"],
-    convert: (model, msg, publish, options, meta) => {
-        const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-        const lookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "triple", 4: "quadruple", 255: "release"};
-        const clicks = msg.data.presentValue;
-        const action = lookup[clicks] ? lookup[clicks] : `many_${clicks}`;
-        return {action: `${button}_${action}`};
-    },
-};
 export const kmpcil_res005_occupancy: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBinaryInput",
     type: ["attributeReport", "readResponse"],
@@ -3370,141 +2931,6 @@ export const javis_lock_report: Fz.Converter<"genBasic", undefined, "attributeRe
         };
     },
 };
-export const diyruz_freepad_config: Fz.Converter<"genOnOffSwitchCfg", undefined, ["readResponse"]> = {
-    cluster: "genOnOffSwitchCfg",
-    type: ["readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const button = getKey(model.endpoint(msg.device), msg.endpoint.ID);
-        const {switchActions, switchType} = msg.data;
-        const switchTypesLookup = ["toggle", "momentary", "multifunction"];
-        const switchActionsLookup = ["on", "off", "toggle"];
-        return {
-            [`switch_type_${button}`]: switchTypesLookup[switchType],
-            [`switch_actions_${button}`]: switchActionsLookup[switchActions],
-        };
-    },
-};
-export const diyruz_geiger: Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "msIlluminanceMeasurement",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        return {
-            radioactive_events_per_minute: msg.data["61441"],
-            radiation_dose_per_hour: msg.data["61442"],
-        };
-    },
-};
-export const diyruz_geiger_config: Fz.Converter<"msIlluminanceLevelSensing", undefined, "readResponse"> = {
-    cluster: "msIlluminanceLevelSensing",
-    type: "readResponse",
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data[0xf001] !== undefined) {
-            result.led_feedback = ["OFF", "ON"][msg.data[0xf001] as number];
-        }
-        if (msg.data[0xf002] !== undefined) {
-            result.buzzer_feedback = ["OFF", "ON"][msg.data[0xf002] as number];
-        }
-        if (msg.data[0xf000] !== undefined) {
-            result.sensitivity = msg.data[0xf000];
-        }
-        if (msg.data[0xf003] !== undefined) {
-            result.sensors_count = msg.data[0xf003];
-        }
-        if (msg.data[0xf004] !== undefined) {
-            result.sensors_type = ["СБМ-20/СТС-5/BOI-33", "СБМ-19/СТС-6", "Others"][msg.data[0xf004] as number];
-        }
-        if (msg.data[0xf005] !== undefined) {
-            result.alert_threshold = msg.data[0xf005];
-        }
-        return result;
-    },
-};
-export const diyruz_airsense_config_co2: Fz.Converter<"msCO2", undefined, "readResponse"> = {
-    cluster: "msCO2",
-    type: "readResponse",
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data[0x0203] !== undefined) {
-            result.led_feedback = ["OFF", "ON"][msg.data[0x0203] as number];
-        }
-        if (msg.data[0x0202] !== undefined) {
-            result.enable_abc = ["OFF", "ON"][msg.data[0x0202] as number];
-        }
-        if (msg.data[0x0204] !== undefined) {
-            result.threshold1 = msg.data[0x0204];
-        }
-        if (msg.data[0x0205] !== undefined) {
-            result.threshold2 = msg.data[0x0205];
-        }
-        return result;
-    },
-};
-export const diyruz_airsense_config_temp: Fz.Converter<"msTemperatureMeasurement", undefined, "readResponse"> = {
-    cluster: "msTemperatureMeasurement",
-    type: "readResponse",
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data[0x0210] !== undefined) {
-            result.temperature_offset = msg.data[0x0210];
-        }
-        return result;
-    },
-};
-export const diyruz_airsense_config_pres: Fz.Converter<"msPressureMeasurement", undefined, "readResponse"> = {
-    cluster: "msPressureMeasurement",
-    type: "readResponse",
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data[0x0210] !== undefined) {
-            result.pressure_offset = msg.data[0x0210];
-        }
-        return result;
-    },
-};
-export const diyruz_airsense_config_hum: Fz.Converter<"msRelativeHumidity", undefined, "readResponse"> = {
-    cluster: "msRelativeHumidity",
-    type: "readResponse",
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data[0x0210] !== undefined) {
-            result.humidity_offset = msg.data[0x0210];
-        }
-        return result;
-    },
-};
-export const diyruz_zintercom_config: Fz.Converter<"closuresDoorLock", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresDoorLock",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data[0x0050] !== undefined) {
-            result.state = ["idle", "ring", "talk", "open", "drop"][msg.data[0x0050] as number];
-        }
-        if (msg.data[0x0051] !== undefined) {
-            result.mode = ["never", "once", "always", "drop"][msg.data[0x0051] as number];
-        }
-        if (msg.data[0x0052] !== undefined) {
-            result.sound = ["OFF", "ON"][msg.data[0x0052] as number];
-        }
-        if (msg.data[0x0053] !== undefined) {
-            result.time_ring = msg.data[0x0053];
-        }
-        if (msg.data[0x0054] !== undefined) {
-            result.time_talk = msg.data[0x0054];
-        }
-        if (msg.data[0x0055] !== undefined) {
-            result.time_open = msg.data[0x0055];
-        }
-        if (msg.data[0x0057] !== undefined) {
-            result.time_bell = msg.data[0x0057];
-        }
-        if (msg.data[0x0056] !== undefined) {
-            result.time_report = msg.data[0x0056];
-        }
-        return result;
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const CC2530ROUTER_led: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
@@ -3916,26 +3342,6 @@ export const command_stop_move_raw: Fz.Converter<"lightingColorCtrl", undefined,
         return payload;
     },
 };
-export const led_on_motion: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "ssIasZone",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (0x4000 in msg.data) {
-            result.led_on_motion = msg.data[0x4000] === 1;
-        }
-        return result;
-    },
-};
-export const hw_version: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBasic",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.hwVersion !== undefined) result.hw_version = msg.data.hwVersion;
-        return result;
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const SNZB02_temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msTemperatureMeasurement",
@@ -4174,19 +3580,6 @@ export const command_arm_with_transaction: Fz.Converter<"ssIasAce", undefined, "
         if (!payload) return;
         payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
         return payload;
-    },
-};
-export const metering_datek: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "seMetering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = metering.convert(model, msg, publish, options, meta) as KeyValueAny;
-        // Filter incorrect 0 energy values reported by the device:
-        // https://github.com/Koenkk/zigbee2mqtt/issues/7852
-        if (result && result.energy === 0) {
-            delete result.energy;
-        }
-        return result;
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
