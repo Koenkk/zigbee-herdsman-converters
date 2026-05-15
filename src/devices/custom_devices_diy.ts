@@ -54,6 +54,14 @@ const tzLocal = {
             return;
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ZigUP_lock: {
+        key: ["led"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {off: "lockDoor" as const, on: "unlockDoor" as const, toggle: "toggleDoor" as const};
+            await entity.command("closuresDoorLock", utils.getFromLookup(value, lookup), {pincodevalue: Buffer.alloc(0)});
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -218,6 +226,36 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    ZigUP: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: KeyValueAny = {
+                "0": "timer",
+                "1": "key",
+                "2": "dig-in",
+            };
+
+            let ds18b20Id = null;
+            let ds18b20Value = null;
+            if (msg.data["41368"]) {
+                ds18b20Id = (msg.data["41368"] as string).split(":")[0];
+                ds18b20Value = utils.precisionRound(Number.parseFloat((msg.data["41368"] as string).split(":")[1]), 2);
+            }
+
+            return {
+                state: msg.data.onOff === 1 ? "ON" : "OFF",
+                cpu_temperature: utils.precisionRound(msg.data["41361"] as number, 2),
+                external_temperature: utils.precisionRound(msg.data["41362"] as number, 1),
+                external_humidity: utils.precisionRound(msg.data["41363"] as number, 1),
+                s0_counts: msg.data["41364"],
+                adc_volt: utils.precisionRound(msg.data["41365"] as number, 3),
+                dig_input: msg.data["41366"],
+                reason: lookup[msg.data["41367"] as number],
+                [`${ds18b20Id}`]: ds18b20Value,
+            };
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {
@@ -772,8 +810,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZigUP",
         vendor: "Custom devices (DiY)",
         description: "CC2530 based Zigbee relais, switch, sensor and router",
-        fromZigbee: [fz.ZigUP],
-        toZigbee: [tz.on_off, tz.light_color, tz.ZigUP_lock],
+        fromZigbee: [fzLocal.ZigUP],
+        toZigbee: [tz.on_off, tz.light_color, tzLocal.ZigUP_lock],
         exposes: [e.switch()],
     },
     {
