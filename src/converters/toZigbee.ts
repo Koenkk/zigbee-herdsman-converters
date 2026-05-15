@@ -18,8 +18,6 @@ const manufacturerOptions = {
     hue: {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V},
     ikea: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
     sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
-    stello: {manufacturerCode: Zcl.ManufacturerCode.STELPRO},
-    stelpro: {manufacturerCode: Zcl.ManufacturerCode.STELPRO},
     tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
     legrand: {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
 };
@@ -2565,26 +2563,6 @@ export const eurotronic_mirror_display: Tz.Converter = {
     },
     convertGet: async (entity, key, meta) => {
         await entity.read("hvacThermostat", [0x4008], manufacturerOptions.eurotronic);
-    },
-};
-export const stelpro_peak_demand_event_icon: Tz.Converter = {
-    key: ["peak_demand_icon"],
-    convertSet: async (entity, key, value, meta) => {
-        const hours = Number(value);
-        const seconds = hours * 3600;
-        if (seconds < 0 || seconds > 65535) {
-            throw new Error("Peak demand duration must be between 0 and 18 hours");
-        }
-
-        const payload = {
-            16645: {
-                value: seconds,
-                type: Zcl.DataType.UINT16,
-            },
-        };
-
-        await entity.write("hvacThermostat", payload);
-        return {state: {[key]: hours}};
     },
 };
 export const DTB190502A1_LED: Tz.Converter = {
