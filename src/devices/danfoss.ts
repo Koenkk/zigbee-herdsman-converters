@@ -1412,7 +1412,11 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
-            await reporting.bind(endpoint, coordinatorEndpoint, ["haDiagnostic"]);
+            try {
+                await reporting.bind(endpoint, coordinatorEndpoint, ["haDiagnostic"]);
+            } catch {
+                // Bind may fail if already bound (Danfoss rejects duplicate binds)
+            }
             await endpoint.configureReporting<"haDiagnostic", DanfossHaDiagnostic>(
                 "haDiagnostic",
                 [
