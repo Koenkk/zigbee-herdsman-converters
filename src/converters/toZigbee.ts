@@ -2423,6 +2423,31 @@ export const tuya_led_controller: Tz.Converter = {
         }
     },
 };
+export const DTB190502A1_LED: Tz.Converter = {
+    key: ["LED"],
+    convertSet: async (entity, key, value, meta) => {
+        if (value === "default") {
+            value = 1;
+        }
+        const lookup = {
+            OFF: 0,
+            ON: 1,
+        };
+        value = utils.getFromLookup(value, lookup);
+        // Check for valid data
+        utils.assertNumber(value, key);
+        if ((value >= 0 && value < 2) === false) value = 0;
+
+        const payload = {
+            16400: {
+                value,
+                type: 0x21,
+            },
+        };
+
+        await entity.write("genBasic", payload);
+    },
+};
 export const ptvo_switch_trigger: Tz.Converter = {
     key: ["trigger", "interval"],
     convertSet: async (entity, key, value, meta) => {
