@@ -2460,7 +2460,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "mcu_software_Version",
+                name: "mcu_software_version",
                 unit: "",
                 scale: 1,
                 valueMin: 0,
