@@ -82,6 +82,7 @@ interface HeimanPrivateCluster {
         rebootedCount: number;
         rejoinedCount: number;
         reportedPackages: number;
+        illuminanceThreshold: number;
         mcuSoftwareVersion: number;
 
         // wifi classes
@@ -186,6 +187,7 @@ const heimanExtend = {
                 rebootedCount: {name: "rebootedCount", ID: 0x0019, type: Zcl.DataType.UINT16},
                 rejoinedCount: {name: "rejoinedCount", ID: 0x001a, type: Zcl.DataType.UINT16},
                 reportedPackages: {name: "reportedPackages", ID: 0x001b, type: Zcl.DataType.UINT16},
+                illuminanceThreshold: {name: "illuminanceThreshold", ID: 0x002a, type: Zcl.DataType.UINT16, write: true},
                 mcuSoftwareVersion: {name: "mcuSoftwareVersion", ID: 0x0030, type: Zcl.DataType.UINT8},
 
                 // wifi classes
@@ -2469,6 +2471,17 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "mcuSoftwareVersion",
                 description: "version of mcu",
                 access: "STATE_GET",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "illuminance_threshold",
+                unit: "Lx",
+                scale: 1,
+                valueMin: 0,
+                valueMax: 1200,
+                cluster: "heimanClusterSpecial",
+                attribute: "illuminanceThreshold",
+                description: "the the illuminance exceeds the threshold, it activates local linkakes.",
+                access: "ALL",
             }),
             m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "sensor_armed",
