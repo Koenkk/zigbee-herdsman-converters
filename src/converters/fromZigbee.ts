@@ -2572,17 +2572,6 @@ export const legrand_binary_input_on_off: Fz.Converter<"genBinaryInput", undefin
         return {[property]: msg.data.presentValue ? "ON" : "OFF"};
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const bticino_4027C_binary_input_moving: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBinaryInput",
-    type: ["attributeReport", "readResponse"],
-    options: [exposes.options.no_position_support()],
-    convert: (model, msg, publish, options, meta) => {
-        return options.no_position_support
-            ? {action: msg.data.presentValue ? "stopped" : "moving", position: 50}
-            : {action: msg.data.presentValue ? "stopped" : "moving"};
-    },
-};
 export const legrand_scenes: Fz.Converter<"genScenes", undefined, "commandRecall"> = {
     cluster: "genScenes",
     type: "commandRecall",
