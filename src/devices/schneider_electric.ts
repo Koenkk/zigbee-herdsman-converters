@@ -2068,7 +2068,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser smart plug",
         extend: [
-            m.onOff(),
+            m.onOff({powerOnBehavior: {behaviors: ["off", "previous", "on"]}}),
             m.electricityMeter({
                 power: {min: 5, change: 1},
                 energy: {min: "1_MINUTE", change: 1},
