@@ -152,7 +152,7 @@ const heimanExtend = {
                 sensorSelfCheckState: {name: "sensorSelfCheckState", ID: 0x0001, type: Zcl.DataType.ENUM8, write: true},
                 sensorFaultState: {name: "sensorFaultState", ID: 0x0002, type: Zcl.DataType.BITMAP16, write: true},
                 sensorPollutionLevel: {name: "sensorPollutionLevel", ID: 0x0003, type: Zcl.DataType.UINT8, write: true},
-                sensorSensitivityLevel: {name: "sensorSensitivityLevel", ID: 0x0004, type: Zcl.DataType.ENUM8, write: true},
+                sensorSensitivityLevel: {name: "sensorSensitivityLevel", ID: 0x0004, type: Zcl.DataType.UINT8, write: true},
                 sensorPrealarmThreshold: {name: "sensorPrealarmThreshold", ID: 0x0005, type: Zcl.DataType.ENUM8, write: true},
                 sensorLifeState: {name: "sensorLifeState", ID: 0x0006, type: Zcl.DataType.ENUM8, write: true},
                 sensorLifeTime: {name: "sensorLifeTime", ID: 0x0007, type: Zcl.DataType.UINT16, write: true},
@@ -2490,6 +2490,14 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "heimanClusterSpecial",
                 attribute: "sensorArmed",
                 description: "armed",
+                access: "ALL",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "pir_sensitivity_level",
+                lookup: {disabled: 0, low: 1, medium: 2, high: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorSensitivityLevel",
+                description: "The sensitivity of PIR Sensor",
                 access: "ALL",
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
