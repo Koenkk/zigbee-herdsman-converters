@@ -18,8 +18,6 @@ const manufacturerOptions = {
     hue: {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V},
     ikea: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
     sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
-    stello: {manufacturerCode: Zcl.ManufacturerCode.STELPRO},
-    stelpro: {manufacturerCode: Zcl.ManufacturerCode.STELPRO},
     tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
     legrand: {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
 };
@@ -2245,14 +2243,6 @@ export const humidity: Tz.Converter = {
 
 // #region Non-generic converters
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZigUP_lock: Tz.Converter = {
-    key: ["led"],
-    convertSet: async (entity, key, value, meta) => {
-        const lookup = {off: "lockDoor" as const, on: "unlockDoor" as const, toggle: "toggleDoor" as const};
-        await entity.command("closuresDoorLock", utils.getFromLookup(value, lookup), {pincodevalue: Buffer.alloc(0)});
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const LS21001_alert_behaviour: Tz.Converter = {
     key: ["alert_behaviour"],
     convertSet: async (entity, key, value, meta) => {
@@ -2567,26 +2557,6 @@ export const eurotronic_mirror_display: Tz.Converter = {
         await entity.read("hvacThermostat", [0x4008], manufacturerOptions.eurotronic);
     },
 };
-export const stelpro_peak_demand_event_icon: Tz.Converter = {
-    key: ["peak_demand_icon"],
-    convertSet: async (entity, key, value, meta) => {
-        const hours = Number(value);
-        const seconds = hours * 3600;
-        if (seconds < 0 || seconds > 65535) {
-            throw new Error("Peak demand duration must be between 0 and 18 hours");
-        }
-
-        const payload = {
-            16645: {
-                value: seconds,
-                type: Zcl.DataType.UINT16,
-            },
-        };
-
-        await entity.write("hvacThermostat", payload);
-        return {state: {[key]: hours}};
-    },
-};
 export const DTB190502A1_LED: Tz.Converter = {
     key: ["LED"],
     convertSet: async (entity, key, value, meta) => {
@@ -2705,61 +2675,6 @@ export const tint_scene: Tz.Converter = {
         await entity.write("genBasic", {16389: {value, type: 0x20}}, manufacturerOptions.tint);
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const bticino_4027C_cover_state: Tz.Converter = {
-    key: ["state"],
-    options: [exposes.options.invert_cover()],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value);
-        const invert = !(utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false)
-            ? !meta.options.invert_cover
-            : meta.options.invert_cover);
-        const lookup = invert
-            ? {open: "upOpen" as const, close: "downClose" as const, stop: "stop" as const, on: "upOpen" as const, off: "downClose" as const}
-            : {open: "downClose" as const, close: "upOpen" as const, stop: "stop" as const, on: "downClose" as const, off: "upOpen" as const};
-
-        value = value.toLowerCase();
-        utils.validateValue(value, Object.keys(lookup));
-
-        let position = 50;
-        if (value === "open") {
-            position = 100;
-        } else if (value === "close") {
-            position = 0;
-        }
-        await entity.command("closuresWindowCovering", utils.getFromLookup(value, lookup), {}, utils.getOptions(meta.mapped, entity));
-        return {state: {position}};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const bticino_4027C_cover_position: Tz.Converter = {
-    key: ["position"],
-    options: [exposes.options.invert_cover(), exposes.options.no_position_support()],
-    convertSet: async (entity, key, value, meta) => {
-        const invert = !(utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false)
-            ? !meta.options.invert_cover
-            : meta.options.invert_cover);
-        utils.assertNumber(value, key);
-        let newPosition = value;
-        if (meta.options.no_position_support) {
-            newPosition = value >= 50 ? 100 : 0;
-        }
-        const position = newPosition;
-        if (invert) {
-            newPosition = 100 - newPosition;
-        }
-        await entity.command(
-            "closuresWindowCovering",
-            "goToLiftPercentage",
-            {percentageliftvalue: newPosition},
-            utils.getOptions(meta.mapped, entity),
-        );
-        return {state: {position: position}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("closuresWindowCovering", ["currentPositionLiftPercentage"]);
-    },
-};
 export const legrand_power_alarm: Tz.Converter = {
     key: ["power_alarm"],
     convertSet: async (entity, key, value, meta) => {
@@ -2773,35 +2688,6 @@ export const legrand_power_alarm: Tz.Converter = {
     },
     convertGet: async (entity, key, meta) => {
         await entity.read("haElectricalMeasurement", [0xf000, 0xf001, 0xf002]);
-    },
-};
-export const diyruz_freepad_on_off_config: Tz.Converter = {
-    key: ["switch_type", "switch_actions"],
-    convertGet: async (entity, key, meta) => {
-        await entity.read("genOnOffSwitchCfg", ["switchType", "switchActions"]);
-    },
-    convertSet: async (entity, key, value, meta) => {
-        const switchTypesLookup = {
-            toggle: 0x00,
-            momentary: 0x01,
-            multifunction: 0x02,
-        };
-        const switchActionsLookup = {
-            on: 0x00,
-            off: 0x01,
-            toggle: 0x02,
-        };
-        const intVal = Number(value);
-        const switchType = utils.getFromLookup(value, switchTypesLookup, intVal);
-        const switchActions = utils.getFromLookup(value, switchActionsLookup, intVal);
-
-        const payloads: KeyValueAny = {
-            switch_type: {switchType},
-            switch_actions: {switchActions},
-        };
-        await entity.write("genOnOffSwitchCfg", payloads[key]);
-
-        return {state: {[`${key}`]: value}};
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -2846,122 +2732,6 @@ export const TYZB01_on_off: Tz.Converter = {
     },
     convertGet: async (entity, key, meta) => {
         await entity.read("genOnOff", ["onOff"]);
-    },
-};
-export const diyruz_geiger_config: Tz.Converter = {
-    key: ["sensitivity", "led_feedback", "buzzer_feedback", "sensors_count", "sensors_type", "alert_threshold"],
-    convertSet: async (entity, key, rawValue, meta) => {
-        const lookup = {
-            OFF: 0x00,
-            ON: 0x01,
-        };
-        const sensorsTypeLookup = {
-            "СБМ-20/СТС-5/BOI-33": "0",
-            "СБМ-19/СТС-6": "1",
-            Others: "2",
-        };
-
-        let value = utils.getFromLookup(rawValue, lookup, Number(rawValue));
-
-        if (key === "sensors_type") {
-            // @ts-expect-error ignore
-            value = utils.getFromLookup(rawValue, sensorsTypeLookup, Number(rawValue));
-        }
-
-        const payloads: KeyValueAny = {
-            sensitivity: {61440: {value, type: 0x21}},
-            led_feedback: {61441: {value, type: 0x10}},
-            buzzer_feedback: {61442: {value, type: 0x10}},
-            sensors_count: {61443: {value, type: 0x20}},
-            sensors_type: {61444: {value, type: 0x30}},
-            alert_threshold: {61445: {value, type: 0x23}},
-        };
-
-        await entity.write("msIlluminanceLevelSensing", payloads[key]);
-        return {
-            state: {[key]: rawValue},
-        };
-    },
-    convertGet: async (entity, key, meta) => {
-        const payloads: KeyValueAny = {
-            sensitivity: ["msIlluminanceLevelSensing", 0xf000],
-            led_feedback: ["msIlluminanceLevelSensing", 0xf001],
-            buzzer_feedback: ["msIlluminanceLevelSensing", 0xf002],
-            sensors_count: ["msIlluminanceLevelSensing", 0xf003],
-            sensors_type: ["msIlluminanceLevelSensing", 0xf004],
-            alert_threshold: ["msIlluminanceLevelSensing", 0xf005],
-        };
-        await entity.read(payloads[key][0], [payloads[key][1]]);
-    },
-};
-export const diyruz_airsense_config: Tz.Converter = {
-    key: ["led_feedback", "enable_abc", "threshold1", "threshold2", "temperature_offset", "pressure_offset", "humidity_offset"],
-    convertSet: async (entity, key, rawValue, meta) => {
-        const lookup = {OFF: 0x00, ON: 0x01};
-        const value = utils.getFromLookup(rawValue, lookup, Number(rawValue));
-        const payloads: KeyValueAny = {
-            led_feedback: ["msCO2", {515: {value, type: 0x10}}],
-            enable_abc: ["msCO2", {514: {value, type: 0x10}}],
-            threshold1: ["msCO2", {516: {value, type: 0x21}}],
-            threshold2: ["msCO2", {517: {value, type: 0x21}}],
-            temperature_offset: ["msTemperatureMeasurement", {528: {value, type: 0x29}}],
-            pressure_offset: ["msPressureMeasurement", {528: {value, type: 0x2b}}],
-            humidity_offset: ["msRelativeHumidity", {528: {value, type: 0x29}}],
-        };
-        await entity.write(payloads[key][0], payloads[key][1]);
-        return {
-            state: {[key]: rawValue},
-        };
-    },
-    convertGet: async (entity, key, meta) => {
-        const payloads: KeyValueAny = {
-            led_feedback: ["msCO2", 0x0203],
-            enable_abc: ["msCO2", 0x0202],
-            threshold1: ["msCO2", 0x0204],
-            threshold2: ["msCO2", 0x0205],
-            temperature_offset: ["msTemperatureMeasurement", 0x0210],
-            pressure_offset: ["msPressureMeasurement", 0x0210],
-            humidity_offset: ["msRelativeHumidity", 0x0210],
-        };
-        await entity.read(payloads[key][0], [payloads[key][1]]);
-    },
-};
-export const diyruz_zintercom_config: Tz.Converter = {
-    key: ["mode", "sound", "time_ring", "time_talk", "time_open", "time_bell", "time_report"],
-    convertSet: async (entity, key, rawValue, meta) => {
-        const lookup: KeyValueAny = {OFF: 0x00, ON: 0x01};
-        const modeOpenLookup = {never: "0", once: "1", always: "2", drop: "3"};
-        let value = utils.getFromLookup(rawValue, lookup, Number(rawValue));
-        if (key === "mode") {
-            // @ts-expect-error ignore
-            value = utils.getFromLookup(rawValue, modeOpenLookup, Number(rawValue));
-        }
-        const payloads: KeyValueAny = {
-            mode: {81: {value, type: 0x30}},
-            sound: {82: {value, type: 0x10}},
-            time_ring: {83: {value, type: 0x20}},
-            time_talk: {84: {value, type: 0x20}},
-            time_open: {85: {value, type: 0x20}},
-            time_bell: {87: {value, type: 0x20}},
-            time_report: {86: {value, type: 0x20}},
-        };
-        await entity.write("closuresDoorLock", payloads[key]);
-        return {
-            state: {[key]: rawValue},
-        };
-    },
-    convertGet: async (entity, key, meta) => {
-        const payloads = {
-            mode: 0x0051,
-            sound: 0x0052,
-            time_ring: 0x0053,
-            time_talk: 0x0054,
-            time_open: 0x0055,
-            time_bell: 0x0057,
-            time_report: 0x0056,
-        };
-        const v = utils.getFromLookup(key, payloads);
-        await entity.read("closuresDoorLock", [v]);
     },
 };
 export const power_source: Tz.Converter = {
