@@ -82,6 +82,8 @@ interface HeimanPrivateCluster {
         rebootedCount: number;
         rejoinedCount: number;
         reportedPackages: number;
+        illuminanceThreshold: number;
+        mcuSoftwareVersion: number;
 
         // wifi classes
         wifiSsid: string;
@@ -150,7 +152,7 @@ const heimanExtend = {
                 sensorSelfCheckState: {name: "sensorSelfCheckState", ID: 0x0001, type: Zcl.DataType.ENUM8, write: true},
                 sensorFaultState: {name: "sensorFaultState", ID: 0x0002, type: Zcl.DataType.BITMAP16, write: true},
                 sensorPollutionLevel: {name: "sensorPollutionLevel", ID: 0x0003, type: Zcl.DataType.UINT8, write: true},
-                sensorSensitivityLevel: {name: "sensorSensitivityLevel", ID: 0x0004, type: Zcl.DataType.ENUM8, write: true},
+                sensorSensitivityLevel: {name: "sensorSensitivityLevel", ID: 0x0004, type: Zcl.DataType.UINT8, write: true},
                 sensorPrealarmThreshold: {name: "sensorPrealarmThreshold", ID: 0x0005, type: Zcl.DataType.ENUM8, write: true},
                 sensorLifeState: {name: "sensorLifeState", ID: 0x0006, type: Zcl.DataType.ENUM8, write: true},
                 sensorLifeTime: {name: "sensorLifeTime", ID: 0x0007, type: Zcl.DataType.UINT16, write: true},
@@ -185,6 +187,8 @@ const heimanExtend = {
                 rebootedCount: {name: "rebootedCount", ID: 0x0019, type: Zcl.DataType.UINT16},
                 rejoinedCount: {name: "rejoinedCount", ID: 0x001a, type: Zcl.DataType.UINT16},
                 reportedPackages: {name: "reportedPackages", ID: 0x001b, type: Zcl.DataType.UINT16},
+                illuminanceThreshold: {name: "illuminanceThreshold", ID: 0x002a, type: Zcl.DataType.UINT16, write: true},
+                mcuSoftwareVersion: {name: "mcuSoftwareVersion", ID: 0x0030, type: Zcl.DataType.UINT8},
 
                 // wifi classes
                 wifiSsid: {name: "wifiSsid", ID: 0x2000, type: Zcl.DataType.CHAR_STR, write: true},
@@ -2457,6 +2461,28 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "picture quality",
                 access: "ALL",
             }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "mcu_software_version",
+                unit: "",
+                scale: 1,
+                valueMin: 0,
+                valueMax: 255,
+                cluster: "heimanClusterSpecial",
+                attribute: "mcuSoftwareVersion",
+                description: "version of mcu",
+                access: "STATE_GET",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "illuminance_threshold",
+                unit: "Lx",
+                scale: 1,
+                valueMin: 0,
+                valueMax: 1200,
+                cluster: "heimanClusterSpecial",
+                attribute: "illuminanceThreshold",
+                description: "the the illuminance exceeds the threshold, it activates local linkakes.",
+                access: "ALL",
+            }),
             m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "sensor_armed",
                 valueOn: ["Armed", 1],
@@ -2464,6 +2490,14 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "heimanClusterSpecial",
                 attribute: "sensorArmed",
                 description: "armed",
+                access: "ALL",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "pir_sensitivity_level",
+                lookup: {disabled: 0, low: 1, medium: 2, high: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorSensitivityLevel",
+                description: "The sensitivity of PIR Sensor",
                 access: "ALL",
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
@@ -2972,8 +3006,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["HS1CA-E PLUS"],
-        model: "HS1CA-E Plus",
+        zigbeeModel: ["HS1CA-E-PLUS"],
+        model: "HS1CA-E-PLUS",
         vendor: "Heiman",
         description: "Co detector",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
