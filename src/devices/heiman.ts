@@ -82,6 +82,7 @@ interface HeimanPrivateCluster {
         rebootedCount: number;
         rejoinedCount: number;
         reportedPackages: number;
+        mcuSoftwareVersion: number;
 
         // wifi classes
         wifiSsid: string;
@@ -185,6 +186,7 @@ const heimanExtend = {
                 rebootedCount: {name: "rebootedCount", ID: 0x0019, type: Zcl.DataType.UINT16},
                 rejoinedCount: {name: "rejoinedCount", ID: 0x001a, type: Zcl.DataType.UINT16},
                 reportedPackages: {name: "reportedPackages", ID: 0x001b, type: Zcl.DataType.UINT16},
+                mcuSoftwareVersion: {name: "mcuSoftwareVersion", ID: 0x0030, type: Zcl.DataType.UINT8},
 
                 // wifi classes
                 wifiSsid: {name: "wifiSsid", ID: 0x2000, type: Zcl.DataType.CHAR_STR, write: true},
@@ -2457,6 +2459,17 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "picture quality",
                 access: "ALL",
             }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "mcu_software_Version",
+                unit: "",
+                scale: 1,
+                valueMin: 0,
+                valueMax: 255,
+                cluster: "heimanClusterSpecial",
+                attribute: "mcuSoftwareVersion",
+                description: "version of mcu",
+                access: "STATE_GET",
+            }),
             m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "sensor_armed",
                 valueOn: ["Armed", 1],
@@ -2972,8 +2985,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["HS1CA-E PLUS"],
-        model: "HS1CA-E Plus",
+        zigbeeModel: ["HS1CA-E-PLUS"],
+        model: "HS1CA-E-PLUS",
         vendor: "Heiman",
         description: "Co detector",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
