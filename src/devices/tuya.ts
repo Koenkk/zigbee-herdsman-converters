@@ -20718,64 +20718,59 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GX03",
         vendor: "GIEX",
         description: "GIEX 2-zone watering timer",
-        fromZigbee: [
-            {
-                cluster: "manuSpecificTuya",
-                type: ["commandDataResponse", "commandDataReport"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result = tuya.fz.datapoints.convert(model, msg, publish, options, meta) || {};
-                    if (meta.state.timer_1 === undefined && result.timer_1 === undefined) {
-                        result.timer_1 = result.timer_2 = 5;
-                        const endpoint = meta.device.getEndpoint(1);
-                        tuya.sendDataPointValue(endpoint, 13, result.timer_1 as number).catch(() => {});
-                        tuya.sendDataPointValue(endpoint, 14, result.timer_2 as number).catch(() => {});
-                        endpoint.command("manuSpecificTuya", "dataQuery", {}).catch(() => {});
-                    }
-                    if ((result.state_1 === "Closed" || meta.state.state_1 === "Closed") && meta.state.countdown_1 !== 0) result.countdown_1 = 0;
-                    if ((result.state_2 === "Closed" || meta.state.state_2 === "Closed") && meta.state.countdown_2 !== 0) result.countdown_2 = 0;
-                    return result;
-                },
-            },
-            fz.ignore_tuya_set_time,
-        ],
+        fromZigbee: [tuya.fz.datapoints, fz.ignore_tuya_set_time],
         toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        configure: tuya.queryDeviceState,
         exposes: [
-            exposes.binary("valve_1", ea.STATE_SET, "ON", "OFF").withDescription("State of the valve 1"),
-            e.enum("state_1", ea.STATE, ["Manual", "Auto", "Closed"]).withDescription("State of the valve 1"),
-            e
-                .numeric("timer_1", ea.STATE_SET)
+            exposes.binary("valve_1", ea.STATE_SET, "ON", "OFF")
+                .withDescription("State of the valve 1"),
+            e.enum("state_1", ea.STATE, ["Manual", "Auto", "Closed"])
+                .withDescription("State of the valve 1"),
+            e.numeric("timer_1", ea.SET)
                 .withValueMin(1)
                 .withValueMax(1440)
                 .withValueStep(1)
                 .withUnit("min")
                 .withDescription("Timer for the valve 1 operation"),
-            e.numeric("countdown_1", ea.STATE).withUnit("min").withCategory("diagnostic").withDescription("Time remaining for the open valve 1"),
-            e.numeric("last_duration_1", ea.STATE).withUnit("s").withCategory("diagnostic").withDescription("Last open duration for the valve 1"),
-            e.binary("valve_2", ea.STATE_SET, "ON", "OFF").withDescription("State of the valve 2"),
-            e.enum("state_2", ea.STATE, ["Manual", "Auto", "Closed"]).withDescription("State of the valve 2"),
-            e
-                .numeric("timer_2", ea.STATE_SET)
+            e.numeric("countdown_1", ea.STATE)
+                .withUnit("min")
+                .withCategory("diagnostic")
+                .withDescription("Time remaining for the open valve 1"),
+            e.numeric("last_duration_1", ea.STATE)
+                .withUnit("s")
+                .withCategory("diagnostic")
+                .withDescription("Last open duration for the valve 1"),
+            e.binary("valve_2", ea.STATE_SET, "ON", "OFF")
+                .withDescription("State of the valve 2"),
+            e.enum("state_2", ea.STATE, ["Manual", "Auto", "Closed"])
+                .withDescription("State of the valve 2"),
+            e.numeric("timer_2", ea.SET)
                 .withValueMin(1)
                 .withValueMax(1440)
                 .withValueStep(1)
                 .withUnit("min")
                 .withDescription("Timer for the valve 2 operation"),
-            e.numeric("countdown_2", ea.STATE).withUnit("min").withCategory("diagnostic").withDescription("Time remaining for the open valve 2"),
-            e.numeric("last_duration_2", ea.STATE).withUnit("s").withCategory("diagnostic").withDescription("Last open duration for the valve 2"),
+            e.numeric("countdown_2", ea.STATE)
+                .withUnit("min")
+                .withCategory("diagnostic")
+                .withDescription("Time remaining for the open valve 2"),
+            e.numeric("last_duration_2", ea.STATE)
+                .withUnit("s")
+                .withCategory("diagnostic")
+                .withDescription("Last open duration for the valve 2"),
             e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "valve_1", tuya.valueConverter.onOff],
-                [104, "state_1", tuya.valueConverterBasic.lookup({Manual: tuya.enum(0), Auto: tuya.enum(1), Closed: tuya.enum(2)})],
-                [13, "countdown_1", tuya.valueConverter.raw],
-                [13, "timer_1", {from: () => undefined, to: (value) => value}],
+                [104, "state_1", tuya.giexGx03ValveState(1)],
+                [13, "countdown_1", tuya.valueConverter.countdown],
+                [13, "timer_1", tuya.valueConverter.raw],
                 [25, "last_duration_1", tuya.valueConverter.raw],
                 [2, "valve_2", tuya.valueConverter.onOff],
-                [105, "state_2", tuya.valueConverterBasic.lookup({Manual: tuya.enum(0), Auto: tuya.enum(1), Closed: tuya.enum(2)})],
-                [14, "countdown_2", tuya.valueConverter.raw],
-                [14, "timer_2", {from: () => undefined, to: (value) => value}],
+                [105, "state_2", tuya.giexGx03ValveState(2)],
+                [14, "countdown_2", tuya.valueConverter.countdown],
+                [14, "timer_2", tuya.valueConverter.raw],
                 [26, "last_duration_2", tuya.valueConverter.raw],
                 [59, "battery", tuya.valueConverter.raw],
             ],
