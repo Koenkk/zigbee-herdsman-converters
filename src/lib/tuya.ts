@@ -1078,7 +1078,7 @@ export const whitelabel = (vendor: string, model: string, description: string, m
 
 export const giexGx03ValveState = (zoneNum: number) => {
     return {
-        from: (value: unknown, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
+        from: (value: unknown, meta: Fz.Meta, options: KeyValue, publish: Publish): string | number => {
             // Set initial value to both timers
             if (meta.state?.timer_1 === undefined) {
                 publish({
@@ -1094,7 +1094,7 @@ export const giexGx03ValveState = (zoneNum: number) => {
                 publish({[`countdown_${zoneNum}`]: 0});
             }
             const lookup: KeyValue = {0: "Manual", 1: "Auto", 2: "Closed"};
-            return lookup[value as number] ?? value;
+            return lookup[value as number] ?? (value as number);
         },
     };
 };
