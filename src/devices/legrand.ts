@@ -5,7 +5,7 @@ import {eLegrand, fzLegrand, legrandExtend, legrandOptions, readInitialBatterySt
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -129,6 +129,15 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "haElectricalMeasurement"]);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
+
+            // Force device_mode to 'switch' (3) on first configure, 'auto'(4) is officially unsupported and erratic on 412170
+            if (!device.meta.deviceModeInitialized) {
+                const payload: KeyValueAny = {deviceMode: 3};
+                await endpoint.write("manuSpecificLegrandDevices", payload, legrandOptions);
+                await endpoint.read("manuSpecificLegrandDevices", [0x0000], legrandOptions);
+                device.meta.deviceModeInitialized = true;
+                device.save();
+            }
         },
     },
     {
