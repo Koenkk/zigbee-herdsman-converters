@@ -1094,7 +1094,7 @@ export const giexGx03ValveState = (zoneNum: number) => {
                 publish({[`countdown_${zoneNum}`]: 0});
             }
             const lookup: KeyValue = {0: "Manual", 1: "Auto", 2: "Closed"};
-            return lookup[value as number] ?? (value as number);
+            return lookup[value as number] ?? `Unknown (${value})`;
         },
     };
 };
