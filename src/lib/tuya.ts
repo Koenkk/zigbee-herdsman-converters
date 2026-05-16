@@ -1083,7 +1083,7 @@ export const giexGx03ValveState = (zoneNum: number) => {
             if (meta.state?.timer_1 === undefined) {
                 publish({
                     timer_1: 5,
-                    timer_2: 5
+                    timer_2: 5,
                 });
                 const endpoint = meta.device.getEndpoint(1);
                 sendDataPointValue(endpoint, 13, 5).catch(() => {});
@@ -1091,11 +1091,11 @@ export const giexGx03ValveState = (zoneNum: number) => {
             }
             // Reset the related countdown on valve closing
             if (value === 2) {
-                publish({ [`countdown_${zoneNum}`]: 0 });
+                publish({[`countdown_${zoneNum}`]: 0});
             }
             const lookup: KeyValue = {0: "Manual", 1: "Auto", 2: "Closed"};
             return lookup[value as number] ?? value;
-        }
+        },
     };
 };
 
