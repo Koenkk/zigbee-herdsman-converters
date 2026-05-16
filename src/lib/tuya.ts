@@ -1048,6 +1048,13 @@ export const configureQuery = async (device: Zh.Device, coordinatorEndpoint: Zh.
     await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
 };
 
+export const queryDeviceState = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+    // Request the device to start reporting
+    await configureMagicPacket(device, coordinatorEndpoint);
+    // Request the device to report a value of all attributes
+    await configureQuery(device, coordinatorEndpoint);
+};
+
 export const configureMcuVersionRequest = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
     await device.getEndpoint(1).command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
 };
@@ -1067,6 +1074,29 @@ export const whitelabel = (vendor: string, model: string, description: string, m
         return {manufacturerName};
     });
     return {vendor, model, description, fingerprint};
+};
+
+export const giexGx03ValveState = (zoneNum: number) => {
+    return {
+        from: (value: unknown, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
+            // Set initial value to both timers
+            if (meta.state?.timer_1 === undefined) {
+                publish({
+                    timer_1: 5,
+                    timer_2: 5
+                });
+                const endpoint = meta.device.getEndpoint(1);
+                sendDataPointValue(endpoint, 13, 5).catch(() => {});
+                sendDataPointValue(endpoint, 14, 5).catch(() => {});
+            }
+            // Reset the related countdown on valve closing
+            if (value === 2) {
+                publish({ [`countdown_${zoneNum}`]: 0 });
+            }
+            const lookup: KeyValue = {0: "Manual", 1: "Auto", 2: "Closed"};
+            return lookup[value as number] ?? value;
+        }
+    };
 };
 
 class Base {
