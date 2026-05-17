@@ -12277,6 +12277,45 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_1fqpj6qz"]),
+        model: "SYT-ZB01",
+        vendor: "Moes",
+        description: "Smart scene button with rotary knob",
+        exposes: [
+            e.battery(),
+            e.action(["toggle", "off", "brightness_step_up", "brightness_step_down"]),
+            e
+                .enum("operation_mode", ea.ALL, ["command", "event"])
+                .withDescription('Operation mode: "command" - for group control, "event" - for clicks'),
+        ],
+        fromZigbee: [
+            fz.battery,
+            fz.command_toggle,
+            fz.command_off,
+            fz.command_step,
+            fz.command_move,
+            fz.command_stop,
+            tuya.fz.on_off_action,
+            tuya.fz.operation_mode,
+        ],
+        toZigbee: [tuya.tz.operation_mode],
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
+            try {
+                await endpoint.read(0xe001, [0xd011]);
+            } catch {
+                /* do nothing */
+            }
+            await endpoint.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_hkdl5fmv"]),
         model: "TS0601_rcbo",
         vendor: "Tuya",
