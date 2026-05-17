@@ -116,7 +116,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fz.identify, fz.electrical_measurement],
         toZigbee: [tzLegrand.identify, tz.electrical_measurement_power],
-        exposes: [e.power().withAccess(ea.STATE_GET)],
+        exposes: [e.power().withAccess(ea.STATE_GET), eLegrand.identify()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "haElectricalMeasurement"]);
