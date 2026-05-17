@@ -1,11 +1,11 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
-import {eLegrand, fzLegrand, legrandExtend, legrandOptions, readInitialBatteryState, tzLegrand} from "../lib/legrand";
+import {eLegrand, fzLegrand, type LegrandDevicesCluster, legrandExtend, legrandOptions, readInitialBatteryState, tzLegrand} from "../lib/legrand";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -123,8 +123,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
 
-            const payload: KeyValueAny = {deviceMode: 3};
-            await endpoint.write("manuSpecificLegrandDevices", payload, legrandOptions);
+            await endpoint.write<"manuSpecificLegrandDevices", LegrandDevicesCluster>("manuSpecificLegrandDevices", {deviceMode: 3}, legrandOptions);
             await endpoint.read("manuSpecificLegrandDevices", [0x0000], legrandOptions);
         },
     },
