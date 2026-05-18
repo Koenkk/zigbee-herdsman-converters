@@ -2243,31 +2243,10 @@ export const humidity: Tz.Converter = {
 
 // #region Non-generic converters
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const LS21001_alert_behaviour: Tz.Converter = {
-    key: ["alert_behaviour"],
-    convertSet: async (entity, key, value, meta) => {
-        const lookup = {siren_led: 3, siren: 2, led: 1, nothing: 0};
-        await entity.write(
-            "genBasic",
-            {16394: {value: utils.getFromLookup(value, lookup), type: 32}},
-            {manufacturerCode: Zcl.ManufacturerCode.LEEDARSON_LIGHTING_CO_LTD, disableDefaultResponse: true},
-        );
-        return {state: {alert_behaviour: value}};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const STS_PRS_251_beep: Tz.Converter = {
     key: ["beep"],
     convertSet: async (entity, key, value, meta) => {
         await entity.command("genIdentify", "identify", {identifytime: value as number}, utils.getOptions(meta.mapped, entity));
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SPZ01_power_outage_memory: Tz.Converter = {
-    key: ["power_outage_memory"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("genOnOff", {8192: {value: value ? 0x01 : 0x00, type: 0x20}});
-        return {state: {power_outage_memory: value}};
     },
 };
 export const tuya_relay_din_led_indicator: Tz.Converter = {
@@ -2555,31 +2534,6 @@ export const eurotronic_mirror_display: Tz.Converter = {
     },
     convertGet: async (entity, key, meta) => {
         await entity.read("hvacThermostat", [0x4008], manufacturerOptions.eurotronic);
-    },
-};
-export const DTB190502A1_LED: Tz.Converter = {
-    key: ["LED"],
-    convertSet: async (entity, key, value, meta) => {
-        if (value === "default") {
-            value = 1;
-        }
-        const lookup = {
-            OFF: 0,
-            ON: 1,
-        };
-        value = utils.getFromLookup(value, lookup);
-        // Check for valid data
-        utils.assertNumber(value, key);
-        if ((value >= 0 && value < 2) === false) value = 0;
-
-        const payload = {
-            16400: {
-                value,
-                type: 0x21,
-            },
-        };
-
-        await entity.write("genBasic", payload);
     },
 };
 export const ptvo_switch_trigger: Tz.Converter = {

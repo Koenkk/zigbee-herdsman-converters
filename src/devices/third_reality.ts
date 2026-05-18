@@ -137,6 +137,14 @@ interface ThirdBlindGen2 {
     commandResponses: never;
 }
 
+interface ThirdColorLight {
+    attributes: {
+        allowBind: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface ThirdWaterSensor {
     attributes: {
         sirenOnOff: number;
@@ -1358,7 +1366,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy()],
     },
     {
-        zigbeeModel: ["3RCB01057Z", "3RCB02070Z"],
+        zigbeeModel: ["3RCB01057Z", "3RCB02070Z", "3RCB1095Z"],
         model: "3RCB01057Z",
         vendor: "Third Reality",
         description: "Smart Color Bulb ZL1",
@@ -1369,15 +1377,23 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
-            m.deviceAddCustomCluster("3rColorSpecialCluster", {
-                name: "3rColorSpecialCluster",
+            m.deviceAddCustomCluster("3rColorLightSpecialCluster", {
+                name: "3rColorLightSpecialCluster",
                 ID: 0xff04,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0x01},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.enumLookup<"3rColorLightSpecialCluster", ThirdColorLight>({
+                name: "start_bind",
+                lookup: {StartBind: 1},
+                cluster: "3rColorLightSpecialCluster",
+                attribute: "allowBind",
+                description: "Start bind the light to the controller",
+                access: "ALL",
             }),
         ],
     },
