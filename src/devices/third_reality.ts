@@ -145,7 +145,6 @@ interface ThirdColorLight {
     commandResponses: never;
 }
 
-
 interface ThirdWaterSensor {
     attributes: {
         sirenOnOff: number;
