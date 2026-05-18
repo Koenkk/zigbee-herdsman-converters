@@ -2326,37 +2326,69 @@ export const K4003C_binary_input: Fz.Converter<"genBinaryInput", undefined, "att
         return {action: msg.data.presentValue === 1 ? "off" : "on"};
     },
 };
+// Button 1: A0 (top left)
+// Button 2: A1 (bottom left)
+// Button 3: B0 (top right)
+// Button 4: B1 (bottom right)
+const ENOCEAN_PTM215Z_LOOKUP: Record<number, string> = {
+    16: "press_1",
+    20: "release_1",
+    17: "press_2",
+    21: "release_2",
+    19: "press_3",
+    23: "release_3",
+    18: "press_4",
+    22: "release_4",
+    100: "press_1_and_3",
+    101: "release_1_and_3",
+    98: "press_2_and_4",
+    99: "release_2_and_4",
+    34: "press_energy_bar",
+};
 export const enocean_ptm215z: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
     convert: (model, msg, publish, options, meta) => {
         const commandID = msg.data.commandID;
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return; // Skip commissioning command.
+        if (commandID >= 0xe0) return; // Skip op commands
 
-        // Button 1: A0 (top left)
-        // Button 2: A1 (bottom left)
-        // Button 3: B0 (top right)
-        // Button 4: B1 (bottom right)
-        const lookup: KeyValueAny = {
-            16: "press_1",
-            20: "release_1",
-            17: "press_2",
-            21: "release_2",
-            19: "press_3",
-            23: "release_3",
-            18: "press_4",
-            22: "release_4",
-            100: "press_1_and_3",
-            101: "release_1_and_3",
-            98: "press_2_and_4",
-            99: "release_2_and_4",
-            34: "press_energy_bar",
-        };
-
-        const action = lookup[commandID] !== undefined ? lookup[commandID] : `unknown_${commandID}`;
+        const action = ENOCEAN_PTM215Z_LOOKUP[commandID] !== undefined ? ENOCEAN_PTM215Z_LOOKUP[commandID] : `unknown_${commandID}`;
         return {action};
     },
+};
+// Button 1: A0 (top left)
+// Button 2: A1 (bottom left)
+// Button 3: B0 (top right)
+// Button 4: B1 (bottom right)
+const ENOCEAN_PTM215ZE_LOOKUP: Record<number, string> = {
+    34: "press_1",
+    35: "release_1",
+    24: "press_2",
+    25: "release_2",
+    20: "press_3",
+    21: "release_3",
+    18: "press_4",
+    19: "release_4",
+    100: "press_1_and_2",
+    101: "release_1_and_2",
+    98: "press_1_and_3",
+    99: "release_1_and_3",
+    30: "press_1_and_4",
+    31: "release_1_and_4",
+    28: "press_2_and_3",
+    29: "release_2_and_3",
+    26: "press_2_and_4",
+    27: "release_2_and_4",
+    22: "press_3_and_4",
+    23: "release_3_and_4",
+    16: "press_energy_bar",
+    17: "release_energy_bar",
+    0: "press_or_release_all",
+    80: "lock",
+    81: "unlock",
+    82: "half_open",
+    83: "tilt",
 };
 export const enocean_ptm215ze: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
@@ -2364,48 +2396,38 @@ export const enocean_ptm215ze: Fz.Converter<"greenPower", undefined, ["commandNo
     convert: (model, msg, publish, options, meta) => {
         const commandID = msg.data.commandID;
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return;
+        if (commandID >= 0xe0) return; // Skip op commands
 
-        // Button 1: A0 (top left)
-        // Button 2: A1 (bottom left)
-        // Button 3: B0 (top right)
-        // Button 4: B1 (bottom right)
-        const lookup: KeyValueAny = {
-            34: "press_1",
-            35: "release_1",
-            24: "press_2",
-            25: "release_2",
-            20: "press_3",
-            21: "release_3",
-            18: "press_4",
-            19: "release_4",
-            100: "press_1_and_2",
-            101: "release_1_and_2",
-            98: "press_1_and_3",
-            99: "release_1_and_3",
-            30: "press_1_and_4",
-            31: "release_1_and_4",
-            28: "press_2_and_3",
-            29: "release_2_and_3",
-            26: "press_2_and_4",
-            27: "release_2_and_4",
-            22: "press_3_and_4",
-            23: "release_3_and_4",
-            16: "press_energy_bar",
-            17: "release_energy_bar",
-            0: "press_or_release_all",
-            80: "lock",
-            81: "unlock",
-            82: "half_open",
-            83: "tilt",
-        };
-
-        if (lookup[commandID] === undefined) {
+        if (ENOCEAN_PTM215ZE_LOOKUP[commandID] === undefined) {
             logger.error(`PTM 215ZE: missing command '${commandID}'`, NS);
         } else {
-            return {action: lookup[commandID]};
+            return {action: ENOCEAN_PTM215ZE_LOOKUP[commandID]};
         }
     },
+};
+// Button 1: A0 (top left)
+// Button 2: A1 (bottom left)
+// Button 3: B0 (top right)
+// Button 4: B1 (bottom right)
+const ENOCEAN_PTM216Z_LOOKUP: Record<string, string> = {
+    "105_1": "press_1",
+    "105_2": "press_2",
+    "105_3": "press_1_and_2",
+    "105_4": "press_3",
+    "105_5": "press_1_and_3",
+    "105_6": "press_2_and_3",
+    "105_7": "press_1_and_2_and_3",
+    "105_8": "press_4",
+    "105_9": "press_1_and_4",
+    "105_10": "press_2_and_4",
+    "105_11": "press_1_and_2_and_4",
+    "105_12": "press_3_and_4",
+    "105_13": "press_1_and_3_and_4",
+    "105_14": "press_2_and_3_and_4",
+    "105_15": "press_all",
+    "105_16": "press_energy_bar",
+    "106_0": "release",
+    "104_": "short_press_2_of_2",
 };
 export const enocean_ptm216z: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
@@ -2413,38 +2435,14 @@ export const enocean_ptm216z: Fz.Converter<"greenPower", undefined, ["commandNot
     convert: (model, msg, publish, options, meta) => {
         const commandID = msg.data.commandID;
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return;
+        if (commandID >= 0xe0) return; // Skip op commands
 
-        // Button 1: A0 (top left)
-        // Button 2: A1 (bottom left)
-        // Button 3: B0 (top right)
-        // Button 4: B1 (bottom right)
-        const lookup: KeyValueAny = {
-            "105_1": "press_1",
-            "105_2": "press_2",
-            "105_3": "press_1_and_2",
-            "105_4": "press_3",
-            "105_5": "press_1_and_3",
-            "105_6": "press_2_and_3",
-            "105_7": "press_1_and_2_and_3",
-            "105_8": "press_4",
-            "105_9": "press_1_and_4",
-            "105_10": "press_2_and_4",
-            "105_11": "press_1_and_2_and_4",
-            "105_12": "press_3_and_4",
-            "105_13": "press_1_and_3_and_4",
-            "105_14": "press_2_and_3_and_4",
-            "105_15": "press_all",
-            "105_16": "press_energy_bar",
-            "106_0": "release",
-            "104_": "short_press_2_of_2",
-        };
+        const ID = `${commandID}_${"raw" in msg.data.commandFrame ? (msg.data.commandFrame.raw[0] ?? "") : ""}`;
 
-        const ID = `${commandID}_${("raw" in msg.data.commandFrame && msg.data.commandFrame.raw?.slice(0, 1).join("_")) ?? ""}`;
-        if (lookup[ID] === undefined) {
+        if (ENOCEAN_PTM216Z_LOOKUP[ID] === undefined) {
             logger.error(`PTM 216Z: missing command '${ID}'`, NS);
         } else {
-            return {action: lookup[ID]};
+            return {action: ENOCEAN_PTM216Z_LOOKUP[ID]};
         }
     },
 };
@@ -2563,34 +2561,35 @@ export const legrand_power_alarm: Fz.Converter<"haElectricalMeasurement", undefi
         return payload;
     },
 };
+const LEGRAND_GREENPOWER_LOOKUP: Record<number, string> = {
+    16: "home_arrival",
+    17: "home_departure", // ZLGP14
+    18: "daytime_day",
+    19: "daytime_night", // ZLGP16, yes these commandIDs are lower than ZLGP15s'
+    20: "press_1",
+    21: "press_2",
+    22: "press_3",
+    23: "press_4", // ZLGP15
+    34: "press_once",
+    32: "press_twice", // ZLGP17, ZLGP18
+    51: "down_hold", // ZLGP17, ZLGP18
+    52: "stop",
+    53: "up",
+    54: "down", // 600087l
+    55: "up_hold", // ZLGP17, ZLGP18
+};
 export const legrand_greenpower: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
     convert: (model, msg, publish, options, meta) => {
         const commandID = msg.data.commandID;
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return;
-        const lookup: KeyValueAny = {
-            16: "home_arrival",
-            17: "home_departure", // ZLGP14
-            18: "daytime_day",
-            19: "daytime_night", // ZLGP16, yes these commandIDs are lower than ZLGP15s'
-            20: "press_1",
-            21: "press_2",
-            22: "press_3",
-            23: "press_4", // ZLGP15
-            34: "press_once",
-            32: "press_twice", // ZLGP17, ZLGP18
-            51: "down_hold", // ZLGP17, ZLGP18
-            52: "stop",
-            53: "up",
-            54: "down", // 600087l
-            55: "up_hold", // ZLGP17, ZLGP18
-        };
-        if (lookup[commandID] === undefined) {
+        if (commandID >= 0xe0) return; // Skip op commands
+
+        if (LEGRAND_GREENPOWER_LOOKUP[commandID] === undefined) {
             logger.error(`Legrand GreenPower: missing command '${commandID}'`, NS);
         } else {
-            return {action: lookup[commandID]};
+            return {action: LEGRAND_GREENPOWER_LOOKUP[commandID]};
         }
     },
 };
@@ -3100,29 +3099,30 @@ export const CCTSwitch_D0001_lighting: Fz.Converter<"lightingColorCtrl", undefin
         return payload;
     },
 };
+const HUE_TAP_LOOKUP: Record<number, string> = {
+    34: "press_1",
+    16: "press_2",
+    17: "press_3",
+    18: "press_4",
+    // Actions below are never generated by a Hue Tap but by a PMT 215Z
+    // https://github.com/Koenkk/zigbee2mqtt/issues/18088
+    98: "press_3_and_4",
+    99: "release_3_and_4",
+    100: "press_1_and_2",
+    101: "release_1_and_2",
+};
 export const hue_tap: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
     convert: (model, msg, publish, options, meta) => {
         const commandID = msg.data.commandID;
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return;
-        const lookup: KeyValueAny = {
-            34: "press_1",
-            16: "press_2",
-            17: "press_3",
-            18: "press_4",
-            // Actions below are never generated by a Hue Tap but by a PMT 215Z
-            // https://github.com/Koenkk/zigbee2mqtt/issues/18088
-            98: "press_3_and_4",
-            99: "release_3_and_4",
-            100: "press_1_and_2",
-            101: "release_1_and_2",
-        };
-        if (lookup[commandID] === undefined) {
+        if (commandID >= 0xe0) return; // Skip op commands
+
+        if (HUE_TAP_LOOKUP[commandID] === undefined) {
             logger.error(`Hue Tap: missing command '${commandID}'`, NS);
         } else {
-            return {action: lookup[commandID]};
+            return {action: HUE_TAP_LOOKUP[commandID]};
         }
     },
 };
@@ -3240,6 +3240,13 @@ export const sihas_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "co
         return {action: `${button}${lookup[msg.type]}`};
     },
 };
+const SUNRICHER_SWITCH2801K2_LOOKUP: Record<number, string> = {
+    33: "press_on",
+    32: "press_off",
+    52: "release",
+    53: "hold_on",
+    54: "hold_off",
+};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const sunricher_switch2801K2: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
@@ -3247,14 +3254,23 @@ export const sunricher_switch2801K2: Fz.Converter<"greenPower", undefined, ["com
     convert: (model, msg, publish, options, meta) => {
         const commandID = msg.data.commandID;
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return;
-        const lookup: KeyValueAny = {33: "press_on", 32: "press_off", 52: "release", 53: "hold_on", 54: "hold_off"};
-        if (lookup[commandID] === undefined) {
+        if (commandID >= 0xe0) return; // Skip op commands
+
+        if (SUNRICHER_SWITCH2801K2_LOOKUP[commandID] === undefined) {
             logger.error(`Sunricher: missing command '${commandID}'`, NS);
         } else {
-            return {action: lookup[commandID]};
+            return {action: SUNRICHER_SWITCH2801K2_LOOKUP[commandID]};
         }
     },
+};
+const SUNRICHER_SWITCH2801K4_LOOKUP: Record<number, string> = {
+    33: "press_on",
+    32: "press_off",
+    55: "press_high",
+    56: "press_low",
+    53: "hold_high",
+    54: "hold_low",
+    52: "release",
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const sunricher_switch2801K4: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
@@ -3263,20 +3279,12 @@ export const sunricher_switch2801K4: Fz.Converter<"greenPower", undefined, ["com
     convert: (model, msg, publish, options, meta) => {
         const commandID = msg.data.commandID;
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return;
-        const lookup: KeyValueAny = {
-            33: "press_on",
-            32: "press_off",
-            55: "press_high",
-            56: "press_low",
-            53: "hold_high",
-            54: "hold_low",
-            52: "release",
-        };
-        if (lookup[commandID] === undefined) {
+        if (commandID >= 0xe0) return; // Skip op commands
+
+        if (SUNRICHER_SWITCH2801K4_LOOKUP[commandID] === undefined) {
             logger.error(`Sunricher: missing command '${commandID}'`, NS);
         } else {
-            return {action: lookup[commandID]};
+            return {action: SUNRICHER_SWITCH2801K4_LOOKUP[commandID]};
         }
     },
 };
