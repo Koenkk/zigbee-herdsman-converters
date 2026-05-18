@@ -4488,11 +4488,28 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_0hb4rdnp",
             "_TZE200_gne0e6mk",
             "_TZE284_68utemio",
+            "_TZE200_itp8dt7f",
         ]),
         model: "TS0601_dimmer_1_gang_1",
         vendor: "Tuya",
         description: "1 gang smart dimmer",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        // Some variants (notably ION Industries _TZE200_ykgar0ow / _TZE200_4mh6tyyo)
+        // emit standard genOnOff / genLevelCtrl attribute reports for local
+        // knob/rotation events once those clusters are bound to the coordinator
+        // and attribute reporting is configured. Without these there are no
+        // physical-knob state changes (see #10272, #25203). For variants whose
+        // firmware does not support standard reporting, the bind + configReport
+        // requests are harmless no-ops.
+        version: "0.0.1",
+        fromZigbee: [fz.on_off, fz.brightness],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
         exposes: (device, options) => {
             const exps: Expose[] = [
                 tuya.exposes.lightBrightnessWithMinMax(),
@@ -4500,7 +4517,12 @@ export const definitions: DefinitionWithExtend[] = [
                 e.power_on_behavior().withAccess(ea.STATE_SET),
             ];
 
-            if (!device || !["_TZE200_4mh6tyyo", "_TZE200_ykgar0ow", "_TZE200_0hb4rdnp", "_TZE200_gne0e6mk"].includes(device.manufacturerName)) {
+            if (
+                !device ||
+                !["_TZE200_4mh6tyyo", "_TZE200_ykgar0ow", "_TZE200_0hb4rdnp", "_TZE200_gne0e6mk", "_TZE200_itp8dt7f"].includes(
+                    device.manufacturerName,
+                )
+            ) {
                 exps.push(tuya.exposes.lightType(), tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET));
             }
 
@@ -4534,7 +4556,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Zemismart", "ZN2S-US1-SD", "Single gang dimmer", ["_TZE204_68utemio", "_TZE284_68utemio"]),
             tuya.whitelabel("Mercator Ikuü", "SSWRM-ZB", "Rotary dimmer mechanism", ["_TZE200_a0syesf5"]),
             tuya.whitelabel("Lonsonho", "EDM-1ZBB-EU", "Smart Dimmer Switch", ["_TZE200_0nauxa0p"]),
-            tuya.whitelabel("ION Industries", "ID200W-ZIGB", "LED Zigbee Dimmer", ["_TZE200_ykgar0ow", "_TZE200_4mh6tyyo"]),
+            tuya.whitelabel("ION Industries", "ID200W-ZIGB", "LED Zigbee Dimmer", ["_TZE200_ykgar0ow", "_TZE200_4mh6tyyo", "_TZE200_itp8dt7f"]),
             tuya.whitelabel("ION Industries", "90.500.090", "Zigbee Dimmer Master/Slave set", ["_TZE200_0hb4rdnp"]),
             tuya.whitelabel("ION Industries", "90.500.040", "LED Zigbee Dimmer", ["_TZE200_gne0e6mk"]),
         ],
@@ -6560,7 +6582,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_gbshwgag"]),
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_gbshwgag", "_TZ3000_blhvsaqf"]),
         model: "TS0001_switch_module_2",
         vendor: "Tuya",
         description: "1 gang switch with backlight",
@@ -6999,6 +7021,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_veu2v775",
             "_TZ3000_prits6g4",
             "_TZ3000_xfxpoxe0",
+            "_TZ3210_9hbau615",
             "_TZ3000_afgzktgb",
             "_TZ3000_qamj2vnn",
         ]),
@@ -12059,7 +12082,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lu01t0zl", "_TZE200_vrfecyku", "_TZE200_ypprdwsl", "_TZE200_jkbljri7", "_TZE204_bvfld3xc"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lu01t0zl", "_TZE200_vrfecyku", "_TZE200_ypprdwsl", "_TZE200_jkbljri7"]),
         model: "MIR-HE200-TY",
         vendor: "Tuya",
         description: "Human presence sensor with fall function",
@@ -12107,8 +12130,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "presence", tuya.valueConverter.trueFalse1],
                 [2, "radar_sensitivity", tuya.valueConverter.raw],
                 [102, "occupancy", tuya.valueConverter.trueFalse1],
-                // For _TZE204_bvfld3xc
-                // https://github.com/Koenkk/zigbee2mqtt/issues/31767
                 [12, "illuminance", tuya.valueConverter.raw],
                 [103, "illuminance", tuya.valueConverter.raw],
                 [105, "tumble_switch", tuya.valueConverter.plus1],
@@ -12140,13 +12161,88 @@ export const definitions: DefinitionWithExtend[] = [
                 [117, "static_dwell_alarm", tuya.valueConverter.raw],
                 [118, "fall_sensitivity", tuya.valueConverter.raw],
                 // Below are ignored
-                [101, null, null], // reset_flag_code
                 [104, null, null], // detection_flag_code
                 [107, null, null], // radar_check_end_code
                 [108, null, null], // radar_check_start_code
                 [109, null, null], // hw_version_code
                 [110, null, null], // sw_version_code
                 [111, null, null], // radar_id_code
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bvfld3xc"]),
+        model: "ZY-ZHPS01-24G",
+        vendor: "Tuya",
+        description: "24GHz mmWave human presence sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e.numeric("dis_current", ea.STATE).withUnit("cm").withDescription("Current detection distance"),
+            e.numeric("presence_delay", ea.STATE_SET).withUnit("s").withValueMin(1).withValueMax(600).withDescription("Presence delay"),
+            e.numeric("movesensitivity", ea.STATE_SET).withValueMin(0).withValueMax(10).withDescription("Move sensitivity"),
+            e.numeric("breathsensitivity", ea.STATE_SET).withValueMin(0).withValueMax(10).withDescription("Breath sensitivity"),
+            e
+                .numeric("movedistance_max", ea.STATE_SET)
+                .withUnit("cm")
+                .withValueMin(0)
+                .withValueMax(600)
+                .withDescription("Move detection max distance"),
+            e
+                .numeric("movedistance_min", ea.STATE_SET)
+                .withUnit("cm")
+                .withValueMin(0)
+                .withValueMax(600)
+                .withDescription("Move detection min distance"),
+            e
+                .numeric("breathdistance_max", ea.STATE_SET)
+                .withUnit("cm")
+                .withValueMin(0)
+                .withValueMax(600)
+                .withDescription("Breath detection max distance"),
+            e
+                .numeric("breathdistance_min", ea.STATE_SET)
+                .withUnit("cm")
+                .withValueMin(0)
+                .withValueMax(600)
+                .withDescription("Breath detection min distance"),
+            e.text("notice", ea.STATE).withDescription("Notice"),
+            e.text("move_noise", ea.STATE).withDescription("Move noise (raw)"),
+            e.text("move_threshold", ea.STATE).withDescription("Move threshold (raw)"),
+            e.text("breath_noise", ea.STATE).withDescription("Breath noise (raw)"),
+            e.text("breath_threshold", ea.STATE).withDescription("Breath threshold (raw)"),
+            e.enum("self_learning", ea.STATE_SET, ["start", "stop"]).withDescription("Self learning mode"),
+            e.binary("restore_factory_setting", ea.STATE_SET, true, false).withDescription("Factory reset"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    101,
+                    "presence",
+                    {
+                        from: (v: Buffer | number) => {
+                            if (Buffer.isBuffer(v)) return v[0] !== 0;
+                            return v !== 0;
+                        },
+                    },
+                ],
+                [12, "illuminance", tuya.valueConverter.raw],
+                [102, "dis_current", tuya.valueConverter.raw],
+                [103, "presence_delay", tuya.valueConverter.raw],
+                [105, "movesensitivity", tuya.valueConverter.raw],
+                [107, "breathsensitivity", tuya.valueConverter.raw],
+                [109, "movedistance_max", tuya.valueConverter.raw],
+                [110, "movedistance_min", tuya.valueConverter.raw],
+                [111, "breathdistance_max", tuya.valueConverter.raw],
+                [112, "breathdistance_min", tuya.valueConverter.raw],
+                [113, "notice", tuya.valueConverterBasic.lookup({"01": tuya.enum(1)})],
+                [118, "move_noise", tuya.valueConverter.raw],
+                [119, "move_threshold", tuya.valueConverter.raw],
+                [120, "breath_noise", tuya.valueConverter.raw],
+                [121, "breath_threshold", tuya.valueConverter.raw],
+                [116, "self_learning", tuya.valueConverterBasic.lookup({start: tuya.enum(0), stop: tuya.enum(1)})],
+                [117, "restore_factory_setting", tuya.valueConverter.raw],
             ],
         },
     },
@@ -16286,7 +16382,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Nova Digital", "FZB-4", "Interruptor de 4 canais com backlight e neutro", ["TZE204_unsxl4ir"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nvodulvi"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nvodulvi", "_TZE284_nvodulvi"]),
         model: "M9-zigbee-SL",
         vendor: "Tuya",
         description: "Smart Switch (4 gang + 4 scene) with neutral wire and motion sensing",
@@ -17324,7 +17420,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_81yrt3lo", "_TZE284_81yrt3lo"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_81yrt3lo", "_TZE284_81yrt3lo", "_TZE28C1000000_81yrt3lo"]),
         model: "PJ-1203A",
         vendor: "Tuya",
         description: "Bidirectional energy meter with 80A current clamp",
@@ -20468,37 +20564,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         whiteLabel: [tuya.whitelabel("Tuya", "872WZ", "Water level sensor", ["_TZE204_7yyuo8sr"])],
         exposes: [
-            e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
-            e.numeric("liquid_depth", ea.STATE).withUnit("m").withDescription("Liquid Depth"),
-            e.enum("liquid_state", ea.STATE, ["low", "normal", "high"]).withDescription("Liquid level status"),
-            e
-                .numeric("max_set", ea.STATE_SET)
-                .withUnit("%")
-                .withDescription("Liquid max percentage")
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1),
-            e
-                .numeric("mini_set", ea.STATE_SET)
-                .withUnit("%")
-                .withDescription("Liquid minimal percentage")
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1),
-            e
-                .numeric("installation_height", ea.STATE_SET)
-                .withUnit("m")
-                .withDescription("Height from sensor to tank bottom")
-                .withValueMin(0.1)
-                .withValueMax(4)
-                .withValueStep(0.01),
-            e
-                .numeric("liquid_depth_max", ea.STATE_SET)
-                .withUnit("m")
-                .withDescription("Height from sensor to liquid level")
-                .withValueMin(0.1)
-                .withValueMax(4)
-                .withValueStep(0.01),
+            te.liquidLevelPercent(),
+            te.liquidDepth(),
+            te.liquidState(),
+            te.liquidMaximalPercent(),
+            te.liquidMinimalPercent(),
+            te.liquidInstallationHeight(),
+            te.liquidDepthMax(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -20511,12 +20583,12 @@ export const definitions: DefinitionWithExtend[] = [
                         high: tuya.enum(2),
                     }),
                 ],
-                [2, "liquid_depth", tuya.valueConverter.divideBy100],
-                [22, "liquid_level_percent", tuya.valueConverter.raw],
+                [2, "liquid_depth", tuya.valueConverter.raw],
                 [7, "max_set", tuya.valueConverter.raw],
-                [8, "mini_set", tuya.valueConverter.raw],
-                [19, "installation_height", tuya.valueConverter.divideBy100],
-                [21, "liquid_depth_max", tuya.valueConverter.divideBy100],
+                [8, "min_set", tuya.valueConverter.raw],
+                [19, "installation_height", tuya.valueConverter.raw],
+                [21, "liquid_depth_max", tuya.valueConverter.raw],
+                [22, "liquid_level_percent", tuya.valueConverter.raw],
             ],
         },
     },
@@ -20527,31 +20599,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Water level sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
-            e.enum("liquid_state", ea.STATE, ["low", "normal", "high"]).withDescription("Liquid level status"),
-            e.numeric("liquid_depth", ea.STATE).withUnit("m").withDescription("Liquid Depth"),
+            te.liquidState(),
+            te.liquidDepth(),
             e.numeric("power_level", ea.STATE).withUnit("V").withDescription("Power supply voltage"),
-            e
-                .numeric("max_set", ea.STATE_SET)
-                .withUnit("%")
-                .withDescription("Liquid max percentage")
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1),
-            e
-                .numeric("mini_set", ea.STATE_SET)
-                .withUnit("%")
-                .withDescription("Liquid minimal percentage")
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1),
-            e
-                .numeric("liquid_depth_max", ea.STATE_SET)
-                .withUnit("m")
-                .withDescription("Height from sensor to liquid level")
-                .withValueMin(0.1)
-                .withValueMax(4)
-                .withValueStep(0.01),
-            e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
+            te.liquidMaximalPercent(),
+            te.liquidMinimalPercent(),
+            te.liquidDepthMax(),
+            te.liquidLevelPercent(),
             e.text("version", ea.STATE_GET).withDescription("Device version"),
         ],
         meta: {
@@ -20565,11 +20619,11 @@ export const definitions: DefinitionWithExtend[] = [
                         high: tuya.enum(2),
                     }),
                 ],
-                [2, "liquid_depth", tuya.valueConverter.divideBy100],
+                [2, "liquid_depth", tuya.valueConverter.raw],
                 [5, "power_level", tuya.valueConverter.divideBy10],
                 [7, "max_set", tuya.valueConverter.raw],
-                [8, "mini_set", tuya.valueConverter.raw],
-                [21, "liquid_depth_max", tuya.valueConverter.divideBy100],
+                [8, "min_set", tuya.valueConverter.raw],
+                [21, "liquid_depth_max", tuya.valueConverter.raw],
                 [22, "liquid_level_percent", tuya.valueConverter.raw],
                 [103, "version", tuya.valueConverter.raw],
             ],
@@ -20583,37 +20637,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.forcePowerSource({powerSource: "Mains (single phase)"}), tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         version: "0.0.1",
         exposes: [
-            e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
-            e.numeric("liquid_depth", ea.STATE).withUnit("cm").withDescription("Liquid depth"),
-            e.enum("liquid_state", ea.STATE, ["low", "normal", "high"]).withDescription("Liquid level status"),
-            e
-                .numeric("max_set", ea.STATE_SET)
-                .withUnit("%")
-                .withDescription("Liquid max percentage")
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1),
-            e
-                .numeric("min_set", ea.STATE_SET)
-                .withUnit("%")
-                .withDescription("Liquid minimal percentage")
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1),
-            e
-                .numeric("installation_height", ea.STATE_SET)
-                .withUnit("mm")
-                .withDescription("Height from sensor to tank bottom")
-                .withValueMin(10)
-                .withValueMax(4000)
-                .withValueStep(5),
-            e
-                .numeric("liquid_depth_max", ea.STATE_SET)
-                .withUnit("mm")
-                .withDescription("Height from sensor to liquid level")
-                .withValueMin(10)
-                .withValueMax(4000)
-                .withValueStep(5),
+            te.liquidLevelPercent(),
+            te.liquidDepth(),
+            te.liquidState(),
+            te.liquidMaximalPercent(),
+            te.liquidMinimalPercent(),
+            te.liquidInstallationHeight(),
+            te.liquidDepthMax(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -20626,12 +20656,12 @@ export const definitions: DefinitionWithExtend[] = [
                         high: tuya.enum(2),
                     }),
                 ],
-                [2, "liquid_depth", tuya.valueConverter.raw], // mm
-                [22, "liquid_level_percent", tuya.valueConverter.raw],
+                [2, "liquid_depth", tuya.valueConverter.raw],
                 [7, "max_set", tuya.valueConverter.raw],
                 [8, "min_set", tuya.valueConverter.raw],
                 [19, "installation_height", tuya.valueConverter.raw],
                 [21, "liquid_depth_max", tuya.valueConverter.raw],
+                [22, "liquid_level_percent", tuya.valueConverter.raw],
             ],
         },
     },
