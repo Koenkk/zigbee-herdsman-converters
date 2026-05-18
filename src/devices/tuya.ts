@@ -4496,7 +4496,7 @@ export const definitions: DefinitionWithExtend[] = [
         // Some variants (notably ION Industries _TZE200_ykgar0ow / _TZE200_4mh6tyyo)
         // emit standard genOnOff / genLevelCtrl attribute reports for local
         // knob/rotation events once those clusters are bound to the coordinator
-        // and attribute reporting is configured. Without these, HA never sees
+        // and attribute reporting is configured. Without these there are no
         // physical-knob state changes (see #10272, #25203). For variants whose
         // firmware does not support standard reporting, the bind + configReport
         // requests are harmless no-ops.
