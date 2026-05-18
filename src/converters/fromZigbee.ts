@@ -2023,24 +2023,6 @@ export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "command
         };
     },
 };
-export const DTB190502A1: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const lookupKEY: KeyValueAny = {
-            "0": "KEY_SYS",
-            "1": "KEY_UP",
-            "2": "KEY_DOWN",
-            "3": "KEY_NONE",
-        };
-        const lookupLED: KeyValueAny = {"0": "OFF", "1": "ON"};
-        return {
-            cpu_temperature: precisionRound(msg.data["41361"] as number, 2),
-            key_state: lookupKEY[msg.data["41362"] as number],
-            led_state: lookupLED[msg.data["41363"] as number],
-        };
-    },
-};
 export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasWd",
     type: ["attributeReport", "readResponse"],
