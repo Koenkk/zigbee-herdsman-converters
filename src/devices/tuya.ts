@@ -16286,7 +16286,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Nova Digital", "FZB-4", "Interruptor de 4 canais com backlight e neutro", ["TZE204_unsxl4ir"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nvodulvi"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nvodulvi", "_TZE284_nvodulvi"]),
         model: "M9-zigbee-SL",
         vendor: "Tuya",
         description: "Smart Switch (4 gang + 4 scene) with neutral wire and motion sensing",
