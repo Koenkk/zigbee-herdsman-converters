@@ -20749,12 +20749,12 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "valve_1", tuya.valueConverter.onOff],
-                [104, "state_1", tuya.giexGx03ValveState(1)],
+                [104, "state_1", tuya.valueConverter.GX03ValveState(1)],
                 [13, "countdown_1", tuya.valueConverter.countdown],
                 [13, "timer_1", tuya.valueConverter.raw],
                 [25, "last_duration_1", tuya.valueConverter.raw],
                 [2, "valve_2", tuya.valueConverter.onOff],
-                [105, "state_2", tuya.giexGx03ValveState(2)],
+                [105, "state_2", tuya.valueConverter.GX03ValveState(2)],
                 [14, "countdown_2", tuya.valueConverter.countdown],
                 [14, "timer_2", tuya.valueConverter.raw],
                 [26, "last_duration_2", tuya.valueConverter.raw],
