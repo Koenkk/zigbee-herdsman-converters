@@ -317,6 +317,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["EGLO_ZM_RGB_W"],
+        model: "EGLO_ZM_RGB_W",
+        vendor: "AwoX",
+        description: "RGB bulb with dedicated 3000 K white LED",
+        extend: [m.light({colorTemp: {range: [333, 333], startup: false}, color: {modes: ["xy", "hs"]}})],
+        whiteLabel: [{vendor: "EGLO", model: "113135"}],
+    },
+    {
         zigbeeModel: ["EPIR_Zm"],
         model: "EPIR_Zm",
         vendor: "AwoX",
