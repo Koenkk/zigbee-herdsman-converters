@@ -12152,9 +12152,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZY-ZHPS01-24G",
         vendor: "Tuya",
         description: "24GHz mmWave human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
