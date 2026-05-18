@@ -2599,7 +2599,7 @@ export const valueConverter = {
                         timer_2: 5,
                     });
                     const endpoint = meta.device.getEndpoint(1);
-                    (async () => {
+                    void (async () => {
                         await sendDataPointValue(endpoint, 13, 5);
                         await sendDataPointValue(endpoint, 14, 5);
                     })();
