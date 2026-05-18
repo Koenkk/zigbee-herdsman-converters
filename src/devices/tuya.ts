@@ -12282,24 +12282,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Smart scene button with rotary knob",
         exposes: [
-            e.battery(),
-            e.action(["toggle", "off", "brightness_step_up", "brightness_step_down"]),
             e
                 .enum("operation_mode", ea.ALL, ["command", "event"])
                 .withDescription('Operation mode: "command" - for group control, "event" - for clicks'),
         ],
-        fromZigbee: [
-            fz.battery,
-            fz.command_toggle,
-            fz.command_off,
-            fz.command_step,
-            fz.command_move,
-            fz.command_stop,
-            tuya.fz.on_off_action,
-            tuya.fz.operation_mode,
-        ],
+        fromZigbee: [tuya.fz.on_off_action, tuya.fz.operation_mode],
         toZigbee: [tuya.tz.operation_mode],
-        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
+        extend: [m.commandsOnOff(), m.commandsLevelCtrl(), m.battery(), tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
@@ -12309,10 +12298,6 @@ export const definitions: DefinitionWithExtend[] = [
             } catch {
                 /* do nothing */
             }
-            await endpoint.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.batteryPercentageRemaining(endpoint);
         },
     },
     {
