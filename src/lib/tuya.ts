@@ -1076,32 +1076,6 @@ export const whitelabel = (vendor: string, model: string, description: string, m
     return {vendor, model, description, fingerprint};
 };
 
-export const giexGx03ValveState = (zoneNum: number) => {
-    return {
-        from: (value: unknown, meta: Fz.Meta, options: KeyValue, publish: Publish): string | number => {
-            // Set initial value to both timers
-            if (meta.state?.timer_1 === undefined) {
-                publish({
-                    timer_1: 5,
-                    timer_2: 5,
-                });
-                const endpoint = meta.device.getEndpoint(1);
-                sendDataPointValue(endpoint, 13, 5).catch(() => {});
-                sendDataPointValue(endpoint, 14, 5).catch(() => {});
-            }
-            // Reset the related countdown on valve closing
-            if (value === 2) {
-                publish({[`countdown_${zoneNum}`]: 0});
-            }
-            const lookup: Record<number, string> = {0: "Manual", 1: "Auto", 2: "Closed"};
-            if (typeof value === "number" && value in lookup) {
-                return lookup[value];
-            }
-            return `Unknown (${value})`;
-        },
-    };
-};
-
 class Base {
     value: number;
 
@@ -2613,6 +2587,31 @@ export const valueConverter = {
             }
             return schedules;
         },
+    },
+    GX03ValveState: (zoneNum: number) => {
+        const lookup: Record<number, string> = {0: "Manual", 1: "Auto", 2: "Closed"};
+        return {
+            from: async (value: unknown, meta: Fz.Meta, options: KeyValue, publish: Publish): Promise<string> => {
+                // Set initial value to both timers to unlock UI
+                if (meta.state?.timer_1 === undefined) {
+                    publish({
+                        timer_1: 5,
+                        timer_2: 5,
+                    });
+                    const endpoint = meta.device.getEndpoint(1);
+                    await sendDataPointValue(endpoint, 13, 5);
+                    await sendDataPointValue(endpoint, 14, 5);
+                }
+                // Reset the related countdown on valve closing
+                if (value === 2) {
+                    publish({[`countdown_${zoneNum}`]: 0});
+                }
+                if (typeof value === "number" && value in lookup) {
+                    return lookup[value];
+                }
+                return `Unknown (${value})`;
+            },
+        };
     },
 };
 
