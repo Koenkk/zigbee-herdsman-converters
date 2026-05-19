@@ -2474,18 +2474,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DWZTCGQ11LM",
         vendor: "Aqara",
         description: "Multi-state sensor P100",
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0116], {manufacturerCode: manufacturerCode}); // device_mode
-            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x01eb], {manufacturerCode: manufacturerCode}); // door_window_type
-            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode: manufacturerCode}); // sensitivity
-            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x01ec], {manufacturerCode: manufacturerCode}); // report_interval
-            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x01f0], {manufacturerCode: manufacturerCode}); // orientation_detection
-            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x01ed], {manufacturerCode: manufacturerCode}); // movement_detection
-            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x01d8], {manufacturerCode: manufacturerCode}); // fall_detection
-            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0107], {manufacturerCode: manufacturerCode}); // vibration_detection
-            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x01ef], {manufacturerCode: manufacturerCode}); // triple_tap_detection
-        },
         extend: [
             lumi.lumiModernExtend.addManuSpecificLumiCluster(),
             lumi.lumiModernExtend.lumiPreventReset(),
