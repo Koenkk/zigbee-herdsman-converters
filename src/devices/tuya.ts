@@ -6761,6 +6761,34 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Hej", "BDS03G2", "2 gang switch", ["_TZ3000_tas0zemd"])],
     },
 
+    // TS0002 model that supports backlight control via "indicatorMode" and not "backlightModeOffOn". Supports coundown but not inching
+    {
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_dershnvx"]),
+        model: "TS0002_2_gang_sitch_no_neutral",
+        vendor: "Tuya",
+        description: "2 gang, no neutral, switch with LED backlight",
+
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                powerOnBehavior2: true,
+                onOffCountdown: true,
+                indicatorMode: true,
+                endpoints: ["l1", "l2"],
+            }),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2};
+        },
+        meta: {multiEndpoint: true,},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+
     ////////////////////////
     // TS0003 DEFINITIONS //
     ////////////////////////
