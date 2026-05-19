@@ -6679,6 +6679,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_in5qxhtt",
             "_TZ3000_ogpla3lh",
             "_TZ3000_i9w5mehz",
+            "_TZ3000_dershnvx",
         ]),
         model: "TS0002_limited",
         vendor: "Tuya",
@@ -6689,7 +6690,8 @@ export const definitions: DefinitionWithExtend[] = [
                 switchType: true,
                 onOffCountdown: true,
                 indicatorMode: true,
-                backlightModeOffOn: true,
+                backlightModeOffOn: (m) => m !== "_TZ3000_dershnvx",
+                powerOnBehavior2: (m) => m === "_TZ3000_dershnvx",
                 endpoints: ["l1", "l2"],
             }),
         ],
@@ -6708,6 +6710,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lonsonho", "X702A", "2 gang switch with backlight", ["_TZ3000_54hjn4vs", "_TZ3000_aa5t61rh"]),
             tuya.whitelabel("Homeetec", "37022463-1", "2 Gang switch with backlight", ["_TZ3000_in5qxhtt"]),
             tuya.whitelabel("RoomsAI", "37022463-2", "2 Gang switch with backlight", ["_TZ3000_ogpla3lh"]),
+            tuya.whitelabel("Rely Electronics", "_TZ3000_dershnvx", "2 gang, no neutral, switch with backlight", ["_TZ3000_dershnvx"]),
         ],
     },
 
@@ -6759,34 +6762,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({powerOnBehavior: true, endpointNames: ["l1", "l2"]})],
         whiteLabel: [tuya.whitelabel("Hej", "BDS03G2", "2 gang switch", ["_TZ3000_tas0zemd"])],
-    },
-
-    // TS0002 model that supports backlight control via "indicatorMode" and not "backlightModeOffOn". Supports coundown but not inching
-    {
-        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_dershnvx"]),
-        model: "TS0002_2_gang_sitch_no_neutral",
-        vendor: "Tuya",
-        description: "2 gang, no neutral, switch with LED backlight",
-
-        extend: [
-            tuya.modernExtend.tuyaBase(),
-            tuya.modernExtend.tuyaOnOff({
-                switchType: true,
-                powerOnBehavior2: true,
-                onOffCountdown: true,
-                indicatorMode: true,
-                endpoints: ["l1", "l2"],
-            }),
-        ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
-        },
     },
 
     ////////////////////////
