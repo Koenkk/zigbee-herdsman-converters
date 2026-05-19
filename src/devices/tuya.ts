@@ -6652,7 +6652,7 @@ export const definitions: DefinitionWithExtend[] = [
                 backlightModeOffOn: true,
                 indicatorMode: true,
                 onOffCountdown: true,
-                inchingSwitch: true
+                inchingSwitch: true,
             }),
             // this adds inching support
             tuya.clusters.addTuyaCommonPrivateCluster(),
