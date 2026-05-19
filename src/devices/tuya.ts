@@ -6599,30 +6599,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
         },
     },
-
-    // TS0001 model that doesn't support "backlightModeOffOn"
-    {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_5rpu3r0d"]),
-        model: "TS0001_1_gang_sitch_no_neutral",
-        vendor: "Tuya",
-        description: "1 gang, no neutral, switch with LED backlight",
-        extend: [
-            tuya.modernExtend.tuyaBase(),
-            tuya.modernExtend.tuyaOnOff({
-                switchType: true,
-                powerOnBehavior2: true,
-                onOffCountdown: true,
-                indicatorMode: true,
-                // TBD on this feature
-                // inchingSwitch: true,
-            }),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-        },
-    },
-
+    
     ////////////////////////
     // TS0002 DEFINITIONS //
     ////////////////////////
@@ -14615,7 +14592,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_bmqxalil", "_TZ3000_w1tcofu8", "_TZ3000_ma3mhpx2", "_TZ3000_wijoqjk1"]),
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_bmqxalil", "_TZ3000_w1tcofu8", "_TZ3000_ma3mhpx2", "_TZ3000_wijoqjk1", "_TZ3000_5rpu3r0d"]),
         model: "TS0001_switch_1_gang",
         vendor: "Tuya",
         description: "1-Gang switch with backlight",
@@ -14623,7 +14600,10 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 powerOnBehavior2: true,
-                backlightModeOffOn: true,
+                backlightModeOffOn: (m) => m !== "_TZ3000_5rpu3r0d",
+                switchType: (m) => m === "_TZ3000_5rpu3r0d",
+                onOffCountdown: (m) => m === "_TZ3000_5rpu3r0d",
+                indicatorMode: (m) => m === "_TZ3000_5rpu3r0d"
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -14633,6 +14613,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Homeetec", "Homeetec_37022454", "1 Gang switch with backlight", ["_TZ3000_bmqxalil"]),
             tuya.whitelabel("RoomsAI", "RoomsAI_37022454", "1 Gang switch with backlight", ["_TZ3000_w1tcofu8"]),
+            tuya.whitelabel("Rely Electronics", "_TZ3000_5rpu3r0d", "1 gang, no neutral, switch with backlight", ["_TZ3000_5rpu3r0d"]),
         ],
     },
     {
