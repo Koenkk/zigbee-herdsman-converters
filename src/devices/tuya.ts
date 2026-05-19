@@ -6600,6 +6600,29 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
 
+    // TS0001 model that doesn't support "backlightModeOffOn"
+    {
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_5rpu3r0d"]),
+        model: "TS0001_1_gang_sitch_no_neutral",
+        vendor: "Tuya",
+        description: "1 gang, no neutral, switch with LED backlight",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                powerOnBehavior2: true,
+                onOffCountdown: true,
+                indicatorMode: true,
+                // TBD on this feature
+                // inchingSwitch: true, 
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+
     ////////////////////////
     // TS0002 DEFINITIONS //
     ////////////////////////
