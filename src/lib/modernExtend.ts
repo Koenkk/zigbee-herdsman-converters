@@ -1152,7 +1152,7 @@ export function pm25(args: Partial<NumericArgs<"pm25Measurement">> = {}): Modern
 
 export interface LightArgs {
     effect?: boolean;
-    powerOnBehavior?: boolean | {behaviors?: ("off" | "on" | "toggle" | "previous")[]};
+    powerOnBehavior?: boolean;
     colorTemp?: {startup?: boolean; range: Range};
     color?: boolean | {modes?: ("xy" | "hs")[]; applyRedFix?: boolean; enhancedHue?: boolean; moveToLevelWithOnOffDisable?: boolean};
     turnsOffAtBrightness1?: boolean;
