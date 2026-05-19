@@ -79,7 +79,7 @@ const LEGRAND_GREENPOWER_LOOKUP: Record<number, string> = {
     55: "up_hold", // ZLGP17, ZLGP18
 };
 
-interface LegrandDevicesCluster {
+export interface LegrandDevicesCluster {
     attributes: {
         deviceMode: number;
         ledInDark: number;

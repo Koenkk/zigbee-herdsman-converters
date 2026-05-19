@@ -4,6 +4,7 @@ import * as exposes from "../lib/exposes";
 import {
     eLegrand,
     fzLegrand,
+    type LegrandDevicesCluster,
     type LegrandHaElectricalMeasurement,
     legrandExtend,
     legrandOptions,
@@ -127,21 +128,18 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "BTicino", model: "FC80RC"}],
         extend: [legrandExtend.addLegrandDevicesCluster(), m.onOff()],
         ota: true,
-        fromZigbee: [fz.identify, fz.electrical_measurement, fzLegrand.cluster_fc01],
-        toZigbee: [tzLegrand.legrand_device_mode, tzLegrand.identify, tz.electrical_measurement_power],
-        exposes: [
-            e.power().withAccess(ea.STATE_GET),
-            e
-                .enum("device_mode", ea.ALL, ["switch", "auto"])
-                .withDescription(
-                    "Switch: normal on/off mode, momentary push-buttons on C1/C2 toggle the relay cleanly (recommended). auto: produces erratic behavior.",
-                ),
-        ],
+        fromZigbee: [fz.identify, fz.electrical_measurement],
+        toZigbee: [tzLegrand.identify, tz.electrical_measurement_power],
+        exposes: [e.power().withAccess(ea.STATE_GET), eLegrand.identify()],
+        version: "0.0.1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "haElectricalMeasurement"]);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
+
+            await endpoint.write<"manuSpecificLegrandDevices", LegrandDevicesCluster>("manuSpecificLegrandDevices", {deviceMode: 3}, legrandOptions);
+            await endpoint.read("manuSpecificLegrandDevices", [0x0000], legrandOptions);
         },
     },
     {

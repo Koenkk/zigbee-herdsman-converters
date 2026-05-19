@@ -1,5 +1,21 @@
 # Changelog
 
+## [26.53.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.52.0...v26.53.0) (2026-05-19)
+
+
+### Features
+
+* **add:** S4EM-002CXCEU ([#12245](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12245)) ([ead704e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ead704e2095248588a30f3737c4bcbb7564c81a4))
+* **add:** SYT-ZB01 ([#12233](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12233)) ([543562c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/543562c05693cf261156dac63d88b36d1719f696))
+* **add:** TS0601_TZE284_gnpflcoq ([#12229](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12229)) ([3dbf5e5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3dbf5e5a302d83c932216b8669943a1f13514a88))
+* Candeo C203, C204, DM204 and DM204v2: add minimum brightness level setting ([#12240](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12240)) ([1cc4a9e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1cc4a9e31bbd9c95cb099987581a3d360dc1af1c))
+
+
+### Bug Fixes
+
+* Eurotronic:  move converters, introduce custom clusters, and enforce stronger typing  ([#12224](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12224)) ([14b1c68](https://github.com/Koenkk/zigbee-herdsman-converters/commit/14b1c688b66ab6a4fc9f2705040c934fb56e4398))
+* Legrand 412170: force `device_mode` to `switch` on configure, add missing 'identify' expose ([#12231](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12231)) ([d2467a0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d2467a085b4076aee7612f446849474bf517f96f))
+
 ## [26.52.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.51.1...v26.52.0) (2026-05-18)
 
 
