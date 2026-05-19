@@ -2672,6 +2672,33 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gnpflcoq"]),
+        model: "TS0601_TZE284_gnpflcoq",
+        vendor: "Tuya",
+        description: "4-in-1 mmWave presence sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e.temperature(),
+            e.humidity(),
+            e.battery(),
+            e.numeric("sensitivity", ea.STATE_SET).withValueMin(0).withValueMax(10).withDescription("Radar sensitivity"),
+            e.numeric("fading_time", ea.STATE_SET).withValueMin(0).withValueMax(1000).withUnit("s").withDescription("Delay before vacant"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse0],
+                [2, "sensitivity", tuya.valueConverter.raw],
+                [4, "battery", tuya.valueConverter.raw],
+                [7, "temperature", tuya.valueConverter.divideBy10],
+                [8, "humidity", tuya.valueConverter.raw],
+                [11, "illuminance", tuya.valueConverter.raw],
+                [102, "fading_time", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_mfamvsdb"]),
         model: "F00MB00-04-1",
         vendor: "FORIA",
