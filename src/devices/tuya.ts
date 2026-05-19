@@ -6761,9 +6761,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0002", [
-            "_TZ3000_lmlsduws",
-        ]),
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_lmlsduws"]),
         model: "TMZ02",
         vendor: "Tuya",
         description: "2-gang relay with backlight, countdown and inching",
@@ -6777,18 +6775,16 @@ export const definitions: DefinitionWithExtend[] = [
                 indicatorMode: true,
                 onOffCountdown: true,
                 inchingSwitch: true,
-                endpoints: ["l1", "l2"]
+                endpoints: ["l1", "l2"],
             }),
             // this adds inching support
-            tuya.clusters.addTuyaCommonPrivateCluster()
+            tuya.clusters.addTuyaCommonPrivateCluster(),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
         meta: {multiEndpoint: true},
-        whiteLabel: [
-            tuya.whitelabel("Aubess", "TMZ02", "2-gang relay with backlight, countdown and inching", ["_TZ3000_lmlsduws"])
-        ]
+        whiteLabel: [tuya.whitelabel("Aubess", "TMZ02", "2-gang relay with backlight, countdown and inching", ["_TZ3000_lmlsduws"])],
     },
 
     ////////////////////////
