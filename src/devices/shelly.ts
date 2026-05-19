@@ -1338,6 +1338,25 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: [{modelID: "EM", manufacturerName: "Shelly"}],
+        model: "S4EM-002CXCEU",
+        vendor: "Shelly",
+        description: "EM Gen4",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["1"]}),
+            m.electricityMeter({
+                endpointNames: ["2", "3"],
+                producedEnergy: true,
+                acFrequency: true,
+            }),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            shellyModernExtend.shellyPowerFactorInt16Fix(),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyWiFiSetup(),
+        ],
+    },
+    {
         fingerprint: [
             {
                 type: "Router",
