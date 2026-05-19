@@ -117,6 +117,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.identify, fz.electrical_measurement],
         toZigbee: [tzLegrand.identify, tz.electrical_measurement_power],
         exposes: [e.power().withAccess(ea.STATE_GET), eLegrand.identify()],
+        version: "0.0.1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "haElectricalMeasurement"]);
