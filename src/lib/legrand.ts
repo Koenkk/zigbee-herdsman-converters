@@ -61,7 +61,7 @@ const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString =>
 
 export const legrandOptions = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
 
-interface LegrandDevicesCluster {
+export interface LegrandDevicesCluster {
     attributes: {
         deviceMode: number;
         ledInDark: number;
