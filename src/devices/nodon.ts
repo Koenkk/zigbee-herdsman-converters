@@ -2,6 +2,7 @@ import {gt as semverGt, valid as semverValid} from "semver";
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as eurotronic from "../devices/eurotronic";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
@@ -438,9 +439,9 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_setpoint_raise_lower,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_system_mode,
-            tz.eurotronic_error_status,
-            tz.eurotronic_child_lock,
-            tz.eurotronic_mirror_display,
+            eurotronic.tzLocal.eurotronic_error_status,
+            eurotronic.tzLocal.eurotronic_child_lock,
+            eurotronic.tzLocal.eurotronic_mirror_display,
         ],
         exposes: [
             e.child_lock(),
