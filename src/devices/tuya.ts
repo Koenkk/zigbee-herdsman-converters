@@ -6599,7 +6599,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
         },
     },
-    
+
     ////////////////////////
     // TS0002 DEFINITIONS //
     ////////////////////////
@@ -14603,7 +14603,7 @@ export const definitions: DefinitionWithExtend[] = [
                 backlightModeOffOn: (m) => m !== "_TZ3000_5rpu3r0d",
                 switchType: (m) => m === "_TZ3000_5rpu3r0d",
                 onOffCountdown: (m) => m === "_TZ3000_5rpu3r0d",
-                indicatorMode: (m) => m === "_TZ3000_5rpu3r0d"
+                indicatorMode: (m) => m === "_TZ3000_5rpu3r0d",
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
