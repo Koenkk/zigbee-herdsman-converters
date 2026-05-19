@@ -6638,6 +6638,26 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.clusters.addTuyaCommonPrivateCluster(),
         ],
     },
+    {
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_emmvfowv"]),
+        model: "_TZ3000_emmvfowv",
+        vendor: "Tuya",
+        description: "1-gang dry contact relay with backlight, countdown, inching and RF443",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                powerOutageMemory: true,
+                //powerOnBehavior: true,
+                backlightModeOffOn: true,
+                indicatorMode: true,
+                onOffCountdown: true,
+                inchingSwitch: true
+            }),
+            // this adds inching support
+            tuya.clusters.addTuyaCommonPrivateCluster(),
+        ],
+    },
 
     ////////////////////////
     // TS0002 DEFINITIONS //
@@ -10877,6 +10897,31 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.bind(device.getEndpoint(ID), coordinatorEndpoint, ["genOnOff"]);
             }
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_mmkbptmx"]),
+        model: "_TZ3000_mmkbptmx",
+        vendor: "Tuya",
+        description: "4-gang relay with backlight, countdown and inching",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                powerOutageMemory: true,
+                //powerOnBehavior: true,
+                backlightModeOffOn: true,
+                indicatorMode: true,
+                onOffCountdown: true,
+                inchingSwitch: true,
+                endpoints: ["l1", "l2", "l3", "l4"],
+            }),
+            // this adds inching support
+            tuya.clusters.addTuyaCommonPrivateCluster(),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3, l4: 4};
+        },
+        meta: {multiEndpoint: true},
     },
     {
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_l8bfzlcd"]),
