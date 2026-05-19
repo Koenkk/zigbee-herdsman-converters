@@ -6614,7 +6614,7 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: true,
                 indicatorMode: true,
                 // TBD on this feature
-                // inchingSwitch: true, 
+                // inchingSwitch: true,
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
