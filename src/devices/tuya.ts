@@ -3330,7 +3330,6 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_fdxihpp7",
                 "_TZ3000_qsp2pwtf",
                 "_TZ3000_kycczpw8",
-                "_TZ3000_46t1rvdu",
                 "_TZ3000_bhcpnvud",
                 "_TZ3000_i9oy2rdq",
             ]),
@@ -6599,6 +6598,46 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_czjsxcwp"]),
+        model: "_TZ3000_czjsxcwp",
+        vendor: "Tuya",
+        description: "1-gang dry contact relay with countdown and inching",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                powerOutageMemory: true,
+                //powerOnBehavior: true,
+                backlightModeOffOn: true,
+                indicatorMode: true,
+                onOffCountdown: true,
+                inchingSwitch: true,
+            }),
+            // this adds inching support
+            tuya.clusters.addTuyaCommonPrivateCluster(),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_46t1rvdu"]),
+        model: "_TZ3000_46t1rvdu",
+        vendor: "Tuya",
+        description: "1-gang relay with backlight, countdown and inching",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                powerOutageMemory: true,
+                //powerOnBehavior: true,
+                backlightModeOffOn: true,
+                indicatorMode: true,
+                onOffCountdown: true,
+                inchingSwitch: true,
+            }),
+            // this adds inching support
+            tuya.clusters.addTuyaCommonPrivateCluster(),
+        ],
+    },
 
     ////////////////////////
     // TS0002 DEFINITIONS //
@@ -6632,7 +6671,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("pcblab.io", "RR620ZB", "2 gang Zigbee switch module", ["_TZ3000_4xfqlgqo"]),
             tuya.whitelabel("Nous", "L13Z", "2 gang switch", ["_TZ3000_ruxexjfz", "_TZ3000_hojntt34"]),
             tuya.whitelabel("Mercator Ikuü", "SSW02", "2 gang switch", ["_TZ3000_fbjdkph9"]),
-            tuya.whitelabel("Aubess", "TMZ02", "2 gang switch", ["_TZ3000_lmlsduws"]),
             tuya.whitelabel("RSH", "TS0002_basic_2", "2 gang switch", ["_TZ3000_zbfya6h0"]),
             tuya.whitelabel("EKAZA", "EKAC-T3092Z", "2 gang switch", ["_TZ3000_hznzbl0x"]),
             tuya.whitelabel("Nova Digital", "NTZB-01", "1 switch and 1 socket with backlight", ["_TZ3210_6smingw0"]),
@@ -6769,8 +6807,8 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 switchType: true,
-                //powerOutageMemory: true,
-                powerOnBehavior: true,
+                powerOutageMemory: true,
+                //powerOnBehavior: true,
                 backlightModeOffOn: true,
                 indicatorMode: true,
                 onOffCountdown: true,
@@ -6904,7 +6942,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_4o16jdca",
             "_TZ3000_odzoiovu",
             "_TZ3000_hbic3ka3",
-            "_TZ3000_lvhy15ix",
             "_TZ3000_mhhxxjrs",
             "_TZ3000_iv4eq7eh",
             "_TZ3000_mzcp0of6",
@@ -7037,6 +7074,32 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true},
     },
+    {
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_lvhy15ix"]),
+        model: "_TZ3000_lvhy15ix",
+        vendor: "Tuya",
+        description: "3-gang relay with backlight, countdown and inching",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                powerOutageMemory: true,
+                //powerOnBehavior: true,
+                backlightModeOffOn: true,
+                indicatorMode: true,
+                onOffCountdown: true,
+                inchingSwitch: true,
+                endpoints: ["l1", "l2", "l3"],
+            }),
+            // this adds inching support
+            tuya.clusters.addTuyaCommonPrivateCluster(),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 2, l3: 3};
+        },
+        meta: {multiEndpoint: true},
+    },
+    
     {
         fingerprint: tuya.fingerprint("TS0001", [
             "_TZ3000_tqlv4ug4",
