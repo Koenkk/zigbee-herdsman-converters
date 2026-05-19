@@ -6800,7 +6800,7 @@ export const definitions: DefinitionWithExtend[] = [
 
     {
         fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_lmlsduws"]),
-        model: "TMZ02",
+        model: "TS0002",
         vendor: "Tuya",
         description: "2-gang relay with backlight, countdown and inching",
         extend: [
