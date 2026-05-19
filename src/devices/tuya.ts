@@ -20718,9 +20718,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GX03",
         vendor: "GIEX",
         description: "GIEX 2-zone watering timer",
-        fromZigbee: [tuya.fz.datapoints, fz.ignore_tuya_set_time],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.queryDeviceState,
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         exposes: [
             exposes.binary("valve_1", ea.STATE_SET, "ON", "OFF").withDescription("State of the valve 1"),
             e.enum("state_1", ea.STATE, ["Manual", "Auto", "Closed"]).withDescription("State of the valve 1"),
