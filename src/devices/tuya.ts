@@ -7099,7 +7099,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true},
     },
-    
+
     {
         fingerprint: tuya.fingerprint("TS0001", [
             "_TZ3000_tqlv4ug4",
