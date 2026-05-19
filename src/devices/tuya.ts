@@ -2676,9 +2676,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_TZE284_gnpflcoq",
         vendor: "Tuya",
         description: "4-in-1 mmWave presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
