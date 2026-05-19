@@ -1048,13 +1048,6 @@ export const configureQuery = async (device: Zh.Device, coordinatorEndpoint: Zh.
     await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
 };
 
-export const queryDeviceState = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
-    // Request the device to start reporting
-    await configureMagicPacket(device, coordinatorEndpoint);
-    // Request the device to report a value of all attributes
-    await configureQuery(device, coordinatorEndpoint);
-};
-
 export const configureMcuVersionRequest = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
     await device.getEndpoint(1).command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
 };
