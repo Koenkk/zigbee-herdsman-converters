@@ -19,7 +19,6 @@ const manufacturerOptions = {
     ikea: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
     sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
     tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
-    legrand: {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
 };
 
 export const on_off: Tz.Converter = {
@@ -2627,21 +2626,6 @@ export const tint_scene: Tz.Converter = {
     key: ["tint_scene"],
     convertSet: async (entity, key, value, meta) => {
         await entity.write("genBasic", {16389: {value, type: 0x20}}, manufacturerOptions.tint);
-    },
-};
-export const legrand_power_alarm: Tz.Converter = {
-    key: ["power_alarm"],
-    convertSet: async (entity, key, value, meta) => {
-        const enableAlarm = !(value === "DISABLE" || value === false);
-        const payloadBolean = {61441: {value: enableAlarm ? 0x01 : 0x00, type: 0x10}};
-        const payloadValue = {61442: {value: value, type: 0x29}};
-        await entity.write("haElectricalMeasurement", payloadValue);
-        await entity.write("haElectricalMeasurement", payloadBolean);
-        // To have consistent information in the system.
-        await entity.read("haElectricalMeasurement", [0xf000, 0xf001, 0xf002]);
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("haElectricalMeasurement", [0xf000, 0xf001, 0xf002]);
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
