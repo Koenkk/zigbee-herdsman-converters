@@ -2482,7 +2482,6 @@ export const definitions: DefinitionWithExtend[] = [
                 percentageAttribute: 0x18,
             }),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
-            lumi.lumiModernExtend.lumiStaticStateAction(),
             m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "device_mode",
                 cluster: "manuSpecificLumi",
@@ -2587,12 +2586,17 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+            // Primary actions on closuresDoorLock 0x0055
             m.actionEnumLookup<"closuresDoorLock", undefined>({
                 cluster: "closuresDoorLock",
                 attribute: {ID: 0x0055, type: Zcl.DataType.UINT16},
                 actionLookup: {triple_tap: 0, movement: 1, vibration: 2, orientation: 3, fall: 4},
                 extraActions: ["static"],
             }),
+            // and the static-state edge on manuSpecificLumi 0x01F3, declared as an
+            // extraAction above. Emits true transition only (the device does
+            // report the false transition)
+            lumi.lumiModernExtend.lumiStaticStateAction(),
             m.binary<"genOnOff", undefined>({
                 name: "contact",
                 cluster: "genOnOff",
