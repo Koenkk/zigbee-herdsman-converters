@@ -7571,7 +7571,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_2vfxweng",
             "_TZE200_gnw1rril",
             "_TZE204_ycke4deo",
-            "_TZE284_koxaopnk",
             "_TZE284_clm4gdw4",
         ]),
         model: "TS0601_cover_10",
@@ -7600,7 +7599,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
         whiteLabel: [
             tuya.whitelabel("Nova Digital", "ZC-GM42", "Roller blind motor", ["_TZE204_ycke4deo"]),
-            tuya.whitelabel("Moes", "ZC-LS02", "Roller blind motor", ["_TZE284_koxaopnk"]),
         ],
     },
     {
