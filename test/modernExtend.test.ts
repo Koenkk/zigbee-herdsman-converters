@@ -285,7 +285,7 @@ describe("ModernExtend", () => {
 
                 "power_on_behavior",
             ],
-            bind: {1: ["manuSpecificPhilips2"]},
+            bind: {},
             read: {
                 1: [
                     ["lightingColorCtrl", ["colorCapabilities"]],

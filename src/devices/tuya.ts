@@ -6706,6 +6706,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_in5qxhtt",
             "_TZ3000_ogpla3lh",
             "_TZ3000_i9w5mehz",
+            "_TZ3000_dershnvx",
         ]),
         model: "TS0002_limited",
         vendor: "Tuya",
@@ -6716,7 +6717,8 @@ export const definitions: DefinitionWithExtend[] = [
                 switchType: true,
                 onOffCountdown: true,
                 indicatorMode: true,
-                backlightModeOffOn: true,
+                backlightModeOffOn: (m) => m !== "_TZ3000_dershnvx",
+                powerOnBehavior2: (m) => m === "_TZ3000_dershnvx",
                 endpoints: ["l1", "l2"],
             }),
         ],
@@ -6735,6 +6737,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lonsonho", "X702A", "2 gang switch with backlight", ["_TZ3000_54hjn4vs", "_TZ3000_aa5t61rh"]),
             tuya.whitelabel("Homeetec", "37022463-1", "2 Gang switch with backlight", ["_TZ3000_in5qxhtt"]),
             tuya.whitelabel("RoomsAI", "37022463-2", "2 Gang switch with backlight", ["_TZ3000_ogpla3lh"]),
+            tuya.whitelabel("Rely Electronics", "_TZ3000_dershnvx", "2 gang, no neutral, switch with backlight", ["_TZ3000_dershnvx"]),
         ],
     },
 
@@ -7566,14 +7569,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", [
-            "_TZE200_clm4gdw4",
-            "_TZE200_2vfxweng",
-            "_TZE200_gnw1rril",
-            "_TZE204_ycke4deo",
-            "_TZE284_koxaopnk",
-            "_TZE284_clm4gdw4",
-        ]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_clm4gdw4", "_TZE200_2vfxweng", "_TZE200_gnw1rril", "_TZE204_ycke4deo", "_TZE284_clm4gdw4"]),
         model: "TS0601_cover_10",
         vendor: "Tuya",
         description: "Cover motor",
@@ -7598,10 +7594,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: false, reversed: true})],
             ],
         },
-        whiteLabel: [
-            tuya.whitelabel("Nova Digital", "ZC-GM42", "Roller blind motor", ["_TZE204_ycke4deo"]),
-            tuya.whitelabel("Moes", "ZC-LS02", "Roller blind motor", ["_TZE284_koxaopnk"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Nova Digital", "ZC-GM42", "Roller blind motor", ["_TZE204_ycke4deo"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ax8a8ahx"]),
@@ -14643,7 +14636,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_bmqxalil", "_TZ3000_w1tcofu8", "_TZ3000_ma3mhpx2", "_TZ3000_wijoqjk1"]),
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_bmqxalil", "_TZ3000_w1tcofu8", "_TZ3000_ma3mhpx2", "_TZ3000_wijoqjk1", "_TZ3000_5rpu3r0d"]),
         model: "TS0001_switch_1_gang",
         vendor: "Tuya",
         description: "1-Gang switch with backlight",
@@ -14651,7 +14644,10 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 powerOnBehavior2: true,
-                backlightModeOffOn: true,
+                backlightModeOffOn: (m) => m !== "_TZ3000_5rpu3r0d",
+                switchType: (m) => m === "_TZ3000_5rpu3r0d",
+                onOffCountdown: (m) => m === "_TZ3000_5rpu3r0d",
+                indicatorMode: (m) => m === "_TZ3000_5rpu3r0d",
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -14661,6 +14657,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Homeetec", "Homeetec_37022454", "1 Gang switch with backlight", ["_TZ3000_bmqxalil"]),
             tuya.whitelabel("RoomsAI", "RoomsAI_37022454", "1 Gang switch with backlight", ["_TZ3000_w1tcofu8"]),
+            tuya.whitelabel("Rely Electronics", "_TZ3000_5rpu3r0d", "1 gang, no neutral, switch with backlight", ["_TZ3000_5rpu3r0d"]),
         ],
     },
     {
@@ -20798,50 +20795,46 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_8zizsafo", "_TZE284_iilebqoo"]),
         model: "GX03",
         vendor: "GIEX",
-        description: "GIEX 2 zone watering timer",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        description: "GIEX 2-zone watering timer",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         exposes: [
-            e.binary("valve_1", ea.STATE_SET, "ON", "OFF").withDescription("Switch state"),
+            exposes.binary("valve_1", ea.STATE_SET, "ON", "OFF").withDescription("State of the valve 1"),
+            e.enum("state_1", ea.STATE, ["Manual", "Auto", "Closed"]).withDescription("State of the valve 1"),
             e
-                .numeric("countdown_1", ea.STATE_SET)
+                .numeric("timer_1", ea.SET)
                 .withValueMin(1)
                 .withValueMax(1440)
                 .withValueStep(1)
                 .withUnit("min")
-                .withDescription("Countdown timer for valve operation"),
-            e.binary("valve_2", ea.STATE_SET, "ON", "OFF").withDescription("Switch state"),
+                .withDescription("Timer for the valve 1 operation"),
+            e.numeric("countdown_1", ea.STATE).withUnit("min").withCategory("diagnostic").withDescription("Time remaining for the open valve 1"),
+            e.numeric("last_duration_1", ea.STATE).withUnit("s").withCategory("diagnostic").withDescription("Last open duration for the valve 1"),
+            e.binary("valve_2", ea.STATE_SET, "ON", "OFF").withDescription("State of the valve 2"),
+            e.enum("state_2", ea.STATE, ["Manual", "Auto", "Closed"]).withDescription("State of the valve 2"),
             e
-                .numeric("countdown_2", ea.STATE_SET)
+                .numeric("timer_2", ea.SET)
                 .withValueMin(1)
                 .withValueMax(1440)
                 .withValueStep(1)
                 .withUnit("min")
-                .withDescription("Countdown timer for valve operation"),
+                .withDescription("Timer for the valve 2 operation"),
+            e.numeric("countdown_2", ea.STATE).withUnit("min").withCategory("diagnostic").withDescription("Time remaining for the open valve 2"),
+            e.numeric("last_duration_2", ea.STATE).withUnit("s").withCategory("diagnostic").withDescription("Last open duration for the valve 2"),
             e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "valve_1", tuya.valueConverter.onOff],
-                [59, "battery", tuya.valueConverter.raw],
-                [
-                    104,
-                    "valve_1",
-                    tuya.valueConverterBasic.lookup({
-                        OFF: tuya.enum(2),
-                        ON: tuya.enum(0),
-                    }),
-                ],
+                [104, "state_1", tuya.valueConverter.GX03ValveState(1)],
+                [13, "countdown_1", tuya.valueConverter.countdown],
+                [13, "timer_1", tuya.valueConverter.raw],
+                [25, "last_duration_1", tuya.valueConverter.raw],
                 [2, "valve_2", tuya.valueConverter.onOff],
-                [
-                    105,
-                    "valve_2",
-                    tuya.valueConverterBasic.lookup({
-                        OFF: tuya.enum(2),
-                        ON: tuya.enum(0),
-                    }),
-                ],
-                [13, "countdown_1", tuya.valueConverter.raw],
-                [14, "countdown_2", tuya.valueConverter.raw],
+                [105, "state_2", tuya.valueConverter.GX03ValveState(2)],
+                [14, "countdown_2", tuya.valueConverter.countdown],
+                [14, "timer_2", tuya.valueConverter.raw],
+                [26, "last_duration_2", tuya.valueConverter.raw],
+                [59, "battery", tuya.valueConverter.raw],
             ],
         },
         whiteLabel: [tuya.whitelabel("Nova Digital", "ZVL-DUAL", "Water Valve with 2 zones", ["_TZE284_iilebqoo"])],
@@ -21927,13 +21920,17 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3002_vsom92pp",
             "_TZ300A_vqrs45nj",
             "_TZ3000_cziew6eu",
+            "_TZ3000_r2fgo9ks",
         ]),
         model: "TS0726_3_gang_scene_switch",
         vendor: "Tuya",
         description: "3 gang switch with scene and backlight",
         whiteLabel: [
             tuya.whitelabel("BSEED", "EC-GL86ZPCS31", "3 gang switch with scene and backlight", ["_TZ3002_iedhxgyi"]),
-            tuya.whitelabel("BSEED", "EC-SL-FK86ZPCS31", "3 gang switch with scene and backlight (Neutral line optional)", ["_TZ3002_vsom92pp"]),
+            tuya.whitelabel("BSEED", "EC-SL-FK86ZPCS31", "3 gang switch with scene and backlight (Neutral line optional)", [
+                "_TZ3002_vsom92pp",
+                "_TZ3000_r2fgo9ks",
+            ]),
             tuya.whitelabel("Zemismart", "KES-606US-L3-EESS", "3 gang switch with neutral", ["_TZ3000_cziew6eu"]),
         ],
         fromZigbee: [fzLocal.TS0726_action],
