@@ -2258,30 +2258,6 @@ export const tuya_relay_din_led_indicator: Tz.Converter = {
         return {state: {indicator_mode: value}};
     },
 };
-export const kmpcil_res005_on_off: Tz.Converter = {
-    key: ["state"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        const options = {disableDefaultResponse: true};
-        value = value.toLowerCase();
-        utils.assertString(value, key);
-        utils.validateValue(value, ["toggle", "off", "on"]);
-        if (value === "toggle") {
-            if (meta.state.state === undefined) {
-                throw new Error("Cannot toggle, state not known yet");
-            }
-            const payload = {85: {value: meta.state.state === "OFF" ? 0x01 : 0x00, type: 0x10}};
-            await entity.write("genBinaryOutput", payload, options);
-            return {state: {state: meta.state.state === "OFF" ? "ON" : "OFF"}};
-        }
-        const payload = {85: {value: value.toUpperCase() === "OFF" ? 0x00 : 0x01, type: 0x10}};
-        await entity.write("genBinaryOutput", payload, options);
-        return {state: {state: value.toUpperCase()}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("genBinaryOutput", ["presentValue"]);
-    },
-};
 export const hue_wall_switch_device_mode: Tz.Converter = {
     key: ["device_mode"],
     convertSet: async (entity, key, value, meta) => {
