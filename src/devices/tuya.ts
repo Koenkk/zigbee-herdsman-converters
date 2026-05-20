@@ -14643,7 +14643,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_bmqxalil", "_TZ3000_w1tcofu8", "_TZ3000_ma3mhpx2", "_TZ3000_wijoqjk1"]),
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_bmqxalil", "_TZ3000_w1tcofu8", "_TZ3000_ma3mhpx2", "_TZ3000_wijoqjk1", "_TZ3000_5rpu3r0d"]),
         model: "TS0001_switch_1_gang",
         vendor: "Tuya",
         description: "1-Gang switch with backlight",
@@ -14651,7 +14651,10 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 powerOnBehavior2: true,
-                backlightModeOffOn: true,
+                backlightModeOffOn: (m) => m !== "_TZ3000_5rpu3r0d",
+                switchType: (m) => m === "_TZ3000_5rpu3r0d",
+                onOffCountdown: (m) => m === "_TZ3000_5rpu3r0d",
+                indicatorMode: (m) => m === "_TZ3000_5rpu3r0d",
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -14661,6 +14664,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Homeetec", "Homeetec_37022454", "1 Gang switch with backlight", ["_TZ3000_bmqxalil"]),
             tuya.whitelabel("RoomsAI", "RoomsAI_37022454", "1 Gang switch with backlight", ["_TZ3000_w1tcofu8"]),
+            tuya.whitelabel("Rely Electronics", "_TZ3000_5rpu3r0d", "1 gang, no neutral, switch with backlight", ["_TZ3000_5rpu3r0d"]),
         ],
     },
     {
