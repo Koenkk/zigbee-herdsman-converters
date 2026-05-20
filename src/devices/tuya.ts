@@ -2672,6 +2672,33 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gnpflcoq"]),
+        model: "TS0601_TZE284_gnpflcoq",
+        vendor: "Tuya",
+        description: "4-in-1 mmWave presence sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e.temperature(),
+            e.humidity(),
+            e.battery(),
+            e.numeric("sensitivity", ea.STATE_SET).withValueMin(0).withValueMax(10).withDescription("Radar sensitivity"),
+            e.numeric("fading_time", ea.STATE_SET).withValueMin(0).withValueMax(1000).withUnit("s").withDescription("Delay before vacant"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse0],
+                [2, "sensitivity", tuya.valueConverter.raw],
+                [4, "battery", tuya.valueConverter.raw],
+                [7, "temperature", tuya.valueConverter.divideBy10],
+                [8, "humidity", tuya.valueConverter.raw],
+                [11, "illuminance", tuya.valueConverter.raw],
+                [102, "fading_time", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_mfamvsdb"]),
         model: "F00MB00-04-1",
         vendor: "FORIA",
@@ -12373,6 +12400,30 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.batteryPercentageRemaining(endpoint);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_1fqpj6qz"]),
+        model: "SYT-ZB01",
+        vendor: "Moes",
+        description: "Smart scene button with rotary knob",
+        exposes: [
+            e
+                .enum("operation_mode", ea.ALL, ["command", "event"])
+                .withDescription('Operation mode: "command" - for group control, "event" - for clicks'),
+        ],
+        fromZigbee: [tuya.fz.on_off_action, tuya.fz.operation_mode],
+        toZigbee: [tuya.tz.operation_mode],
+        extend: [m.commandsOnOff(), m.commandsLevelCtrl(), m.battery(), tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
+            try {
+                await endpoint.read(0xe001, [0xd011]);
+            } catch {
+                /* do nothing */
+            }
         },
     },
     {
