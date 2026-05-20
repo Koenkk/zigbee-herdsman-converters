@@ -61,9 +61,9 @@ const tzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["ZC0101"],
-        model: "ZC0101",
-        vendor: "MultiTerm",
+        zigbeeModel: ["ZeeFan"],
+        model: "ZeeFan",
+        vendor: "Multiterm",
         description: "ZeeFan fan coil unit controller",
         extend: [m.deviceEndpoints({endpoints: {"8": 8, "9": 9, "10": 10}})],
         meta: {multiEndpoint: true},
