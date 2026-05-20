@@ -133,7 +133,6 @@ const extend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.hasOwn(msg.data, attribute)) {
-                        console.log("from ", msg.data[attribute]);
                         const value = Math.round((msg.data[attribute] as number) / 5.1);
                         return {
                             minimum_pwm: value,
@@ -148,7 +147,6 @@ const extend = {
             {
                 key: ["minimum_pwm"],
                 convertSet: async (entity, key, value, meta) => {
-                    console.log("to ", value);
                     const numValue = typeof value === "string" ? Number.parseInt(value, 10) : value;
                     utils.assertNumber(numValue);
                     const zgValue = Math.round(numValue * 5.1);
@@ -182,7 +180,7 @@ const extend = {
                         manufacturerCode: sunricherManufacturerCode,
                     });
                 } catch (error) {
-                    console.warn(`Failed to read external switch type attribute: ${error}`);
+                    console.warn(`Failed to read minimum PWM attribute: ${error}`);
                 }
             },
         ];
