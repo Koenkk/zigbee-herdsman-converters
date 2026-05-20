@@ -20805,50 +20805,46 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_8zizsafo", "_TZE284_iilebqoo"]),
         model: "GX03",
         vendor: "GIEX",
-        description: "GIEX 2 zone watering timer",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        description: "GIEX 2-zone watering timer",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         exposes: [
-            e.binary("valve_1", ea.STATE_SET, "ON", "OFF").withDescription("Switch state"),
+            exposes.binary("valve_1", ea.STATE_SET, "ON", "OFF").withDescription("State of the valve 1"),
+            e.enum("state_1", ea.STATE, ["Manual", "Auto", "Closed"]).withDescription("State of the valve 1"),
             e
-                .numeric("countdown_1", ea.STATE_SET)
+                .numeric("timer_1", ea.SET)
                 .withValueMin(1)
                 .withValueMax(1440)
                 .withValueStep(1)
                 .withUnit("min")
-                .withDescription("Countdown timer for valve operation"),
-            e.binary("valve_2", ea.STATE_SET, "ON", "OFF").withDescription("Switch state"),
+                .withDescription("Timer for the valve 1 operation"),
+            e.numeric("countdown_1", ea.STATE).withUnit("min").withCategory("diagnostic").withDescription("Time remaining for the open valve 1"),
+            e.numeric("last_duration_1", ea.STATE).withUnit("s").withCategory("diagnostic").withDescription("Last open duration for the valve 1"),
+            e.binary("valve_2", ea.STATE_SET, "ON", "OFF").withDescription("State of the valve 2"),
+            e.enum("state_2", ea.STATE, ["Manual", "Auto", "Closed"]).withDescription("State of the valve 2"),
             e
-                .numeric("countdown_2", ea.STATE_SET)
+                .numeric("timer_2", ea.SET)
                 .withValueMin(1)
                 .withValueMax(1440)
                 .withValueStep(1)
                 .withUnit("min")
-                .withDescription("Countdown timer for valve operation"),
+                .withDescription("Timer for the valve 2 operation"),
+            e.numeric("countdown_2", ea.STATE).withUnit("min").withCategory("diagnostic").withDescription("Time remaining for the open valve 2"),
+            e.numeric("last_duration_2", ea.STATE).withUnit("s").withCategory("diagnostic").withDescription("Last open duration for the valve 2"),
             e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "valve_1", tuya.valueConverter.onOff],
-                [59, "battery", tuya.valueConverter.raw],
-                [
-                    104,
-                    "valve_1",
-                    tuya.valueConverterBasic.lookup({
-                        OFF: tuya.enum(2),
-                        ON: tuya.enum(0),
-                    }),
-                ],
+                [104, "state_1", tuya.valueConverter.GX03ValveState(1)],
+                [13, "countdown_1", tuya.valueConverter.countdown],
+                [13, "timer_1", tuya.valueConverter.raw],
+                [25, "last_duration_1", tuya.valueConverter.raw],
                 [2, "valve_2", tuya.valueConverter.onOff],
-                [
-                    105,
-                    "valve_2",
-                    tuya.valueConverterBasic.lookup({
-                        OFF: tuya.enum(2),
-                        ON: tuya.enum(0),
-                    }),
-                ],
-                [13, "countdown_1", tuya.valueConverter.raw],
-                [14, "countdown_2", tuya.valueConverter.raw],
+                [105, "state_2", tuya.valueConverter.GX03ValveState(2)],
+                [14, "countdown_2", tuya.valueConverter.countdown],
+                [14, "timer_2", tuya.valueConverter.raw],
+                [26, "last_duration_2", tuya.valueConverter.raw],
+                [59, "battery", tuya.valueConverter.raw],
             ],
         },
         whiteLabel: [tuya.whitelabel("Nova Digital", "ZVL-DUAL", "Water Valve with 2 zones", ["_TZE284_iilebqoo"])],
