@@ -1,4 +1,3 @@
-import assert from "node:assert";
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -2456,20 +2455,6 @@ export const enocean_ptm216z: Fz.Converter<"greenPower", undefined, ["commandNot
 //         };
 //     },
 // };
-export const kmpcil_res005_occupancy: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBinaryInput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        return {occupancy: msg.data.presentValue === 1};
-    },
-};
-export const kmpcil_res005_on_off: Fz.Converter<"genBinaryOutput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBinaryOutput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        return {state: msg.data.presentValue === 0 ? "OFF" : "ON"};
-    },
-};
 export const byun_smoke_false: Fz.Converter<"pHMeasurement", undefined, ["attributeReport"]> = {
     cluster: "pHMeasurement",
     type: ["attributeReport"],
@@ -2959,146 +2944,6 @@ export const hue_wall_switch_device_mode: Fz.Converter<"genBasic", undefined, ["
         }
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CCTSwitch_D0001_levelctrl: Fz.Converter<
-    "genLevelCtrl",
-    undefined,
-    ["commandMoveToLevel", "commandMoveToLevelWithOnOff", "commandMove", "commandStop"]
-> = {
-    cluster: "genLevelCtrl",
-    type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff", "commandMove", "commandStop"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        if (msg.type === "commandMove") {
-            assert("movemode" in msg.data);
-            const direction = msg.data.movemode === 1 ? "down" : "up";
-            payload.action = `brightness_${direction}_hold`;
-            globalStore.putValue(msg.endpoint, "direction", direction);
-            globalStore.putValue(msg.endpoint, "start", Date.now());
-            payload.rate = msg.data.rate;
-            payload.action_rate = msg.data.rate;
-        } else if (msg.type === "commandStop") {
-            const direction = globalStore.getValue(msg.endpoint, "direction");
-            const duration = Date.now() - globalStore.getValue(msg.endpoint, "start");
-            payload.action = `brightness_${direction}_release`;
-            payload.duration = duration;
-            payload.action_duration = duration;
-        } else {
-            // wrap the messages from button2 and button4 into a single function
-            // button2 always sends "commandMoveToLevel"
-            // button4 sends two messages, with "commandMoveToLevelWithOnOff" coming first in the sequence
-            //         so that's the one we key off of to indicate "button4". we will NOT print it in that case,
-            //         instead it will be returned as part of the second sequence with
-            //         CCTSwitch_D0001_move_to_colortemp_recall below.
-
-            let clk = "brightness";
-            let cmd = null;
-
-            assert("level" in msg.data);
-            payload.action_brightness = msg.data.level;
-            payload.action_transition = msg.data.transtime / 10.0;
-            payload.brightness = msg.data.level;
-            payload.transition = msg.data.transtime / 10.0;
-
-            if (msg.type === "commandMoveToLevel") {
-                // pressing the brightness button increments/decrements from 13-254.
-                // when it reaches the end (254) it will start decrementing by a step,
-                // and vice versa.
-                const direction = msg.data.level > globalStore.getValue(msg.endpoint, "last_brightness") ? "up" : "down";
-                cmd = `${clk}_${direction}`;
-                globalStore.putValue(msg.endpoint, "last_brightness", msg.data.level);
-            } else if (msg.type === "commandMoveToLevelWithOnOff") {
-                // This is the 'start' of the 4th button sequence.
-                clk = "memory";
-                globalStore.putValue(msg.endpoint, "last_move_level", msg.data.level);
-                globalStore.putValue(msg.endpoint, "last_clk", clk);
-            }
-
-            if (clk !== "memory") {
-                globalStore.putValue(msg.endpoint, "last_seq", msg.meta.zclTransactionSequenceNumber);
-                globalStore.putValue(msg.endpoint, "last_clk", clk);
-                payload.action = cmd;
-            }
-        }
-
-        return payload;
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CCTSwitch_D0001_lighting: Fz.Converter<"lightingColorCtrl", undefined, ["commandMoveToColorTemp", "commandMoveColorTemp"]> = {
-    cluster: "lightingColorCtrl",
-    type: ["commandMoveToColorTemp", "commandMoveColorTemp"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        if (msg.type === "commandMoveColorTemp") {
-            assert("movemode" in msg.data);
-            const clk = "colortemp";
-            payload.rate = msg.data.rate;
-            payload.action_rate = msg.data.rate;
-
-            if (msg.data.movemode === 0) {
-                const direction = globalStore.getValue(msg.endpoint, "direction");
-                const duration = Date.now() - globalStore.getValue(msg.endpoint, "start");
-                payload.action = `${clk}_${direction}_release`;
-                payload.duration = duration;
-                payload.action_duration = duration;
-            } else {
-                const direction = msg.data.movemode === 3 ? "down" : "up";
-                payload.action = `${clk}_${direction}_hold`;
-                payload.rate = msg.data.rate;
-                payload.action_rate = msg.data.rate;
-                // store button and start moment
-                globalStore.putValue(msg.endpoint, "direction", direction);
-                globalStore.putValue(msg.endpoint, "start", Date.now());
-            }
-        } else {
-            // both button3 and button4 send the command "commandMoveToColorTemp"
-            // in order to distinguish between the buttons, use the sequence number and the previous command
-            // to determine if this message was immediately preceded by "commandMoveToLevelWithOnOff"
-            // if this command follows a "commandMoveToLevelWithOnOff", then it's actually button4's second message
-            // and we can ignore it entirely
-            const lastClk = globalStore.getValue(msg.endpoint, "last_clk");
-            const lastSeq = globalStore.getValue(msg.endpoint, "last_seq");
-
-            const seq = msg.meta.zclTransactionSequenceNumber;
-            let clk = "colortemp";
-            assert("colortemp" in msg.data);
-            payload.color_temp = msg.data.colortemp;
-            payload.transition = msg.data.transtime / 10.0;
-            payload.action_color_temp = msg.data.colortemp;
-            payload.action_transition = msg.data.transtime / 10.0;
-
-            // because the remote sends two commands for button4, we need to look at the previous command and
-            // see if it was the recognized start command for button4 - if so, ignore this second command,
-            // because it's not really button3, it's actually button4
-            if (lastClk === "memory") {
-                payload.action = "recall";
-                payload.brightness = globalStore.getValue(msg.endpoint, "last_move_level");
-                payload.action_brightness = globalStore.getValue(msg.endpoint, "last_move_level");
-                // ensure the "last" message was really the message prior to this one
-                // accounts for missed messages (gap >1) and for the remote's rollover from 127 to 0
-                if ((seq === 0 && lastSeq === 127) || seq - lastSeq === 1) {
-                    clk = null;
-                }
-            } else {
-                // pressing the color temp button increments/decrements from 153-370K.
-                // when it reaches the end (370) it will start decrementing by a step,
-                // and vice versa.
-                const direction = msg.data.colortemp > globalStore.getValue(msg.endpoint, "last_color_temp") ? "up" : "down";
-                const cmd = `${clk}_${direction}`;
-                payload.action = cmd;
-                globalStore.putValue(msg.endpoint, "last_color_temp", msg.data.colortemp);
-            }
-
-            if (clk != null) {
-                globalStore.putValue(msg.endpoint, "last_seq", msg.meta.zclTransactionSequenceNumber);
-                globalStore.putValue(msg.endpoint, "last_clk", clk);
-            }
-        }
-
-        return payload;
-    },
-};
 const HUE_TAP_LOOKUP: Record<number, string> = {
     34: "press_1",
     16: "press_2",
@@ -3559,30 +3404,6 @@ export const ias_ace_occupancy_with_timeout: Fz.Converter<"ssIasAce", undefined,
     convert: (model, msg, publish, options, meta) => {
         const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
         return occupancy_with_timeout.convert(model, newMsg, publish, options, meta);
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SP600_power: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "seMetering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (meta.device.dateCode === "20160120") {
-            // Cannot use metering, divisor/multiplier is not according to ZCL.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/2233
-            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/915
-
-            const result: KeyValueAny = {};
-            if (msg.data.instantaneousDemand !== undefined) {
-                result.power = msg.data.instantaneousDemand;
-            }
-            // Summation is reported in Watthours
-            if (msg.data.currentSummDelivered !== undefined) {
-                const value = msg.data.currentSummDelivered;
-                result.energy = value / 1000.0;
-            }
-            return result;
-        }
-        return metering.convert(model, msg, publish, options, meta);
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
