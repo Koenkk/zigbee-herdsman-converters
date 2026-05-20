@@ -2475,7 +2475,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Multi-state sensor P100",
         extend: [
-            m.quirkCheckinInterval("1_HOUR"),
             lumi.lumiModernExtend.addManuSpecificLumiCluster(),
             lumi.lumiModernExtend.lumiPreventReset(),
             lumi.lumiModernExtend.lumiBattery({
@@ -2483,30 +2482,31 @@ export const definitions: DefinitionWithExtend[] = [
                 percentageAttribute: 0x18,
             }),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
-            m.enumLookup({
+            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "device_mode",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0116, type: 0x20},
+                attribute: {ID: 0x0116, type: Zcl.DataType.UINT8},
                 lookup: {door_window: 3, object: 5},
                 description: "Device operating mode",
                 access: "STATE_SET",
                 entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.enumLookup({
+            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "door_window_type",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01eb, type: 0x20},
+                attribute: {ID: 0x01eb, type: Zcl.DataType.UINT8},
                 lookup: {casement_window: 1, hopper_window: 2, composite_window: 3, hinged_door: 4},
-                description: "Door/window type (applies when device_mode = door window)",
+                description: "Door/window type (applies when device_mode = door_window)",
                 access: "STATE_SET",
+                label: "Door/window type",
                 entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.numeric({
+            m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "sensitivity",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x010c, type: 0x20},
+                attribute: {ID: 0x010c, type: Zcl.DataType.UINT8},
                 valueMin: 1,
                 valueMax: 10,
                 description: "Detection sensitivity (1 = low, 10 = high)",
@@ -2514,90 +2514,90 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.numeric({
+            m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "report_interval",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01ec, type: 0x23},
+                attribute: {ID: 0x01ec, type: Zcl.DataType.UINT32},
                 unit: "s",
                 valueMin: 5,
                 valueMax: 300,
-                description: "Reporting interval in seconds",
+                description:
+                    "Reporting interval in seconds. Also drives the device's 802.15.4 poll cadence — lower values are more responsive but reduce battery life.",
                 access: "STATE_SET",
                 entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.binary({
+            m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "orientation_detection",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01f0, type: 0x10},
+                attribute: {ID: 0x01f0, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                description: "Enable orientation event detection",
+                description: "Enable orientation event detection (object mode, requires device button press)",
                 access: "STATE_SET",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.binary({
+            m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "movement_detection",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01ed, type: 0x10},
+                attribute: {ID: 0x01ed, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                description: "Enable movement event detection",
+                description: "Enable movement event detection (object mode, requires device button press)",
                 access: "STATE_SET",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.binary({
+            m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "fall_detection",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01d8, type: 0x10},
+                attribute: {ID: 0x01d8, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                description: "Enable fall event detection",
+                description: "Enable fall event detection (object mode, requires device button press)",
                 access: "STATE_SET",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.binary({
+            m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "vibration_detection",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0107, type: 0x10},
+                attribute: {ID: 0x0107, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                description: "Enable vibration event detection",
+                description: "Enable vibration event detection (object mode, requires device button press)",
                 access: "STATE_SET",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.binary({
+            m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "triple_tap_detection",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01ef, type: 0x10},
+                attribute: {ID: 0x01ef, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                description: "Enable triple-tap event detection",
+                description: "Enable triple-tap event detection (object mode, requires device button press)",
                 access: "STATE_SET",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.enumLookup({
+            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "orientation",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01f1, type: 0x20},
+                attribute: {ID: 0x01f1, type: Zcl.DataType.UINT8},
                 lookup: {face_up: 1, face_down: 2, vertical: 3, tilt: 4},
                 description: "Last reported orientation (relevant when action = orientation)",
                 access: "STATE",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            // 0x01f3 fires true on every detection but never resets — no signal beyond `action`, not exposed.
-            m.actionEnumLookup({
+            // Primary actions on closuresDoorLock 0x0055
+            m.actionEnumLookup<"closuresDoorLock", undefined>({
                 cluster: "closuresDoorLock",
-                attribute: {ID: 0x0055, type: 0x21},
-                actionLookup: {
-                    triple_tap: 0,
-                    movement: 1,
-                    vibration: 2,
-                    orientation: 3,
-                    fall: 4,
-                },
+                attribute: {ID: 0x0055, type: Zcl.DataType.UINT16},
+                actionLookup: {triple_tap: 0, movement: 1, vibration: 2, orientation: 3, fall: 4},
+                extraActions: ["static"],
             }),
-            m.binary({
+            // and the static-state edge on manuSpecificLumi 0x01F3, declared as an
+            // extraAction above. Emits true transition only (the device does
+            // report the false transition)
+            lumi.lumiModernExtend.lumiStaticStateAction(),
+            m.binary<"genOnOff", undefined>({
                 name: "contact",
                 cluster: "genOnOff",
                 attribute: "onOff",
@@ -2606,12 +2606,12 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Door/window state (door/window mode only)",
                 access: "STATE",
             }),
-            m.enumLookup({
+            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "device_posture",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01ee, type: 0x20},
+                attribute: {ID: 0x01ee, type: Zcl.DataType.UINT8},
                 lookup: {normal: 1, abnormal: 2},
-                description: "Mounting orientation check — 'abnormal' when the sensor is incorrectly installed or needs calibration",
+                description: "Door/window mounting orientation check — 'abnormal' if the sensor is incorrectly installed or needs calibration",
                 access: "STATE",
                 entityCategory: "diagnostic",
                 zigbeeCommandOptions: {manufacturerCode},
