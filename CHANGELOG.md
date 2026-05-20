@@ -1,5 +1,27 @@
 # Changelog
 
+## [26.54.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.53.0...v26.54.0) (2026-05-20)
+
+
+### Features
+
+* **add:** _TZ3000_5rpu3r0d ([#12247](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12247)) ([f7322c6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f7322c66e074bd9babf6addeab83edf6c08315fc))
+* **add:** _TZ3000_dershnvx ([#12246](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12246)) ([8efe2c0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8efe2c0ae2a067f455cfac76f8edec6c8a85ea78))
+* **add:** AU-A1ZB2WDM-Slave ([#12253](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12253)) ([e35f438](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e35f438736e48cc1fa24cd88d45e4b2637fcb234))
+* Aqara DWZTCGQ11LM: support `static` action ([#12250](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12250)) ([d340d18](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d340d18d56891622c6504d20a85eaf73ce6fad33))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_r2fgo9ks` as BSEED EC-SL-FK86ZPCS31 ([#12259](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12259)) ([d39fee2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d39fee23cf58456d8ae8bd9cd9658f68bb50c12c))
+* **detect:** Detect `1746730V7-HC3` as Philips 1746730V7 ([#12254](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12254)) ([94565e4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/94565e4ed0f93a8c261b6e58a6a78d466dd52fbe))
+* GIEX GX03: various improvements ([#12218](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12218)) ([9dbba4b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9dbba4bf7d21407835d15571c0155710e74e13ca))
+* Hue: stop unwanted state reports ([#12256](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12256)) ([5c31a2c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5c31a2c632b35bfba4cbf8efa536fbabdee53c74))
+* Legrand: refactor converters  ([#12252](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12252)) ([8826252](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8826252b28e9f1b910015c83e76d52ac15bad159))
+* Moes ZC-LS02: fix integration ([#12258](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12258)) ([914fe51](https://github.com/Koenkk/zigbee-herdsman-converters/commit/914fe51a476714fd98a1857f2c3f8391bd769e08))
+* Refactor Kmpcil, Leedarson and Salus Controls converters ([#12261](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12261)) ([3b1346f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3b1346fb531615ca9b22ca7623926c548f667b17))
+* Sunricher: remove minimum PWM debug logs ([#12255](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12255)) ([37a7777](https://github.com/Koenkk/zigbee-herdsman-converters/commit/37a77774849798144f619a1832f4d73d31916790))
+
 ## [26.53.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.52.0...v26.53.0) (2026-05-19)
 
 
