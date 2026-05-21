@@ -7052,7 +7052,6 @@ export const definitions: DefinitionWithExtend[] = [
             switchType: false,
             indicatorMode: false,
             onOffCountdown: true,
-            powerOnBehavior2: true,
             endpoints: ["left", "center", "right"],
         }),
     ],
