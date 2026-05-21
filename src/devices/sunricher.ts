@@ -2092,7 +2092,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_running_state,
             namron.toZigbee.namron_thermostat,
-            tz.namron_thermostat_child_lock,
+            namron.toZigbee.namron_thermostat_child_lock,
         ],
         exposes: [
             e.numeric("outdoor_temperature", ea.STATE_GET).withUnit("°C").withDescription("Current temperature measured from the floor sensor"),
@@ -2460,7 +2460,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_running_state,
             namron.toZigbee.namron_thermostat,
-            tz.namron_thermostat_child_lock,
+            namron.toZigbee.namron_thermostat_child_lock,
             tz.fan_mode,
             tzLocal.ZG9095B.min_setpoint_deadband,
         ],
