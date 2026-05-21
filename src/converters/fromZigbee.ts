@@ -2239,14 +2239,6 @@ export const ewelink_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "
         return {action: lookup[msg.type]};
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const K4003C_binary_input: Fz.Converter<"genBinaryInput", undefined, "attributeReport"> = {
-    cluster: "genBinaryInput",
-    type: "attributeReport",
-    convert: (model, msg, publish, options, meta) => {
-        return {action: msg.data.presentValue === 1 ? "off" : "on"};
-    },
-};
 // Button 1: A0 (top left)
 // Button 2: A1 (bottom left)
 // Button 3: B0 (top right)
