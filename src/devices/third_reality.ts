@@ -156,6 +156,7 @@ interface ThirdWaterSensor {
 
 interface ThirdPlug {
     attributes: {
+        ledBrightness: number;
         resetTotalEnergy: number;
         countdownToTurnOff: number;
         countdownToTurnOn: number;
@@ -167,6 +168,7 @@ interface ThirdPlug {
 
 interface ThirdPlugGen3 {
     attributes: {
+        ledBrightness: number;
         meteringOnlyMode: number;
         powerRiseThreshold: number;
         powerDropThreshold: number;
@@ -1076,9 +1078,20 @@ export const definitions: DefinitionWithExtend[] = [
                     countdownToTurnOff: {name: "countdownToTurnOff", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     countdownToTurnOn: {name: "countdownToTurnOn", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    ledBrightness: {name: "ledBrightness", ID: 0x0010, type: Zcl.DataType.UINT8, write: true, max: 0x64},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"3rPlugGen2SpecialCluster", ThirdPlug>({
+                name: "led_brightness",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "3rPlugGen2SpecialCluster",
+                attribute: "ledBrightness",
+                description: "Set the brightness of LED",
+                access: "ALL",
             }),
             m.enumLookup<"3rPlugGen2SpecialCluster", ThirdPlug>({
                 name: "reset_total_energy",
@@ -1139,6 +1152,25 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("genBasic", {
+                name: "genBasic",
+                ID: Zcl.Clusters.genBasic.ID,
+                attributes: {
+                    ledBrightness: {name: "ledBrightness", ID: 0xff01, type: Zcl.DataType.UINT8, write: true, max: 0x64},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"genBasic", ThirdPlugGen3>({
+                name: "led_brightness",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "genBasic",
+                attribute: "ledBrightness",
+                description: "Set the brightness of LED",
+                access: "ALL",
             }),
             m.enumLookup<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
                 name: "reset_total_energy",
@@ -1436,9 +1468,20 @@ export const definitions: DefinitionWithExtend[] = [
                     countdownToTurnOff: {name: "countdownToTurnOff", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     countdownToTurnOn: {name: "countdownToTurnOn", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    ledBrightness: {name: "ledBrightness", ID: 0x0010, type: Zcl.DataType.UINT8, write: true, max: 0x64},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"3rPlugGen2SpecialCluster", ThirdPlug>({
+                name: "led_brightness",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "3rPlugGen2SpecialCluster",
+                attribute: "ledBrightness",
+                description: "Set the brightness of LED",
+                access: "ALL",
             }),
             m.enumLookup<"3rPlugE2Specialcluster", ThirdPlug>({
                 name: "reset_total_energy",
