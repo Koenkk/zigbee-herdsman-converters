@@ -2017,34 +2017,6 @@ export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport"
         return result;
     },
 };
-export const easycode_action: Fz.Converter<"closuresDoorLock", undefined, "raw"> = {
-    cluster: "closuresDoorLock",
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {
-            13: "lock",
-            14: "zigbee_unlock",
-            3: "rfid_unlock",
-            0: "keypad_unlock",
-        };
-        const value = lookup[msg.data[4]];
-        if (value === "lock" || value === "zigbee_unlock") {
-            return {action: value};
-        }
-        return {action: lookup[msg.data[3]]};
-    },
-};
-export const easycodetouch_action: Fz.Converter<"closuresDoorLock", undefined, "raw"> = {
-    cluster: "closuresDoorLock",
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        const value = constants.easyCodeTouchActions[(msg.data[3] << 8) | msg.data[4]];
-        if (value) {
-            return {action: value};
-        }
-        logger.warning(`Unknown lock status with source ${msg.data[3]} and event code ${msg.data[4]}`, NS);
-    },
-};
 export const ptvo_switch_uart: Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genMultistateValue",
     type: ["attributeReport", "readResponse"],

@@ -1,11 +1,26 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const NS = "zhc:onesti";
+
+export const tzLocal = {
+    easycode_auto_relock: {
+        key: ["auto_relock"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("closuresDoorLock", {autoRelockTime: value ? 1 : 0}, utils.getOptions(meta.mapped, entity));
+            return {state: {auto_relock: value}};
+        },
+    } satisfies Tz.Converter,
+};
 
 const fzLocal = {
     nimly_pro_lock_actions: {
@@ -100,6 +115,17 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"closuresDoorLock", undefined, ["attributeReport", "readResponse"]>,
+    easycodetouch_action: {
+        cluster: "closuresDoorLock",
+        type: "raw",
+        convert: (model, msg, publish, options, meta) => {
+            const value = constants.easyCodeTouchActions[(msg.data[3] << 8) | msg.data[4]];
+            if (value) {
+                return {action: value};
+            }
+            logger.warning(`Unknown lock status with source ${msg.data[3]} and event code ${msg.data[4]}`, NS);
+        },
+    } satisfies Fz.Converter<"closuresDoorLock", undefined, "raw">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -115,9 +141,9 @@ export const definitions: DefinitionWithExtend[] = [
             fz.lock_operation_event,
             fz.battery,
             fz.lock_programming_event,
-            fz.easycodetouch_action,
+            fzLocal.easycodetouch_action,
         ],
-        toZigbee: [tz.lock, tz.easycode_auto_relock, tz.lock_sound_volume, tz.pincode_lock],
+        toZigbee: [tz.lock, tzLocal.easycode_auto_relock, tz.lock_sound_volume, tz.pincode_lock],
         meta: {pinCodeCount: 1000, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
@@ -172,9 +198,9 @@ export const definitions: DefinitionWithExtend[] = [
             fz.lock_operation_event,
             fz.battery,
             fz.lock_programming_event,
-            fz.easycodetouch_action,
+            fzLocal.easycodetouch_action,
         ],
-        toZigbee: [tz.lock, tz.easycode_auto_relock, tz.lock_sound_volume, tz.pincode_lock],
+        toZigbee: [tz.lock, tzLocal.easycode_auto_relock, tz.lock_sound_volume, tz.pincode_lock],
         meta: {pinCodeCount: 1000, battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);

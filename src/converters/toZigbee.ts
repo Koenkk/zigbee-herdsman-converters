@@ -2313,13 +2313,6 @@ export const ZMCSW032D_cover_position: Tz.Converter = {
         await entity.read("closuresWindowCovering", [isPosition ? "currentPositionLiftPercentage" : "currentPositionTiltPercentage"]);
     },
 };
-export const easycode_auto_relock: Tz.Converter = {
-    key: ["auto_relock"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("closuresDoorLock", {autoRelockTime: value ? 1 : 0}, utils.getOptions(meta.mapped, entity));
-        return {state: {auto_relock: value}};
-    },
-};
 export const tuya_led_controller: Tz.Converter = {
     key: ["state", "color"],
     convertSet: async (entity, key, value, meta) => {
