@@ -2113,21 +2113,6 @@ export const ptvo_switch_analog_input: Fz.Converter<"genAnalogInput", undefined,
         return payload;
     },
 };
-export const plaid_battery: Fz.Converter<"genPowerCfg", undefined, ["readResponse", "attributeReport"]> = {
-    cluster: "genPowerCfg",
-    type: ["readResponse", "attributeReport"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        if (msg.data.mainsVoltage !== undefined) {
-            payload.voltage = msg.data.mainsVoltage;
-
-            if (model.meta?.battery?.voltageToPercentage) {
-                payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
-            }
-        }
-        return payload;
-    },
-};
 export const orvibo_raw_1: Fz.Converter<23, undefined, "raw"> = {
     cluster: 23,
     type: "raw",
