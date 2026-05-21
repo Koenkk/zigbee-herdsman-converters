@@ -1983,18 +1983,6 @@ export const hw_version: Fz.Converter<"genBasic", undefined, ["attributeReport",
 // #endregion
 
 // #region Non-generic converters
-export const namron_hvac_user_interface: Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacUserInterfaceCfg",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.keypadLockout !== undefined) {
-            // Set as child lock instead as keypadlockout
-            result.child_lock = msg.data.keypadLockout === 0 ? "UNLOCK" : "LOCK";
-        }
-        return result;
-    },
-};
 export const ias_smoke_alarm_1_develco: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",

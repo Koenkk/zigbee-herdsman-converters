@@ -2074,7 +2074,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9092A",
         vendor: "Sunricher",
         description: "Touch thermostat",
-        fromZigbee: [fz.thermostat, namron.fromZigbee.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
+        fromZigbee: [
+            fz.thermostat,
+            namron.fromZigbee.namron_thermostat,
+            fz.metering,
+            fz.electrical_measurement,
+            namron.fromZigbee.namron_hvac_user_interface,
+        ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
@@ -2436,7 +2442,7 @@ export const definitions: DefinitionWithExtend[] = [
             namron.fromZigbee.namron_thermostat,
             fz.metering,
             fz.electrical_measurement,
-            fz.namron_hvac_user_interface,
+            namron.fromZigbee.namron_hvac_user_interface,
             fzLocal.ZG9095B,
         ],
         toZigbee: [

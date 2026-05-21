@@ -199,6 +199,18 @@ export const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", NamronHvacThermostat2, ["attributeReport", "readResponse"]>,
+    namron_hvac_user_interface: {
+        cluster: "hvacUserInterfaceCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.keypadLockout !== undefined) {
+                // Set as child lock instead as keypadlockout
+                result.child_lock = msg.data.keypadLockout === 0 ? "UNLOCK" : "LOCK";
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const toZigbee = {

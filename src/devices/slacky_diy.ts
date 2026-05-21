@@ -3,6 +3,7 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
+import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
 //import * as globalStore from "../lib/store";
 import type {Configure, Definition, DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
@@ -583,7 +584,7 @@ const localFromZigbeeThermostat = [
     fz.humidity,
     fz.thermostat,
     fz.fan,
-    fz.namron_hvac_user_interface,
+    namron.fromZigbee.namron_hvac_user_interface,
     fz.thermostat_weekly_schedule,
     fzLocal.thermostat_custom_fw,
     fzLocal.thermostat_schedule,
