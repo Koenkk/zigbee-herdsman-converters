@@ -399,6 +399,18 @@ export const toZigbee = {
             }
         },
     } satisfies Tz.Converter,
+    namron_thermostat_child_lock: {
+    key: ["child_lock"],
+    convertSet: async (entity, key, value, meta) => {
+        const keypadLockout = Number(value === "LOCK");
+        await entity.write("hvacUserInterfaceCfg", {keypadLockout});
+        return {state: {child_lock: value}};
+    },
+    convertGet: async (entity, key, meta) => {
+        await entity.read("hvacUserInterfaceCfg", ["keypadLockout"]);
+    },
+    } satisfies Tz.Converter,
+
 };
 
 export const edgeThermostat = {

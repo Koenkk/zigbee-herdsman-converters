@@ -603,7 +603,7 @@ const localToZigbeeThermostat = [
     tz.thermostat_min_heat_setpoint_limit,
     tz.thermostat_max_heat_setpoint_limit,
     tz.thermostat_programming_operation_mode,
-    tz.namron_thermostat_child_lock,
+    namron.toZigbee.namron_thermostat_child_lock,
     tz.thermostat_weekly_schedule,
     tz.fan_mode,
     tzLocal.display_brightness,
