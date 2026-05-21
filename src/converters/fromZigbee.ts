@@ -2236,42 +2236,6 @@ export const ewelink_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "
 //         };
 //     },
 // };
-export const byun_smoke_false: Fz.Converter<"pHMeasurement", undefined, ["attributeReport"]> = {
-    cluster: "pHMeasurement",
-    type: ["attributeReport"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.endpoint.ID === 1 && msg.data.measuredValue === 0) {
-            return {smoke: false};
-        }
-    },
-};
-export const byun_smoke_true: Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]> = {
-    cluster: "ssIasZone",
-    type: ["commandStatusChangeNotification"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.endpoint.ID === 1 && msg.data.zonestatus === 33) {
-            return {smoke: true};
-        }
-    },
-};
-export const byun_gas_false: Fz.Converter<1034, undefined, ["raw"]> = {
-    cluster: 1034,
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.endpoint.ID === 1 && msg.data[0] === 24) {
-            return {gas: false};
-        }
-    },
-};
-export const byun_gas_true: Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]> = {
-    cluster: "ssIasZone",
-    type: ["commandStatusChangeNotification"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.endpoint.ID === 1 && msg.data.zonestatus === 33) {
-            return {gas: true};
-        }
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const W2_module_carbon_monoxide: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
