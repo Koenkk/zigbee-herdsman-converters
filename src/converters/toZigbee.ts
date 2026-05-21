@@ -18,7 +18,6 @@ const manufacturerOptions = {
     ikea: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
     sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
     tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
-    legrand: {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
 };
 
 export const on_off: Tz.Converter = {
@@ -2259,30 +2258,6 @@ export const tuya_relay_din_led_indicator: Tz.Converter = {
         return {state: {indicator_mode: value}};
     },
 };
-export const kmpcil_res005_on_off: Tz.Converter = {
-    key: ["state"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        const options = {disableDefaultResponse: true};
-        value = value.toLowerCase();
-        utils.assertString(value, key);
-        utils.validateValue(value, ["toggle", "off", "on"]);
-        if (value === "toggle") {
-            if (meta.state.state === undefined) {
-                throw new Error("Cannot toggle, state not known yet");
-            }
-            const payload = {85: {value: meta.state.state === "OFF" ? 0x01 : 0x00, type: 0x10}};
-            await entity.write("genBinaryOutput", payload, options);
-            return {state: {state: meta.state.state === "OFF" ? "ON" : "OFF"}};
-        }
-        const payload = {85: {value: value.toUpperCase() === "OFF" ? 0x00 : 0x01, type: 0x10}};
-        await entity.write("genBinaryOutput", payload, options);
-        return {state: {state: value.toUpperCase()}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("genBinaryOutput", ["presentValue"]);
-    },
-};
 export const hue_wall_switch_device_mode: Tz.Converter = {
     key: ["device_mode"],
     convertSet: async (entity, key, value, meta) => {
@@ -2493,21 +2468,6 @@ export const tint_scene: Tz.Converter = {
     key: ["tint_scene"],
     convertSet: async (entity, key, value, meta) => {
         await entity.write("genBasic", {16389: {value, type: 0x20}}, manufacturerOptions.tint);
-    },
-};
-export const legrand_power_alarm: Tz.Converter = {
-    key: ["power_alarm"],
-    convertSet: async (entity, key, value, meta) => {
-        const enableAlarm = !(value === "DISABLE" || value === false);
-        const payloadBolean = {61441: {value: enableAlarm ? 0x01 : 0x00, type: 0x10}};
-        const payloadValue = {61442: {value: value, type: 0x29}};
-        await entity.write("haElectricalMeasurement", payloadValue);
-        await entity.write("haElectricalMeasurement", payloadBolean);
-        // To have consistent information in the system.
-        await entity.read("haElectricalMeasurement", [0xf000, 0xf001, 0xf002]);
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("haElectricalMeasurement", [0xf000, 0xf001, 0xf002]);
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
