@@ -808,7 +808,9 @@ const heimanExtend = {
     },
     heimanClusterIndicatorLight: (componentName = "heartbeat_indicator"): ModernExtend => {
         const clusterName = "heimanClusterSpecial" as const;
-        const exposes = utils.exposeEndpoints(e.binary(componentName, ea.ALL, true, false).withDescription("Active indicator light switch"));
+        const exposes = utils.exposeEndpoints(
+            e.binary(componentName, ea.ALL, true, false).withDescription("Enable/disable the indicator on product"),
+        );
         const fromZigbee = [
             {
                 cluster: clusterName,
@@ -849,35 +851,6 @@ const heimanExtend = {
             fromZigbee,
             toZigbee,
             isModernExtend: true,
-        };
-    },
-    heimanClusterIndicatorLightOnOff: (): ModernExtend => {
-        const clusterName = "heimanClusterSpecial" as const;
-        const attributeId = 0x1004;
-        const mExtend = m.binary({
-            name: "indicator_state",
-            valueOn: ["ON", 1],
-            valueOff: ["OFF", 0],
-            cluster: clusterName,
-            attribute: {ID: attributeId, type: Zcl.DataType.UINT8},
-            description: "active work indicator",
-            access: "ALL",
-        });
-        const fromZigbee = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const rawValue = msg.data["indicatorLightLevelControlOf1"];
-                    if (rawValue === undefined) return;
-                    const state = rawValue === 1 ? "ON" : "OFF";
-                    return {indicator_state: state};
-                },
-            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
-        ];
-        return {
-            ...mExtend,
-            fromZigbee,
         };
     },
     heimanClusterSensorInterconnectable: (): ModernExtend => {
@@ -1088,64 +1061,6 @@ const heimanExtend = {
             fromZigbee,
             toZigbee,
             isModernExtend: true,
-        };
-    },
-    heimanClusterSensorSensitivityLevel: (description = "sensor sensitivity level"): ModernExtend => {
-        const clusterName = "heimanClusterSpecial" as const;
-        const attributeId = 0x0004;
-        const valueMap = {0: "low", 1: "middle", 2: "high"};
-        const mExtend = m.enumLookup({
-            name: "sensitivity_level",
-            cluster: clusterName,
-            attribute: {ID: attributeId, type: Zcl.DataType.ENUM8},
-            description: description,
-            lookup: {low: 0, middle: 1, high: 2},
-            access: "ALL",
-        });
-        const fromZigbee = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if (msg.data["sensorSensitivityLevel"] === undefined) return;
-                    const attrValue = Number(msg.data["sensorSensitivityLevel"]);
-                    const valueText = valueMap[attrValue as keyof typeof valueMap] ?? "unknown";
-                    return {sensitivity_level: valueText};
-                },
-            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
-        ];
-        return {
-            ...mExtend,
-            fromZigbee,
-        };
-    },
-    heimanClusterOccupanySensorWorkMode: (): ModernExtend => {
-        const clusterName = "heimanClusterSpecial" as const;
-        const attributeId = 0x001e;
-        const valueMap = {1: "pir", 2: "radar", 3: "pir_and_radar"};
-        const mExtend = m.enumLookup({
-            name: "work_mode",
-            cluster: clusterName,
-            attribute: {ID: attributeId, type: Zcl.DataType.BITMAP8},
-            description: "occupany sensor work mode",
-            lookup: {pir: 1, radar: 2, pir_and_radar: 3},
-            access: "ALL",
-        });
-        const fromZigbee = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if (msg.data["occupanySensorWorkMode"] === undefined) return;
-                    const attrValue = Number(msg.data["occupanySensorWorkMode"]);
-                    const valueText = valueMap[attrValue as keyof typeof valueMap] ?? "unknown";
-                    return {work_mode: valueText};
-                },
-            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
-        ];
-        return {
-            ...mExtend,
-            fromZigbee,
         };
     },
     heimanClusterOccupiedToUnoccupiedDelay: (): ModernExtend => {
@@ -3683,12 +3598,26 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.heimanClusterDeviceFaultState(),
             heimanExtend.heimanClusterOccupiedToUnoccupiedDelay(),
             heimanExtend.heimanClusterOccupiedRepeatedReportingDuration(),
-            heimanExtend.heimanClusterOccupanySensorWorkMode(),
             heimanExtend.heimanClusterRadarDetectionRange(),
             heimanExtend.heimanClusterRadarLearningControl(),
             heimanExtend.heimanClusterRadarLearningState(),
-            heimanExtend.heimanClusterSensorSensitivityLevel("PIR sensor sensitivity level"),
             heimanExtend.heimanClusterIndicatorLight("work_indicator"),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "pir_sensitivity_level",
+                lookup: {low: 0, medium: 1, high: 2},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorSensitivityLevel",
+                description: "The sensitivity of PIR Sensor",
+                access: "ALL",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "work_mode",
+                lookup: {pir: 1, radar: 2, pir_and_radar: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: "occupanySensorWorkMode",
+                description: "occupany sensor work mode",
+                access: "ALL",
+            }),
         ],
         ota: true,
     },
