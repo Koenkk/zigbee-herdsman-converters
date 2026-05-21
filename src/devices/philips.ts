@@ -3300,7 +3300,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["1746730V7"],
+        zigbeeModel: ["1746730V7", "1746730V7-HC3"],
         model: "1746730V7",
         vendor: "Philips",
         description: "Hue Lily outdoor spot light",

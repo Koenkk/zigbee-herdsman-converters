@@ -612,23 +612,12 @@ const philipsModernExtend = {
                     ),
                 );
             }
-            // Bind manuSpecificPhilips2 and register the Fz converter for all
-            // hueEffect/gradient devices, not just gradient. This enables state
-            // reports for effects, brightness, color, etc. on non-gradient bulbs too.
+            // Register the Fz converter for all devices (if user enables state reports later)
             result.fromZigbee.push(manuSpecificPhilips2Fz);
-            result.configure.push(async (device, coordinatorEndpoint, definition) => {
-                for (const ep of device.endpoints) {
-                    let supported = false;
-                    try {
-                        supported = ep.supportsInputCluster("manuSpecificPhilips2");
-                    } catch {
-                        // Custom cluster not in registry — skip
-                    }
-                    if (supported) {
-                        await ep.bind("manuSpecificPhilips2", coordinatorEndpoint);
-                    }
-                }
-            });
+            // Don't bind or configure reporting automatically - causes unwanted effects
+            // (reports in-between states, conflicting with optimistic states)
+            // https://github.com/Koenkk/zigbee2mqtt/issues/32050#issuecomment-4496461658
+
             // All Hue-specific effects per Bifrost spec
             effects.push("sunset", "sunrise", "sparkle", "opal", "glisten", "underwater", "cosmos", "sunbeam", "enchant");
             effects.push("none", "finish_effect", "stop_effect", "stop_hue_effect");
