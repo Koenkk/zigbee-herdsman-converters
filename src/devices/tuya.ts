@@ -7042,24 +7042,24 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
     },
     {
-    fingerprint: [{modelID: "TS0003", manufacturerName: "_TZ3210_n0wbkysi"}],
-    model: "_TZ3210_n0wbkysi",
-    vendor: "Tuya",
-    description: "3 channel USB switch",
-    extend: [
-        tuya.modernExtend.tuyaBase(),
-        tuya.modernExtend.tuyaOnOff({
-            switchType: false,
-            indicatorMode: false,
-            onOffCountdown: true,
-            endpoints: ["left", "center", "right"],
-        }),
-    ],
-    endpoint: (device) => {
-        return {left: 1, center: 2, right: 3};
+        fingerprint: [{modelID: "TS0003", manufacturerName: "_TZ3210_n0wbkysi"}],
+        model: "_TZ3210_n0wbkysi",
+        vendor: "Tuya",
+        description: "3 channel USB switch",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: false,
+                indicatorMode: false,
+                onOffCountdown: true,
+                endpoints: ["left", "center", "right"],
+            }),
+        ],
+        endpoint: (device) => {
+            return {left: 1, center: 2, right: 3};
+        },
+        meta: {multiEndpoint: true},
     },
-    meta: {multiEndpoint: true},
-},
     {
         fingerprint: tuya.fingerprint("TS0001", [
             "_TZ3000_tqlv4ug4",
