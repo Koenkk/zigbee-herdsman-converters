@@ -1982,20 +1982,6 @@ export const hw_version: Fz.Converter<"genBasic", undefined, ["attributeReport",
 // #endregion
 
 // #region Non-generic converters
-export const ias_smoke_alarm_1_develco: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        return {
-            smoke: (zoneStatus & 1) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-            supervision_reports: (zoneStatus & (1 << 4)) > 0,
-            restore_reports: (zoneStatus & (1 << 5)) > 0,
-            test: (zoneStatus & (1 << 8)) > 0,
-        };
-    },
-};
 export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -2029,15 +2015,6 @@ export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport"
             result.alarm = msg.data["61440"] !== 0;
         }
         return result;
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "attributeReport"> = {
-    cluster: 65029,
-    type: "attributeReport",
-    convert: (model, msg, publish, options, meta) => {
-        const clickMapping: KeyValueNumberString = {0: "release", 1: "single", 2: "double", 3: "hold"};
-        return {action: `${clickMapping[msg.data["1"]]}`};
     },
 };
 export const easycode_action: Fz.Converter<"closuresDoorLock", undefined, "raw"> = {
