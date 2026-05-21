@@ -886,7 +886,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512737/4512738",
         vendor: "Namron",
         description: "Touch thermostat",
-        fromZigbee: [fz.thermostat, namron.fromZigbee.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
+        fromZigbee: [
+            fz.thermostat,
+            namron.fromZigbee.namron_thermostat,
+            fz.metering,
+            fz.electrical_measurement,
+            namron.fromZigbee.namron_hvac_user_interface,
+        ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
@@ -897,7 +903,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_system_mode,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_running_state,
-            tz.namron_thermostat_child_lock,
+            namron.toZigbee.namron_thermostat_child_lock,
             namron.toZigbee.namron_thermostat,
         ],
         exposes: [
@@ -1239,7 +1245,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Panel heater 400/600/800/1000 W",
         extend: [namron.namronExtend.addNamronHvacThermostatCluster()],
         ota: true,
-        fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fzLocal.namron_panelheater, fz.namron_hvac_user_interface],
+        fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fzLocal.namron_panelheater, namron.fromZigbee.namron_hvac_user_interface],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
@@ -1247,7 +1253,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_running_state,
             tz.thermostat_local_temperature,
             tzLocal.namron_panelheater,
-            tz.namron_thermostat_child_lock,
+            namron.toZigbee.namron_thermostat_child_lock,
         ],
         exposes: [
             e.power(),
@@ -1415,12 +1421,12 @@ export const definitions: DefinitionWithExtend[] = [
             namron.namronExtend.addNamronHvacThermostatCluster(),
             m.electricityMeter({cluster: "both", energy: {divisor: 10}, power: false, voltage: false, current: false, configureReporting: false}),
         ],
-        fromZigbee: [fz.thermostat, fzLocal.namron_panelheater, fz.namron_hvac_user_interface, fz.electrical_measurement],
+        fromZigbee: [fz.thermostat, fzLocal.namron_panelheater, namron.fromZigbee.namron_hvac_user_interface, fz.electrical_measurement],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_local_temperature_calibration,
             tz.thermostat_system_mode,
-            tz.namron_thermostat_child_lock,
+            namron.toZigbee.namron_thermostat_child_lock,
             tzLocal.namron_panelheater_pro_state,
             tzLocal.namron_panelheater_pro_frost_mode,
             tzLocal.namron_panelheater_pro_hysteresis,
@@ -1602,7 +1608,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "Zigbee thermostat 16A",
         whiteLabel: [{model: "4512759", fingerprint: [{modelID: "4512759"}]}],
-        fromZigbee: [fzLocal.namron_thermostat2, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
+        fromZigbee: [fzLocal.namron_thermostat2, fz.metering, fz.electrical_measurement, namron.fromZigbee.namron_hvac_user_interface],
         toZigbee: [
             {
                 // map running *mode* to *state*, as that's what used
@@ -1624,7 +1630,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_system_mode,
             tz.thermostat_running_mode,
-            tz.namron_thermostat_child_lock,
+            namron.toZigbee.namron_thermostat_child_lock,
         ],
         extend: [
             m.onOff({powerOnBehavior: false}),
@@ -1994,7 +2000,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.thermostat,
             namron.fromZigbee.namron_edge_thermostat_holiday_temp,
             namron.fromZigbee.namron_edge_thermostat_vacation_date,
-            fz.namron_hvac_user_interface,
+            namron.fromZigbee.namron_hvac_user_interface,
             fz.metering,
             fz.electrical_measurement,
         ],
@@ -2002,7 +2008,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
-            tz.namron_thermostat_child_lock,
+            namron.toZigbee.namron_thermostat_child_lock,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_programming_operation_mode,
             tz.thermostat_temperature_display_mode,

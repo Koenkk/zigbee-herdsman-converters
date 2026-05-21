@@ -2074,7 +2074,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9092A",
         vendor: "Sunricher",
         description: "Touch thermostat",
-        fromZigbee: [fz.thermostat, namron.fromZigbee.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
+        fromZigbee: [
+            fz.thermostat,
+            namron.fromZigbee.namron_thermostat,
+            fz.metering,
+            fz.electrical_measurement,
+            namron.fromZigbee.namron_hvac_user_interface,
+        ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
@@ -2086,7 +2092,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_running_state,
             namron.toZigbee.namron_thermostat,
-            tz.namron_thermostat_child_lock,
+            namron.toZigbee.namron_thermostat_child_lock,
         ],
         exposes: [
             e.numeric("outdoor_temperature", ea.STATE_GET).withUnit("°C").withDescription("Current temperature measured from the floor sensor"),
@@ -2436,7 +2442,7 @@ export const definitions: DefinitionWithExtend[] = [
             namron.fromZigbee.namron_thermostat,
             fz.metering,
             fz.electrical_measurement,
-            fz.namron_hvac_user_interface,
+            namron.fromZigbee.namron_hvac_user_interface,
             fzLocal.ZG9095B,
         ],
         toZigbee: [
@@ -2454,7 +2460,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_running_state,
             namron.toZigbee.namron_thermostat,
-            tz.namron_thermostat_child_lock,
+            namron.toZigbee.namron_thermostat_child_lock,
             tz.fan_mode,
             tzLocal.ZG9095B.min_setpoint_deadband,
         ],

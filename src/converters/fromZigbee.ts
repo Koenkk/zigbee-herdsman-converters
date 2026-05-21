@@ -1982,32 +1982,6 @@ export const hw_version: Fz.Converter<"genBasic", undefined, ["attributeReport",
 // #endregion
 
 // #region Non-generic converters
-export const namron_hvac_user_interface: Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacUserInterfaceCfg",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.keypadLockout !== undefined) {
-            // Set as child lock instead as keypadlockout
-            result.child_lock = msg.data.keypadLockout === 0 ? "UNLOCK" : "LOCK";
-        }
-        return result;
-    },
-};
-export const ias_smoke_alarm_1_develco: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        return {
-            smoke: (zoneStatus & 1) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-            supervision_reports: (zoneStatus & (1 << 4)) > 0,
-            restore_reports: (zoneStatus & (1 << 5)) > 0,
-            test: (zoneStatus & (1 << 8)) > 0,
-        };
-    },
-};
 export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -2041,43 +2015,6 @@ export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport"
             result.alarm = msg.data["61440"] !== 0;
         }
         return result;
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const WSZ01_on_off_action: Fz.Converter<65029, undefined, "attributeReport"> = {
-    cluster: 65029,
-    type: "attributeReport",
-    convert: (model, msg, publish, options, meta) => {
-        const clickMapping: KeyValueNumberString = {0: "release", 1: "single", 2: "double", 3: "hold"};
-        return {action: `${clickMapping[msg.data["1"]]}`};
-    },
-};
-export const easycode_action: Fz.Converter<"closuresDoorLock", undefined, "raw"> = {
-    cluster: "closuresDoorLock",
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {
-            13: "lock",
-            14: "zigbee_unlock",
-            3: "rfid_unlock",
-            0: "keypad_unlock",
-        };
-        const value = lookup[msg.data[4]];
-        if (value === "lock" || value === "zigbee_unlock") {
-            return {action: value};
-        }
-        return {action: lookup[msg.data[3]]};
-    },
-};
-export const easycodetouch_action: Fz.Converter<"closuresDoorLock", undefined, "raw"> = {
-    cluster: "closuresDoorLock",
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        const value = constants.easyCodeTouchActions[(msg.data[3] << 8) | msg.data[4]];
-        if (value) {
-            return {action: value};
-        }
-        logger.warning(`Unknown lock status with source ${msg.data[3]} and event code ${msg.data[4]}`, NS);
     },
 };
 export const ptvo_switch_uart: Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]> = {
@@ -2171,21 +2108,6 @@ export const ptvo_switch_analog_input: Fz.Converter<"genAnalogInput", undefined,
                         payload[`${nameAlt}_${name}`] = val;
                     }
                 }
-            }
-        }
-        return payload;
-    },
-};
-export const plaid_battery: Fz.Converter<"genPowerCfg", undefined, ["readResponse", "attributeReport"]> = {
-    cluster: "genPowerCfg",
-    type: ["readResponse", "attributeReport"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        if (msg.data.mainsVoltage !== undefined) {
-            payload.voltage = msg.data.mainsVoltage;
-
-            if (model.meta?.battery?.voltageToPercentage) {
-                payload.battery = batteryVoltageToPercentage(payload.voltage, model.meta.battery.voltageToPercentage);
             }
         }
         return payload;
@@ -2296,153 +2218,12 @@ export const tint404011_move_to_color_temp: Fz.Converter<"lightingColorCtrl", un
         return payload;
     },
 };
-export const restorable_brightness: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genLevelCtrl",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data.currentLevel !== undefined) {
-            // Ignore brightness = 0, which only happens when state is OFF
-            if (Number(msg.data.currentLevel) > 0) {
-                return {brightness: msg.data.currentLevel};
-            }
-            return {};
-        }
-    },
-};
 export const ewelink_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]> = {
     cluster: "genOnOff",
     type: ["commandOn", "commandOff", "commandToggle"],
     convert: (model, msg, publish, options, meta) => {
         const lookup: KeyValueAny = {commandToggle: "single", commandOn: "double", commandOff: "long"};
         return {action: lookup[msg.type]};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const K4003C_binary_input: Fz.Converter<"genBinaryInput", undefined, "attributeReport"> = {
-    cluster: "genBinaryInput",
-    type: "attributeReport",
-    convert: (model, msg, publish, options, meta) => {
-        return {action: msg.data.presentValue === 1 ? "off" : "on"};
-    },
-};
-// Button 1: A0 (top left)
-// Button 2: A1 (bottom left)
-// Button 3: B0 (top right)
-// Button 4: B1 (bottom right)
-const ENOCEAN_PTM215Z_LOOKUP: Record<number, string> = {
-    16: "press_1",
-    20: "release_1",
-    17: "press_2",
-    21: "release_2",
-    19: "press_3",
-    23: "release_3",
-    18: "press_4",
-    22: "release_4",
-    100: "press_1_and_3",
-    101: "release_1_and_3",
-    98: "press_2_and_4",
-    99: "release_2_and_4",
-    34: "press_energy_bar",
-};
-export const enocean_ptm215z: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
-    cluster: "greenPower",
-    type: ["commandNotification", "commandCommissioningNotification"],
-    convert: (model, msg, publish, options, meta) => {
-        const commandID = msg.data.commandID;
-        if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID >= 0xe0) return; // Skip op commands
-
-        const action = ENOCEAN_PTM215Z_LOOKUP[commandID] !== undefined ? ENOCEAN_PTM215Z_LOOKUP[commandID] : `unknown_${commandID}`;
-        return {action};
-    },
-};
-// Button 1: A0 (top left)
-// Button 2: A1 (bottom left)
-// Button 3: B0 (top right)
-// Button 4: B1 (bottom right)
-const ENOCEAN_PTM215ZE_LOOKUP: Record<number, string> = {
-    34: "press_1",
-    35: "release_1",
-    24: "press_2",
-    25: "release_2",
-    20: "press_3",
-    21: "release_3",
-    18: "press_4",
-    19: "release_4",
-    100: "press_1_and_2",
-    101: "release_1_and_2",
-    98: "press_1_and_3",
-    99: "release_1_and_3",
-    30: "press_1_and_4",
-    31: "release_1_and_4",
-    28: "press_2_and_3",
-    29: "release_2_and_3",
-    26: "press_2_and_4",
-    27: "release_2_and_4",
-    22: "press_3_and_4",
-    23: "release_3_and_4",
-    16: "press_energy_bar",
-    17: "release_energy_bar",
-    0: "press_or_release_all",
-    80: "lock",
-    81: "unlock",
-    82: "half_open",
-    83: "tilt",
-};
-export const enocean_ptm215ze: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
-    cluster: "greenPower",
-    type: ["commandNotification", "commandCommissioningNotification"],
-    convert: (model, msg, publish, options, meta) => {
-        const commandID = msg.data.commandID;
-        if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID >= 0xe0) return; // Skip op commands
-
-        if (ENOCEAN_PTM215ZE_LOOKUP[commandID] === undefined) {
-            logger.error(`PTM 215ZE: missing command '${commandID}'`, NS);
-        } else {
-            return {action: ENOCEAN_PTM215ZE_LOOKUP[commandID]};
-        }
-    },
-};
-// Button 1: A0 (top left)
-// Button 2: A1 (bottom left)
-// Button 3: B0 (top right)
-// Button 4: B1 (bottom right)
-const ENOCEAN_PTM216Z_LOOKUP: Record<string, string> = {
-    "105_1": "press_1",
-    "105_2": "press_2",
-    "105_3": "press_1_and_2",
-    "105_4": "press_3",
-    "105_5": "press_1_and_3",
-    "105_6": "press_2_and_3",
-    "105_7": "press_1_and_2_and_3",
-    "105_8": "press_4",
-    "105_9": "press_1_and_4",
-    "105_10": "press_2_and_4",
-    "105_11": "press_1_and_2_and_4",
-    "105_12": "press_3_and_4",
-    "105_13": "press_1_and_3_and_4",
-    "105_14": "press_2_and_3_and_4",
-    "105_15": "press_all",
-    "105_16": "press_energy_bar",
-    "106_0": "release",
-    "104_": "short_press_2_of_2",
-};
-export const enocean_ptm216z: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
-    cluster: "greenPower",
-    type: ["commandNotification", "commandCommissioningNotification"],
-    convert: (model, msg, publish, options, meta) => {
-        const commandID = msg.data.commandID;
-        if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID >= 0xe0) return; // Skip op commands
-
-        const ID = `${commandID}_${"raw" in msg.data.commandFrame ? (msg.data.commandFrame.raw[0] ?? "") : ""}`;
-
-        if (ENOCEAN_PTM216Z_LOOKUP[ID] === undefined) {
-            logger.error(`PTM 216Z: missing command '${ID}'`, NS);
-        } else {
-            return {action: ENOCEAN_PTM216Z_LOOKUP[ID]};
-        }
     },
 };
 // export const _8840100H_water_leak_alarm: Fz.Converter = {
@@ -2455,42 +2236,6 @@ export const enocean_ptm216z: Fz.Converter<"greenPower", undefined, ["commandNot
 //         };
 //     },
 // };
-export const byun_smoke_false: Fz.Converter<"pHMeasurement", undefined, ["attributeReport"]> = {
-    cluster: "pHMeasurement",
-    type: ["attributeReport"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.endpoint.ID === 1 && msg.data.measuredValue === 0) {
-            return {smoke: false};
-        }
-    },
-};
-export const byun_smoke_true: Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]> = {
-    cluster: "ssIasZone",
-    type: ["commandStatusChangeNotification"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.endpoint.ID === 1 && msg.data.zonestatus === 33) {
-            return {smoke: true};
-        }
-    },
-};
-export const byun_gas_false: Fz.Converter<1034, undefined, ["raw"]> = {
-    cluster: 1034,
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.endpoint.ID === 1 && msg.data[0] === 24) {
-            return {gas: false};
-        }
-    },
-};
-export const byun_gas_true: Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification"]> = {
-    cluster: "ssIasZone",
-    type: ["commandStatusChangeNotification"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.endpoint.ID === 1 && msg.data.zonestatus === 33) {
-            return {gas: true};
-        }
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const W2_module_carbon_monoxide: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
