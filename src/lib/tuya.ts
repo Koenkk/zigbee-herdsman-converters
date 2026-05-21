@@ -1022,6 +1022,41 @@ const tuyaExposes = {
             .withValueStep(1)
             .withDescription("Unknown (Default 0s)")
             .withCategory("config"),
+    liquidLevelPercent: () => e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
+    liquidDepth: () => e.numeric("liquid_depth", ea.STATE).withUnit("cm").withDescription("Liquid depth"),
+    liquidDepthMax: () =>
+        e
+            .numeric("liquid_depth_max", ea.STATE_SET)
+            .withUnit("mm")
+            .withDescription("Height from sensor to liquid level")
+            .withValueMin(10)
+            .withValueMax(4000)
+            .withValueStep(5),
+    liquidInstallationHeight: () =>
+        e
+            .numeric("installation_height", ea.STATE_SET)
+            .withUnit("mm")
+            .withDescription("Height from sensor to tank bottom")
+            .withValueMin(10)
+            .withValueMax(4000)
+            .withValueStep(5),
+    liquidMinimalPercent: () =>
+        e
+            .numeric("min_set", ea.STATE_SET)
+            .withUnit("%")
+            .withDescription("Liquid minimal percentage")
+            .withValueMin(0)
+            .withValueMax(100)
+            .withValueStep(1),
+    liquidMaximalPercent: () =>
+        e
+            .numeric("max_set", ea.STATE_SET)
+            .withUnit("%")
+            .withDescription("Liquid maximum percentage")
+            .withValueMin(0)
+            .withValueMax(100)
+            .withValueStep(1),
+    liquidState: () => e.enum("liquid_state", ea.STATE, ["low", "normal", "high"]).withDescription("Liquid level status"),
 };
 
 export {tuyaExposes as exposes};
@@ -2580,6 +2615,33 @@ export const valueConverter = {
             }
             return schedules;
         },
+    },
+    GX03ValveState: (zoneNum: number) => {
+        const lookup: Record<number, string> = {0: "Manual", 1: "Auto", 2: "Closed"};
+        return {
+            from: (value: unknown, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
+                // Set initial value to both timers to unlock UI
+                if (meta.state?.timer_1 === undefined) {
+                    publish({
+                        timer_1: 5,
+                        timer_2: 5,
+                    });
+                    const endpoint = meta.device.getEndpoint(1);
+                    void (async () => {
+                        await sendDataPointValue(endpoint, 13, 5);
+                        await sendDataPointValue(endpoint, 14, 5);
+                    })();
+                }
+                // Reset the related countdown on valve closing
+                if (value === 2) {
+                    publish({[`countdown_${zoneNum}`]: 0});
+                }
+                if (typeof value === "number" && value in lookup) {
+                    return lookup[value];
+                }
+                return `Unknown (${value})`;
+            },
+        };
     },
 };
 

@@ -457,11 +457,40 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_koxaopnk"]),
+        model: "ZC-LS02",
+        vendor: "Moes",
+        description: "Roller blind motor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Set the motor direction"),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPositionInverted],
+                [3, "position", tuya.valueConverter.coverPositionInverted],
+                [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), reversed: tuya.enum(1)})],
+                [13, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_stvgmdjz", "_TZE200_ydkqbmpt", "_TZE200_z3u99qxt"]),
         model: "SFL02-Z-1",
         vendor: "Moes",
         description: "Star feather smart switch 1 gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         whiteLabel: [tuya.whitelabel("Nova Digital", "TPZ-1", "Topazio smart switch 1 gang", ["_TZE200_ydkqbmpt"])],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
@@ -543,7 +572,7 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.enum("induction_mode", ea.ALL, ["ON", "OFF"]).withDescription("Induction mode"),
             exposes.enum("vibration_mode", ea.ALL, ["Gear 0", "Gear 1", "Gear 2", "Gear 3"]).withDescription("Vibration"),
         ],
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         endpoint: (device) => {
             return {l1: 1, l2: 1, state: 1, backlight: 1};
         },
@@ -577,7 +606,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SFL02-Z-3",
         vendor: "Moes",
         description: "Star feather smart switch 3 gangs",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         whiteLabel: [tuya.whitelabel("Nova Digital", "TPZ-3", "Topazio smart switch 3 gangs", ["_TZE200_rd8cdssd"])],
         exposes: [
             e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
@@ -663,7 +692,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SFL02-Z-4",
         vendor: "Moes",
         description: "Star feather smart switch 4 gangs",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         whiteLabel: [tuya.whitelabel("Nova Digital", "TPZ-4", "Topazio smart switch 4 gangs", ["_TZE200_hmabvy81"])],
         exposes: [
             e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),

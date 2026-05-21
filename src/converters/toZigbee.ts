@@ -14,12 +14,10 @@ import {determineEndpoint} from "../lib/utils";
 const NS = "zhc:tz";
 const manufacturerOptions = {
     lumi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECHOLOGY_LTD_SHENZHEN, disableDefaultResponse: true},
-    eurotronic: {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS},
     hue: {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V},
     ikea: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
     sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
     tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
-    legrand: {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
 };
 
 export const on_off: Tz.Converter = {
@@ -2243,31 +2241,10 @@ export const humidity: Tz.Converter = {
 
 // #region Non-generic converters
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const LS21001_alert_behaviour: Tz.Converter = {
-    key: ["alert_behaviour"],
-    convertSet: async (entity, key, value, meta) => {
-        const lookup = {siren_led: 3, siren: 2, led: 1, nothing: 0};
-        await entity.write(
-            "genBasic",
-            {16394: {value: utils.getFromLookup(value, lookup), type: 32}},
-            {manufacturerCode: Zcl.ManufacturerCode.LEEDARSON_LIGHTING_CO_LTD, disableDefaultResponse: true},
-        );
-        return {state: {alert_behaviour: value}};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const STS_PRS_251_beep: Tz.Converter = {
     key: ["beep"],
     convertSet: async (entity, key, value, meta) => {
         await entity.command("genIdentify", "identify", {identifytime: value as number}, utils.getOptions(meta.mapped, entity));
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SPZ01_power_outage_memory: Tz.Converter = {
-    key: ["power_outage_memory"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("genOnOff", {8192: {value: value ? 0x01 : 0x00, type: 0x20}});
-        return {state: {power_outage_memory: value}};
     },
 };
 export const tuya_relay_din_led_indicator: Tz.Converter = {
@@ -2279,30 +2256,6 @@ export const tuya_relay_din_led_indicator: Tz.Converter = {
         const payload = utils.getFromLookup(value, lookup);
         await entity.write("genOnOff", {32769: {value: payload, type: 0x30}});
         return {state: {indicator_mode: value}};
-    },
-};
-export const kmpcil_res005_on_off: Tz.Converter = {
-    key: ["state"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        const options = {disableDefaultResponse: true};
-        value = value.toLowerCase();
-        utils.assertString(value, key);
-        utils.validateValue(value, ["toggle", "off", "on"]);
-        if (value === "toggle") {
-            if (meta.state.state === undefined) {
-                throw new Error("Cannot toggle, state not known yet");
-            }
-            const payload = {85: {value: meta.state.state === "OFF" ? 0x01 : 0x00, type: 0x10}};
-            await entity.write("genBinaryOutput", payload, options);
-            return {state: {state: meta.state.state === "OFF" ? "ON" : "OFF"}};
-        }
-        const payload = {85: {value: value.toUpperCase() === "OFF" ? 0x00 : 0x01, type: 0x10}};
-        await entity.write("genBinaryOutput", payload, options);
-        return {state: {state: value.toUpperCase()}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("genBinaryOutput", ["presentValue"]);
     },
 };
 export const hue_wall_switch_device_mode: Tz.Converter = {
@@ -2424,164 +2377,6 @@ export const tuya_led_controller: Tz.Converter = {
         }
     },
 };
-export const eurotronic_host_flags: Tz.Converter = {
-    key: ["eurotronic_host_flags", "system_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        const origValue = value;
-        await entity.read("hvacThermostat", [0x4008], manufacturerOptions.eurotronic);
-        // calculate bit value
-        let bitValue = 0x01; // bit 0 always 1
-        if (meta.state.mirror_display === "ON") {
-            bitValue |= 0x02;
-        }
-        if (value === constants.thermostatSystemModes[0]) {
-            // off
-            bitValue |= 0x20;
-        } else if (value === constants.thermostatSystemModes[4]) {
-            // "heat"
-            bitValue |= 0x04;
-        } else {
-            // auto
-            bitValue |= 0x10;
-        }
-        if (meta.state.child_lock === "LOCK") {
-            bitValue |= 0x80;
-        }
-        value = bitValue;
-        const payload = {16392: {value, type: 0x22}};
-        await entity.write("hvacThermostat", payload, manufacturerOptions.eurotronic);
-        return {state: {[key]: origValue}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", [0x4008], manufacturerOptions.eurotronic);
-    },
-};
-export const eurotronic_error_status: Tz.Converter = {
-    key: ["eurotronic_error_status"],
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", [0x4002], manufacturerOptions.eurotronic);
-    },
-};
-export const eurotronic_current_heating_setpoint: Tz.Converter = {
-    key: ["current_heating_setpoint"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertNumber(value, key);
-        const val = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
-        const payload = {16387: {value: val, type: 0x29}};
-        await entity.write("hvacThermostat", payload, manufacturerOptions.eurotronic);
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", [0x4003], manufacturerOptions.eurotronic);
-    },
-};
-export const eurotronic_valve_position: Tz.Converter = {
-    key: ["eurotronic_valve_position", "valve_position"],
-    convertSet: async (entity, key, value, meta) => {
-        const payload = {16385: {value, type: 0x20}};
-        await entity.write("hvacThermostat", payload, manufacturerOptions.eurotronic);
-        return {state: {[key]: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", [0x4001], manufacturerOptions.eurotronic);
-    },
-};
-export const eurotronic_trv_mode: Tz.Converter = {
-    key: ["eurotronic_trv_mode", "trv_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        const payload = {16384: {value, type: 0x30}};
-        await entity.write("hvacThermostat", payload, manufacturerOptions.eurotronic);
-        return {state: {[key]: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", [0x4000], manufacturerOptions.eurotronic);
-    },
-};
-export const eurotronic_child_lock: Tz.Converter = {
-    key: ["eurotronic_child_lock", "child_lock"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.read("hvacThermostat", [0x4008], manufacturerOptions.eurotronic);
-        // calculate bit value
-        let bitValue = 0x01; // bit 0 always 1
-        if (meta.state.mirror_display === "ON") {
-            bitValue |= 0x02;
-        }
-        if (meta.state.system_mode === constants.thermostatSystemModes[0]) {
-            // off
-            bitValue |= 0x20;
-        } else if (meta.state.system_mode === constants.thermostatSystemModes[4]) {
-            // "heat"
-            bitValue |= 0x04;
-        } else {
-            // auto
-            bitValue |= 0x10;
-        }
-        if (value === "LOCK") {
-            bitValue |= 0x80;
-        }
-        const origValue = value;
-        value = bitValue;
-        const payload = {16392: {value, type: 0x22}};
-        await entity.write("hvacThermostat", payload, manufacturerOptions.eurotronic);
-        return {state: {[key]: origValue}};
-    },
-};
-export const eurotronic_mirror_display: Tz.Converter = {
-    key: ["eurotronic_mirror_display", "mirror_display"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.read("hvacThermostat", [0x4008], manufacturerOptions.eurotronic);
-        // calculate bit value
-        let bitValue = 0x01; // bit 0 always 1
-        if (value === "ON") {
-            bitValue |= 0x02;
-        }
-        if (meta.state.system_mode === constants.thermostatSystemModes[0]) {
-            // off
-            bitValue |= 0x20;
-        } else if (meta.state.system_mode === constants.thermostatSystemModes[4]) {
-            // "heat"
-            bitValue |= 0x04;
-        } else {
-            // auto
-            bitValue |= 0x10;
-        }
-        if (meta.state.child_lock === "LOCK") {
-            bitValue |= 0x80;
-        }
-        const origValue = value;
-        value = bitValue;
-        const payload = {16392: {value, type: 0x22}};
-        await entity.write("hvacThermostat", payload, manufacturerOptions.eurotronic);
-        return {state: {[key]: origValue}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", [0x4008], manufacturerOptions.eurotronic);
-    },
-};
-export const DTB190502A1_LED: Tz.Converter = {
-    key: ["LED"],
-    convertSet: async (entity, key, value, meta) => {
-        if (value === "default") {
-            value = 1;
-        }
-        const lookup = {
-            OFF: 0,
-            ON: 1,
-        };
-        value = utils.getFromLookup(value, lookup);
-        // Check for valid data
-        utils.assertNumber(value, key);
-        if ((value >= 0 && value < 2) === false) value = 0;
-
-        const payload = {
-            16400: {
-                value,
-                type: 0x21,
-            },
-        };
-
-        await entity.write("genBasic", payload);
-    },
-};
 export const ptvo_switch_trigger: Tz.Converter = {
     key: ["trigger", "interval"],
     convertSet: async (entity, key, value, meta) => {
@@ -2673,21 +2468,6 @@ export const tint_scene: Tz.Converter = {
     key: ["tint_scene"],
     convertSet: async (entity, key, value, meta) => {
         await entity.write("genBasic", {16389: {value, type: 0x20}}, manufacturerOptions.tint);
-    },
-};
-export const legrand_power_alarm: Tz.Converter = {
-    key: ["power_alarm"],
-    convertSet: async (entity, key, value, meta) => {
-        const enableAlarm = !(value === "DISABLE" || value === false);
-        const payloadBolean = {61441: {value: enableAlarm ? 0x01 : 0x00, type: 0x10}};
-        const payloadValue = {61442: {value: value, type: 0x29}};
-        await entity.write("haElectricalMeasurement", payloadValue);
-        await entity.write("haElectricalMeasurement", payloadBolean);
-        // To have consistent information in the system.
-        await entity.read("haElectricalMeasurement", [0xf000, 0xf001, 0xf002]);
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("haElectricalMeasurement", [0xf000, 0xf001, 0xf002]);
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`

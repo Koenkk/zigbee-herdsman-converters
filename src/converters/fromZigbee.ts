@@ -1,4 +1,3 @@
-import assert from "node:assert";
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -2023,24 +2022,6 @@ export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "command
         };
     },
 };
-export const DTB190502A1: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const lookupKEY: KeyValueAny = {
-            "0": "KEY_SYS",
-            "1": "KEY_UP",
-            "2": "KEY_DOWN",
-            "3": "KEY_NONE",
-        };
-        const lookupLED: KeyValueAny = {"0": "OFF", "1": "ON"};
-        return {
-            cpu_temperature: precisionRound(msg.data["41361"] as number, 2),
-            key_state: lookupKEY[msg.data["41362"] as number],
-            led_state: lookupLED[msg.data["41363"] as number],
-        };
-    },
-};
 export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasWd",
     type: ["attributeReport", "readResponse"],
@@ -2344,37 +2325,69 @@ export const K4003C_binary_input: Fz.Converter<"genBinaryInput", undefined, "att
         return {action: msg.data.presentValue === 1 ? "off" : "on"};
     },
 };
+// Button 1: A0 (top left)
+// Button 2: A1 (bottom left)
+// Button 3: B0 (top right)
+// Button 4: B1 (bottom right)
+const ENOCEAN_PTM215Z_LOOKUP: Record<number, string> = {
+    16: "press_1",
+    20: "release_1",
+    17: "press_2",
+    21: "release_2",
+    19: "press_3",
+    23: "release_3",
+    18: "press_4",
+    22: "release_4",
+    100: "press_1_and_3",
+    101: "release_1_and_3",
+    98: "press_2_and_4",
+    99: "release_2_and_4",
+    34: "press_energy_bar",
+};
 export const enocean_ptm215z: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
     type: ["commandNotification", "commandCommissioningNotification"],
     convert: (model, msg, publish, options, meta) => {
         const commandID = msg.data.commandID;
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return; // Skip commissioning command.
+        if (commandID >= 0xe0) return; // Skip op commands
 
-        // Button 1: A0 (top left)
-        // Button 2: A1 (bottom left)
-        // Button 3: B0 (top right)
-        // Button 4: B1 (bottom right)
-        const lookup: KeyValueAny = {
-            16: "press_1",
-            20: "release_1",
-            17: "press_2",
-            21: "release_2",
-            19: "press_3",
-            23: "release_3",
-            18: "press_4",
-            22: "release_4",
-            100: "press_1_and_3",
-            101: "release_1_and_3",
-            98: "press_2_and_4",
-            99: "release_2_and_4",
-            34: "press_energy_bar",
-        };
-
-        const action = lookup[commandID] !== undefined ? lookup[commandID] : `unknown_${commandID}`;
+        const action = ENOCEAN_PTM215Z_LOOKUP[commandID] !== undefined ? ENOCEAN_PTM215Z_LOOKUP[commandID] : `unknown_${commandID}`;
         return {action};
     },
+};
+// Button 1: A0 (top left)
+// Button 2: A1 (bottom left)
+// Button 3: B0 (top right)
+// Button 4: B1 (bottom right)
+const ENOCEAN_PTM215ZE_LOOKUP: Record<number, string> = {
+    34: "press_1",
+    35: "release_1",
+    24: "press_2",
+    25: "release_2",
+    20: "press_3",
+    21: "release_3",
+    18: "press_4",
+    19: "release_4",
+    100: "press_1_and_2",
+    101: "release_1_and_2",
+    98: "press_1_and_3",
+    99: "release_1_and_3",
+    30: "press_1_and_4",
+    31: "release_1_and_4",
+    28: "press_2_and_3",
+    29: "release_2_and_3",
+    26: "press_2_and_4",
+    27: "release_2_and_4",
+    22: "press_3_and_4",
+    23: "release_3_and_4",
+    16: "press_energy_bar",
+    17: "release_energy_bar",
+    0: "press_or_release_all",
+    80: "lock",
+    81: "unlock",
+    82: "half_open",
+    83: "tilt",
 };
 export const enocean_ptm215ze: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
@@ -2382,48 +2395,38 @@ export const enocean_ptm215ze: Fz.Converter<"greenPower", undefined, ["commandNo
     convert: (model, msg, publish, options, meta) => {
         const commandID = msg.data.commandID;
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return;
+        if (commandID >= 0xe0) return; // Skip op commands
 
-        // Button 1: A0 (top left)
-        // Button 2: A1 (bottom left)
-        // Button 3: B0 (top right)
-        // Button 4: B1 (bottom right)
-        const lookup: KeyValueAny = {
-            34: "press_1",
-            35: "release_1",
-            24: "press_2",
-            25: "release_2",
-            20: "press_3",
-            21: "release_3",
-            18: "press_4",
-            19: "release_4",
-            100: "press_1_and_2",
-            101: "release_1_and_2",
-            98: "press_1_and_3",
-            99: "release_1_and_3",
-            30: "press_1_and_4",
-            31: "release_1_and_4",
-            28: "press_2_and_3",
-            29: "release_2_and_3",
-            26: "press_2_and_4",
-            27: "release_2_and_4",
-            22: "press_3_and_4",
-            23: "release_3_and_4",
-            16: "press_energy_bar",
-            17: "release_energy_bar",
-            0: "press_or_release_all",
-            80: "lock",
-            81: "unlock",
-            82: "half_open",
-            83: "tilt",
-        };
-
-        if (lookup[commandID] === undefined) {
+        if (ENOCEAN_PTM215ZE_LOOKUP[commandID] === undefined) {
             logger.error(`PTM 215ZE: missing command '${commandID}'`, NS);
         } else {
-            return {action: lookup[commandID]};
+            return {action: ENOCEAN_PTM215ZE_LOOKUP[commandID]};
         }
     },
+};
+// Button 1: A0 (top left)
+// Button 2: A1 (bottom left)
+// Button 3: B0 (top right)
+// Button 4: B1 (bottom right)
+const ENOCEAN_PTM216Z_LOOKUP: Record<string, string> = {
+    "105_1": "press_1",
+    "105_2": "press_2",
+    "105_3": "press_1_and_2",
+    "105_4": "press_3",
+    "105_5": "press_1_and_3",
+    "105_6": "press_2_and_3",
+    "105_7": "press_1_and_2_and_3",
+    "105_8": "press_4",
+    "105_9": "press_1_and_4",
+    "105_10": "press_2_and_4",
+    "105_11": "press_1_and_2_and_4",
+    "105_12": "press_3_and_4",
+    "105_13": "press_1_and_3_and_4",
+    "105_14": "press_2_and_3_and_4",
+    "105_15": "press_all",
+    "105_16": "press_energy_bar",
+    "106_0": "release",
+    "104_": "short_press_2_of_2",
 };
 export const enocean_ptm216z: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
@@ -2431,38 +2434,14 @@ export const enocean_ptm216z: Fz.Converter<"greenPower", undefined, ["commandNot
     convert: (model, msg, publish, options, meta) => {
         const commandID = msg.data.commandID;
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return;
+        if (commandID >= 0xe0) return; // Skip op commands
 
-        // Button 1: A0 (top left)
-        // Button 2: A1 (bottom left)
-        // Button 3: B0 (top right)
-        // Button 4: B1 (bottom right)
-        const lookup: KeyValueAny = {
-            "105_1": "press_1",
-            "105_2": "press_2",
-            "105_3": "press_1_and_2",
-            "105_4": "press_3",
-            "105_5": "press_1_and_3",
-            "105_6": "press_2_and_3",
-            "105_7": "press_1_and_2_and_3",
-            "105_8": "press_4",
-            "105_9": "press_1_and_4",
-            "105_10": "press_2_and_4",
-            "105_11": "press_1_and_2_and_4",
-            "105_12": "press_3_and_4",
-            "105_13": "press_1_and_3_and_4",
-            "105_14": "press_2_and_3_and_4",
-            "105_15": "press_all",
-            "105_16": "press_energy_bar",
-            "106_0": "release",
-            "104_": "short_press_2_of_2",
-        };
+        const ID = `${commandID}_${"raw" in msg.data.commandFrame ? (msg.data.commandFrame.raw[0] ?? "") : ""}`;
 
-        const ID = `${commandID}_${("raw" in msg.data.commandFrame && msg.data.commandFrame.raw?.slice(0, 1).join("_")) ?? ""}`;
-        if (lookup[ID] === undefined) {
+        if (ENOCEAN_PTM216Z_LOOKUP[ID] === undefined) {
             logger.error(`PTM 216Z: missing command '${ID}'`, NS);
         } else {
-            return {action: lookup[ID]};
+            return {action: ENOCEAN_PTM216Z_LOOKUP[ID]};
         }
     },
 };
@@ -2476,20 +2455,6 @@ export const enocean_ptm216z: Fz.Converter<"greenPower", undefined, ["commandNot
 //         };
 //     },
 // };
-export const kmpcil_res005_occupancy: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBinaryInput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        return {occupancy: msg.data.presentValue === 1};
-    },
-};
-export const kmpcil_res005_on_off: Fz.Converter<"genBinaryOutput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBinaryOutput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        return {state: msg.data.presentValue === 0 ? "OFF" : "ON"};
-    },
-};
 export const byun_smoke_false: Fz.Converter<"pHMeasurement", undefined, ["attributeReport"]> = {
     cluster: "pHMeasurement",
     type: ["attributeReport"],
@@ -2523,92 +2488,6 @@ export const byun_gas_true: Fz.Converter<"ssIasZone", undefined, ["commandStatus
     convert: (model, msg, publish, options, meta) => {
         if (msg.endpoint.ID === 1 && msg.data.zonestatus === 33) {
             return {gas: true};
-        }
-    },
-};
-export const legrand_binary_input_moving: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBinaryInput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        return {action: msg.data.presentValue ? "moving" : "stopped"};
-    },
-};
-export const legrand_binary_input_on_off: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBinaryInput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const multiEndpoint = model.meta?.multiEndpoint;
-        const property = multiEndpoint ? postfixWithEndpointName("state", msg, model, meta) : "state";
-        return {[property]: msg.data.presentValue ? "ON" : "OFF"};
-    },
-};
-export const legrand_scenes: Fz.Converter<"genScenes", undefined, "commandRecall"> = {
-    cluster: "genScenes",
-    type: "commandRecall",
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {
-            65527: "enter",
-            65526: "leave",
-            65524: "sleep",
-            65525: "wakeup",
-            65518: "ambiance_I",
-            65519: "ambiance_II",
-            65520: "ambiance_III",
-        };
-        return {action: lookup[msg.data.groupid] ? lookup[msg.data.groupid] : "default"};
-    },
-};
-export const legrand_power_alarm: Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "haElectricalMeasurement",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-
-        // 0xf000 = 61440
-        // This attribute returns usually 2 when power is over the defined threshold.
-        if (msg.data["61440"] !== undefined) {
-            payload.power_alarm_active_value = msg.data["61440"];
-            payload.power_alarm_active = payload.power_alarm_active_value > 0;
-        }
-        // 0xf001 = 61441
-        if (msg.data["61441"] !== undefined) {
-            payload.power_alarm_enabled = msg.data["61441"];
-        }
-        // 0xf002 = 61442, wh = watt hour
-        if (msg.data["61442"] !== undefined) {
-            payload.power_alarm_wh_threshold = msg.data["61442"];
-        }
-        return payload;
-    },
-};
-export const legrand_greenpower: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
-    cluster: "greenPower",
-    type: ["commandNotification", "commandCommissioningNotification"],
-    convert: (model, msg, publish, options, meta) => {
-        const commandID = msg.data.commandID;
-        if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return;
-        const lookup: KeyValueAny = {
-            16: "home_arrival",
-            17: "home_departure", // ZLGP14
-            18: "daytime_day",
-            19: "daytime_night", // ZLGP16, yes these commandIDs are lower than ZLGP15s'
-            20: "press_1",
-            21: "press_2",
-            22: "press_3",
-            23: "press_4", // ZLGP15
-            34: "press_once",
-            32: "press_twice", // ZLGP17, ZLGP18
-            51: "down_hold", // ZLGP17, ZLGP18
-            52: "stop",
-            53: "up",
-            54: "down", // 600087l
-            55: "up_hold", // ZLGP17, ZLGP18
-        };
-        if (lookup[commandID] === undefined) {
-            logger.error(`Legrand GreenPower: missing command '${commandID}'`, NS);
-        } else {
-            return {action: lookup[commandID]};
         }
     },
 };
@@ -2978,145 +2857,17 @@ export const hue_wall_switch_device_mode: Fz.Converter<"genBasic", undefined, ["
         }
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CCTSwitch_D0001_levelctrl: Fz.Converter<
-    "genLevelCtrl",
-    undefined,
-    ["commandMoveToLevel", "commandMoveToLevelWithOnOff", "commandMove", "commandStop"]
-> = {
-    cluster: "genLevelCtrl",
-    type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff", "commandMove", "commandStop"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        if (msg.type === "commandMove") {
-            assert("movemode" in msg.data);
-            const direction = msg.data.movemode === 1 ? "down" : "up";
-            payload.action = `brightness_${direction}_hold`;
-            globalStore.putValue(msg.endpoint, "direction", direction);
-            globalStore.putValue(msg.endpoint, "start", Date.now());
-            payload.rate = msg.data.rate;
-            payload.action_rate = msg.data.rate;
-        } else if (msg.type === "commandStop") {
-            const direction = globalStore.getValue(msg.endpoint, "direction");
-            const duration = Date.now() - globalStore.getValue(msg.endpoint, "start");
-            payload.action = `brightness_${direction}_release`;
-            payload.duration = duration;
-            payload.action_duration = duration;
-        } else {
-            // wrap the messages from button2 and button4 into a single function
-            // button2 always sends "commandMoveToLevel"
-            // button4 sends two messages, with "commandMoveToLevelWithOnOff" coming first in the sequence
-            //         so that's the one we key off of to indicate "button4". we will NOT print it in that case,
-            //         instead it will be returned as part of the second sequence with
-            //         CCTSwitch_D0001_move_to_colortemp_recall below.
-
-            let clk = "brightness";
-            let cmd = null;
-
-            assert("level" in msg.data);
-            payload.action_brightness = msg.data.level;
-            payload.action_transition = msg.data.transtime / 10.0;
-            payload.brightness = msg.data.level;
-            payload.transition = msg.data.transtime / 10.0;
-
-            if (msg.type === "commandMoveToLevel") {
-                // pressing the brightness button increments/decrements from 13-254.
-                // when it reaches the end (254) it will start decrementing by a step,
-                // and vice versa.
-                const direction = msg.data.level > globalStore.getValue(msg.endpoint, "last_brightness") ? "up" : "down";
-                cmd = `${clk}_${direction}`;
-                globalStore.putValue(msg.endpoint, "last_brightness", msg.data.level);
-            } else if (msg.type === "commandMoveToLevelWithOnOff") {
-                // This is the 'start' of the 4th button sequence.
-                clk = "memory";
-                globalStore.putValue(msg.endpoint, "last_move_level", msg.data.level);
-                globalStore.putValue(msg.endpoint, "last_clk", clk);
-            }
-
-            if (clk !== "memory") {
-                globalStore.putValue(msg.endpoint, "last_seq", msg.meta.zclTransactionSequenceNumber);
-                globalStore.putValue(msg.endpoint, "last_clk", clk);
-                payload.action = cmd;
-            }
-        }
-
-        return payload;
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CCTSwitch_D0001_lighting: Fz.Converter<"lightingColorCtrl", undefined, ["commandMoveToColorTemp", "commandMoveColorTemp"]> = {
-    cluster: "lightingColorCtrl",
-    type: ["commandMoveToColorTemp", "commandMoveColorTemp"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        if (msg.type === "commandMoveColorTemp") {
-            assert("movemode" in msg.data);
-            const clk = "colortemp";
-            payload.rate = msg.data.rate;
-            payload.action_rate = msg.data.rate;
-
-            if (msg.data.movemode === 0) {
-                const direction = globalStore.getValue(msg.endpoint, "direction");
-                const duration = Date.now() - globalStore.getValue(msg.endpoint, "start");
-                payload.action = `${clk}_${direction}_release`;
-                payload.duration = duration;
-                payload.action_duration = duration;
-            } else {
-                const direction = msg.data.movemode === 3 ? "down" : "up";
-                payload.action = `${clk}_${direction}_hold`;
-                payload.rate = msg.data.rate;
-                payload.action_rate = msg.data.rate;
-                // store button and start moment
-                globalStore.putValue(msg.endpoint, "direction", direction);
-                globalStore.putValue(msg.endpoint, "start", Date.now());
-            }
-        } else {
-            // both button3 and button4 send the command "commandMoveToColorTemp"
-            // in order to distinguish between the buttons, use the sequence number and the previous command
-            // to determine if this message was immediately preceded by "commandMoveToLevelWithOnOff"
-            // if this command follows a "commandMoveToLevelWithOnOff", then it's actually button4's second message
-            // and we can ignore it entirely
-            const lastClk = globalStore.getValue(msg.endpoint, "last_clk");
-            const lastSeq = globalStore.getValue(msg.endpoint, "last_seq");
-
-            const seq = msg.meta.zclTransactionSequenceNumber;
-            let clk = "colortemp";
-            assert("colortemp" in msg.data);
-            payload.color_temp = msg.data.colortemp;
-            payload.transition = msg.data.transtime / 10.0;
-            payload.action_color_temp = msg.data.colortemp;
-            payload.action_transition = msg.data.transtime / 10.0;
-
-            // because the remote sends two commands for button4, we need to look at the previous command and
-            // see if it was the recognized start command for button4 - if so, ignore this second command,
-            // because it's not really button3, it's actually button4
-            if (lastClk === "memory") {
-                payload.action = "recall";
-                payload.brightness = globalStore.getValue(msg.endpoint, "last_move_level");
-                payload.action_brightness = globalStore.getValue(msg.endpoint, "last_move_level");
-                // ensure the "last" message was really the message prior to this one
-                // accounts for missed messages (gap >1) and for the remote's rollover from 127 to 0
-                if ((seq === 0 && lastSeq === 127) || seq - lastSeq === 1) {
-                    clk = null;
-                }
-            } else {
-                // pressing the color temp button increments/decrements from 153-370K.
-                // when it reaches the end (370) it will start decrementing by a step,
-                // and vice versa.
-                const direction = msg.data.colortemp > globalStore.getValue(msg.endpoint, "last_color_temp") ? "up" : "down";
-                const cmd = `${clk}_${direction}`;
-                payload.action = cmd;
-                globalStore.putValue(msg.endpoint, "last_color_temp", msg.data.colortemp);
-            }
-
-            if (clk != null) {
-                globalStore.putValue(msg.endpoint, "last_seq", msg.meta.zclTransactionSequenceNumber);
-                globalStore.putValue(msg.endpoint, "last_clk", clk);
-            }
-        }
-
-        return payload;
-    },
+const HUE_TAP_LOOKUP: Record<number, string> = {
+    34: "press_1",
+    16: "press_2",
+    17: "press_3",
+    18: "press_4",
+    // Actions below are never generated by a Hue Tap but by a PMT 215Z
+    // https://github.com/Koenkk/zigbee2mqtt/issues/18088
+    98: "press_3_and_4",
+    99: "release_3_and_4",
+    100: "press_1_and_2",
+    101: "release_1_and_2",
 };
 export const hue_tap: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
@@ -3124,23 +2875,12 @@ export const hue_tap: Fz.Converter<"greenPower", undefined, ["commandNotificatio
     convert: (model, msg, publish, options, meta) => {
         const commandID = msg.data.commandID;
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return;
-        const lookup: KeyValueAny = {
-            34: "press_1",
-            16: "press_2",
-            17: "press_3",
-            18: "press_4",
-            // Actions below are never generated by a Hue Tap but by a PMT 215Z
-            // https://github.com/Koenkk/zigbee2mqtt/issues/18088
-            98: "press_3_and_4",
-            99: "release_3_and_4",
-            100: "press_1_and_2",
-            101: "release_1_and_2",
-        };
-        if (lookup[commandID] === undefined) {
+        if (commandID >= 0xe0) return; // Skip op commands
+
+        if (HUE_TAP_LOOKUP[commandID] === undefined) {
             logger.error(`Hue Tap: missing command '${commandID}'`, NS);
         } else {
-            return {action: lookup[commandID]};
+            return {action: HUE_TAP_LOOKUP[commandID]};
         }
     },
 };
@@ -3258,6 +2998,13 @@ export const sihas_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "co
         return {action: `${button}${lookup[msg.type]}`};
     },
 };
+const SUNRICHER_SWITCH2801K2_LOOKUP: Record<number, string> = {
+    33: "press_on",
+    32: "press_off",
+    52: "release",
+    53: "hold_on",
+    54: "hold_off",
+};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const sunricher_switch2801K2: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
     cluster: "greenPower",
@@ -3265,14 +3012,23 @@ export const sunricher_switch2801K2: Fz.Converter<"greenPower", undefined, ["com
     convert: (model, msg, publish, options, meta) => {
         const commandID = msg.data.commandID;
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return;
-        const lookup: KeyValueAny = {33: "press_on", 32: "press_off", 52: "release", 53: "hold_on", 54: "hold_off"};
-        if (lookup[commandID] === undefined) {
+        if (commandID >= 0xe0) return; // Skip op commands
+
+        if (SUNRICHER_SWITCH2801K2_LOOKUP[commandID] === undefined) {
             logger.error(`Sunricher: missing command '${commandID}'`, NS);
         } else {
-            return {action: lookup[commandID]};
+            return {action: SUNRICHER_SWITCH2801K2_LOOKUP[commandID]};
         }
     },
+};
+const SUNRICHER_SWITCH2801K4_LOOKUP: Record<number, string> = {
+    33: "press_on",
+    32: "press_off",
+    55: "press_high",
+    56: "press_low",
+    53: "hold_high",
+    54: "hold_low",
+    52: "release",
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const sunricher_switch2801K4: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
@@ -3281,20 +3037,12 @@ export const sunricher_switch2801K4: Fz.Converter<"greenPower", undefined, ["com
     convert: (model, msg, publish, options, meta) => {
         const commandID = msg.data.commandID;
         if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID === 224) return;
-        const lookup: KeyValueAny = {
-            33: "press_on",
-            32: "press_off",
-            55: "press_high",
-            56: "press_low",
-            53: "hold_high",
-            54: "hold_low",
-            52: "release",
-        };
-        if (lookup[commandID] === undefined) {
+        if (commandID >= 0xe0) return; // Skip op commands
+
+        if (SUNRICHER_SWITCH2801K4_LOOKUP[commandID] === undefined) {
             logger.error(`Sunricher: missing command '${commandID}'`, NS);
         } else {
-            return {action: lookup[commandID]};
+            return {action: SUNRICHER_SWITCH2801K4_LOOKUP[commandID]};
         }
     },
 };
@@ -3552,21 +3300,6 @@ export const command_arm_with_transaction: Fz.Converter<"ssIasAce", undefined, "
         return payload;
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const EKO09738_metering: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
-    /**
-     * Elko EKO09738 and EKO09716 reports power in mW, scale to W
-     */
-    cluster: "seMetering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = metering.convert(model, msg, publish, options, meta) as KeyValueAny;
-        if (result && result.power !== undefined) {
-            result.power /= 1000;
-        }
-        return result;
-    },
-};
 export const command_on_presence: Fz.Converter<"genOnOff", undefined, "commandOn"> = {
     cluster: "genOnOff",
     type: "commandOn",
@@ -3584,74 +3317,6 @@ export const ias_ace_occupancy_with_timeout: Fz.Converter<"ssIasAce", undefined,
     convert: (model, msg, publish, options, meta) => {
         const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
         return occupancy_with_timeout.convert(model, newMsg, publish, options, meta);
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SP600_power: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "seMetering",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (meta.device.dateCode === "20160120") {
-            // Cannot use metering, divisor/multiplier is not according to ZCL.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/2233
-            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/915
-
-            const result: KeyValueAny = {};
-            if (msg.data.instantaneousDemand !== undefined) {
-                result.power = msg.data.instantaneousDemand;
-            }
-            // Summation is reported in Watthours
-            if (msg.data.currentSummDelivered !== undefined) {
-                const value = msg.data.currentSummDelivered;
-                result.energy = value / 1000.0;
-            }
-            return result;
-        }
-        return metering.convert(model, msg, publish, options, meta);
-    },
-};
-export const eurotronic_thermostat: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result = thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
-        if (result) {
-            if (typeof msg.data[0x4003] === "number") {
-                result.current_heating_setpoint = precisionRound(msg.data[0x4003], 2) / 100;
-            }
-            if (typeof msg.data[0x4008] === "number") {
-                result.child_lock = (msg.data[0x4008] & 0x80) !== 0 ? "LOCK" : "UNLOCK";
-                result.mirror_display = (msg.data[0x4008] & 0x02) !== 0 ? "ON" : "OFF";
-                // This seems broken... We need to write 0x20 to turn it off and 0x10 to set
-                // it to auto mode. However, when it reports the flag, it will report 0x10
-                //  when it's off, and nothing at all when it's in auto mode
-                // the new Comet valve reports the off status on bit 5
-                // if either bit 4 or 5 is set, off mode is active
-                if ((msg.data[0x4008] & 0x30) !== 0) {
-                    // reports auto -> setting to force_off
-                    result.system_mode = constants.thermostatSystemModes[0];
-                } else if ((msg.data[0x4008] & 0x04) !== 0) {
-                    // always_on
-                    result.system_mode = constants.thermostatSystemModes[4];
-                } else {
-                    // auto
-                    result.system_mode = constants.thermostatSystemModes[1];
-                }
-            }
-            if (typeof msg.data[0x4002] === "number") {
-                result.error_status = msg.data[0x4002];
-            }
-            if (typeof msg.data[0x4000] === "number") {
-                result.trv_mode = msg.data[0x4000];
-            }
-            if (typeof msg.data[0x4001] === "number") {
-                result.valve_position = msg.data[0x4001];
-            }
-            if (msg.data.pIHeatingDemand !== undefined) {
-                result.running_state = msg.data.pIHeatingDemand >= 10 ? "heat" : "idle";
-            }
-        }
-        return result;
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`

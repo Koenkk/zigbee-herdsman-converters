@@ -2428,6 +2428,18 @@ export const lumiModernExtend = {
             attribute: "presentValue",
             ...args,
         }),
+    lumiStaticStateAction: (): ModernExtend => {
+        const converter: Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport"]> = {
+            cluster: "manuSpecificLumi",
+            type: ["attributeReport"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data["499"] === 1) {
+                    return {action: "static"};
+                }
+            },
+        };
+        return {fromZigbee: [converter], isModernExtend: true};
+    },
     lumiVoc: (args?: Partial<modernExtend.NumericArgs<"genAnalogInput">>) =>
         modernExtend.numeric({
             name: "voc",
