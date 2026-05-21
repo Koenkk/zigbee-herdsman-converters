@@ -2218,19 +2218,6 @@ export const tint404011_move_to_color_temp: Fz.Converter<"lightingColorCtrl", un
         return payload;
     },
 };
-export const restorable_brightness: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genLevelCtrl",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data.currentLevel !== undefined) {
-            // Ignore brightness = 0, which only happens when state is OFF
-            if (Number(msg.data.currentLevel) > 0) {
-                return {brightness: msg.data.currentLevel};
-            }
-            return {};
-        }
-    },
-};
 export const ewelink_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]> = {
     cluster: "genOnOff",
     type: ["commandOn", "commandOff", "commandToggle"],

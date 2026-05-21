@@ -70,6 +70,19 @@ export const fzLocal = {
             return {humidity};
         },
     } satisfies Fz.Converter<"manuSpecificCentraliteHumidity", ManuSpecificCentraliteHumidity, ["attributeReport", "readResponse"]>,
+    restorable_brightness: {
+        cluster: "genLevelCtrl",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.currentLevel !== undefined) {
+                // Ignore brightness = 0, which only happens when state is OFF
+                if (Number(msg.data.currentLevel) > 0) {
+                    return {brightness: msg.data.currentLevel};
+                }
+                return {};
+            }
+        },
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -95,7 +108,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4256050-ZHAC",
         vendor: "Centralite",
         description: "3-Series smart dimming outlet",
-        fromZigbee: [fz.restorable_brightness, fz.on_off, fz.electrical_measurement],
+        fromZigbee: [fzLocal.restorable_brightness, fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.light_onoff_restorable_brightness],
         exposes: [e.light_brightness(), e.power(), e.voltage(), e.current()],
         configure: async (device, coordinatorEndpoint) => {
@@ -135,7 +148,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4257050-ZHAC",
         vendor: "Centralite",
         description: "3-Series smart dimming outlet",
-        fromZigbee: [fz.restorable_brightness, fz.on_off, fz.electrical_measurement],
+        fromZigbee: [fzLocal.restorable_brightness, fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.light_onoff_restorable_brightness, tz.ignore_transition],
         exposes: [e.light_brightness(), e.power(), e.voltage(), e.current()],
         configure: async (device, coordinatorEndpoint) => {
