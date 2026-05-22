@@ -1109,35 +1109,6 @@ const heimanExtend = {
             fromZigbee,
         };
     },
-    heimanClusterRadarDetectionTargetDistance: (): ModernExtend => {
-        const clusterName = "heimanClusterSpecial" as const;
-        const attributeId = 0x0029;
-        const mExtend = m.numeric({
-            name: "target_distance",
-            unit: "m",
-            valueMin: 0,
-            valueMax: 10,
-            cluster: clusterName,
-            attribute: {ID: attributeId, type: Zcl.DataType.UINT16},
-            description: "radar detection target distance",
-            access: "STATE_GET",
-        });
-        const fromZigbee = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if (msg.data["radarDetectionTargetRange"] === undefined) return;
-                    const attrValue = Number(msg.data["radarDetectionTargetRange"]);
-                    return {target_distance: attrValue / 100};
-                },
-            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
-        ];
-        return {
-            ...mExtend,
-            fromZigbee,
-        };
-    },
     heimanClusterRadarConfigParam: (): ModernExtend => {
         const clusterName = "heimanClusterSpecial" as const;
         const exposes = utils.exposeEndpoints(
@@ -1231,51 +1202,6 @@ const heimanExtend = {
             fromZigbee,
             toZigbee,
             isModernExtend: true,
-        };
-    },
-    heimanClusterRadarLearningControl: (): ModernExtend => {
-        const clusterName = "heimanClusterSpecial" as const;
-        const attributeId = 0x0027;
-        const mExtend = m.enumLookup({
-            name: "learning_control",
-            cluster: clusterName,
-            attribute: {ID: attributeId, type: Zcl.DataType.UINT16},
-            description: "radar learning control, You may need to wake it up first before sending.",
-            lookup: {start: 65534, reset: 65535},
-            access: "STATE_SET",
-        });
-        return {
-            ...mExtend,
-            fromZigbee: [],
-        };
-    },
-    heimanClusterRadarLearningState: (): ModernExtend => {
-        const clusterName = "heimanClusterSpecial" as const;
-        const attributeId = 0x0028;
-        const valueMap = {0: "not", 1: "learning", 2: "completed"};
-        const mExtend = m.enumLookup({
-            name: "learning_state",
-            cluster: clusterName,
-            attribute: {ID: attributeId, type: Zcl.DataType.ENUM8},
-            description: "radar learning state",
-            lookup: {not: 0, learning: 1, completed: 2},
-            access: "STATE_GET",
-        });
-        const fromZigbee = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if (msg.data["radarLearningState"] === undefined) return;
-                    const attrValue = Number(msg.data["radarLearningState"]);
-                    const valueText = valueMap[attrValue as keyof typeof valueMap] ?? "unknown";
-                    return {learning_state: valueText};
-                },
-            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
-        ];
-        return {
-            ...mExtend,
-            fromZigbee,
         };
     },
     heimanClusterRadarDetectionRange: (): ModernExtend => {
@@ -2727,7 +2653,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "haDiagnostic"]);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "genOnOffSwitchCfg", "haDiagnostic"]);
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
             await endpoint1.read("genOnOff", ["onOff", "startUpOnOff"]);
             await endpoint2.read("genOnOff", ["onOff", "startUpOnOff"]);
@@ -3587,21 +3513,60 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
             await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
             await endpoint.read("msOccupancySensing", ["occupancy", "pirOToUDelay"]);
-            await endpoint.read("heimanClusterSpecial", [0x0002, 0x0004, 0x001e, 0x0020, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c, 0x1004], {
-                manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
-            });
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
+                    "sensorFaultState",
+                    "sensorSensitivityLevel",
+                    "occupanySensorWorkMode",
+                    "occupiedToOccupiedDuration",
+                    "radarLearningState",
+                    "radarDetectionTargetRange",
+                    "occupanyControlOnOffIlluminanceThreshold",
+                    "radarDetectionMinRange",
+                    "radarDetectionMaxRange",
+                    "indicatorLightLevelControlOf1",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
         },
         extend: [
             m.illuminance(),
             heimanExtend.heimanClusterSpecial(),
-            heimanExtend.heimanClusterRadarDetectionTargetDistance(),
             heimanExtend.heimanClusterDeviceFaultState(),
-            heimanExtend.heimanClusterOccupiedToUnoccupiedDelay(),
-            heimanExtend.heimanClusterOccupiedRepeatedReportingDuration(),
             heimanExtend.heimanClusterRadarDetectionRange(),
-            heimanExtend.heimanClusterRadarLearningControl(),
-            heimanExtend.heimanClusterRadarLearningState(),
-            heimanExtend.heimanClusterIndicatorLight("work_indicator"),
+            m.numeric({
+                name: "unoccupied_delay",
+                unit: "s",
+                valueMin: 5,
+                valueMax: 3600,
+                cluster: "msOccupancySensing",
+                attribute: "pirOToUDelay",
+                description: "occupied to unoccupied delay",
+                access: "ALL",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "repeated_reporting_duration",
+                unit: "minute(s)",
+                valueMin: 0,
+                valueMax: 65535,
+                cluster: "heimanClusterSpecial",
+                attribute: "occupiedToOccupiedDuration",
+                description: "occupied repeated reporting duartion, 65535 indicates forever",
+                access: "ALL",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "target_distance",
+                unit: "m",
+                valueMin: 1,
+                valueMax: 10,
+                cluster: "heimanClusterSpecial",
+                attribute: "radarDetectionTargetRange",
+                description: "The distance of target",
+                access: "STATE_GET",
+            }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "pir_sensitivity_level",
                 lookup: {low: 0, medium: 1, high: 2},
@@ -3616,6 +3581,31 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "heimanClusterSpecial",
                 attribute: "occupanySensorWorkMode",
                 description: "occupany sensor work mode",
+                access: "ALL",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "learning_control",
+                lookup: {start: 65534, reset: 65535},
+                cluster: "heimanClusterSpecial",
+                attribute: "radarLearningControl",
+                description: "Radar learning mode, please wake up the device first.",
+                access: "STATE_SET",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "learning_state",
+                lookup: {not: 0, learning: 1, completed: 2, failed: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: "radarLearningState",
+                description: "radar learning state",
+                access: "STATE_GET",
+            }),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "work_indicator",
+                valueOn: ["On", 1],
+                valueOff: ["Off", 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "indicatorLightLevelControlOf1",
+                description: "Enable/disable the indicator on product",
                 access: "ALL",
             }),
         ],
